@@ -1,0 +1,37 @@
+.app-container {
+  display: flex;
+}
+
+.left-navigation {
+  width: 80px;
+  background-color: #333;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 20px;
+}
+
+.left-navigation a {
+  width: 60px;
+  height: 60px;
+  background-color: #555;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  text-decoration: none;
+}
+
+.left-navigation a:hover {
+  background-color: #777;
+}
+
+.active-tab {
+  background-color: #777;
+}
+
+.main-content {
+  flex: 1;
+  padding: 20px;
+}
