@@ -17,3 +17,12 @@ def update_players():
 
     """update nfl player data with latest"""
     return players
+
+
+@admin_bp.route("/update/nfl_players_and_stats", methods=["PUT"])
+def nfl_players_and_stats():
+    rapidapi = RapidApi()
+    players = rapidapi.update_players_and_stats()
+
+    """update nfl player data with latest"""
+    return players
