@@ -55,6 +55,47 @@ def create_nflteams_table(conn):
     conn.commit()
     cursor.close()
 
+def create_nflplayers_table(conn):
+    cursor = conn.cursor()
+    if (not table_exists(conn, "nfl_teams")) or (not table_has_data(conn, "nfl_teams")):
+        create_nflteams_table(conn)
+    if not table_exists(conn, "nfl_players"):
+        cursor.execute("""CREATE TABLE IF NOT EXISTS nfl_players (
+            id INT PRIMARY KEY,
+            name VARCHAR(255),
+            position VARCHAR(255),
+            espn_headshot_url VARCHAR(255),
+            jersey_num VARCHAR(255),
+            birthday VARCHAR(255),
+            height VARCHAR(255),
+            weight VARCHAR(255),
+            exp VARCHAR(255),
+            team_id INT,
+            FOREIGN KEY (team_id) REFERENCES nfl_teams (id)
+        );
+        """)
+    if not table_has_data(conn, "nfl_players"):
+        nfl_players = rapidapi_connection.get_nfl_players()
+        insert_query = """
+            INSERT INTO nfl_players (id, name, position, espn_headshot_url, jersey_num, birthday, height, weight, exp, team_id)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
+        for player in nfl_players:
+            id = int(player['playerID'])
+            name = player['longName']
+            pos = player['pos']
+            espnHeadshot = player['espnHeadshot'] if "espnHeadshot" in player else ""
+            teamID = int(player['teamID'])
+            jersey = player['jerseyNum'] if "jerseyNum" in player else ""
+            birthday = player['bDay'] if "bDay" in player else "1/1/1900"
+            height = player['height'] if "height" in player else "0'0\""
+            weight = player['weight'] if "weight" in player else "0"
+            exp = player['exp'] if 'exp' in player and player['exp'] != 'R' else "0"
+            cursor.execute(insert_query, (id, name, pos, espnHeadshot, jersey, birthday, height, weight, exp, teamID,))
+    
+    conn.commit()
+    cursor.close()
+
 def create_db():
     conn = psycopg2.connect(
         host=os.getenv("PG_HOST"), 
@@ -85,4 +126,5 @@ def setup_postgres():
         port=int(os.getenv("PG_PORT")),
     )
     create_nflteams_table(conn)
+    create_nflplayers_table(conn)
     conn.close()
