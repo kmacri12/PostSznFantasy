@@ -2,7 +2,6 @@ import os
 import json
 import logging
 import requests
-from api.utils.data_utils import join_nfl_player_list_and_team_with_stats
 
 
 class RapidApi:
@@ -13,28 +12,35 @@ class RapidApi:
             "X-RapidAPI-Key": os.getenv("RAPIDAPI_APIKEY"),
             "X-RapidAPI-Host": os.getenv("RAPIDAPI_APIHOST"),
         }
-
-    def update_players_and_stats(self):
+    
+    def get_nfl_teams(self) -> list[dict]:
         try:
-            filepath = os.path.join(os.getcwd(), "api/data/NflPlayerList.json")
-            if not os.path.exists(filepath):
-                self.update_players()
-            # for teamnum in 1-32
+            route = "/getNFLTeams"
+            full_url = self.base_url + route
+            response = requests.get(
+                full_url, headers=self.headers, timeout=60
+            )
+            response_json = json.loads(response.text)
+            response_body = response_json["body"]
+            return response_body
+        except Exception:
+            self.logger.exception("Exception caught while getting players and stats")
+            return []
+
+
+    def get_stats_for_team(self, team_id:str, team_abv:str) -> list[dict]:
+        try:
             route = "/getNFLTeamRoster"
             full_url = self.base_url + route
-            params = {"teamID": "6", "teamAbv": "CHI", "getStats": "true"}
+            params = {"teamID": team_id, "teamAbv": team_abv, "getStats": "true"}
             response = requests.get(
                 full_url, headers=self.headers, params=params, timeout=60
             )
             response_json = json.loads(response.text)
             response_body = response_json["body"]
             roster = response_body["roster"]
-            with open(filepath, "r") as f:
-                data = json.load(f)
-            data = join_nfl_player_list_and_team_with_stats(data, roster)
-            with open(filepath, "w") as f:
-                json.dump(data, f)
-            return data
+            return roster
+            
 
         except Exception:
             self.logger.exception("Exception caught while getting players and stats")
@@ -50,9 +56,7 @@ class RapidApi:
             filepath = os.path.join(os.getcwd(), "api/data/NflPlayerList.json")
             with open(filepath, "w") as f:
                 json.dump(response_body, f)
-
             return response_body
-            ## TODO change this return with saving the data somewhere
         except Exception:
             self.logger.exception(
                 "Exception caught while getting updated NFL Player List"
