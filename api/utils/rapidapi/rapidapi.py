@@ -2,6 +2,7 @@ import os
 import json
 import logging
 import requests
+import requests_cache
 
 
 class RapidApi:
@@ -17,16 +18,33 @@ class RapidApi:
         try:
             route = "/getNFLTeams"
             full_url = self.base_url + route
+            requests_cache.install_cache("getNFLTeams")
             response = requests.get(
                 full_url, headers=self.headers, timeout=60
             )
+            requests_cache.uninstall_cache()
             response_json = json.loads(response.text)
             response_body = response_json["body"]
             return response_body
         except Exception:
-            self.logger.exception("Exception caught while getting players and stats")
+            self.logger.exception("Exception caught while getting nfl teams")
             return []
-
+        
+    def get_nfl_players(self) -> list[dict]:
+        try:
+            route = "/getNFLPlayerList"
+            full_url = self.base_url + route
+            requests_cache.install_cache("getNFLPlayerList", expires_after=2629744) # expire in 1 month
+            response = requests.get(
+                full_url, headers=self.headers, timeout=60
+            )
+            requests_cache.uninstall_cache()
+            response_json = json.loads(response.text)
+            response_body = response_json["body"]
+            return response_body
+        except Exception:
+            self.logger.exception("Exception caught while getting nfl players list")
+            return []
 
     def get_stats_for_team(self, team_id:str, team_abv:str) -> list[dict]:
         try:
