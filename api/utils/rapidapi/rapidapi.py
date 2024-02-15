@@ -45,6 +45,44 @@ class RapidApi:
         except Exception:
             self.logger.exception("Exception caught while getting nfl players list")
             return []
+        
+    def get_nfl_games_list(self, season: str, season_type: str, week: str='all') -> list[dict]:
+        try:
+            route = "/getNFLGamesForWeek"
+            full_url = self.base_url + route
+            requests_cache.install_cache("getNFLGamesForWeek")
+            params = { 
+                'week': week,
+                'seasonType': season_type,
+                'season': season
+            }
+            response = requests.get(
+                full_url, headers=self.headers, params=params, timeout=60
+            )
+            requests_cache.uninstall_cache()
+            response_json = json.loads(response.text)
+            response_body = response_json["body"]
+            return response_body
+        except Exception:
+            self.logger.exception("Exception caught while getting nfl games list")
+            return []
+    
+    def get_nfl_box_score(self, game_id: str) -> dict:
+        try:
+            route = "/getNFLBoxScore"
+            full_url = self.base_url + route
+            requests_cache.install_cache("getNFLBoxScore")
+            params = {'gameID': game_id}
+            response = requests.get(
+                full_url, headers=self.headers, params=params, timeout=60
+            )
+            requests_cache.uninstall_cache()
+            response_json = json.loads(response.text)
+            response_body = response_json["body"]
+            return response_body
+        except Exception:
+            self.logger.exception("Exception caught while getting nfl box score")
+            return {}
 
     def get_stats_for_team(self, team_id:str, team_abv:str) -> list[dict]:
         try:
