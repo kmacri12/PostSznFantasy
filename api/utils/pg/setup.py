@@ -11,7 +11,7 @@ from api.utils.pg.pg_utils import *
 rapidapi_connection = RapidApi()
 
 
-def create_nflteams_table(conn: connection):
+def create_nflteams_table(conn:connection=get_pg_connection()):
     cursor = conn.cursor()
     if not table_exists(conn, "nfl_teams"):
         cursor.execute("""CREATE TABLE IF NOT EXISTS nfl_teams (
@@ -35,7 +35,7 @@ def create_nflteams_table(conn: connection):
     cursor.close()
 
 
-def create_nflplayers_table(conn: connection):
+def create_nflplayers_table(conn:connection=get_pg_connection()):
     cursor = conn.cursor()
     if (not table_exists(conn, "nfl_teams")) or (not table_has_data(conn, "nfl_teams")):
         create_nflteams_table(conn)
@@ -90,7 +90,7 @@ def create_nflplayers_table(conn: connection):
     cursor.close()
 
 
-def create_nfl_games_table(conn: connection):
+def create_nfl_games_table(conn:connection=get_pg_connection()):
     cursor = conn.cursor()
     if (not table_exists(conn, "nfl_teams")) or (not table_has_data(conn, "nfl_teams")):
         create_nflteams_table(conn)
@@ -144,7 +144,7 @@ def create_nfl_games_table(conn: connection):
     cursor.close()
 
 
-def populate_game_table_with_boxscores(conn: connection):
+def populate_game_table_with_boxscores(conn:connection=get_pg_connection()):
     cursor = conn.cursor()
     cursor.execute("""
         SELECT EXISTS (
@@ -187,7 +187,7 @@ def populate_game_table_with_boxscores(conn: connection):
     cursor.close()
 
 
-def create_nfl_player_game_stats_table(conn: connection):
+def create_nfl_player_game_stats_table(conn:connection=get_pg_connection()):
     cursor = conn.cursor()
     if not table_exists(conn, "nfl_player_game_stats"):
         cursor.execute("""CREATE TABLE IF NOT EXISTS nfl_player_game_stats (
