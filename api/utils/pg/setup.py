@@ -344,7 +344,6 @@ def create_nfl_player_game_stats_table(conn):
                     kicking_xp_missed = EXCLUDED.kicking_xp_missed,
                     kicking_fg_missed = EXCLUDED.kicking_fg_missed,
                     kicking_fg_yards_made = EXCLUDED.kicking_fg_yards_made
-                )
                 """
             values = (
                     game_id, player_id, passing_completions, passing_attempts, passing_yards, passing_touchdowns, passing_interceptions, passing_sacked, passing_sacked_yards, passing_two_point_conversions, rushing_carries, rushing_yards, rushing_touchdowns, rushing_long_rush, rushing_two_point_conversions, receiving_receptions, receiving_targets, receiving_yards, receiving_touchdowns, receiving_long_reception, receiving_two_point_conversions, carrying_fumbles, carrying_fumbles_lost, punt_return_yards, punt_return_td, kick_return_yards, kick_return_td, kicking_xp_made, kicking_xp_missed, kicking_fg_missed, kicking_fg_yards_made
@@ -358,7 +357,7 @@ def create_nfl_player_game_stats_table(conn):
 
         if 'dst' in game:
             dst = game['dst']
-            for home_away, stats in dst.values():
+            for home_away, stats in dst.items():
                 player_id = stats.get('teamID', None)
                 if player_id:
                     dst_yards_allowed = int(stats.get('ydsAllowed', 0))
