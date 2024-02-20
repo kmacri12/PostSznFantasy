@@ -15,7 +15,7 @@ def create_nflteams_table(conn:connection=get_pg_connection()):
     cursor = conn.cursor()
     if not table_exists(conn, "nfl_teams"):
         cursor.execute("""CREATE TABLE IF NOT EXISTS nfl_teams (
-            id INT PRIMARY KEY,
+            id SMALLINT PRIMARY KEY,
             team_abv VARCHAR(255),
             team_city VARCHAR(255),
             team_name VARCHAR(255),
@@ -50,7 +50,7 @@ def create_nflplayers_table(conn:connection=get_pg_connection()):
             height VARCHAR(255),
             weight VARCHAR(255),
             exp VARCHAR(255),
-            team_id INT,
+            team_id SMALLINT,
             FOREIGN KEY (team_id) REFERENCES nfl_teams (id)
         );
         """)
@@ -102,13 +102,13 @@ def create_nfl_games_table(conn:connection=get_pg_connection()):
             game_status VARCHAR(255),
             game_date VARCHAR(255),
             game_time_epoch VARCHAR(255),
-            game_week VARCHAR(255),
-            season VARCHAR(255),
+            game_week SMALLINT,
+            season SMALLINT,
             espn_link VARCHAR(255),
-            team_id_home INT,
-            team_id_away INT,
-            home_pts VARCHAR(255),
-            away_pts VARCHAR(255),
+            team_id_home SMALLINT,
+            team_id_away SMALLINT,
+            home_pts SMALLINT,
+            away_pts SMALLINT,
             season_type VARCHAR(255),
             team_stats JSONB,
             scoring_plays JSONB,
@@ -132,11 +132,23 @@ def create_nfl_games_table(conn:connection=get_pg_connection()):
                 id = game['gameID']
                 game_date = game['gameDate']
                 game_time_epoch = game['gameTime_epoch']
-                game_week = game['gameWeek']
-                season = game['season']
+                week_number_str = game['gameWeek'].split()[-1]
+                if week_number_str.isdigit():
+                    game_week = int(week_number_str)
+                elif game['gameWeek'] == 'Wild Card':
+                    game_week = 1
+                elif game['gameWeek'] == 'Divisional Round':
+                    game_week = 2
+                elif game['gameWeek'] == 'Conference Championship':
+                    game_week = 3
+                elif game['gameWeek'] == 'Super Bowl':
+                    game_week = 4
+                else:
+                    game_week = 0
+                season = int(game['season'])
                 espn_link = game['espnLink']
-                team_id_home = game['teamIDHome']
-                team_id_away = game['teamIDAway']
+                team_id_home = int(game['teamIDHome'])
+                team_id_away = int(game['teamIDAway'])
                 season_type = game['seasonType']
                 cursor.execute(insert_query, (id, game_date, game_time_epoch, game_week, season, espn_link, team_id_home, team_id_away, season_type,))
 
@@ -161,8 +173,8 @@ def populate_game_table_with_boxscores(conn:connection=get_pg_connection()):
             game_id = game['id']
             box_score = rapidapi_connection.get_nfl_box_score(game_id)
             game_status = box_score['gameStatus']
-            home_pts = box_score['homePts']
-            away_pts = box_score['awayPts']
+            home_pts = int(box_score['homePts'])
+            away_pts = int(box_score['awayPts'])
             game_clock = box_score['gameClock']
             team_stats = json.dumps(box_score['teamStats'])
             scoring_plays = json.dumps(box_score['scoringPlays'])
@@ -193,42 +205,42 @@ def create_nfl_player_game_stats_table(conn:connection=get_pg_connection()):
         cursor.execute("""CREATE TABLE IF NOT EXISTS nfl_player_game_stats (
             game_id VARCHAR(255),
             player_id INT,
-            passing_completions INT,
-            passing_attempts INT,
-            passing_yards INT,
-            passing_touchdowns INT,
-            passing_interceptions INT,
-            passing_sacked INT,
-            passing_sacked_yards INT,
-            passing_two_point_conversions INT,
-            rushing_carries INT,
-            rushing_yards INT,
-            rushing_touchdowns INT,
-            rushing_long_rush INT,
-            rushing_two_point_conversions INT,
-            receiving_receptions INT,
-            receiving_targets INT,
-            receiving_yards INT,
-            receiving_touchdowns INT,
-            receiving_long_reception INT,
-            receiving_two_point_conversions INT,
-            carrying_fumbles INT,
-            carrying_fumbles_lost INT,
-            punt_return_yards INT,
-            punt_return_td INT,
-            kick_return_yards INT,
-            kick_return_td INT,
-            kicking_xp_made INT,
-            kicking_xp_missed INT,
-            kicking_fg_missed INT,
-            kicking_fg_yards_made INT[],
-            dst_yards_allowed INT,
-            dst_points_allowed INT,
-            dst_sacks INT,
-            dst_def_td INT,
-            dst_safeties INT,
-            dst_fumbles_recovered INT,
-            dst_interceptions INT,
+            passing_completions SMALLINT,
+            passing_attempts SMALLINT,
+            passing_yards SMALLINT,
+            passing_touchdowns SMALLINT,
+            passing_interceptions SMALLINT,
+            passing_sacked SMALLINT,
+            passing_sacked_yards SMALLINT,
+            passing_two_point_conversions SMALLINT,
+            rushing_carries SMALLINT,
+            rushing_yards SMALLINT,
+            rushing_touchdowns SMALLINT,
+            rushing_long_rush SMALLINT,
+            rushing_two_point_conversions SMALLINT,
+            receiving_receptions SMALLINT,
+            receiving_targets SMALLINT,
+            receiving_yards SMALLINT,
+            receiving_touchdowns SMALLINT,
+            receiving_long_reception SMALLINT,
+            receiving_two_point_conversions SMALLINT,
+            carrying_fumbles SMALLINT,
+            carrying_fumbles_lost SMALLINT,
+            punt_return_yards SMALLINT,
+            punt_return_td SMALLINT,
+            kick_return_yards SMALLINT,
+            kick_return_td SMALLINT,
+            kicking_xp_made SMALLINT,
+            kicking_xp_missed SMALLINT,
+            kicking_fg_missed SMALLINT,
+            kicking_fg_yards_made SMALLINT[],
+            dst_yards_allowed SMALLINT,
+            dst_points_allowed SMALLINT,
+            dst_sacks SMALLINT,
+            dst_def_td SMALLINT,
+            dst_safeties SMALLINT,
+            dst_fumbles_recovered SMALLINT,
+            dst_interceptions SMALLINT,
             PRIMARY KEY (game_id, player_id),
             FOREIGN KEY (game_id) REFERENCES nfl_games (id),
             FOREIGN KEY (player_id) REFERENCES nfl_players (id)
@@ -240,6 +252,7 @@ def create_nfl_player_game_stats_table(conn:connection=get_pg_connection()):
         game_id = game['id']
         player_stats = game['player_stats']
         for player_id, stats in player_stats.items():
+
             passing_completions = int(stats.get("Passing", {}).get("passCompletions", 0))
             passing_attempts = int(stats.get("Passing", {}).get("passAttempts", 0))
             passing_yards = int(stats.get("Passing", {}).get("passYds", 0))
@@ -370,6 +383,60 @@ def create_nfl_player_game_stats_table(conn:connection=get_pg_connection()):
 
     conn.commit()
     cursor.close()
+
+
+def create_nfl_player_season_stats_table(conn:connection=get_pg_connection()):
+    cursor = conn.cursor()
+    if not table_exists(conn, "nfl_player_season_stats"):
+        cursor.execute("""CREATE TABLE IF NOT EXISTS nfl_player_season_stats (
+            season VARCHAR(255),
+            player_id INT,
+            passing_completions SMALLINT,
+            passing_attempts SMALLINT,
+            passing_yards SMALLINT,
+            passing_touchdowns SMALLINT,
+            passing_interceptions SMALLINT,
+            passing_sacked SMALLINT,
+            passing_sacked_yards SMALLINT,
+            passing_two_point_conversions SMALLINT,
+            rushing_carries SMALLINT,
+            rushing_yards SMALLINT,
+            rushing_touchdowns SMALLINT,
+            rushing_long_rush SMALLINT,
+            rushing_two_point_conversions SMALLINT,
+            receiving_receptions SMALLINT,
+            receiving_targets SMALLINT,
+            receiving_yards SMALLINT,
+            receiving_touchdowns SMALLINT,
+            receiving_long_reception SMALLINT,
+            receiving_two_point_conversions SMALLINT,
+            carrying_fumbles SMALLINT,
+            carrying_fumbles_lost SMALLINT,
+            punt_return_yards SMALLINT,
+            punt_return_td SMALLINT,
+            kick_return_yards SMALLINT,
+            kick_return_td SMALLINT,
+            kicking_xp_made SMALLINT,
+            kicking_xp_missed SMALLINT,
+            kicking_fg_missed SMALLINT,
+            kicking_fg_yards_made SMALLINT[],
+            dst_yards_allowed SMALLINT,
+            dst_points_allowed SMALLINT,
+            dst_sacks SMALLINT,
+            dst_def_td SMALLINT,
+            dst_safeties SMALLINT,
+            dst_fumbles_recovered SMALLINT,
+            dst_interceptions SMALLINT,
+            PRIMARY KEY (season, player_id),
+            FOREIGN KEY (player_id) REFERENCES nfl_players (id)
+        );
+        """)
+    cursor.execute("SELECT * FROM nfl_player_game_stats")
+    player_games = dictfetchall(cursor)
+    for player_game in player_games:
+        cursor.execute("SELECT * FROM nfl_player_season_stats WHERE player_id = %s", (player_game['player_id'],))
+        player_row = cursor.fetchone()
+        
 
 
 def create_db():
