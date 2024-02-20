@@ -3,43 +3,15 @@ import json
 import re
 import psycopg2
 from psycopg2 import sql
-from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+from psycopg2.extensions import connection, ISOLATION_LEVEL_AUTOCOMMIT
 from api.utils.rapidapi.rapidapi import RapidApi
-
+from api.utils.pg.pg_utils import *
 
 
 rapidapi_connection = RapidApi()
 
-# Function to fetch all rows as a dictionary
-def dictfetchall(cursor):
-    columns = [col[0] for col in cursor.description]
-    return [dict(zip(columns, row)) for row in cursor.fetchall()]
 
-def table_exists(conn, table_name) -> bool:
-    """Check if a table exists in the database."""
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT EXISTS (
-            SELECT 1
-            FROM information_schema.tables
-            WHERE table_name = %s
-        )
-    """, (table_name,))
-    exists = cursor.fetchone()[0]
-    cursor.close()
-    return exists
-
-
-def table_has_data(conn, table_name) -> bool:
-    """Check if a table contains any data."""
-    cursor = conn.cursor()
-    cursor.execute(f"SELECT EXISTS (SELECT 1 FROM {table_name})")
-    has_data = cursor.fetchone()[0]
-    cursor.close()
-    return has_data
-
-
-def create_nflteams_table(conn):
+def create_nflteams_table(conn: connection):
     cursor = conn.cursor()
     if not table_exists(conn, "nfl_teams"):
         cursor.execute("""CREATE TABLE IF NOT EXISTS nfl_teams (
@@ -62,7 +34,8 @@ def create_nflteams_table(conn):
     conn.commit()
     cursor.close()
 
-def create_nflplayers_table(conn):
+
+def create_nflplayers_table(conn: connection):
     cursor = conn.cursor()
     if (not table_exists(conn, "nfl_teams")) or (not table_has_data(conn, "nfl_teams")):
         create_nflteams_table(conn)
@@ -116,7 +89,8 @@ def create_nflplayers_table(conn):
     conn.commit()
     cursor.close()
 
-def create_nfl_games_table(conn):
+
+def create_nfl_games_table(conn: connection):
     cursor = conn.cursor()
     if (not table_exists(conn, "nfl_teams")) or (not table_has_data(conn, "nfl_teams")):
         create_nflteams_table(conn)
@@ -168,8 +142,9 @@ def create_nfl_games_table(conn):
 
     conn.commit()
     cursor.close()
-    
-def populate_game_table_with_boxscores(conn):
+
+
+def populate_game_table_with_boxscores(conn: connection):
     cursor = conn.cursor()
     cursor.execute("""
         SELECT EXISTS (
@@ -211,7 +186,8 @@ def populate_game_table_with_boxscores(conn):
     conn.commit()
     cursor.close()
 
-def create_nfl_player_game_stats_table(conn):
+
+def create_nfl_player_game_stats_table(conn: connection):
     cursor = conn.cursor()
     if not table_exists(conn, "nfl_player_game_stats"):
         cursor.execute("""CREATE TABLE IF NOT EXISTS nfl_player_game_stats (
@@ -418,13 +394,7 @@ def create_db():
 
 def setup_postgres():
     create_db()
-    conn = psycopg2.connect(
-        host=os.getenv("PG_HOST"), 
-        dbname=os.getenv("PG_DBNAME"),
-        user=os.getenv("PG_USER"), 
-        password=os.getenv("PG_PASSWORD"),
-        port=int(os.getenv("PG_PORT")),
-    )
+    conn = get_pg_connection()
     create_nflteams_table(conn)
     create_nflplayers_table(conn)
     create_nfl_games_table(conn)

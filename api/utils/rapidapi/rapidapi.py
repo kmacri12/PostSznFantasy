@@ -102,19 +102,3 @@ class RapidApi:
             self.logger.exception("Exception caught while getting players and stats")
             return []
 
-    def update_players(self):
-        try:
-            route = "/getNFLPlayerList"
-            full_url = self.base_url + route
-            response = requests.get(full_url, headers=self.headers, timeout=60)
-            response_json = json.loads(response.text)
-            response_body = response_json["body"]
-            filepath = os.path.join(os.getcwd(), "api/data/NflPlayerList.json")
-            with open(filepath, "w") as f:
-                json.dump(response_body, f)
-            return response_body
-        except Exception:
-            self.logger.exception(
-                "Exception caught while getting updated NFL Player List"
-            )
-            return []
