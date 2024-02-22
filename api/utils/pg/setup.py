@@ -205,47 +205,49 @@ def create_nfl_player_game_stats_table(conn:connection=get_pg_connection()):
         cursor.execute("""CREATE TABLE IF NOT EXISTS nfl_player_game_stats (
             game_id VARCHAR(255),
             player_id INT,
-            passing_completions SMALLINT,
-            passing_attempts SMALLINT,
-            passing_yards SMALLINT,
-            passing_touchdowns SMALLINT,
-            passing_interceptions SMALLINT,
-            passing_sacked SMALLINT,
-            passing_sacked_yards SMALLINT,
-            passing_two_point_conversions SMALLINT,
-            rushing_carries SMALLINT,
-            rushing_yards SMALLINT,
-            rushing_touchdowns SMALLINT,
-            rushing_long_rush SMALLINT,
-            rushing_two_point_conversions SMALLINT,
-            receiving_receptions SMALLINT,
-            receiving_targets SMALLINT,
-            receiving_yards SMALLINT,
-            receiving_touchdowns SMALLINT,
-            receiving_long_reception SMALLINT,
-            receiving_two_point_conversions SMALLINT,
-            carrying_fumbles SMALLINT,
-            carrying_fumbles_lost SMALLINT,
-            punt_return_yards SMALLINT,
-            punt_return_td SMALLINT,
-            kick_return_yards SMALLINT,
-            kick_return_td SMALLINT,
-            kicking_xp_made SMALLINT,
-            kicking_xp_missed SMALLINT,
-            kicking_fg_missed SMALLINT,
+            passing_completions SMALLINT DEFAULT 0,
+            passing_attempts SMALLINT DEFAULT 0,
+            passing_yards SMALLINT DEFAULT 0,
+            passing_touchdowns SMALLINT DEFAULT 0,
+            passing_interceptions SMALLINT DEFAULT 0,
+            passing_sacked SMALLINT DEFAULT 0,
+            passing_sacked_yards SMALLINT DEFAULT 0,
+            passing_two_point_conversions SMALLINT DEFAULT 0,
+            rushing_carries SMALLINT DEFAULT 0,
+            rushing_yards SMALLINT DEFAULT 0,
+            rushing_touchdowns SMALLINT DEFAULT 0,
+            rushing_long_rush SMALLINT DEFAULT 0,
+            rushing_two_point_conversions SMALLINT DEFAULT 0,
+            receiving_receptions SMALLINT DEFAULT 0,
+            receiving_targets SMALLINT DEFAULT 0,
+            receiving_yards SMALLINT DEFAULT 0,
+            receiving_touchdowns SMALLINT DEFAULT 0,
+            receiving_long_reception SMALLINT DEFAULT 0,
+            receiving_two_point_conversions SMALLINT DEFAULT 0,
+            carrying_fumbles SMALLINT DEFAULT 0,
+            carrying_fumbles_lost SMALLINT DEFAULT 0,
+            punt_return_yards SMALLINT DEFAULT 0,
+            punt_return_td SMALLINT DEFAULT 0,
+            kick_return_yards SMALLINT DEFAULT 0,
+            kick_return_td SMALLINT DEFAULT 0,
+            kicking_xp_made SMALLINT DEFAULT 0,
+            kicking_xp_missed SMALLINT DEFAULT 0,
+            kicking_fg_missed SMALLINT DEFAULT 0,
             kicking_fg_yards_made SMALLINT[],
-            dst_yards_allowed SMALLINT,
-            dst_points_allowed SMALLINT,
-            dst_sacks SMALLINT,
-            dst_def_td SMALLINT,
-            dst_safeties SMALLINT,
-            dst_fumbles_recovered SMALLINT,
-            dst_interceptions SMALLINT,
+            dst_yards_allowed SMALLINT DEFAULT 0,
+            dst_points_allowed SMALLINT DEFAULT 0,
+            dst_sacks SMALLINT DEFAULT 0,
+            dst_def_td SMALLINT DEFAULT 0,
+            dst_safeties SMALLINT DEFAULT 0,
+            dst_fumbles_recovered SMALLINT DEFAULT 0,
+            dst_interceptions SMALLINT DEFAULT 0,
             PRIMARY KEY (game_id, player_id),
             FOREIGN KEY (game_id) REFERENCES nfl_games (id),
             FOREIGN KEY (player_id) REFERENCES nfl_players (id)
         );          
         """)
+    cursor.execute("""ALTER TABLE nfl_player_game_stats
+                  ALTER COLUMN kicking_fg_yards_made SET DEFAULT '{}'""")
     cursor.execute("SELECT * FROM nfl_games")
     games = dictfetchall(cursor)
     for game in games:
@@ -391,51 +393,120 @@ def create_nfl_player_season_stats_table(conn:connection=get_pg_connection()):
         cursor.execute("""CREATE TABLE IF NOT EXISTS nfl_player_season_stats (
             season VARCHAR(255),
             player_id INT,
-            passing_completions SMALLINT,
-            passing_attempts SMALLINT,
-            passing_yards SMALLINT,
-            passing_touchdowns SMALLINT,
-            passing_interceptions SMALLINT,
-            passing_sacked SMALLINT,
-            passing_sacked_yards SMALLINT,
-            passing_two_point_conversions SMALLINT,
-            rushing_carries SMALLINT,
-            rushing_yards SMALLINT,
-            rushing_touchdowns SMALLINT,
-            rushing_long_rush SMALLINT,
-            rushing_two_point_conversions SMALLINT,
-            receiving_receptions SMALLINT,
-            receiving_targets SMALLINT,
-            receiving_yards SMALLINT,
-            receiving_touchdowns SMALLINT,
-            receiving_long_reception SMALLINT,
-            receiving_two_point_conversions SMALLINT,
-            carrying_fumbles SMALLINT,
-            carrying_fumbles_lost SMALLINT,
-            punt_return_yards SMALLINT,
-            punt_return_td SMALLINT,
-            kick_return_yards SMALLINT,
-            kick_return_td SMALLINT,
-            kicking_xp_made SMALLINT,
-            kicking_xp_missed SMALLINT,
-            kicking_fg_missed SMALLINT,
+            passing_completions SMALLINT DEFAULT 0,
+            passing_attempts SMALLINT DEFAULT 0,
+            passing_yards SMALLINT DEFAULT 0,
+            passing_touchdowns SMALLINT DEFAULT 0,
+            passing_interceptions SMALLINT DEFAULT 0,
+            passing_sacked SMALLINT DEFAULT 0,
+            passing_sacked_yards SMALLINT DEFAULT 0,
+            passing_two_point_conversions SMALLINT DEFAULT 0,
+            rushing_carries SMALLINT DEFAULT 0,
+            rushing_yards SMALLINT DEFAULT 0,
+            rushing_touchdowns SMALLINT DEFAULT 0,
+            rushing_long_rush SMALLINT DEFAULT 0,
+            rushing_two_point_conversions SMALLINT DEFAULT 0,
+            receiving_receptions SMALLINT DEFAULT 0,
+            receiving_targets SMALLINT DEFAULT 0,
+            receiving_yards SMALLINT DEFAULT 0,
+            receiving_touchdowns SMALLINT DEFAULT 0,
+            receiving_long_reception SMALLINT DEFAULT 0,
+            receiving_two_point_conversions SMALLINT DEFAULT 0,
+            carrying_fumbles SMALLINT DEFAULT 0,
+            carrying_fumbles_lost SMALLINT DEFAULT 0,
+            punt_return_yards SMALLINT DEFAULT 0,
+            punt_return_td SMALLINT DEFAULT 0,
+            kick_return_yards SMALLINT DEFAULT 0,
+            kick_return_td SMALLINT DEFAULT 0,
+            kicking_xp_made SMALLINT DEFAULT 0,
+            kicking_xp_missed SMALLINT DEFAULT 0,
+            kicking_fg_missed SMALLINT DEFAULT 0,
             kicking_fg_yards_made SMALLINT[],
-            dst_yards_allowed SMALLINT,
-            dst_points_allowed SMALLINT,
-            dst_sacks SMALLINT,
-            dst_def_td SMALLINT,
-            dst_safeties SMALLINT,
-            dst_fumbles_recovered SMALLINT,
-            dst_interceptions SMALLINT,
+            dst_yards_allowed SMALLINT DEFAULT 0,
+            dst_points_allowed SMALLINT DEFAULT 0,
+            dst_sacks SMALLINT DEFAULT 0,
+            dst_def_td SMALLINT DEFAULT 0,
+            dst_safeties SMALLINT DEFAULT 0,
+            dst_fumbles_recovered SMALLINT DEFAULT 0,
+            dst_interceptions SMALLINT DEFAULT 0,
             PRIMARY KEY (season, player_id),
             FOREIGN KEY (player_id) REFERENCES nfl_players (id)
         );
         """)
+    cursor.execute("""ALTER TABLE nfl_player_season_stats
+                  ALTER COLUMN kicking_fg_yards_made SET DEFAULT '{}'""")
     cursor.execute("SELECT * FROM nfl_player_game_stats")
     player_games = dictfetchall(cursor)
     for player_game in player_games:
-        cursor.execute("SELECT * FROM nfl_player_season_stats WHERE player_id = %s", (player_game['player_id'],))
-        player_row = cursor.fetchone()
+        cursor.execute("SELECT season FROM nfl_games WHERE id = %s", (player_game['game_id'],))
+        player_game['season'] = cursor.fetchone()[0]
+        del player_game['game_id']
+
+        sql = """INSERT INTO nfl_player_season_stats (
+            season, player_id, passing_completions, passing_attempts, passing_yards, passing_touchdowns,
+            passing_interceptions, passing_sacked, passing_sacked_yards, passing_two_point_conversions,
+            rushing_carries, rushing_yards, rushing_touchdowns, rushing_long_rush, rushing_two_point_conversions,
+            receiving_receptions, receiving_targets, receiving_yards, receiving_touchdowns, receiving_long_reception,
+            receiving_two_point_conversions, carrying_fumbles, carrying_fumbles_lost, punt_return_yards, punt_return_td,
+            kick_return_yards, kick_return_td, kicking_xp_made, kicking_xp_missed, kicking_fg_missed, kicking_fg_yards_made,
+            dst_yards_allowed, dst_points_allowed, dst_sacks, dst_def_td, dst_safeties, dst_fumbles_recovered, dst_interceptions
+        )
+        VALUES (
+            %(season)s, %(player_id)s, %(passing_completions)s, %(passing_attempts)s, %(passing_yards)s, %(passing_touchdowns)s,
+            %(passing_interceptions)s, %(passing_sacked)s, %(passing_sacked_yards)s, %(passing_two_point_conversions)s,
+            %(rushing_carries)s, %(rushing_yards)s, %(rushing_touchdowns)s, %(rushing_long_rush)s, %(rushing_two_point_conversions)s,
+            %(receiving_receptions)s, %(receiving_targets)s, %(receiving_yards)s, %(receiving_touchdowns)s, %(receiving_long_reception)s,
+            %(receiving_two_point_conversions)s, %(carrying_fumbles)s, %(carrying_fumbles_lost)s, %(punt_return_yards)s, %(punt_return_td)s,
+            %(kick_return_yards)s, %(kick_return_td)s, %(kicking_xp_made)s, %(kicking_xp_missed)s, %(kicking_fg_missed)s, %(kicking_fg_yards_made)s,
+            %(dst_yards_allowed)s, %(dst_points_allowed)s, %(dst_sacks)s, %(dst_def_td)s, %(dst_safeties)s, %(dst_fumbles_recovered)s, %(dst_interceptions)s
+        )
+        ON CONFLICT (season, player_id) DO UPDATE
+        SET
+            passing_completions = nfl_player_season_stats.passing_completions + EXCLUDED.passing_completions,
+            passing_attempts = nfl_player_season_stats.passing_attempts + EXCLUDED.passing_attempts,
+            passing_yards = nfl_player_season_stats.passing_yards + EXCLUDED.passing_yards,
+            passing_touchdowns = nfl_player_season_stats.passing_touchdowns + EXCLUDED.passing_touchdowns,
+            passing_interceptions = nfl_player_season_stats.passing_interceptions + EXCLUDED.passing_interceptions,
+            passing_sacked = nfl_player_season_stats.passing_sacked + EXCLUDED.passing_sacked,
+            passing_sacked_yards = nfl_player_season_stats.passing_sacked_yards + EXCLUDED.passing_sacked_yards,
+            passing_two_point_conversions = nfl_player_season_stats.passing_two_point_conversions + EXCLUDED.passing_two_point_conversions,
+            rushing_carries = nfl_player_season_stats.rushing_carries + EXCLUDED.rushing_carries,
+            rushing_yards = nfl_player_season_stats.rushing_yards + EXCLUDED.rushing_yards,
+            rushing_touchdowns = nfl_player_season_stats.rushing_touchdowns + EXCLUDED.rushing_touchdowns,
+            rushing_long_rush = GREATEST(nfl_player_season_stats.rushing_long_rush, EXCLUDED.rushing_long_rush),
+            rushing_two_point_conversions = nfl_player_season_stats.rushing_two_point_conversions + EXCLUDED.rushing_two_point_conversions,
+            receiving_receptions = nfl_player_season_stats.receiving_receptions + EXCLUDED.receiving_receptions,
+            receiving_targets = nfl_player_season_stats.receiving_targets + EXCLUDED.receiving_targets,
+            receiving_yards = nfl_player_season_stats.receiving_yards + EXCLUDED.receiving_yards,
+            receiving_touchdowns = nfl_player_season_stats.receiving_touchdowns + EXCLUDED.receiving_touchdowns,
+            receiving_long_reception = GREATEST(nfl_player_season_stats.rushing_long_rush, EXCLUDED.rushing_long_rush),
+            receiving_two_point_conversions = nfl_player_season_stats.receiving_two_point_conversions + EXCLUDED.receiving_two_point_conversions,
+            carrying_fumbles = nfl_player_season_stats.carrying_fumbles + EXCLUDED.carrying_fumbles,
+            carrying_fumbles_lost = nfl_player_season_stats.carrying_fumbles_lost + EXCLUDED.carrying_fumbles_lost,
+            punt_return_yards = nfl_player_season_stats.punt_return_yards + EXCLUDED.punt_return_yards,
+            punt_return_td = nfl_player_season_stats.punt_return_td + EXCLUDED.punt_return_td,
+            kick_return_yards = nfl_player_season_stats.kick_return_yards + EXCLUDED.kick_return_yards,
+            kick_return_td = nfl_player_season_stats.kick_return_td + EXCLUDED.kick_return_td,
+            kicking_xp_made = nfl_player_season_stats.kicking_xp_made + EXCLUDED.kicking_xp_made,
+            kicking_xp_missed = nfl_player_season_stats.kicking_xp_missed + EXCLUDED.kicking_xp_missed,
+            kicking_fg_missed = nfl_player_season_stats.kicking_fg_missed + EXCLUDED.kicking_fg_missed,
+            kicking_fg_yards_made = ARRAY(
+                SELECT DISTINCT UNNEST(array_cat(nfl_player_season_stats.kicking_fg_yards_made, EXCLUDED.kicking_fg_yards_made))
+            ),
+            dst_yards_allowed = nfl_player_season_stats.dst_yards_allowed + EXCLUDED.dst_yards_allowed,
+            dst_points_allowed = nfl_player_season_stats.dst_points_allowed + EXCLUDED.dst_points_allowed,
+            dst_sacks = nfl_player_season_stats.dst_sacks + EXCLUDED.dst_sacks,
+            dst_def_td = nfl_player_season_stats.dst_def_td + EXCLUDED.dst_def_td,
+            dst_safeties = nfl_player_season_stats.dst_safeties + EXCLUDED.dst_safeties,
+            dst_fumbles_recovered = nfl_player_season_stats.dst_fumbles_recovered + EXCLUDED.dst_fumbles_recovered,
+            dst_interceptions = nfl_player_season_stats.dst_interceptions + EXCLUDED.dst_interceptions
+        ;"""
+
+        cursor.execute(sql, player_game)
+        conn.commit()
+
+
+
         
 
 
@@ -467,4 +538,5 @@ def setup_postgres():
     create_nfl_games_table(conn)
     populate_game_table_with_boxscores(conn)
     create_nfl_player_game_stats_table(conn)
+    create_nfl_player_season_stats_table(conn)
     conn.close()
