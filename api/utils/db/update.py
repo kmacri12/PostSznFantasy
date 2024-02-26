@@ -1,7 +1,7 @@
 import os
 import psycopg2
 from api.utils.rapidapi.rapidapi import RapidApi
-from api.utils.pg.pg_utils import *
+from api.utils.db.pg_utils import *
 
 
 rapidapi_connection = RapidApi()
