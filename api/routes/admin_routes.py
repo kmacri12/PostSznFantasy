@@ -13,7 +13,7 @@ def health():
     return "healthy"
 
 
-@admin_bp.route("/setup/pgdb", methods=["PUT"])
+@admin_bp.route("/setup/pgdb", methods=["POST"])
 def setup_pgdb():
     try:
         setup.setup_postgres()

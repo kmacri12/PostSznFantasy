@@ -520,61 +520,165 @@ def create_users_table(conn:connection=get_pg_connection()):
     conn.commit()
     cursor.close()
 
-### WORK IN PROGRESS
-# def create_league_settings_table(conn:connection=get_pg_connection()):
-#     cursor = conn.cursor()
-#     if not table_exists(conn, "league_settings"):
-#         cursor.execute("""CREATE TABLE IF NOT EXISTS league_settings (
-#             id SERIAL PRIMARY KEY,
-#             number_teams INT NOT NULL,
-#             commissioner_id INT UNIQUE NOT NULL,
-#         );
-#         """)
-#     conn.commit()
-#     cursor.close()
+
+def create_leagues_table(conn:connection=get_pg_connection()):
+    cursor = conn.cursor()
+    if not table_exists(conn, "leagues"):
+        cursor.execute("""CREATE TABLE IF NOT EXISTS leagues (
+            id SERIAL PRIMARY KEY,
+            name VARCHAR(20) UNIQUE NOT NULL,
+            commissioner_id INT UNIQUE NOT NULL
+        );
+        """)
+    conn.commit()
+    cursor.close()
 
 
-# def create_draft_table(conn:connection=get_pg_connection()):
-#     cursor = conn.cursor()
-#     if not table_exists(conn, "drafts"):
-#         cursor.execute("""CREATE TABLE IF NOT EXISTS drafts (
-#             id SERIAL PRIMARY KEY,
-#             status INT NOT NULL,
-#         );
-#         """)
-#     conn.commit()
-#     cursor.close()
+def create_teams_table(conn:connection=get_pg_connection()):
+    cursor = conn.cursor()
+    if not table_exists(conn, "teams"):
+        cursor.execute("""CREATE TABLE IF NOT EXISTS teams (
+            id SERIAL PRIMARY KEY,
+            name VARCHAR(20),
+            owner_id INT,
+            league_id INT NOT NULL,
+            roster INT[],
+            FOREIGN KEY (owner_id) REFERENCES users (id),
+            FOREIGN KEY (league_id) REFERENCES leagues (id)
+        );
+        """)
+    conn.commit()
+    cursor.close()
 
 
-# def create_draft_table(conn:connection=get_pg_connection()):
-#     cursor = conn.cursor()
-#     if not table_exists(conn, "draft_picks"):
-#         cursor.execute("""CREATE TABLE IF NOT EXISTS drafts (
-#             id SERIAL PRIMARY KEY,
-#             draft_id INT NOT NULL,
-#             FOREIGN KEY (draft_id) REFERENCES drafts (id)
+def create_league_settings_table(conn:connection=get_pg_connection()):
+    cursor = conn.cursor()
+    if not table_exists(conn, "league_settings"):
+        cursor.execute("""CREATE TABLE IF NOT EXISTS league_settings (
+            id SERIAL PRIMARY KEY,
+            league_id INT NOT NULL,
+            number_teams INT NOT NULL,
+            roster_num_qb INT NOT NULL,
+            roster_num_rb INT NOT NULL,
+            roster_num_wr INT NOT NULL,
+            roster_num_te INT NOT NULL,
+            roster_num_flex_wr_rb_te INT NOT NULL,
+            roster_num_flex_wr_rb INT NOT NULL,
+            roster_num_flex_wr_te INT NOT NULL,
+            roster_num_flex_qb_wr_rb_te INT NOT NULL,
+            roster_num_k INT NOT NULL,
+            roster_num_dst INT NOT NULL,
+            roster_num_total_size INT NOT NULL,
+            roster_max_qb INT,
+            roster_max_rb INT,
+            roster_max_wr INT,
+            roster_max_te INT,
+            roster_max_k INT,
+            roster_max_dst INT,
+            scoring_passing_yard INT,
+            scoring_passing_td INT,
+            scoring_passing_2pt INT,
+            scoring_passing_interception INT,
+            scoring_passing_completion INT,
+            scoring_passing_attempt INT,
+            scoring_passing_sack INT,
+            scoring_rushing_yard INT,
+            scoring_rushing_td INT,
+            scoring_rushing_2pt INT,
+            scoring_rushing_attempt INT,
+            scoring_receiving_reception INT,
+            scoring_receiving_yard INT,
+            scoring_receiving_td INT,
+            scoring_receiving_2pt INT,
+            scoring_receiving_target INT,
+            scoring_receiving_reception_bonus_RB INT,
+            scoring_receiving_reception_bonus_WR INT,
+            scoring_receiving_reception_bonus_TE INT,
+            scoring_carrying_fumble INT,
+            scoring_carrying_fumble_lost INT,
+            scoring_special_punt_return_yard INT,
+            scoring_special_punt_return_td INT,
+            scoring_special_kick_return_yard INT,
+            scoring_special_kick_return_td INT,
+            scoring_kicking_fg_made INT,
+            scoring_kicking_fg_miss INT,
+            scoring_kicking_fg_made_0_19 INT,
+            scoring_kicking_fg_made_20_29 INT,
+            scoring_kicking_fg_made_30_39 INT,
+            scoring_kicking_fg_made_40_49 INT,
+            scoring_kicking_fg_made_50_plus INT,
+            scoring_kicking_fg_yard INT,
+            scoring_kicking_xp_made INT,
+            scoring_kicking_xp_miss INT,
+            scoring_dst_td INT,
+            scoring_dst_pts_allowed_0 INT,
+            scoring_dst_pts_allowed_1_6 INT,
+            scoring_dst_pts_allowed_7_13 INT,
+            scoring_dst_pts_allowed_14_20 INT,
+            scoring_dst_pts_allowed_21_27 INT,
+            scoring_dst_pts_allowed_28_34 INT,
+            scoring_dst_pts_allowed_35_plus INT,
+            scoring_dst_yards_allowed_under_100 INT,
+            scoring_dst_yards_allowed_100_199 INT,
+            scoring_dst_yards_allowed_200_299 INT,
+            scoring_dst_yards_allowed_300_399 INT,
+            scoring_dst_yards_allowed_400_499 INT,
+            scoring_dst_yards_allowed_500_plus INT,
+            scoring_dst_sack INT,
+            scoring_dst_safety INT,
+            scoring_dst_fumble_recover INT,
+            scoring_dst_interception INT,
+            FOREIGN KEY (league_id) REFERENCES leagues (id)
+                       
+        );
+        """)
+    conn.commit()
+    cursor.close()
 
-#         );
-#         """)
-#     conn.commit()
-#     cursor.close()
+
+def create_drafts_table(conn:connection=get_pg_connection()):
+    cursor = conn.cursor()
+    if not table_exists(conn, "drafts"):
+        cursor.execute("""CREATE TABLE IF NOT EXISTS drafts (
+            id SERIAL PRIMARY KEY,
+            league_id INT NOT NULL,
+            status VARCHAR(20),
+            start_time_epoch VARCHAR(255),
+            draft_type VARCHAR(20),
+            time_per_pick_seconds INT,
+            slow_draft_auto_pause BOOLEAN,
+            slow_draft_pause_from TIME,
+            slow_draft_pause_to TIME,
+            slow_draft_pause_timezone VARCHAR(20),
+            cpu_autopick BOOLEAN,
+            alphabetical_sort BOOLEAN,
+            draft_order_team_ids INT[],
+            FOREIGN KEY (league_id) REFERENCES leagues (id)
+        );
+        """)
+    conn.commit()
+    cursor.close()
 
 
-# def create_leagues_table(conn:connection=get_pg_connection()):
-#     cursor = conn.cursor()
-#     if not table_exists(conn, "users"):
-#         cursor.execute("""CREATE TABLE IF NOT EXISTS leagues (
-#             id SERIAL PRIMARY KEY,
-#             name VARCHAR(20) UNIQUE NOT NULL,
-#             commissioner_id INT UNIQUE NOT NULL,
-#             settings_id VARCHAR(512) NOT NULL
-#         );
-#         """)
-#     conn.commit()
-#     cursor.close()
-
-
-
+def create_draft_picks_table(conn:connection=get_pg_connection()):
+    cursor = conn.cursor()
+    if not table_exists(conn, "draft_picks"):
+        cursor.execute("""CREATE TABLE IF NOT EXISTS draft_picks (
+            id SERIAL PRIMARY KEY,
+            draft_id INT NOT NULL,
+            team_id INT NOT NULL,
+            player_id INT NOT NULL,
+            number_round INT,
+            number_pick_overall INT,
+            number_pick_in_round INT,
+            autopick BOOLEAN,
+            FOREIGN KEY (draft_id) REFERENCES drafts (id),
+            FOREIGN KEY (team_id) REFERENCES teams (id),
+            FOREIGN KEY (player_id) REFERENCES nfl_players (id)
+        );
+        """)
+    conn.commit()
+    cursor.close()
 
 
 def create_db():
@@ -607,4 +711,9 @@ def setup_postgres():
     create_nfl_player_game_stats_table(conn)
     create_nfl_player_season_stats_table(conn)
     create_users_table(conn)
+    create_leagues_table(conn)
+    create_teams_table(conn)
+    create_league_settings_table(conn)
+    create_drafts_table(conn)
+    create_draft_picks_table(conn)
     conn.close()
