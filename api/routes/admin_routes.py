@@ -1,7 +1,6 @@
 import logging
 from flask import Blueprint
 from api.utils.rapidapi.rapidapi import RapidApi
-from api.utils.data_utils import join_nfl_player_list_and_team_with_stats
 from api.utils.db import setup, update
 
 admin_bp = Blueprint("admin", __name__)
