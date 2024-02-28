@@ -42,5 +42,6 @@ def token_required(f):
 @league_bp.route('/create_league', methods=['POST'])
 @token_required
 def create_league(user_id):
-    # Access user_id here
+    data = request.json
+    # data will contain all the data needed to create a league, league settings, draft settings
     return jsonify({'message': f'League created successfully by user {user_id}!'})
