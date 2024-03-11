@@ -3,8 +3,9 @@ from sqlalchemy import Column, Integer, String, Boolean, Time, ARRAY, ForeignKey
 from sqlalchemy.orm import relationship
 from api.app import db
 
+
 class User(db.Model):
-    __tablename__ = 'users'
+    __tablename__ = "users"
 
     id = Column(Integer, primary_key=True)
     username = Column(String(20), unique=True, nullable=False)
@@ -23,30 +24,33 @@ class User(db.Model):
         return check_password_hash(self.password_hash, password)
 
     def __repr__(self):
-        return '<User {}>'.format(self.username)
+        return "<User {}>".format(self.username)
+
 
 class League(db.Model):
-    __tablename__ = 'leagues'
+    __tablename__ = "leagues"
 
     id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False)
-    commissioner_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    commissioner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
-    
-    teams = relationship('Team', backref='league', lazy=True)
-    settings = relationship('LeagueSettings', backref='league', uselist=False, lazy=True)
-    draft = relationship('Draft', backref='league', uselist=False, lazy=True)
+    teams = relationship("Team", backref="league", lazy=True)
+    settings = relationship(
+        "LeagueSettings", backref="league", uselist=False, lazy=True
+    )
+    draft = relationship("Draft", backref="league", uselist=False, lazy=True)
 
     def __repr__(self):
         return f"<League(id={self.id}, name={self.name})>"
-    
+
+
 class Team(db.Model):
-    __tablename__ = 'teams'
+    __tablename__ = "teams"
 
     id = Column(Integer, primary_key=True)
     name = Column(String(20))
-    owner_id = Column(Integer, ForeignKey('users.id'))
-    league_id = Column(Integer, ForeignKey('leagues.id'))
+    owner_id = Column(Integer, ForeignKey("users.id"))
+    league_id = Column(Integer, ForeignKey("leagues.id"))
     roster = Column(ARRAY(Integer))
 
     owner = relationship("User", back_populates="teams")
@@ -55,11 +59,12 @@ class Team(db.Model):
     def __repr__(self):
         return f"<Team(id={self.id}, name={self.name}, owner_id={self.owner_id}, league_id={self.league_id}, roster={self.roster})>"
 
+
 class LeagueSettings(db.Model):
-    __tablename__ = 'league_settings'
+    __tablename__ = "league_settings"
 
     id = Column(Integer, primary_key=True)
-    league_id = Column(Integer, ForeignKey('leagues.id'), nullable=False)
+    league_id = Column(Integer, ForeignKey("leagues.id"), nullable=False)
     number_teams = Column(Integer, nullable=False)
     roster_num_qb = Column(Integer, nullable=False)
     roster_num_rb = Column(Integer, nullable=False)
@@ -132,13 +137,14 @@ class LeagueSettings(db.Model):
     scoring_dst_fumble_recover = Column(Integer)
     scoring_dst_interception = Column(Integer)
 
-    league = relationship('League', backref='settings')
+    league = relationship("League", backref="settings")
+
 
 class Draft(db.Model):
-    __tablename__ = 'drafts'
+    __tablename__ = "drafts"
 
     id = Column(Integer, primary_key=True)
-    league_id = Column(Integer, ForeignKey('leagues.id'), nullable=False)
+    league_id = Column(Integer, ForeignKey("leagues.id"), nullable=False)
     status = Column(String(20))
     start_time_epoch = Column(String(255))
     draft_type = Column(String(20))
@@ -151,20 +157,21 @@ class Draft(db.Model):
     alphabetical_sort = Column(Boolean)
     draft_order_team_ids = Column(ARRAY(Integer))
 
-    league = relationship('League', backref='drafts')
+    league = relationship("League", backref="drafts")
+
 
 class DraftPick(db.Model):
-    __tablename__ = 'draft_picks'
+    __tablename__ = "draft_picks"
 
     id = Column(Integer, primary_key=True)
-    draft_id = Column(Integer, ForeignKey('drafts.id'), nullable=False)
-    team_id = Column(Integer, ForeignKey('teams.id'), nullable=False)
-    player_id = Column(Integer, ForeignKey('nfl_players.id'), nullable=False)
+    draft_id = Column(Integer, ForeignKey("drafts.id"), nullable=False)
+    team_id = Column(Integer, ForeignKey("teams.id"), nullable=False)
+    player_id = Column(Integer, ForeignKey("nfl_players.id"), nullable=False)
     number_round = Column(Integer)
     number_pick_overall = Column(Integer)
     number_pick_in_round = Column(Integer)
     autopick = Column(Boolean)
 
-    draft = relationship('Draft', backref='draft_picks')
-    team = relationship('Team', backref='draft_picks')
-    player = relationship('NFLPlayer', backref='draft_picks')
+    draft = relationship("Draft", backref="draft_picks")
+    team = relationship("Team", backref="draft_picks")
+    player = relationship("NFLPlayer", backref="draft_picks")

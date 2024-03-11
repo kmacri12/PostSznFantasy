@@ -1,10 +1,10 @@
 import logging
 from flask import Blueprint
-from api.utils.rapidapi.rapidapi import RapidApi
 from api.utils.db import setup, update
 
 admin_bp = Blueprint("admin", __name__)
 logger = logging.getLogger(__name__)
+
 
 @admin_bp.route("/")
 def health():
@@ -19,7 +19,7 @@ def setup_pgdb():
         return "PostgresDB Setup"
     except Exception:
         logger.exception("Exception caught while setting up postgres")
-        
+
 
 @admin_bp.route("/update/nfl_players", methods=["PUT"])
 def update_players():

@@ -1,7 +1,4 @@
 from flask import Blueprint
-import os
-import json
-from api.utils.rapidapi.rapidapi import RapidApi
 
 players_bp = Blueprint("players", __name__)
 
@@ -13,12 +10,4 @@ def health_check():
 
 @players_bp.route("/get_players_and_stats")
 def get_players_and_stats():
-    filepath = os.path.join(os.getcwd(), "api/data/nflPlayersAndStats.json")
-    if not os.path.exists(filepath):
-        rapidapi = RapidApi()
-        # get players and stats json
-        # for teamnum in [1-32]
-        rapidapi
-
-    with open(filepath, "r") as f:
-        data = json.load(f)
+    pass

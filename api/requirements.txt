@@ -3,7 +3,7 @@ flask-cors
 flask_sqlalchemy
 flask_bcrypt
 requests
-psycopg2
+psycopg2-binary
 requests-cache
 werkzeug
 pyjwt
