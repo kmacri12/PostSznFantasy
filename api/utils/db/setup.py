@@ -7,10 +7,10 @@ from psycopg2.extensions import connection, ISOLATION_LEVEL_AUTOCOMMIT
 from api.utils.rapidapi.rapidapi import RapidApi
 from api.utils.db.pg_utils import (
     get_pg_connection,
-    table_exists,
     table_has_data,
     dictfetchall,
 )
+from api.app import db
 
 
 rapidapi_connection = RapidApi()
@@ -18,17 +18,6 @@ rapidapi_connection = RapidApi()
 
 def create_nflteams_table(conn: connection = get_pg_connection()):
     cursor = conn.cursor()
-    if not table_exists(conn, "nfl_teams"):
-        cursor.execute(
-            """CREATE TABLE IF NOT EXISTS nfl_teams (
-            id SMALLINT PRIMARY KEY,
-            team_abv VARCHAR(255),
-            team_city VARCHAR(255),
-            team_name VARCHAR(255),
-            team_logo_url VARCHAR(255)
-        );          
-        """
-        )
     if not table_has_data(conn, "nfl_teams"):
         nfl_teams = rapidapi_connection.get_nfl_teams()
         insert_query = """
@@ -53,25 +42,6 @@ def create_nflteams_table(conn: connection = get_pg_connection()):
 
 def create_nflplayers_table(conn: connection = get_pg_connection()):
     cursor = conn.cursor()
-    if (not table_exists(conn, "nfl_teams")) or (not table_has_data(conn, "nfl_teams")):
-        create_nflteams_table(conn)
-    if not table_exists(conn, "nfl_players"):
-        cursor.execute(
-            """CREATE TABLE IF NOT EXISTS nfl_players (
-            id INT PRIMARY KEY,
-            name VARCHAR(255),
-            position VARCHAR(255),
-            espn_headshot_url VARCHAR(255),
-            jersey_num VARCHAR(255),
-            birthday VARCHAR(255),
-            height VARCHAR(255),
-            weight VARCHAR(255),
-            exp VARCHAR(255),
-            team_id SMALLINT,
-            FOREIGN KEY (team_id) REFERENCES nfl_teams (id)
-        );
-        """
-        )
     if not table_has_data(conn, "nfl_players"):
         nfl_players = rapidapi_connection.get_nfl_players()
         insert_query = """
@@ -131,38 +101,6 @@ def create_nflplayers_table(conn: connection = get_pg_connection()):
 
 def create_nfl_games_table(conn: connection = get_pg_connection()):
     cursor = conn.cursor()
-    if (not table_exists(conn, "nfl_teams")) or (not table_has_data(conn, "nfl_teams")):
-        create_nflteams_table(conn)
-    if (not table_exists(conn, "nfl_players")) or (
-        not table_has_data(conn, "nfl_players")
-    ):
-        create_nflplayers_table(conn)
-    if not table_exists(conn, "nfl_games"):
-        cursor.execute(
-            """CREATE TABLE IF NOT EXISTS nfl_games (
-            id VARCHAR(255) PRIMARY KEY,
-            game_status VARCHAR(255),
-            game_date VARCHAR(255),
-            game_time_epoch VARCHAR(255),
-            game_week SMALLINT,
-            season SMALLINT,
-            espn_link VARCHAR(255),
-            team_id_home SMALLINT,
-            team_id_away SMALLINT,
-            home_pts SMALLINT,
-            away_pts SMALLINT,
-            season_type VARCHAR(255),
-            team_stats JSONB,
-            scoring_plays JSONB,
-            line_score JSONB,
-            player_stats JSONB,
-            dst JSONB,
-            game_clock VARCHAR(255),
-            FOREIGN KEY (team_id_home) REFERENCES nfl_teams (id),
-            FOREIGN KEY (team_id_away) REFERENCES nfl_teams (id)
-        );
-        """
-        )
     if not table_has_data(conn, "nfl_games"):
         year = os.getenv("SEASON_YEAR")
         insert_query = """
@@ -273,57 +211,7 @@ def populate_game_table_with_boxscores(conn: connection = get_pg_connection()):
 
 def create_nfl_player_game_stats_table(conn: connection = get_pg_connection()):
     cursor = conn.cursor()
-    if not table_exists(conn, "nfl_player_game_stats"):
-        cursor.execute(
-            """CREATE TABLE IF NOT EXISTS nfl_player_game_stats (
-            game_id VARCHAR(255),
-            player_id INT,
-            passing_completions SMALLINT DEFAULT 0,
-            passing_attempts SMALLINT DEFAULT 0,
-            passing_yards SMALLINT DEFAULT 0,
-            passing_touchdowns SMALLINT DEFAULT 0,
-            passing_interceptions SMALLINT DEFAULT 0,
-            passing_sacked SMALLINT DEFAULT 0,
-            passing_sacked_yards SMALLINT DEFAULT 0,
-            passing_two_point_conversions SMALLINT DEFAULT 0,
-            rushing_carries SMALLINT DEFAULT 0,
-            rushing_yards SMALLINT DEFAULT 0,
-            rushing_touchdowns SMALLINT DEFAULT 0,
-            rushing_long_rush SMALLINT DEFAULT 0,
-            rushing_two_point_conversions SMALLINT DEFAULT 0,
-            receiving_receptions SMALLINT DEFAULT 0,
-            receiving_targets SMALLINT DEFAULT 0,
-            receiving_yards SMALLINT DEFAULT 0,
-            receiving_touchdowns SMALLINT DEFAULT 0,
-            receiving_long_reception SMALLINT DEFAULT 0,
-            receiving_two_point_conversions SMALLINT DEFAULT 0,
-            carrying_fumbles SMALLINT DEFAULT 0,
-            carrying_fumbles_lost SMALLINT DEFAULT 0,
-            punt_return_yards SMALLINT DEFAULT 0,
-            punt_return_td SMALLINT DEFAULT 0,
-            kick_return_yards SMALLINT DEFAULT 0,
-            kick_return_td SMALLINT DEFAULT 0,
-            kicking_xp_made SMALLINT DEFAULT 0,
-            kicking_xp_missed SMALLINT DEFAULT 0,
-            kicking_fg_missed SMALLINT DEFAULT 0,
-            kicking_fg_yards_made SMALLINT[],
-            dst_yards_allowed SMALLINT DEFAULT 0,
-            dst_points_allowed SMALLINT DEFAULT 0,
-            dst_sacks SMALLINT DEFAULT 0,
-            dst_def_td SMALLINT DEFAULT 0,
-            dst_safeties SMALLINT DEFAULT 0,
-            dst_fumbles_recovered SMALLINT DEFAULT 0,
-            dst_interceptions SMALLINT DEFAULT 0,
-            PRIMARY KEY (game_id, player_id),
-            FOREIGN KEY (game_id) REFERENCES nfl_games (id),
-            FOREIGN KEY (player_id) REFERENCES nfl_players (id)
-        );          
-        """
-        )
-        cursor.execute(
-            """ALTER TABLE nfl_player_game_stats
-                    ALTER COLUMN kicking_fg_yards_made SET DEFAULT '{}'"""
-        )
+    if not table_has_data(conn, "nfl_player_game_stats"):
         cursor.execute("SELECT * FROM nfl_games")
         games = dictfetchall(cursor)
         for game in games:
@@ -526,56 +414,7 @@ def create_nfl_player_game_stats_table(conn: connection = get_pg_connection()):
 
 def create_nfl_player_season_stats_table(conn: connection = get_pg_connection()):
     cursor = conn.cursor()
-    if not table_exists(conn, "nfl_player_season_stats"):
-        cursor.execute(
-            """CREATE TABLE IF NOT EXISTS nfl_player_season_stats (
-            season VARCHAR(255),
-            player_id INT,
-            passing_completions SMALLINT DEFAULT 0,
-            passing_attempts SMALLINT DEFAULT 0,
-            passing_yards SMALLINT DEFAULT 0,
-            passing_touchdowns SMALLINT DEFAULT 0,
-            passing_interceptions SMALLINT DEFAULT 0,
-            passing_sacked SMALLINT DEFAULT 0,
-            passing_sacked_yards SMALLINT DEFAULT 0,
-            passing_two_point_conversions SMALLINT DEFAULT 0,
-            rushing_carries SMALLINT DEFAULT 0,
-            rushing_yards SMALLINT DEFAULT 0,
-            rushing_touchdowns SMALLINT DEFAULT 0,
-            rushing_long_rush SMALLINT DEFAULT 0,
-            rushing_two_point_conversions SMALLINT DEFAULT 0,
-            receiving_receptions SMALLINT DEFAULT 0,
-            receiving_targets SMALLINT DEFAULT 0,
-            receiving_yards SMALLINT DEFAULT 0,
-            receiving_touchdowns SMALLINT DEFAULT 0,
-            receiving_long_reception SMALLINT DEFAULT 0,
-            receiving_two_point_conversions SMALLINT DEFAULT 0,
-            carrying_fumbles SMALLINT DEFAULT 0,
-            carrying_fumbles_lost SMALLINT DEFAULT 0,
-            punt_return_yards SMALLINT DEFAULT 0,
-            punt_return_td SMALLINT DEFAULT 0,
-            kick_return_yards SMALLINT DEFAULT 0,
-            kick_return_td SMALLINT DEFAULT 0,
-            kicking_xp_made SMALLINT DEFAULT 0,
-            kicking_xp_missed SMALLINT DEFAULT 0,
-            kicking_fg_missed SMALLINT DEFAULT 0,
-            kicking_fg_yards_made SMALLINT[],
-            dst_yards_allowed SMALLINT DEFAULT 0,
-            dst_points_allowed SMALLINT DEFAULT 0,
-            dst_sacks SMALLINT DEFAULT 0,
-            dst_def_td SMALLINT DEFAULT 0,
-            dst_safeties SMALLINT DEFAULT 0,
-            dst_fumbles_recovered SMALLINT DEFAULT 0,
-            dst_interceptions SMALLINT DEFAULT 0,
-            PRIMARY KEY (season, player_id),
-            FOREIGN KEY (player_id) REFERENCES nfl_players (id)
-        );
-        """
-        )
-        cursor.execute(
-            """ALTER TABLE nfl_player_season_stats
-                    ALTER COLUMN kicking_fg_yards_made SET DEFAULT '{}'"""
-        )
+    if not table_has_data(conn, "nfl_player_season_stats"):
         cursor.execute("SELECT * FROM nfl_player_game_stats")
         player_games = dictfetchall(cursor)
         for player_game in player_games:
@@ -649,192 +488,6 @@ def create_nfl_player_season_stats_table(conn: connection = get_pg_connection())
             conn.commit()
 
 
-def create_users_table(conn: connection = get_pg_connection()):
-    cursor = conn.cursor()
-    if not table_exists(conn, "users"):
-        cursor.execute(
-            """CREATE TABLE IF NOT EXISTS users (
-            id SERIAL PRIMARY KEY,
-            username VARCHAR(20) UNIQUE NOT NULL,
-            email VARCHAR(64) UNIQUE NOT NULL,
-            password_hash VARCHAR(512) NOT NULL
-        );
-        """
-        )
-    conn.commit()
-    cursor.close()
-
-
-def create_leagues_table(conn: connection = get_pg_connection()):
-    cursor = conn.cursor()
-    if not table_exists(conn, "leagues"):
-        cursor.execute(
-            """CREATE TABLE IF NOT EXISTS leagues (
-            id SERIAL PRIMARY KEY,
-            name VARCHAR(20) UNIQUE NOT NULL,
-            commissioner_id INT UNIQUE NOT NULL
-        );
-        """
-        )
-    conn.commit()
-    cursor.close()
-
-
-def create_teams_table(conn: connection = get_pg_connection()):
-    cursor = conn.cursor()
-    if not table_exists(conn, "teams"):
-        cursor.execute(
-            """CREATE TABLE IF NOT EXISTS teams (
-            id SERIAL PRIMARY KEY,
-            name VARCHAR(20),
-            owner_id INT,
-            league_id INT NOT NULL,
-            roster INT[],
-            FOREIGN KEY (owner_id) REFERENCES users (id),
-            FOREIGN KEY (league_id) REFERENCES leagues (id)
-        );
-        """
-        )
-    conn.commit()
-    cursor.close()
-
-
-def create_league_settings_table(conn: connection = get_pg_connection()):
-    cursor = conn.cursor()
-    if not table_exists(conn, "league_settings"):
-        cursor.execute(
-            """CREATE TABLE IF NOT EXISTS league_settings (
-            id SERIAL PRIMARY KEY,
-            league_id INT NOT NULL,
-            number_teams INT NOT NULL,
-            roster_num_qb INT NOT NULL,
-            roster_num_rb INT NOT NULL,
-            roster_num_wr INT NOT NULL,
-            roster_num_te INT NOT NULL,
-            roster_num_flex_wr_rb_te INT NOT NULL,
-            roster_num_flex_wr_rb INT NOT NULL,
-            roster_num_flex_wr_te INT NOT NULL,
-            roster_num_flex_qb_wr_rb_te INT NOT NULL,
-            roster_num_k INT NOT NULL,
-            roster_num_dst INT NOT NULL,
-            roster_num_total_size INT NOT NULL,
-            roster_max_qb INT,
-            roster_max_rb INT,
-            roster_max_wr INT,
-            roster_max_te INT,
-            roster_max_k INT,
-            roster_max_dst INT,
-            scoring_passing_yard INT,
-            scoring_passing_td INT,
-            scoring_passing_2pt INT,
-            scoring_passing_interception INT,
-            scoring_passing_completion INT,
-            scoring_passing_attempt INT,
-            scoring_passing_sack INT,
-            scoring_rushing_yard INT,
-            scoring_rushing_td INT,
-            scoring_rushing_2pt INT,
-            scoring_rushing_attempt INT,
-            scoring_receiving_reception INT,
-            scoring_receiving_yard INT,
-            scoring_receiving_td INT,
-            scoring_receiving_2pt INT,
-            scoring_receiving_target INT,
-            scoring_receiving_reception_bonus_RB INT,
-            scoring_receiving_reception_bonus_WR INT,
-            scoring_receiving_reception_bonus_TE INT,
-            scoring_carrying_fumble INT,
-            scoring_carrying_fumble_lost INT,
-            scoring_special_punt_return_yard INT,
-            scoring_special_punt_return_td INT,
-            scoring_special_kick_return_yard INT,
-            scoring_special_kick_return_td INT,
-            scoring_kicking_fg_made INT,
-            scoring_kicking_fg_miss INT,
-            scoring_kicking_fg_made_0_19 INT,
-            scoring_kicking_fg_made_20_29 INT,
-            scoring_kicking_fg_made_30_39 INT,
-            scoring_kicking_fg_made_40_49 INT,
-            scoring_kicking_fg_made_50_plus INT,
-            scoring_kicking_fg_yard INT,
-            scoring_kicking_xp_made INT,
-            scoring_kicking_xp_miss INT,
-            scoring_dst_td INT,
-            scoring_dst_pts_allowed_0 INT,
-            scoring_dst_pts_allowed_1_6 INT,
-            scoring_dst_pts_allowed_7_13 INT,
-            scoring_dst_pts_allowed_14_20 INT,
-            scoring_dst_pts_allowed_21_27 INT,
-            scoring_dst_pts_allowed_28_34 INT,
-            scoring_dst_pts_allowed_35_plus INT,
-            scoring_dst_yards_allowed_under_100 INT,
-            scoring_dst_yards_allowed_100_199 INT,
-            scoring_dst_yards_allowed_200_299 INT,
-            scoring_dst_yards_allowed_300_399 INT,
-            scoring_dst_yards_allowed_400_499 INT,
-            scoring_dst_yards_allowed_500_plus INT,
-            scoring_dst_sack INT,
-            scoring_dst_safety INT,
-            scoring_dst_fumble_recover INT,
-            scoring_dst_interception INT,
-            FOREIGN KEY (league_id) REFERENCES leagues (id)
-                       
-        );
-        """
-        )
-    conn.commit()
-    cursor.close()
-
-
-def create_drafts_table(conn: connection = get_pg_connection()):
-    cursor = conn.cursor()
-    if not table_exists(conn, "drafts"):
-        cursor.execute(
-            """CREATE TABLE IF NOT EXISTS drafts (
-            id SERIAL PRIMARY KEY,
-            league_id INT NOT NULL,
-            status VARCHAR(20),
-            start_time_epoch VARCHAR(255),
-            draft_type VARCHAR(20),
-            time_per_pick_seconds INT,
-            slow_draft_auto_pause BOOLEAN,
-            slow_draft_pause_from TIME,
-            slow_draft_pause_to TIME,
-            slow_draft_pause_timezone VARCHAR(20),
-            cpu_autopick BOOLEAN,
-            alphabetical_sort BOOLEAN,
-            draft_order_team_ids INT[],
-            FOREIGN KEY (league_id) REFERENCES leagues (id)
-        );
-        """
-        )
-    conn.commit()
-    cursor.close()
-
-
-def create_draft_picks_table(conn: connection = get_pg_connection()):
-    cursor = conn.cursor()
-    if not table_exists(conn, "draft_picks"):
-        cursor.execute(
-            """CREATE TABLE IF NOT EXISTS draft_picks (
-            id SERIAL PRIMARY KEY,
-            draft_id INT NOT NULL,
-            team_id INT NOT NULL,
-            player_id INT NOT NULL,
-            number_round INT,
-            number_pick_overall INT,
-            number_pick_in_round INT,
-            autopick BOOLEAN,
-            FOREIGN KEY (draft_id) REFERENCES drafts (id),
-            FOREIGN KEY (team_id) REFERENCES teams (id),
-            FOREIGN KEY (player_id) REFERENCES nfl_players (id)
-        );
-        """
-        )
-    conn.commit()
-    cursor.close()
-
-
 def create_db():
     conn = psycopg2.connect(
         host=os.getenv("PG_HOST"),
@@ -860,8 +513,13 @@ def create_db():
     conn.close()
 
 
+def create_all_tables():
+    db.create_all()
+
+
 def setup_postgres():
     create_db()
+    create_all_tables()
     conn = get_pg_connection()
     create_nflteams_table(conn)
     create_nflplayers_table(conn)
@@ -869,10 +527,4 @@ def setup_postgres():
     populate_game_table_with_boxscores(conn)
     create_nfl_player_game_stats_table(conn)
     create_nfl_player_season_stats_table(conn)
-    create_users_table(conn)
-    create_leagues_table(conn)
-    create_teams_table(conn)
-    create_league_settings_table(conn)
-    create_drafts_table(conn)
-    create_draft_picks_table(conn)
     conn.close()

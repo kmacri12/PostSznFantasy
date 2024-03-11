@@ -1,5 +1,15 @@
 from werkzeug.security import generate_password_hash, check_password_hash
-from sqlalchemy import Column, Integer, String, Boolean, Time, ARRAY, ForeignKey
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Boolean,
+    Time,
+    ARRAY,
+    ForeignKey,
+    SmallInteger,
+    JSON,
+)
 from sqlalchemy.orm import relationship
 from api.app import db
 
@@ -175,3 +185,146 @@ class DraftPick(db.Model):
     draft = relationship("Draft", backref="draft_picks")
     team = relationship("Team", backref="draft_picks")
     player = relationship("NFLPlayer", backref="draft_picks")
+
+
+class NFLPlayerSeasonStats(db.Model):
+    __tablename__ = "nfl_player_season_stats"
+
+    season = Column(String(255), primary_key=True)
+    player_id = Column(Integer, ForeignKey("nfl_players.id"), primary_key=True)
+    passing_completions = Column(SmallInteger, default=0)
+    passing_attempts = Column(SmallInteger, default=0)
+    passing_yards = Column(SmallInteger, default=0)
+    passing_touchdowns = Column(SmallInteger, default=0)
+    passing_interceptions = Column(SmallInteger, default=0)
+    passing_sacked = Column(SmallInteger, default=0)
+    passing_sacked_yards = Column(SmallInteger, default=0)
+    passing_two_point_conversions = Column(SmallInteger, default=0)
+    rushing_carries = Column(SmallInteger, default=0)
+    rushing_yards = Column(SmallInteger, default=0)
+    rushing_touchdowns = Column(SmallInteger, default=0)
+    rushing_long_rush = Column(SmallInteger, default=0)
+    rushing_two_point_conversions = Column(SmallInteger, default=0)
+    receiving_receptions = Column(SmallInteger, default=0)
+    receiving_targets = Column(SmallInteger, default=0)
+    receiving_yards = Column(SmallInteger, default=0)
+    receiving_touchdowns = Column(SmallInteger, default=0)
+    receiving_long_reception = Column(SmallInteger, default=0)
+    receiving_two_point_conversions = Column(SmallInteger, default=0)
+    carrying_fumbles = Column(SmallInteger, default=0)
+    carrying_fumbles_lost = Column(SmallInteger, default=0)
+    punt_return_yards = Column(SmallInteger, default=0)
+    punt_return_td = Column(SmallInteger, default=0)
+    kick_return_yards = Column(SmallInteger, default=0)
+    kick_return_td = Column(SmallInteger, default=0)
+    kicking_xp_made = Column(SmallInteger, default=0)
+    kicking_xp_missed = Column(SmallInteger, default=0)
+    kicking_fg_missed = Column(SmallInteger, default=0)
+    kicking_fg_yards_made = Column(ARRAY(SmallInteger), default=[])
+    dst_yards_allowed = Column(SmallInteger, default=0)
+    dst_points_allowed = Column(SmallInteger, default=0)
+    dst_sacks = Column(SmallInteger, default=0)
+    dst_def_td = Column(SmallInteger, default=0)
+    dst_safeties = Column(SmallInteger, default=0)
+    dst_fumbles_recovered = Column(SmallInteger, default=0)
+    dst_interceptions = Column(SmallInteger, default=0)
+
+    player = relationship("NFLPlayer", backref="season_stats")
+
+
+class NFLPlayerGameStats(db.Model):
+    __tablename__ = "nfl_player_game_stats"
+
+    game_id = Column(String(255), primary_key=True)
+    player_id = Column(Integer, ForeignKey("nfl_players.id"), primary_key=True)
+    passing_completions = Column(SmallInteger, default=0)
+    passing_attempts = Column(SmallInteger, default=0)
+    passing_yards = Column(SmallInteger, default=0)
+    passing_touchdowns = Column(SmallInteger, default=0)
+    passing_interceptions = Column(SmallInteger, default=0)
+    passing_sacked = Column(SmallInteger, default=0)
+    passing_sacked_yards = Column(SmallInteger, default=0)
+    passing_two_point_conversions = Column(SmallInteger, default=0)
+    rushing_carries = Column(SmallInteger, default=0)
+    rushing_yards = Column(SmallInteger, default=0)
+    rushing_touchdowns = Column(SmallInteger, default=0)
+    rushing_long_rush = Column(SmallInteger, default=0)
+    rushing_two_point_conversions = Column(SmallInteger, default=0)
+    receiving_receptions = Column(SmallInteger, default=0)
+    receiving_targets = Column(SmallInteger, default=0)
+    receiving_yards = Column(SmallInteger, default=0)
+    receiving_touchdowns = Column(SmallInteger, default=0)
+    receiving_long_reception = Column(SmallInteger, default=0)
+    receiving_two_point_conversions = Column(SmallInteger, default=0)
+    carrying_fumbles = Column(SmallInteger, default=0)
+    carrying_fumbles_lost = Column(SmallInteger, default=0)
+    punt_return_yards = Column(SmallInteger, default=0)
+    punt_return_td = Column(SmallInteger, default=0)
+    kick_return_yards = Column(SmallInteger, default=0)
+    kick_return_td = Column(SmallInteger, default=0)
+    kicking_xp_made = Column(SmallInteger, default=0)
+    kicking_xp_missed = Column(SmallInteger, default=0)
+    kicking_fg_missed = Column(SmallInteger, default=0)
+    kicking_fg_yards_made = Column(ARRAY(SmallInteger), default=[])
+    dst_yards_allowed = Column(SmallInteger, default=0)
+    dst_points_allowed = Column(SmallInteger, default=0)
+    dst_sacks = Column(SmallInteger, default=0)
+    dst_def_td = Column(SmallInteger, default=0)
+    dst_safeties = Column(SmallInteger, default=0)
+    dst_fumbles_recovered = Column(SmallInteger, default=0)
+    dst_interceptions = Column(SmallInteger, default=0)
+
+    player = relationship("NFLPlayer", backref="game_stats")
+
+
+class NFLPlayer(db.Model):
+    __tablename__ = "nfl_players"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(255))
+    position = Column(String(255))
+    espn_headshot_url = Column(String(255))
+    jersey_num = Column(String(255))
+    birthday = Column(String(255))
+    height = Column(String(255))
+    weight = Column(String(255))
+    exp = Column(String(255))
+    team_id = Column(Integer, ForeignKey("nfl_teams.id"))
+
+    team = relationship("NFLTeam", backref="players")
+
+
+class NFLTeam(db.Model):
+    __tablename__ = "nfl_teams"
+
+    id = Column(Integer, primary_key=True)
+    team_abv = Column(String(255))
+    team_city = Column(String(255))
+    team_name = Column(String(255))
+    team_logo_url = Column(String(255))
+
+
+class NFLGame(db.Model):
+    __tablename__ = "nfl_games"
+
+    id = Column(String(255), primary_key=True)
+    game_status = Column(String(255))
+    game_date = Column(String(255))
+    game_time_epoch = Column(String(255))
+    game_week = Column(SmallInteger)
+    season = Column(SmallInteger)
+    espn_link = Column(String(255))
+    team_id_home = Column(SmallInteger, ForeignKey("nfl_teams.id"))
+    team_id_away = Column(SmallInteger, ForeignKey("nfl_teams.id"))
+    home_pts = Column(SmallInteger)
+    away_pts = Column(SmallInteger)
+    season_type = Column(String(255))
+    team_stats = Column(JSON)
+    scoring_plays = Column(JSON)
+    line_score = Column(JSON)
+    player_stats = Column(JSON)
+    dst = Column(JSON)
+    game_clock = Column(String(255))
+
+    home_team = relationship("NFLTeam", foreign_keys=[team_id_home])
+    away_team = relationship("NFLTeam", foreign_keys=[team_id_away])
