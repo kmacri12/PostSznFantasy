@@ -22,6 +22,8 @@ class User(db.Model):
     password_hash = Column(String(128), nullable=False)
     email = Column(String(64), unique=True, nullable=False)
 
+    teams_owned = relationship("Team", back_populates="owner", lazy=True)
+
     def __init__(self, username, password, email):
         self.username = username
         self.set_password(password)
@@ -44,11 +46,11 @@ class League(db.Model):
     name = Column(String(100), nullable=False)
     commissioner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
-    teams = relationship("Team", backref="league", lazy=True)
+    teams = relationship("Team", back_populates="league", lazy=True)
     settings = relationship(
-        "LeagueSettings", backref="league", uselist=False, lazy=True
+        "LeagueSettings", back_populates="league", uselist=False, lazy=True
     )
-    draft = relationship("Draft", backref="league", uselist=False, lazy=True)
+    draft = relationship("Draft", back_populates="league", uselist=False, lazy=True)
 
     def __repr__(self):
         return f"<League(id={self.id}, name={self.name})>"
@@ -63,8 +65,9 @@ class Team(db.Model):
     league_id = Column(Integer, ForeignKey("leagues.id"))
     roster = Column(ARRAY(Integer))
 
-    owner = relationship("User", back_populates="teams")
+    owner = relationship("User", back_populates="teams_owned")
     league = relationship("League", back_populates="teams")
+    draft_picks = relationship("DraftPick", back_populates="team")
 
     def __repr__(self):
         return f"<Team(id={self.id}, name={self.name}, owner_id={self.owner_id}, league_id={self.league_id}, roster={self.roster})>"
@@ -147,7 +150,7 @@ class LeagueSettings(db.Model):
     scoring_dst_fumble_recover = Column(Integer)
     scoring_dst_interception = Column(Integer)
 
-    league = relationship("League", backref="settings")
+    league = relationship("League", back_populates="settings")
 
 
 class Draft(db.Model):
@@ -167,7 +170,8 @@ class Draft(db.Model):
     alphabetical_sort = Column(Boolean)
     draft_order_team_ids = Column(ARRAY(Integer))
 
-    league = relationship("League", backref="drafts")
+    league = relationship("League", back_populates="draft")
+    draft_picks = relationship("DraftPick", back_populates="draft")
 
 
 class DraftPick(db.Model):
@@ -182,9 +186,9 @@ class DraftPick(db.Model):
     number_pick_in_round = Column(Integer)
     autopick = Column(Boolean)
 
-    draft = relationship("Draft", backref="draft_picks")
-    team = relationship("Team", backref="draft_picks")
-    player = relationship("NFLPlayer", backref="draft_picks")
+    draft = relationship("Draft", back_populates="draft_picks")
+    team = relationship("Team", back_populates="draft_picks")
+    player = relationship("NFLPlayer", back_populates="draft_picks")
 
 
 class NFLPlayerSeasonStats(db.Model):
@@ -229,7 +233,26 @@ class NFLPlayerSeasonStats(db.Model):
     dst_fumbles_recovered = Column(SmallInteger, default=0)
     dst_interceptions = Column(SmallInteger, default=0)
 
-    player = relationship("NFLPlayer", backref="season_stats")
+    player = relationship("NFLPlayer", back_populates="season_stats")
+
+    @classmethod
+    def get_stats_by_positions(cls, session, positions):
+        """
+        Retrieve all stats for players with positions in the provided list.
+
+        Args:
+            session: SQLAlchemy session object.
+            positions: List of player positions.
+
+        Returns:
+            List of NFLPlayerSeasonStats objects.
+        """
+        return (
+            session.query(cls)
+            .join(NFLPlayer)
+            .filter(NFLPlayer.position.in_(positions))
+            .all()
+        )
 
 
 class NFLPlayerGameStats(db.Model):
@@ -274,7 +297,7 @@ class NFLPlayerGameStats(db.Model):
     dst_fumbles_recovered = Column(SmallInteger, default=0)
     dst_interceptions = Column(SmallInteger, default=0)
 
-    player = relationship("NFLPlayer", backref="game_stats")
+    player = relationship("NFLPlayer", back_populates="game_stats")
 
 
 class NFLPlayer(db.Model):
@@ -291,7 +314,10 @@ class NFLPlayer(db.Model):
     exp = Column(String(255))
     team_id = Column(Integer, ForeignKey("nfl_teams.id"))
 
-    team = relationship("NFLTeam", backref="players")
+    team = relationship("NFLTeam", back_populates="player")
+    draft_picks = relationship("DraftPick", back_populates="player")
+    season_stats = relationship("NFLPlayerSeasonStats", back_populates="player")
+    game_stats = relationship("NFLPlayerGameStats", back_populates="player")
 
 
 class NFLTeam(db.Model):
@@ -302,6 +328,8 @@ class NFLTeam(db.Model):
     team_city = Column(String(255))
     team_name = Column(String(255))
     team_logo_url = Column(String(255))
+
+    player = relationship("NFLPlayer", back_populates="team")
 
 
 class NFLGame(db.Model):
