@@ -194,3 +194,5 @@ package-lock.json
 *.log
 
 .pylintrc
+
+.env

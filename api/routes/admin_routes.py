@@ -8,11 +8,11 @@ logger = logging.getLogger(__name__)
 
 @admin_bp.route("/")
 def health():
-    """health chek"""
+    """health check"""
     return "healthy"
 
 
-@admin_bp.route("/setup/pgdb", methods=["POST"])
+@admin_bp.route("/setup/pgdb", methods=["POST", "PUT"])
 def setup_pgdb():
     try:
         setup.setup_postgres()
@@ -21,7 +21,7 @@ def setup_pgdb():
         logger.exception("Exception caught while setting up postgres")
 
 
-@admin_bp.route("/update/nfl_players", methods=["PUT"])
+@admin_bp.route("/update/nfl_players", methods=["POST", "PUT"])
 def update_players():
     try:
         update.update_nflplayers_table()
@@ -33,7 +33,7 @@ def update_players():
         logger.exception("Exception caught while updating nfl players")
 
 
-@admin_bp.route("/update/nfl_players_and_stats", methods=["PUT"])
+@admin_bp.route("/update/nfl_players_and_stats", methods=["POST", "PUT"])
 def update_nfl_players_and_stats():
     try:
         update.update_nfl_player_game_stats_table()
