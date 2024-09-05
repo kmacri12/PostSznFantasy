@@ -28,7 +28,7 @@ function PlayersPage() {
 
   return (
     <div>
-      <PlayersTable data={playerStats} /> // Render the PlayersTable component and pass the playersStats data
+      <PlayersTable data={playerStats} />
     </div>
   );
 }
