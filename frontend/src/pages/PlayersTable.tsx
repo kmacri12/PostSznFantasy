@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { useTable } from 'react-table';
+import './PlayersTable.css';
 
 
 interface PlayerStat {
@@ -37,6 +38,13 @@ interface PlayerStat {
       position: string;
       team_id: number;
       weight: string;
+      team: {
+        id: number;
+        team_abv: string;
+        team_city: string;
+        team_logo_url: string;
+        team_name: string;
+        };
     };
     player_id: number;
     punt_return_td: number;
@@ -62,41 +70,73 @@ const PlayersTable = ({ data }) => {
         switch (position) {
           case 'QB':
             return [
-              { Header: 'Passing Completions', accessor: 'passing_completions' },
-              { Header: 'Passing Attempts', accessor: 'passing_attempts' },
-              { Header: 'Passing Yards', accessor: 'passing_yards' },
-              { Header: 'Carrying Fumbles', accessor: 'carrying_fumbles' },
-              { Header: 'Rushing Carries', accessor: 'rushing_carries' },
-              { Header: 'Rushing Yards', accessor: 'rushing_yards' },
+              {
+                Header: 'Passing', // Top-level header
+                columns: [
+                  { Header: 'Completions', accessor: 'passing_completions' },
+                  { Header: 'Attempts', accessor: 'passing_attempts' },
+                  { Header: 'Yards', accessor: 'passing_yards' },
+                  { Header: 'Touchdowns', accessor: 'passing_touchdowns' },
+                ],
+              },
+              {
+                Header: 'Rushing', // Top-level header
+                columns: [
+                  { Header: 'Carries', accessor: 'rushing_carries' },
+                  { Header: 'Yards', accessor: 'rushing_yards' },
+                  { Header: 'Fumbles Lost', accessor: 'carrying_fumbles_lost' },
+                ],
+              },
             ];
           case 'RB':
           case 'WR':
           case 'TE':
             return [
-              { Header: 'Receiving Receptions', accessor: 'receiving_receptions' },
-              { Header: 'Receiving Yards', accessor: 'receiving_yards' },
-              { Header: 'Rushing Carries', accessor: 'rushing_carries' },
-              { Header: 'Rushing Yards', accessor: 'rushing_yards' },
-              { Header: 'Carrying Fumbles', accessor: 'carrying_fumbles' },
+              {
+                Header: 'Receiving', // Top-level header
+                columns: [
+                  { Header: 'Receptions', accessor: 'receiving_receptions' },
+                  { Header: 'Yards', accessor: 'receiving_yards' },
+                  { Header: 'Touchdowns', accessor: 'receiving_touchdowns' },
+                ],
+              },
+              {
+                Header: 'Rushing', // Top-level header
+                columns: [
+                  { Header: 'Carries', accessor: 'rushing_carries' },
+                  { Header: 'Yards', accessor: 'rushing_yards' },
+                  { Header: 'Fumbles Lost', accessor: 'carrying_fumbles_lost' },
+                ],
+              },
             ];
           case 'PK':
             return [
-              { Header: 'Kicking FG Made', accessor: 'kicking_fg_made' },
-              { Header: 'Kicking FG Missed', accessor: 'kicking_fg_missed' },
-              { Header: 'Kicking XP Made', accessor: 'kicking_xp_made' },
-              { Header: 'Kicking XP Missed', accessor: 'kicking_xp_missed' },
+              {
+                Header: 'Kicking', // Top-level header
+                columns: [
+                  { Header: 'FG Made', accessor: 'kicking_fg_made' },
+                  { Header: 'FG Missed', accessor: 'kicking_fg_missed' },
+                  { Header: 'XP Made', accessor: 'kicking_xp_made' },
+                  { Header: 'XP Missed', accessor: 'kicking_xp_missed' },
+                ],
+              },
             ];
           case 'DST':
             return [
-              { Header: 'DST Points Allowed', accessor: 'dst_points_allowed' },
-              { Header: 'DST Yards Allowed', accessor: 'dst_yards_allowed' },
-              { Header: 'DST Sacks', accessor: 'dst_sacks' },
-              { Header: 'DST Interceptions', accessor: 'dst_interceptions' },
+              {
+                Header: 'Defense', // Top-level header
+                columns: [
+                  { Header: 'Points Allowed', accessor: 'dst_points_allowed' },
+                  { Header: 'Yards Allowed', accessor: 'dst_yards_allowed' },
+                  { Header: 'Sacks', accessor: 'dst_sacks' },
+                  { Header: 'Interceptions', accessor: 'dst_interceptions' },
+                ],
+              },
             ];
           default:
             return [];
         }
-      }, []);    
+      }, []);
   const [selectedPosition, setSelectedPosition] = useState('QB');
   const columns = useMemo(() => getPositionColumns(selectedPosition), [selectedPosition, getPositionColumns]);
   const filteredData = useMemo(() => {
@@ -112,6 +152,7 @@ const PlayersTable = ({ data }) => {
   } = useTable({
     columns: useMemo(() => [
         { Header: 'Name', accessor: 'player.name' },
+        { Header: 'Team', accessor: 'player.team.team_abv' },
         ...columns,
       ], [columns]),
     data: filteredData,
@@ -130,17 +171,17 @@ const PlayersTable = ({ data }) => {
         <option value="PK">PK</option>
         <option value="DST">DST</option>
       </select>
-      <table {...getTableProps()} style={{ border: 'solid 1px gray' }}>
+      <table {...getTableProps()} style={{ border: 'solid 1px gray' }} className='players-table'>
         <thead>
-          {headerGroups.map((headerGroup) => (
-            <tr {...headerGroup.getHeaderGroupProps()} key={headerGroup.id}>
-              {headerGroup.headers.map((column) => (
-                <th {...column.getHeaderProps()} key={column.id}>
-                  {column.render('Header')}
-                </th>
-              ))}
-            </tr>
-          ))}
+        {headerGroups.map((headerGroup) => (
+          <tr {...headerGroup.getHeaderGroupProps()} key={headerGroup.id}>
+            {headerGroup.headers.map((column) => (
+              <th {...column.getHeaderProps()} key={column.id}>
+                {column.render('Header')}
+              </th>
+            ))}
+          </tr>
+        ))}
         </thead>
         <tbody {...getTableBodyProps()}>
           {rows.map((row) => {

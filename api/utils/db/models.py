@@ -344,6 +344,12 @@ class NFLTeam(db.Model):
 
     player = relationship("NFLPlayer", back_populates="team")
 
+    def to_dict(self):
+        """
+        Automatically convert SQLAlchemy object to dictionary by inspecting its columns.
+        """
+        return {c.key: getattr(self, c.key) for c in inspect(self).mapper.column_attrs}
+
 
 class NFLGame(db.Model):
     __tablename__ = "nfl_games"
