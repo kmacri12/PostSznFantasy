@@ -9,6 +9,7 @@ from sqlalchemy import (
     ForeignKey,
     SmallInteger,
     JSON,
+    inspect,
 )
 from sqlalchemy.orm import relationship
 from api.app import db
@@ -254,6 +255,12 @@ class NFLPlayerSeasonStats(db.Model):
             .all()
         )
 
+    def to_dict(self):
+        """
+        Automatically convert SQLAlchemy object to dictionary by inspecting its columns.
+        """
+        return {c.key: getattr(self, c.key) for c in inspect(self).mapper.column_attrs}
+
 
 class NFLPlayerGameStats(db.Model):
     __tablename__ = "nfl_player_game_stats"
@@ -318,6 +325,12 @@ class NFLPlayer(db.Model):
     draft_picks = relationship("DraftPick", back_populates="player")
     season_stats = relationship("NFLPlayerSeasonStats", back_populates="player")
     game_stats = relationship("NFLPlayerGameStats", back_populates="player")
+
+    def to_dict(self):
+        """
+        Automatically convert SQLAlchemy object to dictionary by inspecting its columns.
+        """
+        return {c.key: getattr(self, c.key) for c in inspect(self).mapper.column_attrs}
 
 
 class NFLTeam(db.Model):
