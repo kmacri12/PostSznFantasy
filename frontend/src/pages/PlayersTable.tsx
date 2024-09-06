@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { useTable } from 'react-table';
+import { useTable, useSortBy } from 'react-table';
 import './PlayersTable.css';
 
 
@@ -64,6 +64,7 @@ interface PlayerStat {
 }
 
 const PlayersTable = ({ data }) => {
+  const [selectedSeason, setSelectedSeason] = useState('2023');
   const [selectedPosition, setSelectedPosition] = useState('QB');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -85,6 +86,7 @@ const PlayersTable = ({ data }) => {
             columns: [
               { Header: 'Carries', accessor: 'rushing_carries' },
               { Header: 'Yards', accessor: 'rushing_yards' },
+              { Header: 'Touchdowns', accessor: 'rushing_touchdowns' },
               { Header: 'Fumbles Lost', accessor: 'carrying_fumbles_lost' },
             ],
           },
@@ -92,6 +94,7 @@ const PlayersTable = ({ data }) => {
       case 'RB':
       case 'WR':
       case 'TE':
+      case 'FLX':
         return [
           {
             Header: 'Receiving',
@@ -106,6 +109,7 @@ const PlayersTable = ({ data }) => {
             columns: [
               { Header: 'Carries', accessor: 'rushing_carries' },
               { Header: 'Yards', accessor: 'rushing_yards' },
+              { Header: 'Touchdowns', accessor: 'rushing_touchdowns' },
               { Header: 'Fumbles Lost', accessor: 'carrying_fumbles_lost' },
             ],
           },
@@ -142,12 +146,16 @@ const PlayersTable = ({ data }) => {
   // Memoize columns and filter logic
   const columns = useMemo(() => getPositionColumns(selectedPosition), [selectedPosition, getPositionColumns]);
   const filteredData = useMemo(() => {
-    return data
-      .filter((player) => player.player.position === selectedPosition)
-      .filter((player) =>
-        player.player.name.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-  }, [data, selectedPosition, searchQuery]);
+    return data.filter((player) => {
+      const matchesPosition = selectedPosition === 'FLX' 
+        ? ['RB', 'WR', 'TE'].includes(player.player.position)
+        : player.player.position === selectedPosition;
+      const matchesSeason = player.season === selectedSeason;
+  
+      return matchesPosition && matchesSeason;
+    });
+  }, [data, selectedPosition, searchQuery, selectedSeason]);
+  
 
   const {
     getTableProps,
@@ -155,29 +163,53 @@ const PlayersTable = ({ data }) => {
     headerGroups,
     rows,
     prepareRow,
-  } = useTable({
-    columns: useMemo(() => [
-        { Header: 'Name', accessor: 'player.name' },
-        { Header: 'Team', accessor: 'player.team.team_abv' },
-        ...columns,
-      ], [columns]),
-    data: filteredData,
-  });
+  } = useTable(
+    {
+        columns: useMemo(() => [
+            { Header: 'Name', accessor: 'player.name' },
+            {
+                Header: () => (
+                  <div>
+                    <span>Pos </span>
+                    <select
+                      value={selectedPosition}
+                      onChange={(e) => setSelectedPosition(e.target.value)}
+                    >
+                      <option value="QB">QB</option>
+                      <option value="RB">RB</option>
+                      <option value="WR">WR</option>
+                      <option value="TE">TE</option>
+                      <option value="PK">PK</option>
+                      <option value="DST">DST</option>
+                      <option value="FLX">FLX</option>
+                    </select>
+                  </div>
+                ),
+                accessor: 'player.position',
+                id: 'position-selector',
+                disableSortBy: true
+              },
+            { Header: 'Team', accessor: 'player.team.team_abv' },
+            ...columns,
+        ], [columns]),
+        data: filteredData,
+    }, 
+    useSortBy
+);
 
-  return (
+return (
     <div>
-      <select
-        value={selectedPosition}
-        onChange={(e) => setSelectedPosition(e.target.value)}
-      >
-        <option value="QB">QB</option>
-        <option value="RB">RB</option>
-        <option value="WR">WR</option>
-        <option value="TE">TE</option>
-        <option value="PK">PK</option>
-        <option value="DST">DST</option>
-      </select>
-      
+        <select
+            value={selectedSeason}
+            onChange={(e) => setSelectedSeason(e.target.value)}
+            style={{ marginLeft: '10px' }}
+            >
+            <option value="2023">2024</option>
+            <option value="2023">2023</option>
+            <option value="2022">2022</option>
+            <option value="2021">2021</option>
+        </select>
+
       <input
         type="text"
         placeholder="Search by name"
@@ -188,15 +220,26 @@ const PlayersTable = ({ data }) => {
       
       <table {...getTableProps()} style={{ border: 'solid 1px gray' }} className='players-table'>
         <thead>
-        {headerGroups.map((headerGroup) => (
-          <tr {...headerGroup.getHeaderGroupProps()} key={headerGroup.id}>
-            {headerGroup.headers.map((column) => (
-              <th {...column.getHeaderProps()} key={column.id}>
-                {column.render('Header')}
-              </th>
-            ))}
-          </tr>
-        ))}
+          {headerGroups.map((headerGroup) => (
+            <tr {...headerGroup.getHeaderGroupProps()} key={headerGroup.id}>
+              {headerGroup.headers.map((column) => (
+                <th
+                  {...column.getHeaderProps(column.getSortByToggleProps())} // Enables sorting on header click
+                  key={column.id}
+                >
+                  {column.render('Header')}
+                  {/* Add a sort direction indicator */}
+                  <span>
+                    {column.isSorted
+                      ? column.isSortedDesc
+                        ? ' 🔽' // Sort descending
+                        : ' 🔼' // Sort ascending
+                      : ''}
+                  </span>
+                </th>
+              ))}
+            </tr>
+          ))}
         </thead>
         <tbody {...getTableBodyProps()}>
           {rows.map((row) => {
@@ -215,6 +258,7 @@ const PlayersTable = ({ data }) => {
       </table>
     </div>
   );
+
 };
 
 export default PlayersTable;
