@@ -36,7 +36,7 @@ class User(db.Model):
 class League(db.Model):
     __tablename__ = "leagues"
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(100), nullable=False)
     commissioner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
@@ -83,7 +83,7 @@ class LeagueSettings(db.Model):
     roster_num_flex_qb_wr_rb_te = Column(Integer, nullable=False)
     roster_num_k = Column(Integer, nullable=False)
     roster_num_dst = Column(Integer, nullable=False)
-    roster_num_total_size = Column(Integer, nullable=False)
+    roster_num_bench = Column(Integer, nullable=False)
     roster_max_qb = Column(Integer)
     roster_max_rb = Column(Integer)
     roster_max_wr = Column(Integer)
@@ -106,9 +106,9 @@ class LeagueSettings(db.Model):
     scoring_receiving_td = Column(Integer)
     scoring_receiving_2pt = Column(Integer)
     scoring_receiving_target = Column(Integer)
-    scoring_receiving_reception_bonus_RB = Column(Integer)
-    scoring_receiving_reception_bonus_WR = Column(Integer)
-    scoring_receiving_reception_bonus_TE = Column(Integer)
+    scoring_receiving_reception_bonus_rb = Column(Integer)
+    scoring_receiving_reception_bonus_wr = Column(Integer)
+    scoring_receiving_reception_bonus_te = Column(Integer)
     scoring_carrying_fumble = Column(Integer)
     scoring_carrying_fumble_lost = Column(Integer)
     scoring_special_punt_return_yard = Column(Integer)

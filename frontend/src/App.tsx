@@ -26,45 +26,54 @@ import {
   signOut,
 } from "firebase/auth";
 import axios from "axios";
-import { UserProvider, useUser } from "./contexts/UserContext";
+import { UserProvider } from "./contexts/UserContext";
 
 function App() {
   const [user, setUser] = useState<any>(null);
   const [userId, setUserId] = useState<any>(null);
   const [leagues, setLeagues] = useState([]);
   const [selectedLeague, setSelectedLeague] = useState<string>("");
-  const navigate = useNavigate(); // Initialize the navigate function
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchLeagues = async () => {
-      try {
-        // const response = await axios.get('/api/leagues');  // TODO use api
-        // setLeagues(response.data);  // Assuming API response is the list of leagues
-
-        const hardcodedLeagues = [
-          { id: 1, name: "Fantasy League 2023", commissioner_id: 101 },
-          { id: 2, name: "Pro League 2022", commissioner_id: 102 },
-          { id: 3, name: "Friends & Family 2023", commissioner_id: 103 },
-        ];
-
-        setLeagues(hardcodedLeagues);
-
-        if (hardcodedLeagues.length > 0) {
-          setSelectedLeague(hardcodedLeagues[0].id.toString());
+  // Function to fetch leagues
+  const fetchLeagues = async (userToken: string) => {
+    try {
+      const response = await axios.get(
+        "http://localhost:5000/api/league/get_leagues_by_user",
+        {
+          headers: {
+            Authorization: `Bearer ${userToken}`,
+          },
         }
-      } catch (error) {
-        console.error("Error fetching leagues:", error);
+      );
+      const fetchedLeagues = response.data.leagues;
+      setLeagues(fetchedLeagues);
+
+      if (fetchedLeagues && fetchedLeagues.length > 0) {
+        setSelectedLeague(fetchedLeagues[0].id.toString());
       }
-    };
-
-    if (userId) {
-      fetchLeagues();
+    } catch (error) {
+      console.error("Error fetching leagues:", error);
     }
-  }, [userId]);
+  };
 
+  // Handle user authentication state changes
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        // User is logged in
+        setUser(user);
+        const token = await user.getIdToken();
+        setUserId(user.uid); // Set userId from Firebase auth
+
+        // Fetch leagues as soon as the user is authenticated
+        fetchLeagues(token);
+      } else {
+        // User is not logged in
+        setUser(null);
+        setUserId(null);
+        setLeagues([]); // Clear leagues if user is not logged in
+      }
     });
     return () => unsubscribe();
   }, []);
@@ -83,6 +92,7 @@ function App() {
       if (response.status === 200) {
         const { user_id } = response.data;
         setUserId(user_id);
+        fetchLeagues(token);
       }
     } catch (error) {
       console.error("Error signing in:", error);
@@ -94,6 +104,7 @@ function App() {
       await signOut(auth);
       setUser(null);
       setUserId(null);
+      setLeagues([]); // Clear leagues on sign out
     } catch (error) {
       console.error("Error signing out:", error);
     }
@@ -104,9 +115,9 @@ function App() {
       <div>
         <AppBar position="static">
           <Toolbar>
-            <IconButton edge="start" color="inherit" aria-label="menu">
+            {/* <IconButton edge="start" color="inherit" aria-label="menu">
               <MenuIcon />
-            </IconButton>
+            </IconButton> */}
             <Typography
               variant="h6"
               component={Link}
@@ -164,13 +175,12 @@ function App() {
                     label="Select League"
                     style={{ color: "inherit" }}
                   >
-                    {leagues.length
-                      ? leagues.map((league) => (
-                          <MenuItem key={league.id} value={league.id}>
-                            {league.name}
-                          </MenuItem>
-                        ))
-                      : null}
+                    {leagues.length > 0 &&
+                      leagues.map((league) => (
+                        <MenuItem key={league.id} value={league.id.toString()}>
+                          {league.name}
+                        </MenuItem>
+                      ))}
                     <MenuItem onClick={() => navigate("/create-league")}>
                       Create New League
                     </MenuItem>

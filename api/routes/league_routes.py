@@ -1,13 +1,7 @@
-from functools import wraps
-import os
 import logging
 from flask import Blueprint, request, jsonify
 from api.utils.db.models import db, League, LeagueSettings, Team, User
-from firebase_admin import credentials, auth
-
-# Initialize Firebase Admin SDK
-service_account_key_path = os.getenv('FIREBASE_SERVICE_ACCOUNT_KEY_PATH')
-cred = credentials.Certificate(service_account_key_path)
+from api.utils.security.firebase import token_required
 
 league_bp = Blueprint("league", __name__)
 logger = logging.getLogger(__name__)
@@ -19,27 +13,6 @@ def health():
     return "healthy"
 
 
-def token_required(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        token = request.headers.get("Authorization")
-
-        if not token:
-            return jsonify({"error": "Token is missing!"}), 401
-
-        try:
-            token = token.split(" ", 1)[1] if token else None
-            decoded_token = auth.verify_id_token(token)
-            user_id = decoded_token["uid"]
-        except Exception as e:
-            return jsonify({"error": str(e)}), 401
-
-        return f(user_id, *args, **kwargs)
-
-    return decorated
-
-
-
 @league_bp.route("/create_league", methods=["POST"])
 @token_required
 def create_league(user_id):
@@ -48,7 +21,7 @@ def create_league(user_id):
         return jsonify({"error": "No data provided"}), 400
 
     league_name = data.get("leagueName")
-    number_of_teams = int(data.get("rosterSettings", {}).get("numberTeams", 0))
+    number_of_teams = int(data.get("rosterSettings", {}).get("number_teams", 0))
     roster_settings = data.get("rosterSettings")
     scoring_settings = data.get("scoringSettings")
 
@@ -67,6 +40,7 @@ def create_league(user_id):
             commissioner_id=user.id
         )
         db.session.add(new_league)
+        db.session.commit()
 
         # Create league settings
         league_settings = LeagueSettings(
@@ -80,7 +54,7 @@ def create_league(user_id):
         for i in range(number_of_teams):
             new_team = Team(
                 name=f"Team {i + 1}",
-                owner_id=user_id,
+                owner_id=None if i != 0 else user.id,
                 league_id=new_league.id
             )
             db.session.add(new_team)
@@ -93,3 +67,30 @@ def create_league(user_id):
         db.session.rollback()
         logger.exception("Error creating league")
         return jsonify({"error": "Error creating league"}), 500
+
+
+@league_bp.route("/get_leagues_by_user", methods=["GET"])
+@token_required
+def get_leagues_by_user(user_id):
+    try:
+        # Get the user from the firebase_uid
+        user = User.query.filter_by(firebase_uid=user_id).first()
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        # Get all teams owned by the user
+        teams = Team.query.filter_by(owner_id=user.id).all()
+
+        # Get the leagues associated with those teams
+        leagues = [team.league for team in teams]
+
+        # Prepare the leagues data to return
+        leagues_data = [
+            {"id": league.id, "name": league.name} for league in leagues
+        ]
+
+        return jsonify({"leagues": leagues_data}), 200
+
+    except Exception as e:
+        logger.exception("Error getting leagues")
+        return jsonify({"error": "Error getting leagues"}), 500
