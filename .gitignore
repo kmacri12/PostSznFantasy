@@ -196,3 +196,4 @@ package-lock.json
 .pylintrc
 
 .env
+*firebase*.json
