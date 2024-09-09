@@ -1,6 +1,6 @@
 import logging
 from flask import Blueprint, request, jsonify
-from api.utils.db.models import db, League, LeagueSettings, Team, User
+from api.utils.db.models import db, League, LeagueSettings, Team, User, TeamStandings
 from api.utils.security.firebase import token_required
 
 league_bp = Blueprint("league", __name__)
@@ -94,3 +94,49 @@ def get_leagues_by_user(user_id):
     except Exception as e:
         logger.exception("Error getting leagues")
         return jsonify({"error": "Error getting leagues"}), 500
+
+
+@league_bp.route("/get_standings/<int:league_id>", methods=["GET"])
+@token_required
+def get_standings(league_id, user_id):
+    try:
+        # Get the league
+        league = League.query.get(league_id)
+        if not league:
+            return jsonify({"error": "League not found"}), 404
+
+        # Get all teams in the league
+        teams = Team.query.filter_by(league_id=league_id).all()
+
+        # Calculate standings based on some criteria, e.g., Total points
+        standings = []
+        for team in teams:
+            wild_card_points = get_wild_card_points(team.id, league_id)
+            divisional_points = get_divisional_points(team.id, league_id)
+            conference_points = get_conf_champ_points(team.id, league_id)
+            super_bowl_points = get_super_bowl_points(team.id, league_id)
+            total_points = sum(wild_card_points, divisional_points, conference_points, super_bowl_points)
+
+            standings.append({
+                "team_name": team.name,
+                "owner": User.query.get(team.owner_id).username if team.owner_id else "N/A",
+                "players_left": get_players_left(team.id, league_id),  # Placeholder function
+                "wild_card": wild_card_points,  # Placeholder function
+                "divisional": divisional_points,  # Placeholder function
+                "conf_champ": conference_points,  # Placeholder function
+                "super_bowl": super_bowl_points,  # Placeholder function
+                "total": total_points
+            })
+
+        # Sort standings by total points
+        standings.sort(key=lambda x: x["total"], reverse=True)
+
+        # Assign rank based on sorted standings
+        for rank, standing in enumerate(standings, start=1):
+            standing["rank"] = rank
+
+        return jsonify({"standings": standings}), 200
+
+    except Exception as e:
+        logger.exception("Error getting standings")
+        return jsonify({"error": "Error getting standings"}), 500

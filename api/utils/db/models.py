@@ -1,5 +1,5 @@
-from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import (
+    DECIMAL,
     Column,
     Integer,
     String,
@@ -33,23 +33,6 @@ class User(db.Model):
         return "<User {}>".format(self.username)
 
 
-class League(db.Model):
-    __tablename__ = "leagues"
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String(100), nullable=False)
-    commissioner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-
-    teams = relationship("Team", back_populates="league", lazy=True)
-    settings = relationship(
-        "LeagueSettings", back_populates="league", uselist=False, lazy=True
-    )
-    draft = relationship("Draft", back_populates="league", uselist=False, lazy=True)
-
-    def __repr__(self):
-        return f"<League(id={self.id}, name={self.name})>"
-
-
 class Team(db.Model):
     __tablename__ = "teams"
 
@@ -65,6 +48,23 @@ class Team(db.Model):
 
     def __repr__(self):
         return f"<Team(id={self.id}, name={self.name}, owner_id={self.owner_id}, league_id={self.league_id}, roster={self.roster})>"
+
+
+class League(db.Model):
+    __tablename__ = "leagues"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(100), nullable=False)
+    commissioner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+
+    teams = relationship("Team", back_populates="league", lazy=True)
+    settings = relationship(
+        "LeagueSettings", back_populates="league", uselist=False, lazy=True
+    )
+    draft = relationship("Draft", back_populates="league", uselist=False, lazy=True)
+
+    def __repr__(self):
+        return f"<League(id={self.id}, name={self.name})>"
 
 
 class LeagueSettings(db.Model):
@@ -145,6 +145,48 @@ class LeagueSettings(db.Model):
     scoring_dst_interception = Column(Integer)
 
     league = relationship("League", back_populates="settings")
+
+
+class Week(db.Model):
+    __tablename__ = 'weeks'
+    id = Column(Integer, primary_key=True)
+    week_name = Column(String(50), nullable=False)
+
+
+class Lineup(db.Model):
+    __tablename__ = 'lineups'
+    id = Column(Integer, primary_key=True)
+    team_id = Column(Integer, ForeignKey('teams.id'), nullable=False)
+    week_id = Column(Integer, ForeignKey('weeks.id'), nullable=False)
+    lineup = Column(JSON, nullable=False)
+    locked = Column(Boolean, default=False)
+    team = relationship('Team', back_populates='lineups')
+    week = relationship('Week', back_populates='lineups')
+
+
+class PlayerScore(db.Model):
+    __tablename__ = 'player_scores'
+    id = Column(Integer, primary_key=True)
+    lineup_id = Column(Integer, ForeignKey('lineups.id'), nullable=False)
+    player_id = Column(Integer)  # Assuming you have a Player table
+    points = Column(DECIMAL(10, 2), nullable=False)
+    lineup = relationship('Lineup', back_populates='player_scores')
+
+
+class Standings(db.Model):
+    __tablename__ = 'standings'
+    id = Column(Integer, primary_key=True)
+    league_id = Column(Integer, ForeignKey('leagues.id'), nullable=False)
+    team_id = Column(Integer, ForeignKey('teams.id'), nullable=False)
+    rank = Column(Integer, nullable=False)
+    players_left = Column(Integer)  # Source TBD
+    wild_card = Column(Integer)  # Source TBD
+    divisional = Column(Integer)  # Source TBD
+    conf_champ = Column(Integer)  # Source TBD
+    super_bowl = Column(Integer)  # Source TBD
+    total = Column(DECIMAL(10, 2))  # Total points scored by the team
+    league = relationship('League', back_populates='standings')
+    team = relationship('Team', back_populates='standings')
 
 
 class Draft(db.Model):
@@ -368,3 +410,12 @@ class NFLGame(db.Model):
 
     home_team = relationship("NFLTeam", foreign_keys=[team_id_home])
     away_team = relationship("NFLTeam", foreign_keys=[team_id_away])
+
+
+User.teams = relationship('Team', back_populates='owner')
+League.settings = relationship('LeagueSettings', back_populates='league')
+Week.lineups = relationship('Lineup', back_populates='week')
+Team.lineups = relationship('Lineup', back_populates='team')
+Lineup.player_scores = relationship('PlayerScore', back_populates='lineup')
+Team.standings = relationship('Standings', back_populates='team')
+League.standings = relationship('Standings', back_populates='league')
