@@ -9,52 +9,71 @@ import {
   TableRow,
   Paper,
 } from "@mui/material";
+import { getAuth } from "firebase/auth";
 
 interface StandingsTableProps {
   leagueId: string;
 }
 
-interface Team {
-  id: number;
-  name: string;
-  ownerId: number;
-  // Add other necessary fields
-}
-
 interface Standings {
-  rank: number;
   teamName: string;
   owner: string;
-  playersLeft: number; // Placeholder type
-  wildCard: number; // Placeholder type
-  divisional: number; // Placeholder type
-  confChamp: number; // Placeholder type
-  superBowl: number; // Placeholder type
-  total: number; // Placeholder type
+  playersLeft: number;
+  wildCard: number;
+  divisional: number;
+  confChamp: number;
+  superBowl: number;
+  total: number;
 }
 
 const StandingsTable: React.FC<StandingsTableProps> = ({ leagueId }) => {
   const [standings, setStandings] = useState<Standings[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchStandings = async () => {
       try {
-        const response = await axios.get(`/api/league/${leagueId}/standings`);
-        setStandings(response.data);
+        const apiUrl = import.meta.env.VITE_API_URL;
+        const auth = getAuth();
+        const user = auth.currentUser;
+
+        if (!user) {
+          console.error("No user is currently signed in.");
+          return;
+        }
+
+        const idToken = await user.getIdToken();
+
+        const response = await axios.get(
+          `${apiUrl}/api/league/${leagueId}/standings`,
+          {
+            headers: { Authorization: `Bearer ${idToken}` },
+          }
+        );
+
+        const sortedStandings = response.data.sort(
+          (a: Standings, b: Standings) => b.total - a.total
+        );
+        setStandings(sortedStandings);
       } catch (error) {
         console.error("Error fetching standings:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchStandings();
   }, [leagueId]);
 
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <TableContainer component={Paper}>
       <Table>
         <TableHead>
           <TableRow>
-            <TableCell>Rank</TableCell>
             <TableCell>Team Name</TableCell>
             <TableCell>Owner</TableCell>
             <TableCell>Players Left</TableCell>
@@ -68,7 +87,6 @@ const StandingsTable: React.FC<StandingsTableProps> = ({ leagueId }) => {
         <TableBody>
           {standings.map((row) => (
             <TableRow key={row.teamName}>
-              <TableCell>{row.rank}</TableCell>
               <TableCell>{row.teamName}</TableCell>
               <TableCell>{row.owner}</TableCell>
               <TableCell>{row.playersLeft}</TableCell>
