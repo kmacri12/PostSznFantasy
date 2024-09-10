@@ -1,8 +1,10 @@
 import json
 from api.utils.calculations.fantasy_points_utils import calculate_player_points
-from api.utils.db.models import db, Lineup, PlayerScore, Team, GameStats, LeagueSettings, NFLPlayer, NFLTeam, PlayerLineup
+from api.utils.db.models import db, Lineup, PlayerScore, Team, NFLPlayerGameStats, LeagueSettings, NFLPlayer, NFLTeam
+
 
 def get_players_left(team_id, league_id):
+    return 4
     # Fetch the team
     team = Team.query.filter_by(id=team_id, league_id=league_id).first()
     if not team:
@@ -26,6 +28,9 @@ def get_players_left(team_id, league_id):
 
 
 def get_team_fantasy_points_by_week(team_id, league_id, week):
+    # TODO: implement
+    import random
+    return round(random.uniform(10, 100), 2)
     # Fetch the league settings for scoring details
     league_settings = LeagueSettings.query.filter_by(league_id=league_id).first()
     if not league_settings:
@@ -37,7 +42,7 @@ def get_team_fantasy_points_by_week(team_id, league_id, week):
         raise ValueError(f"Lineup for team {team_id} and week {week} not found")
 
     # Fetch the games for the wild card week
-    games = GameStats.query.filter_by(week=week, team_id=team_id).all()
+    games = NFLPlayerGameStats.query.filter_by(week=week, team_id=team_id).all()
 
     # Calculate points
     total_points = 0

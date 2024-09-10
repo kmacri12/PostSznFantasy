@@ -1,6 +1,8 @@
 import logging
 from flask import Blueprint, request, jsonify
-from api.utils.db.models import db, League, LeagueSettings, Team, User, TeamStandings
+from api.models.league_models import StandingsSchema
+from api.utils.calculations.standings_utils import get_team_fantasy_points_by_week, get_players_left
+from api.utils.db.models import db, League, LeagueSettings, Team, User
 from api.utils.security.firebase import token_required
 
 league_bp = Blueprint("league", __name__)
@@ -96,7 +98,7 @@ def get_leagues_by_user(user_id):
         return jsonify({"error": "Error getting leagues"}), 500
 
 
-@league_bp.route("/get_standings/<int:league_id>", methods=["GET"])
+@league_bp.route("/<league_id>/standings", methods=["GET"])
 @token_required
 def get_standings(league_id, user_id):
     try:
@@ -111,31 +113,27 @@ def get_standings(league_id, user_id):
         # Calculate standings based on some criteria, e.g., Total points
         standings = []
         for team in teams:
-            wild_card_points = get_wild_card_points(team.id, league_id)
-            divisional_points = get_divisional_points(team.id, league_id)
-            conference_points = get_conf_champ_points(team.id, league_id)
-            super_bowl_points = get_super_bowl_points(team.id, league_id)
-            total_points = sum(wild_card_points, divisional_points, conference_points, super_bowl_points)
+            wild_card_points = get_team_fantasy_points_by_week(team.id, league_id, "wildcard")
+            divisional_points = get_team_fantasy_points_by_week(team.id, league_id, "divisional")
+            conference_points = get_team_fantasy_points_by_week(team.id, league_id, "conference")
+            super_bowl_points = get_team_fantasy_points_by_week(team.id, league_id, "superbowl")
+            total_points = sum([wild_card_points, divisional_points, conference_points, super_bowl_points])
 
-            standings.append({
-                "team_name": team.name,
-                "owner": User.query.get(team.owner_id).username if team.owner_id else "N/A",
-                "players_left": get_players_left(team.id, league_id),  # Placeholder function
-                "wild_card": wild_card_points,  # Placeholder function
-                "divisional": divisional_points,  # Placeholder function
-                "conf_champ": conference_points,  # Placeholder function
-                "super_bowl": super_bowl_points,  # Placeholder function
-                "total": total_points
-            })
+            standings.append(StandingsSchema(
+                team_name=team.name,
+                owner=User.query.get(team.owner_id).username if team.owner_id else "N/A",
+                players_left=get_players_left(team.id, league_id),
+                wild_card=wild_card_points,
+                divisional=divisional_points,
+                conf_champ=conference_points,
+                super_bowl=super_bowl_points,
+                total=total_points
+            ))
 
         # Sort standings by total points
-        standings.sort(key=lambda x: x["total"], reverse=True)
+        standings.sort(key=lambda x: x.total, reverse=True)
 
-        # Assign rank based on sorted standings
-        for rank, standing in enumerate(standings, start=1):
-            standing["rank"] = rank
-
-        return jsonify({"standings": standings}), 200
+        return jsonify([s.model_dump() for s in standings]), 200
 
     except Exception as e:
         logger.exception("Error getting standings")

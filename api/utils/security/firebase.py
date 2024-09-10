@@ -22,6 +22,6 @@ def token_required(f):
         except Exception as e:
             return jsonify({"error": str(e)}), 401
 
-        return f(user_id, *args, **kwargs)
+        return f(user_id=user_id, *args, **kwargs)
 
     return decorated
