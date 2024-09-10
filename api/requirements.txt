@@ -8,3 +8,4 @@ requests-cache
 werkzeug
 pyjwt
 firebase-admin
+pydantic
