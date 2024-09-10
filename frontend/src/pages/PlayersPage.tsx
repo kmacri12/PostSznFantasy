@@ -1,23 +1,21 @@
 // src/pages/PlayersPage.tsx
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import PlayersTable from './PlayersTable'; 
-
-
-
-
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import PlayersTable from "./PlayersTable";
 
 function PlayersPage() {
+  const apiUrl = import.meta.env.VITE_API_URL;
   const [playerStats, setPlayerStats] = useState<[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios.get('http://localhost:5000/api/players/player_season_stats')
-      .then(response => {
+    axios
+      .get(`${apiUrl}/api/players/player_season_stats`)
+      .then((response) => {
         setPlayerStats(response.data);
         setLoading(false);
       })
-      .catch(error => {
+      .catch((error) => {
         console.error(error);
       });
   }, []);

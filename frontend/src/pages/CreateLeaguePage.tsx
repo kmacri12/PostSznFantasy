@@ -25,6 +25,7 @@ import ScoringKickingSettingsComponent from "../components/settings/ScoringKicki
 import ScoringDSTSettingsComponent from "../components/settings/ScoringDSTSettingsComponent";
 
 const CreateLeaguePage = () => {
+  const apiUrl = import.meta.env.VITE_API_URL;
   const userId = useUser();
   const [leagueName, setLeagueName] = useState("MyLeague");
   const [expanded, setExpanded] = useState({
@@ -133,7 +134,7 @@ const CreateLeaguePage = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/league/create_league",
+        `${apiUrl}/api/league/create_league`,
         {
           leagueName,
           rosterSettings,

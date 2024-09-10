@@ -29,6 +29,7 @@ import axios from "axios";
 import { UserProvider, useUser } from "./contexts/UserContext";
 
 function App() {
+  const apiUrl = import.meta.env.VITE_API_URL;
   const [user, setUser] = useState<any>(null);
   const [userId, setUserId] = useState<any>(null);
   const [leagues, setLeagues] = useState([]);
@@ -41,7 +42,7 @@ function App() {
       try {
         const token = await auth.currentUser?.getIdToken(); // Get the user's token
         const response = await axios.get(
-          "http://localhost:5000/api/league/get_leagues_by_user",
+          `${apiUrl}/api/league/get_leagues_by_user`,
           {
             headers: {
               Authorization: `Bearer ${token}`, // Pass the token in the Authorization header
@@ -78,14 +79,12 @@ function App() {
       setUser(user);
       if (user) {
         user.getIdToken().then((token) => {
-          axios
-            .post("http://localhost:5000/api/user/login", { token })
-            .then((response) => {
-              if (response.status === 200) {
-                const { user_id } = response.data;
-                setUserId(user_id);
-              }
-            });
+          axios.post(`${apiUrl}/api/user/login`, { token }).then((response) => {
+            if (response.status === 200) {
+              const { user_id } = response.data;
+              setUserId(user_id);
+            }
+          });
         });
       }
     });
@@ -97,10 +96,7 @@ function App() {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       const token = await result.user.getIdToken();
-      const response = await axios.post(
-        "http://localhost:5000/api/user/login",
-        { token }
-      );
+      const response = await axios.post(`${apiUrl}/api/user/login`, { token });
       if (response.status === 200) {
         const { user_id } = response.data;
         setUserId(user_id);
