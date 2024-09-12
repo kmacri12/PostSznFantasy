@@ -2,9 +2,12 @@ import os
 import logging
 from flask import Flask
 from flask_cors import CORS
+from flask_socketio import SocketIO
 from flask_sqlalchemy import SQLAlchemy
+from api.utils.socketio.socketio_handlers import setup_socketio_handlers
 
 db = SQLAlchemy()
+socketio = SocketIO()
 
 
 def create_app():
@@ -26,6 +29,7 @@ def create_app():
         handlers=[logging.FileHandler("app.log"), logging.StreamHandler()],
     )
     logging.info("Starting the application")
+    socketio.init_app(app)
 
     # Register the blueprints
 
@@ -40,5 +44,7 @@ def create_app():
     app.register_blueprint(admin_bp, url_prefix="/api/admin")
     app.register_blueprint(players_bp, url_prefix="/api/players")
     app.register_blueprint(league_bp, url_prefix="/api/league")
+
+    setup_socketio_handlers(socketio)
 
     return app

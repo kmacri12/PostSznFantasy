@@ -9,3 +9,4 @@ werkzeug
 pyjwt
 firebase-admin
 pydantic
+flask-socketio
