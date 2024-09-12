@@ -4,7 +4,9 @@ from api.utils.db.models import db, Lineup, PlayerScore, Team, NFLPlayerGameStat
 
 
 def get_players_left(team_id, league_id):
-    return 4
+    # TODO implement this fn
+    import random
+    return random.randint(0, 16)
     # Fetch the team
     team = Team.query.filter_by(id=team_id, league_id=league_id).first()
     if not team:
