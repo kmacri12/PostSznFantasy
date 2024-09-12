@@ -28,11 +28,21 @@ import {
 import axios from "axios";
 import { UserProvider, useUser } from "./contexts/UserContext";
 
+interface LeagueByUser {
+  id: number;
+  name: string;
+  commissionerId: number;
+  userTeamId: number;
+}
+
 function App() {
   const apiUrl = import.meta.env.VITE_API_URL;
   const [user, setUser] = useState<any>(null);
-  const [userId, setUserId] = useState<any>(null);
-  const [leagues, setLeagues] = useState([]);
+  const [userId, setUserId] = useState<number | null>(null);
+  const [leagues, setLeagues] = useState<LeagueByUser[]>([]);
+  const [teamNumberForLeague, setTeamNumberForLeague] = useState<number | null>(
+    null
+  );
   const [selectedLeague, setSelectedLeague] = useState<string>("");
   const navigate = useNavigate(); // Initialize the navigate function
 
@@ -49,12 +59,13 @@ function App() {
             },
           }
         );
-        const fetchedLeagues = response.data.leagues;
+        const fetchedLeagues: LeagueByUser[] = response.data;
         setLeagues(fetchedLeagues);
 
         if (fetchedLeagues && fetchedLeagues.length > 0) {
-          setSelectedLeague(fetchedLeagues[0].id.toString()); // Set the first league as default
-          navigate(`/league/${fetchedLeagues[0].id}`); // Navigate to the first league dynamically
+          setSelectedLeague(fetchedLeagues[0].id.toString());
+          setTeamNumberForLeague(fetchedLeagues[0].userTeamId);
+          navigate(`/league/${fetchedLeagues[0].id}`);
         }
       } catch (error) {
         console.error("Error fetching leagues:", error);
@@ -70,7 +81,11 @@ function App() {
   const handleLeagueChange = (event: any) => {
     const leagueId = event.target.value;
     setSelectedLeague(leagueId);
-    navigate(`/league/${leagueId}`); // Navigate to the selected league
+    const userTeamId = leagues.find(
+      (league) => league.id === Number(leagueId)
+    )?.userTeamId;
+    setTeamNumberForLeague(userTeamId);
+    navigate(`/league/${leagueId}`);
   };
 
   // Check for authentication state on page load
@@ -145,7 +160,7 @@ function App() {
                 </Button>
                 <Button
                   component={Link}
-                  to={`/league/${selectedLeague}/team/1`}
+                  to={`/team/${teamNumberForLeague}`}
                   style={{ textTransform: "none", color: "inherit" }}
                 >
                   Team
@@ -234,7 +249,7 @@ function App() {
         {/* Route Definitions */}
         <Routes>
           <Route path="/league/:leagueId" element={<LeaguePage />} />
-          <Route path="/league/:leagueId/team/:teamId" element={<TeamPage />} />
+          <Route path="/team/:teamId" element={<TeamPage />} />
           <Route path="/players" element={<PlayersPage />} />
           <Route path="/league/:leagueId/draft" element={<DraftPage />} />
           <Route path="/settings" element={<SettingsPage />} />

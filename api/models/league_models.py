@@ -1,7 +1,14 @@
 from api.models.base import BaseSchema
 
 
-class StandingsSchema(BaseSchema):
+class LeaguesByUser(BaseSchema):
+    id: int
+    name: str
+    commissioner_id: int
+    user_team_id: int
+
+
+class Standings(BaseSchema):
     team_name: str
     owner: str
     players_left: int

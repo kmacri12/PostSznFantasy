@@ -1,6 +1,6 @@
 import logging
 from flask import Blueprint, request, jsonify
-from api.models.league_models import StandingsSchema
+from api.models.league_models import Standings, LeaguesByUser
 from api.utils.calculations.standings_utils import get_team_fantasy_points_by_week, get_players_left
 from api.utils.db.models import db, League, LeagueSettings, Team, User
 from api.utils.security.firebase import token_required
@@ -73,27 +73,26 @@ def create_league(user_id):
 
 @league_bp.route("/get_leagues_by_user", methods=["GET"])
 @token_required
-def get_leagues_by_user(user_id):
+def get_leagues_by_user(user_id: int) -> list[LeaguesByUser]:
     try:
-        # Get the user from the firebase_uid
         user = User.query.filter_by(firebase_uid=user_id).first()
         if not user:
             return jsonify({"error": "User not found"}), 404
 
-        # Get all teams owned by the user
         teams = Team.query.filter_by(owner_id=user.id).all()
 
-        # Get the leagues associated with those teams
-        leagues = [team.league for team in teams]
-
-        # Prepare the leagues data to return
-        leagues_data = [
-            {"id": league.id, "name": league.name} for league in leagues
+        leagues_by_user = [
+            LeaguesByUser(
+                id=team.league.id,
+                name=team.league.name,
+                commissioner_id=team.league.commissioner_id,
+                user_team_id=team.id
+            ) for team in teams
         ]
 
-        return jsonify({"leagues": leagues_data}), 200
+        return jsonify([league.model_dump() for league in leagues_by_user]), 200
 
-    except Exception as e:
+    except Exception:
         logger.exception("Error getting leagues")
         return jsonify({"error": "Error getting leagues"}), 500
 
@@ -119,7 +118,7 @@ def get_standings(league_id, user_id):
             super_bowl_points = get_team_fantasy_points_by_week(team.id, league_id, "superbowl")
             total_points = sum([wild_card_points, divisional_points, conference_points, super_bowl_points])
 
-            standings.append(StandingsSchema(
+            standings.append(Standings(
                 team_name=team.name,
                 owner=User.query.get(team.owner_id).username if team.owner_id else "N/A",
                 players_left=get_players_left(team.id, league_id),
@@ -135,6 +134,6 @@ def get_standings(league_id, user_id):
 
         return jsonify([s.model_dump() for s in standings]), 200
 
-    except Exception as e:
+    except Exception:
         logger.exception("Error getting standings")
         return jsonify({"error": "Error getting standings"}), 500
