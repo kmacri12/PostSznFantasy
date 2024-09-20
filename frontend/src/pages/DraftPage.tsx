@@ -13,11 +13,13 @@ import {
 import { Settings } from "@mui/icons-material";
 import PlayersTable from "../components/players/PlayersTable";
 import Countdown from "../components/draft/Countdown";
-import { useWebSocket } from "your-websocket-hook"; // Hook to manage websockets for synchronization
+import { useWebSocket } from "../hooks/useWebSocket"; // Hook to manage websockets for synchronization
 
 const DraftPage: React.FC = () => {
+  const wsUrl = import.meta.env.VITE_WS_URL;
+
   const { data, isConnected, sendMessage } = useWebSocket(
-    "ws://your-websocket-url/draft-sync"
+    `${wsUrl}/socket.io/`
   );
   const [openSettings, setOpenSettings] = useState(false);
   const [draftBoard, setDraftBoard] = useState<string[][]>([]); // Array representing the draft board grid
@@ -25,12 +27,13 @@ const DraftPage: React.FC = () => {
   const [timer, setTimer] = useState<number>(0); // Draft timer (in seconds)
 
   useEffect(() => {
-    // WebSocket connection to sync the draft board, current pick, and timer across users
-    const { board, pick, time } = useWebSocket("draft-sync");
-    setDraftBoard(board);
-    setCurrentPick(pick);
-    setTimer(time);
-  }, []);
+    if (data) {
+      const { board, pick, time } = data;
+      setDraftBoard(board);
+      setCurrentPick(pick);
+      setTimer(time);
+    }
+  }, [data]);
 
   const handlePlayerSelection = (playerId: string) => {
     // Handle drafting a player
@@ -83,7 +86,7 @@ const DraftPage: React.FC = () => {
 
         {/* Player List (Bottom of Page) */}
         <Grid item xs={12}>
-          <PlayersTable onSelectPlayer={handlePlayerSelection} />
+          <PlayersTable />
         </Grid>
       </Grid>
 

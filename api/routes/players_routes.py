@@ -10,7 +10,7 @@ def health_check():
     return "Players route up and running"
 
 
-@players_bp.route("/player_season_stats", methods=["GET"])
+@players_bp.route("/player-season-stats", methods=["GET"])
 def get_players_and_stats():
     position_list = ["QB", "RB", "FB", "WR", "TE", "PK", "DST"]
     stats = NFLPlayerSeasonStats.query.options(

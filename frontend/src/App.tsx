@@ -44,7 +44,7 @@ function App() {
     null
   );
   const [selectedLeague, setSelectedLeague] = useState<string>("");
-  const navigate = useNavigate(); // Initialize the navigate function
+  const navigate = useNavigate();
 
   // Fetch leagues when userId is set
   useEffect(() => {

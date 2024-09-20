@@ -22,7 +22,7 @@ class User(db.Model):
     firebase_uid = Column(String(128), unique=True, nullable=False)
     username = Column(String(20), nullable=False)
     email = Column(String(120), unique=True, nullable=False)
-    teams_owned = relationship("Team", back_populates="owner", lazy=True)
+    teams_owned = relationship("Team", back_populates="owner", lazy=True, overlaps="owner")
 
     def __init__(self, firebase_uid, username, email):
         self.firebase_uid = firebase_uid
@@ -42,7 +42,7 @@ class Team(db.Model):
     league_id = Column(Integer, ForeignKey("leagues.id"))
     roster = Column(ARRAY(Integer))
 
-    owner = relationship("User", back_populates="teams_owned")
+    owner = relationship("User", back_populates="teams_owned", overlaps="teams_owned")
     league = relationship("League", back_populates="teams")
     draft_picks = relationship("DraftPick", back_populates="team")
 

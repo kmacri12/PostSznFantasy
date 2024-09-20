@@ -72,7 +72,7 @@ const PlayersTable = () => {
 
   useEffect(() => {
     axios
-      .get(`${apiUrl}/api/players/player_season_stats`)
+      .get(`${apiUrl}/api/players/player-season-stats`)
       .then((response) => {
         setPlayerStats(response.data);
         // setLoading(false);
@@ -172,7 +172,7 @@ const PlayersTable = () => {
 
       return matchesPosition && matchesSeason;
     });
-  }, [data, selectedPosition, searchQuery, selectedSeason]);
+  }, [playerStats, selectedPosition, searchQuery, selectedSeason]);
 
   const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
     useTable(
@@ -219,7 +219,7 @@ const PlayersTable = () => {
         onChange={(e) => setSelectedSeason(e.target.value)}
         style={{ marginLeft: "10px" }}
       >
-        <option value="2023">2024</option>
+        <option value="2024">2024</option>
         <option value="2023">2023</option>
         <option value="2022">2022</option>
         <option value="2021">2021</option>

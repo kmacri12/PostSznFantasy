@@ -6,33 +6,35 @@ from flask_socketio import SocketIO
 from flask_sqlalchemy import SQLAlchemy
 from api.utils.socketio.socketio_handlers import setup_socketio_handlers
 
-db = SQLAlchemy()
-socketio = SocketIO()
+db = SQLAlchemy()  # Single instance of SQLAlchemy
+# socketio = SocketIO()  # Single instance of SocketIO
 
 
 def create_app():
     app = Flask(__name__)
     app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("PG_URI")
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
     db.init_app(app)
 
+    # CORS setup
     CORS(app)
-    CORS(
-        app,
-        resources={
-            r"/api/*": {"origins": "http://localhost:3000/", "headers": "Content-Type"}
-        },
-    )
+    CORS(app, resources={r"/api/*": {"origins": "http://localhost:5173/", "headers": "Content-Type"}})
+    CORS(app, resources={r"/socket.io": {"origins": "http://localhost:5173/"}})
+
+    # Logging setup
     logging.basicConfig(
         level=logging.DEBUG,
         format="%(asctime)s [%(levelname)s] - %(message)s",
         handlers=[logging.FileHandler("app.log"), logging.StreamHandler()],
     )
     logging.info("Starting the application")
-    socketio.init_app(app)
+
+    socketio = SocketIO(app)
+
+    # socketio.init_app(app, cors_allowed_origins="http://localhost:5173")  # Add CORS for WebSocket
 
     # Register the blueprints
-
     from api.routes.main_routes import main_bp
     from api.routes.user_routes import user_bp
     from api.routes.admin_routes import admin_bp
@@ -45,6 +47,7 @@ def create_app():
     app.register_blueprint(players_bp, url_prefix="/api/players")
     app.register_blueprint(league_bp, url_prefix="/api/league")
 
+    # Setup SocketIO event handlers
     setup_socketio_handlers(socketio)
 
-    return app
+    return app# , socketio  # Return both app and socketio
