@@ -11,11 +11,23 @@ import {
   Paper,
 } from "@mui/material";
 import { Settings } from "@mui/icons-material";
-import PlayersTable from "../components/players/PlayersTable";
 import Countdown from "../components/draft/Countdown";
-import { useWebSocket } from "../hooks/useWebSocket"; // Hook to manage websockets for synchronization
+import { useWebSocket } from "../hooks/useWebSocket";
+import PlayerSelector from "../components/draft/PlayerSelector";
+import { Player } from "../components/draft/PlayerSelector";
+import { getAuth } from "firebase/auth";
+import axios from "axios";
+import { useParams } from "react-router-dom";
+
+interface Team {
+  id: number;
+  name: string;
+  ownerId: number;
+  ownerName: string;
+}
 
 const DraftPage: React.FC = () => {
+  const { leagueId } = useParams<{ leagueId: string }>();
   const wsUrl = import.meta.env.VITE_WS_URL;
 
   const { data, isConnected, sendMessage } = useWebSocket(
@@ -25,6 +37,39 @@ const DraftPage: React.FC = () => {
   const [draftBoard, setDraftBoard] = useState<string[][]>([]); // Array representing the draft board grid
   const [currentPick, setCurrentPick] = useState<number>(0); // Index of the current pick in the draft
   const [timer, setTimer] = useState<number>(0); // Draft timer (in seconds)
+  const [teams, setTeams] = useState<Team[]>([]);
+
+  useEffect(() => {
+    const fetchTeams = async () => {
+      try {
+        const apiUrl = import.meta.env.VITE_API_URL;
+        const auth = getAuth();
+        const user = auth.currentUser;
+
+        if (!user) {
+          console.error("No user is currently signed in.");
+          return;
+        }
+
+        const idToken = await user.getIdToken();
+
+        const response = await axios.get(
+          `${apiUrl}/api/league/${leagueId}/teams`,
+          {
+            headers: { Authorization: `Bearer ${idToken}` },
+          }
+        );
+
+        const teamsList = response.data;
+        setTeams(teamsList);
+        console.log(teams);
+      } catch (error) {
+        console.error("Error fetching teams:", error);
+      }
+    };
+
+    fetchTeams();
+  }, [leagueId]);
 
   useEffect(() => {
     if (data) {
@@ -35,15 +80,19 @@ const DraftPage: React.FC = () => {
     }
   }, [data]);
 
-  const handlePlayerSelection = (playerId: string) => {
+  const handlePlayerSelection = (player: Player) => {
     // Handle drafting a player
-    console.log("Player drafted:", playerId);
+    console.log("Player drafted:", player);
     // Send the draft choice to the server via WebSocket
   };
 
   return (
     <div>
-      {/* Draft Board */}
+      <PlayerSelector
+        onPlayerSelected={handlePlayerSelection}
+        isMyTurn={true}
+        selectedPlayerIDs={[]}
+      />
       <Grid container spacing={1}>
         <Grid item xs={12}>
           <h2>Draft Board</h2>
@@ -53,8 +102,10 @@ const DraftPage: React.FC = () => {
                 <TableRow>
                   <TableCell>Round</TableCell>
                   {/* Render the team owners in the top row */}
-                  {draftBoard[0]?.map((_, teamIndex) => (
-                    <TableCell key={teamIndex}>Team {teamIndex + 1}</TableCell>
+                  {teams?.map((team, teamIndex) => (
+                    <TableCell key={teamIndex}>
+                      {team.name} {team.ownerName}
+                    </TableCell>
                   ))}
                 </TableRow>
               </TableHead>
@@ -82,11 +133,6 @@ const DraftPage: React.FC = () => {
         {/* Countdown Timer */}
         <Grid item xs={12}>
           <Countdown time={timer} />
-        </Grid>
-
-        {/* Player List (Bottom of Page) */}
-        <Grid item xs={12}>
-          <PlayersTable />
         </Grid>
       </Grid>
 

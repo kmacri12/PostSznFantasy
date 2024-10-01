@@ -17,3 +17,10 @@ class Standings(BaseSchema):
     conf_champ: float
     super_bowl: float
     total: float
+
+
+class TeamSimple(BaseSchema):
+    id: int
+    name: str
+    owner_id: int
+    owner_name: str

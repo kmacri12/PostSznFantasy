@@ -1,6 +1,6 @@
 import logging
 from flask import Blueprint, request, jsonify
-from api.models.league_models import Standings, LeaguesByUser
+from api.models.league_models import Standings, LeaguesByUser, TeamSimple
 from api.utils.calculations.standings_utils import get_team_fantasy_points_by_week, get_players_left
 from api.utils.db.models import db, League, LeagueSettings, Team, User
 from api.utils.security.firebase import token_required
@@ -133,6 +133,29 @@ def get_standings(league_id, user_id):
         standings.sort(key=lambda x: x.total, reverse=True)
 
         return jsonify([s.model_dump() for s in standings]), 200
+
+    except Exception:
+        logger.exception("Error getting standings")
+        return jsonify({"error": "Error getting standings"}), 500
+
+
+@league_bp.route("/<league_id>/teams", methods=["GET"])
+@token_required
+def get_teams(league_id, user_id):
+    try:
+        league = League.query.get(league_id)
+        if not league:
+            return jsonify({"error": "League not found"}), 404
+        teams = [
+            TeamSimple(
+                id=team.id,
+                name=team.name,
+                owner_id=team.owner.id if team.owner else -1,
+                owner_name=team.owner.username if team.owner else "No Owner"
+            ).model_dump() for team in league.teams
+        ]
+
+        return teams, 200
 
     except Exception:
         logger.exception("Error getting standings")

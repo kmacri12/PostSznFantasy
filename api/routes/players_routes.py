@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify
 from sqlalchemy.orm import joinedload
 from api.utils.db.models import NFLPlayer, NFLPlayerSeasonStats
+from api.models.players_models import Player
 
 players_bp = Blueprint("players", __name__)
 
@@ -24,3 +25,20 @@ def get_players_and_stats():
 
         stats_dict.append(stat_dict)
     return jsonify(stats_dict)
+
+
+@players_bp.route("/player-list", methods=["GET"])
+def get_player_list():
+    position_list = ["QB", "RB", "FB", "WR", "TE", "PK", "DST"]
+    players_from_db = NFLPlayer.query.filter(NFLPlayer.position.in_(position_list)).all()
+    player_list = [
+        Player(
+            id=player.id,
+            name=player.name,
+            position=player.position,
+            team_abv=player.team.team_abv
+        ).model_dump()
+        for player in players_from_db
+    ]
+
+    return player_list
