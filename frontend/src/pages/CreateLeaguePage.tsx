@@ -134,7 +134,7 @@ const CreateLeaguePage = () => {
 
     try {
       const response = await axios.post(
-        `${apiUrl}/api/league/create_league`,
+        `${apiUrl}/api/league/create-league`,
         {
           leagueName,
           rosterSettings,

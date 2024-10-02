@@ -1,8 +1,9 @@
+from datetime import datetime, timedelta, timezone
 import logging
 from flask import Blueprint, request, jsonify
 from api.models.league_models import Standings, LeaguesByUser, TeamSimple
 from api.utils.calculations.standings_utils import get_team_fantasy_points_by_week, get_players_left
-from api.utils.db.models import db, League, LeagueSettings, Team, User
+from api.utils.db.models import Draft, db, League, LeagueSettings, Team, User
 from api.utils.security.firebase import token_required
 
 league_bp = Blueprint("league", __name__)
@@ -15,7 +16,7 @@ def health():
     return "healthy"
 
 
-@league_bp.route("/create_league", methods=["POST"])
+@league_bp.route("/create-league", methods=["POST"])
 @token_required
 def create_league(user_id):
     data = request.json
@@ -53,19 +54,34 @@ def create_league(user_id):
         db.session.add(league_settings)
 
         # Create default teams
+        new_teams = []
         for i in range(number_of_teams):
             new_team = Team(
                 name=f"Team {i + 1}",
                 owner_id=None if i != 0 else user.id,
                 league_id=new_league.id
             )
+            new_teams.append(new_team)
             db.session.add(new_team)
+        db.session.commit()
+
+        # Create default draft
+        new_draft = Draft(
+            league_id=new_league.id,
+            status="Scheduled",
+            start_time=datetime.now(timezone.utc) + timedelta(days=7),
+            draft_type="snake",
+            time_per_pick_seconds=60,
+            alphabetical_sort=False,
+            draft_order_team_ids=[team.id for team in new_teams],
+        )
+        db.session.add(new_draft)
 
         db.session.commit()
 
         return jsonify({"message": f"League '{league_name}' created successfully by user {user_id}!"}), 201
 
-    except Exception as e:
+    except Exception:
         db.session.rollback()
         logger.exception("Error creating league")
         return jsonify({"error": "Error creating league"}), 500
@@ -158,5 +174,20 @@ def get_teams(league_id, user_id):
         return teams, 200
 
     except Exception:
-        logger.exception("Error getting standings")
-        return jsonify({"error": "Error getting standings"}), 500
+        logger.exception("Error getting teams")
+        return jsonify({"error": "Error getting teams"}), 500
+
+
+@league_bp.route("/<league_id>/settings", methods=["GET"])
+@token_required
+def get_league_settings(league_id, user_id):
+    try:
+        league_settings = LeagueSettings.query.filter_by(league_id=league_id).first()
+        if not league_settings:
+            return jsonify({"error": "League Settings not found"}), 404
+
+        return jsonify(league_settings.to_dict()), 200
+
+    except Exception:
+        logger.exception("Error getting settings")
+        return jsonify({"error": "Error getting settings"}), 500

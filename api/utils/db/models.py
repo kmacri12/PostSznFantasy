@@ -1,6 +1,7 @@
 from sqlalchemy import (
     DECIMAL,
     Column,
+    DateTime,
     Integer,
     String,
     Boolean,
@@ -146,6 +147,12 @@ class LeagueSettings(db.Model):
 
     league = relationship("League", back_populates="settings")
 
+    def to_dict(self):
+        """
+        Automatically convert SQLAlchemy object to dictionary by inspecting its columns.
+        """
+        return {c.key: getattr(self, c.key) for c in inspect(self).mapper.column_attrs}
+
 
 class Week(db.Model):
     __tablename__ = 'weeks'
@@ -195,7 +202,7 @@ class Draft(db.Model):
     id = Column(Integer, primary_key=True)
     league_id = Column(Integer, ForeignKey("leagues.id"), nullable=False)
     status = Column(String(20))
-    start_time_epoch = Column(String(255))
+    start_time = Column(DateTime(timezone=True))
     draft_type = Column(String(20))
     time_per_pick_seconds = Column(Integer)
     slow_draft_auto_pause = Column(Boolean)
@@ -208,6 +215,12 @@ class Draft(db.Model):
 
     league = relationship("League", back_populates="draft")
     draft_picks = relationship("DraftPick", back_populates="draft")
+
+    def to_dict(self):
+        """
+        Automatically convert SQLAlchemy object to dictionary by inspecting its columns.
+        """
+        return {c.key: getattr(self, c.key) for c in inspect(self).mapper.column_attrs}
 
 
 class DraftPick(db.Model):

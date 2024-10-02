@@ -40,14 +40,16 @@ def create_app():
     from api.routes.admin_routes import admin_bp
     from api.routes.players_routes import players_bp
     from api.routes.league_routes import league_bp
+    from api.routes.draft_routes import draft_bp
 
     app.register_blueprint(main_bp, url_prefix="/api")
     app.register_blueprint(user_bp, url_prefix="/api/user")
     app.register_blueprint(admin_bp, url_prefix="/api/admin")
     app.register_blueprint(players_bp, url_prefix="/api/players")
     app.register_blueprint(league_bp, url_prefix="/api/league")
+    app.register_blueprint(draft_bp, url_prefix="/api/draft")
 
     # Setup SocketIO event handlers
     setup_socketio_handlers(socketio)
 
-    return app# , socketio  # Return both app and socketio
+    return app  # , socketio  # Return both app and socketio
