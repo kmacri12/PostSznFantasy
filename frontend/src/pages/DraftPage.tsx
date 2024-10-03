@@ -66,9 +66,11 @@ const DraftPage: React.FC = () => {
   );
   const [leagueSettings, setLeagueSettings] = useState<any>(null);
   const [openSettings, setOpenSettings] = useState(false);
-  const [draftBoard, setDraftBoard] = useState<DraftPick[][]>([]);
+  const [draftBoard, setDraftBoard] = useState<DraftPick[][]>([[]]);
   const [currentPickIndex, setCurrentPickIndex] = useState<number>(1);
-  const [timer, setTimer] = useState<number>(60);
+  const [timer, setTimer] = useState<number>(
+    draftSettings?.timePerPickSeconds || 60
+  );
   const [teams, setTeams] = useState<Team[]>([]);
   const [numRounds, setNumRounds] = useState<number>(0);
 
@@ -92,11 +94,13 @@ const DraftPage: React.FC = () => {
   }, [teams, numRounds]);
 
   const calculatePickOverall = (roundIndex: number, teamIndex: number) => {
-    const isOddRound = (roundIndex + 1) % 2 === 1;
-    const startIndex = isOddRound ? 1 : teams.length + 1;
-    const endIndex = isOddRound ? teams.length : 1;
-    const teamOffset = isOddRound ? teamIndex : teams.length - 1 - teamIndex;
-    return startIndex + teamOffset + roundIndex * (teams.length - 1);
+    const roundNumber = roundIndex + 1;
+    const isOddRound = roundNumber % 2 === 1;
+    const roundPickOne = teams.length * (roundNumber - 1) + 1;
+    // const startIndex = isOddRound ? 1 : teams.length + 1;
+    // const endIndex = isOddRound ? teams.length : 1;
+    const teamOffset = isOddRound ? teamIndex : teams.length - teamIndex - 1;
+    return roundPickOne + teamOffset;
   };
 
   const calculatePickInRound = (roundIndex: number, teamIndex: number) => {
@@ -204,11 +208,31 @@ const DraftPage: React.FC = () => {
   const handlePlayerSelection = (player: Player) => {
     // Handle drafting a player
     console.log("Player drafted:", player);
-    // Send the draft choice to the server via WebSocket
+    // Find the DraftPick object for the current pick
+    const roundIndex = Math.floor((currentPickIndex - 1) / teams.length);
+    const picksInRound = draftBoard[roundIndex];
+    const currentPick = picksInRound.find(
+      (pick) => pick.numberPickOverall === currentPickIndex
+    );
+    if (!currentPick) {
+      console.error("Error: Could not find current pick in draft board");
+      return;
+    }
+    const updatedDraftPick = {
+      ...currentPick,
+      playerId: player.id,
+      playerName: player.name,
+    };
+    const updatedDraftBoard = draftBoard.map((round) =>
+      round.map((pick) =>
+        pick.numberPickOverall === currentPickIndex ? updatedDraftPick : pick
+      )
+    );
+    setDraftBoard(updatedDraftBoard);
 
     // Increment pick #
     setCurrentPickIndex(currentPickIndex + 1);
-    setTimer(60);
+    setTimer(draftSettings?.timePerPickSeconds || 60);
   };
 
   return (
@@ -239,7 +263,15 @@ const DraftPage: React.FC = () => {
                 <TableRow key={roundIndex}>
                   <TableCell>{roundIndex + 1}</TableCell>
                   {round.map((player, teamIndex) => (
-                    <TableCell key={teamIndex}>
+                    <TableCell
+                      key={teamIndex}
+                      style={{
+                        backgroundColor:
+                          player.numberPickOverall === currentPickIndex
+                            ? "#f0f0f0"
+                            : "inherit",
+                      }}
+                    >
                       {player.playerName || player.numberPickOverall}
                     </TableCell>
                   ))}
