@@ -11,7 +11,7 @@ import { Player } from "./PlayerSelector";
 
 interface Props {
   teams: Team[];
-  draftBoard: DraftPick[][];
+  draftPicks: DraftPick[][];
   currentPickIndex: number;
   timer: number;
   onPlayerSelected: (player: Player) => void; // Function to handle player selection
@@ -21,7 +21,7 @@ interface Props {
 
 const DraftBoard: React.FC<Props> = ({
   teams,
-  draftBoard,
+  draftPicks: draftBoard,
   currentPickIndex,
   timer,
   onPlayerSelected,

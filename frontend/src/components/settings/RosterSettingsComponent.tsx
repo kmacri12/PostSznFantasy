@@ -9,11 +9,12 @@ import {
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 interface RosterSettingsProps {
   rosterSettings: {
     number_teams: number;
+    roster_total: number;
     roster_num_qb: number;
     roster_num_rb: number;
     roster_num_wr: number;
@@ -43,14 +44,31 @@ const RosterSettingsComponent: React.FC<RosterSettingsProps> = ({
   expanded,
   handleExpandClick,
 }) => {
-  // Function to handle the change and convert value to integer
+  const calculateRosterTotal = (settings: any) => {
+    return (
+      settings.roster_num_qb +
+      settings.roster_num_rb +
+      settings.roster_num_wr +
+      settings.roster_num_te +
+      settings.roster_num_flex_wr_rb_te +
+      settings.roster_num_flex_wr_rb +
+      settings.roster_num_flex_wr_te +
+      settings.roster_num_flex_qb_wr_rb_te +
+      settings.roster_num_k +
+      settings.roster_num_dst +
+      settings.roster_num_bench
+    );
+  };
+
   const handleInputChange =
-    (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = parseInt(e.target.value, 10);
-      setRosterSettings({
+    (field: string) => (e: { target: { value: string } }) => {
+      const updatedSettings = {
         ...rosterSettings,
-        [field]: isNaN(value) ? 0 : value, // Default to 0 if the value is not a number
-      });
+        [field]: parseInt(e.target.value, 10),
+      };
+      const newTotal = calculateRosterTotal(updatedSettings);
+      updatedSettings.roster_total = newTotal;
+      setRosterSettings(updatedSettings);
     };
 
   return (
@@ -62,6 +80,9 @@ const RosterSettingsComponent: React.FC<RosterSettingsProps> = ({
         </IconButton>
       </Typography>
       <Collapse in={expanded}>
+        <Typography variant="body1">
+          Roster Total: {rosterSettings.roster_total}
+        </Typography>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth margin="normal">

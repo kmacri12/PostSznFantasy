@@ -141,7 +141,7 @@ const DraftPage: React.FC = () => {
       try {
         const idToken = await user.getIdToken();
         const response = await axios.get(
-          `${apiUrl}/api/draft-info-by-league/${leagueId}`,
+          `${apiUrl}/api/draft-info/${leagueId}`,
           {
             headers: { Authorization: `Bearer ${idToken}` },
           }
@@ -246,7 +246,7 @@ const DraftPage: React.FC = () => {
       <Grid container spacing={1}>
         <DraftBoard
           teams={teams}
-          draftBoard={draftBoard}
+          draftPicks={draftBoard}
           currentPickIndex={currentPickIndex}
           timer={timer}
           onPlayerSelected={handlePlayerSelection} // Pass function to handle player selection

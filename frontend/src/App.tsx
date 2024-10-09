@@ -85,7 +85,7 @@ function App() {
       (league) => league.id === Number(leagueId)
     )?.userTeamId;
     setTeamNumberForLeague(userTeamId);
-    navigate(`/league/${leagueId}`);
+    // navigate(`/league/${leagueId}`);
   };
 
   // Check for authentication state on page load

@@ -74,6 +74,7 @@ class LeagueSettings(db.Model):
     id = Column(Integer, primary_key=True)
     league_id = Column(Integer, ForeignKey("leagues.id"), nullable=False)
     number_teams = Column(Integer, nullable=False)
+    roster_total = Column(Integer, nullable=False)
     roster_num_qb = Column(Integer, nullable=False)
     roster_num_rb = Column(Integer, nullable=False)
     roster_num_wr = Column(Integer, nullable=False)

@@ -42,6 +42,7 @@ const CreateLeaguePage = () => {
   // Roster Settings
   const [rosterSettings, setRosterSettings] = useState({
     number_teams: 12,
+    roster_total: 18,
     roster_num_qb: 1,
     roster_num_rb: 2,
     roster_num_wr: 2,
