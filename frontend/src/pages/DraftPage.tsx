@@ -14,6 +14,7 @@ import { Settings } from "@mui/icons-material";
 import Countdown from "../components/draft/Countdown";
 import { useWebSocket } from "../hooks/useWebSocket";
 import PlayerSelector from "../components/draft/PlayerSelector";
+import DraftBoard from "../components/draft/DraftBoard";
 import { Player } from "../components/draft/PlayerSelector";
 import { getAuth } from "firebase/auth";
 import axios from "axios";
@@ -243,43 +244,15 @@ const DraftPage: React.FC = () => {
         selectedPlayerIDs={[]}
       />
       <Grid container spacing={1}>
-        <Grid item xs={12}>
-          <h2>Draft Board</h2>
-          <Paper>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Round</TableCell>
-                  {/* Render the team owners in the top row */}
-                  {teams?.map((team, teamIndex) => (
-                    <TableCell key={teamIndex}>
-                      {team.name} {team.ownerName}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
-              {/* Render draft picks */}
-              {draftBoard.map((round, roundIndex) => (
-                <TableRow key={roundIndex}>
-                  <TableCell>{roundIndex + 1}</TableCell>
-                  {round.map((player, teamIndex) => (
-                    <TableCell
-                      key={teamIndex}
-                      style={{
-                        backgroundColor:
-                          player.numberPickOverall === currentPickIndex
-                            ? "#f0f0f0"
-                            : "inherit",
-                      }}
-                    >
-                      {player.playerName || player.numberPickOverall}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))}
-            </Table>
-          </Paper>
-        </Grid>
+        <DraftBoard
+          teams={teams}
+          draftBoard={draftBoard}
+          currentPickIndex={currentPickIndex}
+          timer={timer}
+          onPlayerSelected={handlePlayerSelection} // Pass function to handle player selection
+          isMyTurn={true} // Placeholder, might be determined elsewhere
+          selectedPlayerIDs={[]} // Placeholder, might be determined elsewhere
+        />
 
         {/* Settings Button */}
         <IconButton
