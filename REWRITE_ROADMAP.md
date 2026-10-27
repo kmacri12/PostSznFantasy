@@ -111,9 +111,9 @@ This checklist outlines the sequence of refactor tasks for developers and AI cod
 - [x] **Eliminate Fatal Import-Time Side Effects**:
   - [x] Refactor Firebase Admin SDK initialization into a lazy dependency provider (`get_firebase_app`).
   - [x] Remove `conn: connection = get_pg_connection()` default arguments in `setup.py`, `update.py`, and `pg_utils.py`.
-- [ ] **Dependency Injection & Authentication**:
-  - [ ] Implement `get_current_user` using `fastapi.security.HTTPBearer` and `Depends()` to extract and verify Firebase tokens.
-  - [ ] Implement `get_db` session dependency for scoped database transactions with auto-rollback on exception.
+- [x] **Dependency Injection & Authentication**:
+  - [x] Implement `get_current_user` using `fastapi.security.HTTPBearer` and `Depends()` to extract and verify Firebase tokens.
+  - [x] Implement `get_db` session dependency for scoped database transactions with auto-rollback on exception.
 - [ ] **Type Rigor & Schema Validation**:
   - [ ] Define comprehensive Pydantic v2 schemas for all request payloads (`LeagueCreate`, `DraftPickSubmit`, etc.) instead of unchecked `request.json`.
   - [ ] Standardize API response models using `response_model=...` and camelCase serialization (`BaseSchema`).

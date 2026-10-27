@@ -4,14 +4,15 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from api.dependencies.db import dispose_db_engine, init_db_engine
 from api.routers import admin, auth, drafts, leagues, players
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
-    # Startup: initialize resources (DB engine, Firebase, etc.) here in future phases
+    init_db_engine()
     yield
-    # Shutdown: release resources here in future phases
+    await dispose_db_engine()
 
 
 app = FastAPI(
