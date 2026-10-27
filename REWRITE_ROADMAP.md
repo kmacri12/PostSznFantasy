@@ -117,9 +117,9 @@ This checklist outlines the sequence of refactor tasks for developers and AI cod
 - [x] **Type Rigor & Schema Validation**:
   - [x] Define comprehensive Pydantic v2 schemas for all request payloads (`LeagueCreate`, `DraftPickSubmit`, etc.) instead of unchecked `request.json`.
   - [x] Standardize API response models using `response_model=...` and camelCase serialization (`BaseSchema`).
-- [ ] **Native WebSocket Draft Room**:
-  - [ ] Replace `flask-socketio` with native FastAPI WebSocket endpoint (`@router.websocket("/ws/draft/{league_id}")`).
-  - [ ] Implement a thread-safe `DraftConnectionManager` to broadcast pick events, clock ticks, and draft state to connected clients.
+- [x] **Native WebSocket Draft Room**:
+  - [x] Replace `flask-socketio` with native FastAPI WebSocket endpoint (`@router.websocket("/ws/draft/{league_id}")`).
+  - [x] Implement a thread-safe `DraftConnectionManager` to broadcast pick events, clock ticks, and draft state to connected clients.
 - [ ] **Bug Fixes in Existing Endpoints**:
   - [ ] Fix `draft_routes.py` `get_draft_picks` to query all picks for the draft and return the actual list rather than unassigned variable `draft`.
 
