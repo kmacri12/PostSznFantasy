@@ -1,8 +1,66 @@
 from api.models.base import BaseSchema
 
 
+class NFLTeamSimple(BaseSchema):
+    id: int
+    team_abv: str | None = None
+    team_city: str | None = None
+    team_name: str | None = None
+    team_logo_url: str | None = None
+
+
 class Player(BaseSchema):
     id: int
     name: str
     position: str
-    team_abv: str
+    team_abv: str | None = None
+    espn_headshot_url: str | None = None
+    jersey_num: str | None = None
+    birthday: str | None = None
+    height: str | None = None
+    weight: str | None = None
+    exp: str | None = None
+    team_id: int | None = None
+    team: NFLTeamSimple | None = None
+
+
+class PlayerSeasonStatsResponse(BaseSchema):
+    season: str
+    player_id: int
+    player: Player | None = None
+    passing_completions: int = 0
+    passing_attempts: int = 0
+    passing_yards: int = 0
+    passing_touchdowns: int = 0
+    passing_interceptions: int = 0
+    passing_sacked: int = 0
+    passing_sacked_yards: int = 0
+    passing_two_point_conversions: int = 0
+    rushing_carries: int = 0
+    rushing_yards: int = 0
+    rushing_touchdowns: int = 0
+    rushing_long_rush: int = 0
+    rushing_two_point_conversions: int = 0
+    receiving_receptions: int = 0
+    receiving_targets: int = 0
+    receiving_yards: int = 0
+    receiving_touchdowns: int = 0
+    receiving_long_reception: int = 0
+    receiving_two_point_conversions: int = 0
+    carrying_fumbles: int = 0
+    carrying_fumbles_lost: int = 0
+    punt_return_yards: int = 0
+    punt_return_td: int = 0
+    kick_return_yards: int = 0
+    kick_return_td: int = 0
+    kicking_xp_made: int = 0
+    kicking_xp_missed: int = 0
+    kicking_fg_missed: int = 0
+    kicking_fg_yards_made: list[int] = []
+    dst_yards_allowed: int = 0
+    dst_points_allowed: int = 0
+    dst_sacks: int = 0
+    dst_def_td: int = 0
+    dst_safeties: int = 0
+    dst_fumbles_recovered: int = 0
+    dst_interceptions: int = 0
