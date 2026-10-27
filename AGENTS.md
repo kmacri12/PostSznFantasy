@@ -5,7 +5,12 @@
 **Post Season Fantasy** is a fantasy football application tailored specifically for the NFL postseason (Wild Card, Divisional, Conference Championship, Super Bowl). Unlike full-season fantasy platforms, playoff fantasy features cascading elimination mechanics: as real NFL teams lose, their players are eliminated, making player survival and scoring progression central to league standings.
 
 ### Current Architecture vs. Modern Target Stack
-> **CRITICAL ARCHITECTURAL CONTEXT**: The existing repository is a paused codebase built on **Flask 3** that has begun an incomplete transition toward a **FastAPI** backend (Pydantic schemas with `to_camel` exist in `api/models/`, but routes, app lifecycle, and database sessions are legacy Flask/Flask-SQLAlchemy). The frontend is a **React 18 + Vite** SPA in TypeScript.
+> [!IMPORTANT]
+> **PRE-DEVELOPMENT / LOCAL-ONLY CONTEXT (ZERO MIGRATION CONSTRAINTS)**:
+> This project is in an **early pre-dev, local-only prototyping phase**. There are **no production databases, no active users, no live data, and no backward-compatibility requirements**.
+> Everything is on the table: schema redesigns, table wipes, dropping legacy Flask code wholesale, replacing state management, or restructuring routes. Do not write complex data migrations or retain deprecated shims for existing data—build the cleanest target architecture from scratch.
+>
+> The existing codebase is a paused prototype built on **Flask 3** that has begun an incomplete transition toward a **FastAPI** backend (Pydantic schemas with `to_camel` exist in `api/models/`, but routes, app lifecycle, and database sessions are legacy Flask/Flask-SQLAlchemy). The frontend is a **React 18 + Vite** SPA in TypeScript.
 
 | Component | Current Implementation | Target / Modern Rewrite Spec |
 | :--- | :--- | :--- |
@@ -162,6 +167,11 @@ npm run preview
 ---
 
 ## 4. Coding Conventions & Architectural Patterns
+
+### Core Engineering Principles
+- **KISS (Keep It Simple, Stupid)**: Favor minimal, straightforward implementations over clever abstractions, indirection, or over-engineered scaffolding.
+- **Intent-Driven Comments (Explain WHY, Not WHAT)**: Minimize comments to only what is strictly necessary. Never restate what the code clearly does; document the non-obvious *why*, edge-case rationale, or external constraints.
+- **Self-Documenting Code**: Choose expressive identifier and symbol names so the code explains itself without narrative commentary.
 
 ### Tooling & Standards
 - **Backend Formatting & Linting**: Managed by **Ruff** in `pyproject.toml` (target line length: 88, rule selection: `E`, `F`, `I`, `B`, `UP`).

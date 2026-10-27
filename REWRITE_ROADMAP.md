@@ -2,6 +2,14 @@
 
 ## 1. Executive Summary & App Domain
 
+> [!IMPORTANT]
+> **PRE-DEVELOPMENT / LOCAL-ONLY CONTEXT (CLEAN SLATE REFACTOR)**:
+> This application is strictly in **pre-development and running locally**. There are **no production databases, no active users, and no legacy data to preserve**. 
+> Future agents and developers have complete freedom to:
+> - Rethink or redesign database schemas from scratch (no complex data migration steps needed).
+> - Completely tear down and replace Flask endpoints, database helpers, and WebSocket handlers with clean FastAPI primitives.
+> - Overhaul frontend state, component hierarchies, or routing without backward-compatibility friction.
+
 **Post Season Fantasy** (`postsznfantasy`) is a niche fantasy football platform for the NFL playoffs. 
 Unlike standard season-long leagues that conclude at Week 18, postseason fantasy leagues run through four knockout playoff rounds:
 1. **Wild Card Round**
@@ -54,6 +62,10 @@ flowchart TD
 ## 3. Checklist of Modern Agentic Coding Best Practices
 
 This checklist outlines the sequence of refactor tasks for developers and AI coding agents to elevate this repository into a maintainable, high-performance, production-ready system.
+
+> **Engineering Guiding Light**:
+> - **KISS**: Write the simplest code that solves the problem. Eliminate speculative features or needless layers of indirection.
+> - **Comment Minimization & Intent**: Code explains *what*; comments are reserved strictly for *why* (non-obvious domain rules, hardware/protocol constraints, bug workarounds). If code needs a comment to explain what it does, refactor and rename first.
 
 ### Phase 1: Environment, Tooling & Modern Packaging
 - [ ] **Migrate Backend Packaging to `uv` & `pyproject.toml`**:
