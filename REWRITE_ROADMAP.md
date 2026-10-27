@@ -100,9 +100,9 @@ This checklist outlines the sequence of refactor tasks for developers and AI cod
 ---
 
 ### Phase 2: FastAPI Backend Migration
-- [ ] **Application Skeleton & ASGI Setup**:
-  - [ ] Initialize FastAPI app with `lifespan` context manager for startup/shutdown events (replacing global module side-effects).
-  - [ ] Replace Flask blueprints with modular `APIRouter` instances:
+- [x] **Application Skeleton & ASGI Setup**:
+  - [x] Initialize FastAPI app with `lifespan` context manager for startup/shutdown events (replacing global module side-effects).
+  - [x] Replace Flask blueprints with modular `APIRouter` instances:
     - `api/routers/auth.py` (User onboarding & token exchange)
     - `api/routers/leagues.py` (League CRUD, settings, teams)
     - `api/routers/drafts.py` (Draft status, pick submission, draft state)
