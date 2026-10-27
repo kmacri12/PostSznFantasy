@@ -108,9 +108,9 @@ This checklist outlines the sequence of refactor tasks for developers and AI cod
     - `api/routers/drafts.py` (Draft status, pick submission, draft state)
     - `api/routers/players.py` (Player directory, season & playoff stats)
     - `api/routers/admin.py` (Ingestion & DB management)
-- [ ] **Eliminate Fatal Import-Time Side Effects**:
-  - [ ] Refactor Firebase Admin SDK initialization into a lazy dependency provider (`get_firebase_app`).
-  - [ ] Remove `conn: connection = get_pg_connection()` default arguments in `setup.py`, `update.py`, and `pg_utils.py`.
+- [x] **Eliminate Fatal Import-Time Side Effects**:
+  - [x] Refactor Firebase Admin SDK initialization into a lazy dependency provider (`get_firebase_app`).
+  - [x] Remove `conn: connection = get_pg_connection()` default arguments in `setup.py`, `update.py`, and `pg_utils.py`.
 - [ ] **Dependency Injection & Authentication**:
   - [ ] Implement `get_current_user` using `fastapi.security.HTTPBearer` and `Depends()` to extract and verify Firebase tokens.
   - [ ] Implement `get_db` session dependency for scoped database transactions with auto-rollback on exception.

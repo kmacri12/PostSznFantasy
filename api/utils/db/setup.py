@@ -3,7 +3,6 @@ import os
 import re
 
 import psycopg2
-from api.app import db
 from api.utils.db.pg_utils import (
     dictfetchall,
     get_pg_connection,
@@ -531,8 +530,10 @@ def create_db():
     conn.close()
 
 
-def create_all_tables():
-    db.create_all()
+def create_all_tables() -> None:
+    # DDL is managed by Alembic migrations (Phase 3). This stub is kept for
+    # reference until the initial Alembic revision replaces it.
+    raise NotImplementedError("Use Alembic migrations to create tables.")
 
 
 def setup_postgres():

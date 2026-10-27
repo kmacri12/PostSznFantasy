@@ -1,16 +1,10 @@
 import logging
-import os
 
-import firebase_admin
 from api.app import db
 from api.utils.db.models import User
-from firebase_admin import auth, credentials
+from api.utils.security.firebase import get_firebase_app
+from firebase_admin import auth
 from flask import Blueprint, jsonify, request
-
-# Initialize Firebase Admin SDK
-service_account_key_path = os.getenv("FIREBASE_SERVICE_ACCOUNT_KEY_PATH")
-cred = credentials.Certificate(service_account_key_path)
-firebase_admin.initialize_app(cred)
 
 user_bp = Blueprint("user", __name__)
 logger = logging.getLogger(__name__)
@@ -30,6 +24,7 @@ def login():
         return jsonify({"error": "Token is required"}), 400
 
     try:
+        get_firebase_app()
         decoded_token = auth.verify_id_token(token)
         uid = decoded_token["uid"]
 
