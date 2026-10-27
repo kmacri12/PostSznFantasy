@@ -94,12 +94,6 @@ This checklist outlines the sequence of refactor tasks for developers and AI cod
   - [x] Add `.env.example` in `api/` and `frontend/` documenting all required secrets:
     - Backend (`api/.env.example`): `PG_URI`, `PG_HOST`, `PG_PORT`, `PG_USER`, `PG_PASSWORD`, `PG_DBNAME`, `FIREBASE_SERVICE_ACCOUNT_KEY_PATH`, `RAPIDAPI_BASEURL`, `RAPIDAPI_APIKEY`, `RAPIDAPI_APIHOST`, `SEASON_YEAR`.
     - Frontend (`frontend/.env.example`): `VITE_API_URL`, `VITE_WS_URL`, `VITE_FIREBASE_*`.
-- [ ] **Fix Blocking Frontend TypeScript Build Errors (`tsc`)**:
-  - [ ] Remove unused `React` imports across files to satisfy `noUnusedLocals: true`.
-  - [ ] Export and import `Team` and `DraftPick` interfaces in `frontend/src/components/draft/DraftBoard.tsx`.
-  - [ ] Fix implicit `any` types in `PlayerSelector.tsx`, `PlayersTable.tsx`, and `CreateLeaguePage.tsx`.
-  - [ ] Replace untyped `react-table` import with proper declaration or upgrade to `@tanstack/react-table`.
-  - [ ] Add index signature to `expanded` state in `CreateLeaguePage.tsx` (`[key: string]: boolean`).
 - [x] **Local Containerization**:
   - [x] Create `docker-compose.yml` defining PostgreSQL 16 with healthchecks and a volume mount for local development.
 
@@ -170,6 +164,8 @@ This checklist outlines the sequence of refactor tasks for developers and AI cod
   - [ ] Correct API path in `DraftPage.tsx` line 144 from `/api/draft-info/${leagueId}` to `/api/draft/draft-info/${leagueId}` (or FastAPI equivalent).
 - [ ] **Modern Table Migration**:
   - [ ] Migrate `PlayersTable.tsx` to `@tanstack/react-table` v8 for type-safe column definitions, virtualization, and position filtering.
+- [ ] **Frontend TypeScript Hygiene & Build Fixes**:
+  - [ ] Resolve legacy TypeScript build errors (`DraftBoard`, `CreateLeaguePage`, `PlayerSelector`, `PlayersTable`) to achieve green `npm run build`.
 
 ---
 
