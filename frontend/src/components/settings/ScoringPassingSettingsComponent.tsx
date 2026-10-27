@@ -1,15 +1,15 @@
+import ExpandLessIcon from "@mui/icons-material/ExpandLess";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {
-  Typography,
-  IconButton,
   Collapse,
-  Grid,
   FormControl,
+  Grid,
+  IconButton,
   InputLabel,
   OutlinedInput,
+  Typography,
 } from "@mui/material";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import ExpandLessIcon from "@mui/icons-material/ExpandLess";
-import React from "react";
+import type React from "react";
 
 interface ScoringPassingSettingsProps {
   scoringSettings: any;
@@ -18,9 +18,12 @@ interface ScoringPassingSettingsProps {
   handleExpandClick: () => void;
 }
 
-const ScoringPassingSettingsComponent: React.FC<
-  ScoringPassingSettingsProps
-> = ({ scoringSettings, setScoringSettings, expanded, handleExpandClick }) => {
+const ScoringPassingSettingsComponent: React.FC<ScoringPassingSettingsProps> = ({
+  scoringSettings,
+  setScoringSettings,
+  expanded,
+  handleExpandClick,
+}) => {
   return (
     <div id="passing-scoring-settings">
       <Typography variant="h6" gutterBottom onClick={handleExpandClick}>
@@ -81,9 +84,7 @@ const ScoringPassingSettingsComponent: React.FC<
           </Grid>
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth margin="normal">
-              <InputLabel htmlFor="scoring-passing-interception">
-                Interception
-              </InputLabel>
+              <InputLabel htmlFor="scoring-passing-interception">Interception</InputLabel>
               <OutlinedInput
                 id="scoring-passing-interception"
                 value={scoringSettings.scoring_passing_interception}
@@ -99,9 +100,7 @@ const ScoringPassingSettingsComponent: React.FC<
           </Grid>
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth margin="normal">
-              <InputLabel htmlFor="scoring-passing-completion">
-                Completion
-              </InputLabel>
+              <InputLabel htmlFor="scoring-passing-completion">Completion</InputLabel>
               <OutlinedInput
                 id="scoring-passing-completion"
                 value={scoringSettings.scoring_passing_completion}

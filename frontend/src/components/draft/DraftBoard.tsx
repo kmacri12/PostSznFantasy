@@ -1,13 +1,6 @@
-import React from "react";
-import {
-  Table,
-  TableCell,
-  TableHead,
-  TableRow,
-  Paper,
-  Grid,
-} from "@mui/material";
-import { Player } from "./PlayerSelector";
+import { Grid, Paper, Table, TableCell, TableHead, TableRow } from "@mui/material";
+import type React from "react";
+import type { Player } from "./PlayerSelector";
 
 interface Props {
   teams: Team[];
@@ -53,9 +46,7 @@ const DraftBoard: React.FC<Props> = ({
                   key={teamIndex}
                   style={{
                     backgroundColor:
-                      player.numberPickOverall === currentPickIndex
-                        ? "#f0f0f0"
-                        : "inherit",
+                      player.numberPickOverall === currentPickIndex ? "#f0f0f0" : "inherit",
                   }}
                 >
                   {player.playerName || player.numberPickOverall}

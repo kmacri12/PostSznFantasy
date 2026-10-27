@@ -1,15 +1,15 @@
+import ExpandLessIcon from "@mui/icons-material/ExpandLess";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {
-  Typography,
-  IconButton,
   Collapse,
-  Grid,
   FormControl,
+  Grid,
+  IconButton,
   InputLabel,
   OutlinedInput,
+  Typography,
 } from "@mui/material";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import ExpandLessIcon from "@mui/icons-material/ExpandLess";
-import React from "react";
+import type React from "react";
 
 interface ScoringKickingSettingsProps {
   scoringSettings: any;
@@ -18,9 +18,12 @@ interface ScoringKickingSettingsProps {
   handleExpandClick: () => void;
 }
 
-const ScoringKickingSettingsComponent: React.FC<
-  ScoringKickingSettingsProps
-> = ({ scoringSettings, setScoringSettings, expanded, handleExpandClick }) => {
+const ScoringKickingSettingsComponent: React.FC<ScoringKickingSettingsProps> = ({
+  scoringSettings,
+  setScoringSettings,
+  expanded,
+  handleExpandClick,
+}) => {
   return (
     <div id="kicking-scoring-settings">
       <Typography variant="h6" gutterBottom onClick={handleExpandClick}>
@@ -65,9 +68,7 @@ const ScoringKickingSettingsComponent: React.FC<
           </Grid>
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth margin="normal">
-              <InputLabel htmlFor="scoring-kicking-fg-made-0-19">
-                FG Made 0-19
-              </InputLabel>
+              <InputLabel htmlFor="scoring-kicking-fg-made-0-19">FG Made 0-19</InputLabel>
               <OutlinedInput
                 id="scoring-kicking-fg-made-0-19"
                 value={scoringSettings.scoring_kicking_fg_made_0_19}
@@ -83,9 +84,7 @@ const ScoringKickingSettingsComponent: React.FC<
           </Grid>
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth margin="normal">
-              <InputLabel htmlFor="scoring-kicking-fg-made-20-29">
-                FG Made 20-29
-              </InputLabel>
+              <InputLabel htmlFor="scoring-kicking-fg-made-20-29">FG Made 20-29</InputLabel>
               <OutlinedInput
                 id="scoring-kicking-fg-made-20-29"
                 value={scoringSettings.scoring_kicking_fg_made_20_29}
@@ -101,9 +100,7 @@ const ScoringKickingSettingsComponent: React.FC<
           </Grid>
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth margin="normal">
-              <InputLabel htmlFor="scoring-kicking-fg-made-30-39">
-                FG Made 30-39
-              </InputLabel>
+              <InputLabel htmlFor="scoring-kicking-fg-made-30-39">FG Made 30-39</InputLabel>
               <OutlinedInput
                 id="scoring-kicking-fg-made-30-39"
                 value={scoringSettings.scoring_kicking_fg_made_30_39}
@@ -119,9 +116,7 @@ const ScoringKickingSettingsComponent: React.FC<
           </Grid>
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth margin="normal">
-              <InputLabel htmlFor="scoring-kicking-fg-made-40-49">
-                FG Made 40-49
-              </InputLabel>
+              <InputLabel htmlFor="scoring-kicking-fg-made-40-49">FG Made 40-49</InputLabel>
               <OutlinedInput
                 id="scoring-kicking-fg-made-40-49"
                 value={scoringSettings.scoring_kicking_fg_made_40_49}
@@ -137,9 +132,7 @@ const ScoringKickingSettingsComponent: React.FC<
           </Grid>
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth margin="normal">
-              <InputLabel htmlFor="scoring-kicking-fg-made-50-plus">
-                FG Made 50+
-              </InputLabel>
+              <InputLabel htmlFor="scoring-kicking-fg-made-50-plus">FG Made 50+</InputLabel>
               <OutlinedInput
                 id="scoring-kicking-fg-made-50-plus"
                 value={scoringSettings.scoring_kicking_fg_made_50_plus}

@@ -2,16 +2,16 @@ from flask_socketio import SocketIO, emit
 
 
 def setup_socketio_handlers(socketio: SocketIO):
-    @socketio.on('connect')
+    @socketio.on("connect")
     def handle_connect():
         print("Client connected")
-        emit('response', {'data': 'Welcome!'})
+        emit("response", {"data": "Welcome!"})
 
-    @socketio.on('message')
+    @socketio.on("message")
     def handle_message(message):
-        print('Received message:', message)
-        emit('response', {'data': 'Message received'})
+        print("Received message:", message)
+        emit("response", {"data": "Message received"})
 
-    @socketio.on('disconnect')
+    @socketio.on("disconnect")
     def handle_disconnect():
         print("Client disconnected")

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useTable, useSortBy } from "react-table";
+import { useSortBy, useTable } from "react-table";
 import "./PlayersTable.css";
 import axios from "axios";
 
@@ -160,7 +160,7 @@ const PlayersTable = () => {
   // Memoize columns and filter logic
   const columns = useMemo(
     () => getPositionColumns(selectedPosition),
-    [selectedPosition, getPositionColumns]
+    [selectedPosition, getPositionColumns],
   );
   const filteredData = useMemo(() => {
     return playerStats.filter((player) => {
@@ -174,43 +174,42 @@ const PlayersTable = () => {
     });
   }, [playerStats, selectedPosition, searchQuery, selectedSeason]);
 
-  const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
-    useTable(
-      {
-        columns: useMemo(
-          () => [
-            { Header: "Name", accessor: "player.name" },
-            {
-              Header: () => (
-                <div>
-                  <span>Pos </span>
-                  <select
-                    value={selectedPosition}
-                    onChange={(e) => setSelectedPosition(e.target.value)}
-                  >
-                    <option value="QB">QB</option>
-                    <option value="RB">RB</option>
-                    <option value="WR">WR</option>
-                    <option value="TE">TE</option>
-                    <option value="PK">PK</option>
-                    <option value="DST">DST</option>
-                    <option value="FLX">FLX</option>
-                  </select>
-                </div>
-              ),
-              accessor: "player.position",
-              id: "position-selector",
-              disableSortBy: true,
-            },
-            { Header: "Team", accessor: "player.team.team_abv" },
-            ...columns,
-          ],
-          [columns]
-        ),
-        data: filteredData,
-      },
-      useSortBy
-    );
+  const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } = useTable(
+    {
+      columns: useMemo(
+        () => [
+          { Header: "Name", accessor: "player.name" },
+          {
+            Header: () => (
+              <div>
+                <span>Pos </span>
+                <select
+                  value={selectedPosition}
+                  onChange={(e) => setSelectedPosition(e.target.value)}
+                >
+                  <option value="QB">QB</option>
+                  <option value="RB">RB</option>
+                  <option value="WR">WR</option>
+                  <option value="TE">TE</option>
+                  <option value="PK">PK</option>
+                  <option value="DST">DST</option>
+                  <option value="FLX">FLX</option>
+                </select>
+              </div>
+            ),
+            accessor: "player.position",
+            id: "position-selector",
+            disableSortBy: true,
+          },
+          { Header: "Team", accessor: "player.team.team_abv" },
+          ...columns,
+        ],
+        [columns],
+      ),
+      data: filteredData,
+    },
+    useSortBy,
+  );
 
   return (
     <div>
@@ -233,11 +232,7 @@ const PlayersTable = () => {
         style={{ marginLeft: "10px" }}
       />
 
-      <table
-        {...getTableProps()}
-        style={{ border: "solid 1px gray" }}
-        className="players-table"
-      >
+      <table {...getTableProps()} style={{ border: "solid 1px gray" }} className="players-table">
         <thead>
           {headerGroups.map((headerGroup) => (
             <tr {...headerGroup.getHeaderGroupProps()} key={headerGroup.id}>

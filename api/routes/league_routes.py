@@ -1,10 +1,14 @@
-from datetime import datetime, timedelta, timezone
 import logging
-from flask import Blueprint, request, jsonify
-from api.models.league_models import Standings, LeaguesByUser, TeamSimple
-from api.utils.calculations.standings_utils import get_team_fantasy_points_by_week, get_players_left
-from api.utils.db.models import Draft, db, League, LeagueSettings, Team, User
+from datetime import UTC, datetime, timedelta
+
+from api.models.league_models import LeaguesByUser, Standings, TeamSimple
+from api.utils.calculations.standings_utils import (
+    get_players_left,
+    get_team_fantasy_points_by_week,
+)
+from api.utils.db.models import Draft, League, LeagueSettings, Team, User, db
 from api.utils.security.firebase import token_required
+from flask import Blueprint, jsonify, request
 
 league_bp = Blueprint("league", __name__)
 logger = logging.getLogger(__name__)
@@ -38,10 +42,7 @@ def create_league(user_id):
             return jsonify({"error": "User not found"}), 404
 
         # Create the league
-        new_league = League(
-            name=league_name,
-            commissioner_id=user.id
-        )
+        new_league = League(name=league_name, commissioner_id=user.id)
         db.session.add(new_league)
         db.session.commit()
 
@@ -49,7 +50,7 @@ def create_league(user_id):
         league_settings = LeagueSettings(
             league_id=new_league.id,
             **roster_settings,  # Unpack roster settings
-            **scoring_settings  # Unpack scoring settings
+            **scoring_settings,  # Unpack scoring settings
         )
         db.session.add(league_settings)
 
@@ -59,7 +60,7 @@ def create_league(user_id):
             new_team = Team(
                 name=f"Team {i + 1}",
                 owner_id=None if i != 0 else user.id,
-                league_id=new_league.id
+                league_id=new_league.id,
             )
             new_teams.append(new_team)
             db.session.add(new_team)
@@ -69,7 +70,7 @@ def create_league(user_id):
         new_draft = Draft(
             league_id=new_league.id,
             status="Scheduled",
-            start_time=datetime.now(timezone.utc) + timedelta(days=7),
+            start_time=datetime.now(UTC) + timedelta(days=7),
             draft_type="snake",
             time_per_pick_seconds=60,
             alphabetical_sort=False,
@@ -79,7 +80,11 @@ def create_league(user_id):
 
         db.session.commit()
 
-        return jsonify({"message": f"League '{league_name}' created successfully by user {user_id}!"}), 201
+        return jsonify(
+            {
+                "message": f"League '{league_name}' created successfully by user {user_id}!"
+            }
+        ), 201
 
     except Exception:
         db.session.rollback()
@@ -102,8 +107,9 @@ def get_leagues_by_user(user_id: int) -> list[LeaguesByUser]:
                 id=team.league.id,
                 name=team.league.name,
                 commissioner_id=team.league.commissioner_id,
-                user_team_id=team.id
-            ) for team in teams
+                user_team_id=team.id,
+            )
+            for team in teams
         ]
 
         return jsonify([league.model_dump() for league in leagues_by_user]), 200
@@ -128,22 +134,41 @@ def get_standings(league_id, user_id):
         # Calculate standings based on some criteria, e.g., Total points
         standings = []
         for team in teams:
-            wild_card_points = get_team_fantasy_points_by_week(team.id, league_id, "wildcard")
-            divisional_points = get_team_fantasy_points_by_week(team.id, league_id, "divisional")
-            conference_points = get_team_fantasy_points_by_week(team.id, league_id, "conference")
-            super_bowl_points = get_team_fantasy_points_by_week(team.id, league_id, "superbowl")
-            total_points = sum([wild_card_points, divisional_points, conference_points, super_bowl_points])
+            wild_card_points = get_team_fantasy_points_by_week(
+                team.id, league_id, "wildcard"
+            )
+            divisional_points = get_team_fantasy_points_by_week(
+                team.id, league_id, "divisional"
+            )
+            conference_points = get_team_fantasy_points_by_week(
+                team.id, league_id, "conference"
+            )
+            super_bowl_points = get_team_fantasy_points_by_week(
+                team.id, league_id, "superbowl"
+            )
+            total_points = sum(
+                [
+                    wild_card_points,
+                    divisional_points,
+                    conference_points,
+                    super_bowl_points,
+                ]
+            )
 
-            standings.append(Standings(
-                team_name=team.name,
-                owner=User.query.get(team.owner_id).username if team.owner_id else "N/A",
-                players_left=get_players_left(team.id, league_id),
-                wild_card=wild_card_points,
-                divisional=divisional_points,
-                conf_champ=conference_points,
-                super_bowl=super_bowl_points,
-                total=total_points
-            ))
+            standings.append(
+                Standings(
+                    team_name=team.name,
+                    owner=User.query.get(team.owner_id).username
+                    if team.owner_id
+                    else "N/A",
+                    players_left=get_players_left(team.id, league_id),
+                    wild_card=wild_card_points,
+                    divisional=divisional_points,
+                    conf_champ=conference_points,
+                    super_bowl=super_bowl_points,
+                    total=total_points,
+                )
+            )
 
         # Sort standings by total points
         standings.sort(key=lambda x: x.total, reverse=True)
@@ -167,8 +192,9 @@ def get_teams(league_id, user_id):
                 id=team.id,
                 name=team.name,
                 owner_id=team.owner.id if team.owner else -1,
-                owner_name=team.owner.username if team.owner else "No Owner"
-            ).model_dump() for team in league.teams
+                owner_name=team.owner.username if team.owner else "No Owner",
+            ).model_dump()
+            for team in league.teams
         ]
 
         return teams, 200

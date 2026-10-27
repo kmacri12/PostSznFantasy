@@ -1,32 +1,27 @@
-import React, { useState, useEffect } from "react";
-import { Route, Routes, Link, useNavigate } from "react-router-dom";
+import MenuIcon from "@mui/icons-material/Menu";
 import {
   AppBar,
+  Button,
+  FormControl,
+  IconButton,
+  InputLabel,
+  MenuItem,
+  Select,
   Toolbar,
   Typography,
-  Button,
-  IconButton,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
 } from "@mui/material";
-import MenuIcon from "@mui/icons-material/Menu";
-import LeaguePage from "./pages/LeaguePage";
-import TeamPage from "./pages/TeamPage";
-import PlayersPage from "./pages/PlayersPage";
-import DraftPage from "./pages/DraftPage";
-import SettingsPage from "./pages/SettingsPage";
-import CreateLeaguePage from "./pages/CreateLeaguePage";
-import { auth } from "./components/auth/firebase";
-import {
-  onAuthStateChanged,
-  GoogleAuthProvider,
-  signInWithPopup,
-  signOut,
-} from "firebase/auth";
 import axios from "axios";
-import { UserProvider, useUser } from "./contexts/UserContext";
+import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from "firebase/auth";
+import { useEffect, useState } from "react";
+import { Link, Route, Routes, useNavigate } from "react-router-dom";
+import { auth } from "./components/auth/firebase";
+import { UserProvider } from "./contexts/UserContext";
+import CreateLeaguePage from "./pages/CreateLeaguePage";
+import DraftPage from "./pages/DraftPage";
+import LeaguePage from "./pages/LeaguePage";
+import PlayersPage from "./pages/PlayersPage";
+import SettingsPage from "./pages/SettingsPage";
+import TeamPage from "./pages/TeamPage";
 
 interface LeagueByUser {
   id: number;
@@ -40,9 +35,7 @@ function App() {
   const [user, setUser] = useState<any>(null);
   const [userId, setUserId] = useState<number | null>(null);
   const [leagues, setLeagues] = useState<LeagueByUser[]>([]);
-  const [teamNumberForLeague, setTeamNumberForLeague] = useState<number | null>(
-    null
-  );
+  const [teamNumberForLeague, setTeamNumberForLeague] = useState<number | null>(null);
   const [selectedLeague, setSelectedLeague] = useState<string>("");
   const navigate = useNavigate();
 
@@ -51,14 +44,11 @@ function App() {
     const fetchLeagues = async () => {
       try {
         const token = await auth.currentUser?.getIdToken(); // Get the user's token
-        const response = await axios.get(
-          `${apiUrl}/api/league/get_leagues_by_user`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`, // Pass the token in the Authorization header
-            },
-          }
-        );
+        const response = await axios.get(`${apiUrl}/api/league/get_leagues_by_user`, {
+          headers: {
+            Authorization: `Bearer ${token}`, // Pass the token in the Authorization header
+          },
+        });
         const fetchedLeagues: LeagueByUser[] = response.data;
         setLeagues(fetchedLeagues);
 
@@ -81,10 +71,8 @@ function App() {
   const handleLeagueChange = (event: any) => {
     const leagueId = event.target.value;
     setSelectedLeague(leagueId);
-    const userTeamId = leagues.find(
-      (league) => league.id === Number(leagueId)
-    )?.userTeamId;
-    setTeamNumberForLeague(userTeamId);
+    const userTeamId = leagues.find((league) => league.id === Number(leagueId))?.userTeamId;
+    setTeamNumberForLeague(userTeamId ?? null);
     // navigate(`/league/${leagueId}`);
   };
 
@@ -167,7 +155,7 @@ function App() {
                 </Button>
                 <Button
                   component={Link}
-                  to={`/players`}
+                  to={"/players"}
                   style={{ textTransform: "none", color: "inherit" }}
                 >
                   Players
@@ -181,20 +169,15 @@ function App() {
                 </Button>
                 <Button
                   component={Link}
-                  to={`/settings`}
+                  to={"/settings"}
                   style={{ textTransform: "none", color: "inherit" }}
                 >
                   Settings
                 </Button>
 
                 {/* League selection dropdown */}
-                <FormControl
-                  variant="outlined"
-                  style={{ minWidth: 120, marginLeft: "20px" }}
-                >
-                  <InputLabel id="league-select-label">
-                    Select League
-                  </InputLabel>
+                <FormControl variant="outlined" style={{ minWidth: 120, marginLeft: "20px" }}>
+                  <InputLabel id="league-select-label">Select League</InputLabel>
                   <Select
                     labelId="league-select-label"
                     value={selectedLeague}

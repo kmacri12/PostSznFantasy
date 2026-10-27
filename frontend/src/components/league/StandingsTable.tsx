@@ -1,15 +1,16 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
 import {
+  Paper,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
 } from "@mui/material";
+import axios from "axios";
 import { getAuth } from "firebase/auth";
+import type React from "react";
+import { useEffect, useState } from "react";
 
 interface StandingsTableProps {
   leagueId: string;
@@ -44,15 +45,12 @@ const StandingsTable: React.FC<StandingsTableProps> = ({ leagueId }) => {
 
         const idToken = await user.getIdToken();
 
-        const response = await axios.get(
-          `${apiUrl}/api/league/${leagueId}/standings`,
-          {
-            headers: { Authorization: `Bearer ${idToken}` },
-          }
-        );
+        const response = await axios.get(`${apiUrl}/api/league/${leagueId}/standings`, {
+          headers: { Authorization: `Bearer ${idToken}` },
+        });
 
         const sortedStandings = response.data.sort(
-          (a: Standings, b: Standings) => b.total - a.total
+          (a: Standings, b: Standings) => b.total - a.total,
         );
         setStandings(sortedStandings);
       } catch (error) {

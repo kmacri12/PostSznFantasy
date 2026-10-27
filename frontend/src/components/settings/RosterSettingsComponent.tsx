@@ -1,15 +1,16 @@
+import ExpandLessIcon from "@mui/icons-material/ExpandLess";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {
-  Typography,
-  IconButton,
   Collapse,
-  Grid,
   FormControl,
+  Grid,
+  IconButton,
   InputLabel,
   OutlinedInput,
+  Typography,
 } from "@mui/material";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import ExpandLessIcon from "@mui/icons-material/ExpandLess";
-import React, { useEffect, useState } from "react";
+import type React from "react";
+import { useEffect, useState } from "react";
 
 interface RosterSettingsProps {
   rosterSettings: {
@@ -60,16 +61,15 @@ const RosterSettingsComponent: React.FC<RosterSettingsProps> = ({
     );
   };
 
-  const handleInputChange =
-    (field: string) => (e: { target: { value: string } }) => {
-      const updatedSettings = {
-        ...rosterSettings,
-        [field]: parseInt(e.target.value, 10),
-      };
-      const newTotal = calculateRosterTotal(updatedSettings);
-      updatedSettings.roster_total = newTotal;
-      setRosterSettings(updatedSettings);
+  const handleInputChange = (field: string) => (e: { target: { value: string } }) => {
+    const updatedSettings = {
+      ...rosterSettings,
+      [field]: Number.parseInt(e.target.value, 10),
     };
+    const newTotal = calculateRosterTotal(updatedSettings);
+    updatedSettings.roster_total = newTotal;
+    setRosterSettings(updatedSettings);
+  };
 
   return (
     <div id="roster-settings">
@@ -80,9 +80,7 @@ const RosterSettingsComponent: React.FC<RosterSettingsProps> = ({
         </IconButton>
       </Typography>
       <Collapse in={expanded}>
-        <Typography variant="body1">
-          Roster Total: {rosterSettings.roster_total}
-        </Typography>
+        <Typography variant="body1">Roster Total: {rosterSettings.roster_total}</Typography>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth margin="normal">
@@ -134,9 +132,7 @@ const RosterSettingsComponent: React.FC<RosterSettingsProps> = ({
           </Grid>
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth margin="normal">
-              <InputLabel htmlFor="roster-num-flex-wr-rb-te">
-                Flex WR/RB/TE
-              </InputLabel>
+              <InputLabel htmlFor="roster-num-flex-wr-rb-te">Flex WR/RB/TE</InputLabel>
               <OutlinedInput
                 id="roster-num-flex-wr-rb-te"
                 type="number"
@@ -148,9 +144,7 @@ const RosterSettingsComponent: React.FC<RosterSettingsProps> = ({
           </Grid>
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth margin="normal">
-              <InputLabel htmlFor="roster-num-flex-wr-rb">
-                Flex WR/RB
-              </InputLabel>
+              <InputLabel htmlFor="roster-num-flex-wr-rb">Flex WR/RB</InputLabel>
               <OutlinedInput
                 id="roster-num-flex-wr-rb"
                 type="number"
@@ -162,9 +156,7 @@ const RosterSettingsComponent: React.FC<RosterSettingsProps> = ({
           </Grid>
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth margin="normal">
-              <InputLabel htmlFor="roster-num-flex-wr-te">
-                Flex WR/TE
-              </InputLabel>
+              <InputLabel htmlFor="roster-num-flex-wr-te">Flex WR/TE</InputLabel>
               <OutlinedInput
                 id="roster-num-flex-wr-te"
                 type="number"
@@ -176,9 +168,7 @@ const RosterSettingsComponent: React.FC<RosterSettingsProps> = ({
           </Grid>
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth margin="normal">
-              <InputLabel htmlFor="roster-num-flex-qb-wr-rb-te">
-                SuperFlex QB/WR/RB/TE
-              </InputLabel>
+              <InputLabel htmlFor="roster-num-flex-qb-wr-rb-te">SuperFlex QB/WR/RB/TE</InputLabel>
               <OutlinedInput
                 id="roster-num-flex-qb-wr-rb-te"
                 type="number"

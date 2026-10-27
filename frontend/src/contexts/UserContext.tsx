@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import type React from "react";
+import { type ReactNode, createContext, useContext, useState } from "react";
 
 interface UserContextType {
   userId: string | null;
@@ -7,16 +8,10 @@ interface UserContextType {
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
-export const UserProvider: React.FC<{ children: ReactNode }> = ({
-  children,
-}) => {
+export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [userId, setUserId] = useState<string | null>(null);
 
-  return (
-    <UserContext.Provider value={{ userId, setUserId }}>
-      {children}
-    </UserContext.Provider>
-  );
+  return <UserContext.Provider value={{ userId, setUserId }}>{children}</UserContext.Provider>;
 };
 
 export const useUser = (): UserContextType => {

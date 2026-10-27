@@ -1,6 +1,7 @@
 import logging
-from flask import Blueprint
+
 from api.utils.db import setup, update
+from flask import Blueprint
 
 admin_bp = Blueprint("admin", __name__)
 logger = logging.getLogger(__name__)

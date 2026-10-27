@@ -1,5 +1,5 @@
 // src/pages/NotFoundPage.tsx
-import React from 'react';
+import React from "react";
 
 function NotFoundPage() {
   return (

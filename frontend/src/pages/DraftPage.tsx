@@ -1,33 +1,24 @@
-import React, { useEffect, useState } from "react";
-import {
-  Grid,
-  Button,
-  Dialog,
-  IconButton,
-  Table,
-  TableCell,
-  TableHead,
-  TableRow,
-  Paper,
-} from "@mui/material";
 import { Settings } from "@mui/icons-material";
-import Countdown from "../components/draft/Countdown";
-import { useWebSocket } from "../hooks/useWebSocket";
-import PlayerSelector from "../components/draft/PlayerSelector";
-import DraftBoard from "../components/draft/DraftBoard";
-import { Player } from "../components/draft/PlayerSelector";
-import { getAuth } from "firebase/auth";
+import { Button, Dialog, Grid, IconButton } from "@mui/material";
 import axios from "axios";
+import { getAuth } from "firebase/auth";
+import type { FC } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import Countdown from "../components/draft/Countdown";
+import DraftBoard from "../components/draft/DraftBoard";
+import PlayerSelector from "../components/draft/PlayerSelector";
+import type { Player } from "../components/draft/PlayerSelector";
+import { useWebSocket } from "../hooks/useWebSocket";
 
-interface Team {
+export interface Team {
   id: number;
   name: string;
   ownerId: number;
   ownerName: string;
 }
 
-interface DraftSettings {
+export interface DraftSettings {
   id: number;
   leagueId: number;
   status: string;
@@ -43,11 +34,11 @@ interface DraftSettings {
   draftOrderTeamIds: number[];
 }
 
-interface DraftPick {
+export interface DraftPick {
   id: number;
-  draftId: number;
+  draftId?: number;
   teamId: number;
-  playerId: number;
+  playerId: number | null;
   playerName: string;
   numberRound: number;
   numberPickOverall: number;
@@ -55,23 +46,17 @@ interface DraftPick {
   autopick: boolean;
 }
 
-const DraftPage: React.FC = () => {
+const DraftPage: FC = () => {
   const { leagueId } = useParams<{ leagueId: string }>();
   const wsUrl = import.meta.env.VITE_WS_URL;
 
-  const { data, isConnected, sendMessage } = useWebSocket(
-    `${wsUrl}/socket.io/`
-  );
-  const [draftSettings, setDraftSettings] = useState<DraftSettings | null>(
-    null
-  );
-  const [leagueSettings, setLeagueSettings] = useState<any>(null);
+  const { data } = useWebSocket(`${wsUrl}/socket.io/`);
+  const [draftSettings, setDraftSettings] = useState<DraftSettings | null>(null);
+  const [_leagueSettings, setLeagueSettings] = useState<any>(null);
   const [openSettings, setOpenSettings] = useState(false);
   const [draftBoard, setDraftBoard] = useState<DraftPick[][]>([[]]);
   const [currentPickIndex, setCurrentPickIndex] = useState<number>(1);
-  const [timer, setTimer] = useState<number>(
-    draftSettings?.timePerPickSeconds || 60
-  );
+  const [timer, setTimer] = useState<number>(draftSettings?.timePerPickSeconds || 60);
   const [teams, setTeams] = useState<Team[]>([]);
   const [numRounds, setNumRounds] = useState<number>(0);
 
@@ -89,7 +74,7 @@ const DraftPage: React.FC = () => {
           numberPickOverall: calculatePickOverall(roundIndex, teamIndex),
           numberPickInRound: calculatePickInRound(roundIndex, teamIndex),
           autopick: false,
-        }))
+        })),
     );
     setDraftBoard(newDraftBoard);
   }, [teams, numRounds]);
@@ -123,12 +108,9 @@ const DraftPage: React.FC = () => {
     const fetchTeams = async () => {
       try {
         const idToken = await user.getIdToken();
-        const response = await axios.get(
-          `${apiUrl}/api/league/${leagueId}/teams`,
-          {
-            headers: { Authorization: `Bearer ${idToken}` },
-          }
-        );
+        const response = await axios.get(`${apiUrl}/api/league/${leagueId}/teams`, {
+          headers: { Authorization: `Bearer ${idToken}` },
+        });
         const teamsList = response.data;
         setTeams(teamsList);
         console.log(teams);
@@ -140,12 +122,9 @@ const DraftPage: React.FC = () => {
     const fetchDraftSettings = async () => {
       try {
         const idToken = await user.getIdToken();
-        const response = await axios.get(
-          `${apiUrl}/api/draft-info/${leagueId}`,
-          {
-            headers: { Authorization: `Bearer ${idToken}` },
-          }
-        );
+        const response = await axios.get(`${apiUrl}/api/draft-info/${leagueId}`, {
+          headers: { Authorization: `Bearer ${idToken}` },
+        });
         setDraftSettings(response.data);
         console.log(teams);
       } catch (error) {
@@ -179,12 +158,9 @@ const DraftPage: React.FC = () => {
     const fetchLeagueSettings = async () => {
       try {
         const idToken = await user.getIdToken();
-        const response = await axios.get(
-          `${apiUrl}/api/league/${leagueId}/settings`,
-          {
-            headers: { Authorization: `Bearer ${idToken}` },
-          }
-        );
+        const response = await axios.get(`${apiUrl}/api/league/${leagueId}/settings`, {
+          headers: { Authorization: `Bearer ${idToken}` },
+        });
         setLeagueSettings(response.data);
         setNumRounds(calculateNumRounds(response.data));
       } catch (error) {
@@ -212,9 +188,7 @@ const DraftPage: React.FC = () => {
     // Find the DraftPick object for the current pick
     const roundIndex = Math.floor((currentPickIndex - 1) / teams.length);
     const picksInRound = draftBoard[roundIndex];
-    const currentPick = picksInRound.find(
-      (pick) => pick.numberPickOverall === currentPickIndex
-    );
+    const currentPick = picksInRound.find((pick) => pick.numberPickOverall === currentPickIndex);
     if (!currentPick) {
       console.error("Error: Could not find current pick in draft board");
       return;
@@ -225,9 +199,7 @@ const DraftPage: React.FC = () => {
       playerName: player.name,
     };
     const updatedDraftBoard = draftBoard.map((round) =>
-      round.map((pick) =>
-        pick.numberPickOverall === currentPickIndex ? updatedDraftPick : pick
-      )
+      round.map((pick) => (pick.numberPickOverall === currentPickIndex ? updatedDraftPick : pick)),
     );
     setDraftBoard(updatedDraftBoard);
 

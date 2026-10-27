@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
 import Autocomplete from "@mui/material/Autocomplete";
 import TextField from "@mui/material/TextField";
+import axios from "axios";
+import React, { useState, useEffect } from "react";
 
 export interface Player {
   id: number;
@@ -16,11 +16,7 @@ interface PlayerSelectorProps {
   selectedPlayerIDs: number[];
 }
 
-const PlayerSelector = ({
-  onPlayerSelected,
-  isMyTurn,
-  selectedPlayerIDs,
-}: PlayerSelectorProps) => {
+const PlayerSelector = ({ onPlayerSelected, isMyTurn, selectedPlayerIDs }: PlayerSelectorProps) => {
   const apiUrl = import.meta.env.VITE_API_URL;
   const [players, setPlayers] = useState<Player[]>([]);
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
@@ -44,11 +40,7 @@ const PlayerSelector = ({
   };
 
   const handleDraft = () => {
-    if (
-      isMyTurn &&
-      selectedPlayer &&
-      !selectedPlayerIDs.includes(selectedPlayer.id)
-    ) {
+    if (isMyTurn && selectedPlayer && !selectedPlayerIDs.includes(selectedPlayer.id)) {
       // Send data to DraftBoard and websocket
       onPlayerSelected(selectedPlayer);
     }
@@ -57,7 +49,7 @@ const PlayerSelector = ({
   const filteredPlayers = players.filter(
     (player) =>
       player.name.toLowerCase().includes(inputValue.toLowerCase()) &&
-      !selectedPlayerIDs.includes(player.id)
+      !selectedPlayerIDs.includes(player.id),
   );
 
   const formatPlayerName = (player) => {
@@ -74,12 +66,7 @@ const PlayerSelector = ({
         inputValue={inputValue}
         onInputChange={(event, newInputValue) => setInputValue(newInputValue)}
         renderInput={(params) => (
-          <TextField
-            {...params}
-            label="Search for player"
-            variant="outlined"
-            fullWidth
-          />
+          <TextField {...params} label="Search for player" variant="outlined" fullWidth />
         )}
         disableClearable
         renderOption={(props, option) => (
@@ -94,11 +81,7 @@ const PlayerSelector = ({
         )}
       />
       <button
-        disabled={
-          !isMyTurn ||
-          !selectedPlayer ||
-          selectedPlayerIDs.includes(selectedPlayer.id)
-        }
+        disabled={!isMyTurn || !selectedPlayer || selectedPlayerIDs.includes(selectedPlayer.id)}
         onClick={handleDraft}
       >
         Draft

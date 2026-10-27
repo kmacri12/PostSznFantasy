@@ -68,40 +68,40 @@ This checklist outlines the sequence of refactor tasks for developers and AI cod
 > - **Comment Minimization & Intent**: Code explains *what*; comments are reserved strictly for *why* (non-obvious domain rules, hardware/protocol constraints, bug workarounds). If code needs a comment to explain what it does, refactor and rename first.
 
 ### Phase 1: Environment, Tooling & Modern Packaging
-- [ ] **Migrate Backend Packaging to `uv` & `pyproject.toml`**:
-  - [ ] Initialize `pyproject.toml` using `uv` to manage Python 3.13 dependencies and workspaces.
-  - [ ] Migrate dependencies from `api/requirements.txt` to `pyproject.toml` with pinned semver constraints.
-  - [ ] Generate deterministic lockfile `uv.lock` via `uv lock`.
-  - [ ] Retire legacy virtual environment scripts in favor of `uv run` and `uv sync`.
-- [ ] **Configure Ruff (Format & Lint) & Mypy**:
-  - [ ] Configure `[tool.ruff]` in `pyproject.toml` with line-length 88 and target version `py313`.
-  - [ ] Enable rulesets: `E` (Pycodestyle errors), `F` (Pyflakes), `I` (isort imports), `B` (flake8-bugbear), `UP` (pyupgrade).
-  - [ ] Configure `[tool.ruff.format]` to eliminate manual styling divergence.
-  - [ ] Deprecate `.flake8`.
-  - [ ] Configure `[tool.mypy]` in `pyproject.toml` with `strict = true`, `disallow_untyped_defs = true`, and Pydantic plugin.
-- [ ] **Migrate Frontend Tooling to Biome (`biome.json`)**:
-  - [ ] Install `@biomejs/biome` in `frontend/package.json`.
-  - [ ] Initialize `frontend/biome.json` configured for React 18/TypeScript with:
+- [x] **Migrate Backend Packaging to `uv` & `pyproject.toml`**:
+  - [x] Initialize `api/pyproject.toml` using `uv` to manage Python 3.13 dependencies.
+  - [x] Migrate dependencies from `api/requirements.txt` to `api/pyproject.toml` with pinned semver constraints and delete `requirements.txt`.
+  - [x] Generate deterministic lockfile `api/uv.lock` via `uv lock`.
+  - [x] Retire legacy virtual environment scripts in favor of `uv run` and `uv sync` in `api/`.
+- [x] **Configure Ruff (Format & Lint) & Mypy**:
+  - [x] Configure `[tool.ruff]` in `api/pyproject.toml` with line-length 88 and target version `py313`.
+  - [x] Enable rulesets: `E` (Pycodestyle errors), `F` (Pyflakes), `I` (isort imports), `B` (flake8-bugbear), `UP` (pyupgrade).
+  - [x] Configure `[tool.ruff.format]` to eliminate manual styling divergence.
+  - [x] Deprecate `.flake8`.
+  - [x] Configure `[tool.mypy]` in `api/pyproject.toml` with `strict = true`, `disallow_untyped_defs = true`, and Pydantic plugin.
+- [x] **Migrate Frontend Tooling to Biome (`biome.json`)**:
+  - [x] Install `@biomejs/biome` in `frontend/package.json`.
+  - [x] Initialize `frontend/biome.json` configured for React 18/TypeScript with:
     - Code formatter (spaces, 2 indents, 80-100 column limit).
     - Linter with recommended rules enabled.
     - Automatic import sorting (`organizeImports`).
-  - [ ] Replace ESLint npm scripts in `frontend/package.json`:
+  - [x] Replace ESLint npm scripts in `frontend/package.json`:
     - `"lint": "biome check src/"`
     - `"format": "biome format src/ --write"`
     - `"check": "biome check --write src/"`
-  - [ ] Remove `.eslintrc.cjs` and redundant ESLint plugins (`eslint`, `@typescript-eslint/*`, `eslint-plugin-react-hooks`, `eslint-plugin-react-refresh`).
-- [ ] **Standardize Environment Configuration**:
-  - [ ] Add `.env.example` in repo root and `frontend/` documenting all required secrets:
-    - Backend: `PG_URI`, `PG_HOST`, `PG_PORT`, `PG_USER`, `PG_PASSWORD`, `PG_DBNAME`, `FIREBASE_SERVICE_ACCOUNT_KEY_PATH`, `RAPIDAPI_BASEURL`, `RAPIDAPI_APIKEY`, `RAPIDAPI_APIHOST`, `SEASON_YEAR`.
-    - Frontend: `VITE_API_URL`, `VITE_WS_URL`, `VITE_FIREBASE_*`.
+  - [x] Remove `.eslintrc.cjs` and redundant ESLint plugins (`eslint`, `@typescript-eslint/*`, `eslint-plugin-react-hooks`, `eslint-plugin-react-refresh`).
+- [x] **Standardize Environment Configuration**:
+  - [x] Add `.env.example` in `api/` and `frontend/` documenting all required secrets:
+    - Backend (`api/.env.example`): `PG_URI`, `PG_HOST`, `PG_PORT`, `PG_USER`, `PG_PASSWORD`, `PG_DBNAME`, `FIREBASE_SERVICE_ACCOUNT_KEY_PATH`, `RAPIDAPI_BASEURL`, `RAPIDAPI_APIKEY`, `RAPIDAPI_APIHOST`, `SEASON_YEAR`.
+    - Frontend (`frontend/.env.example`): `VITE_API_URL`, `VITE_WS_URL`, `VITE_FIREBASE_*`.
 - [ ] **Fix Blocking Frontend TypeScript Build Errors (`tsc`)**:
   - [ ] Remove unused `React` imports across files to satisfy `noUnusedLocals: true`.
   - [ ] Export and import `Team` and `DraftPick` interfaces in `frontend/src/components/draft/DraftBoard.tsx`.
   - [ ] Fix implicit `any` types in `PlayerSelector.tsx`, `PlayersTable.tsx`, and `CreateLeaguePage.tsx`.
   - [ ] Replace untyped `react-table` import with proper declaration or upgrade to `@tanstack/react-table`.
   - [ ] Add index signature to `expanded` state in `CreateLeaguePage.tsx` (`[key: string]: boolean`).
-- [ ] **Local Containerization**:
-  - [ ] Create `docker-compose.yml` defining PostgreSQL 16 with healthchecks and a volume mount for local development.
+- [x] **Local Containerization**:
+  - [x] Create `docker-compose.yml` defining PostgreSQL 16 with healthchecks and a volume mount for local development.
 
 ---
 

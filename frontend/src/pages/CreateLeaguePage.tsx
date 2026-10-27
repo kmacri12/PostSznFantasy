@@ -1,28 +1,29 @@
-import React, { useState } from "react";
+import ExpandLessIcon from "@mui/icons-material/ExpandLess";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {
-  Button,
-  Typography,
-  Divider,
   Box,
-  Grid,
+  Button,
+  Collapse,
+  Divider,
   FormControl,
+  Grid,
+  IconButton,
   InputLabel,
   OutlinedInput,
-  IconButton,
-  Collapse,
+  Typography,
 } from "@mui/material";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import ExpandLessIcon from "@mui/icons-material/ExpandLess";
-import { useUser } from "../contexts/UserContext";
-import { getAuth } from "firebase/auth";
 import axios from "axios";
+import { getAuth } from "firebase/auth";
+import type React from "react";
+import { useState } from "react";
 import RosterSettingsComponent from "../components/settings/RosterSettingsComponent";
-import ScoringPassingSettingsComponent from "../components/settings/ScoringPassingSettingsComponent";
-import ScoringRushingSettingsComponent from "../components/settings/ScoringRushingSettingsComponent";
 import ScoringCarryingSettingsComponent from "../components/settings/ScoringCarryingSettingsComponent";
-import ScoringReceivingSettingsComponent from "../components/settings/ScoringReceivingSettingsComponent";
-import ScoringKickingSettingsComponent from "../components/settings/ScoringKickingSettingsComponent";
 import ScoringDSTSettingsComponent from "../components/settings/ScoringDSTSettingsComponent";
+import ScoringKickingSettingsComponent from "../components/settings/ScoringKickingSettingsComponent";
+import ScoringPassingSettingsComponent from "../components/settings/ScoringPassingSettingsComponent";
+import ScoringReceivingSettingsComponent from "../components/settings/ScoringReceivingSettingsComponent";
+import ScoringRushingSettingsComponent from "../components/settings/ScoringRushingSettingsComponent";
+import { useUser } from "../contexts/UserContext";
 
 const CreateLeaguePage = () => {
   const apiUrl = import.meta.env.VITE_API_URL;
@@ -145,7 +146,7 @@ const CreateLeaguePage = () => {
           headers: {
             Authorization: `Bearer ${idToken}`,
           },
-        }
+        },
       );
 
       if (response.status === 201) {
@@ -160,11 +161,7 @@ const CreateLeaguePage = () => {
   return (
     <Box component="form" onSubmit={handleSubmit} sx={{ padding: 2 }}>
       <div id="league-info">
-        <Typography
-          variant="h6"
-          gutterBottom
-          onClick={() => handleExpandClick("league")}
-        >
+        <Typography variant="h6" gutterBottom onClick={() => handleExpandClick("league")}>
           League Information
           <IconButton size="small" edge="end">
             {expanded.league ? <ExpandLessIcon /> : <ExpandMoreIcon />}
@@ -194,7 +191,7 @@ const CreateLeaguePage = () => {
                   onChange={(e) =>
                     setRosterSettings({
                       ...rosterSettings,
-                      number_teams: parseInt(e.target.value, 10) || 0,
+                      number_teams: Number.parseInt(e.target.value, 10) || 0,
                     })
                   }
                   label="Teams"
@@ -303,12 +300,7 @@ const CreateLeaguePage = () => {
         handleExpandClick={() => handleExpandClick("defense")}
       />
 
-      <Button
-        type="submit"
-        variant="contained"
-        color="primary"
-        sx={{ marginTop: 2 }}
-      >
+      <Button type="submit" variant="contained" color="primary" sx={{ marginTop: 2 }}>
         Create League
       </Button>
     </Box>

@@ -1,25 +1,34 @@
-import os
 import json
+import os
 import re
+
 import psycopg2
-from psycopg2 import sql
-from psycopg2.extensions import connection, ISOLATION_LEVEL_AUTOCOMMIT
-from api.utils.rapidapi.rapidapi import RapidApi
+from api.app import db
 from api.utils.db.pg_utils import (
+    dictfetchall,
     get_pg_connection,
     table_has_data,
-    dictfetchall,
 )
-from api.app import db
+from api.utils.rapidapi.rapidapi import RapidApi
+from psycopg2 import sql
+from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT, connection
+
+_rapidapi_connection: RapidApi | None = None
 
 
-rapidapi_connection = RapidApi()
+def get_rapidapi_client() -> RapidApi:
+    global _rapidapi_connection
+    if _rapidapi_connection is None:
+        _rapidapi_connection = RapidApi()
+    return _rapidapi_connection
 
 
-def create_nflteams_table(conn: connection = get_pg_connection()):
+def create_nflteams_table(conn: connection | None = None):
+    if conn is None:
+        conn = get_pg_connection()
     cursor = conn.cursor()
     if not table_has_data(conn, "nfl_teams"):
-        nfl_teams = rapidapi_connection.get_nfl_teams()
+        nfl_teams = get_rapidapi_client().get_nfl_teams()
         insert_query = """
             INSERT INTO nfl_teams (id, team_abv, team_city, team_name, team_logo_url)
             VALUES (%s, %s, %s, %s, %s)
@@ -40,10 +49,12 @@ def create_nflteams_table(conn: connection = get_pg_connection()):
     cursor.close()
 
 
-def create_nflplayers_table(conn: connection = get_pg_connection()):
+def create_nflplayers_table(conn: connection | None = None):
+    if conn is None:
+        conn = get_pg_connection()
     cursor = conn.cursor()
     if not table_has_data(conn, "nfl_players"):
-        nfl_players = rapidapi_connection.get_nfl_players()
+        nfl_players = get_rapidapi_client().get_nfl_players()
         insert_query = """
             INSERT INTO nfl_players (id, name, position, espn_headshot_url, jersey_num, birthday, height, weight, exp, team_id)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
@@ -99,7 +110,9 @@ def create_nflplayers_table(conn: connection = get_pg_connection()):
     cursor.close()
 
 
-def create_nfl_games_table(conn: connection = get_pg_connection()):
+def create_nfl_games_table(conn: connection | None = None):
+    if conn is None:
+        conn = get_pg_connection()
     cursor = conn.cursor()
     if not table_has_data(conn, "nfl_games"):
         year = os.getenv("SEASON_YEAR")
@@ -107,7 +120,7 @@ def create_nfl_games_table(conn: connection = get_pg_connection()):
             INSERT INTO nfl_games (id, game_date, game_time_epoch, game_week, season, espn_link, team_id_home, team_id_away, season_type)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
-        nfl_games = rapidapi_connection.get_nfl_games_list(year, "all", "all")
+        nfl_games = get_rapidapi_client().get_nfl_games_list(year, "all", "all")
         for game in nfl_games:
             if game["seasonType"] != "Preseason":
                 id = game["gameID"]
@@ -150,7 +163,9 @@ def create_nfl_games_table(conn: connection = get_pg_connection()):
     cursor.close()
 
 
-def populate_game_table_with_boxscores(conn: connection = get_pg_connection()):
+def populate_game_table_with_boxscores(conn: connection | None = None):
+    if conn is None:
+        conn = get_pg_connection()
     cursor = conn.cursor()
     cursor.execute(
         """
@@ -167,7 +182,7 @@ def populate_game_table_with_boxscores(conn: connection = get_pg_connection()):
         rows = dictfetchall(cursor)
         for game in rows:
             game_id = game["id"]
-            box_score = rapidapi_connection.get_nfl_box_score(game_id)
+            box_score = get_rapidapi_client().get_nfl_box_score(game_id)
             game_status = box_score["gameStatus"]
             home_pts = int(box_score["homePts"])
             away_pts = int(box_score["awayPts"])
@@ -209,7 +224,9 @@ def populate_game_table_with_boxscores(conn: connection = get_pg_connection()):
     cursor.close()
 
 
-def create_nfl_player_game_stats_table(conn: connection = get_pg_connection()):
+def create_nfl_player_game_stats_table(conn: connection | None = None):
+    if conn is None:
+        conn = get_pg_connection()
     cursor = conn.cursor()
     if not table_has_data(conn, "nfl_player_game_stats"):
         cursor.execute("SELECT * FROM nfl_games")
@@ -218,7 +235,6 @@ def create_nfl_player_game_stats_table(conn: connection = get_pg_connection()):
             game_id = game["id"]
             player_stats = game["player_stats"]
             for player_id, stats in player_stats.items():
-
                 passing_completions = int(
                     stats.get("Passing", {}).get("passCompletions", 0)
                 )
@@ -363,7 +379,7 @@ def create_nfl_player_game_stats_table(conn: connection = get_pg_connection()):
 
             if "dst" in game:
                 dst = game["dst"]
-                for home_away, stats in dst.items():
+                for _home_away, stats in dst.items():
                     player_id = stats.get("teamID", None)
                     if player_id:
                         dst_yards_allowed = int(stats.get("ydsAllowed", 0))
@@ -412,7 +428,9 @@ def create_nfl_player_game_stats_table(conn: connection = get_pg_connection()):
         cursor.close()
 
 
-def create_nfl_player_season_stats_table(conn: connection = get_pg_connection()):
+def create_nfl_player_season_stats_table(conn: connection | None = None):
+    if conn is None:
+        conn = get_pg_connection()
     cursor = conn.cursor()
     if not table_has_data(conn, "nfl_player_season_stats"):
         cursor.execute("SELECT * FROM nfl_player_game_stats")

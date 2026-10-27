@@ -1,11 +1,22 @@
 import json
+
 from api.utils.calculations.fantasy_points_utils import calculate_player_points
-from api.utils.db.models import db, Lineup, PlayerScore, Team, NFLPlayerGameStats, LeagueSettings, NFLPlayer, NFLTeam
+from api.utils.db.models import (
+    LeagueSettings,
+    Lineup,
+    NFLPlayer,
+    NFLPlayerGameStats,
+    NFLTeam,
+    PlayerScore,
+    Team,
+    db,
+)
 
 
 def get_players_left(team_id, league_id):
     # TODO implement this fn
     import random
+
     return random.randint(0, 16)
     # Fetch the team
     team = Team.query.filter_by(id=team_id, league_id=league_id).first()
@@ -14,11 +25,15 @@ def get_players_left(team_id, league_id):
 
     # Fetch all players on the team
     players = NFLPlayer.query.filter_by(team_id=team_id).all()
-    
+
     # Fetch the status of NFL teams
-    nfl_teams = NFLTeam.query.all()  # Assuming you have a field indicating whether the team is active or not
-    nfl_team_status = {nfl_team.id: nfl_team.is_active for nfl_team in nfl_teams}  # Example field is_active
-    
+    nfl_teams = (
+        NFLTeam.query.all()
+    )  # Assuming you have a field indicating whether the team is active or not
+    nfl_team_status = {
+        nfl_team.id: nfl_team.is_active for nfl_team in nfl_teams
+    }  # Example field is_active
+
     # Count players whose NFL team is still active
     players_left_count = 0
     for player in players:
@@ -32,6 +47,7 @@ def get_players_left(team_id, league_id):
 def get_team_fantasy_points_by_week(team_id, league_id, week):
     # TODO: implement
     import random
+
     return round(random.uniform(10, 100), 2)
     # Fetch the league settings for scoring details
     league_settings = LeagueSettings.query.filter_by(league_id=league_id).first()
@@ -66,11 +82,15 @@ def get_team_fantasy_points_by_week(team_id, league_id, week):
 
     # Save player scores
     for player_id, points in player_scores.items():
-        player_score = PlayerScore.query.filter_by(lineup_id=lineup.id, player_id=player_id).first()
+        player_score = PlayerScore.query.filter_by(
+            lineup_id=lineup.id, player_id=player_id
+        ).first()
         if player_score:
             player_score.points = points
         else:
-            player_score = PlayerScore(lineup_id=lineup.id, player_id=player_id, points=points)
+            player_score = PlayerScore(
+                lineup_id=lineup.id, player_id=player_id, points=points
+            )
             db.session.add(player_score)
     db.session.commit()
 

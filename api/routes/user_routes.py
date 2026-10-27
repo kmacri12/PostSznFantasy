@@ -1,13 +1,14 @@
 import logging
 import os
-from flask import Blueprint, request, jsonify
+
+import firebase_admin
 from api.app import db
 from api.utils.db.models import User
-import firebase_admin
-from firebase_admin import credentials, auth
+from firebase_admin import auth, credentials
+from flask import Blueprint, jsonify, request
 
 # Initialize Firebase Admin SDK
-service_account_key_path = os.getenv('FIREBASE_SERVICE_ACCOUNT_KEY_PATH')
+service_account_key_path = os.getenv("FIREBASE_SERVICE_ACCOUNT_KEY_PATH")
 cred = credentials.Certificate(service_account_key_path)
 firebase_admin.initialize_app(cred)
 
@@ -30,13 +31,17 @@ def login():
 
     try:
         decoded_token = auth.verify_id_token(token)
-        uid = decoded_token['uid']
+        uid = decoded_token["uid"]
 
         user = User.query.filter_by(firebase_uid=uid).first()
 
         if not user:
             # Create a new user if it doesn't exist
-            user = User(firebase_uid=uid, username=decoded_token.get('name'), email=decoded_token.get('email'))
+            user = User(
+                firebase_uid=uid,
+                username=decoded_token.get("name"),
+                email=decoded_token.get("email"),
+            )
             db.session.add(user)
             db.session.commit()
 

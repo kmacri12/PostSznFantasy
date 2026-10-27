@@ -197,3 +197,4 @@ package-lock.json
 
 .env
 *firebase*.json
+.bin/
