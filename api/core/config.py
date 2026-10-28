@@ -21,7 +21,14 @@ class Settings(BaseSettings):
 
     # Supabase Auth
     supabase_url: str = ""
-    supabase_jwt_secret: str = ""
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def supabase_jwks_url(self) -> str | None:
+        """Standard JWKS endpoint for asymmetric JWT verification."""
+        if not self.supabase_url:
+            return None
+        return f"{self.supabase_url.rstrip('/')}/auth/v1/.well-known/jwks.json"
 
     # RapidAPI
     rapidapi_baseurl: str = ""

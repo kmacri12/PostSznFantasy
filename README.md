@@ -17,7 +17,7 @@ PostSzn Fantasy is architected as an asynchronous backend API service paired wit
   - **Database & ORM**: PostgreSQL 16 accessed via asynchronous [SQLAlchemy 2.0](https://www.sqlalchemy.org/) (`asyncpg`), with migrations managed by [Alembic](https://alembic.sqlalchemy.org/).
   - **Configuration**: Strongly typed application settings via [Pydantic Settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/).
   - **Real-Time Communication**: Native RFC 6455 WebSockets with a centralized connection manager (`DraftConnectionManager`) broadcasting live draft state, timers, and picks.
-  - **Authentication**: Token verification via Supabase Auth (JWT `HS256` signature verification via `pyjwt[crypto]`) with dependency injection (`get_current_user`).
+  - **Authentication**: Token verification via Supabase Auth (Asymmetric ES256 verification via Supabase JWKS using `pyjwt[crypto]`) with dependency injection (`get_current_user`).
   - **External Ingestion**: Asynchronous HTTP client ([HTTPX](https://www.python-httpx.org/)) with exponential backoff retries via [Tenacity](https://tenacity.readthedocs.io/) for RapidAPI NFL stats.
 
 - **Frontend (`frontend/`)**:
@@ -55,12 +55,16 @@ cp api/.env.example api/.env
 cp frontend/.env.example frontend/.env
 ```
 
-Review `api/.env` and `frontend/.env` to customize settings. Provide your Supabase project credentials (`SUPABASE_URL`, `SUPABASE_JWT_SECRET` in backend and `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` in frontend).
+Review `api/.env` and `frontend/.env` to customize settings. Provide your Supabase project credentials (`SUPABASE_URL` in backend; `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` in frontend).
 
 #### Setting Up Supabase Auth & Google OAuth
 1. Create a project at [supabase.com](https://supabase.com).
-2. Under **Project Settings > API**, retrieve your project URL and `anon` public key (for `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`).
-3. Under **Project Settings > API > JWT Settings**, copy your **JWT Secret** (for `SUPABASE_JWT_SECRET`).
+2. Under **Project Settings > API Keys**:
+   - In the **Publishable and secret API keys** tab, obtain your **Publishable Key** (`sb_publishable_...`). Configure this as `VITE_SUPABASE_PUBLISHABLE_KEY` in `frontend/.env`.
+   - Copy your **Project URL** (`https://<project-ref>.supabase.co`) for `VITE_SUPABASE_URL` in `frontend/.env` and `SUPABASE_URL` in `api/.env`.
+3. Token Signature Verification in Backend:
+   - Supabase signs user session JWTs asymmetrically (e.g. `ES256`).
+   - The backend automatically retrieves and caches the public verification keys directly from Supabase's JWKS endpoint (`https://<project-ref>.supabase.co/auth/v1/.well-known/jwks.json`). No shared JWT secret needs to be stored or shared with the backend.
 4. To enable Google Sign-In:
    - Navigate to **Authentication > Providers > Google**.
    - Create OAuth credentials in [Google Cloud Console](https://console.cloud.google.com/apis/credentials) with Authorized redirect URI set to: `https://<your-project-ref>.supabase.co/auth/v1/callback`.
@@ -157,8 +161,8 @@ npm run test
   - Verify that `PG_URI` in `api/.env` aligns with the credentials in `docker-compose.yml`.
 
 - **Supabase Authentication Setup**:
-  - In local development without live Supabase credentials, backend JWT verification will decode unverified tokens as fallback if `SUPABASE_JWT_SECRET` is left empty.
-  - When configuring live authentication, verify that `SUPABASE_JWT_SECRET` in `api/.env` matches the secret in your Supabase project dashboard, and that `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are properly defined in `frontend/.env`.
+  - In local development without live Supabase credentials, backend JWT verification decodes unverified tokens as fallback if `SUPABASE_URL` is not configured.
+  - When configuring live authentication, verify that `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` are defined in `frontend/.env`, and that `SUPABASE_URL` is set in `api/.env`. Modern asymmetric tokens are validated against Supabase's JWKS endpoint automatically without needing a shared secret.
 
 - **Alembic Database Migration Desync**:
   - To recreate local schema cleanly from scratch:

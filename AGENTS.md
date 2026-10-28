@@ -203,6 +203,6 @@ npm run test
   - `VITE_API_URL`: Backend HTTP origin (`http://localhost:8000`).
   - `VITE_WS_URL`: WebSocket endpoint (`ws://localhost:8000`).
   - `VITE_SUPABASE_URL`: Supabase project URL.
-  - `VITE_SUPABASE_ANON_KEY`: Supabase project public anon API key.
+  - `VITE_SUPABASE_PUBLISHABLE_KEY`: Supabase project publishable API key (`sb_publishable_...`, with fallback to legacy `VITE_SUPABASE_ANON_KEY`).
 - **Component Styling**: Material-UI (MUI v5) styled components and `sx` prop.
 - **State Flow**: Supabase handles auth credentials client-side; on session initialization or auth state change, the Supabase access token is sent to `/api/auth/login` to resolve/upsert the relational `User.id` into `UserContext`.
