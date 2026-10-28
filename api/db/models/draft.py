@@ -21,10 +21,11 @@ if TYPE_CHECKING:
 
 class Draft(Base):
     __tablename__ = "drafts"
+    __table_args__ = {"schema": "fantasy"}
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     league_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("leagues.id", ondelete="CASCADE"), nullable=False
+        Integer, ForeignKey("fantasy.leagues.id", ondelete="CASCADE"), nullable=False
     )
     status: Mapped[str | None] = mapped_column(String(20), nullable=True)
     start_time: Mapped[datetime | None] = mapped_column(
@@ -52,16 +53,17 @@ class Draft(Base):
 
 class DraftPick(Base):
     __tablename__ = "draft_picks"
+    __table_args__ = {"schema": "fantasy"}
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     draft_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("drafts.id", ondelete="CASCADE"), nullable=False
+        Integer, ForeignKey("fantasy.drafts.id", ondelete="CASCADE"), nullable=False
     )
     team_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("teams.id", ondelete="CASCADE"), nullable=False
+        Integer, ForeignKey("fantasy.teams.id", ondelete="CASCADE"), nullable=False
     )
     player_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("nfl_players.id", ondelete="CASCADE"), nullable=False
+        Integer, ForeignKey("nfl.nfl_players.id", ondelete="CASCADE"), nullable=False
     )
     number_round: Mapped[int | None] = mapped_column(Integer, nullable=True)
     number_pick_overall: Mapped[int | None] = mapped_column(Integer, nullable=True)

@@ -11,6 +11,7 @@ if TYPE_CHECKING:
 
 class User(Base):
     __tablename__ = "users"
+    __table_args__ = {"schema": "fantasy"}
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     supabase_uid: Mapped[str] = mapped_column(String(128), unique=True, nullable=False)

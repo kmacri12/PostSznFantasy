@@ -19,6 +19,7 @@ if TYPE_CHECKING:
 
 class NFLTeam(Base):
     __tablename__ = "nfl_teams"
+    __table_args__ = {"schema": "nfl"}
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     team_abv: Mapped[str | None] = mapped_column(String(255), nullable=True)
@@ -36,6 +37,7 @@ class NFLTeam(Base):
 
 class NFLPlayer(Base):
     __tablename__ = "nfl_players"
+    __table_args__ = {"schema": "nfl"}
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str | None] = mapped_column(String(255), nullable=True)
@@ -47,7 +49,7 @@ class NFLPlayer(Base):
     weight: Mapped[str | None] = mapped_column(String(255), nullable=True)
     exp: Mapped[str | None] = mapped_column(String(255), nullable=True)
     team_id: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("nfl_teams.id", ondelete="SET NULL"), nullable=True
+        Integer, ForeignKey("nfl.nfl_teams.id", ondelete="SET NULL"), nullable=True
     )
 
     team: Mapped["NFLTeam | None"] = relationship("NFLTeam", back_populates="players")
@@ -64,10 +66,11 @@ class NFLPlayer(Base):
 
 class NFLPlayerSeasonStats(Base):
     __tablename__ = "nfl_player_season_stats"
+    __table_args__ = {"schema": "nfl"}
 
     season: Mapped[str] = mapped_column(String(255), primary_key=True)
     player_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("nfl_players.id", ondelete="CASCADE"), primary_key=True
+        Integer, ForeignKey("nfl.nfl_players.id", ondelete="CASCADE"), primary_key=True
     )
     passing_completions: Mapped[int] = mapped_column(SmallInteger, default=0)
     passing_attempts: Mapped[int] = mapped_column(SmallInteger, default=0)
@@ -117,10 +120,11 @@ class NFLPlayerSeasonStats(Base):
 
 class NFLPlayerGameStats(Base):
     __tablename__ = "nfl_player_game_stats"
+    __table_args__ = {"schema": "nfl"}
 
     game_id: Mapped[str] = mapped_column(String(255), primary_key=True)
     player_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("nfl_players.id", ondelete="CASCADE"), primary_key=True
+        Integer, ForeignKey("nfl.nfl_players.id", ondelete="CASCADE"), primary_key=True
     )
     passing_completions: Mapped[int] = mapped_column(SmallInteger, default=0)
     passing_attempts: Mapped[int] = mapped_column(SmallInteger, default=0)
@@ -168,6 +172,7 @@ class NFLPlayerGameStats(Base):
 
 class NFLGame(Base):
     __tablename__ = "nfl_games"
+    __table_args__ = {"schema": "nfl"}
 
     id: Mapped[str] = mapped_column(String(255), primary_key=True)
     game_status: Mapped[str | None] = mapped_column(String(255), nullable=True)
@@ -177,10 +182,10 @@ class NFLGame(Base):
     season: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
     espn_link: Mapped[str | None] = mapped_column(String(255), nullable=True)
     team_id_home: Mapped[int | None] = mapped_column(
-        SmallInteger, ForeignKey("nfl_teams.id", ondelete="SET NULL"), nullable=True
+        SmallInteger, ForeignKey("nfl.nfl_teams.id", ondelete="SET NULL"), nullable=True
     )
     team_id_away: Mapped[int | None] = mapped_column(
-        SmallInteger, ForeignKey("nfl_teams.id", ondelete="SET NULL"), nullable=True
+        SmallInteger, ForeignKey("nfl.nfl_teams.id", ondelete="SET NULL"), nullable=True
     )
     home_pts: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
     away_pts: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)

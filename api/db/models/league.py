@@ -21,11 +21,12 @@ if TYPE_CHECKING:
 
 class League(Base):
     __tablename__ = "leagues"
+    __table_args__ = {"schema": "fantasy"}
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     commissioner_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+        Integer, ForeignKey("fantasy.users.id", ondelete="CASCADE"), nullable=False
     )
 
     commissioner: Mapped["User"] = relationship("User")
@@ -54,14 +55,15 @@ class League(Base):
 
 class Team(Base):
     __tablename__ = "teams"
+    __table_args__ = {"schema": "fantasy"}
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str | None] = mapped_column(String(20))
     owner_id: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+        Integer, ForeignKey("fantasy.users.id", ondelete="SET NULL"), nullable=True
     )
     league_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("leagues.id", ondelete="CASCADE"), nullable=False
+        Integer, ForeignKey("fantasy.leagues.id", ondelete="CASCADE"), nullable=False
     )
     roster: Mapped[list[int] | None] = mapped_column(ARRAY(Integer), nullable=True)
 
@@ -83,10 +85,11 @@ class Team(Base):
 
 class LeagueSettings(Base):
     __tablename__ = "league_settings"
+    __table_args__ = {"schema": "fantasy"}
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     league_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("leagues.id", ondelete="CASCADE"), nullable=False
+        Integer, ForeignKey("fantasy.leagues.id", ondelete="CASCADE"), nullable=False
     )
     number_teams: Mapped[int] = mapped_column(Integer, nullable=False)
     roster_total: Mapped[int] = mapped_column(Integer, nullable=False)
@@ -226,6 +229,7 @@ class LeagueSettings(Base):
 
 class Week(Base):
     __tablename__ = "weeks"
+    __table_args__ = {"schema": "fantasy"}
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     week_name: Mapped[str] = mapped_column(String(50), nullable=False)
@@ -235,13 +239,14 @@ class Week(Base):
 
 class Lineup(Base):
     __tablename__ = "lineups"
+    __table_args__ = {"schema": "fantasy"}
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     team_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("teams.id", ondelete="CASCADE"), nullable=False
+        Integer, ForeignKey("fantasy.teams.id", ondelete="CASCADE"), nullable=False
     )
     week_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("weeks.id", ondelete="CASCADE"), nullable=False
+        Integer, ForeignKey("fantasy.weeks.id", ondelete="CASCADE"), nullable=False
     )
     lineup: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
     locked: Mapped[bool] = mapped_column(Boolean, default=False)
@@ -255,10 +260,11 @@ class Lineup(Base):
 
 class PlayerScore(Base):
     __tablename__ = "player_scores"
+    __table_args__ = {"schema": "fantasy"}
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     lineup_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("lineups.id", ondelete="CASCADE"), nullable=False
+        Integer, ForeignKey("fantasy.lineups.id", ondelete="CASCADE"), nullable=False
     )
     player_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     points: Mapped[Decimal] = mapped_column(DECIMAL(10, 2), nullable=False)
@@ -268,13 +274,14 @@ class PlayerScore(Base):
 
 class LeagueStanding(Base):
     __tablename__ = "standings"
+    __table_args__ = {"schema": "fantasy"}
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     league_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("leagues.id", ondelete="CASCADE"), nullable=False
+        Integer, ForeignKey("fantasy.leagues.id", ondelete="CASCADE"), nullable=False
     )
     team_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("teams.id", ondelete="CASCADE"), nullable=False
+        Integer, ForeignKey("fantasy.teams.id", ondelete="CASCADE"), nullable=False
     )
     rank: Mapped[int] = mapped_column(Integer, nullable=False)
     players_left: Mapped[int | None] = mapped_column(Integer, nullable=True)
