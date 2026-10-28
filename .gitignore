@@ -187,9 +187,6 @@ Thumbs.db
 yarn-error.log
 yarn.lock
 
-# NPM
-package-lock.json
-
 # Logs
 *.log
 
