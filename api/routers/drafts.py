@@ -3,7 +3,9 @@ import logging
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, status
+from sqlalchemy import select
 
+from api.db.models.draft import Draft, DraftPick
 from api.dependencies.auth import CurrentUser
 from api.dependencies.db import DbSession
 from api.models.draft_models import DraftInfoResponse, DraftPickResponse
@@ -26,12 +28,15 @@ async def get_draft_info(
     db: DbSession,
 ) -> Any:
     """Retrieve draft details and configuration for a league."""
-    # When DeclarativeBase models are hooked in Phase 3, query async db session.
-    # Stubbed 404 response until Phase 3 models are connected.
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND,
-        detail="Draft not found",
-    )
+    stmt = select(Draft).where(Draft.league_id == league_id)
+    res = await db.execute(stmt)
+    draft = res.scalars().first()
+    if not draft:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Draft not found",
+        )
+    return draft
 
 
 @router.get("/draft-picks/{draft_id}", response_model=list[DraftPickResponse])
@@ -41,8 +46,14 @@ async def get_draft_picks(
     db: DbSession,
 ) -> Any:
     """Retrieve all draft picks made for a draft."""
-    # Returns all picks for draft_id. Clean async FastAPI endpoint.
-    return []
+    stmt = (
+        select(DraftPick)
+        .where(DraftPick.draft_id == draft_id)
+        .order_by(DraftPick.number_pick_overall)
+    )
+    res = await db.execute(stmt)
+    picks = res.scalars().all()
+    return picks
 
 
 @router.websocket("/ws/{league_id}")

@@ -9,7 +9,9 @@ def _safe(val: int | None) -> Decimal:
     return Decimal(val) if val is not None else Decimal(0)
 
 
-def _dst_pts_allowed_bonus(pts: int, settings: LeagueSettings) -> Decimal:
+def _dst_pts_allowed_bonus(pts: int | None, settings: LeagueSettings) -> Decimal:
+    if pts is None:
+        return Decimal(0)
     if pts == 0:
         return _safe(settings.scoring_dst_pts_allowed_0)
     if pts <= 6:
@@ -25,7 +27,9 @@ def _dst_pts_allowed_bonus(pts: int, settings: LeagueSettings) -> Decimal:
     return _safe(settings.scoring_dst_pts_allowed_35_plus)
 
 
-def _dst_yards_allowed_bonus(yards: int, settings: LeagueSettings) -> Decimal:
+def _dst_yards_allowed_bonus(yards: int | None, settings: LeagueSettings) -> Decimal:
+    if yards is None:
+        return Decimal(0)
     if yards < 100:
         return _safe(settings.scoring_dst_yards_allowed_under_100)
     if yards < 200:
