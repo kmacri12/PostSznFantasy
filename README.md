@@ -1,1 +1,193 @@
-# PostSznFantasy
+# PostSzn Fantasy (`postsznfantasy`)
+
+PostSzn Fantasy is a fantasy football application tailored specifically for the NFL postseason (Wild Card, Divisional, Conference Championships, and Super Bowl). 
+
+Unlike standard season-long fantasy leagues that conclude at NFL Week 18, postseason fantasy features cascading elimination dynamics: as real NFL teams are eliminated from playoff contention, their players can no longer accumulate fantasy points. Success requires both player talent evaluation and strategic bracket forecasting.
+
+---
+
+## Architecture Overview
+
+PostSzn Fantasy is architected as an asynchronous backend API service paired with a modern React single-page frontend:
+
+- **Backend (`api/`)**:
+  - **Framework**: [FastAPI](https://fastapi.tiangolo.com/) (ASGI, async route handlers, automatic OpenAPI docs).
+  - **Packaging & Tooling**: Managed with [`uv`](https://docs.astral.sh/uv/) via `pyproject.toml` and `uv.lock`.
+  - **Code Quality**: Strict type enforcement via [Mypy](https://mypy-lang.org/) and linting/formatting via [Ruff](https://docs.astral.sh/ruff/).
+  - **Database & ORM**: PostgreSQL 16 accessed via asynchronous [SQLAlchemy 2.0](https://www.sqlalchemy.org/) (`asyncpg`), with migrations managed by [Alembic](https://alembic.sqlalchemy.org/).
+  - **Configuration**: Strongly typed application settings via [Pydantic Settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/).
+  - **Real-Time Communication**: Native RFC 6455 WebSockets with a centralized connection manager (`DraftConnectionManager`) broadcasting live draft state, timers, and picks.
+  - **Authentication**: Token verification via Firebase Admin SDK with dependency injection (`get_current_user`).
+  - **External Ingestion**: Asynchronous HTTP client ([HTTPX](https://www.python-httpx.org/)) with exponential backoff retries via [Tenacity](https://tenacity.readthedocs.io/) for RapidAPI NFL stats.
+
+- **Frontend (`frontend/`)**:
+  - **Framework & Build**: [React 18](https://react.dev/), [TypeScript](https://www.typescriptlang.org/), and [Vite](https://vitejs.dev/).
+  - **Formatting & Linting**: Ultra-fast AST-based code checking and formatting via [Biome](https://biomejs.dev/).
+  - **UI & Layout**: Material UI (MUI v5) components.
+  - **Data Tables**: Type-safe headless tabular display with [@tanstack/react-table](https://tanstack.com/table/v8).
+  - **State & Real-Time**: React Context (`UserContext`) and native WebSocket hook (`useWebSocket`) for synchronized draft boards.
+
+---
+
+## Prerequisites
+
+Before running the application locally, ensure you have the following installed:
+
+- **Docker & Docker Compose**: PostgreSQL container execution.
+- **Python 3.13+**: Backend runtime.
+- **`uv`**: High-performance Python package and project manager ([Installation Guide](https://docs.astral.sh/uv/getting-started/installation/)).
+- **Node.js 20+ & npm**: Frontend runtime and package management.
+
+---
+
+## Local Setup & Quickstart
+
+### 1. Clone Repository & Setup Environment Files
+
+```bash
+git clone https://github.com/your-org/postsznfantasy.git
+cd PostSznFantasy
+
+# Configure backend environment
+cp api/.env.example api/.env
+
+# Configure frontend environment
+cp frontend/.env.example frontend/.env
+```
+
+Review `api/.env` and `frontend/.env` to customize settings. If Firebase authentication is used locally, ensure `FIREBASE_SERVICE_ACCOUNT_KEY_PATH` points to a valid service account JSON file (or use an emulator/mock).
+
+### 2. Start PostgreSQL Database
+
+Launch PostgreSQL 16 using Docker Compose:
+
+```bash
+docker compose up -d
+```
+
+Verify that the container is healthy:
+
+```bash
+docker compose ps
+```
+
+### 3. Setup and Run Backend Service (`api/`)
+
+From the `api/` directory:
+
+```bash
+cd api
+
+# Install all runtime and development dependencies
+uv sync
+
+# Run database migrations with Alembic
+uv run alembic upgrade head
+
+# Start the FastAPI application with auto-reload
+uv run uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+The API service is now accessible at `http://localhost:8000`. Interactive OpenAPI documentation is available at `http://localhost:8000/docs`.
+
+### 4. Setup and Run Frontend SPA (`frontend/`)
+
+In a new terminal, navigate to the `frontend/` directory:
+
+```bash
+cd frontend
+
+# Install Node dependencies
+npm install
+
+# Start Vite development server
+npm run dev
+```
+
+The frontend application is now accessible at `http://localhost:5173`.
+
+---
+
+## Verification & Testing
+
+### Backend Verification
+From the `api/` directory:
+```bash
+# Check formatting and linting
+uv run ruff check .
+uv run ruff format --check .
+
+# Run static type checking
+uv run mypy .
+
+# Run unit and integration tests
+uv run pytest
+```
+
+### Frontend Verification
+From the `frontend/` directory:
+```bash
+# Lint, format check, and import sorting
+npx @biomejs/biome check src/
+
+# Run TypeScript type check and production bundle build
+npm run build
+
+# Run frontend unit tests
+npm run test
+```
+
+---
+
+## Common Troubleshooting
+
+- **PostgreSQL Connection Failures**:
+  - Ensure the Docker container is up: `docker compose ps`.
+  - Verify that the port (`5432`) is not already claimed by a local PostgreSQL daemon (`lsof -i :5432` or `sudo systemctl status postgresql`).
+  - Verify that `PG_URI` in `api/.env` aligns with the credentials in `docker-compose.yml`.
+
+- **Firebase Initialization Errors**:
+  - In local development without live Firebase credentials, ensure the path configured in `FIREBASE_SERVICE_ACCOUNT_KEY_PATH` exists or is mocked for tests. Integration tests override authentication via FastAPI's `app.dependency_overrides`.
+
+- **Alembic Database Migration Desync**:
+  - To recreate local schema cleanly from scratch:
+    ```bash
+    docker compose down -v
+    docker compose up -d
+    cd api && uv run alembic upgrade head
+    ```
+
+- **WebSocket Connection Refused on Draft Page**:
+  - Verify that the backend is running at `http://localhost:8000`.
+  - Confirm that `VITE_WS_URL=ws://localhost:8000` is present in `frontend/.env`.
+
+---
+
+## Directory Map
+
+```
+PostSznFantasy/
+├── docker-compose.yml          # Local PostgreSQL 16 container definition
+├── pyproject.toml              # UV workspace root (tool configurations)
+├── README.md                   # System documentation & developer quickstart
+├── CONTRIBUTING.md             # Developer workflow, branching, standards, and definition of done
+├── AGENTS.md                   # Agent guidelines, domain playbook, and architectural specs
+├── REWRITE_ROADMAP.md          # Multi-phase refactoring roadmap
+├── api/                        # FastAPI application service
+│   ├── alembic/                # Database migrations
+│   ├── core/                   # Application config (`Settings`) & constants
+│   ├── db/                     # Async session provider and SQLAlchemy 2.0 ORM models
+│   ├── dependencies/           # FastAPI dependency injection (auth, db session)
+│   ├── models/                 # Pydantic v2 DTO schemas (camelCase serialization)
+│   ├── routers/                # Modular APIRouter endpoints
+│   ├── tests/                  # Pytest unit and integration test suite
+│   ├── utils/                  # Ingestion client and fantasy calculation engines
+│   └── ws/                     # Native WebSocket connection manager
+└── frontend/                   # React 18 + Vite + TypeScript application
+    ├── biome.json              # Biome linting and formatting configuration
+    └── src/
+        ├── components/         # Modular UI components (draft board, player table, etc.)
+        ├── contexts/           # Authentication and global state
+        ├── hooks/              # Custom hooks (e.g., useWebSocket)
+        └── pages/              # Application views and routing
+```

@@ -10,7 +10,7 @@
 > - Completely tear down and replace Flask endpoints, database helpers, and WebSocket handlers with clean FastAPI primitives.
 > - Overhaul frontend state, component hierarchies, or routing without backward-compatibility friction.
 
-**Post Season Fantasy** (`postsznfantasy`) is a niche fantasy football platform for the NFL playoffs. 
+**PostSzn Fantasy** (`postsznfantasy`) is a niche fantasy football platform for the NFL playoffs. 
 Unlike standard season-long leagues that conclude at Week 18, postseason fantasy leagues run through four knockout playoff rounds:
 1. **Wild Card Round**
 2. **Divisional Round**
@@ -244,21 +244,21 @@ This checklist outlines the sequence of refactor tasks for developers and AI cod
 ---
 
 ### Phase 7: Repository Documentation & Developer Experience
-- [ ] **Core Documentation Overhaul (`README.md`)**:
-  - [ ] Rewrite root `README.md` to provide full architectural context, high-level system overview, and quickstart instructions.
-  - [ ] Document prerequisites (Python 3.13+, `uv`, Node.js 20+, Docker Compose, PostgreSQL 16).
-  - [ ] Provide step-by-step local setup: cloning, `.env` file configuration, DB startup (`docker compose up -d`), backend startup (`uv run uvicorn ...`), and frontend startup (`npm run dev`).
-  - [ ] Include common troubleshooting tips (database connection, Firebase emulator or credentials setup, seed data).
-- [ ] **Contribution & Development Standards (`CONTRIBUTING.md`)**:
-  - [ ] Create `CONTRIBUTING.md` defining branching models, PR guidelines, commit conventions, and definition of done.
-  - [ ] Detail development standards: KISS principle, self-documenting code, intent-driven comments (documenting *why*, not *what*).
-  - [ ] Document code quality verification commands for contributors (`uv run ruff check`, `uv run mypy`, `npx @biomejs/biome check`, test runners).
-- [ ] **Agent & Contributor Context Mapping**:
-  - [ ] Align `AGENTS.md` and `README.md` cross-references so both human contributors and AI agents have unified domain context, directory maps, and operational workflows.
-  - [ ] Keep file structures and documentation locations standard and idiomatic (`README.md`, `CONTRIBUTING.md`, `AGENTS.md`, and module-level docs where appropriate) with zero unnecessary fluff.
-- [ ] **Continuous Agent & Human Documentation Maintenance Rule**:
-  - [ ] Explicitly mandate in `AGENTS.md` and `CONTRIBUTING.md` that AI agents and human contributors must update documentation whenever modifying architecture, dependencies, endpoints, models, or developer workflows.
-  - [ ] Establish documentation synchronization as a mandatory checklist item in PR guidelines and agent task-completion protocols (no stale commands, paths, or architectural discrepancies).
+- [x] **Core Documentation Overhaul (`README.md`)**:
+  - [x] Rewrite root `README.md` to provide full architectural context, high-level system overview, and quickstart instructions.
+  - [x] Document prerequisites (Python 3.13+, `uv`, Node.js 20+, Docker Compose, PostgreSQL 16).
+  - [x] Provide step-by-step local setup: cloning, `.env` file configuration, DB startup (`docker compose up -d`), backend startup (`uv run uvicorn ...`), and frontend startup (`npm run dev`).
+  - [x] Include common troubleshooting tips (database connection, Firebase emulator or credentials setup, seed data).
+- [x] **Contribution & Development Standards (`CONTRIBUTING.md`)**:
+  - [x] Create `CONTRIBUTING.md` defining branching models, PR guidelines, commit conventions, and definition of done.
+  - [x] Detail development standards: KISS principle, self-documenting code, intent-driven comments (documenting *why*, not *what*).
+  - [x] Document code quality verification commands for contributors (`uv run ruff check`, `uv run mypy`, `npx @biomejs/biome check`, test runners).
+- [x] **Agent & Contributor Context Mapping**:
+  - [x] Align `AGENTS.md` and `README.md` cross-references so both human contributors and AI agents have unified domain context, directory maps, and operational workflows.
+  - [x] Keep file structures and documentation locations standard and idiomatic (`README.md`, `CONTRIBUTING.md`, `AGENTS.md`, and module-level docs where appropriate) with zero unnecessary fluff.
+- [x] **Continuous Agent & Human Documentation Maintenance Rule**:
+  - [x] Explicitly mandate in `AGENTS.md` and `CONTRIBUTING.md` that AI agents and human contributors must update documentation whenever modifying architecture, dependencies, endpoints, models, or developer workflows.
+  - [x] Establish documentation synchronization as a mandatory checklist item in PR guidelines and agent task-completion protocols (no stale commands, paths, or architectural discrepancies).
 
 ---
 
