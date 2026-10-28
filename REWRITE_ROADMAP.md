@@ -132,9 +132,17 @@ This checklist outlines the sequence of refactor tasks for developers and AI cod
 - [x] **Modern SQLAlchemy 2.0 / SQLModel Setup**:
   - [x] Migrate models from legacy `db.Model` syntax to SQLAlchemy 2.0 `DeclarativeBase` with typed mapped columns (`Mapped[int] = mapped_column(...)`).
   - [x] Disambiguate duplicate `Standings` model (renamed ORM model to `LeagueStanding` to avoid conflict with Pydantic schema).
+  - [x] Split monolithic `api/utils/db/models.py` into domain-scoped modules under `api/db/models/` (`user.py`, `league.py`, `draft.py`, `nfl.py`) with a unified `__init__.py` re-exporting all ORM classes.
+- [x] **Async Database Session (`api/db/session.py`)**:
+  - [x] Replace raw `psycopg2` connections with `asyncpg`-backed `create_async_engine` (dialect `postgresql+asyncpg://`).
+  - [x] Production-grade pool config: `pool_size=20`, `max_overflow=10`, `pool_pre_ping=True`, `expire_on_commit=False`.
+  - [x] `init_db()` / `close_db()` lifecycle hooks wired into FastAPI `lifespan`; graceful `engine.dispose()` on shutdown.
+  - [x] `get_db()` FastAPI dependency: yields `AsyncSession`, auto-commits on success, rolls back on exception.
+  - [x] `DbSession = Annotated[AsyncSession, Depends(get_db)]` type alias for clean route injection.
+  - [x] Delete `api/utils/db/pg_utils.py`, `api/utils/db/setup.py`, and `api/utils/db/update.py`; thin re-export bridge kept at `api/utils/db/models.py`.
 - [x] **Automated Migrations with Alembic**:
   - [x] Initialize Alembic (`alembic init alembic`) with `env.py` pointing to the unified declarative metadata.
-  - [x] Generate initial revision from current schema and deprecate raw DDL strings in `api/utils/db/setup.py` (deleted `setup.py`).
+  - [x] Generate initial revision from current schema and deprecate raw DDL strings in `api/utils/db/setup.py` (deleted).
 - [x] **Relational Integrity**:
   - [x] Configure proper foreign key cascades (`ondelete="CASCADE"`) between Leagues, Teams, Drafts, and DraftPicks.
 

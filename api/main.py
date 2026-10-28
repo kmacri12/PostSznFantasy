@@ -4,15 +4,15 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.dependencies.db import dispose_db_engine, init_db_engine
+from api.db.session import close_db, init_db
 from api.routers import admin, auth, drafts, leagues, players
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
-    init_db_engine()
+    init_db()
     yield
-    await dispose_db_engine()
+    await close_db()
 
 
 app = FastAPI(

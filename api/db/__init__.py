@@ -18,9 +18,19 @@ from api.db.models.nfl import (
     NFLTeam,
 )
 from api.db.models.user import User
+from api.db.session import (
+    AsyncSessionLocal,
+    DbSession,
+    close_db,
+    engine,
+    get_db,
+    init_db,
+)
 
 __all__ = [
+    "AsyncSessionLocal",
     "Base",
+    "DbSession",
     "Draft",
     "DraftPick",
     "League",
@@ -37,4 +47,8 @@ __all__ = [
     "Team",
     "User",
     "Week",
+    "close_db",
+    "engine",
+    "get_db",
+    "init_db",
 ]
