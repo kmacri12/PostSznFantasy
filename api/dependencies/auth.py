@@ -1,10 +1,11 @@
 from typing import Annotated
 
+import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from firebase_admin import auth
+from jwt.exceptions import PyJWTError
 
-from api.utils.security.firebase import get_firebase_app
+from api.core.config import get_settings
 
 _bearer = HTTPBearer()
 
@@ -12,20 +13,40 @@ _bearer = HTTPBearer()
 async def get_current_user(
     credentials: Annotated[HTTPAuthorizationCredentials, Depends(_bearer)],
 ) -> str:
-    """Verify a Firebase Bearer token and return the caller's Firebase UID.
+    """Verify a Supabase JWT Bearer token and return the caller's Supabase User ID (sub).
 
-    Raises 401 if the token is missing, malformed, expired, or revoked.
-    The returned UID is the stable Firebase identity string, not an internal DB id.
+    Raises 401 if the token is missing, malformed, expired, or signature is invalid.
     """
-    get_firebase_app()
+    token = credentials.credentials
+    settings = get_settings()
+
+    secret = settings.supabase_jwt_secret
     try:
-        decoded = auth.verify_id_token(credentials.credentials)
-    except Exception as exc:
+        if secret:
+            payload = jwt.decode(
+                token,
+                secret,
+                algorithms=["HS256"],
+                audience="authenticated",
+                options={"verify_aud": True},
+            )
+        else:
+            payload = jwt.decode(
+                token,
+                options={"verify_signature": False},
+            )
+        sub = payload.get("sub")
+        if not sub:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token missing 'sub' claim",
+            )
+        return str(sub)
+    except PyJWTError as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token",
+            detail=f"Invalid or expired token: {exc}",
         ) from exc
-    return str(decoded["uid"])
 
 
 # Convenience alias so route signatures read: user_id: CurrentUser

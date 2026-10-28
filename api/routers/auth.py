@@ -23,19 +23,19 @@ async def health() -> dict[str, str]:
 @router.post("/login", response_model=LoginResponse)
 async def login_or_register(
     payload: LoginPayload,
-    firebase_uid: CurrentUser,
+    current_user_id: CurrentUser,
     db: DbSession,
 ) -> LoginResponse:
-    """Verify Firebase auth bearer token and upsert the relational User row."""
-    stmt = select(User).where(User.firebase_uid == firebase_uid)
+    """Verify Supabase auth bearer token and upsert the relational User row."""
+    stmt = select(User).where(User.supabase_uid == current_user_id)
     result = await db.execute(stmt)
     user = result.scalars().first()
 
     if not user:
-        email = payload.email or f"{firebase_uid}@postszn.local"
-        username = payload.username or f"user_{firebase_uid[:8]}"
+        email = payload.email or f"{current_user_id}@postszn.local"
+        username = payload.username or f"user_{current_user_id[:8]}"
         user = User(
-            firebase_uid=firebase_uid,
+            supabase_uid=current_user_id,
             email=email,
             username=username,
         )

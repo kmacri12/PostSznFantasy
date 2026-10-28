@@ -10,7 +10,7 @@ from httpx import ASGITransport, AsyncClient
 
 @pytest.fixture
 def mock_user_id() -> str:
-    return "test-firebase-uid-12345"
+    return "test-supabase-uid-12345"
 
 
 @pytest.fixture

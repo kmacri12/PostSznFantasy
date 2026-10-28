@@ -8,12 +8,11 @@ dependencies = [
     "alembic>=1.14.0",
     "asyncpg>=0.30.0",
     "fastapi>=0.115.0",
-    "firebase-admin>=6.7.0",
     "httpx>=0.28.0",
     "psycopg2-binary>=2.9.10",
     "pydantic>=2.11.2",
     "pydantic-settings>=2.16.1",
-    "pyjwt>=2.10.1",
+    "pyjwt[crypto]>=2.10.1",
     "sqlalchemy[asyncio]>=2.0.40",
     "tenacity>=9.0.0",
     "uvicorn[standard]>=0.34.0",
@@ -48,8 +47,6 @@ plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
 module = [
-    "firebase_admin",
-    "firebase_admin.*",
     "requests_cache.*",
     "psycopg2.*",
 ]

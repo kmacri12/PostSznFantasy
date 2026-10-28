@@ -19,8 +19,9 @@ class Settings(BaseSettings):
     pg_password: str = "postgres"
     pg_dbname: str = "postszn"
 
-    # Firebase
-    firebase_service_account_key_path: str = ""
+    # Supabase Auth
+    supabase_url: str = ""
+    supabase_jwt_secret: str = ""
 
     # RapidAPI
     rapidapi_baseurl: str = ""

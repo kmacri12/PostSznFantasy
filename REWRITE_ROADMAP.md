@@ -262,7 +262,31 @@ This checklist outlines the sequence of refactor tasks for developers and AI cod
 
 ---
 
-### Phase 8: Standardized Logging Framework (UI & API)
+### Phase 8: Authentication Migration to Supabase Auth
+- [x] **Backend Auth Migration (`api/`)**:
+  - [x] Replace `firebase-admin` dependency with modern JWT verification (`pyjwt[crypto]` or `authlib`) in `api/pyproject.toml`.
+  - [x] Update `api/core/config.py` with Supabase settings (`SUPABASE_URL`, `SUPABASE_JWT_SECRET`, or Supabase JWKS URL) and deprecate Firebase credentials.
+  - [x] Refactor `api/dependencies/auth.py` (`get_current_user`) to validate Supabase JWT tokens (verifying issuer, audience, and signature) and extract the Supabase user ID (`sub`) and email.
+  - [x] Update database user mapping logic in `api/routers/auth.py` to upsert/resolve `User` records against Supabase identities.
+  - [x] Clean up legacy Firebase utilities (`api/utils/security/firebase.py`) and delete stale service account key references.
+- [x] **Frontend Auth Migration (`frontend/`)**:
+  - [x] Replace `firebase` SDK with `@supabase/supabase-js` in `frontend/package.json`.
+  - [x] Create Supabase client instance in `frontend/src/utils/supabase.ts` (or `src/services/supabase.ts`) reading `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
+  - [x] Refactor `frontend/src/contexts/UserContext.tsx` to subscribe to `supabase.auth.onAuthStateChange` and support Google OAuth (`supabase.auth.signInWithOAuth({ provider: 'google' })`).
+  - [x] Update login/logout UI components and remove unused Firebase configuration files (`frontend/src/components/auth/firebase.ts`).
+  - [x] Ensure API requests pass the Supabase session access token in the `Authorization: Bearer <token>` header.
+- [x] **Setup & Migration Documentation**:
+  - [x] Update `README.md` and `AGENTS.md` with step-by-step setup instructions for Supabase Auth:
+    - Creating a free Supabase project.
+    - Configuring Google OAuth credentials (Google Cloud Console OAuth Client ID & Secret) in the Supabase Dashboard.
+    - Setting redirect URLs (`http://localhost:5173`).
+    - Configuring `.env` files for both backend and frontend.
+  - [x] Update `api/.env.example` and `frontend/.env.example` with the new Supabase environment variables and remove Firebase keys.
+  - [x] Update integration tests and mock authentication fixtures in `api/tests/` to use Supabase JWT structure.
+
+---
+
+### Phase 9: Standardized Logging Framework (UI & API)
 - [ ] **Backend Structured Logging (`api/`)**:
   - [ ] Configure Python standard `logging` / `structlog` via centralized setup in `api/core/logging.py`.
   - [ ] Standardize log output format: JSON in production/containerized environments, colorized human-readable format for local development.

@@ -31,11 +31,11 @@ async def health() -> dict[str, str]:
 )
 async def create_league(
     payload: LeagueCreate,
-    firebase_uid: CurrentUser,
+    current_user_id: CurrentUser,
     db: DbSession,
 ) -> LeagueCreateResponse:
     """Create a new league, its settings, default teams, and a scheduled snake draft."""
-    user_stmt = select(User).where(User.firebase_uid == firebase_uid)
+    user_stmt = select(User).where(User.supabase_uid == current_user_id)
     user_res = await db.execute(user_stmt)
     user = user_res.scalars().first()
     if not user:
@@ -100,11 +100,11 @@ async def create_league(
 @router.get("/user-leagues", response_model=list[LeaguesByUser])
 @router.get("/get_leagues_by_user", response_model=list[LeaguesByUser])
 async def get_user_leagues(
-    firebase_uid: CurrentUser,
+    current_user_id: CurrentUser,
     db: DbSession,
 ) -> list[LeaguesByUser]:
     """Retrieve all leagues the current user participates in."""
-    user_stmt = select(User).where(User.firebase_uid == firebase_uid)
+    user_stmt = select(User).where(User.supabase_uid == current_user_id)
     user_res = await db.execute(user_stmt)
     user = user_res.scalars().first()
     if not user:

@@ -22,7 +22,7 @@
 | **ORM & Database** | SQLAlchemy 2.0 (`asyncpg` async session) + PostgreSQL 16 |
 | **DB Migrations** | **Alembic** migrations (`alembic upgrade head`) |
 | **Configuration** | **Pydantic Settings** (`api/core/config.py` cached singleton) |
-| **Auth** | Firebase Admin SDK verified via FastAPI `Depends(get_current_user)` |
+| **Auth** | Supabase Auth (JWT verification via FastAPI `Depends(get_current_user)`) |
 | **NFL Data Ingestion** | Async HTTP client (`httpx.AsyncClient`) with `tenacity` retries |
 | **Frontend Runtime** | React 18, Vite 5, strict TypeScript |
 | **Frontend Linter & Formatter** | **Biome** (`@biomejs/biome`, `biome.json`) |
@@ -57,7 +57,7 @@ PostSznFantasy/
 │   │       ├── draft.py        # Draft and DraftPick models
 │   │       └── nfl.py          # NFLTeam, NFLPlayer, Stats, Game models
 │   ├── dependencies/           # FastAPI dependency providers
-│   │   ├── auth.py             # Firebase token validation (get_current_user)
+│   │   ├── auth.py             # Supabase JWT token validation (get_current_user)
 │   │   └── db.py               # DbSession dependency alias
 │   ├── models/                 # Pydantic v2 DTO schemas (camelCase serialization)
 │   │   ├── base.py             # BaseSchema with alias_generator = to_camel
@@ -75,10 +75,8 @@ PostSznFantasy/
 │   │   ├── calculations/       # Deterministic scoring & elimination logic
 │   │   │   ├── fantasy_points_utils.py # Stat-to-points evaluator
 │   │   │   └── standings_utils.py     # Round scoring & player survival queries
-│   │   ├── rapidapi/
-│   │   │   └── rapidapi.py     # Resilient httpx client for NFL data
-│   │   └── security/
-│   │       └── firebase.py     # Lazy Firebase admin credentials loader
+│   │   └── rapidapi/
+│   │       └── rapidapi.py     # Resilient httpx client for NFL data
 │   ├── ws/                     # Real-time WebSocket layer
 │   │   └── draft_manager.py    # DraftConnectionManager (state, pick broadcasts)
 │   ├── tests/                  # Pytest backend test suite
@@ -110,11 +108,12 @@ PostSznFantasy/
         │   ├── TeamPage.tsx    # Roster management view
         │   └── NotFoundPage.tsx# 404 handler
         ├── components/
-        │   ├── auth/           # Firebase client auth configuration
         │   ├── draft/          # DraftBoard, Countdown, PlayerSelector
         │   ├── league/         # StandingsTable
         │   ├── players/        # PlayersTable (TanStack Table v8)
         │   └── settings/       # LeagueInfo & scoring settings accordion
+        ├── utils/
+        │   └── supabase.ts     # Supabase client singleton
         └── test/               # Vitest environment setup
 ```
 
@@ -195,7 +194,7 @@ npm run test
 - **Dual Model Layer**: 
   - SQLAlchemy models (`api/db/models/`) represent relational database tables.
   - Pydantic models (`api/models/`) define external API payloads and schemas.
-- **Route Authorization**: Protected routes inject `Depends(get_current_user)`, which extracts and verifies Firebase Bearer tokens from the `Authorization` header.
+- **Route Authorization**: Protected routes inject `Depends(get_current_user)`, which extracts and verifies Supabase JWT Bearer tokens from the `Authorization` header.
 - **Async Database Connection**: All database access uses SQLAlchemy 2.0 async sessions injected via `DbSession` (`Annotated[AsyncSession, Depends(get_db)]`).
 - **Centralized Configuration**: All environment variables are strongly typed and accessed via `get_settings()` from `api/core/config.py`.
 
@@ -203,6 +202,7 @@ npm run test
 - **Environment Configuration**: Runtime variables use Vite conventions (`import.meta.env.VITE_*`).
   - `VITE_API_URL`: Backend HTTP origin (`http://localhost:8000`).
   - `VITE_WS_URL`: WebSocket endpoint (`ws://localhost:8000`).
-  - `VITE_FIREBASE_*`: Firebase client credentials.
+  - `VITE_SUPABASE_URL`: Supabase project URL.
+  - `VITE_SUPABASE_ANON_KEY`: Supabase project public anon API key.
 - **Component Styling**: Material-UI (MUI v5) styled components and `sx` prop.
-- **State Flow**: Firebase handles auth credentials client-side; on login, the Firebase JWT is sent to `/api/user/login` to resolve the relational `User.id` into `UserContext`.
+- **State Flow**: Supabase handles auth credentials client-side; on session initialization or auth state change, the Supabase access token is sent to `/api/auth/login` to resolve/upsert the relational `User.id` into `UserContext`.

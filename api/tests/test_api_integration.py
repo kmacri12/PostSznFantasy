@@ -32,7 +32,7 @@ async def test_auth_login_create_and_sync(
     # 2. Test existing user login
     existing_user = User(
         id=42,
-        firebase_uid="test-firebase-uid-12345",
+        supabase_uid="test-supabase-uid-12345",
         email="old@example.com",
         username="olduser",
     )
@@ -58,7 +58,7 @@ async def test_create_league_success(
 ) -> None:
     user = User(
         id=1,
-        firebase_uid="test-firebase-uid-12345",
+        supabase_uid="test-supabase-uid-12345",
         email="commish@example.com",
         username="commish",
     )
@@ -95,7 +95,7 @@ async def test_get_user_leagues(
 ) -> None:
     user = User(
         id=1,
-        firebase_uid="test-firebase-uid-12345",
+        supabase_uid="test-supabase-uid-12345",
         email="commish@example.com",
         username="commish",
     )

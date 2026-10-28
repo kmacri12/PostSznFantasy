@@ -17,7 +17,7 @@ PostSzn Fantasy is architected as an asynchronous backend API service paired wit
   - **Database & ORM**: PostgreSQL 16 accessed via asynchronous [SQLAlchemy 2.0](https://www.sqlalchemy.org/) (`asyncpg`), with migrations managed by [Alembic](https://alembic.sqlalchemy.org/).
   - **Configuration**: Strongly typed application settings via [Pydantic Settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/).
   - **Real-Time Communication**: Native RFC 6455 WebSockets with a centralized connection manager (`DraftConnectionManager`) broadcasting live draft state, timers, and picks.
-  - **Authentication**: Token verification via Firebase Admin SDK with dependency injection (`get_current_user`).
+  - **Authentication**: Token verification via Supabase Auth (JWT `HS256` signature verification via `pyjwt[crypto]`) with dependency injection (`get_current_user`).
   - **External Ingestion**: Asynchronous HTTP client ([HTTPX](https://www.python-httpx.org/)) with exponential backoff retries via [Tenacity](https://tenacity.readthedocs.io/) for RapidAPI NFL stats.
 
 - **Frontend (`frontend/`)**:
@@ -55,7 +55,17 @@ cp api/.env.example api/.env
 cp frontend/.env.example frontend/.env
 ```
 
-Review `api/.env` and `frontend/.env` to customize settings. If Firebase authentication is used locally, ensure `FIREBASE_SERVICE_ACCOUNT_KEY_PATH` points to a valid service account JSON file (or use an emulator/mock).
+Review `api/.env` and `frontend/.env` to customize settings. Provide your Supabase project credentials (`SUPABASE_URL`, `SUPABASE_JWT_SECRET` in backend and `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` in frontend).
+
+#### Setting Up Supabase Auth & Google OAuth
+1. Create a project at [supabase.com](https://supabase.com).
+2. Under **Project Settings > API**, retrieve your project URL and `anon` public key (for `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`).
+3. Under **Project Settings > API > JWT Settings**, copy your **JWT Secret** (for `SUPABASE_JWT_SECRET`).
+4. To enable Google Sign-In:
+   - Navigate to **Authentication > Providers > Google**.
+   - Create OAuth credentials in [Google Cloud Console](https://console.cloud.google.com/apis/credentials) with Authorized redirect URI set to: `https://<your-project-ref>.supabase.co/auth/v1/callback`.
+   - Paste the Google Client ID and Client Secret into Supabase and enable Google provider.
+   - In **Authentication > URL Configuration**, add `http://localhost:5173` to the Redirect URLs list.
 
 ### 2. Start PostgreSQL Database
 
@@ -146,8 +156,9 @@ npm run test
   - Verify that the port (`5432`) is not already claimed by a local PostgreSQL daemon (`lsof -i :5432` or `sudo systemctl status postgresql`).
   - Verify that `PG_URI` in `api/.env` aligns with the credentials in `docker-compose.yml`.
 
-- **Firebase Initialization Errors**:
-  - In local development without live Firebase credentials, ensure the path configured in `FIREBASE_SERVICE_ACCOUNT_KEY_PATH` exists or is mocked for tests. Integration tests override authentication via FastAPI's `app.dependency_overrides`.
+- **Supabase Authentication Setup**:
+  - In local development without live Supabase credentials, backend JWT verification will decode unverified tokens as fallback if `SUPABASE_JWT_SECRET` is left empty.
+  - When configuring live authentication, verify that `SUPABASE_JWT_SECRET` in `api/.env` matches the secret in your Supabase project dashboard, and that `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are properly defined in `frontend/.env`.
 
 - **Alembic Database Migration Desync**:
   - To recreate local schema cleanly from scratch:

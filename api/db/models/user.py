@@ -13,7 +13,7 @@ class User(Base):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    firebase_uid: Mapped[str] = mapped_column(String(128), unique=True, nullable=False)
+    supabase_uid: Mapped[str] = mapped_column(String(128), unique=True, nullable=False)
     username: Mapped[str] = mapped_column(String(20), nullable=False)
     email: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
 
