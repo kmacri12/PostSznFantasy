@@ -13,9 +13,9 @@ import {
   Typography,
 } from "@mui/material";
 import axios from "axios";
-import { getAuth } from "firebase/auth";
 import type React from "react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import RosterSettingsComponent from "../components/settings/RosterSettingsComponent";
 import ScoringCarryingSettingsComponent from "../components/settings/ScoringCarryingSettingsComponent";
 import ScoringDSTSettingsComponent from "../components/settings/ScoringDSTSettingsComponent";
@@ -25,11 +25,22 @@ import ScoringReceivingSettingsComponent from "../components/settings/ScoringRec
 import ScoringRushingSettingsComponent from "../components/settings/ScoringRushingSettingsComponent";
 import { useUser } from "../contexts/UserContext";
 
+type ExpandedSection =
+  | "league"
+  | "roster"
+  | "passing"
+  | "rushing"
+  | "receiving"
+  | "carrying"
+  | "kicking"
+  | "defense";
+
 const CreateLeaguePage = () => {
   const apiUrl = import.meta.env.VITE_API_URL;
-  const userId = useUser();
+  const { getIdToken } = useUser();
+  const navigate = useNavigate();
   const [leagueName, setLeagueName] = useState("MyLeague");
-  const [expanded, setExpanded] = useState({
+  const [expanded, setExpanded] = useState<Record<ExpandedSection, boolean>>({
     league: true,
     roster: false,
     passing: false,
@@ -120,23 +131,21 @@ const CreateLeaguePage = () => {
     scoring_dst_interception: 0,
   });
 
-  const handleExpandClick = (section: string) => {
+  const handleExpandClick = (section: ExpandedSection) => {
     setExpanded((prev) => ({ ...prev, [section]: !prev[section] }));
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    const auth = getAuth();
-    const user = auth.currentUser;
-    if (!user) {
+    const token = await getIdToken();
+    if (!token) {
       console.error("No user is currently signed in.");
       return;
     }
-    const idToken = await user.getIdToken();
 
     try {
       const response = await axios.post(
-        `${apiUrl}/api/league/create-league`,
+        `${apiUrl}/api/leagues/create-league`,
         {
           leagueName,
           rosterSettings,
@@ -144,14 +153,18 @@ const CreateLeaguePage = () => {
         },
         {
           headers: {
-            Authorization: `Bearer ${idToken}`,
+            Authorization: `Bearer ${token}`,
           },
         },
       );
 
-      if (response.status === 201) {
-        // Handle success (e.g., navigate to another page or show a success message)
-        console.log(response.data.message);
+      if (response.status === 201 || response.status === 200) {
+        const createdLeagueId = response.data.leagueId || response.data.league_id;
+        if (createdLeagueId) {
+          navigate(`/league/${createdLeagueId}`);
+        } else {
+          navigate("/");
+        }
       }
     } catch (error) {
       console.error("Error creating league:", error);
@@ -186,7 +199,7 @@ const CreateLeaguePage = () => {
                 <InputLabel htmlFor="number-teams">Teams</InputLabel>
                 <OutlinedInput
                   id="number-teams"
-                  type="number" // Ensure numeric input
+                  type="number"
                   value={rosterSettings.number_teams || ""}
                   onChange={(e) =>
                     setRosterSettings({

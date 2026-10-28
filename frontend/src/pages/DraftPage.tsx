@@ -1,14 +1,21 @@
-import { Settings } from "@mui/icons-material";
-import { Button, Dialog, Grid, IconButton } from "@mui/material";
+import { Settings as SettingsIcon } from "@mui/icons-material";
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Grid,
+  IconButton,
+} from "@mui/material";
 import axios from "axios";
-import { getAuth } from "firebase/auth";
 import type { FC } from "react";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Countdown from "../components/draft/Countdown";
 import DraftBoard from "../components/draft/DraftBoard";
-import PlayerSelector from "../components/draft/PlayerSelector";
-import type { Player } from "../components/draft/PlayerSelector";
+import PlayerSelector, { type Player } from "../components/draft/PlayerSelector";
+import { useUser } from "../contexts/UserContext";
 import { useWebSocket } from "../hooks/useWebSocket";
 
 export interface Team {
@@ -22,13 +29,13 @@ export interface DraftSettings {
   id: number;
   leagueId: number;
   status: string;
-  startTime: Date;
+  startTime?: string | Date;
   draftType: string;
   timePerPickSeconds: number;
   slowDraftAutoPause: boolean;
-  slowDraftPauseFrom: string; // time in 24-hour format (e.g. "22:00:00")
-  slowDraftPauseTo: string; // time in 24-hour format (e.g. "03:00:00")
-  slowDraftPauseTimezone: string; // timezone identifier (e.g. "America/New_York")
+  slowDraftPauseFrom: string;
+  slowDraftPauseTo: string;
+  slowDraftPauseTimezone: string;
   cpuAutopick: boolean;
   alphabeticalSort: boolean;
   draftOrderTeamIds: number[];
@@ -48,43 +55,26 @@ export interface DraftPick {
 
 const DraftPage: FC = () => {
   const { leagueId } = useParams<{ leagueId: string }>();
-  const wsUrl = import.meta.env.VITE_WS_URL;
+  const wsUrl = import.meta.env.VITE_WS_URL || "ws://localhost:8000";
+  const apiUrl = import.meta.env.VITE_API_URL;
+  const { getIdToken } = useUser();
 
-  const { data } = useWebSocket(`${wsUrl}/socket.io/`);
+  const websocketUrl = leagueId ? `${wsUrl}/api/drafts/ws/${leagueId}` : "";
+  const { data, sendMessage } = useWebSocket(websocketUrl);
+
   const [draftSettings, setDraftSettings] = useState<DraftSettings | null>(null);
-  const [_leagueSettings, setLeagueSettings] = useState<any>(null);
   const [openSettings, setOpenSettings] = useState(false);
   const [draftBoard, setDraftBoard] = useState<DraftPick[][]>([[]]);
   const [currentPickIndex, setCurrentPickIndex] = useState<number>(1);
-  const [timer, setTimer] = useState<number>(draftSettings?.timePerPickSeconds || 60);
+  const [timer, setTimer] = useState<number>(60);
   const [teams, setTeams] = useState<Team[]>([]);
   const [numRounds, setNumRounds] = useState<number>(0);
-
-  useEffect(() => {
-    const newDraftBoard = Array.from({ length: numRounds }, (_, roundIndex) =>
-      Array(teams.length)
-        .fill(null)
-        .map((_, teamIndex) => ({
-          id: -1,
-          draftId: draftSettings?.id,
-          teamId: teams[teamIndex].id,
-          playerId: null,
-          playerName: "",
-          numberRound: roundIndex + 1,
-          numberPickOverall: calculatePickOverall(roundIndex, teamIndex),
-          numberPickInRound: calculatePickInRound(roundIndex, teamIndex),
-          autopick: false,
-        })),
-    );
-    setDraftBoard(newDraftBoard);
-  }, [teams, numRounds]);
+  const [selectedPlayerIDs, setSelectedPlayerIDs] = useState<number[]>([]);
 
   const calculatePickOverall = (roundIndex: number, teamIndex: number) => {
     const roundNumber = roundIndex + 1;
     const isOddRound = roundNumber % 2 === 1;
     const roundPickOne = teams.length * (roundNumber - 1) + 1;
-    // const startIndex = isOddRound ? 1 : teams.length + 1;
-    // const endIndex = isOddRound ? teams.length : 1;
     const teamOffset = isOddRound ? teamIndex : teams.length - teamIndex - 1;
     return roundPickOne + teamOffset;
   };
@@ -96,24 +86,36 @@ const DraftPage: FC = () => {
   };
 
   useEffect(() => {
-    const apiUrl = import.meta.env.VITE_API_URL;
-    const auth = getAuth();
-    const user = auth.currentUser;
-
-    if (!user) {
-      console.error("No user is currently signed in.");
-      return;
+    if (teams.length > 0 && numRounds > 0) {
+      const newDraftBoard = Array.from({ length: numRounds }, (_, roundIndex) =>
+        Array(teams.length)
+          .fill(null)
+          .map((_, teamIndex) => ({
+            id: -1,
+            draftId: draftSettings?.id,
+            teamId: teams[teamIndex].id,
+            playerId: null,
+            playerName: "",
+            numberRound: roundIndex + 1,
+            numberPickOverall: calculatePickOverall(roundIndex, teamIndex),
+            numberPickInRound: calculatePickInRound(roundIndex, teamIndex),
+            autopick: false,
+          })),
+      );
+      setDraftBoard(newDraftBoard);
     }
+  }, [teams, numRounds, draftSettings?.id]);
+
+  useEffect(() => {
+    if (!leagueId) return;
 
     const fetchTeams = async () => {
       try {
-        const idToken = await user.getIdToken();
-        const response = await axios.get(`${apiUrl}/api/league/${leagueId}/teams`, {
-          headers: { Authorization: `Bearer ${idToken}` },
+        const idToken = await getIdToken();
+        const response = await axios.get(`${apiUrl}/api/leagues/${leagueId}/teams`, {
+          headers: idToken ? { Authorization: `Bearer ${idToken}` } : {},
         });
-        const teamsList = response.data;
-        setTeams(teamsList);
-        console.log(teams);
+        setTeams(response.data);
       } catch (error) {
         console.error("Error fetching teams:", error);
       }
@@ -121,18 +123,20 @@ const DraftPage: FC = () => {
 
     const fetchDraftSettings = async () => {
       try {
-        const idToken = await user.getIdToken();
-        const response = await axios.get(`${apiUrl}/api/draft-info/${leagueId}`, {
-          headers: { Authorization: `Bearer ${idToken}` },
+        const idToken = await getIdToken();
+        const response = await axios.get(`${apiUrl}/api/drafts/draft-info/${leagueId}`, {
+          headers: idToken ? { Authorization: `Bearer ${idToken}` } : {},
         });
         setDraftSettings(response.data);
-        console.log(teams);
+        if (response.data?.timePerPickSeconds) {
+          setTimer(response.data.timePerPickSeconds);
+        }
       } catch (error) {
         console.error("Error fetching draft settings:", error);
       }
     };
 
-    const calculateNumRounds = (leagueSettings) => {
+    const calculateNumRounds = (settings: Record<string, number>) => {
       const rosterNumKeys: string[] = [
         "roster_num_bench",
         "roster_num_dst",
@@ -148,20 +152,19 @@ const DraftPage: FC = () => {
 
       let totalRosterNum = 0;
       for (const key of rosterNumKeys) {
-        totalRosterNum += leagueSettings[key];
+        if (typeof settings[key] === "number") {
+          totalRosterNum += settings[key];
+        }
       }
-      console.log(totalRosterNum);
-
-      return totalRosterNum;
+      return totalRosterNum || 18;
     };
 
     const fetchLeagueSettings = async () => {
       try {
-        const idToken = await user.getIdToken();
-        const response = await axios.get(`${apiUrl}/api/league/${leagueId}/settings`, {
-          headers: { Authorization: `Bearer ${idToken}` },
+        const idToken = await getIdToken();
+        const response = await axios.get(`${apiUrl}/api/leagues/${leagueId}/settings`, {
+          headers: idToken ? { Authorization: `Bearer ${idToken}` } : {},
         });
-        setLeagueSettings(response.data);
         setNumRounds(calculateNumRounds(response.data));
       } catch (error) {
         console.error("Error fetching league settings:", error);
@@ -171,80 +174,97 @@ const DraftPage: FC = () => {
     fetchTeams();
     fetchDraftSettings();
     fetchLeagueSettings();
-  }, [leagueId]);
+  }, [leagueId, apiUrl, getIdToken]);
 
   useEffect(() => {
-    if (data) {
-      const { board, pick, time } = data;
-      setDraftBoard(board);
-      setCurrentPickIndex(pick);
-      setTimer(time);
+    if (!data) return;
+
+    const eventType = data.eventType || data.type;
+    if (eventType === "PICK_MADE" && data.data) {
+      const pickData = data.data;
+      if (pickData.playerId) {
+        setSelectedPlayerIDs((prev) => [...prev, pickData.playerId]);
+      }
+      if (pickData.currentPickIndex) {
+        setCurrentPickIndex(pickData.currentPickIndex);
+      }
+    } else if (eventType === "TIMER_UPDATE" && data.data?.time !== undefined) {
+      setTimer(data.data.time);
     }
   }, [data]);
 
   const handlePlayerSelection = (player: Player) => {
-    // Handle drafting a player
-    console.log("Player drafted:", player);
-    // Find the DraftPick object for the current pick
-    const roundIndex = Math.floor((currentPickIndex - 1) / teams.length);
-    const picksInRound = draftBoard[roundIndex];
+    const roundIndex = Math.floor((currentPickIndex - 1) / (teams.length || 1));
+    const picksInRound = draftBoard[roundIndex] || [];
     const currentPick = picksInRound.find((pick) => pick.numberPickOverall === currentPickIndex);
-    if (!currentPick) {
-      console.error("Error: Could not find current pick in draft board");
-      return;
-    }
-    const updatedDraftPick = {
-      ...currentPick,
-      playerId: player.id,
-      playerName: player.name,
-    };
-    const updatedDraftBoard = draftBoard.map((round) =>
-      round.map((pick) => (pick.numberPickOverall === currentPickIndex ? updatedDraftPick : pick)),
-    );
-    setDraftBoard(updatedDraftBoard);
 
-    // Increment pick #
-    setCurrentPickIndex(currentPickIndex + 1);
+    if (currentPick) {
+      const updatedDraftPick = {
+        ...currentPick,
+        playerId: player.id,
+        playerName: player.name,
+      };
+      const updatedDraftBoard = draftBoard.map((round) =>
+        round.map((pick) =>
+          pick.numberPickOverall === currentPickIndex ? updatedDraftPick : pick,
+        ),
+      );
+      setDraftBoard(updatedDraftBoard);
+    }
+
+    setSelectedPlayerIDs((prev) => [...prev, player.id]);
+    setCurrentPickIndex((prev) => prev + 1);
     setTimer(draftSettings?.timePerPickSeconds || 60);
+
+    sendMessage({
+      eventType: "PICK_MADE",
+      data: {
+        playerId: player.id,
+        playerName: player.name,
+        currentPickIndex: currentPickIndex + 1,
+      },
+    });
   };
 
   return (
-    <div>
+    <div style={{ padding: "16px", position: "relative" }}>
       <PlayerSelector
         onPlayerSelected={handlePlayerSelection}
         isMyTurn={true}
-        selectedPlayerIDs={[]}
+        selectedPlayerIDs={selectedPlayerIDs}
       />
-      <Grid container spacing={1}>
+      <Grid container spacing={2}>
         <DraftBoard
           teams={teams}
           draftPicks={draftBoard}
           currentPickIndex={currentPickIndex}
           timer={timer}
-          onPlayerSelected={handlePlayerSelection} // Pass function to handle player selection
-          isMyTurn={true} // Placeholder, might be determined elsewhere
-          selectedPlayerIDs={[]} // Placeholder, might be determined elsewhere
+          onPlayerSelected={handlePlayerSelection}
+          isMyTurn={true}
+          selectedPlayerIDs={selectedPlayerIDs}
         />
 
-        {/* Settings Button */}
         <IconButton
-          style={{ position: "absolute", top: 10, right: 10 }}
+          style={{ position: "absolute", top: 16, right: 16 }}
           onClick={() => setOpenSettings(true)}
         >
-          <Settings />
+          <SettingsIcon />
         </IconButton>
 
-        {/* Countdown Timer */}
         <Grid item xs={12}>
           <Countdown time={timer} />
         </Grid>
       </Grid>
 
-      {/* Draft Settings Dialog */}
       <Dialog open={openSettings} onClose={() => setOpenSettings(false)}>
-        {/* Settings content goes here */}
-        <h2>Draft Settings</h2>
-        <Button onClick={() => setOpenSettings(false)}>Close</Button>
+        <DialogTitle>Draft Settings</DialogTitle>
+        <DialogContent>
+          <p>Draft Type: {draftSettings?.draftType || "Snake"}</p>
+          <p>Time Per Pick: {draftSettings?.timePerPickSeconds || 60} seconds</p>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenSettings(false)}>Close</Button>
+        </DialogActions>
       </Dialog>
     </div>
   );

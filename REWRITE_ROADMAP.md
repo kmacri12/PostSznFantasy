@@ -203,21 +203,21 @@ This checklist outlines the sequence of refactor tasks for developers and AI cod
 ---
 
 ### Phase 5: Frontend Refactor & State Synchronization
-- [ ] **Unified Auth & User Context**:
-  - [ ] Wire `frontend/src/contexts/UserContext.tsx` directly into the Firebase `onAuthStateChanged` stream in `App.tsx`.
-  - [ ] Fix `CreateLeaguePage.tsx` to properly destructure `const { userId } = useUser();`.
-- [ ] **Complete Missing Views**:
-  - [ ] Implement `frontend/src/pages/TeamPage.tsx` to render a user's roster, player statuses, and lineup positions.
-  - [ ] Implement `frontend/src/pages/SettingsPage.tsx` and fill empty `LeagueInfo.tsx` (0 bytes).
-- [ ] **Draft Room WebSocket Client Alignment**:
-  - [ ] Update `frontend/src/hooks/useWebSocket.ts` to connect to standard FastAPI WebSocket (`ws://<backend>/ws/draft/<league_id>`) with reconnection backoff and heartbeat.
-  - [ ] Align message schema with backend broadcast events (`PICK_MADE`, `TIMER_UPDATE`, `DRAFT_COMPLETE`).
-- [ ] **Fix Endpoint Routing**:
-  - [ ] Correct API path in `DraftPage.tsx` line 144 from `/api/draft-info/${leagueId}` to `/api/draft/draft-info/${leagueId}` (or FastAPI equivalent).
-- [ ] **Modern Table Migration**:
-  - [ ] Migrate `PlayersTable.tsx` to `@tanstack/react-table` v8 for type-safe column definitions, virtualization, and position filtering.
-- [ ] **Frontend TypeScript Hygiene & Build Fixes**:
-  - [ ] Resolve legacy TypeScript build errors (`DraftBoard`, `CreateLeaguePage`, `PlayerSelector`, `PlayersTable`) to achieve green `npm run build`.
+- [x] **Unified Auth & User Context**:
+  - [x] Wire `frontend/src/contexts/UserContext.tsx` directly into the Firebase `onAuthStateChanged` stream in `App.tsx`.
+  - [x] Fix `CreateLeaguePage.tsx` to properly destructure `const { userId } = useUser();`.
+- [x] **Complete Missing Views**:
+  - [x] Implement `frontend/src/pages/TeamPage.tsx` to render a user's roster, player statuses, and lineup positions.
+  - [x] Implement `frontend/src/pages/SettingsPage.tsx` and fill empty `LeagueInfo.tsx` (0 bytes).
+- [x] **Draft Room WebSocket Client Alignment**:
+  - [x] Update `frontend/src/hooks/useWebSocket.ts` to connect to standard FastAPI WebSocket (`ws://<backend>/ws/draft/<league_id>`) with reconnection backoff and heartbeat.
+  - [x] Align message schema with backend broadcast events (`PICK_MADE`, `TIMER_UPDATE`, `DRAFT_COMPLETE`).
+- [x] **Fix Endpoint Routing**:
+  - [x] Correct API path in `DraftPage.tsx` line 144 from `/api/draft-info/${leagueId}` to `/api/draft/draft-info/${leagueId}` (or FastAPI equivalent).
+- [x] **Modern Table Migration**:
+  - [x] Migrate `PlayersTable.tsx` to `@tanstack/react-table` v8 for type-safe column definitions, virtualization, and position filtering.
+- [x] **Frontend TypeScript Hygiene & Build Fixes**:
+  - [x] Resolve legacy TypeScript build errors (`DraftBoard`, `CreateLeaguePage`, `PlayerSelector`, `PlayersTable`) to achieve green `npm run build`.
 
 ---
 

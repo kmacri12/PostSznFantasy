@@ -10,7 +10,6 @@ import {
   Typography,
 } from "@mui/material";
 import type React from "react";
-import { useEffect, useState } from "react";
 
 interface RosterSettingsProps {
   rosterSettings: {

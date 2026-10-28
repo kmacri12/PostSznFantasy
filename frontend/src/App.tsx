@@ -7,15 +7,14 @@ import {
   InputLabel,
   MenuItem,
   Select,
+  type SelectChangeEvent,
   Toolbar,
   Typography,
 } from "@mui/material";
 import axios from "axios";
-import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from "firebase/auth";
 import { useEffect, useState } from "react";
 import { Link, Route, Routes, useNavigate } from "react-router-dom";
-import { auth } from "./components/auth/firebase";
-import { UserProvider } from "./contexts/UserContext";
+import { useUser } from "./contexts/UserContext";
 import CreateLeaguePage from "./pages/CreateLeaguePage";
 import DraftPage from "./pages/DraftPage";
 import LeaguePage from "./pages/LeaguePage";
@@ -32,21 +31,19 @@ interface LeagueByUser {
 
 function App() {
   const apiUrl = import.meta.env.VITE_API_URL;
-  const [user, setUser] = useState<any>(null);
-  const [userId, setUserId] = useState<number | null>(null);
+  const { user, userId, getIdToken, signIn, signOutUser } = useUser();
   const [leagues, setLeagues] = useState<LeagueByUser[]>([]);
   const [teamNumberForLeague, setTeamNumberForLeague] = useState<number | null>(null);
   const [selectedLeague, setSelectedLeague] = useState<string>("");
   const navigate = useNavigate();
 
-  // Fetch leagues when userId is set
   useEffect(() => {
     const fetchLeagues = async () => {
       try {
-        const token = await auth.currentUser?.getIdToken(); // Get the user's token
-        const response = await axios.get(`${apiUrl}/api/league/get_leagues_by_user`, {
+        const token = await getIdToken();
+        const response = await axios.get(`${apiUrl}/api/leagues/user-leagues`, {
           headers: {
-            Authorization: `Bearer ${token}`, // Pass the token in the Authorization header
+            Authorization: `Bearer ${token}`,
           },
         });
         const fetchedLeagues: LeagueByUser[] = response.data;
@@ -64,182 +61,137 @@ function App() {
 
     if (userId) {
       fetchLeagues();
+    } else {
+      setLeagues([]);
+      setSelectedLeague("");
+      setTeamNumberForLeague(null);
     }
-  }, [userId]);
+  }, [userId, apiUrl, getIdToken, navigate]);
 
-  // Handle league change in the dropdown
-  const handleLeagueChange = (event: any) => {
+  const handleLeagueChange = (event: SelectChangeEvent<string>) => {
     const leagueId = event.target.value;
     setSelectedLeague(leagueId);
     const userTeamId = leagues.find((league) => league.id === Number(leagueId))?.userTeamId;
     setTeamNumberForLeague(userTeamId ?? null);
-    // navigate(`/league/${leagueId}`);
-  };
-
-  // Check for authentication state on page load
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-      if (user) {
-        user.getIdToken().then((token) => {
-          axios.post(`${apiUrl}/api/user/login`, { token }).then((response) => {
-            if (response.status === 200) {
-              const { user_id } = response.data;
-              setUserId(user_id);
-            }
-          });
-        });
-      }
-    });
-    return () => unsubscribe();
-  }, []);
-
-  const handleSignIn = async () => {
-    try {
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      const token = await result.user.getIdToken();
-      const response = await axios.post(`${apiUrl}/api/user/login`, { token });
-      if (response.status === 200) {
-        const { user_id } = response.data;
-        setUserId(user_id);
-      }
-    } catch (error) {
-      console.error("Error signing in:", error);
-    }
-  };
-
-  const handleSignOut = async () => {
-    try {
-      await signOut(auth);
-      setUser(null);
-      setUserId(null);
-    } catch (error) {
-      console.error("Error signing out:", error);
-    }
   };
 
   return (
-    <UserProvider>
-      <div>
-        <AppBar position="static">
-          <Toolbar>
-            <IconButton edge="start" color="inherit" aria-label="menu">
-              <MenuIcon />
-            </IconButton>
-            <Typography
-              variant="h6"
-              component={Link}
-              to="/"
-              style={{ textDecoration: "none", color: "inherit" }}
-            >
-              PostSznFantasy
-            </Typography>
+    <div>
+      <AppBar position="static">
+        <Toolbar>
+          <IconButton edge="start" color="inherit" aria-label="menu">
+            <MenuIcon />
+          </IconButton>
+          <Typography
+            variant="h6"
+            component={Link}
+            to="/"
+            style={{ textDecoration: "none", color: "inherit" }}
+          >
+            PostSznFantasy
+          </Typography>
 
-            {/* Show the navigation buttons only if a league is selected */}
-            {user && selectedLeague && (
-              <>
-                <Button
-                  component={Link}
-                  to={`/league/${selectedLeague}`}
-                  style={{ textTransform: "none", color: "inherit" }}
-                >
-                  League
-                </Button>
-                <Button
-                  component={Link}
-                  to={`/team/${teamNumberForLeague}`}
-                  style={{ textTransform: "none", color: "inherit" }}
-                >
-                  Team
-                </Button>
-                <Button
-                  component={Link}
-                  to={"/players"}
-                  style={{ textTransform: "none", color: "inherit" }}
-                >
-                  Players
-                </Button>
-                <Button
-                  component={Link}
-                  to={`/league/${selectedLeague}/draft`}
-                  style={{ textTransform: "none", color: "inherit" }}
-                >
-                  Draft
-                </Button>
-                <Button
-                  component={Link}
-                  to={"/settings"}
-                  style={{ textTransform: "none", color: "inherit" }}
-                >
-                  Settings
-                </Button>
+          {user && selectedLeague && (
+            <>
+              <Button
+                component={Link}
+                to={`/league/${selectedLeague}`}
+                style={{ textTransform: "none", color: "inherit" }}
+              >
+                League
+              </Button>
+              <Button
+                component={Link}
+                to={`/team/${teamNumberForLeague}`}
+                style={{ textTransform: "none", color: "inherit" }}
+              >
+                Team
+              </Button>
+              <Button
+                component={Link}
+                to={"/players"}
+                style={{ textTransform: "none", color: "inherit" }}
+              >
+                Players
+              </Button>
+              <Button
+                component={Link}
+                to={`/league/${selectedLeague}/draft`}
+                style={{ textTransform: "none", color: "inherit" }}
+              >
+                Draft
+              </Button>
+              <Button
+                component={Link}
+                to={`/settings?leagueId=${selectedLeague}`}
+                style={{ textTransform: "none", color: "inherit" }}
+              >
+                Settings
+              </Button>
 
-                {/* League selection dropdown */}
-                <FormControl variant="outlined" style={{ minWidth: 120, marginLeft: "20px" }}>
-                  <InputLabel id="league-select-label">Select League</InputLabel>
-                  <Select
-                    labelId="league-select-label"
-                    value={selectedLeague}
-                    onChange={handleLeagueChange}
-                    label="Select League"
-                    style={{ color: "inherit" }}
-                  >
-                    {leagues.map((league) => (
-                      <MenuItem key={league.id} value={league.id.toString()}>
-                        {league.name}
-                      </MenuItem>
-                    ))}
-                    <MenuItem
-                      onClick={(event) => {
-                        event.stopPropagation(); // Prevents triggering `handleLeagueChange`
-                        navigate("/create-league");
-                      }}
-                    >
-                      Create New League
+              <FormControl variant="outlined" style={{ minWidth: 140, marginLeft: "20px" }}>
+                <InputLabel id="league-select-label">Select League</InputLabel>
+                <Select
+                  labelId="league-select-label"
+                  value={selectedLeague}
+                  onChange={handleLeagueChange}
+                  label="Select League"
+                  style={{ color: "inherit" }}
+                >
+                  {leagues.map((league) => (
+                    <MenuItem key={league.id} value={league.id.toString()}>
+                      {league.name}
                     </MenuItem>
-                  </Select>
-                </FormControl>
-              </>
-            )}
+                  ))}
+                  <MenuItem
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      navigate("/create-league");
+                    }}
+                  >
+                    Create New League
+                  </MenuItem>
+                </Select>
+              </FormControl>
+            </>
+          )}
 
-            {!user ? (
-              <Button
-                onClick={handleSignIn}
-                style={{
-                  textTransform: "none",
-                  color: "inherit",
-                  marginLeft: "auto",
-                }}
-              >
-                Sign in with Google
-              </Button>
-            ) : (
-              <Button
-                onClick={handleSignOut}
-                style={{
-                  textTransform: "none",
-                  color: "inherit",
-                  marginLeft: "auto",
-                }}
-              >
-                Sign Out
-              </Button>
-            )}
-          </Toolbar>
-        </AppBar>
+          {!user ? (
+            <Button
+              onClick={signIn}
+              style={{
+                textTransform: "none",
+                color: "inherit",
+                marginLeft: "auto",
+              }}
+            >
+              Sign in with Google
+            </Button>
+          ) : (
+            <Button
+              onClick={signOutUser}
+              style={{
+                textTransform: "none",
+                color: "inherit",
+                marginLeft: "auto",
+              }}
+            >
+              Sign Out
+            </Button>
+          )}
+        </Toolbar>
+      </AppBar>
 
-        {/* Route Definitions */}
-        <Routes>
-          <Route path="/league/:leagueId" element={<LeaguePage />} />
-          <Route path="/team/:teamId" element={<TeamPage />} />
-          <Route path="/players" element={<PlayersPage />} />
-          <Route path="/league/:leagueId/draft" element={<DraftPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/create-league" element={<CreateLeaguePage />} />
-        </Routes>
-      </div>
-    </UserProvider>
+      <Routes>
+        <Route path="/" element={<PlayersPage />} />
+        <Route path="/league/:leagueId" element={<LeaguePage />} />
+        <Route path="/team/:teamId" element={<TeamPage />} />
+        <Route path="/players" element={<PlayersPage />} />
+        <Route path="/league/:leagueId/draft" element={<DraftPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/create-league" element={<CreateLeaguePage />} />
+      </Routes>
+    </div>
   );
 }
 
