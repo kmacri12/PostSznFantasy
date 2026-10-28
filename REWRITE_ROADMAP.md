@@ -129,14 +129,14 @@ This checklist outlines the sequence of refactor tasks for developers and AI cod
 ---
 
 ### Phase 3: Database & Migration Architecture
-- [ ] **Modern SQLAlchemy 2.0 / SQLModel Setup**:
-  - [ ] Migrate models from legacy `db.Model` syntax to SQLAlchemy 2.0 `DeclarativeBase` with typed mapped columns (`Mapped[int] = mapped_column(...)`).
-  - [ ] Disambiguate duplicate `Standings` model (previously defined in both ORM models and Pydantic schemas).
-- [ ] **Automated Migrations with Alembic**:
-  - [ ] Initialize Alembic (`alembic init alembic`) with `env.py` pointing to the unified declarative metadata.
-  - [ ] Generate initial revision from current schema and deprecate raw DDL strings in `api/utils/db/setup.py`.
-- [ ] **Relational Integrity**:
-  - [ ] Configure proper foreign key cascades (`ondelete="CASCADE"`) between Leagues, Teams, Drafts, and DraftPicks.
+- [x] **Modern SQLAlchemy 2.0 / SQLModel Setup**:
+  - [x] Migrate models from legacy `db.Model` syntax to SQLAlchemy 2.0 `DeclarativeBase` with typed mapped columns (`Mapped[int] = mapped_column(...)`).
+  - [x] Disambiguate duplicate `Standings` model (renamed ORM model to `LeagueStanding` to avoid conflict with Pydantic schema).
+- [x] **Automated Migrations with Alembic**:
+  - [x] Initialize Alembic (`alembic init alembic`) with `env.py` pointing to the unified declarative metadata.
+  - [x] Generate initial revision from current schema and deprecate raw DDL strings in `api/utils/db/setup.py` (deleted `setup.py`).
+- [x] **Relational Integrity**:
+  - [x] Configure proper foreign key cascades (`ondelete="CASCADE"`) between Leagues, Teams, Drafts, and DraftPicks.
 
 ---
 
