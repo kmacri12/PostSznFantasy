@@ -71,6 +71,15 @@ PostSznFantasy/
 │   │   ├── drafts.py           # Draft status, REST pick submission
 │   │   ├── leagues.py          # League CRUD, teams, rosters, standings
 │   │   └── players.py          # Player database & stats endpoints
+│   ├── scripts/                # Database seeding & administrative CLI scripts
+│   │   └── seed_nfl_data.py    # Unified on-demand NFL data seeder
+│   ├── services/               # Decoupled ingestion & domain services
+│   │   └── ingestion/          # Async batch upsert services
+│   │       ├── schemas.py      # Upstream DTOs & parsing helpers
+│   │       ├── teams_ingest.py # Multi-row NFL team upserts
+│   │       ├── players_ingest.py # Chunked active player upserts
+│   │       ├── season_stats_ingest.py # Chunked regular season stat upserts
+│   │       └── box_scores_ingest.py # Playoff games & player box score upserts
 │   ├── utils/
 │   │   ├── calculations/       # Deterministic scoring & elimination logic
 │   │   │   ├── fantasy_points_utils.py # Stat-to-points evaluator

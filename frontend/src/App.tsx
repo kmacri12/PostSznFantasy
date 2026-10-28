@@ -14,6 +14,7 @@ import {
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { Link, Route, Routes, useNavigate } from "react-router-dom";
+import { DevQuickSync } from "./components/dev/DevQuickSync";
 import { useUser } from "./contexts/UserContext";
 import CreateLeaguePage from "./pages/CreateLeaguePage";
 import DraftPage from "./pages/DraftPage";
@@ -90,6 +91,8 @@ function App() {
           >
             PostSznFantasy
           </Typography>
+
+          <DevQuickSync />
 
           {user && selectedLeague && (
             <>

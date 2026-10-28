@@ -104,7 +104,53 @@ uv run uvicorn api.main:app --app-dir .. --host 0.0.0.0 --port 8000 --reload
 
 The API service is now accessible at `http://localhost:8000`. Interactive OpenAPI documentation is available at `http://localhost:8000/docs`.
 
-### 4. Setup and Run Frontend SPA (`frontend/`)
+### 4. Database Seeding & Ingestion Pipeline
+
+PostSzn Fantasy includes an asynchronous batch ingestion pipeline that populates NFL teams, active rosters/players, season stats, and playoff game box scores from RapidAPI using chunked PostgreSQL `INSERT ... ON CONFLICT DO UPDATE` operations.
+
+#### Option A: On-Demand CLI Seeding
+From the `api/` directory, run the standalone seeding runner:
+
+```bash
+cd api
+
+# Full seed (teams + active players + season stats)
+PYTHONPATH=.. uv run python -m api.scripts.seed_nfl_data
+
+# Seeding with specific flags
+PYTHONPATH=.. uv run python -m api.scripts.seed_nfl_data --season 2024 --teams-only
+PYTHONPATH=.. uv run python -m api.scripts.seed_nfl_data --season 2024 --players-only
+PYTHONPATH=.. uv run python -m api.scripts.seed_nfl_data --season 2024 --with-box-scores
+```
+
+#### Option B: Admin API Trigger
+Trigger complete batch ingestion over HTTP via the admin router:
+
+```bash
+curl -X POST http://localhost:8000/api/admin/update/all \
+  -H "Authorization: Bearer <SUPABASE_JWT>" \
+  -H "Content-Type: application/json" \
+  -d '{"season": "2024", "withStats": true, "withBoxScores": false}'
+```
+
+Returns duration and record counts:
+```json
+{
+  "status": "success",
+  "durationMs": 1420,
+  "synced": {
+    "teams": 32,
+    "players": 1450,
+    "stats": 980,
+    "games": 0
+  }
+}
+```
+
+#### Option C: Dev Quick-Sync in UI
+When running the frontend in local development mode (`npm run dev`), click the **`[Dev] Seed NFL Data`** button in the navigation header to open the dialog and trigger on-demand seeding directly from the browser.
+
+### 5. Setup and Run Frontend SPA (`frontend/`)
 
 In a new terminal, navigate to the `frontend/` directory:
 
@@ -195,13 +241,15 @@ PostSznFantasy/
 │   ├── dependencies/           # FastAPI dependency injection (auth, db session)
 │   ├── models/                 # Pydantic v2 DTO schemas (camelCase serialization)
 │   ├── routers/                # Modular APIRouter endpoints
+│   ├── scripts/                # Utility and seeding CLI scripts (`seed_nfl_data.py`)
+│   ├── services/               # Decoupled ingestion domain services (`teams`, `players`, `stats`, `box_scores`)
 │   ├── tests/                  # Pytest unit and integration test suite
 │   ├── utils/                  # Ingestion client and fantasy calculation engines
 │   └── ws/                     # Native WebSocket connection manager
 └── frontend/                   # React 18 + Vite + TypeScript application
     ├── biome.json              # Biome linting and formatting configuration
     └── src/
-        ├── components/         # Modular UI components (draft board, player table, etc.)
+        ├── components/         # Modular UI components (draft board, dev quick sync, player table, etc.)
         ├── contexts/           # Authentication and global state
         ├── hooks/              # Custom hooks (e.g., useWebSocket)
         └── pages/              # Application views and routing

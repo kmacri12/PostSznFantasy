@@ -286,7 +286,103 @@ This checklist outlines the sequence of refactor tasks for developers and AI cod
 
 ---
 
-### Phase 9: Standardized Logging Framework (UI & API)
+### Phase 9: SOTA Ingestion Pipeline & Local On-Demand Seeding ("Update-All")
+> [!IMPORTANT]
+> **CLEAN SLATE INGESTION REFACTOR**: The legacy ingestion code in `api/utils/db/update.py` and old endpoints are throwaway. Build a clean, state-of-the-art ingestion pipeline from scratch using modern async batch upserts (`asyncpg` bulk copy / PostgreSQL `INSERT ... ON CONFLICT DO UPDATE` in bulk chunks), strictly typed Pydantic payloads from RapidAPI, and resilient error recovery.
+
+- [x] **Modern Ingestion Architecture (`api/services/ingestion/`)**:
+  - [x] Build a decoupled, typed ingestion service layer:
+    - `teams_ingest.py`: Fetches and bulk upserts NFL teams (32 teams in 1 batch).
+    - `players_ingest.py`: Fetches and bulk upserts all active NFL players with relations.
+    - `season_stats_ingest.py`: Fetches and bulk upserts regular season player stats for drafting/reference.
+    - `box_scores_ingest.py`: Fetches playoff game box scores and computes fantasy points deterministically.
+  - [x] Use bulk chunked upserts (`execute_values` or multi-row `insert().on_conflict_do_update()`) instead of slow row-by-row iteration.
+  - [x] Add caching & rate-limit throttling in `RapidApiClient` to guarantee upstream quotas are protected.
+- [x] **Unified "Update-All" CLI Runner (`api/scripts/seed_nfl_data.py`)**:
+  - [x] Modern CLI command runnable via `uv run python -m api.scripts.seed_nfl_data`:
+    - Flags: `--season 2024`, `--teams-only`, `--players-only`, `--with-stats`, `--force`.
+    - Rich formatted console output (timing, records upserted, API quota consumed).
+    - Can completely seed a freshly spun-up database container in seconds without touching the browser.
+- [x] **On-Demand Admin "Update-All" API Trigger (`api/routers/admin.py`)**:
+  - [x] Expose `POST /api/admin/update/all`: Triggers the clean ingestion pipeline in a single async task or background transaction.
+  - [x] Returns detailed telemetry: `{"status": "success", "duration_ms": 1420, "synced": {"teams": 32, "players": 1450, "stats": 980}}`.
+- [x] **Temporary Dev-Only UI Quick-Sync**:
+  - [x] Add an unobtrusive, development-only trigger button (e.g., in a Dev Tools drawer or Settings) to kick off the on-demand update directly from the UI when running locally.
+  - [x] Mark with `// DEV-ONLY: Cleanly removable` to be easily pruned prior to production.
+
+---
+
+### Phase 10: PostgreSQL Schema Segregation (Move Off 'public' Schema)
+> [!IMPORTANT]
+> **REASONABLE SCHEMA DESIGN & CLEAN SLATE**:
+> Currently, all application tables are dumped into PostgreSQL's default `public` schema. In modern multi-domain systems, dumping external sports data, league runtime entities, and authentication/user models into `public` causes namespace pollution, privilege confusion, and poor domain separation.
+> Since this project is in pre-dev / local-only context with zero legacy migration baggage, we can cleanly segment domain models into dedicated PostgreSQL schemas and configure Alembic + SQLAlchemy to manage them cleanly.
+
+- [ ] **Schema Architecture Decision**:
+  - Segregate database objects into clean, domain-scoped PostgreSQL schemas:
+    - **`nfl`**: External sports reference data (`nfl_teams`, `nfl_players`, `nfl_player_season_stats`, `nfl_player_game_stats`, `nfl_games`). Keeps large read-heavy ingested datasets isolated.
+    - **`fantasy`**: Core application & league runtime state (`users`, `leagues`, `league_settings`, `teams`, `rosters`, `drafts`, `draft_picks`, `league_standings`).
+- [ ] **SQLAlchemy ORM Model Updates**:
+  - [ ] Add `__table_args__ = {"schema": "nfl"}` to all models in `api/db/models/nfl.py`.
+  - [ ] Add `__table_args__ = {"schema": "fantasy"}` to models in `api/db/models/user.py`, `api/db/models/league.py`, and `api/db/models/draft.py`.
+  - [ ] Update all foreign key string references with schema qualification (e.g., `ForeignKey("nfl.nfl_teams.id")`, `ForeignKey("fantasy.users.id")`).
+- [ ] **Alembic Multi-Schema Configuration**:
+  - [ ] Configure `api/alembic/env.py` with `include_schemas=True` and ensure DDL emissions include `CREATE SCHEMA IF NOT EXISTS nfl;` and `CREATE SCHEMA IF NOT EXISTS fantasy;`.
+  - [ ] Update or regenerate clean Alembic revision for target multi-schema DDL.
+- [ ] **Ingestion & Query Alignment**:
+  - [ ] Verify `api/services/ingestion/` bulk upsert queries (`insert()`, `on_conflict_do_update()`) cleanly target schema-qualified tables.
+  - [ ] Set `search_path=fantasy,nfl,public` in async database connection pool / engine configuration (`api/db/session.py`) for transparent fallback.
+- [ ] **Verification**:
+  - [ ] Rebuild local database container cleanly (`docker compose down -v && docker compose up -d`).
+  - [ ] Run `uv run alembic upgrade head` and verify `\dn` and `\dt *.*` in psql show zero application tables under `public`.
+  - [ ] Run test suite (`uv run pytest`) and seed CLI (`uv run python -m api.scripts.seed_nfl_data --teams-only`) to confirm full end-to-end functionality.
+
+---
+
+### Phase 11: Complete Missing Backend Endpoints & API Contract Alignment
+- [ ] **Player Directory & Stats Endpoints (`api/routers/players.py`)**:
+  - [ ] `GET /api/players/player-season-stats`: Query `NFLPlayerSeasonStats` joined with `NFLPlayer` and `NFLTeam`, supporting query params `season` and optional `position`. Returns `list[PlayerSeasonStatsResponse]`.
+  - [ ] `GET /api/players/player-list`: Query active NFL players with their team information, optionally filterable by `position` and `is_active` NFL teams. Returns `list[Player]`.
+  - [ ] Add unit/integration tests for player endpoints in `api/tests/test_api_integration.py`.
+- [ ] **Missing League & Team Endpoints (`api/routers/leagues.py`)**:
+  - [ ] `GET /api/leagues/{league_id}/teams`: Return all teams participating in the league with team IDs, team names, user/owner details, and draft pick status. (Required by `DraftPage.tsx`).
+  - [ ] `GET /api/leagues/teams/{team_id}`: Return detailed team roster, slot assignments, and player playoff survival statuses. (Required by `TeamPage.tsx`).
+  - [ ] `PUT /api/leagues/{league_id}/settings`: Allow commissioners to update roster configuration and custom scoring settings. (Required by `SettingsPage.tsx`).
+- [ ] **Standings Enrichment**:
+  - [ ] Enrich `GET /api/leagues/{league_id}/standings` to include team names and owner display names alongside rank, scores, and active player counts.
+
+---
+
+### Phase 12: Modern Frontend UI/UX Overhaul & Dedicated Landing Experience
+- [ ] **Default Route & Dedicated Landing Page (`LandingPage.tsx`)**:
+  - [ ] Discontinue using `PlayersPage` as the root (`/`) route.
+  - [ ] Build a sleek, modern landing page (`frontend/src/pages/LandingPage.tsx`):
+    - **Hero Section**: High-impact playoff football branding explaining the cascading elimination mechanics.
+    - **Interactive CTA**: Direct links to "Create a League", "View Your Leagues", or "Join with Code".
+    - **How It Works / Rules Explainer**: Visual 4-round progression cards (Wild Card ➔ Divisional ➔ Conference Championships ➔ Super Bowl).
+    - **Active User Dashboard Widget**: When authenticated, display the user's active leagues, current standings rank, and next scheduled draft at a glance.
+- [ ] **Modern Visual Design System (Shedding "2015 Material UI")**:
+  - [ ] Establish a dark-mode-first, sports-centric design theme using modern styling tokens (deep slate/charcoal backgrounds `#0f172a`, vibrant playoff accent colors, glassmorphism cards with subtle border strokes `border-slate-800`, crisp typography).
+  - [ ] Replace dated default MUI components (`Paper`, default `AppBar`, boxy dropdowns) with styled, modern components or Tailwind/CSS tokens with sharp border radii, subtle glow/gradient effects, and refined micro-interactions.
+  - [ ] Redesign the top navigation header (`App.tsx`):
+    - Replace basic white/blue toolbar with a sleek blurred navbar with modern league switcher pill, user profile avatar, and responsive drawer.
+- [ ] **Page & Component Refresh**:
+  - [ ] **Draft Room (`DraftPage.tsx`, `DraftBoard.tsx`, `PlayerSelector.tsx`)**: Modernize the draft board into an interactive draft grid with live pulsating pick timers, sound/visual cues on deck, and modern search pills.
+  - [ ] **Standings Table (`StandingsTable.tsx`)**: Clean data visualization with round-by-round points badges, alive/eliminated player counters, and team avatars.
+  - [ ] **Roster View (`TeamPage.tsx`)**: Field or card-based roster view with elimination badges and game status.
+  - [ ] **League Creation Flow (`CreateLeaguePage.tsx`)**: Multi-step sleek wizard instead of clunky stacked accordions.
+
+---
+
+## 4. Backlog & Future Enhancements
+
+### Backlog Item 1: Automated Background Data Scheduler (APScheduler / Celery / Event-Driven)
+- [ ] **Game-Aware Scheduler**:
+  - [ ] Schedule regular season roster syncs (e.g. daily/weekly pre-playoffs).
+  - [ ] Implement game-state-driven polling loop during active playoff games (polling RapidAPI box scores every 60–120s only during active game windows, stopping when games conclude).
+  - [ ] Auto-detect final game states to trigger team elimination and update playoff survival metrics without manual intervention.
+
+### Backlog Item 2: Standardized Logging Framework (UI & API)
 - [ ] **Backend Structured Logging (`api/`)**:
   - [ ] Configure Python standard `logging` / `structlog` via centralized setup in `api/core/logging.py`.
   - [ ] Standardize log output format: JSON in production/containerized environments, colorized human-readable format for local development.

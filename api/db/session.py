@@ -53,6 +53,15 @@ async def close_db() -> None:
         logger.info("Disposed async database engine connection pool.")
 
 
+def get_session_factory() -> async_sessionmaker[AsyncSession]:
+    """Return the session factory, initializing DB engine if not already initialized."""
+    global AsyncSessionLocal
+    if AsyncSessionLocal is None:
+        init_db()
+    assert AsyncSessionLocal is not None
+    return AsyncSessionLocal
+
+
 async def get_db() -> AsyncGenerator[AsyncSession]:
     """FastAPI dependency yielding an async database session per request.
 
