@@ -135,7 +135,7 @@ uv sync
 uv run alembic upgrade head
 
 # Run FastAPI backend with auto-reload:
-uv run uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
+uv run uvicorn api.main:app --app-dir .. --host 0.0.0.0 --port 8000 --reload
 
 # Linting and formatting with Ruff:
 uv run ruff check .          # Lint check

@@ -99,7 +99,7 @@ uv sync
 uv run alembic upgrade head
 
 # Start the FastAPI application with auto-reload
-uv run uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
+uv run uvicorn api.main:app --app-dir .. --host 0.0.0.0 --port 8000 --reload
 ```
 
 The API service is now accessible at `http://localhost:8000`. Interactive OpenAPI documentation is available at `http://localhost:8000/docs`.
