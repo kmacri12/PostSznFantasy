@@ -222,21 +222,55 @@ This checklist outlines the sequence of refactor tasks for developers and AI cod
 ---
 
 ### Phase 6: Testing, Observability & CI Pipeline
-- [ ] **Backend Test Suite**:
-  - [ ] Add `pytest` and `pytest-asyncio` using `uv add --dev pytest pytest-asyncio`.
-  - [ ] Write unit tests for scoring calculation logic across various scoring configurations.
-  - [ ] Write integration tests for league creation, draft picks, and authentication checks using `httpx.AsyncClient`.
-- [ ] **Frontend Test Suite**:
-  - [ ] Configure `vitest` and `@testing-library/react` for component and hook testing (`useWebSocket`, `Countdown`).
-- [ ] **Automated CI Workflow (`.github/workflows/ci.yml`)**:
-  - [ ] Python Job:
-    - [ ] `uv sync --frozen`
-    - [ ] `uv run ruff check .`
-    - [ ] `uv run ruff format --check .`
-    - [ ] `uv run mypy api/`
-    - [ ] `uv run pytest`
-  - [ ] Frontend Job:
-    - [ ] `npm ci`
-    - [ ] `npx @biomejs/biome check src/`
-    - [ ] `npm run build`
-    - [ ] `npm run test`
+- [x] **Backend Test Suite**:
+  - [x] Add `pytest` and `pytest-asyncio` using `uv add --dev pytest pytest-asyncio`.
+  - [x] Write unit tests for scoring calculation logic across various scoring configurations (`tests/test_scoring.py`).
+  - [x] Write integration tests for league creation, draft picks, and authentication checks using `httpx.AsyncClient` (`tests/test_api_integration.py`).
+- [x] **Frontend Test Suite**:
+  - [x] Configure `vitest` and `@testing-library/react` for component and hook testing (`useWebSocket`, `Countdown`).
+- [x] **Automated CI Workflow (`.github/workflows/ci.yml`)**:
+  - [x] Python Job:
+    - [x] `uv sync --frozen`
+    - [x] `uv run ruff check .`
+    - [x] `uv run ruff format --check .`
+    - [x] `uv run mypy .`
+    - [x] `uv run pytest`
+  - [x] Frontend Job:
+    - [x] `npm ci`
+    - [x] `npx @biomejs/biome check src/`
+    - [x] `npm run build`
+    - [x] `npm run test`
+
+---
+
+### Phase 7: Repository Documentation & Developer Experience
+- [ ] **Core Documentation Overhaul (`README.md`)**:
+  - [ ] Rewrite root `README.md` to provide full architectural context, high-level system overview, and quickstart instructions.
+  - [ ] Document prerequisites (Python 3.13+, `uv`, Node.js 20+, Docker Compose, PostgreSQL 16).
+  - [ ] Provide step-by-step local setup: cloning, `.env` file configuration, DB startup (`docker compose up -d`), backend startup (`uv run uvicorn ...`), and frontend startup (`npm run dev`).
+  - [ ] Include common troubleshooting tips (database connection, Firebase emulator or credentials setup, seed data).
+- [ ] **Contribution & Development Standards (`CONTRIBUTING.md`)**:
+  - [ ] Create `CONTRIBUTING.md` defining branching models, PR guidelines, commit conventions, and definition of done.
+  - [ ] Detail development standards: KISS principle, self-documenting code, intent-driven comments (documenting *why*, not *what*).
+  - [ ] Document code quality verification commands for contributors (`uv run ruff check`, `uv run mypy`, `npx @biomejs/biome check`, test runners).
+- [ ] **Agent & Contributor Context Mapping**:
+  - [ ] Align `AGENTS.md` and `README.md` cross-references so both human contributors and AI agents have unified domain context, directory maps, and operational workflows.
+  - [ ] Keep file structures and documentation locations standard and idiomatic (`README.md`, `CONTRIBUTING.md`, `AGENTS.md`, and module-level docs where appropriate) with zero unnecessary fluff.
+- [ ] **Continuous Agent & Human Documentation Maintenance Rule**:
+  - [ ] Explicitly mandate in `AGENTS.md` and `CONTRIBUTING.md` that AI agents and human contributors must update documentation whenever modifying architecture, dependencies, endpoints, models, or developer workflows.
+  - [ ] Establish documentation synchronization as a mandatory checklist item in PR guidelines and agent task-completion protocols (no stale commands, paths, or architectural discrepancies).
+
+---
+
+### Phase 8: Standardized Logging Framework (UI & API)
+- [ ] **Backend Structured Logging (`api/`)**:
+  - [ ] Configure Python standard `logging` / `structlog` via centralized setup in `api/core/logging.py`.
+  - [ ] Standardize log output format: JSON in production/containerized environments, colorized human-readable format for local development.
+  - [ ] Add FastAPI request logging middleware to track incoming requests, method, path, status code, response time, and correlation/request IDs (`X-Request-ID`).
+  - [ ] Integrate contextual logging for key lifecycle and domain events: database connection pool status, WebSocket draft room connection/disconnection/events, RapidAPI ingestion jobs, and auth failures.
+  - [ ] Replace any leftover `print()` statements across backend modules with typed logger instances (`logger = logging.getLogger(__name__)`).
+- [ ] **Frontend Logging & Telemetry (`frontend/`)**:
+  - [ ] Create a lightweight client logging utility (`src/utils/logger.ts`) supporting log levels (`DEBUG`, `INFO`, `WARN`, `ERROR`).
+  - [ ] Guard debug/info logs behind environment flags (`import.meta.env.DEV`) to prevent console pollution in production builds.
+  - [ ] Instrument WebSocket events in `useWebSocket.ts` (connection states, reconnection attempts, protocol payload mismatches) with clear contextual logs.
+  - [ ] Standardize frontend error logging across React Error Boundaries and API fetch wrappers.

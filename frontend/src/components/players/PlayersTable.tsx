@@ -16,10 +16,10 @@ import {
 } from "@mui/material";
 import {
   type ColumnDef,
+  type SortingState,
   flexRender,
   getCoreRowModel,
   getSortedRowModel,
-  type SortingState,
   useReactTable,
 } from "@tanstack/react-table";
 import axios from "axios";

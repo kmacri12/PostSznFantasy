@@ -1,8 +1,8 @@
-import type React from "react";
-import { type ReactNode, createContext, useContext, useEffect, useState } from "react";
+import axios from "axios";
 import type { User as FirebaseUser } from "firebase/auth";
 import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from "firebase/auth";
-import axios from "axios";
+import type React from "react";
+import { type ReactNode, createContext, useContext, useEffect, useState } from "react";
 import { auth } from "../components/auth/firebase";
 
 interface UserContextType {
@@ -41,9 +41,9 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           },
         },
       );
-      if (response.data && response.data.userId) {
+      if (response.data?.userId) {
         setUserId(response.data.userId);
-      } else if (response.data && response.data.user_id) {
+      } else if (response.data?.user_id) {
         setUserId(response.data.user_id);
       }
     } catch (error) {
