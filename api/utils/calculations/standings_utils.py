@@ -3,6 +3,7 @@ from decimal import Decimal
 from api.core.config import get_settings
 from api.db.models.league import LeagueSettings, Lineup, PlayerScore, Team
 from api.db.models.nfl import NFLGame, NFLPlayer, NFLPlayerGameStats, NFLTeam
+from api.models.enums import PlayerPosition
 from api.utils.calculations.fantasy_points_utils import calculate_player_points
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -78,7 +79,7 @@ async def get_team_fantasy_points_by_week(
         player = await db.scalar(
             select(NFLPlayer).where(NFLPlayer.id == game_stat.player_id)
         )
-        position = (player.position or "") if player else ""
+        position = PlayerPosition.from_str(player.position) if player else None
         pts = calculate_player_points(game_stat, league_settings, position)
         total += pts
 

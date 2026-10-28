@@ -2,6 +2,7 @@ from decimal import Decimal
 
 from api.db.models.league import LeagueSettings
 from api.db.models.nfl import NFLPlayerGameStats
+from api.models.enums import PlayerPosition
 
 
 def _safe(val: int | None) -> Decimal:
@@ -79,7 +80,9 @@ def calculate_rushing_points(
 
 
 def calculate_receiving_points(
-    stats: NFLPlayerGameStats, settings: LeagueSettings, player_position: str
+    stats: NFLPlayerGameStats,
+    settings: LeagueSettings,
+    player_position: PlayerPosition | str | None,
 ) -> Decimal:
     points = (
         _safe(stats.receiving_receptions) * _safe(settings.scoring_receiving_reception)
@@ -90,16 +93,20 @@ def calculate_receiving_points(
         + _safe(stats.receiving_targets) * _safe(settings.scoring_receiving_target)
     )
 
-    pos = player_position.upper()
-    if pos == "RB":
+    pos = (
+        player_position
+        if isinstance(player_position, PlayerPosition)
+        else PlayerPosition.from_str(player_position)
+    )
+    if pos == PlayerPosition.RB:
         points += _safe(stats.receiving_receptions) * _safe(
             settings.scoring_receiving_reception_bonus_rb
         )
-    elif pos == "WR":
+    elif pos == PlayerPosition.WR:
         points += _safe(stats.receiving_receptions) * _safe(
             settings.scoring_receiving_reception_bonus_wr
         )
-    elif pos == "TE":
+    elif pos == PlayerPosition.TE:
         points += _safe(stats.receiving_receptions) * _safe(
             settings.scoring_receiving_reception_bonus_te
         )
@@ -168,7 +175,7 @@ def calculate_dst_points(
 def calculate_player_points(
     stats: NFLPlayerGameStats,
     settings: LeagueSettings,
-    player_position: str,
+    player_position: PlayerPosition | str | None,
 ) -> Decimal:
     """Return fantasy points for a single player game stat row under the given league settings.
 

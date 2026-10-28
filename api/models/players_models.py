@@ -1,4 +1,5 @@
 from api.models.base import BaseSchema
+from api.models.enums import PlayerPosition
 
 
 class NFLTeamSimple(BaseSchema):
@@ -12,7 +13,7 @@ class NFLTeamSimple(BaseSchema):
 class Player(BaseSchema):
     id: int
     name: str
-    position: str
+    position: PlayerPosition | str
     team_abv: str | None = None
     espn_headshot_url: str | None = None
     jersey_num: str | None = None

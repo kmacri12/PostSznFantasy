@@ -6,6 +6,7 @@ from api.models.draft_models import (
     DraftPickSubmit,
     DraftStateEvent,
 )
+from api.models.enums import PlayerPosition
 from api.models.league_models import (
     LeagueCreate,
     LeagueCreateResponse,
@@ -36,6 +37,7 @@ __all__ = [
     "LoginResponse",
     "NFLTeamSimple",
     "Player",
+    "PlayerPosition",
     "PlayerSeasonStatsResponse",
     "RosterSettings",
     "ScoringSettings",
