@@ -74,9 +74,12 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        # Ensure schemas exist before Alembic emits any DDL
+        # Schemas must exist before Alembic DDL; commit immediately so the
+        # subsequent migration transaction sees them (psycopg2 autobegin wraps
+        # everything otherwise, causing DDL to silently roll back on failure).
         connection.execute(text("CREATE SCHEMA IF NOT EXISTS nfl"))
         connection.execute(text("CREATE SCHEMA IF NOT EXISTS fantasy"))
+        connection.commit()
 
         context.configure(
             connection=connection,
