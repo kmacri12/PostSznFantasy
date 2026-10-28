@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, Any
 from sqlalchemy import (
     ARRAY,
     JSON,
+    Boolean,
     ForeignKey,
     Integer,
     SmallInteger,
@@ -24,6 +25,9 @@ class NFLTeam(Base):
     team_city: Mapped[str | None] = mapped_column(String(255), nullable=True)
     team_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     team_logo_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    is_active: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True, server_default="true"
+    )
 
     players: Mapped[list["NFLPlayer"]] = relationship(
         "NFLPlayer", back_populates="team"

@@ -190,15 +190,15 @@ This checklist outlines the sequence of refactor tasks for developers and AI cod
 ---
 
 ### Phase 4: Business Logic & Ingestion Engine
-- [ ] **Deterministic Fantasy Scoring Engine**:
-  - [ ] Replace stubbed `calculate_player_points` in `api/utils/calculations/fantasy_points_utils.py` with an evaluator that parses player box scores against active `LeagueSettings`.
-  - [ ] Cover fractional scoring for passing/rushing/receiving yards, turnover penalties, kicker yardage tiers, and defensive scoring events.
-- [ ] **Playoff Elimination & Survival Logic**:
-  - [ ] Replace `random.randint` in `get_players_left` with a query against `NFLTeam.is_active` to count remaining rostered players.
-  - [ ] Replace `random.uniform` in `get_team_fantasy_points_by_week` with real point summation per playoff round.
-- [ ] **Resilient NFL Stats Ingestion Client**:
-  - [ ] Refactor `RapidApi` client to use `httpx.AsyncClient` with configurable retry policies (`tenacity`) and rate limiting.
-  - [ ] Implement real update logic in `api/utils/db/update.py` for game schedules, box scores, and active team rosters.
+- [x] **Deterministic Fantasy Scoring Engine**:
+  - [x] Replace stubbed `calculate_player_points` in `api/utils/calculations/fantasy_points_utils.py` with an evaluator that parses player box scores against active `LeagueSettings`.
+  - [x] Cover fractional scoring for passing/rushing/receiving yards, turnover penalties, kicker yardage tiers, and defensive scoring events.
+- [x] **Playoff Elimination & Survival Logic**:
+  - [x] Replace `random.randint` in `get_players_left` with a query against `NFLTeam.is_active` to count remaining rostered players.
+  - [x] Replace `random.uniform` in `get_team_fantasy_points_by_week` with real point summation per playoff round.
+- [x] **Resilient NFL Stats Ingestion Client**:
+  - [x] Refactor `RapidApi` client to use `httpx.AsyncClient` with configurable retry policies (`tenacity`) and rate limiting.
+  - [x] Implement real update logic in `api/utils/db/update.py` for game schedules, box scores, and active team rosters.
 
 ---
 
