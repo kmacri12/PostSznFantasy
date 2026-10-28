@@ -64,7 +64,7 @@ class Settings(BaseSettings):
     def sync_database_url(self) -> str:
         """Sync-dialect URL for Alembic migrations (psycopg2)."""
         return self.async_database_url.replace(
-            "postgresql+asyncpg://", "postgresql://", 1
+            "postgresql+asyncpg://", "postgresql+psycopg2://", 1
         )
 
 
