@@ -148,6 +148,47 @@ This checklist outlines the sequence of refactor tasks for developers and AI cod
 
 ---
 
+### Phase 3.5: Centralized Configuration with PydanticSettings
+- [x] **Add `pydantic-settings` dependency**:
+  - [x] Run `uv add pydantic-settings` in `api/` to add `pydantic-settings>=2.7.0` to `pyproject.toml` and regenerate `uv.lock`.
+- [x] **Define `Settings` model (`api/core/config.py`)**:
+  - [x] Create a single `Settings` class extending `pydantic_settings.BaseSettings` with typed, validated fields for every env var currently scattered across `os.getenv()` call sites:
+    ```python
+    from pydantic import PostgresDsn
+    from pydantic_settings import BaseSettings, SettingsConfigDict
+
+    class Settings(BaseSettings):
+        model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+
+        # Database
+        pg_uri: PostgresDsn
+
+        # Firebase
+        firebase_service_account_key_path: str
+
+        # RapidAPI
+        rapidapi_baseurl: str
+        rapidapi_apikey: str
+        rapidapi_apihost: str
+
+        # App
+        season_year: int = 2025
+    ```
+  - [x] Use Pydantic's `PostgresDsn` type for `pg_uri` so the connection string is structurally validated at startup rather than failing silently at first query.
+  - [x] Declare `season_year` with a typed default so it is optional in `.env` but never arrives as a raw `str`.
+- [x] **Expose a cached singleton via `lru_cache`**:
+  - [x] Add `get_settings() -> Settings` decorated with `@lru_cache(maxsize=1)` so the `.env` file is parsed exactly once per process and is injectable as `Depends(get_settings)` in any route.
+- [x] **Replace all `os.getenv` / `os.environ` call sites**:
+  - [x] `api/db/session.py` — database URL passed to `create_async_engine`.
+  - [x] Firebase credential provider (`api/utils/security/firebase.py`) — service account key path.
+  - [x] `api/utils/rapidapi/rapidapi.py` — RapidAPI base URL, key, and host header.
+  - [x] `api/alembic/env.py` — sync DB URL for migrations.
+- [x] **Eager validation on startup**:
+  - [x] Call `get_settings()` inside the FastAPI `lifespan` before the DB engine is initialized so a missing or malformed var raises a `ValidationError` with a clear field-level message before the server accepts any traffic.
+- [x] **Update `.env.example`** to exactly mirror the snake_case field names declared in `Settings` (Pydantic-Settings resolves env vars case-insensitively by default, so `PG_URI` in the shell maps to `pg_uri` on the model).
+
+---
+
 ### Phase 4: Business Logic & Ingestion Engine
 - [ ] **Deterministic Fantasy Scoring Engine**:
   - [ ] Replace stubbed `calculate_player_points` in `api/utils/calculations/fantasy_points_utils.py` with an evaluator that parses player box scores against active `LeagueSettings`.

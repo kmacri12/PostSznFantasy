@@ -1,18 +1,19 @@
 import json
 import logging
-import os
 
 import requests
 import requests_cache
+from api.core.config import get_settings
 
 
 class RapidApi:
-    def __init__(self):
+    def __init__(self) -> None:
         self.logger = logging.getLogger(__name__)
-        self.base_url = os.getenv("RAPIDAPI_BASEURL")
+        settings = get_settings()
+        self.base_url = settings.rapidapi_baseurl
         self.headers = {
-            "X-RapidAPI-Key": os.getenv("RAPIDAPI_APIKEY"),
-            "X-RapidAPI-Host": os.getenv("RAPIDAPI_APIHOST"),
+            "X-RapidAPI-Key": settings.rapidapi_apikey,
+            "X-RapidAPI-Host": settings.rapidapi_apihost,
         }
 
     def get_nfl_teams(self) -> list[dict]:

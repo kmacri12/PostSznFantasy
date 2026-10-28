@@ -1,4 +1,3 @@
-import os
 import sys
 from logging.config import fileConfig
 from pathlib import Path
@@ -8,6 +7,7 @@ project_root = str(Path(__file__).resolve().parents[2])
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
+from api.core.config import get_settings  # noqa: E402
 from api.db.models import Base  # noqa: E402
 from sqlalchemy import engine_from_config, pool  # noqa: E402
 
@@ -28,16 +28,8 @@ target_metadata = Base.metadata
 
 
 def get_db_url() -> str:
-    """Read PG_URI from environment, converting asyncpg to standard sync driver if needed."""
-    url = os.getenv("PG_URI")
-    if not url:
-        ini_url = config.get_main_option("sqlalchemy.url")
-        if ini_url and "driver://user:pass" not in ini_url:
-            url = ini_url
-        else:
-            url = "postgresql://postgres:postgres@localhost:5432/postszn"
-    # Alembic runs migrations with standard synchronous connection (psycopg2)
-    return url.replace("postgresql+asyncpg://", "postgresql://")
+    """Resolve sync DB URL for Alembic migrations (psycopg2 driver)."""
+    return get_settings().sync_database_url
 
 
 def run_migrations_offline() -> None:
