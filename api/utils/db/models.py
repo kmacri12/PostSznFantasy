@@ -1,4 +1,3 @@
-from api.app import db
 from sqlalchemy import (
     ARRAY,
     DECIMAL,
@@ -13,7 +12,21 @@ from sqlalchemy import (
     Time,
     inspect,
 )
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import DeclarativeBase, relationship
+
+
+class Base(DeclarativeBase):
+    """Temporary SQLAlchemy base class pending full Phase 3 DeclarativeBase rewrite."""
+
+    pass
+
+
+# Compatibility alias so existing legacy class definitions continue to work without Flask
+class _DbShim:
+    Model = Base
+
+
+db = _DbShim()
 
 
 class User(db.Model):

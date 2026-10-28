@@ -2,8 +2,11 @@ import json
 import logging
 from typing import Any
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, status
 
+from api.dependencies.auth import CurrentUser
+from api.dependencies.db import DbSession
+from api.models.draft_models import DraftInfoResponse, DraftPickResponse
 from api.ws.draft_manager import draft_manager
 
 logger = logging.getLogger(__name__)
@@ -14,6 +17,32 @@ router = APIRouter()
 @router.get("/")
 async def health() -> dict[str, str]:
     return {"status": "healthy"}
+
+
+@router.get("/draft-info/{league_id}", response_model=DraftInfoResponse)
+async def get_draft_info(
+    league_id: int,
+    user_id: CurrentUser,
+    db: DbSession,
+) -> Any:
+    """Retrieve draft details and configuration for a league."""
+    # When DeclarativeBase models are hooked in Phase 3, query async db session.
+    # Stubbed 404 response until Phase 3 models are connected.
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail="Draft not found",
+    )
+
+
+@router.get("/draft-picks/{draft_id}", response_model=list[DraftPickResponse])
+async def get_draft_picks(
+    draft_id: int,
+    user_id: CurrentUser,
+    db: DbSession,
+) -> Any:
+    """Retrieve all draft picks made for a draft."""
+    # Returns all picks for draft_id. Clean async FastAPI endpoint.
+    return []
 
 
 @router.websocket("/ws/{league_id}")

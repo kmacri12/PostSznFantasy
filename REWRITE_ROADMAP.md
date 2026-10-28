@@ -120,8 +120,11 @@ This checklist outlines the sequence of refactor tasks for developers and AI cod
 - [x] **Native WebSocket Draft Room**:
   - [x] Replace `flask-socketio` with native FastAPI WebSocket endpoint (`@router.websocket("/ws/draft/{league_id}")`).
   - [x] Implement a thread-safe `DraftConnectionManager` to broadcast pick events, clock ticks, and draft state to connected clients.
-- [ ] **Bug Fixes in Existing Endpoints**:
-  - [ ] Fix `draft_routes.py` `get_draft_picks` to query all picks for the draft and return the actual list rather than unassigned variable `draft`.
+- [x] **Decommission Legacy Flask Architecture**:
+  - [x] Purge all legacy Flask packages (`flask`, `flask-sqlalchemy`, `flask-socketio`, `flask-cors`, `flask-bcrypt`) from `pyproject.toml` and `uv.lock`.
+  - [x] Delete deprecated Flask application files: `api/app.py`, `api/run.py`, `api/routes/`, and `api/utils/socketio/`.
+  - [x] Remove Flask-coupled `token_required` decorator from `api/utils/security/firebase.py`.
+  - [x] Add transitional SQLAlchemy `DeclarativeBase` shim in `api/utils/db/models.py` to allow existing ORM models to function without `Flask-SQLAlchemy` pending full Phase 3 rewrite.
 
 ---
 

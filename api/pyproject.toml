@@ -8,11 +8,6 @@ dependencies = [
     "asyncpg>=0.30.0",
     "fastapi>=0.115.0",
     "firebase-admin>=6.7.0",
-    "flask>=3.1.0",
-    "flask-bcrypt>=1.0.1",
-    "flask-cors>=5.0.1",
-    "flask-socketio>=5.5.1",
-    "flask-sqlalchemy>=3.1.1",
     "psycopg2-binary>=2.9.10",
     "pydantic>=2.11.2",
     "pyjwt>=2.10.1",
@@ -49,10 +44,8 @@ plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
 module = [
+    "firebase_admin",
     "firebase_admin.*",
-    "flask_bcrypt.*",
-    "flask_cors.*",
-    "flask_socketio.*",
     "requests_cache.*",
     "psycopg2.*",
 ]
@@ -60,13 +53,7 @@ ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = [
-    "routes.*",
     "utils.*",
-    "app",
-    "run",
-    "api.routes.*",
     "api.utils.*",
-    "api.app",
-    "api.run",
 ]
 ignore_errors = true
