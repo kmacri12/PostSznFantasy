@@ -1,7 +1,9 @@
+from datetime import UTC, datetime, timedelta
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.db.models import LeagueInvite, LeagueMember, Team, User
+from api.db.models import LeagueInvite, LeagueMember, LeagueSettings, Team, User
 from api.tests.postgres.conftest import ClientFactory
 from api.tests.postgres.factories import make_league
 
@@ -132,6 +134,39 @@ async def test_invite_link_flow(db: AsyncSession, client_as: ClientFactory) -> N
     assert invite.uses == 1  # the replay did not spend another use
 
 
+async def test_invites_expire_after_seven_days_unless_told_otherwise(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    league_id, _ = await _join_setup(db, draft_status="scheduled")
+    async with client_as("uid-0") as commissioner:
+        default = (
+            await commissioner.post(f"/api/leagues/{league_id}/invite", json={})
+        ).json()
+        explicit = (
+            await commissioner.post(
+                f"/api/leagues/{league_id}/invite",
+                json={"expiresAt": "2030-01-01T00:00:00Z"},
+            )
+        ).json()
+
+    remaining = datetime.fromisoformat(default["expiresAt"]) - datetime.now(UTC)
+    assert timedelta(days=6, hours=23) < remaining <= timedelta(days=7)
+    assert explicit["expiresAt"].startswith("2030-01-01")
+
+
+async def test_joining_after_the_draft_starts_is_allowed_by_default(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    league_id, _ = await _join_setup(db, draft_status="in_progress")
+    async with client_as("uid-0") as commissioner:
+        code = (
+            await commissioner.post(f"/api/leagues/{league_id}/invite", json={})
+        ).json()["code"]
+    async with client_as("newbie") as newbie:
+        preview = (await newbie.get(f"/api/invites/{code}")).json()
+    assert preview["joinable"] is True
+
+
 async def test_regenerating_retires_the_old_code(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
@@ -153,6 +188,12 @@ async def test_revoked_full_and_started_invites_are_refused(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
     league_id, _ = await _join_setup(db)  # draft already in progress
+    settings = await db.scalar(
+        select(LeagueSettings).where(LeagueSettings.league_id == league_id)
+    )
+    assert settings is not None
+    settings.allow_join_after_draft_start = False  # commissioner opted out
+    await db.flush()
     async with client_as("uid-0") as commissioner:
         code = (
             await commissioner.post(f"/api/leagues/{league_id}/invite", json={})

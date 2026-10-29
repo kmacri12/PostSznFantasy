@@ -1,5 +1,5 @@
 import secrets
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -19,6 +19,8 @@ from api.services.league_members import LeagueRuleError
 # No 0/O/1/I/L so codes survive being read aloud or retyped.
 CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
 CODE_LENGTH = 8
+# A link posted in a group chat should not work forever.
+DEFAULT_INVITE_TTL = timedelta(days=7)
 
 
 def new_code() -> str:
@@ -79,7 +81,7 @@ async def create_invite(
         code=new_code(),
         league_id=league_id,
         created_by=created_by,
-        expires_at=expires_at,
+        expires_at=expires_at or datetime.now(UTC) + DEFAULT_INVITE_TTL,
         max_uses=max_uses,
         uses=0,
         revoked=False,

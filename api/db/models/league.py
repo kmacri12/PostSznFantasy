@@ -371,7 +371,7 @@ class LeagueSettings(Base):
         Numeric(6, 2), nullable=False
     )
     allow_join_after_draft_start: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, default=False
+        Boolean, nullable=False, default=True
     )
     free_agency_enabled: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False

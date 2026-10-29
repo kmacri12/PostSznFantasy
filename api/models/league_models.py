@@ -111,7 +111,7 @@ class ScoringSettings(BaseSchema):
 class PostseasonSettings(BaseSchema):
     """What makes this different from a regular-season league."""
 
-    allow_join_after_draft_start: bool = False
+    allow_join_after_draft_start: bool = True
     free_agency_enabled: bool = False
     free_agency_window: FreeAgencyWindow = FreeAgencyWindow.BETWEEN_ROUNDS
     free_agency_claim_order: FreeAgencyClaimOrder = FreeAgencyClaimOrder.FIRST_COME

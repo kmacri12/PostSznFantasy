@@ -7,6 +7,7 @@ const InvitePanel = ({ leagueId }: { leagueId: number }) => {
   const revoke = useRevokeInvite(leagueId);
   const code = invite.data?.code;
   const link = code ? `${window.location.origin}/join/${code}` : "";
+  const expiresAt = invite.data?.expiresAt;
 
   const copy = (text: string) => navigator.clipboard?.writeText(text);
 
@@ -62,6 +63,9 @@ const InvitePanel = ({ leagueId }: { leagueId: number }) => {
       </Box>
       {code && (
         <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1 }}>
+          {expiresAt
+            ? `Expires ${new Date(expiresAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })} (invites last 7 days). `
+            : ""}
           Regenerating retires the old link and code immediately.
         </Typography>
       )}
