@@ -9,7 +9,7 @@ from api.db.session import get_session_factory
 from api.models.enums import DraftStatus
 from api.services import draft_flow
 from api.services.draft_events import pick_events
-from api.services.draft_picks import DraftPickError, PickNotDue
+from api.services.draft_picks import DraftPickError, PickNotDue, next_deadline
 from api.ws.draft_manager import draft_manager
 
 logger = logging.getLogger(__name__)
@@ -61,9 +61,39 @@ async def expire_overdue_picks() -> int:
     return handled
 
 
+async def extend_overdue_deadlines() -> int:
+    """Give a fresh pick window to drafts whose deadline lapsed while we were down.
+
+    Without this, a restart mid-draft would auto-pick for every team the outage
+    skipped, one per tick.
+    """
+    now = datetime.now(UTC)
+    async with get_session_factory()() as db:
+        drafts = (
+            (
+                await db.execute(
+                    select(Draft)
+                    .where(
+                        Draft.status == DraftStatus.IN_PROGRESS.value,
+                        Draft.current_pick_deadline <= now,
+                    )
+                    .with_for_update()
+                )
+            )
+            .scalars()
+            .all()
+        )
+        for draft in drafts:
+            draft.pick_started_at = now
+            draft.current_pick_deadline = next_deadline(draft, now)
+        await db.commit()
+    return len(drafts)
+
+
 async def run_draft_clock() -> None:
     """Loop until cancelled; a failing tick is logged and retried."""
-    logger.info("Draft clock started")
+    extended = await extend_overdue_deadlines()
+    logger.info("Draft clock started", extra={"extended_drafts": extended})
     while True:
         try:
             await expire_overdue_picks()

@@ -326,6 +326,27 @@ async def test_clock_does_not_pick_again_after_an_undo_reset_the_deadline(
     assert (await db.execute(select(DraftPick))).scalars().all() == []
 
 
+async def test_restart_extends_lapsed_deadlines_instead_of_autopicking(
+    db: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from contextlib import asynccontextmanager
+
+    @asynccontextmanager
+    async def session():  # type: ignore[no-untyped-def]
+        yield db
+
+    league, draft = await _overdue_draft_with_pool(db)
+    monkeypatch.setattr(draft_clock, "get_session_factory", lambda: session)
+    monkeypatch.setattr(db, "commit", db.flush)
+
+    assert await draft_clock.extend_overdue_deadlines() == 1
+    await db.refresh(draft)
+    assert draft.current_pick_deadline is not None
+    assert draft.current_pick_deadline > datetime.now(UTC)
+    assert await draft_clock.expire_overdue_picks() == 0
+    assert await draft_clock.extend_overdue_deadlines() == 0
+
+
 async def test_draft_completes_after_the_last_round(db: AsyncSession) -> None:
     league, _, _, draft = await make_league(db, roster_total=1)
     kc = NFLTeam(id=1, team_abv="KC", is_active=True)
