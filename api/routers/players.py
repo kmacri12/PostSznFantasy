@@ -3,8 +3,8 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 
 from api.db.models.nfl import NFLPlayer, NFLPlayerSeasonStats, NFLTeam
+from api.db.session import DbSession
 from api.dependencies.auth import get_current_user
-from api.dependencies.db import DbSession
 from api.models.players_models import (
     NFLTeamSimple,
     Player,

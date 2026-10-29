@@ -4,8 +4,8 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from httpx import ASGITransport, AsyncClient
 
+from api.db.session import get_db
 from api.dependencies.auth import get_current_user
-from api.dependencies.db import get_db
 from api.dependencies.league import (
     LeagueMembership,
     get_draft_member,

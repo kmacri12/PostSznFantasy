@@ -8,8 +8,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from api.db.models.draft import Draft
 from api.db.models.league import League, Team
 from api.db.models.user import User
+from api.db.session import DbSession
 from api.dependencies.auth import CurrentUser
-from api.dependencies.db import DbSession
 
 
 @dataclass(frozen=True)

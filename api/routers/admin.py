@@ -2,9 +2,10 @@ from typing import Any
 
 from fastapi import APIRouter, Depends
 
+from api.db.session import DbSession
 from api.dependencies.auth import require_admin
-from api.dependencies.db import DbSession
 from api.models.base import BaseSchema
+from api.services.eliminations import mark_eliminated_teams
 from api.services.ingestion import (
     ingest_box_scores,
     ingest_nfl_players,
@@ -12,7 +13,6 @@ from api.services.ingestion import (
     ingest_season_stats,
     run_full_ingestion_pipeline,
 )
-from api.utils.db.update import mark_eliminated_teams
 
 router = APIRouter(dependencies=[Depends(require_admin)])
 

@@ -7,8 +7,8 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.exc import IntegrityError
 
 from api.db.models.user import User
+from api.db.session import DbSession
 from api.dependencies.auth import CurrentUser
-from api.dependencies.db import DbSession
 from api.models.auth_models import LoginResponse
 from api.models.base import BaseSchema
 

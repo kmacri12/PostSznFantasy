@@ -94,14 +94,6 @@ class Settings(BaseSettings):
             f"@{self.pg_host}:{self.pg_port}/{self.pg_dbname}"
         )
 
-    @computed_field  # type: ignore[prop-decorator]
-    @property
-    def sync_database_url(self) -> str:
-        """Sync-dialect URL for Alembic migrations (psycopg2)."""
-        return self.async_database_url.replace(
-            "postgresql+asyncpg://", "postgresql+psycopg2://", 1
-        )
-
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:

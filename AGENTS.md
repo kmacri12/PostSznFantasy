@@ -60,8 +60,7 @@ PostSznFantasy/
 │   │       └── nfl.py          # NFLTeam, NFLPlayer, Stats, Game models
 │   ├── dependencies/           # FastAPI dependency providers
 │   │   ├── auth.py             # Supabase JWT validation (verify_token, get_current_user)
-│   │   ├── league.py           # LeagueMember/DraftMember/TeamMember guards (403 for non-members)
-│   │   └── db.py               # DbSession dependency alias
+│   │   └── league.py           # LeagueMember/DraftMember/TeamMember guards (403 for non-members)
 │   ├── models/                 # Pydantic v2 DTO schemas (camelCase serialization)
 │   │   ├── base.py             # BaseSchema with alias_generator = to_camel
 │   │   ├── auth_models.py      # Auth exchange DTOs
@@ -77,6 +76,7 @@ PostSznFantasy/
 │   ├── scripts/                # Database seeding & administrative CLI scripts
 │   │   └── seed_nfl_data.py    # Unified on-demand NFL data seeder
 │   ├── services/               # Decoupled ingestion & domain services
+│   │   ├── eliminations.py     # mark_eliminated_teams
 │   │   ├── draft_picks.py      # Server-side pick validation (turn, availability, roster limits)
 │   │   ├── scheduler.py        # Opt-in background sync/live-poll/elimination loop
 │   │   └── ingestion/          # Async batch upsert services

@@ -12,8 +12,8 @@ from api.db.models.league import (
 )
 from api.db.models.nfl import NFLPlayer
 from api.db.models.user import User
+from api.db.session import DbSession
 from api.dependencies.auth import CurrentUser
-from api.dependencies.db import DbSession
 from api.dependencies.league import LeagueMember, TeamMember
 from api.models.enums import DraftStatus, DraftType
 from api.models.league_models import (

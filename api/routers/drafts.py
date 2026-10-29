@@ -9,9 +9,8 @@ from sqlalchemy import select
 
 from api.db.models.draft import Draft, DraftPick
 from api.db.models.user import User
-from api.db.session import get_session_factory
+from api.db.session import DbSession, get_session_factory
 from api.dependencies.auth import verify_token
-from api.dependencies.db import DbSession
 from api.dependencies.league import DraftMember, LeagueMember, find_membership
 from api.models.draft_models import DraftInfoResponse, DraftPickResponse
 from api.services.draft_picks import DraftPickError, make_pick
