@@ -5,7 +5,7 @@
 
 UV := uv run --project api
 API_RUN := cd api && uv run
-SEED_ARGS ?= --with-stats
+SEED_ARGS ?=
 
 help: ## List available targets
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
@@ -43,7 +43,7 @@ web: ## Run the Vite dev server on :5173
 dev: db-up migrate ## Run database, API and web together (Ctrl-C stops both servers)
 	@trap 'kill 0' INT TERM; $(MAKE) api & $(MAKE) web & wait
 
-seed: ## Seed NFL data: make seed SEED_ARGS="--season 2025 --with-stats"
+seed: ## Seed NFL data: make seed SEED_ARGS="--season 2026 --no-stats"
 	$(UV) python -m api.scripts.seed_nfl_data $(SEED_ARGS)
 
 lint-api:

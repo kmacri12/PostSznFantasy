@@ -10,9 +10,18 @@ from api.services.ingestion.box_scores_ingest import ingest_box_scores
 from api.services.ingestion.players_ingest import ingest_nfl_players
 from api.services.ingestion.season_stats_ingest import ingest_season_stats
 from api.services.ingestion.teams_ingest import ingest_nfl_teams
-from api.utils.rapidapi.rapidapi import close_rapidapi_client
+from api.utils.rapidapi.rapidapi import close_rapidapi_client, get_rapidapi_client
 
 logger = logging.getLogger("seed_nfl_data")
+
+
+class EmptyStepError(RuntimeError):
+    """A step that should always produce rows produced none."""
+
+
+def require_rows(step: str, count: int) -> None:
+    if count == 0:
+        raise EmptyStepError(f"{step} synced 0 rows; check RapidAPI credentials/quota")
 
 
 async def main() -> None:
@@ -36,10 +45,9 @@ async def main() -> None:
         help="Only fetch and upsert NFL players",
     )
     parser.add_argument(
-        "--with-stats",
+        "--no-stats",
         action="store_true",
-        default=True,
-        help="Include regular season stats ingestion",
+        help="Skip season stats ingestion",
     )
     parser.add_argument(
         "--with-box-scores",
@@ -71,27 +79,32 @@ async def main() -> None:
             if args.teams_only:
                 logger.info("Syncing NFL teams...")
                 teams_count = await ingest_nfl_teams(session)
+                require_rows("teams", teams_count)
                 await session.commit()
                 logger.info(f"Teams synced: {teams_count}")
             elif args.players_only:
                 logger.info("Syncing NFL players...")
                 players_count = await ingest_nfl_players(session)
+                require_rows("players", players_count)
                 await session.commit()
                 logger.info(f"Players synced: {players_count}")
             else:
                 logger.info("[1/4] Syncing NFL teams...")
                 teams_count = await ingest_nfl_teams(session)
+                require_rows("teams", teams_count)
                 await session.commit()
                 logger.info(f"{teams_count} teams synced.")
 
                 logger.info("[2/4] Syncing NFL players...")
                 players_count = await ingest_nfl_players(session)
+                require_rows("players", players_count)
                 await session.commit()
                 logger.info(f"{players_count} players synced.")
 
-                if args.with_stats:
+                if not args.no_stats:
                     logger.info(f"[3/4] Syncing season stats for {args.season}...")
                     stats_count = await ingest_season_stats(session, season=args.season)
+                    require_rows("season stats", stats_count)
                     await session.commit()
                     logger.info(f"{stats_count} player season stats synced.")
 
@@ -103,6 +116,9 @@ async def main() -> None:
                     await session.commit()
                     logger.info(f"{games_count} games & box scores synced.")
 
+            remaining = get_rapidapi_client().requests_remaining
+            if remaining is not None:
+                logger.info("RapidAPI requests remaining: %d", remaining)
             total_elapsed = time.monotonic() - start_time
             logger.info(f"Ingestion finished in {total_elapsed:.2f}s!")
             logger.info(
