@@ -4,7 +4,6 @@ import {
   Autocomplete,
   Box,
   Button,
-  Card,
   Chip,
   CircularProgress,
   Container,
@@ -12,78 +11,18 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  Grid,
   IconButton,
   TextField,
   Typography,
 } from "@mui/material";
 import { useState } from "react";
 import { useParams } from "react-router-dom";
-import { useAddDrop, usePlayerList, useRenameTeam, useTeam } from "../api/queries";
-import type { RosterPlayer, RosterSlot, TeamDetails } from "../api/types";
-import { tokens } from "../theme";
+import { useAddDrop, useMoveInLineup, usePlayerList, useRenameTeam, useTeam } from "../api/queries";
+import type { RosterPlayer, TeamDetails } from "../api/types";
+import LineupList from "../components/team/LineupList";
 
 const detail = (error: unknown): string | null =>
   (error as { response?: { data?: { detail?: string } } } | null)?.response?.data?.detail ?? null;
-
-const kickoff = (epoch: string | null): string | null => {
-  const seconds = Number(epoch);
-  return Number.isFinite(seconds) && seconds > 0 ? new Date(seconds * 1000).toLocaleString() : null;
-};
-
-const nextGameText = (player: RosterPlayer): string => {
-  if (!player.isActive) return "Eliminated";
-  if (!player.nextGame) return "No upcoming game";
-  const when = kickoff(player.nextGame.gameTimeEpoch);
-  return `vs ${player.nextGame.opponentAbv ?? "TBD"}${when ? ` · ${when}` : ""}`;
-};
-
-const SlotCard = ({ slot }: { slot: RosterSlot }) => {
-  const player = slot.player;
-  return (
-    <Card
-      sx={{
-        p: 2,
-        height: "100%",
-        opacity: player ? 1 : 0.7,
-        borderStyle: player ? "solid" : "dashed",
-      }}
-      data-testid={`slot-${slot.slot}`}
-    >
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <Chip size="small" label={slot.slot} sx={{ color: tokens.gold }} />
-        {player && (
-          <Chip
-            size="small"
-            color={player.isActive ? "success" : "default"}
-            variant="outlined"
-            label={player.isActive ? "Alive" : "Eliminated"}
-          />
-        )}
-      </Box>
-      {player ? (
-        <>
-          <Typography
-            variant="h6"
-            sx={{ mt: 1.5, textDecoration: player.isActive ? "none" : "line-through" }}
-          >
-            {player.name}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {player.position} · {player.teamAbv || "FA"}
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            {nextGameText(player)}
-          </Typography>
-        </>
-      ) : (
-        <Typography color="text.secondary" sx={{ mt: 1.5 }}>
-          Empty
-        </Typography>
-      )}
-    </Card>
-  );
-};
 
 const RenameDialog = ({ team, onClose }: { team: TeamDetails; onClose: () => void }) => {
   const [name, setName] = useState(team.name);
@@ -165,6 +104,7 @@ function TeamPage() {
   const { data: team, isLoading, isError } = useTeam(teamId);
   const [renaming, setRenaming] = useState(false);
   const [managing, setManaging] = useState(false);
+  const moveInLineup = useMoveInLineup(teamId);
 
   if (isLoading) {
     return (
@@ -184,7 +124,7 @@ function TeamPage() {
   const aliveCount = team.roster.filter((player) => player.isActive).length;
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Container maxWidth="md" sx={{ py: { xs: 2, sm: 4 } }}>
       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
         <Typography variant="h4">{team.name}</Typography>
         {team.canEdit && (
@@ -193,7 +133,7 @@ function TeamPage() {
           </IconButton>
         )}
       </Box>
-      <Box sx={{ display: "flex", gap: 1, alignItems: "center", mt: 1, mb: 3, flexWrap: "wrap" }}>
+      <Box sx={{ display: "flex", gap: 1, alignItems: "center", mt: 0.5, mb: 2, flexWrap: "wrap" }}>
         <Typography color="text.secondary">Owner: {team.ownerName || "Unclaimed"}</Typography>
         {team.roster.length > 0 && (
           <Chip
@@ -216,15 +156,16 @@ function TeamPage() {
           No players yet. Your lineup fills in as the draft happens.
         </Alert>
       )}
-      <Grid container spacing={2}>
-        {team.slots.map((slot, index) => (
-          // Slots repeat (two RBs), so the position in the layout is the stable identity.
-          // biome-ignore lint/suspicious/noArrayIndexKey: fixed layout order
-          <Grid item xs={12} sm={6} md={3} key={`${slot.slot}-${index}`}>
-            <SlotCard slot={slot} />
-          </Grid>
-        ))}
-      </Grid>
+      <LineupList
+        slots={team.slots}
+        canDrag={team.canManageRoster}
+        onMove={(move) => moveInLineup.mutate(move)}
+      />
+      {detail(moveInLineup.error) && (
+        <Alert severity="error" sx={{ mt: 1 }}>
+          {detail(moveInLineup.error)}
+        </Alert>
+      )}
 
       {renaming && <RenameDialog team={team} onClose={() => setRenaming(false)} />}
       {managing && <AddDropDialog team={team} onClose={() => setManaging(false)} />}

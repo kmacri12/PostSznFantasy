@@ -188,9 +188,9 @@ Goal: one discoverable entry point for running the API, frontend and checks, rep
   - [x] A Members section on the Settings page: roles (promote/demote), remove, and assign a member to a team (commissioner only).
   - [x] Backend endpoint to assign/unassign a team owner with the same commissioner guard.
 - [ ] **My Team layout**:
-  - [ ] Phone: the full starting lineup fits on one screen (compact rows instead of large cards).
-  - [ ] Desktop: a vertical list instead of the sparse card grid.
-  - [ ] Drag and drop (touch + mouse) between starter slots and bench; persisted server-side with position-eligibility validation.
+  - [x] Phone: the full starting lineup fits on one screen (compact rows instead of large cards).
+  - [x] Desktop: a vertical list instead of the sparse card grid.
+  - [x] Drag and drop (touch + mouse) between starter slots and bench; persisted server-side with position-eligibility validation.
 - [x] **Scoring helpers**: plain-language conversions next to scoring inputs (e.g. 0.04 per passing yard = 1 point per 25 yards) for every rate that needs one.
 - [ ] **Players page**:
   - [ ] Fantasy points computed with the selected league's scoring settings (server-side), sorted by points by default.
