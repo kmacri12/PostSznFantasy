@@ -220,3 +220,14 @@ async def test_create_league_uses_requested_draft_timing(
     assert drafts[0].time_per_pick_seconds == 30
     assert drafts[0].start_time is not None
     assert drafts[0].start_time.year == 2030
+
+
+def test_gzip_middleware_is_registered() -> None:
+    from api.main import app
+
+    options = [
+        m.kwargs
+        for m in app.user_middleware
+        if getattr(m.cls, "__name__", "") == "GZipMiddleware"
+    ]
+    assert options == [{"minimum_size": 1000}]
