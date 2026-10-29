@@ -15,11 +15,6 @@ from api.models.players_models import (
 router = APIRouter(dependencies=[Depends(get_current_user)])
 
 
-@router.get("/")
-async def health() -> dict[str, str]:
-    return {"status": "healthy"}
-
-
 def _to_player(player: NFLPlayer) -> Player:
     team = player.team
     return Player(

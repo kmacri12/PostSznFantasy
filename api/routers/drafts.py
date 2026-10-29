@@ -25,11 +25,6 @@ AUTH_TIMEOUT_SECONDS = 10
 INBOUND_EVENTS = {"PING", "SYNC_REQUEST", "MAKE_PICK"}
 
 
-@router.get("/")
-async def health() -> dict[str, str]:
-    return {"status": "healthy"}
-
-
 @router.get("/draft-info/{league_id}", response_model=DraftInfoResponse)
 async def get_draft_info(
     league_id: int,

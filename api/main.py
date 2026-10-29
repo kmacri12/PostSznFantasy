@@ -1,15 +1,20 @@
 import asyncio
+import logging
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
 
 from api.core.config import get_settings
 from api.core.logging import RequestLoggingMiddleware, setup_logging
-from api.db.session import close_db, init_db
+from api.db.session import DbSession, close_db, init_db
 from api.routers import admin, auth, drafts, leagues, players
 from api.services.scheduler import run_scheduler
+
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
@@ -51,5 +56,14 @@ app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
 
 
 @app.get("/api", tags=["health"])
-async def health() -> dict[str, str]:
+async def health(db: DbSession) -> dict[str, str]:
+    """Liveness plus a database round trip, so deploy checks catch a dead pool."""
+    try:
+        await db.execute(text("SELECT 1"))
+    except SQLAlchemyError as exc:
+        logger.exception("Health check failed")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Database unavailable",
+        ) from exc
     return {"status": "healthy"}

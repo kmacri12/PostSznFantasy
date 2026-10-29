@@ -69,7 +69,7 @@ PostSznFantasy/
 │   │   ├── draft_models.py     # Draft status and pick DTOs
 │   │   └── players_models.py   # Player directory DTOs
 │   ├── routers/                # Modular APIRouters
-│   │   ├── admin.py            # Ingestion triggers & healthcheck
+│   │   ├── admin.py            # Ingestion triggers (admin only)
 │   │   ├── auth.py             # User onboarding & token exchange
 │   │   ├── drafts.py           # Draft info/picks + authenticated draft WebSocket
 │   │   ├── leagues.py          # League CRUD, teams, rosters, standings

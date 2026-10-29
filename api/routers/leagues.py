@@ -27,11 +27,6 @@ from api.models.league_models import (
 router = APIRouter()
 
 
-@router.get("/")
-async def health() -> dict[str, str]:
-    return {"status": "healthy"}
-
-
 @router.get("/scoring-defaults", response_model=dict[str, float])
 async def get_scoring_defaults() -> dict[str, float]:
     """Sleeper standard PPR template used to seed the league creation flow.
@@ -115,7 +110,6 @@ async def create_league(
 
 
 @router.get("/user-leagues", response_model=list[LeaguesByUser])
-@router.get("/get_leagues_by_user", response_model=list[LeaguesByUser])
 async def get_user_leagues(
     current_user_id: CurrentUser,
     db: DbSession,

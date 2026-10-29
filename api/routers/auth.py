@@ -20,11 +20,6 @@ class LoginPayload(BaseSchema):
     username: str | None = Field(default=None, max_length=20)
 
 
-@router.get("/")
-async def health() -> dict[str, str]:
-    return {"status": "healthy"}
-
-
 @router.post("/login", response_model=LoginResponse)
 async def login_or_register(
     payload: LoginPayload,

@@ -17,11 +17,6 @@ from api.utils.db.update import mark_eliminated_teams
 router = APIRouter(dependencies=[Depends(require_admin)])
 
 
-@router.get("/")
-async def health() -> dict[str, str]:
-    return {"status": "healthy"}
-
-
 class BoxScoreRequest(BaseSchema):
     season: str
     season_type: str

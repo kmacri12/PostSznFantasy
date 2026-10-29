@@ -7,7 +7,7 @@ from api.db.models.nfl import NFLPlayer, NFLPlayerSeasonStats, NFLTeam
 from api.db.models.user import User
 from api.models.league_models import RosterSettings, ScoringSettings
 from httpx import AsyncClient
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, OperationalError
 
 
 @pytest.mark.asyncio
@@ -444,3 +444,16 @@ async def test_fractional_scoring_round_trips_through_put(
     body = res.json()
     assert body["scoringPassingYard"] == 0.05
     assert body["scoringRushingYard"] == 0.125
+
+
+@pytest.mark.asyncio
+async def test_health_checks_database(
+    async_client: AsyncClient, mock_db_session: AsyncMock
+) -> None:
+    response = await async_client.get("/api")
+    assert response.status_code == 200
+    mock_db_session.execute.assert_awaited()
+
+    mock_db_session.execute.side_effect = OperationalError("SELECT 1", {}, Exception())
+    response = await async_client.get("/api")
+    assert response.status_code == 503
