@@ -49,7 +49,10 @@ class NFLPlayer(Base):
     weight: Mapped[str | None] = mapped_column(String(255), nullable=True)
     exp: Mapped[str | None] = mapped_column(String(255), nullable=True)
     team_id: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("nfl.nfl_teams.id", ondelete="SET NULL"), nullable=True
+        Integer,
+        ForeignKey("nfl.nfl_teams.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
     )
 
     team: Mapped["NFLTeam | None"] = relationship("NFLTeam", back_populates="players")

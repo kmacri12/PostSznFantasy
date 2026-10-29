@@ -1,16 +1,21 @@
-from datetime import UTC, datetime, timedelta
-
 from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 
 from api.db.models.draft import Draft, DraftPick
-from api.db.models.league import League, LeagueSettings, LeagueStanding, Team
+from api.db.models.league import (
+    League,
+    LeagueSettings,
+    LeagueStanding,
+    Team,
+    TeamPlayer,
+)
 from api.db.models.nfl import NFLPlayer
 from api.db.models.user import User
 from api.dependencies.auth import CurrentUser
 from api.dependencies.db import DbSession
 from api.dependencies.league import LeagueMember, TeamMember
+from api.models.enums import DraftStatus, DraftType
 from api.models.league_models import (
     LeagueCreate,
     LeagueCreateResponse,
@@ -94,10 +99,10 @@ async def create_league(
     # 4. Create Draft
     new_draft = Draft(
         league_id=new_league.id,
-        status="Scheduled",
-        start_time=datetime.now(UTC) + timedelta(days=7),
-        draft_type="snake",
-        time_per_pick_seconds=60,
+        status=DraftStatus.SCHEDULED.value,
+        start_time=payload.draft_start_time,
+        draft_type=DraftType.SNAKE.value,
+        time_per_pick_seconds=payload.time_per_pick_seconds,
         alphabetical_sort=False,
         draft_order_team_ids=[t.id for t in new_teams],
     )
@@ -272,19 +277,19 @@ async def get_team(
             status_code=status.HTTP_404_NOT_FOUND, detail="Team not found"
         )
 
-    players: list[NFLPlayer] = []
-    if team.roster:
-        players = list(
-            (
-                await db.execute(
-                    select(NFLPlayer)
-                    .options(selectinload(NFLPlayer.team))
-                    .where(NFLPlayer.id.in_(team.roster))
-                )
+    players = (
+        (
+            await db.execute(
+                select(NFLPlayer)
+                .options(selectinload(NFLPlayer.team))
+                .join(TeamPlayer, TeamPlayer.player_id == NFLPlayer.id)
+                .where(TeamPlayer.team_id == team_id)
+                .order_by(NFLPlayer.name)
             )
-            .scalars()
-            .all()
         )
+        .scalars()
+        .all()
+    )
     # Lineup slot assignment is not persisted per player yet, so everything is BENCH.
     return TeamDetails(
         id=team.id,

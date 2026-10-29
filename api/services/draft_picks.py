@@ -2,17 +2,17 @@ import logging
 from dataclasses import dataclass
 
 from api.db.models.draft import Draft, DraftPick
-from api.db.models.league import LeagueSettings, Team
+from api.db.models.league import LeagueSettings, Team, TeamPlayer
 from api.db.models.nfl import NFLPlayer
 from api.db.models.user import User
-from api.models.enums import PlayerPosition
+from api.models.enums import DraftStatus, PlayerPosition
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
 
-DRAFT_IN_PROGRESS = "In Progress"
-DRAFT_COMPLETED = "Completed"
+DRAFT_IN_PROGRESS = DraftStatus.IN_PROGRESS.value
+DRAFT_COMPLETED = DraftStatus.COMPLETED.value
 
 
 class DraftPickError(Exception):
@@ -136,7 +136,7 @@ async def make_pick(
         autopick=False,
     )
     db.add(pick)
-    team.roster = [*(team.roster or []), player_id]
+    db.add(TeamPlayer(team_id=team_id, player_id=player_id))
     draft_complete = pick_index + 1 >= total_picks
     draft.status = DRAFT_COMPLETED if draft_complete else DRAFT_IN_PROGRESS
     await db.flush()

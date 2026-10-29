@@ -1,8 +1,8 @@
-"""multi_schema_segregation_nfl_fantasy
+"""initial_schema
 
-Revision ID: 25a38913a05f
+Revision ID: 0001
 Revises:
-Create Date: 2026-10-28 16:47:35.093398
+Create Date: 2026-10-28 22:20:16.148878
 
 """
 
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "25a38913a05f"
+revision: str = "0001"
 down_revision: str | Sequence[str] | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -27,7 +27,7 @@ def upgrade() -> None:
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("supabase_uid", sa.String(length=128), nullable=False),
         sa.Column("username", sa.String(length=20), nullable=False),
-        sa.Column("email", sa.String(length=120), nullable=False),
+        sa.Column("email", sa.String(length=120), nullable=True),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("email"),
         sa.UniqueConstraint("supabase_uid"),
@@ -60,6 +60,13 @@ def upgrade() -> None:
             ["commissioner_id"], ["fantasy.users.id"], ondelete="CASCADE"
         ),
         sa.PrimaryKeyConstraint("id"),
+        schema="fantasy",
+    )
+    op.create_index(
+        op.f("ix_fantasy_leagues_commissioner_id"),
+        "leagues",
+        ["commissioner_id"],
+        unique=False,
         schema="fantasy",
     )
     op.create_table(
@@ -107,25 +114,40 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
         schema="nfl",
     )
+    op.create_index(
+        op.f("ix_nfl_nfl_players_team_id"),
+        "nfl_players",
+        ["team_id"],
+        unique=False,
+        schema="nfl",
+    )
     op.create_table(
         "drafts",
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("league_id", sa.Integer(), nullable=False),
-        sa.Column("status", sa.String(length=20), nullable=True),
+        sa.Column("status", sa.String(length=20), nullable=False),
         sa.Column("start_time", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("draft_type", sa.String(length=20), nullable=True),
-        sa.Column("time_per_pick_seconds", sa.Integer(), nullable=True),
-        sa.Column("slow_draft_auto_pause", sa.Boolean(), nullable=True),
+        sa.Column("draft_type", sa.String(length=20), nullable=False),
+        sa.Column("time_per_pick_seconds", sa.Integer(), nullable=False),
+        sa.Column("slow_draft_auto_pause", sa.Boolean(), nullable=False),
         sa.Column("slow_draft_pause_from", sa.Time(), nullable=True),
         sa.Column("slow_draft_pause_to", sa.Time(), nullable=True),
         sa.Column("slow_draft_pause_timezone", sa.String(length=20), nullable=True),
-        sa.Column("cpu_autopick", sa.Boolean(), nullable=True),
-        sa.Column("alphabetical_sort", sa.Boolean(), nullable=True),
-        sa.Column("draft_order_team_ids", sa.ARRAY(sa.Integer()), nullable=True),
+        sa.Column("cpu_autopick", sa.Boolean(), nullable=False),
+        sa.Column("alphabetical_sort", sa.Boolean(), nullable=False),
+        sa.Column("draft_order_team_ids", sa.ARRAY(sa.Integer()), nullable=False),
+        sa.CheckConstraint(
+            "draft_type IN ('snake', 'linear')", name="ck_drafts_draft_type"
+        ),
+        sa.CheckConstraint(
+            "status IN ('Scheduled', 'In Progress', 'Completed')",
+            name="ck_drafts_status",
+        ),
         sa.ForeignKeyConstraint(
             ["league_id"], ["fantasy.leagues.id"], ondelete="CASCADE"
         ),
         sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint("league_id"),
         schema="fantasy",
     )
     op.create_table(
@@ -145,79 +167,295 @@ def upgrade() -> None:
         sa.Column("roster_num_k", sa.Integer(), nullable=False),
         sa.Column("roster_num_dst", sa.Integer(), nullable=False),
         sa.Column("roster_num_bench", sa.Integer(), nullable=False),
-        sa.Column("roster_max_qb", sa.Integer(), nullable=True),
-        sa.Column("roster_max_rb", sa.Integer(), nullable=True),
-        sa.Column("roster_max_wr", sa.Integer(), nullable=True),
-        sa.Column("roster_max_te", sa.Integer(), nullable=True),
-        sa.Column("roster_max_k", sa.Integer(), nullable=True),
-        sa.Column("roster_max_dst", sa.Integer(), nullable=True),
-        sa.Column("scoring_passing_yard", sa.Numeric(6, 2), nullable=True),
-        sa.Column("scoring_passing_td", sa.Numeric(6, 2), nullable=True),
-        sa.Column("scoring_passing_2pt", sa.Numeric(6, 2), nullable=True),
-        sa.Column("scoring_passing_interception", sa.Numeric(6, 2), nullable=True),
-        sa.Column("scoring_passing_completion", sa.Numeric(6, 2), nullable=True),
-        sa.Column("scoring_passing_attempt", sa.Numeric(6, 2), nullable=True),
-        sa.Column("scoring_passing_sack", sa.Numeric(6, 2), nullable=True),
-        sa.Column("scoring_rushing_yard", sa.Numeric(6, 2), nullable=True),
-        sa.Column("scoring_rushing_td", sa.Numeric(6, 2), nullable=True),
-        sa.Column("scoring_rushing_2pt", sa.Numeric(6, 2), nullable=True),
-        sa.Column("scoring_rushing_attempt", sa.Numeric(6, 2), nullable=True),
-        sa.Column("scoring_receiving_reception", sa.Numeric(6, 2), nullable=True),
-        sa.Column("scoring_receiving_yard", sa.Numeric(6, 2), nullable=True),
-        sa.Column("scoring_receiving_td", sa.Numeric(6, 2), nullable=True),
-        sa.Column("scoring_receiving_2pt", sa.Numeric(6, 2), nullable=True),
-        sa.Column("scoring_receiving_target", sa.Numeric(6, 2), nullable=True),
+        sa.Column("roster_max_qb", sa.Integer(), nullable=False),
+        sa.Column("roster_max_rb", sa.Integer(), nullable=False),
+        sa.Column("roster_max_wr", sa.Integer(), nullable=False),
+        sa.Column("roster_max_te", sa.Integer(), nullable=False),
+        sa.Column("roster_max_k", sa.Integer(), nullable=False),
+        sa.Column("roster_max_dst", sa.Integer(), nullable=False),
         sa.Column(
-            "scoring_receiving_reception_bonus_rb", sa.Numeric(6, 2), nullable=True
+            "scoring_passing_yard", sa.Numeric(precision=6, scale=2), nullable=False
         ),
         sa.Column(
-            "scoring_receiving_reception_bonus_wr", sa.Numeric(6, 2), nullable=True
+            "scoring_passing_td", sa.Numeric(precision=6, scale=2), nullable=False
         ),
         sa.Column(
-            "scoring_receiving_reception_bonus_te", sa.Numeric(6, 2), nullable=True
+            "scoring_passing_2pt", sa.Numeric(precision=6, scale=2), nullable=False
         ),
-        sa.Column("scoring_carrying_fumble", sa.Numeric(6, 2), nullable=True),
-        sa.Column("scoring_carrying_fumble_lost", sa.Numeric(6, 2), nullable=True),
-        sa.Column("scoring_special_punt_return_yard", sa.Numeric(6, 2), nullable=True),
-        sa.Column("scoring_special_punt_return_td", sa.Numeric(6, 2), nullable=True),
-        sa.Column("scoring_special_kick_return_yard", sa.Numeric(6, 2), nullable=True),
-        sa.Column("scoring_special_kick_return_td", sa.Numeric(6, 2), nullable=True),
-        sa.Column("scoring_kicking_fg_made", sa.Numeric(6, 2), nullable=True),
-        sa.Column("scoring_kicking_fg_miss", sa.Numeric(6, 2), nullable=True),
-        sa.Column("scoring_kicking_fg_made_0_19", sa.Numeric(6, 2), nullable=True),
-        sa.Column("scoring_kicking_fg_made_20_29", sa.Numeric(6, 2), nullable=True),
-        sa.Column("scoring_kicking_fg_made_30_39", sa.Numeric(6, 2), nullable=True),
-        sa.Column("scoring_kicking_fg_made_40_49", sa.Numeric(6, 2), nullable=True),
-        sa.Column("scoring_kicking_fg_made_50_plus", sa.Numeric(6, 2), nullable=True),
-        sa.Column("scoring_kicking_fg_yard", sa.Numeric(6, 2), nullable=True),
-        sa.Column("scoring_kicking_xp_made", sa.Numeric(6, 2), nullable=True),
-        sa.Column("scoring_kicking_xp_miss", sa.Numeric(6, 2), nullable=True),
-        sa.Column("scoring_dst_td", sa.Numeric(6, 2), nullable=True),
-        sa.Column("scoring_dst_pts_allowed_0", sa.Numeric(6, 2), nullable=True),
-        sa.Column("scoring_dst_pts_allowed_1_6", sa.Numeric(6, 2), nullable=True),
-        sa.Column("scoring_dst_pts_allowed_7_13", sa.Numeric(6, 2), nullable=True),
-        sa.Column("scoring_dst_pts_allowed_14_20", sa.Numeric(6, 2), nullable=True),
-        sa.Column("scoring_dst_pts_allowed_21_27", sa.Numeric(6, 2), nullable=True),
-        sa.Column("scoring_dst_pts_allowed_28_34", sa.Numeric(6, 2), nullable=True),
-        sa.Column("scoring_dst_pts_allowed_35_plus", sa.Numeric(6, 2), nullable=True),
         sa.Column(
-            "scoring_dst_yards_allowed_under_100", sa.Numeric(6, 2), nullable=True
+            "scoring_passing_interception",
+            sa.Numeric(precision=6, scale=2),
+            nullable=False,
         ),
-        sa.Column("scoring_dst_yards_allowed_100_199", sa.Numeric(6, 2), nullable=True),
-        sa.Column("scoring_dst_yards_allowed_200_299", sa.Numeric(6, 2), nullable=True),
-        sa.Column("scoring_dst_yards_allowed_300_399", sa.Numeric(6, 2), nullable=True),
-        sa.Column("scoring_dst_yards_allowed_400_499", sa.Numeric(6, 2), nullable=True),
         sa.Column(
-            "scoring_dst_yards_allowed_500_plus", sa.Numeric(6, 2), nullable=True
+            "scoring_passing_completion",
+            sa.Numeric(precision=6, scale=2),
+            nullable=False,
         ),
-        sa.Column("scoring_dst_sack", sa.Numeric(6, 2), nullable=True),
-        sa.Column("scoring_dst_safety", sa.Numeric(6, 2), nullable=True),
-        sa.Column("scoring_dst_fumble_recover", sa.Numeric(6, 2), nullable=True),
-        sa.Column("scoring_dst_interception", sa.Numeric(6, 2), nullable=True),
+        sa.Column(
+            "scoring_passing_attempt", sa.Numeric(precision=6, scale=2), nullable=False
+        ),
+        sa.Column(
+            "scoring_passing_sack", sa.Numeric(precision=6, scale=2), nullable=False
+        ),
+        sa.Column(
+            "scoring_passing_bonus_300_yards",
+            sa.Numeric(precision=6, scale=2),
+            nullable=False,
+        ),
+        sa.Column(
+            "scoring_passing_bonus_400_yards",
+            sa.Numeric(precision=6, scale=2),
+            nullable=False,
+        ),
+        sa.Column(
+            "scoring_rushing_yard", sa.Numeric(precision=6, scale=2), nullable=False
+        ),
+        sa.Column(
+            "scoring_rushing_td", sa.Numeric(precision=6, scale=2), nullable=False
+        ),
+        sa.Column(
+            "scoring_rushing_2pt", sa.Numeric(precision=6, scale=2), nullable=False
+        ),
+        sa.Column(
+            "scoring_rushing_attempt", sa.Numeric(precision=6, scale=2), nullable=False
+        ),
+        sa.Column(
+            "scoring_rushing_bonus_100_yards",
+            sa.Numeric(precision=6, scale=2),
+            nullable=False,
+        ),
+        sa.Column(
+            "scoring_rushing_bonus_200_yards",
+            sa.Numeric(precision=6, scale=2),
+            nullable=False,
+        ),
+        sa.Column(
+            "scoring_receiving_reception",
+            sa.Numeric(precision=6, scale=2),
+            nullable=False,
+        ),
+        sa.Column(
+            "scoring_receiving_yard", sa.Numeric(precision=6, scale=2), nullable=False
+        ),
+        sa.Column(
+            "scoring_receiving_td", sa.Numeric(precision=6, scale=2), nullable=False
+        ),
+        sa.Column(
+            "scoring_receiving_2pt", sa.Numeric(precision=6, scale=2), nullable=False
+        ),
+        sa.Column(
+            "scoring_receiving_target", sa.Numeric(precision=6, scale=2), nullable=False
+        ),
+        sa.Column(
+            "scoring_receiving_reception_bonus_rb",
+            sa.Numeric(precision=6, scale=2),
+            nullable=False,
+        ),
+        sa.Column(
+            "scoring_receiving_reception_bonus_wr",
+            sa.Numeric(precision=6, scale=2),
+            nullable=False,
+        ),
+        sa.Column(
+            "scoring_receiving_reception_bonus_te",
+            sa.Numeric(precision=6, scale=2),
+            nullable=False,
+        ),
+        sa.Column(
+            "scoring_receiving_bonus_100_yards",
+            sa.Numeric(precision=6, scale=2),
+            nullable=False,
+        ),
+        sa.Column(
+            "scoring_receiving_bonus_200_yards",
+            sa.Numeric(precision=6, scale=2),
+            nullable=False,
+        ),
+        sa.Column(
+            "scoring_carrying_fumble", sa.Numeric(precision=6, scale=2), nullable=False
+        ),
+        sa.Column(
+            "scoring_carrying_fumble_lost",
+            sa.Numeric(precision=6, scale=2),
+            nullable=False,
+        ),
+        sa.Column(
+            "scoring_special_punt_return_yard",
+            sa.Numeric(precision=6, scale=2),
+            nullable=False,
+        ),
+        sa.Column(
+            "scoring_special_punt_return_td",
+            sa.Numeric(precision=6, scale=2),
+            nullable=False,
+        ),
+        sa.Column(
+            "scoring_special_kick_return_yard",
+            sa.Numeric(precision=6, scale=2),
+            nullable=False,
+        ),
+        sa.Column(
+            "scoring_special_kick_return_td",
+            sa.Numeric(precision=6, scale=2),
+            nullable=False,
+        ),
+        sa.Column(
+            "scoring_kicking_fg_made", sa.Numeric(precision=6, scale=2), nullable=False
+        ),
+        sa.Column(
+            "scoring_kicking_fg_miss", sa.Numeric(precision=6, scale=2), nullable=False
+        ),
+        sa.Column(
+            "scoring_kicking_fg_miss_0_19",
+            sa.Numeric(precision=6, scale=2),
+            nullable=False,
+        ),
+        sa.Column(
+            "scoring_kicking_fg_miss_20_29",
+            sa.Numeric(precision=6, scale=2),
+            nullable=False,
+        ),
+        sa.Column(
+            "scoring_kicking_fg_miss_30_39",
+            sa.Numeric(precision=6, scale=2),
+            nullable=False,
+        ),
+        sa.Column(
+            "scoring_kicking_fg_miss_40_49",
+            sa.Numeric(precision=6, scale=2),
+            nullable=False,
+        ),
+        sa.Column(
+            "scoring_kicking_fg_miss_50_plus",
+            sa.Numeric(precision=6, scale=2),
+            nullable=False,
+        ),
+        sa.Column(
+            "scoring_kicking_fg_made_0_19",
+            sa.Numeric(precision=6, scale=2),
+            nullable=False,
+        ),
+        sa.Column(
+            "scoring_kicking_fg_made_20_29",
+            sa.Numeric(precision=6, scale=2),
+            nullable=False,
+        ),
+        sa.Column(
+            "scoring_kicking_fg_made_30_39",
+            sa.Numeric(precision=6, scale=2),
+            nullable=False,
+        ),
+        sa.Column(
+            "scoring_kicking_fg_made_40_49",
+            sa.Numeric(precision=6, scale=2),
+            nullable=False,
+        ),
+        sa.Column(
+            "scoring_kicking_fg_made_50_plus",
+            sa.Numeric(precision=6, scale=2),
+            nullable=False,
+        ),
+        sa.Column(
+            "scoring_kicking_fg_yard", sa.Numeric(precision=6, scale=2), nullable=False
+        ),
+        sa.Column(
+            "scoring_kicking_xp_made", sa.Numeric(precision=6, scale=2), nullable=False
+        ),
+        sa.Column(
+            "scoring_kicking_xp_miss", sa.Numeric(precision=6, scale=2), nullable=False
+        ),
+        sa.Column("scoring_dst_td", sa.Numeric(precision=6, scale=2), nullable=False),
+        sa.Column(
+            "scoring_dst_pts_allowed_0",
+            sa.Numeric(precision=6, scale=2),
+            nullable=False,
+        ),
+        sa.Column(
+            "scoring_dst_pts_allowed_1_6",
+            sa.Numeric(precision=6, scale=2),
+            nullable=False,
+        ),
+        sa.Column(
+            "scoring_dst_pts_allowed_7_13",
+            sa.Numeric(precision=6, scale=2),
+            nullable=False,
+        ),
+        sa.Column(
+            "scoring_dst_pts_allowed_14_20",
+            sa.Numeric(precision=6, scale=2),
+            nullable=False,
+        ),
+        sa.Column(
+            "scoring_dst_pts_allowed_21_27",
+            sa.Numeric(precision=6, scale=2),
+            nullable=False,
+        ),
+        sa.Column(
+            "scoring_dst_pts_allowed_28_34",
+            sa.Numeric(precision=6, scale=2),
+            nullable=False,
+        ),
+        sa.Column(
+            "scoring_dst_pts_allowed_35_plus",
+            sa.Numeric(precision=6, scale=2),
+            nullable=False,
+        ),
+        sa.Column(
+            "scoring_dst_yards_allowed_under_100",
+            sa.Numeric(precision=6, scale=2),
+            nullable=False,
+        ),
+        sa.Column(
+            "scoring_dst_yards_allowed_100_199",
+            sa.Numeric(precision=6, scale=2),
+            nullable=False,
+        ),
+        sa.Column(
+            "scoring_dst_yards_allowed_200_299",
+            sa.Numeric(precision=6, scale=2),
+            nullable=False,
+        ),
+        sa.Column(
+            "scoring_dst_yards_allowed_300_399",
+            sa.Numeric(precision=6, scale=2),
+            nullable=False,
+        ),
+        sa.Column(
+            "scoring_dst_yards_allowed_400_499",
+            sa.Numeric(precision=6, scale=2),
+            nullable=False,
+        ),
+        sa.Column(
+            "scoring_dst_yards_allowed_500_plus",
+            sa.Numeric(precision=6, scale=2),
+            nullable=False,
+        ),
+        sa.Column("scoring_dst_sack", sa.Numeric(precision=6, scale=2), nullable=False),
+        sa.Column(
+            "scoring_dst_safety", sa.Numeric(precision=6, scale=2), nullable=False
+        ),
+        sa.Column(
+            "scoring_dst_fumble_recover",
+            sa.Numeric(precision=6, scale=2),
+            nullable=False,
+        ),
+        sa.Column(
+            "scoring_dst_interception", sa.Numeric(precision=6, scale=2), nullable=False
+        ),
+        sa.Column(
+            "scoring_dst_blocked_kick", sa.Numeric(precision=6, scale=2), nullable=False
+        ),
+        sa.Column(
+            "scoring_dst_two_point_return",
+            sa.Numeric(precision=6, scale=2),
+            nullable=False,
+        ),
         sa.ForeignKeyConstraint(
             ["league_id"], ["fantasy.leagues.id"], ondelete="CASCADE"
         ),
         sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint("league_id"),
         schema="fantasy",
     )
     op.create_table(
@@ -226,7 +464,6 @@ def upgrade() -> None:
         sa.Column("name", sa.String(length=20), nullable=True),
         sa.Column("owner_id", sa.Integer(), nullable=True),
         sa.Column("league_id", sa.Integer(), nullable=False),
-        sa.Column("roster", sa.ARRAY(sa.Integer()), nullable=True),
         sa.ForeignKeyConstraint(
             ["league_id"], ["fantasy.leagues.id"], ondelete="CASCADE"
         ),
@@ -234,6 +471,20 @@ def upgrade() -> None:
             ["owner_id"], ["fantasy.users.id"], ondelete="SET NULL"
         ),
         sa.PrimaryKeyConstraint("id"),
+        schema="fantasy",
+    )
+    op.create_index(
+        op.f("ix_fantasy_teams_league_id"),
+        "teams",
+        ["league_id"],
+        unique=False,
+        schema="fantasy",
+    )
+    op.create_index(
+        op.f("ix_fantasy_teams_owner_id"),
+        "teams",
+        ["owner_id"],
+        unique=False,
         schema="fantasy",
     )
     op.create_table(
@@ -269,6 +520,9 @@ def upgrade() -> None:
         sa.Column("kicking_xp_missed", sa.SmallInteger(), nullable=False),
         sa.Column("kicking_fg_missed", sa.SmallInteger(), nullable=False),
         sa.Column("kicking_fg_yards_made", sa.ARRAY(sa.SmallInteger()), nullable=False),
+        sa.Column(
+            "kicking_fg_yards_missed", sa.ARRAY(sa.SmallInteger()), nullable=False
+        ),
         sa.Column("dst_yards_allowed", sa.SmallInteger(), nullable=False),
         sa.Column("dst_points_allowed", sa.SmallInteger(), nullable=False),
         sa.Column("dst_sacks", sa.SmallInteger(), nullable=False),
@@ -276,6 +530,8 @@ def upgrade() -> None:
         sa.Column("dst_safeties", sa.SmallInteger(), nullable=False),
         sa.Column("dst_fumbles_recovered", sa.SmallInteger(), nullable=False),
         sa.Column("dst_interceptions", sa.SmallInteger(), nullable=False),
+        sa.Column("dst_blocked_kicks", sa.SmallInteger(), nullable=False),
+        sa.Column("dst_two_point_returns", sa.SmallInteger(), nullable=False),
         sa.ForeignKeyConstraint(
             ["player_id"], ["nfl.nfl_players.id"], ondelete="CASCADE"
         ),
@@ -334,10 +590,10 @@ def upgrade() -> None:
         sa.Column("draft_id", sa.Integer(), nullable=False),
         sa.Column("team_id", sa.Integer(), nullable=False),
         sa.Column("player_id", sa.Integer(), nullable=False),
-        sa.Column("number_round", sa.Integer(), nullable=True),
-        sa.Column("number_pick_overall", sa.Integer(), nullable=True),
-        sa.Column("number_pick_in_round", sa.Integer(), nullable=True),
-        sa.Column("autopick", sa.Boolean(), nullable=True),
+        sa.Column("number_round", sa.Integer(), nullable=False),
+        sa.Column("number_pick_overall", sa.Integer(), nullable=False),
+        sa.Column("number_pick_in_round", sa.Integer(), nullable=False),
+        sa.Column("autopick", sa.Boolean(), nullable=False),
         sa.ForeignKeyConstraint(
             ["draft_id"], ["fantasy.drafts.id"], ondelete="CASCADE"
         ),
@@ -346,6 +602,29 @@ def upgrade() -> None:
         ),
         sa.ForeignKeyConstraint(["team_id"], ["fantasy.teams.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint("draft_id", "number_pick_overall"),
+        sa.UniqueConstraint("draft_id", "player_id"),
+        schema="fantasy",
+    )
+    op.create_index(
+        op.f("ix_fantasy_draft_picks_draft_id"),
+        "draft_picks",
+        ["draft_id"],
+        unique=False,
+        schema="fantasy",
+    )
+    op.create_index(
+        op.f("ix_fantasy_draft_picks_player_id"),
+        "draft_picks",
+        ["player_id"],
+        unique=False,
+        schema="fantasy",
+    )
+    op.create_index(
+        op.f("ix_fantasy_draft_picks_team_id"),
+        "draft_picks",
+        ["team_id"],
+        unique=False,
         schema="fantasy",
     )
     op.create_table(
@@ -358,6 +637,20 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(["team_id"], ["fantasy.teams.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(["week_id"], ["fantasy.weeks.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
+        schema="fantasy",
+    )
+    op.create_index(
+        op.f("ix_fantasy_lineups_team_id"),
+        "lineups",
+        ["team_id"],
+        unique=False,
+        schema="fantasy",
+    )
+    op.create_index(
+        op.f("ix_fantasy_lineups_week_id"),
+        "lineups",
+        ["week_id"],
+        unique=False,
         schema="fantasy",
     )
     op.create_table(
@@ -377,6 +670,39 @@ def upgrade() -> None:
         ),
         sa.ForeignKeyConstraint(["team_id"], ["fantasy.teams.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint("league_id", "team_id"),
+        schema="fantasy",
+    )
+    op.create_index(
+        op.f("ix_fantasy_standings_league_id"),
+        "standings",
+        ["league_id"],
+        unique=False,
+        schema="fantasy",
+    )
+    op.create_index(
+        op.f("ix_fantasy_standings_team_id"),
+        "standings",
+        ["team_id"],
+        unique=False,
+        schema="fantasy",
+    )
+    op.create_table(
+        "team_players",
+        sa.Column("team_id", sa.Integer(), nullable=False),
+        sa.Column("player_id", sa.Integer(), nullable=False),
+        sa.ForeignKeyConstraint(
+            ["player_id"], ["nfl.nfl_players.id"], ondelete="CASCADE"
+        ),
+        sa.ForeignKeyConstraint(["team_id"], ["fantasy.teams.id"], ondelete="CASCADE"),
+        sa.PrimaryKeyConstraint("team_id", "player_id"),
+        schema="fantasy",
+    )
+    op.create_index(
+        op.f("ix_fantasy_team_players_player_id"),
+        "team_players",
+        ["player_id"],
+        unique=False,
         schema="fantasy",
     )
     op.create_table(
@@ -391,24 +717,84 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
         schema="fantasy",
     )
+    op.create_index(
+        op.f("ix_fantasy_player_scores_lineup_id"),
+        "player_scores",
+        ["lineup_id"],
+        unique=False,
+        schema="fantasy",
+    )
     # ### end Alembic commands ###
 
 
 def downgrade() -> None:
     """Downgrade schema."""
-    # Drop leaf tables first, then parents, respecting FK dependency order.
+    # ### commands auto generated by Alembic - please adjust! ###
+    op.drop_index(
+        op.f("ix_fantasy_player_scores_lineup_id"),
+        table_name="player_scores",
+        schema="fantasy",
+    )
     op.drop_table("player_scores", schema="fantasy")
+    op.drop_index(
+        op.f("ix_fantasy_team_players_player_id"),
+        table_name="team_players",
+        schema="fantasy",
+    )
+    op.drop_table("team_players", schema="fantasy")
+    op.drop_index(
+        op.f("ix_fantasy_standings_team_id"), table_name="standings", schema="fantasy"
+    )
+    op.drop_index(
+        op.f("ix_fantasy_standings_league_id"), table_name="standings", schema="fantasy"
+    )
     op.drop_table("standings", schema="fantasy")
+    op.drop_index(
+        op.f("ix_fantasy_lineups_week_id"), table_name="lineups", schema="fantasy"
+    )
+    op.drop_index(
+        op.f("ix_fantasy_lineups_team_id"), table_name="lineups", schema="fantasy"
+    )
     op.drop_table("lineups", schema="fantasy")
+    op.drop_index(
+        op.f("ix_fantasy_draft_picks_team_id"),
+        table_name="draft_picks",
+        schema="fantasy",
+    )
+    op.drop_index(
+        op.f("ix_fantasy_draft_picks_player_id"),
+        table_name="draft_picks",
+        schema="fantasy",
+    )
+    op.drop_index(
+        op.f("ix_fantasy_draft_picks_draft_id"),
+        table_name="draft_picks",
+        schema="fantasy",
+    )
     op.drop_table("draft_picks", schema="fantasy")
     op.drop_table("nfl_player_season_stats", schema="nfl")
     op.drop_table("nfl_player_game_stats", schema="nfl")
+    op.drop_index(
+        op.f("ix_fantasy_teams_owner_id"), table_name="teams", schema="fantasy"
+    )
+    op.drop_index(
+        op.f("ix_fantasy_teams_league_id"), table_name="teams", schema="fantasy"
+    )
     op.drop_table("teams", schema="fantasy")
     op.drop_table("league_settings", schema="fantasy")
     op.drop_table("drafts", schema="fantasy")
+    op.drop_index(
+        op.f("ix_nfl_nfl_players_team_id"), table_name="nfl_players", schema="nfl"
+    )
     op.drop_table("nfl_players", schema="nfl")
     op.drop_table("nfl_games", schema="nfl")
+    op.drop_index(
+        op.f("ix_fantasy_leagues_commissioner_id"),
+        table_name="leagues",
+        schema="fantasy",
+    )
     op.drop_table("leagues", schema="fantasy")
     op.drop_table("nfl_teams", schema="nfl")
     op.drop_table("weeks", schema="fantasy")
     op.drop_table("users", schema="fantasy")
+    # ### end Alembic commands ###

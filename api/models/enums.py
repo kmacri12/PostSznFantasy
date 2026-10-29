@@ -24,3 +24,14 @@ class PlayerPosition(StrEnum):
             return cls(cleaned)
         except ValueError:
             return None
+
+
+class DraftStatus(StrEnum):
+    SCHEDULED = "Scheduled"
+    IN_PROGRESS = "In Progress"
+    COMPLETED = "Completed"
+
+
+class DraftType(StrEnum):
+    SNAKE = "snake"
+    LINEAR = "linear"

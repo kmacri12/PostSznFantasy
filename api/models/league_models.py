@@ -1,6 +1,12 @@
+from datetime import UTC, datetime, timedelta
+
 from pydantic import Field
 
 from api.models.base import BaseSchema
+
+
+def _default_draft_start() -> datetime:
+    return datetime.now(UTC) + timedelta(days=7)
 
 
 class RosterSettings(BaseSchema):
@@ -100,6 +106,8 @@ class LeagueCreate(BaseSchema):
     league_name: str = Field(min_length=1, max_length=100)
     roster_settings: RosterSettings = Field(default_factory=RosterSettings)
     scoring_settings: ScoringSettings = Field(default_factory=ScoringSettings)
+    draft_start_time: datetime = Field(default_factory=_default_draft_start)
+    time_per_pick_seconds: int = Field(default=60, ge=10, le=86400)
 
 
 class LeagueCreateResponse(BaseSchema):

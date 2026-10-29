@@ -301,7 +301,6 @@ async def test_league_teams_and_team_detail(
         }
     ]
 
-    team.roster = [7]
     nfl_team = NFLTeam(id=1, team_abv="KC", is_active=False)
     player = NFLPlayer(id=7, name="Pat Mahomes", position="QB", team=nfl_team)
     mock_db_session.execute.side_effect = [
@@ -457,3 +456,29 @@ async def test_health_checks_database(
     mock_db_session.execute.side_effect = OperationalError("SELECT 1", {}, Exception())
     response = await async_client.get("/api")
     assert response.status_code == 503
+
+
+@pytest.mark.asyncio
+async def test_create_league_uses_requested_draft_timing(
+    async_client: AsyncClient, mock_db_session: AsyncMock
+) -> None:
+    user = User(id=1, supabase_uid="x", email=None, username="c")
+    mock_db_session.execute.return_value = _result(first=user)
+    response = await async_client.post(
+        "/api/leagues/create-league",
+        json={
+            "leagueName": "Timed",
+            "rosterSettings": {"numberTeams": 4},
+            "draftStartTime": "2030-01-05T18:00:00Z",
+            "timePerPickSeconds": 30,
+        },
+    )
+    assert response.status_code == 201
+    drafts = [
+        c.args[0]
+        for c in mock_db_session.add.call_args_list
+        if isinstance(c.args[0], Draft)
+    ]
+    assert drafts[0].time_per_pick_seconds == 30
+    assert drafts[0].start_time is not None
+    assert drafts[0].start_time.year == 2030

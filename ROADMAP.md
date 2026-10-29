@@ -61,12 +61,12 @@ Guiding principles: KISS, comments explain *why* only, self-documenting names.
 - [x] **One transaction pattern**: `get_db` commits on success *and* routes call `commit()`. Pick one (recommended: `get_db` owns commit; routes only `flush`).
 - [x] **Remove cruft routes**: legacy `/get_leagues_by_user` alias; five identical router-level `GET /` health endpoints; keep one health endpoint that also checks the DB.
 - [x] **Config-driven deployment settings**: CORS origins, pool size/overflow into `Settings`; resolve `.env` path independent of working directory.
-- [ ] **Schema hygiene** (DB is disposable — redo the migration freely):
-  - [ ] Add indexes on FKs (`teams.league_id`, `teams.owner_id`, `draft_picks.draft_id`, `draft_picks.team_id`, `standings.league_id`, …) and a unique constraint on `league_settings.league_id` (and `drafts.league_id` if one draft per league). Verify against the current migration first.
-  - [ ] Tighten nullability (`Draft.status`, `league_id`-style columns, etc.); use enums / `CheckConstraint` for `status` and `draft_type` (`api/models/enums.py` exists).
-  - [ ] Replace `Team.roster` `ARRAY(Integer)` with a proper roster join table.
-  - [ ] Move the hardcoded draft defaults in `create_league` (start in 7 days, 60 s/pick) into settings or the request.
-  - [ ] Run `alembic revision --autogenerate` on a fresh DB and confirm the diff is empty.
+- [x] **Schema hygiene** (DB is disposable — redo the migration freely):
+  - [x] Add indexes on FKs (`teams.league_id`, `teams.owner_id`, `draft_picks.draft_id`, `draft_picks.team_id`, `standings.league_id`, …) and a unique constraint on `league_settings.league_id` (and `drafts.league_id` if one draft per league). Verify against the current migration first.
+  - [x] Tighten nullability (`Draft.status`, `league_id`-style columns, etc.); use enums / `CheckConstraint` for `status` and `draft_type` (`api/models/enums.py` exists).
+  - [x] Replace `Team.roster` `ARRAY(Integer)` with a proper roster join table.
+  - [x] Move the hardcoded draft defaults in `create_league` (start in 7 days, 60 s/pick) into settings or the request.
+  - [x] Run `alembic revision --autogenerate` on a fresh DB and confirm the diff is empty.
 - [ ] **RapidAPI client** (`api/utils/rapidapi/rapidapi.py`): reuse one `httpx.AsyncClient`; bound the cache; retry only 5xx / transport errors (not 4xx); let failures propagate so a failed sync is not reported as "0 rows synced"; delete the `RapidApi` alias.
 - [ ] **Typing**: remove the mypy `ignore_errors` override for `api.utils.*` and fix what surfaces.
 - [ ] **Tooling**: set Ruff `known-first-party = ["api"]` so `api.*` imports sort correctly.

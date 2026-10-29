@@ -8,6 +8,7 @@ from api.db.models.league import (
     PlayerScore,
     Standings,
     Team,
+    TeamPlayer,
     Week,
 )
 from api.db.models.nfl import (
@@ -35,6 +36,7 @@ __all__ = [
     "PlayerScore",
     "Standings",
     "Team",
+    "TeamPlayer",
     "User",
     "Week",
 ]
