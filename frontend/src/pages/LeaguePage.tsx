@@ -89,7 +89,9 @@ const LeaguePage: React.FC = () => {
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap", mb: 1 }}>
-        <Typography variant="h4">{league.name}</Typography>
+        <Typography variant="h4" sx={{ overflowWrap: "anywhere" }}>
+          {league.name}
+        </Typography>
         {isCommissioner && (
           <IconButton aria-label="Rename league" onClick={() => setRenaming(true)}>
             <EditIcon />
@@ -127,7 +129,7 @@ const LeaguePage: React.FC = () => {
       </Box>
 
       <Grid container spacing={3}>
-        <Grid item xs={12} md={isCommissioner ? 8 : 12}>
+        <Grid item xs={12} md={isCommissioner ? 8 : 12} sx={{ minWidth: 0 }}>
           <Typography variant="h6" sx={{ mb: 1 }}>
             Members
           </Typography>
@@ -138,7 +140,7 @@ const LeaguePage: React.FC = () => {
             <InvitePanel leagueId={league.id} />
           </Grid>
         )}
-        <Grid item xs={12}>
+        <Grid item xs={12} sx={{ minWidth: 0 }}>
           <Typography variant="h6" sx={{ mb: 1 }}>
             Standings
           </Typography>
