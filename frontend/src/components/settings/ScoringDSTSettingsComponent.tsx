@@ -27,7 +27,7 @@ const ScoringDSTSettingsComponent: React.FC<ScoringDSTSettingsProps> = ({
   return (
     <div id="defense-scoring-settings">
       <Typography variant="h6" gutterBottom onClick={handleExpandClick}>
-        Scoring: Defense/Special Teams{" "}
+        Scoring: Defense{" "}
         <IconButton size="small" edge="end">
           {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
         </IconButton>
@@ -223,70 +223,6 @@ const ScoringDSTSettingsComponent: React.FC<ScoringDSTSettingsProps> = ({
                   })
                 }
                 label="Defense Safeties"
-              />
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth margin="normal">
-              <InputLabel htmlFor="scoring-special-punt-return-yard">Punt Return Yard</InputLabel>
-              <OutlinedInput
-                id="scoring-special-punt-return-yard"
-                value={scoringSettings.scoring_special_punt_return_yard}
-                onChange={(e) =>
-                  setScoringSettings({
-                    ...scoringSettings,
-                    scoring_special_punt_return_yard: e.target.value,
-                  })
-                }
-                label="Special Punt Return Yard"
-              />
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth margin="normal">
-              <InputLabel htmlFor="scoring-special-punt-return-td">Punt Return TD</InputLabel>
-              <OutlinedInput
-                id="scoring-special-punt-return-td"
-                value={scoringSettings.scoring_special_punt_return_td}
-                onChange={(e) =>
-                  setScoringSettings({
-                    ...scoringSettings,
-                    scoring_special_punt_return_td: e.target.value,
-                  })
-                }
-                label="Special Punt Return TD"
-              />
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth margin="normal">
-              <InputLabel htmlFor="scoring-special-kick-return-yard">Kick Return Yard</InputLabel>
-              <OutlinedInput
-                id="scoring-special-kick-return-yard"
-                value={scoringSettings.scoring_special_kick_return_yard}
-                onChange={(e) =>
-                  setScoringSettings({
-                    ...scoringSettings,
-                    scoring_special_kick_return_yard: e.target.value,
-                  })
-                }
-                label="Special Kick Return Yard"
-              />
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth margin="normal">
-              <InputLabel htmlFor="scoring-special-kick-return-td">Kick Return TD</InputLabel>
-              <OutlinedInput
-                id="scoring-special-kick-return-td"
-                value={scoringSettings.scoring_special_kick_return_td}
-                onChange={(e) =>
-                  setScoringSettings({
-                    ...scoringSettings,
-                    scoring_special_kick_return_td: e.target.value,
-                  })
-                }
-                label="Special Kick Return TD"
               />
             </FormControl>
           </Grid>

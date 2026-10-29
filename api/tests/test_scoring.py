@@ -4,6 +4,7 @@ import pytest
 from api.db.models.league import LeagueSettings
 from api.db.models.nfl import NFLPlayerGameStats
 from api.models.enums import PlayerPosition
+from api.models.league_models import ScoringSettings
 from api.utils.calculations.fantasy_points_utils import (
     calculate_dst_points,
     calculate_kicking_points,
@@ -20,65 +21,65 @@ from api.utils.calculations.fantasy_points_utils import (
 def standard_league_settings() -> LeagueSettings:
     settings = LeagueSettings()
     # Passing
-    settings.scoring_passing_yard = 1  # 1 pt per 25 yds -> usually integer, let's say 1 per unit or 0.04 in real or whatever int is in model
-    settings.scoring_passing_td = 4
-    settings.scoring_passing_2pt = 2
-    settings.scoring_passing_interception = -2
-    settings.scoring_passing_completion = 0
-    settings.scoring_passing_attempt = 0
-    settings.scoring_passing_sack = -1
+    settings.scoring_passing_yard = Decimal(1)
+    settings.scoring_passing_td = Decimal(4)
+    settings.scoring_passing_2pt = Decimal(2)
+    settings.scoring_passing_interception = Decimal(-2)
+    settings.scoring_passing_completion = Decimal(0)
+    settings.scoring_passing_attempt = Decimal(0)
+    settings.scoring_passing_sack = Decimal(-1)
 
     # Rushing
-    settings.scoring_rushing_yard = 1
-    settings.scoring_rushing_td = 6
-    settings.scoring_rushing_2pt = 2
-    settings.scoring_rushing_attempt = 0
+    settings.scoring_rushing_yard = Decimal(1)
+    settings.scoring_rushing_td = Decimal(6)
+    settings.scoring_rushing_2pt = Decimal(2)
+    settings.scoring_rushing_attempt = Decimal(0)
 
     # Receiving
-    settings.scoring_receiving_reception = 1  # PPR
-    settings.scoring_receiving_yard = 1
-    settings.scoring_receiving_td = 6
-    settings.scoring_receiving_2pt = 2
-    settings.scoring_receiving_target = 0
-    settings.scoring_receiving_reception_bonus_rb = 0
-    settings.scoring_receiving_reception_bonus_wr = 0
-    settings.scoring_receiving_reception_bonus_te = 1  # TE Premium (+1 pt)
+    settings.scoring_receiving_reception = Decimal(1)  # PPR
+    settings.scoring_receiving_yard = Decimal(1)
+    settings.scoring_receiving_td = Decimal(6)
+    settings.scoring_receiving_2pt = Decimal(2)
+    settings.scoring_receiving_target = Decimal(0)
+    settings.scoring_receiving_reception_bonus_rb = Decimal(0)
+    settings.scoring_receiving_reception_bonus_wr = Decimal(0)
+    settings.scoring_receiving_reception_bonus_te = Decimal(1)  # TE Premium (+1 pt)
 
     # Fumbles
-    settings.scoring_carrying_fumble = -1
-    settings.scoring_carrying_fumble_lost = -2
+    settings.scoring_carrying_fumble = Decimal(-1)
+    settings.scoring_carrying_fumble_lost = Decimal(-2)
 
     # Kicking
-    settings.scoring_kicking_xp_made = 1
-    settings.scoring_kicking_xp_miss = -1
-    settings.scoring_kicking_fg_miss = -1
-    settings.scoring_kicking_fg_made = 3
-    settings.scoring_kicking_fg_yard = 0
-    settings.scoring_kicking_fg_made_0_19 = 0
-    settings.scoring_kicking_fg_made_20_29 = 0
-    settings.scoring_kicking_fg_made_30_39 = 0
-    settings.scoring_kicking_fg_made_40_49 = 1
-    settings.scoring_kicking_fg_made_50_plus = 2
+    settings.scoring_kicking_xp_made = Decimal(1)
+    settings.scoring_kicking_xp_miss = Decimal(-1)
+    settings.scoring_kicking_fg_miss = Decimal(-1)
+    settings.scoring_kicking_fg_made = Decimal(3)
+    settings.scoring_kicking_fg_yard = Decimal(0)
+    settings.scoring_kicking_fg_made_0_19 = Decimal(0)
+    settings.scoring_kicking_fg_made_20_29 = Decimal(0)
+    settings.scoring_kicking_fg_made_30_39 = Decimal(0)
+    settings.scoring_kicking_fg_made_40_49 = Decimal(1)
+    settings.scoring_kicking_fg_made_50_plus = Decimal(2)
 
     # DST
-    settings.scoring_dst_td = 6
-    settings.scoring_dst_sack = 1
-    settings.scoring_dst_safety = 2
-    settings.scoring_dst_fumble_recover = 2
-    settings.scoring_dst_interception = 2
-    settings.scoring_dst_pts_allowed_0 = 10
-    settings.scoring_dst_pts_allowed_1_6 = 7
-    settings.scoring_dst_pts_allowed_7_13 = 4
-    settings.scoring_dst_pts_allowed_14_20 = 1
-    settings.scoring_dst_pts_allowed_21_27 = 0
-    settings.scoring_dst_pts_allowed_28_34 = -1
-    settings.scoring_dst_pts_allowed_35_plus = -4
-    settings.scoring_dst_yards_allowed_under_100 = 5
-    settings.scoring_dst_yards_allowed_100_199 = 3
-    settings.scoring_dst_yards_allowed_200_299 = 2
-    settings.scoring_dst_yards_allowed_300_399 = 0
-    settings.scoring_dst_yards_allowed_400_499 = -1
-    settings.scoring_dst_yards_allowed_500_plus = -3
+    settings.scoring_dst_td = Decimal(6)
+    settings.scoring_dst_sack = Decimal(1)
+    settings.scoring_dst_safety = Decimal(2)
+    settings.scoring_dst_fumble_recover = Decimal(2)
+    settings.scoring_dst_interception = Decimal(2)
+    settings.scoring_dst_pts_allowed_0 = Decimal(10)
+    settings.scoring_dst_pts_allowed_1_6 = Decimal(7)
+    settings.scoring_dst_pts_allowed_7_13 = Decimal(4)
+    settings.scoring_dst_pts_allowed_14_20 = Decimal(1)
+    settings.scoring_dst_pts_allowed_21_27 = Decimal(0)
+    settings.scoring_dst_pts_allowed_28_34 = Decimal(-1)
+    settings.scoring_dst_pts_allowed_35_plus = Decimal(-4)
+    settings.scoring_dst_yards_allowed_under_100 = Decimal(5)
+    settings.scoring_dst_yards_allowed_100_199 = Decimal(3)
+    settings.scoring_dst_yards_allowed_200_299 = Decimal(2)
+    settings.scoring_dst_yards_allowed_300_399 = Decimal(0)
+    settings.scoring_dst_yards_allowed_400_499 = Decimal(-1)
+    settings.scoring_dst_yards_allowed_500_plus = Decimal(-3)
 
     return settings
 
@@ -142,8 +143,8 @@ def test_calculate_turnover_and_special_teams_points(
 
     stats.punt_return_yards = 50
     stats.punt_return_td = 1
-    standard_league_settings.scoring_special_punt_return_yard = 1
-    standard_league_settings.scoring_special_punt_return_td = 6
+    standard_league_settings.scoring_special_punt_return_yard = Decimal(1)
+    standard_league_settings.scoring_special_punt_return_td = Decimal(6)
     st_pts = calculate_special_teams_points(stats, standard_league_settings)
     assert st_pts == Decimal(56)
 
@@ -206,3 +207,41 @@ def test_calculate_player_points_total(
     # Total = 56 + 33 - 3 = 86
     pts = calculate_player_points(stats, standard_league_settings, PlayerPosition.RB)
     assert pts == Decimal(86)
+
+
+def test_default_template_scores_sleeper_ppr_stat_line() -> None:
+    template = ScoringSettings().model_dump(by_alias=False)
+    settings = LeagueSettings(**{k: Decimal(str(v)) for k, v in template.items()})
+
+    stats = NFLPlayerGameStats()
+    stats.passing_yards = 250
+    stats.passing_touchdowns = 2
+    stats.passing_interceptions = 1
+    stats.rushing_yards = 30
+    stats.rushing_touchdowns = 1
+    stats.receiving_receptions = 5
+    stats.receiving_yards = 60
+    stats.carrying_fumbles_lost = 1
+
+    # 250*.04 + 2*4 - 1 + 30*.1 + 6 + 5*1 + 60*.1 - 2 = 10+8-1+3+6+5+6-2 = 35
+    pts = calculate_player_points(stats, settings, PlayerPosition.RB)
+    assert pts == Decimal(35)
+
+
+def test_default_template_dst_and_kicker() -> None:
+    template = ScoringSettings().model_dump(by_alias=False)
+    settings = LeagueSettings(**{k: Decimal(str(v)) for k, v in template.items()})
+
+    dst = NFLPlayerGameStats()
+    dst.dst_points_allowed = 10
+    dst.dst_sacks = 3
+    dst.dst_interceptions = 1
+    dst.dst_yards_allowed = 250
+    # 4 (7-13 pts) + 3 + 2 + 0 (yards bands default to 0) = 9
+    assert calculate_dst_points(dst, settings) == Decimal(9)
+
+    kicker = NFLPlayerGameStats()
+    kicker.kicking_fg_yards_made = [25, 45, 52]
+    kicker.kicking_xp_made = 2
+    # 3 + 4 + 5 + 2 = 14
+    assert calculate_kicking_points(kicker, settings) == Decimal(14)

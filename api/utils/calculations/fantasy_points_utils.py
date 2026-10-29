@@ -5,8 +5,9 @@ from api.db.models.nfl import NFLPlayerGameStats
 from api.models.enums import PlayerPosition
 
 
-def _safe(val: int | None) -> Decimal:
-    return Decimal(val) if val is not None else Decimal(0)
+def _safe(val: Decimal | float | None) -> Decimal:
+    # str() keeps float rates like 0.04 exact instead of Decimal(0.04)'s binary expansion.
+    return Decimal(str(val)) if val is not None else Decimal(0)
 
 
 def _dst_pts_allowed_bonus(pts: int | None, settings: LeagueSettings) -> Decimal:
@@ -183,7 +184,7 @@ def calculate_player_points(
 ) -> Decimal:
     """Return fantasy points for a single player game stat row under the given league settings.
 
-    All scoring fields are integers where the value is literal points-per-unit (or per-event).
+    Scoring fields are decimal points-per-unit (or per-event), e.g. 0.04 per passing yard.
     None means the scoring category is disabled; treated as 0.
     """
     return (

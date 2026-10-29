@@ -17,6 +17,7 @@ from api.models.league_models import (
     LeagueSettingsResponse,
     LeagueSettingsUpdate,
     RosterPlayer,
+    ScoringSettings,
     Standings,
     TeamDetails,
     TeamSimple,
@@ -28,6 +29,17 @@ router = APIRouter()
 @router.get("/")
 async def health() -> dict[str, str]:
     return {"status": "healthy"}
+
+
+@router.get("/scoring-defaults", response_model=dict[str, float])
+async def get_scoring_defaults() -> dict[str, float]:
+    """Sleeper standard PPR template used to seed the league creation flow.
+
+    Keys stay snake_case (unlike other responses) because they are the form-state keys
+    the settings components bind to, and to_camel is not reversible for bands such as
+    `fg_made_0_19`.
+    """
+    return ScoringSettings().model_dump(by_alias=False)
 
 
 @router.post(

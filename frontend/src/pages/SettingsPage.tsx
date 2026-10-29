@@ -8,6 +8,7 @@ import ScoringDSTSettingsComponent from "../components/settings/ScoringDSTSettin
 import ScoringPassingSettingsComponent from "../components/settings/ScoringPassingSettingsComponent";
 import ScoringReceivingSettingsComponent from "../components/settings/ScoringReceivingSettingsComponent";
 import ScoringRushingSettingsComponent from "../components/settings/ScoringRushingSettingsComponent";
+import ScoringSpecialTeamsSettingsComponent from "../components/settings/ScoringSpecialTeamsSettingsComponent";
 import { useUser } from "../contexts/UserContext";
 
 function SettingsPage() {
@@ -61,6 +62,7 @@ function SettingsPage() {
     passing: false,
     rushing: false,
     receiving: false,
+    specialTeams: false,
     defense: false,
   });
 
@@ -165,6 +167,15 @@ function SettingsPage() {
         scoringSettings={scoringSettings}
         setScoringSettings={setScoringSettings}
         handleExpandClick={() => toggleSection("receiving")}
+      />
+
+      <Box sx={{ mt: 2 }} />
+
+      <ScoringSpecialTeamsSettingsComponent
+        expanded={expandedSection.specialTeams}
+        scoringSettings={scoringSettings}
+        setScoringSettings={setScoringSettings}
+        handleExpandClick={() => toggleSection("specialTeams")}
       />
 
       <Box sx={{ mt: 2 }} />

@@ -362,3 +362,83 @@ async def test_update_league_settings_commissioner_only(
     assert body["rosterNumQb"] == 2
     assert body["scoringPassingTd"] == 4
     assert body["numberTeams"] == 8
+
+
+@pytest.mark.asyncio
+async def test_scoring_defaults_match_sleeper_ppr(async_client: AsyncClient) -> None:
+    res = await async_client.get("/api/leagues/scoring-defaults")
+    assert res.status_code == 200
+    body = res.json()
+    assert body["scoring_passing_yard"] == 0.04
+    assert body["scoring_passing_td"] == 4
+    assert body["scoring_receiving_reception"] == 1
+    assert body["scoring_rushing_yard"] == 0.1
+    assert body["scoring_carrying_fumble_lost"] == -2
+    assert body["scoring_kicking_fg_made_50_plus"] == 5
+    assert body["scoring_dst_pts_allowed_0"] == 10
+    assert body["scoring_special_kick_return_td"] == 6
+
+
+@pytest.mark.asyncio
+async def test_create_league_without_scoring_persists_defaults(
+    async_client: AsyncClient,
+    mock_db_session: AsyncMock,
+) -> None:
+    user = User(
+        id=1, supabase_uid="test-supabase-uid-12345", email="a@b.c", username="a"
+    )
+    mock_db_session.execute.return_value = _result(first=user)
+
+    res = await async_client.post(
+        "/api/leagues/create-league",
+        json={"leagueName": "Defaults", "rosterSettings": {"numberTeams": 4}},
+    )
+    assert res.status_code == 201
+    added = [call.args[0] for call in mock_db_session.add.call_args_list]
+    settings = next(obj for obj in added if isinstance(obj, LeagueSettings))
+    assert settings.scoring_passing_yard == 0.04
+    assert settings.scoring_receiving_reception == 1
+
+
+@pytest.mark.asyncio
+async def test_fractional_scoring_round_trips_through_put(
+    async_client: AsyncClient,
+    mock_db_session: AsyncMock,
+) -> None:
+    league = League(id=99, name="L", commissioner_id=1)
+    settings = LeagueSettings(
+        id=1,
+        league_id=99,
+        number_teams=8,
+        roster_total=14,
+        roster_num_qb=1,
+        roster_num_rb=2,
+        roster_num_wr=2,
+        roster_num_te=1,
+        roster_num_flex_wr_rb_te=1,
+        roster_num_flex_wr_rb=0,
+        roster_num_flex_wr_te=0,
+        roster_num_flex_qb_wr_rb_te=0,
+        roster_num_k=1,
+        roster_num_dst=1,
+        roster_num_bench=5,
+    )
+    mock_db_session.execute.side_effect = [
+        _result(first=league),
+        _result(first=User(id=1, supabase_uid="test-supabase-uid-12345")),
+        _result(first=settings),
+    ]
+    res = await async_client.put(
+        "/api/leagues/99/settings",
+        json={
+            "rosterSettings": {},
+            "scoringSettings": {
+                "scoringPassingYard": 0.05,
+                "scoringRushingYard": 0.125,
+            },
+        },
+    )
+    assert res.status_code == 200
+    body = res.json()
+    assert body["scoringPassingYard"] == 0.05
+    assert body["scoringRushingYard"] == 0.125

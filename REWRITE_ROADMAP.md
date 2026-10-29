@@ -378,15 +378,16 @@ This checklist outlines the sequence of refactor tasks for developers and AI cod
 > [!NOTE]
 > Every scoring field currently defaults to `0` in both `CreateLeaguePage.tsx` and the `ScoringSettings` Pydantic model, so a league created without touching the scoring steps scores nothing. Defaults below are Sleeper's standard PPR template. **Verify each value against a fresh Sleeper league's scoring screen before implementing** — they were written from memory, not copied from Sleeper.
 
-- [ ] **Fractional scoring support (blocker)**: Per-yard values like `0.04` (1 pt / 25 pass yds) and `0.1` (1 pt / 10 rush/rec yds) cannot be stored today because all `scoring_*` columns are `Integer` (`api/db/models/league.py`) and `int` in `api/models/league_models.py`.
-  - [ ] Change `scoring_*` columns to `Numeric(6, 2)` (`Decimal` in the ORM, `float` in `ScoringSettings` / `LeagueSettingsResponse` / `LeagueSettingsUpdate`). Per AGENTS.md pre-dev rules, edit the model and regenerate/replace the Alembic revision instead of writing a data migration.
-  - [ ] Confirm `fantasy_points_utils.py` and its tests handle `Decimal`/`float` rates without rounding drift (round only the final total).
-  - [ ] Make the scoring inputs in `components/settings/Scoring*SettingsComponent.tsx` accept decimals (`step="any"`, parse with `Number.parseFloat`, not `parseInt`).
-- [ ] **Single source of truth for defaults**: Define the defaults once in `ScoringSettings` (`api/models/league_models.py`) and stop duplicating them as `0` literals in `CreateLeaguePage.tsx`.
-  - [ ] Option A (preferred): `GET /api/leagues/scoring-defaults` returns the default `ScoringSettings`; the wizard fetches it to initialize state.
-  - [ ] Option B: mirror them in `frontend/src/constants/scoringDefaults.ts` with a backend test asserting the two stay in sync.
-  - [ ] Add a "Reset to Sleeper defaults" button on the wizard's Scoring step and on `SettingsPage.tsx`.
-- [ ] **Default values (Sleeper standard PPR)**:
+- [x] **Fractional scoring support (blocker)**: Per-yard values like `0.04` (1 pt / 25 pass yds) and `0.1` (1 pt / 10 rush/rec yds) cannot be stored today because all `scoring_*` columns are `Integer` (`api/db/models/league.py`) and `int` in `api/models/league_models.py`.
+  - [x] Change `scoring_*` columns to `Numeric(6, 2)` (`Decimal` in the ORM, `float` in `ScoringSettings` / `LeagueSettingsResponse` / `LeagueSettingsUpdate`). Per AGENTS.md pre-dev rules, edit the model and regenerate/replace the Alembic revision instead of writing a data migration.
+  - [x] Confirm `fantasy_points_utils.py` and its tests handle `Decimal`/`float` rates without rounding drift (round only the final total).
+  - [x] Make the scoring inputs in `components/settings/Scoring*SettingsComponent.tsx` accept decimals (`step="any"`, parse with `Number.parseFloat`, not `parseInt`).
+- [x] **Single source of truth for defaults**: Define the defaults once in `ScoringSettings` (`api/models/league_models.py`) and stop duplicating them as `0` literals in `CreateLeaguePage.tsx`.
+  - [x] Option A (preferred): `GET /api/leagues/scoring-defaults` returns the default `ScoringSettings`; the wizard fetches it to initialize state.
+  - ~~Option B~~ (not needed): Option A shipped. `GET /api/leagues/scoring-defaults` returns snake_case keys (not camelCase) because `to_camel` is not reversible for bands like `fg_made_0_19`.
+  - [x] Add a "Reset to Sleeper defaults" button on the wizard's Scoring step.
+  - [ ] Follow-up: add the same button to `SettingsPage.tsx`. It first needs its camelCase GET response mapped onto the snake_case form-state keys, which is a pre-existing mismatch.
+- [x] **Default values (Sleeper standard PPR)**:
 
 | Category | Setting | Default |
 | :--- | :--- | :--- |
@@ -427,14 +428,35 @@ This checklist outlines the sequence of refactor tasks for developers and AI cod
 | Defense | Points allowed 35+ | -4 |
 | Defense | Yards-allowed bands (all six) | 0 |
 
-- [ ] **Wizard integration (`CreateLeaguePage.tsx`)**:
-  - [ ] Initialize `scoringSettings` from the defaults above; the Review step summarizes key rates (pass TD, PPR, per-yard) and flags anything changed from default.
-  - [ ] Render each category (passing, rushing, receiving, carrying, kicking, special teams, defense) as its own labeled group in the Scoring step. Special teams return scoring currently lives inside the carrying/kicking components — split it out so it is discoverable.
-- [ ] **Gaps vs. Sleeper's full scoring list** (decide: add now or defer): blocked kick, defensive 2-pt return, per-length FG-miss penalties, and bonus thresholds (e.g. 100-yard rushing/receiving, 300-yard passing). None have a column today.
+- [x] **Wizard integration (`CreateLeaguePage.tsx`)**:
+  - [x] Initialize `scoringSettings` from the defaults above; the Review step summarizes key rates (pass TD, PPR, per-yard) and flags anything changed from default.
+  - [x] Render each category (passing, rushing, receiving, carrying, kicking, special teams, defense) as its own labeled group in the Scoring step. Special teams return scoring currently lives inside the carrying/kicking components — split it out so it is discoverable.
+- [ ] **Gaps vs. Sleeper's full scoring list** (deferred — no columns added): blocked kick, defensive 2-pt return, per-length FG-miss penalties, and bonus thresholds (e.g. 100-yard rushing/receiving, 300-yard passing). None have a column today.
+- [x] **Tests**:
+  - [x] Backend: creating a league with no `scoringSettings` persists the Sleeper defaults; fractional values round-trip through create → `GET settings` → `PUT settings`.
+  - [x] Backend: scoring evaluator produces the expected total for a fixture stat line using the default template.
+  - [x] Frontend: wizard test asserting initial state matches the defaults and "Reset to Sleeper defaults" restores them.
+
+### Phase 14: Fix Stale League List After Creating a League
+> [!NOTE]
+> **Bug**: After submitting the Create League wizard, the app returns to the home screen but "Your leagues" (and the NavBar league switcher) is empty until a full page refresh.
+
+**Root cause (frontend state ownership, not the backend)**:
+- `App.tsx` owns the `leagues` array and fetches `GET /api/leagues/user-leagues` in a `useEffect` keyed only on `[userId, apiUrl, getIdToken]`. That fetch runs once per sign-in; nothing re-runs it on navigation.
+- `CreateLeaguePage.handleSubmit` POSTs `/api/leagues/create-league` and then calls `navigate(...)`. It has no access to `setLeagues`, so `App`'s array is never updated. `LandingPage` and `NavBar` render from that stale prop, so the new league is missing until a reload re-mounts `App` and refetches.
+- The backend is correct: `create_league` creates the league, settings, teams (team 1 owned by the creator) and draft, and `user-leagues` returns it. It returns `{message, leagueId}` only, so the client cannot append the row itself without a refetch.
+- Secondary fragility: `getIdToken` in `UserContext.tsx` is recreated on every render and sits in the effect's dependency array, so the fetch re-fires on unrelated provider re-renders (and never on the event we actually need).
+- To confirm during implementation: the user observed landing on the home screen, but the success path navigates to `/league/:id`. Check whether `response.data.leagueId` is present and whether any error is swallowed by the `catch` (it only `console.error`s), since the code falls back to `navigate("/")` when the id is missing.
+
+- [ ] **Expose a `refreshLeagues` function**: Extract `fetchLeagues` from the effect in `App.tsx` into a stable `useCallback`, and make it available to pages (preferred: a small `LeaguesContext` alongside `UserContext`; alternative: pass it as a prop to `CreateLeaguePage`).
+- [ ] **Refresh after create**: In `CreateLeaguePage.handleSubmit`, `await refreshLeagues()` after a successful POST and before `navigate`, and set the new league as the selected league in the NavBar.
+- [ ] **Stabilize `getIdToken`**: Wrap it in `useCallback` in `UserContext.tsx` so effects depending on it do not re-run spuriously.
+- [ ] **Surface failures**: Show an error message in the wizard when the POST fails or no `leagueId` is returned, instead of silently logging or falling back to `/`.
 - [ ] **Tests**:
-  - [ ] Backend: creating a league with no `scoringSettings` persists the Sleeper defaults; fractional values round-trip through create → `GET settings` → `PUT settings`.
-  - [ ] Backend: scoring evaluator produces the expected total for a fixture stat line using the default template.
-  - [ ] Frontend: wizard test asserting initial state matches the defaults and "Reset to Sleeper defaults" restores them.
+  - [ ] Frontend: after a mocked successful create, `refreshLeagues` is called and the landing page lists the new league without a reload.
+  - [ ] Frontend: a failed POST keeps the user on the wizard and shows an error.
+
+---
 
 ---
 

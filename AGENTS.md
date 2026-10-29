@@ -126,6 +126,7 @@ PostSznFantasy/
         │   └── settings/       # LeagueInfo & scoring settings accordion
         ├── utils/
         │   ├── draftCue.ts     # Web Audio on-deck beep
+        │   ├── scoring.ts      # Scoring defaults fetch + numeric coercion for league forms
         │   └── supabase.ts     # Supabase client singleton
         └── test/               # Vitest environment setup
 ```

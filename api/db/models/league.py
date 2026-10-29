@@ -8,6 +8,7 @@ from sqlalchemy import (
     Boolean,
     ForeignKey,
     Integer,
+    Numeric,
     String,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -110,119 +111,163 @@ class LeagueSettings(Base):
     roster_max_te: Mapped[int | None] = mapped_column(Integer, nullable=True)
     roster_max_k: Mapped[int | None] = mapped_column(Integer, nullable=True)
     roster_max_dst: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    scoring_passing_yard: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    scoring_passing_td: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    scoring_passing_2pt: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    scoring_passing_interception: Mapped[int | None] = mapped_column(
-        Integer, nullable=True
+    scoring_passing_yard: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
     )
-    scoring_passing_completion: Mapped[int | None] = mapped_column(
-        Integer, nullable=True
+    scoring_passing_td: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
     )
-    scoring_passing_attempt: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    scoring_passing_sack: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    scoring_rushing_yard: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    scoring_rushing_td: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    scoring_rushing_2pt: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    scoring_rushing_attempt: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    scoring_receiving_reception: Mapped[int | None] = mapped_column(
-        Integer, nullable=True
+    scoring_passing_2pt: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
     )
-    scoring_receiving_yard: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    scoring_receiving_td: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    scoring_receiving_2pt: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    scoring_receiving_target: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    scoring_receiving_reception_bonus_rb: Mapped[int | None] = mapped_column(
-        Integer, nullable=True
+    scoring_passing_interception: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
     )
-    scoring_receiving_reception_bonus_wr: Mapped[int | None] = mapped_column(
-        Integer, nullable=True
+    scoring_passing_completion: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
     )
-    scoring_receiving_reception_bonus_te: Mapped[int | None] = mapped_column(
-        Integer, nullable=True
+    scoring_passing_attempt: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
     )
-    scoring_carrying_fumble: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    scoring_carrying_fumble_lost: Mapped[int | None] = mapped_column(
-        Integer, nullable=True
+    scoring_passing_sack: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
     )
-    scoring_special_punt_return_yard: Mapped[int | None] = mapped_column(
-        Integer, nullable=True
+    scoring_rushing_yard: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
     )
-    scoring_special_punt_return_td: Mapped[int | None] = mapped_column(
-        Integer, nullable=True
+    scoring_rushing_td: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
     )
-    scoring_special_kick_return_yard: Mapped[int | None] = mapped_column(
-        Integer, nullable=True
+    scoring_rushing_2pt: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
     )
-    scoring_special_kick_return_td: Mapped[int | None] = mapped_column(
-        Integer, nullable=True
+    scoring_rushing_attempt: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
     )
-    scoring_kicking_fg_made: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    scoring_kicking_fg_miss: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    scoring_kicking_fg_made_0_19: Mapped[int | None] = mapped_column(
-        Integer, nullable=True
+    scoring_receiving_reception: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
     )
-    scoring_kicking_fg_made_20_29: Mapped[int | None] = mapped_column(
-        Integer, nullable=True
+    scoring_receiving_yard: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
     )
-    scoring_kicking_fg_made_30_39: Mapped[int | None] = mapped_column(
-        Integer, nullable=True
+    scoring_receiving_td: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
     )
-    scoring_kicking_fg_made_40_49: Mapped[int | None] = mapped_column(
-        Integer, nullable=True
+    scoring_receiving_2pt: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
     )
-    scoring_kicking_fg_made_50_plus: Mapped[int | None] = mapped_column(
-        Integer, nullable=True
+    scoring_receiving_target: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
     )
-    scoring_kicking_fg_yard: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    scoring_kicking_xp_made: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    scoring_kicking_xp_miss: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    scoring_dst_td: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    scoring_dst_pts_allowed_0: Mapped[int | None] = mapped_column(
-        Integer, nullable=True
+    scoring_receiving_reception_bonus_rb: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
     )
-    scoring_dst_pts_allowed_1_6: Mapped[int | None] = mapped_column(
-        Integer, nullable=True
+    scoring_receiving_reception_bonus_wr: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
     )
-    scoring_dst_pts_allowed_7_13: Mapped[int | None] = mapped_column(
-        Integer, nullable=True
+    scoring_receiving_reception_bonus_te: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
     )
-    scoring_dst_pts_allowed_14_20: Mapped[int | None] = mapped_column(
-        Integer, nullable=True
+    scoring_carrying_fumble: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
     )
-    scoring_dst_pts_allowed_21_27: Mapped[int | None] = mapped_column(
-        Integer, nullable=True
+    scoring_carrying_fumble_lost: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
     )
-    scoring_dst_pts_allowed_28_34: Mapped[int | None] = mapped_column(
-        Integer, nullable=True
+    scoring_special_punt_return_yard: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
     )
-    scoring_dst_pts_allowed_35_plus: Mapped[int | None] = mapped_column(
-        Integer, nullable=True
+    scoring_special_punt_return_td: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
     )
-    scoring_dst_yards_allowed_under_100: Mapped[int | None] = mapped_column(
-        Integer, nullable=True
+    scoring_special_kick_return_yard: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
     )
-    scoring_dst_yards_allowed_100_199: Mapped[int | None] = mapped_column(
-        Integer, nullable=True
+    scoring_special_kick_return_td: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
     )
-    scoring_dst_yards_allowed_200_299: Mapped[int | None] = mapped_column(
-        Integer, nullable=True
+    scoring_kicking_fg_made: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
     )
-    scoring_dst_yards_allowed_300_399: Mapped[int | None] = mapped_column(
-        Integer, nullable=True
+    scoring_kicking_fg_miss: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
     )
-    scoring_dst_yards_allowed_400_499: Mapped[int | None] = mapped_column(
-        Integer, nullable=True
+    scoring_kicking_fg_made_0_19: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
     )
-    scoring_dst_yards_allowed_500_plus: Mapped[int | None] = mapped_column(
-        Integer, nullable=True
+    scoring_kicking_fg_made_20_29: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
     )
-    scoring_dst_sack: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    scoring_dst_safety: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    scoring_dst_fumble_recover: Mapped[int | None] = mapped_column(
-        Integer, nullable=True
+    scoring_kicking_fg_made_30_39: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
     )
-    scoring_dst_interception: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    scoring_kicking_fg_made_40_49: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
+    )
+    scoring_kicking_fg_made_50_plus: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
+    )
+    scoring_kicking_fg_yard: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
+    )
+    scoring_kicking_xp_made: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
+    )
+    scoring_kicking_xp_miss: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
+    )
+    scoring_dst_td: Mapped[Decimal | None] = mapped_column(Numeric(6, 2), nullable=True)
+    scoring_dst_pts_allowed_0: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
+    )
+    scoring_dst_pts_allowed_1_6: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
+    )
+    scoring_dst_pts_allowed_7_13: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
+    )
+    scoring_dst_pts_allowed_14_20: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
+    )
+    scoring_dst_pts_allowed_21_27: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
+    )
+    scoring_dst_pts_allowed_28_34: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
+    )
+    scoring_dst_pts_allowed_35_plus: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
+    )
+    scoring_dst_yards_allowed_under_100: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
+    )
+    scoring_dst_yards_allowed_100_199: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
+    )
+    scoring_dst_yards_allowed_200_299: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
+    )
+    scoring_dst_yards_allowed_300_399: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
+    )
+    scoring_dst_yards_allowed_400_499: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
+    )
+    scoring_dst_yards_allowed_500_plus: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
+    )
+    scoring_dst_sack: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
+    )
+    scoring_dst_safety: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
+    )
+    scoring_dst_fumble_recover: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
+    )
+    scoring_dst_interception: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
+    )
 
     league: Mapped["League"] = relationship("League", back_populates="settings")
 
