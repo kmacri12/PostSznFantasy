@@ -33,7 +33,17 @@ const Countdown: React.FC<CountdownProps> = ({ time }) => {
   };
 
   return (
-    <div style={{ fontSize: "24px", fontWeight: "bold", textAlign: "center" }}>
+    <div
+      style={{
+        fontSize: "32px",
+        fontWeight: 800,
+        fontVariantNumeric: "tabular-nums",
+        textAlign: "center",
+        color: secondsLeft <= 10 ? "#ef4444" : "inherit",
+        animation: secondsLeft > 0 && secondsLeft <= 10 ? "pulse-glow 1s infinite" : "none",
+        borderRadius: 12,
+      }}
+    >
       {formatTime(secondsLeft)}
     </div>
   );

@@ -1,0 +1,212 @@
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import { Box, Button, Card, Chip, Container, Grid, Skeleton, Typography } from "@mui/material";
+import axios from "axios";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import type { LeagueByUser } from "../components/layout/NavBar";
+import { useUser } from "../contexts/UserContext";
+import { tokens } from "../theme";
+
+const ROUNDS = [
+  { name: "Wild Card", blurb: "12 teams, 6 games. Roster the survivors." },
+  { name: "Divisional", blurb: "8 teams left. Players on losing teams are gone." },
+  { name: "Conference", blurb: "4 teams left. Every point is now rarer." },
+  { name: "Super Bowl", blurb: "2 teams left. Last roster standing wins." },
+];
+
+interface LeagueSnapshot {
+  rank: number | null;
+  teams: number;
+  draftStatus: string | null;
+  draftStart: string | null;
+}
+
+const authHeader = (token: string | null) => (token ? { Authorization: `Bearer ${token}` } : {});
+
+const LeagueWidget = ({ league }: { league: LeagueByUser }) => {
+  const apiUrl = import.meta.env.VITE_API_URL;
+  const { getIdToken } = useUser();
+  const [snapshot, setSnapshot] = useState<LeagueSnapshot | null>(null);
+
+  useEffect(() => {
+    const load = async () => {
+      const headers = authHeader(await getIdToken());
+      const [standings, draft] = await Promise.allSettled([
+        axios.get(`${apiUrl}/api/leagues/${league.id}/standings`, { headers }),
+        axios.get(`${apiUrl}/api/drafts/draft-info/${league.id}`, { headers }),
+      ]);
+      const rows: { teamId: number; rank: number }[] =
+        standings.status === "fulfilled" ? standings.value.data : [];
+      const draftData = draft.status === "fulfilled" ? draft.value.data : null;
+      setSnapshot({
+        rank: rows.find((row) => row.teamId === league.userTeamId)?.rank ?? null,
+        teams: rows.length,
+        draftStatus: draftData?.status ?? null,
+        draftStart: draftData?.startTime ?? null,
+      });
+    };
+    load();
+  }, [league.id, league.userTeamId, apiUrl, getIdToken]);
+
+  return (
+    <Card sx={{ p: 2.5, height: "100%" }}>
+      <Typography variant="h6" noWrap>
+        {league.name}
+      </Typography>
+      {snapshot ? (
+        <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", my: 1.5 }}>
+          <Chip
+            size="small"
+            color={snapshot.rank ? "primary" : "default"}
+            label={snapshot.rank ? `Rank #${snapshot.rank} of ${snapshot.teams}` : "Unranked"}
+          />
+          <Chip
+            size="small"
+            variant="outlined"
+            label={
+              snapshot.draftStatus === "Scheduled" && snapshot.draftStart
+                ? `Draft ${new Date(snapshot.draftStart).toLocaleString()}`
+                : `Draft ${snapshot.draftStatus ?? "pending"}`
+            }
+          />
+        </Box>
+      ) : (
+        <Skeleton width="70%" sx={{ my: 1.5 }} />
+      )}
+      <Box sx={{ display: "flex", gap: 1 }}>
+        <Button size="small" component={Link} to={`/league/${league.id}`}>
+          Standings
+        </Button>
+        <Button size="small" component={Link} to={`/league/${league.id}/draft`}>
+          Draft room
+        </Button>
+      </Box>
+    </Card>
+  );
+};
+
+const LandingPage = ({ leagues }: { leagues: LeagueByUser[] }) => {
+  const { user, signIn } = useUser();
+
+  return (
+    <Container maxWidth="lg" sx={{ py: { xs: 4, md: 8 } }}>
+      <Box sx={{ textAlign: "center", maxWidth: 760, mx: "auto" }}>
+        <Chip
+          label="NFL postseason only"
+          sx={{ mb: 3, bgcolor: "rgba(251,191,36,.12)", color: tokens.gold }}
+        />
+        <Typography variant="h2" sx={{ fontSize: { xs: 40, md: 64 }, lineHeight: 1.05 }}>
+          Draft once. <br />
+          <Box
+            component="span"
+            sx={{
+              background: `linear-gradient(135deg, ${tokens.gold}, #f97316)`,
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+            }}
+          >
+            Survive every round.
+          </Box>
+        </Typography>
+        <Typography color="text.secondary" sx={{ mt: 3, fontSize: 18 }}>
+          Playoff fantasy with cascading elimination: when an NFL team loses, its players are out
+          for good. Build a roster that keeps scoring while everyone else's disappears.
+        </Typography>
+
+        <Box sx={{ display: "flex", gap: 1.5, justifyContent: "center", flexWrap: "wrap", mt: 4 }}>
+          {user ? (
+            <>
+              <Button
+                variant="contained"
+                size="large"
+                component={Link}
+                to="/create-league"
+                endIcon={<ArrowForwardIcon />}
+              >
+                Create a league
+              </Button>
+              {leagues.length > 0 && (
+                <Button
+                  variant="outlined"
+                  size="large"
+                  color="inherit"
+                  component={Link}
+                  to={`/league/${leagues[0].id}`}
+                >
+                  View your leagues
+                </Button>
+              )}
+            </>
+          ) : (
+            <Button variant="contained" size="large" onClick={signIn}>
+              Sign in to play
+            </Button>
+          )}
+          {/* No join-by-code endpoint exists yet. */}
+          <Button variant="outlined" size="large" color="inherit" disabled>
+            Join with code (soon)
+          </Button>
+        </Box>
+      </Box>
+
+      {user && leagues.length > 0 && (
+        <Box sx={{ mt: 8 }}>
+          <Typography variant="h5" sx={{ mb: 2 }}>
+            Your leagues
+          </Typography>
+          <Grid container spacing={2}>
+            {leagues.map((league) => (
+              <Grid item xs={12} sm={6} md={4} key={league.id}>
+                <LeagueWidget league={league} />
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+      )}
+
+      <Box sx={{ mt: 8 }}>
+        <Typography variant="h5" sx={{ mb: 2 }}>
+          How it works
+        </Typography>
+        <Grid container spacing={2}>
+          {ROUNDS.map((round, index) => (
+            <Grid item xs={12} sm={6} md={3} key={round.name}>
+              <Card sx={{ p: 2.5, height: "100%", position: "relative" }}>
+                <Typography
+                  sx={{
+                    fontSize: 44,
+                    fontWeight: 800,
+                    color: "rgba(251,191,36,.25)",
+                    lineHeight: 1,
+                  }}
+                >
+                  {index + 1}
+                </Typography>
+                <Typography variant="h6" sx={{ mt: 1 }}>
+                  {round.name}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                  {round.blurb}
+                </Typography>
+                {index < ROUNDS.length - 1 && (
+                  <ArrowForwardIcon
+                    sx={{
+                      display: { xs: "none", md: "block" },
+                      position: "absolute",
+                      right: -18,
+                      top: "50%",
+                      color: tokens.muted,
+                      zIndex: 1,
+                    }}
+                  />
+                )}
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
+    </Container>
+  );
+};
+
+export default LandingPage;

@@ -1,12 +1,16 @@
 import { Settings as SettingsIcon } from "@mui/icons-material";
+import { VolumeOff as VolumeOffIcon, VolumeUp as VolumeUpIcon } from "@mui/icons-material";
 import {
+  Box,
   Button,
+  Container,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-  Grid,
   IconButton,
+  Paper,
+  Typography,
 } from "@mui/material";
 import axios from "axios";
 import type { FC } from "react";
@@ -17,12 +21,13 @@ import DraftBoard from "../components/draft/DraftBoard";
 import PlayerSelector, { type Player } from "../components/draft/PlayerSelector";
 import { useUser } from "../contexts/UserContext";
 import { useWebSocket } from "../hooks/useWebSocket";
+import { playOnDeckCue } from "../utils/draftCue";
 
 export interface Team {
   id: number;
   name: string;
-  ownerId: number;
-  ownerName: string;
+  ownerId: number | null;
+  ownerName: string | null;
 }
 
 export interface DraftSettings {
@@ -57,7 +62,7 @@ const DraftPage: FC = () => {
   const { leagueId } = useParams<{ leagueId: string }>();
   const wsUrl = import.meta.env.VITE_WS_URL || "ws://localhost:8000";
   const apiUrl = import.meta.env.VITE_API_URL;
-  const { getIdToken } = useUser();
+  const { getIdToken, userId } = useUser();
 
   const websocketUrl = leagueId ? `${wsUrl}/api/drafts/ws/${leagueId}` : "";
   const { data, sendMessage } = useWebSocket(websocketUrl);
@@ -70,6 +75,17 @@ const DraftPage: FC = () => {
   const [teams, setTeams] = useState<Team[]>([]);
   const [numRounds, setNumRounds] = useState<number>(0);
   const [selectedPlayerIDs, setSelectedPlayerIDs] = useState<number[]>([]);
+  const [muted, setMuted] = useState(false);
+
+  const myTeamIds = teams.filter((team) => team.ownerId === userId).map((team) => team.id);
+  const pickTeamId = (pickOverall: number) =>
+    draftBoard.flat().find((pick) => pick.numberPickOverall === pickOverall)?.teamId;
+  const isMyTurn = myTeamIds.includes(pickTeamId(currentPickIndex) ?? -1);
+  const isOnDeck = myTeamIds.includes(pickTeamId(currentPickIndex + 1) ?? -1);
+
+  useEffect(() => {
+    if (isOnDeck && !muted) playOnDeckCue();
+  }, [isOnDeck, muted]);
 
   const calculatePickOverall = (roundIndex: number, teamIndex: number) => {
     const roundNumber = roundIndex + 1;
@@ -227,34 +243,46 @@ const DraftPage: FC = () => {
   };
 
   return (
-    <div style={{ padding: "16px", position: "relative" }}>
-      <PlayerSelector
-        onPlayerSelected={handlePlayerSelection}
-        isMyTurn={true}
-        selectedPlayerIDs={selectedPlayerIDs}
-      />
-      <Grid container spacing={2}>
-        <DraftBoard
-          teams={teams}
-          draftPicks={draftBoard}
-          currentPickIndex={currentPickIndex}
-          timer={timer}
-          onPlayerSelected={handlePlayerSelection}
-          isMyTurn={true}
-          selectedPlayerIDs={selectedPlayerIDs}
-        />
-
+    <Container maxWidth={false} sx={{ py: 3 }}>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2, flexWrap: "wrap" }}>
+        <Typography variant="h4" sx={{ flexGrow: 1 }}>
+          Draft room
+        </Typography>
+        {isMyTurn && (
+          <Typography color="primary" fontWeight={700}>
+            You're on the clock
+          </Typography>
+        )}
+        {!isMyTurn && isOnDeck && (
+          <Typography color="secondary" fontWeight={700}>
+            You're on deck
+          </Typography>
+        )}
+        <Paper sx={{ px: 2.5, py: 0.5 }}>
+          <Countdown time={timer} />
+        </Paper>
         <IconButton
-          style={{ position: "absolute", top: 16, right: 16 }}
-          onClick={() => setOpenSettings(true)}
+          aria-label={muted ? "Unmute cues" : "Mute cues"}
+          onClick={() => setMuted((current) => !current)}
         >
+          {muted ? <VolumeOffIcon /> : <VolumeUpIcon />}
+        </IconButton>
+        <IconButton aria-label="Draft settings" onClick={() => setOpenSettings(true)}>
           <SettingsIcon />
         </IconButton>
+      </Box>
 
-        <Grid item xs={12}>
-          <Countdown time={timer} />
-        </Grid>
-      </Grid>
+      <PlayerSelector
+        onPlayerSelected={handlePlayerSelection}
+        isMyTurn={isMyTurn}
+        selectedPlayerIDs={selectedPlayerIDs}
+      />
+      <DraftBoard
+        teams={teams}
+        draftPicks={draftBoard}
+        currentPickIndex={currentPickIndex}
+        myTeamIds={myTeamIds}
+      />
 
       <Dialog open={openSettings} onClose={() => setOpenSettings(false)}>
         <DialogTitle>Draft Settings</DialogTitle>
@@ -266,7 +294,7 @@ const DraftPage: FC = () => {
           <Button onClick={() => setOpenSettings(false)}>Close</Button>
         </DialogActions>
       </Dialog>
-    </div>
+    </Container>
   );
 };
 

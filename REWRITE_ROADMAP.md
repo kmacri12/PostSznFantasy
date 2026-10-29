@@ -354,23 +354,87 @@ This checklist outlines the sequence of refactor tasks for developers and AI cod
 ---
 
 ### Phase 12: Modern Frontend UI/UX Overhaul & Dedicated Landing Experience
-- [ ] **Default Route & Dedicated Landing Page (`LandingPage.tsx`)**:
-  - [ ] Discontinue using `PlayersPage` as the root (`/`) route.
-  - [ ] Build a sleek, modern landing page (`frontend/src/pages/LandingPage.tsx`):
+- [x] **Default Route & Dedicated Landing Page (`LandingPage.tsx`)**:
+  - [x] Discontinue using `PlayersPage` as the root (`/`) route.
+  - [x] Build a sleek, modern landing page (`frontend/src/pages/LandingPage.tsx`):
     - **Hero Section**: High-impact playoff football branding explaining the cascading elimination mechanics.
     - **Interactive CTA**: Direct links to "Create a League", "View Your Leagues", or "Join with Code".
     - **How It Works / Rules Explainer**: Visual 4-round progression cards (Wild Card ➔ Divisional ➔ Conference Championships ➔ Super Bowl).
     - **Active User Dashboard Widget**: When authenticated, display the user's active leagues, current standings rank, and next scheduled draft at a glance.
-- [ ] **Modern Visual Design System (Shedding "2015 Material UI")**:
-  - [ ] Establish a dark-mode-first, sports-centric design theme using modern styling tokens (deep slate/charcoal backgrounds `#0f172a`, vibrant playoff accent colors, glassmorphism cards with subtle border strokes `border-slate-800`, crisp typography).
-  - [ ] Replace dated default MUI components (`Paper`, default `AppBar`, boxy dropdowns) with styled, modern components or Tailwind/CSS tokens with sharp border radii, subtle glow/gradient effects, and refined micro-interactions.
-  - [ ] Redesign the top navigation header (`App.tsx`):
+- [x] **Modern Visual Design System (Shedding "2015 Material UI")**:
+  - [x] Establish a dark-mode-first, sports-centric design theme using modern styling tokens (deep slate/charcoal backgrounds `#0f172a`, vibrant playoff accent colors, glassmorphism cards with subtle border strokes `border-slate-800`, crisp typography).
+  - [x] Replace dated default MUI components (`Paper`, default `AppBar`, boxy dropdowns) with styled, modern components or Tailwind/CSS tokens with sharp border radii, subtle glow/gradient effects, and refined micro-interactions.
+  - [x] Redesign the top navigation header (`App.tsx`):
     - Replace basic white/blue toolbar with a sleek blurred navbar with modern league switcher pill, user profile avatar, and responsive drawer.
-- [ ] **Page & Component Refresh**:
-  - [ ] **Draft Room (`DraftPage.tsx`, `DraftBoard.tsx`, `PlayerSelector.tsx`)**: Modernize the draft board into an interactive draft grid with live pulsating pick timers, sound/visual cues on deck, and modern search pills.
-  - [ ] **Standings Table (`StandingsTable.tsx`)**: Clean data visualization with round-by-round points badges, alive/eliminated player counters, and team avatars.
-  - [ ] **Roster View (`TeamPage.tsx`)**: Field or card-based roster view with elimination badges and game status.
-  - [ ] **League Creation Flow (`CreateLeaguePage.tsx`)**: Multi-step sleek wizard instead of clunky stacked accordions.
+- [x] **Page & Component Refresh**:
+  - [x] **Draft Room (`DraftPage.tsx`, `DraftBoard.tsx`, `PlayerSelector.tsx`)**: Modernize the draft board into an interactive draft grid with live pulsating pick timers, sound/visual cues on deck, and modern search pills.
+  - [x] **Standings Table (`StandingsTable.tsx`)**: Clean data visualization with round-by-round points badges, alive/eliminated player counters, and team avatars.
+  - [x] **Roster View (`TeamPage.tsx`)**: Field or card-based roster view with elimination badges and game status.
+  - [x] **League Creation Flow (`CreateLeaguePage.tsx`)**: Multi-step sleek wizard instead of clunky stacked accordions.
+
+---
+
+### Phase 13: Sleeper-Default PPR Scoring in the League Creation Flow
+> [!NOTE]
+> Every scoring field currently defaults to `0` in both `CreateLeaguePage.tsx` and the `ScoringSettings` Pydantic model, so a league created without touching the scoring steps scores nothing. Defaults below are Sleeper's standard PPR template. **Verify each value against a fresh Sleeper league's scoring screen before implementing** — they were written from memory, not copied from Sleeper.
+
+- [ ] **Fractional scoring support (blocker)**: Per-yard values like `0.04` (1 pt / 25 pass yds) and `0.1` (1 pt / 10 rush/rec yds) cannot be stored today because all `scoring_*` columns are `Integer` (`api/db/models/league.py`) and `int` in `api/models/league_models.py`.
+  - [ ] Change `scoring_*` columns to `Numeric(6, 2)` (`Decimal` in the ORM, `float` in `ScoringSettings` / `LeagueSettingsResponse` / `LeagueSettingsUpdate`). Per AGENTS.md pre-dev rules, edit the model and regenerate/replace the Alembic revision instead of writing a data migration.
+  - [ ] Confirm `fantasy_points_utils.py` and its tests handle `Decimal`/`float` rates without rounding drift (round only the final total).
+  - [ ] Make the scoring inputs in `components/settings/Scoring*SettingsComponent.tsx` accept decimals (`step="any"`, parse with `Number.parseFloat`, not `parseInt`).
+- [ ] **Single source of truth for defaults**: Define the defaults once in `ScoringSettings` (`api/models/league_models.py`) and stop duplicating them as `0` literals in `CreateLeaguePage.tsx`.
+  - [ ] Option A (preferred): `GET /api/leagues/scoring-defaults` returns the default `ScoringSettings`; the wizard fetches it to initialize state.
+  - [ ] Option B: mirror them in `frontend/src/constants/scoringDefaults.ts` with a backend test asserting the two stay in sync.
+  - [ ] Add a "Reset to Sleeper defaults" button on the wizard's Scoring step and on `SettingsPage.tsx`.
+- [ ] **Default values (Sleeper standard PPR)**:
+
+| Category | Setting | Default |
+| :--- | :--- | :--- |
+| Passing | Yard | 0.04 |
+| Passing | TD | 4 |
+| Passing | Interception | -1 |
+| Passing | 2-pt conversion | 2 |
+| Passing | Completion / attempt / sack | 0 |
+| Rushing | Yard | 0.1 |
+| Rushing | TD | 6 |
+| Rushing | 2-pt conversion | 2 |
+| Rushing | Attempt | 0 |
+| Receiving | Reception (PPR) | 1 |
+| Receiving | Yard | 0.1 |
+| Receiving | TD | 6 |
+| Receiving | 2-pt conversion | 2 |
+| Receiving | Target; RB / WR / TE reception bonus | 0 |
+| Carrying | Fumble lost | -2 |
+| Carrying | Fumble (any) | 0 |
+| Kicking | FG made 0–19 / 20–29 / 30–39 | 3 |
+| Kicking | FG made 40–49 | 4 |
+| Kicking | FG made 50+ | 5 |
+| Kicking | XP made | 1 |
+| Kicking | FG missed / XP missed / flat FG made / per FG yard | 0 |
+| Special teams | Punt return TD / kick return TD | 6 |
+| Special teams | Punt / kick return yard | 0 |
+| Defense | Sack | 1 |
+| Defense | Interception | 2 |
+| Defense | Fumble recovery | 2 |
+| Defense | Defensive / special-teams TD | 6 |
+| Defense | Safety | 2 |
+| Defense | Points allowed 0 | 10 |
+| Defense | Points allowed 1–6 | 7 |
+| Defense | Points allowed 7–13 | 4 |
+| Defense | Points allowed 14–20 | 1 |
+| Defense | Points allowed 21–27 | 0 |
+| Defense | Points allowed 28–34 | -1 |
+| Defense | Points allowed 35+ | -4 |
+| Defense | Yards-allowed bands (all six) | 0 |
+
+- [ ] **Wizard integration (`CreateLeaguePage.tsx`)**:
+  - [ ] Initialize `scoringSettings` from the defaults above; the Review step summarizes key rates (pass TD, PPR, per-yard) and flags anything changed from default.
+  - [ ] Render each category (passing, rushing, receiving, carrying, kicking, special teams, defense) as its own labeled group in the Scoring step. Special teams return scoring currently lives inside the carrying/kicking components — split it out so it is discoverable.
+- [ ] **Gaps vs. Sleeper's full scoring list** (decide: add now or defer): blocked kick, defensive 2-pt return, per-length FG-miss penalties, and bonus thresholds (e.g. 100-yard rushing/receiving, 300-yard passing). None have a column today.
+- [ ] **Tests**:
+  - [ ] Backend: creating a league with no `scoringSettings` persists the Sleeper defaults; fractional values round-trip through create → `GET settings` → `PUT settings`.
+  - [ ] Backend: scoring evaluator produces the expected total for a fixture stat line using the default template.
+  - [ ] Frontend: wizard test asserting initial state matches the defaults and "Reset to Sleeper defaults" restores them.
 
 ---
 

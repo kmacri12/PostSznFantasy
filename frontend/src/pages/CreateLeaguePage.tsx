@@ -1,15 +1,15 @@
-import ExpandLessIcon from "@mui/icons-material/ExpandLess";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {
   Box,
   Button,
-  Collapse,
-  Divider,
+  Card,
+  Container,
   FormControl,
   Grid,
-  IconButton,
   InputLabel,
   OutlinedInput,
+  Step,
+  StepLabel,
+  Stepper,
   Typography,
 } from "@mui/material";
 import axios from "axios";
@@ -25,8 +25,9 @@ import ScoringReceivingSettingsComponent from "../components/settings/ScoringRec
 import ScoringRushingSettingsComponent from "../components/settings/ScoringRushingSettingsComponent";
 import { useUser } from "../contexts/UserContext";
 
+const STEPS = ["League", "Roster", "Scoring", "Review"];
+
 type ExpandedSection =
-  | "league"
   | "roster"
   | "passing"
   | "rushing"
@@ -40,9 +41,9 @@ const CreateLeaguePage = () => {
   const { getIdToken } = useUser();
   const navigate = useNavigate();
   const [leagueName, setLeagueName] = useState("MyLeague");
+  const [step, setStep] = useState(0);
   const [expanded, setExpanded] = useState<Record<ExpandedSection, boolean>>({
-    league: true,
-    roster: false,
+    roster: true,
     passing: false,
     rushing: false,
     receiving: false,
@@ -171,152 +172,139 @@ const CreateLeaguePage = () => {
     }
   };
 
-  return (
-    <Box component="form" onSubmit={handleSubmit} sx={{ padding: 2 }}>
-      <div id="league-info">
-        <Typography variant="h6" gutterBottom onClick={() => handleExpandClick("league")}>
-          League Information
-          <IconButton size="small" edge="end">
-            {expanded.league ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-          </IconButton>
-        </Typography>
-        <Collapse in={expanded.league}>
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth margin="normal">
-                <InputLabel htmlFor="league-name">Name</InputLabel>
-                <OutlinedInput
-                  id="league-name"
-                  value={leagueName}
-                  onChange={(e) => setLeagueName(e.target.value)}
-                  label="League Name"
-                  required
-                />
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth margin="normal">
-                <InputLabel htmlFor="number-teams">Teams</InputLabel>
-                <OutlinedInput
-                  id="number-teams"
-                  type="number"
-                  value={rosterSettings.number_teams || ""}
-                  onChange={(e) =>
-                    setRosterSettings({
-                      ...rosterSettings,
-                      number_teams: Number.parseInt(e.target.value, 10) || 0,
-                    })
-                  }
-                  label="Teams"
-                />
-              </FormControl>
-            </Grid>
-          </Grid>
-        </Collapse>
-      </div>
-
-      <Divider sx={{ margin: "20px 0" }} />
-
-      <RosterSettingsComponent
-        expanded={expanded.roster}
-        rosterSettings={rosterSettings}
-        setRosterSettings={(newSettings) =>
-          setRosterSettings((prevSettings) => ({
-            ...prevSettings,
-            ...newSettings,
-          }))
-        }
-        handleExpandClick={() => handleExpandClick("roster")}
-      />
-
-      <Divider sx={{ margin: "20px 0" }} />
-
-      <ScoringPassingSettingsComponent
-        expanded={expanded.passing}
+  const scoringSection = (
+    key: ExpandedSection,
+    Component: React.ComponentType<{
+      expanded: boolean;
+      scoringSettings: typeof scoringSettings;
+      setScoringSettings: (settings: Partial<typeof scoringSettings>) => void;
+      handleExpandClick: () => void;
+    }>,
+  ) => (
+    <Box sx={{ mb: 2 }}>
+      <Component
+        expanded={expanded[key]}
         scoringSettings={scoringSettings}
         setScoringSettings={(newSettings) =>
-          setScoringSettings((prevSettings) => ({
-            ...prevSettings,
-            ...newSettings,
-          }))
+          setScoringSettings((prevSettings) => ({ ...prevSettings, ...newSettings }))
         }
-        handleExpandClick={() => handleExpandClick("passing")}
+        handleExpandClick={() => handleExpandClick(key)}
       />
-
-      <Divider sx={{ margin: "20px 0" }} />
-
-      <ScoringRushingSettingsComponent
-        expanded={expanded.rushing}
-        scoringSettings={scoringSettings}
-        setScoringSettings={(newSettings) =>
-          setScoringSettings((prevSettings) => ({
-            ...prevSettings,
-            ...newSettings,
-          }))
-        }
-        handleExpandClick={() => handleExpandClick("rushing")}
-      />
-
-      <Divider sx={{ margin: "20px 0" }} />
-
-      <ScoringReceivingSettingsComponent
-        expanded={expanded.receiving}
-        scoringSettings={scoringSettings}
-        setScoringSettings={(newSettings) =>
-          setScoringSettings((prevSettings) => ({
-            ...prevSettings,
-            ...newSettings,
-          }))
-        }
-        handleExpandClick={() => handleExpandClick("receiving")}
-      />
-
-      <Divider sx={{ margin: "20px 0" }} />
-
-      <ScoringCarryingSettingsComponent
-        expanded={expanded.carrying}
-        scoringSettings={scoringSettings}
-        setScoringSettings={(newSettings) =>
-          setScoringSettings((prevSettings) => ({
-            ...prevSettings,
-            ...newSettings,
-          }))
-        }
-        handleExpandClick={() => handleExpandClick("carrying")}
-      />
-
-      <Divider sx={{ margin: "20px 0" }} />
-
-      <ScoringKickingSettingsComponent
-        expanded={expanded.kicking}
-        scoringSettings={scoringSettings}
-        setScoringSettings={(newSettings) =>
-          setScoringSettings((prevSettings) => ({
-            ...prevSettings,
-            ...newSettings,
-          }))
-        }
-        handleExpandClick={() => handleExpandClick("kicking")}
-      />
-
-      <Divider sx={{ margin: "20px 0" }} />
-
-      <ScoringDSTSettingsComponent
-        expanded={expanded.defense}
-        scoringSettings={scoringSettings}
-        setScoringSettings={(newSettings) =>
-          setScoringSettings((prevSettings) => ({
-            ...prevSettings,
-            ...newSettings,
-          }))
-        }
-        handleExpandClick={() => handleExpandClick("defense")}
-      />
-
-      <Button type="submit" variant="contained" color="primary" sx={{ marginTop: 2 }}>
-        Create League
-      </Button>
     </Box>
+  );
+
+  const isLastStep = step === STEPS.length - 1;
+  const canAdvance = step !== 0 || (leagueName.trim() !== "" && rosterSettings.number_teams >= 2);
+
+  return (
+    <Container maxWidth="md" sx={{ py: 4 }}>
+      <Typography variant="h4" sx={{ mb: 3 }}>
+        Create a league
+      </Typography>
+      <Stepper activeStep={step} alternativeLabel sx={{ mb: 4 }}>
+        {STEPS.map((label) => (
+          <Step key={label}>
+            <StepLabel>{label}</StepLabel>
+          </Step>
+        ))}
+      </Stepper>
+
+      <Box
+        component="form"
+        onSubmit={(event: React.FormEvent) => {
+          event.preventDefault();
+          if (isLastStep) handleSubmit(event);
+          else setStep((current) => current + 1);
+        }}
+      >
+        {step === 0 && (
+          <Card sx={{ p: 3 }}>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={8}>
+                <FormControl fullWidth>
+                  <InputLabel htmlFor="league-name">League name</InputLabel>
+                  <OutlinedInput
+                    id="league-name"
+                    value={leagueName}
+                    onChange={(e) => setLeagueName(e.target.value)}
+                    label="League name"
+                    required
+                  />
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <FormControl fullWidth>
+                  <InputLabel htmlFor="number-teams">Teams</InputLabel>
+                  <OutlinedInput
+                    id="number-teams"
+                    type="number"
+                    value={rosterSettings.number_teams || ""}
+                    onChange={(e) =>
+                      setRosterSettings({
+                        ...rosterSettings,
+                        number_teams: Number.parseInt(e.target.value, 10) || 0,
+                      })
+                    }
+                    label="Teams"
+                  />
+                </FormControl>
+              </Grid>
+            </Grid>
+          </Card>
+        )}
+
+        {step === 1 && (
+          <RosterSettingsComponent
+            expanded={expanded.roster}
+            rosterSettings={rosterSettings}
+            setRosterSettings={(newSettings) =>
+              setRosterSettings((prevSettings) => ({ ...prevSettings, ...newSettings }))
+            }
+            handleExpandClick={() => handleExpandClick("roster")}
+          />
+        )}
+
+        {step === 2 && (
+          <>
+            {scoringSection("passing", ScoringPassingSettingsComponent)}
+            {scoringSection("rushing", ScoringRushingSettingsComponent)}
+            {scoringSection("receiving", ScoringReceivingSettingsComponent)}
+            {scoringSection("carrying", ScoringCarryingSettingsComponent)}
+            {scoringSection("kicking", ScoringKickingSettingsComponent)}
+            {scoringSection("defense", ScoringDSTSettingsComponent)}
+          </>
+        )}
+
+        {step === 3 && (
+          <Card sx={{ p: 3 }}>
+            <Typography variant="h6">{leagueName}</Typography>
+            <Typography color="text.secondary" sx={{ mt: 1 }}>
+              {rosterSettings.number_teams} teams · {rosterSettings.roster_total} roster spots
+            </Typography>
+            <Typography color="text.secondary" sx={{ mt: 1 }}>
+              Starters: {rosterSettings.roster_num_qb} QB, {rosterSettings.roster_num_rb} RB,{" "}
+              {rosterSettings.roster_num_wr} WR, {rosterSettings.roster_num_te} TE,{" "}
+              {rosterSettings.roster_num_flex_wr_rb_te} FLEX, {rosterSettings.roster_num_k} K,{" "}
+              {rosterSettings.roster_num_dst} DST
+            </Typography>
+          </Card>
+        )}
+
+        <Box sx={{ display: "flex", justifyContent: "space-between", mt: 3 }}>
+          <Button
+            type="button"
+            color="inherit"
+            disabled={step === 0}
+            onClick={() => setStep((current) => current - 1)}
+          >
+            Back
+          </Button>
+          <Button type="submit" variant="contained" disabled={!canAdvance}>
+            {isLastStep ? "Create league" : "Next"}
+          </Button>
+        </Box>
+      </Box>
+    </Container>
   );
 };
 

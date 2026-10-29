@@ -101,7 +101,8 @@ PostSznFantasy/
     ├── vite.config.ts          # Vite build configuration
     ├── biome.json              # Biome linter, formatter & import sorting config
     └── src/
-        ├── App.tsx             # Root layout, MUI AppBar, auth trigger, routes
+        ├── App.tsx             # Routes, league list state, wires NavBar
+        ├── theme.ts            # Dark-first MUI theme + design tokens
         ├── main.tsx            # Vite DOM mount point
         ├── contexts/
         │   └── UserContext.tsx # Authentication & current user context
@@ -109,7 +110,8 @@ PostSznFantasy/
         │   ├── useWebSocket.ts # Native RFC 6455 WebSocket hook
         │   └── useWebSocket.test.ts # Hook test suite
         ├── pages/
-        │   ├── CreateLeaguePage.tsx # Multi-accordion league configuration
+        │   ├── LandingPage.tsx # Root route: hero, round explainer, user's leagues
+        │   ├── CreateLeaguePage.tsx # Multi-step league creation wizard
         │   ├── DraftPage.tsx   # Live synchronized draft room
         │   ├── LeaguePage.tsx  # Standings display
         │   ├── PlayersPage.tsx # Player directory with TanStack Table
@@ -117,11 +119,13 @@ PostSznFantasy/
         │   ├── TeamPage.tsx    # Roster management view
         │   └── NotFoundPage.tsx# 404 handler
         ├── components/
+        │   ├── layout/         # NavBar (blurred header, league switcher, drawer)
         │   ├── draft/          # DraftBoard, Countdown, PlayerSelector
         │   ├── league/         # StandingsTable
         │   ├── players/        # PlayersTable (TanStack Table v8)
         │   └── settings/       # LeagueInfo & scoring settings accordion
         ├── utils/
+        │   ├── draftCue.ts     # Web Audio on-deck beep
         │   └── supabase.ts     # Supabase client singleton
         └── test/               # Vitest environment setup
 ```
