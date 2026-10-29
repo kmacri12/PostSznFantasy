@@ -71,7 +71,7 @@ Guiding principles: KISS, comments explain *why* only, self-documenting names.
 - [x] **Typing**: remove the mypy `ignore_errors` override for `api.utils.*` and fix what surfaces.
 - [x] **Tooling**: set Ruff `known-first-party = ["api"]` so `api.*` imports sort correctly.
 - [x] **Layout cleanup**: delete `api/utils/db/models.py` shim; move `update.py`'s logic into `services/`; collapse `dependencies/db.py` re-export; consider dropping `psycopg2-binary` (run Alembic with an async env).
-- [ ] **Tests**: add a Postgres-backed test tier (CI service container) for SQL, relationships and scoring/elimination paths; add WebSocket and commissioner-only settings tests. Current tests mock the session entirely.
+- [x] **Tests**: add a Postgres-backed test tier (CI service container) for SQL, relationships and scoring/elimination paths; add WebSocket and commissioner-only settings tests. Current tests mock the session entirely.
 
 ---
 

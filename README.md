@@ -186,6 +186,11 @@ uv run mypy .
 uv run pytest
 ```
 
+The tests under `api/tests/postgres/` run against a real, throwaway Postgres database
+(`TEST_DATABASE_URL`, default `postgresql+asyncpg://postgres:postgres@localhost:5432/postszn_test`;
+the schemas are dropped and recreated each run, so never point it at a database you care about).
+They skip automatically when the database is unreachable and fail in CI.
+
 ### Frontend Verification
 From the `frontend/` directory:
 ```bash
