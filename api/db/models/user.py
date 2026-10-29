@@ -16,7 +16,7 @@ class User(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     supabase_uid: Mapped[str] = mapped_column(String(128), unique=True, nullable=False)
     username: Mapped[str] = mapped_column(String(20), nullable=False)
-    email: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
+    email: Mapped[str | None] = mapped_column(String(120), unique=True, nullable=True)
 
     teams_owned: Mapped[list["Team"]] = relationship(
         "Team", back_populates="owner", cascade="all, delete-orphan"

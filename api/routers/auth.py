@@ -1,6 +1,10 @@
-from fastapi import APIRouter
-from pydantic import BaseModel
-from sqlalchemy import select
+from typing import Any
+
+from fastapi import APIRouter, HTTPException, status
+from pydantic import BaseModel, Field
+from sqlalchemy import Boolean, literal_column
+from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.exc import IntegrityError
 
 from api.db.models.user import User
 from api.dependencies.auth import CurrentUser
@@ -11,8 +15,8 @@ router = APIRouter()
 
 
 class LoginPayload(BaseModel):
-    email: str | None = None
-    username: str | None = None
+    email: str | None = Field(default=None, max_length=120)
+    username: str | None = Field(default=None, max_length=20)
 
 
 @router.get("/")
@@ -26,31 +30,34 @@ async def login_or_register(
     current_user_id: CurrentUser,
     db: DbSession,
 ) -> LoginResponse:
-    """Verify Supabase auth bearer token and upsert the relational User row."""
-    stmt = select(User).where(User.supabase_uid == current_user_id)
-    result = await db.execute(stmt)
-    user = result.scalars().first()
+    """Verify Supabase auth bearer token and upsert the relational User row.
 
-    if not user:
-        email = payload.email or f"{current_user_id}@postszn.local"
-        username = payload.username or f"user_{current_user_id[:8]}"
-        user = User(
-            supabase_uid=current_user_id,
-            email=email,
-            username=username,
-        )
-        db.add(user)
+    A single INSERT ... ON CONFLICT keeps concurrent first logins from racing.
+    """
+    insert_stmt = insert(User).values(
+        supabase_uid=current_user_id,
+        email=payload.email,
+        username=payload.username or f"user_{current_user_id[:8]}",
+    )
+    # Only fields the client actually sent overwrite stored values.
+    updates: dict[str, Any] = payload.model_dump(exclude_none=True) or {
+        "supabase_uid": insert_stmt.excluded.supabase_uid
+    }
+    upsert_stmt = insert_stmt.on_conflict_do_update(
+        index_elements=[User.supabase_uid], set_=updates
+    ).returning(User.id, literal_column("(xmax = 0)", Boolean).label("created"))
+
+    try:
+        user_id, created = (await db.execute(upsert_stmt)).one()
         await db.commit()
-        await db.refresh(user)
-        user_id = user.id or 1
-        return LoginResponse(message="User created successfully", user_id=user_id)
+    except IntegrityError as exc:
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="That email is already registered to another account",
+        ) from exc
 
-    # Update email/username if provided and changed
-    if payload.email and user.email != payload.email:
-        user.email = payload.email
-    if payload.username and user.username != payload.username:
-        user.username = payload.username
-
-    await db.commit()
-    await db.refresh(user)
-    return LoginResponse(message="Login successful", user_id=user.id)
+    return LoginResponse(
+        message="User created successfully" if created else "Login successful",
+        user_id=user_id,
+    )

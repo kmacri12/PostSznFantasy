@@ -6,6 +6,7 @@ from api.db.models.league import League, LeagueSettings, LeagueStanding, Team
 from api.db.models.nfl import NFLPlayer, NFLPlayerSeasonStats, NFLTeam
 from api.db.models.user import User
 from httpx import AsyncClient
+from sqlalchemy.exc import IntegrityError
 
 
 @pytest.mark.asyncio
@@ -13,43 +14,56 @@ async def test_auth_login_create_and_sync(
     async_client: AsyncClient,
     mock_db_session: AsyncMock,
 ) -> None:
-    # 1. Test creating new user
-    mock_result_empty = MagicMock()
-    mock_result_empty.scalars.return_value.first.return_value = None
-    mock_db_session.execute.return_value = mock_result_empty
-
     payload = {"email": "player@example.com", "username": "playmaker"}
+
+    # 1. First login inserts the user (Postgres reports xmax = 0 for fresh rows)
+    mock_db_session.execute.return_value = MagicMock(one=lambda: (42, True))
     response = await async_client.post(
         "/api/auth/login",
         json=payload,
         headers={"Authorization": "Bearer fake-token"},
     )
     assert response.status_code == 200
-    data = response.json()
-    assert data["message"] == "User created successfully"
-    assert mock_db_session.add.called
+    assert response.json() == {"message": "User created successfully", "userId": 42}
     assert mock_db_session.commit.called
 
-    # 2. Test existing user login
-    existing_user = User(
-        id=42,
-        supabase_uid="test-supabase-uid-12345",
-        email="old@example.com",
-        username="olduser",
-    )
-    mock_result_existing = MagicMock()
-    mock_result_existing.scalars.return_value.first.return_value = existing_user
-    mock_db_session.execute.return_value = mock_result_existing
-
+    # 2. Later logins hit the conflict branch of the same statement
+    mock_db_session.execute.return_value = MagicMock(one=lambda: (42, False))
     response2 = await async_client.post(
         "/api/auth/login",
         json=payload,
         headers={"Authorization": "Bearer fake-token"},
     )
     assert response2.status_code == 200
-    data2 = response2.json()
-    assert data2["message"] == "Login successful"
-    assert data2["userId"] == 42
+    assert response2.json() == {"message": "Login successful", "userId": 42}
+
+
+@pytest.mark.asyncio
+async def test_auth_login_without_profile_fields(
+    async_client: AsyncClient, mock_db_session: AsyncMock
+) -> None:
+    mock_db_session.execute.return_value = MagicMock(one=lambda: (7, False))
+    response = await async_client.post("/api/auth/login", json={})
+    assert response.status_code == 200
+    assert response.json()["userId"] == 7
+
+
+@pytest.mark.asyncio
+async def test_auth_login_duplicate_email_conflict(
+    async_client: AsyncClient, mock_db_session: AsyncMock
+) -> None:
+    mock_db_session.execute.side_effect = IntegrityError("stmt", {}, Exception("dup"))
+    response = await async_client.post("/api/auth/login", json={"email": "a@b.co"})
+    assert response.status_code == 409
+    mock_db_session.rollback.assert_awaited()
+
+
+@pytest.mark.asyncio
+async def test_auth_login_rejects_overlong_username(
+    async_client: AsyncClient,
+) -> None:
+    response = await async_client.post("/api/auth/login", json={"username": "x" * 21})
+    assert response.status_code == 422
 
 
 @pytest.mark.asyncio
