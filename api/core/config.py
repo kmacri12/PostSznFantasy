@@ -59,9 +59,11 @@ class Settings(BaseSettings):
     rapidapi_baseurl: str = ""
     rapidapi_apikey: str = ""
     rapidapi_apihost: str = ""
+    # Set to a directory to cache API responses on disk (dev only; never expires).
+    rapidapi_cache_dir: str = ""
 
     # App
-    season_year: int = 2025
+    season_year: int = 2026
 
     # Background scheduler (off by default; every tick can spend RapidAPI quota)
     scheduler_enabled: bool = False
