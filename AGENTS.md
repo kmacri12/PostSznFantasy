@@ -24,7 +24,7 @@
 | **Configuration** | **Pydantic Settings** (`api/core/config.py` cached singleton) |
 | **Auth** | Supabase Auth (JWT verification via FastAPI `Depends(get_current_user)`) |
 | **NFL Data Ingestion** | Async HTTP client (`httpx.AsyncClient`) with `tenacity` retries |
-| **Frontend Runtime** | React 18, Vite 5, strict TypeScript |
+| **Frontend Runtime** | React 18, Vite 8, strict TypeScript |
 | **Frontend Linter & Formatter** | **Biome** (`@biomejs/biome`, `biome.json`) |
 | **UI Components** | MUI (`@mui/material` 5.15, Emotion 11.11) |
 | **Table Component** | TanStack Table v8 (`@tanstack/react-table`) |
