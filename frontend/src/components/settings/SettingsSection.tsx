@@ -4,6 +4,7 @@ import {
   AccordionDetails,
   AccordionSummary,
   FormControl,
+  FormHelperText,
   Grid,
   InputLabel,
   OutlinedInput,
@@ -18,6 +19,8 @@ interface SettingsSectionProps {
   title?: string;
   defaultExpanded?: boolean;
   disabled?: boolean;
+  /** Optional explanation shown under an input, e.g. "1 point per 25 yards". */
+  helper?: (key: string, rawValue: string | number) => string | null;
 }
 
 /** One collapsible block of numeric inputs, generated from a field schema. */
@@ -28,6 +31,7 @@ const SettingsSection = ({
   title,
   defaultExpanded = false,
   disabled = false,
+  helper,
 }: SettingsSectionProps) => (
   <Accordion defaultExpanded={defaultExpanded} disableGutters>
     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -49,6 +53,9 @@ const SettingsSection = ({
                   onChange={(event) => onChange(field.key, event.target.value)}
                   label={field.label}
                 />
+                {helper && (
+                  <FormHelperText>{helper(field.key, values[field.key] ?? "")}</FormHelperText>
+                )}
               </FormControl>
             </Grid>
           );

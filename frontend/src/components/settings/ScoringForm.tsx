@@ -1,5 +1,6 @@
 import { Box, Typography } from "@mui/material";
 import { SCORING_GROUPS } from "../../settings/scoringGroups";
+import { scoringHelp } from "../../settings/scoringHelp";
 import type { SettingsValues } from "../../settings/types";
 import SettingsSection from "./SettingsSection";
 
@@ -22,6 +23,7 @@ const ScoringForm = ({ values, onChange, disabled }: ScoringFormProps) => (
         onChange={onChange}
         disabled={disabled}
         defaultExpanded={index === 0}
+        helper={scoringHelp}
       />
     ))}
   </Box>
