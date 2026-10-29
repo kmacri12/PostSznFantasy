@@ -1,10 +1,30 @@
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { Box, Button, Card, Chip, Container, Grid, Skeleton, Typography } from "@mui/material";
 import { Link } from "react-router-dom";
-import { useDraftInfo, useStandings } from "../api/queries";
+import { useDraft, useStandings } from "../api/queries";
 import type { LeagueByUser } from "../api/types";
+import JoinCodeBox from "../components/league/JoinCodeBox";
 import { useUser } from "../contexts/UserContext";
 import { tokens } from "../theme";
+
+const POSTSEASON_RULES = [
+  {
+    title: "Round multipliers",
+    blurb: "Make the Super Bowl count triple: set a scoring multiplier for every round.",
+  },
+  {
+    title: "Free agency",
+    blurb: "Allow pickups between rounds, or only swap out players whose teams are eliminated.",
+  },
+  {
+    title: "Roster locks",
+    blurb: "Lock lineups at the start of each round or at each player's kickoff.",
+  },
+  {
+    title: "Tiebreakers & byes",
+    blurb: "Decide ties by players alive or best round, and how bye-week teams are treated.",
+  },
+];
 
 const ROUNDS = [
   { name: "Wild Card", blurb: "12 teams, 6 games. Roster the survivors." },
@@ -15,7 +35,7 @@ const ROUNDS = [
 
 const LeagueWidget = ({ league }: { league: LeagueByUser }) => {
   const standings = useStandings(league.id);
-  const draft = useDraftInfo(league.id);
+  const draft = useDraft(league.id);
   const loaded = !standings.isLoading && !draft.isLoading;
   const rows = standings.data ?? [];
   const snapshot = loaded
@@ -43,9 +63,9 @@ const LeagueWidget = ({ league }: { league: LeagueByUser }) => {
             size="small"
             variant="outlined"
             label={
-              snapshot.draftStatus === "Scheduled" && snapshot.draftStart
+              snapshot.draftStatus === "scheduled" && snapshot.draftStart
                 ? `Draft ${new Date(snapshot.draftStart).toLocaleString()}`
-                : `Draft ${snapshot.draftStatus ?? "pending"}`
+                : `Draft ${(snapshot.draftStatus ?? "pending").replace("_", " ")}`
             }
           />
         </Box>
@@ -54,7 +74,7 @@ const LeagueWidget = ({ league }: { league: LeagueByUser }) => {
       )}
       <Box sx={{ display: "flex", gap: 1 }}>
         <Button size="small" component={Link} to={`/league/${league.id}`}>
-          Standings
+          League
         </Button>
         <Button size="small" component={Link} to={`/league/${league.id}/draft`}>
           Draft room
@@ -121,10 +141,7 @@ const LandingPage = ({ leagues }: { leagues: LeagueByUser[] }) => {
               Sign in to play
             </Button>
           )}
-          {/* No join-by-code endpoint exists yet. */}
-          <Button variant="outlined" size="large" color="inherit" disabled>
-            Join with code (soon)
-          </Button>
+          <JoinCodeBox />
         </Box>
       </Box>
 
@@ -179,6 +196,25 @@ const LandingPage = ({ leagues }: { leagues: LeagueByUser[] }) => {
                     }}
                   />
                 )}
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
+      <Box sx={{ mt: 8 }}>
+        <Typography variant="h5" sx={{ mb: 2 }}>
+          Playoff rules you control
+        </Typography>
+        <Grid container spacing={2}>
+          {POSTSEASON_RULES.map((rule) => (
+            <Grid item xs={12} sm={6} md={3} key={rule.title}>
+              <Card sx={{ p: 2.5, height: "100%" }}>
+                <Typography variant="subtitle1" fontWeight={700}>
+                  {rule.title}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                  {rule.blurb}
+                </Typography>
               </Card>
             </Grid>
           ))}

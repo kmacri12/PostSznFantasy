@@ -24,7 +24,7 @@ import {
 } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
 import "./PlayersTable.css";
-import { usePlayerSeasonStats } from "../../api/queries";
+import { useConfig, usePlayerSeasonStats } from "../../api/queries";
 
 export interface PlayerInfo {
   id: number;
@@ -65,7 +65,10 @@ export interface PlayerSeasonStats {
 }
 
 const PlayersTable = () => {
-  const [selectedSeason, setSelectedSeason] = useState("2024");
+  const { data: config } = useConfig();
+  const [pickedSeason, setSelectedSeason] = useState<string | null>(null);
+  // Follows the server-configured season until the user picks another one.
+  const selectedSeason = pickedSeason ?? String(config?.season ?? "");
   const [selectedPosition, setSelectedPosition] = useState("QB");
   const [searchQuery, setSearchQuery] = useState("");
   const { data: playerStats = [] } = usePlayerSeasonStats<PlayerSeasonStats>();

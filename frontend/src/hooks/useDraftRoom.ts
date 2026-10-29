@@ -1,0 +1,54 @@
+import { useCallback, useEffect, useReducer, useState } from "react";
+import { useUser } from "../contexts/UserContext";
+import {
+  type DraftRoom,
+  applyDraftEvent,
+  initialRoom,
+  secondsRemaining,
+  secondsUntilStart,
+} from "./draftRoomState";
+import { type DraftMessage, useWebSocket } from "./useWebSocket";
+
+const wsOrigin = () =>
+  import.meta.env.VITE_WS_URL ||
+  `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}`;
+
+/** Live draft room: full snapshot on every (re)connect, then incremental events. */
+export function useDraftRoom(leagueId: string | undefined) {
+  const { getIdToken } = useUser();
+  const [room, dispatch] = useReducer(
+    (current: DraftRoom, event: DraftMessage) => applyDraftEvent(current, event),
+    initialRoom,
+  );
+  const [now, setNow] = useState(() => Date.now());
+
+  const { isConnected, sendMessage } = useWebSocket(
+    leagueId ? `${wsOrigin()}/api/drafts/ws/${leagueId}` : "",
+    { getToken: getIdToken, onMessage: dispatch },
+  );
+
+  // Only drives re-rendering; the numbers come from the server deadline.
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 250);
+    return () => clearInterval(timer);
+  }, []);
+
+  const makePick = useCallback(
+    (playerId: number) => sendMessage({ eventType: "MAKE_PICK", data: { playerId } }),
+    [sendMessage],
+  );
+
+  const setQueueLocal = useCallback(
+    (playerIds: number[]) => dispatch({ eventType: "QUEUE_UPDATED", data: playerIds }),
+    [],
+  );
+
+  return {
+    ...room,
+    setQueueLocal,
+    isConnected,
+    makePick,
+    secondsLeft: secondsRemaining(room.state, room.clockOffsetMs, now),
+    secondsToStart: secondsUntilStart(room.state, room.clockOffsetMs, now),
+  };
+}

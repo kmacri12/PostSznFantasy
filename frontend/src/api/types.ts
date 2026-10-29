@@ -1,8 +1,64 @@
+export type LeagueRole = "commissioner" | "member";
+
 export interface LeagueByUser {
   id: number;
   name: string;
-  commissionerId: number;
-  userTeamId: number;
+  season: number;
+  isCommissioner: boolean;
+  userTeamId: number | null;
+}
+
+export interface MemberSummary {
+  userId: number;
+  username: string;
+  role: LeagueRole;
+  teamId: number | null;
+  teamName: string | null;
+}
+
+export type DraftStatus =
+  | "unscheduled"
+  | "scheduled"
+  | "lobby"
+  | "in_progress"
+  | "paused"
+  | "completed";
+
+export interface LeagueOverview {
+  id: number;
+  name: string;
+  season: number;
+  numberTeams: number;
+  openSpots: number;
+  myRole: LeagueRole;
+  myTeamId: number | null;
+  draftStatus: DraftStatus;
+  draftStartTime: string | null;
+  members: MemberSummary[];
+}
+
+export interface Invite {
+  code: string;
+  leagueId: number;
+  expiresAt: string | null;
+  maxUses: number | null;
+  uses: number;
+  revoked: boolean;
+}
+
+export interface InvitePreview {
+  code: string;
+  leagueName: string;
+  season: number;
+  openSpots: number;
+  joinable: boolean;
+  reason: string | null;
+}
+
+export interface JoinResult {
+  leagueId: number;
+  teamId: number | null;
+  alreadyMember: boolean;
 }
 
 export interface StandingsRow {
@@ -26,13 +82,25 @@ export interface TeamSummary {
   picksMade: number;
 }
 
+export interface NextGame {
+  opponentAbv: string | null;
+  gameTimeEpoch: string | null;
+  status: string | null;
+}
+
 export interface RosterPlayer {
   id: number;
   name: string;
   position: string;
-  teamAbv?: string;
-  slot?: string;
-  isActive?: boolean;
+  teamAbv?: string | null;
+  slot: string;
+  isActive: boolean;
+  nextGame: NextGame | null;
+}
+
+export interface RosterSlot {
+  slot: string;
+  player: RosterPlayer | null;
 }
 
 export interface TeamDetails {
@@ -40,20 +108,69 @@ export interface TeamDetails {
   name: string;
   leagueId: number;
   ownerName: string | null;
+  canEdit: boolean;
+  canManageRoster: boolean;
   roster: RosterPlayer[];
+  slots: RosterSlot[];
 }
 
-export interface DraftInfo {
+export interface DraftPick {
+  id: number;
+  draftId: number;
+  teamId: number;
+  playerId: number;
+  playerName: string | null;
+  position: string | null;
+  numberRound: number;
+  numberPickOverall: number;
+  numberPickInRound: number;
+  autopick: boolean;
+}
+
+export interface DraftSlot {
+  slot: number;
+  teamId: number;
+  teamName: string;
+  ownerName: string | null;
+}
+
+export type DraftType = "snake" | "linear" | "third_round_reversal";
+export type PickTimeoutAction = "queue_then_best_available" | "best_available";
+
+export interface DraftState {
+  draftId: number;
+  leagueId: number;
+  status: DraftStatus;
+  startTime: string | null;
+  draftType: DraftType;
+  rounds: number;
+  timePerPickSeconds: number;
+  pickTimeoutAction: PickTimeoutAction;
+  pickStartedAt: string | null;
+  currentPickDeadline: string | null;
+  pausedRemainingSeconds: number | null;
+  serverTime: string;
+  orderLocked: boolean;
+  order: DraftSlot[];
+  unassignedTeamIds: number[];
+  picks: DraftPick[];
+  totalPicks: number;
+  currentPickOverall: number | null;
+  onTheClockTeamId: number | null;
+  onDeckTeamId: number | null;
+}
+
+export interface DraftSnapshot extends DraftState {
+  queue: number[];
+  presence: number[];
+  myTeamId: number | null;
+}
+
+/** Settings arrive flat in camelCase: numbers, booleans and enum strings. */
+export type LeagueSettings = Record<string, number | string | boolean> & {
   id: number;
   leagueId: number;
-  status: string | null;
-  startTime: string | null;
-  draftType: string | null;
-  timePerPickSeconds: number;
-}
-
-/** Roster and scoring fields arrive flat and snake_case-free (camelCase) from the API. */
-export type LeagueSettings = Record<string, number> & { id: number; leagueId: number };
+};
 
 export interface PlayerSummary {
   id: number;

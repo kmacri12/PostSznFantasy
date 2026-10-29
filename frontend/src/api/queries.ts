@@ -1,8 +1,12 @@
-import { type QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "./client";
 import type {
-  DraftInfo,
+  DraftState,
+  Invite,
+  InvitePreview,
+  JoinResult,
   LeagueByUser,
+  LeagueOverview,
   LeagueSettings,
   PlayerSummary,
   StandingsRow,
@@ -11,13 +15,19 @@ import type {
   TeamSummary,
 } from "./types";
 
+type Id = string | number;
+
 export const keys = {
+  config: ["config"] as const,
   userLeagues: ["user-leagues"] as const,
-  standings: (leagueId: string | number) => ["standings", String(leagueId)] as const,
-  teams: (leagueId: string | number) => ["teams", String(leagueId)] as const,
-  team: (teamId: string | number) => ["team", String(teamId)] as const,
-  settings: (leagueId: string | number) => ["settings", String(leagueId)] as const,
-  draftInfo: (leagueId: string | number) => ["draft-info", String(leagueId)] as const,
+  league: (leagueId: Id) => ["league", String(leagueId)] as const,
+  standings: (leagueId: Id) => ["standings", String(leagueId)] as const,
+  teams: (leagueId: Id) => ["teams", String(leagueId)] as const,
+  team: (teamId: Id) => ["team", String(teamId)] as const,
+  settings: (leagueId: Id) => ["settings", String(leagueId)] as const,
+  draft: (leagueId: Id) => ["draft", String(leagueId)] as const,
+  invite: (leagueId: Id) => ["invite", String(leagueId)] as const,
+  invitePreview: (code: string) => ["invite-preview", code] as const,
   players: ["players"] as const,
   seasonStats: ["player-season-stats"] as const,
   scoringDefaults: ["scoring-defaults"] as const,
@@ -26,6 +36,13 @@ export const keys = {
 const get = async <T>(url: string, signal?: AbortSignal): Promise<T> =>
   (await api.get<T>(url, { signal })).data;
 
+export const useConfig = () =>
+  useQuery({
+    queryKey: keys.config,
+    queryFn: ({ signal }) => get<{ season: number }>("/api/config", signal),
+    staleTime: Number.POSITIVE_INFINITY,
+  });
+
 export const useUserLeagues = (enabled: boolean) =>
   useQuery({
     queryKey: keys.userLeagues,
@@ -33,38 +50,45 @@ export const useUserLeagues = (enabled: boolean) =>
     enabled,
   });
 
-export const useStandings = (leagueId: string | number | undefined) =>
+export const useLeague = (leagueId: Id | undefined) =>
+  useQuery({
+    queryKey: keys.league(leagueId ?? ""),
+    queryFn: ({ signal }) => get<LeagueOverview>(`/api/leagues/${leagueId}`, signal),
+    enabled: leagueId !== undefined,
+  });
+
+export const useStandings = (leagueId: Id | undefined) =>
   useQuery({
     queryKey: keys.standings(leagueId ?? ""),
     queryFn: ({ signal }) => get<StandingsRow[]>(`/api/leagues/${leagueId}/standings`, signal),
     enabled: leagueId !== undefined,
   });
 
-export const useLeagueTeams = (leagueId: string | number | undefined) =>
+export const useLeagueTeams = (leagueId: Id | undefined) =>
   useQuery({
     queryKey: keys.teams(leagueId ?? ""),
     queryFn: ({ signal }) => get<TeamSummary[]>(`/api/leagues/${leagueId}/teams`, signal),
     enabled: leagueId !== undefined,
   });
 
-export const useTeam = (teamId: string | undefined) =>
+export const useTeam = (teamId: Id | undefined) =>
   useQuery({
     queryKey: keys.team(teamId ?? ""),
-    queryFn: ({ signal }) => get<TeamDetails>(`/api/leagues/teams/${teamId}`, signal),
+    queryFn: ({ signal }) => get<TeamDetails>(`/api/teams/${teamId}`, signal),
     enabled: teamId !== undefined,
   });
 
-export const useLeagueSettings = (leagueId: string | number | undefined) =>
+export const useLeagueSettings = (leagueId: Id | undefined) =>
   useQuery({
     queryKey: keys.settings(leagueId ?? ""),
     queryFn: ({ signal }) => get<LeagueSettings>(`/api/leagues/${leagueId}/settings`, signal),
     enabled: leagueId !== undefined,
   });
 
-export const useDraftInfo = (leagueId: string | number | undefined) =>
+export const useDraft = (leagueId: Id | undefined) =>
   useQuery({
-    queryKey: keys.draftInfo(leagueId ?? ""),
-    queryFn: ({ signal }) => get<DraftInfo>(`/api/drafts/draft-info/${leagueId}`, signal),
+    queryKey: keys.draft(leagueId ?? ""),
+    queryFn: ({ signal }) => get<DraftState>(`/api/drafts/draft-info/${leagueId}`, signal),
     enabled: leagueId !== undefined,
     retry: false,
   });
@@ -90,6 +114,23 @@ export const useScoringDefaults = () =>
     staleTime: Number.POSITIVE_INFINITY,
   });
 
+export const useInvite = (leagueId: Id | undefined, enabled: boolean) =>
+  useQuery({
+    queryKey: keys.invite(leagueId ?? ""),
+    queryFn: ({ signal }) => get<Invite | null>(`/api/leagues/${leagueId}/invite`, signal),
+    enabled: enabled && leagueId !== undefined,
+  });
+
+export const useInvitePreview = (code: string | undefined) =>
+  useQuery({
+    queryKey: keys.invitePreview(code ?? ""),
+    queryFn: ({ signal }) => get<InvitePreview>(`/api/invites/${code}`, signal),
+    enabled: !!code,
+    retry: false,
+  });
+
+// --- Mutations -------------------------------------------------------------
+
 export const useCreateLeague = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -99,12 +140,132 @@ export const useCreateLeague = () => {
   });
 };
 
-export const useUpdateSettings = (leagueId: string | number | undefined) => {
+/** Mutation whose success refreshes everything cached for one league. */
+const useLeagueMutation = <TVariables, TResult>(
+  leagueId: Id | undefined,
+  request: (variables: TVariables) => Promise<TResult>,
+) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: request,
+    onSuccess: () => {
+      for (const key of ["league", "settings", "teams", "standings", "invite", "draft"]) {
+        queryClient.invalidateQueries({ queryKey: [key, String(leagueId)] });
+      }
+      queryClient.invalidateQueries({ queryKey: keys.userLeagues });
+    },
+  });
+};
+
+export const useUpdateLeague = (leagueId: Id | undefined) =>
+  useLeagueMutation(
+    leagueId,
+    async (body: { name?: string; numberTeams?: number }) =>
+      (await api.patch<LeagueOverview>(`/api/leagues/${leagueId}`, body)).data,
+  );
+
+export const useUpdateSettings = (leagueId: Id | undefined) =>
+  useLeagueMutation(
+    leagueId,
+    async (body: object) =>
+      (await api.patch<LeagueSettings>(`/api/leagues/${leagueId}/settings`, body)).data,
+  );
+
+export const useSetMemberRole = (leagueId: Id | undefined) =>
+  useLeagueMutation(
+    leagueId,
+    async (v: { userId: number; role: "commissioner" | "member" }) =>
+      (
+        await api.patch<LeagueOverview>(`/api/leagues/${leagueId}/members/${v.userId}`, {
+          role: v.role,
+        })
+      ).data,
+  );
+
+export const useRemoveMember = (leagueId: Id | undefined) =>
+  useLeagueMutation(
+    leagueId,
+    async (userId: number) =>
+      (await api.delete<LeagueOverview>(`/api/leagues/${leagueId}/members/${userId}`)).data,
+  );
+
+export const useRegenerateInvite = (leagueId: Id | undefined) =>
+  useLeagueMutation(
+    leagueId,
+    async () => (await api.post<Invite>(`/api/leagues/${leagueId}/invite`, {})).data,
+  );
+
+export const useRevokeInvite = (leagueId: Id | undefined) =>
+  useLeagueMutation(leagueId, async () => {
+    await api.delete(`/api/leagues/${leagueId}/invite`);
+  });
+
+export const useJoinWithCode = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (code: string) =>
+      (await api.post<JoinResult>(`/api/invites/${code.trim().toUpperCase()}/join`)).data,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: keys.userLeagues }),
+  });
+};
+
+export const useRenameTeam = (teamId: Id | undefined) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (name: string) =>
+      (await api.patch<TeamDetails>(`/api/teams/${teamId}`, { name })).data,
+    onSuccess: (data) => {
+      queryClient.setQueryData(keys.team(teamId ?? ""), data);
+      queryClient.invalidateQueries({ queryKey: ["league"] });
+      queryClient.invalidateQueries({ queryKey: ["standings"] });
+    },
+  });
+};
+
+export const useAddDrop = (teamId: Id | undefined) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (body: { addPlayerId?: number; dropPlayerId?: number }) =>
+      (await api.post<TeamDetails>(`/api/teams/${teamId}/roster`, body)).data,
+    onSuccess: (data) => queryClient.setQueryData(keys.team(teamId ?? ""), data),
+  });
+};
+
+type DraftAction = "lobby" | "start" | "pause" | "resume" | "undo";
+
+export const useDraftControl = (leagueId: Id | undefined) => {
+  const queryClient = useQueryClient();
+  const base = `/api/drafts/${leagueId}`;
+  const update = (data: DraftState) => queryClient.setQueryData(keys.draft(leagueId ?? ""), data);
+  return useMutation({
+    mutationFn: async (action: DraftAction | "force-pick" | "randomize") => {
+      const path =
+        action === "force-pick"
+          ? `${base}/force-pick`
+          : action === "randomize"
+            ? `${base}/order/randomize`
+            : `${base}/control/${action}`;
+      return (await api.post<DraftState>(path)).data;
+    },
+    onSuccess: update,
+  });
+};
+
+export const useDraftSetup = (leagueId: Id | undefined) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (body: object) =>
-      (await api.put<LeagueSettings>(`/api/leagues/${leagueId}/settings`, body)).data,
-    onSuccess: (data) => queryClient.setQueryData(keys.settings(leagueId ?? ""), data),
+      (await api.patch<DraftState>(`/api/drafts/${leagueId}`, body)).data,
+    onSuccess: (data) => queryClient.setQueryData(keys.draft(leagueId ?? ""), data),
+  });
+};
+
+export const useDraftOrder = (leagueId: Id | undefined) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (teamIds: number[]) =>
+      (await api.put<DraftState>(`/api/drafts/${leagueId}/order`, { teamIds })).data,
+    onSuccess: (data) => queryClient.setQueryData(keys.draft(leagueId ?? ""), data),
   });
 };
 
@@ -119,5 +280,9 @@ export const useAdminSync = () =>
       ).data,
   });
 
-export const invalidateLeague = (queryClient: QueryClient, leagueId: string | number) =>
-  queryClient.invalidateQueries({ predicate: (q) => q.queryKey[1] === String(leagueId) });
+export const useSaveQueue = (leagueId: Id | undefined) =>
+  useMutation({
+    mutationFn: async (playerIds: number[]) =>
+      (await api.put<{ playerIds: number[] }>(`/api/drafts/${leagueId}/queue`, { playerIds })).data
+        .playerIds,
+  });

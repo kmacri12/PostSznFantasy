@@ -22,3 +22,14 @@ export const fromApi = (response: Record<string, unknown>, keys: string[]): Sett
       .filter((key) => typeof response[toCamel(key)] === "number")
       .map((key) => [key, response[toCamel(key)] as number]),
   );
+
+/** Like fromApi but keeps booleans and enum strings (the postseason settings). */
+export const postseasonFromApi = (
+  response: Record<string, unknown>,
+  keys: string[],
+): Record<string, number | string | boolean> =>
+  Object.fromEntries(
+    keys
+      .filter((key) => response[toCamel(key)] !== undefined)
+      .map((key) => [key, response[toCamel(key)] as number | string | boolean]),
+  );

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { ROSTER_KEYS, SCORING_KEYS, fromApi, toCamel } from "./convert";
+import { ROSTER_KEYS, SCORING_KEYS, fromApi, postseasonFromApi, toCamel } from "./convert";
+import { POSTSEASON_KEYS } from "./postseasonFields";
 
 describe("settings conversion", () => {
   it("matches pydantic's camel casing for numeric bands", () => {
@@ -14,5 +15,17 @@ describe("settings conversion", () => {
       [...SCORING_KEYS, ...ROSTER_KEYS],
     );
     expect(values).toEqual({ scoring_passing_td: 4, scoring_kicking_fg_made_0_19: 3 });
+  });
+
+  it("keeps booleans and enum strings for postseason settings", () => {
+    const values = postseasonFromApi(
+      { freeAgencyEnabled: true, rosterLock: "game_start", multiplierSuperBowl: 3 },
+      POSTSEASON_KEYS,
+    );
+    expect(values).toEqual({
+      free_agency_enabled: true,
+      roster_lock: "game_start",
+      multiplier_super_bowl: 3,
+    });
   });
 });

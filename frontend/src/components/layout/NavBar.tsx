@@ -56,7 +56,7 @@ const NavBar = ({
   const selected = leagues.find((league) => String(league.id) === selectedLeagueId);
   const links = selected
     ? [
-        { label: "Standings", to: `/league/${selected.id}` },
+        { label: "League", to: `/league/${selected.id}` },
         { label: "My Team", to: `/team/${selected.userTeamId}` },
         { label: "Draft", to: `/league/${selected.id}/draft` },
         { label: "Players", to: "/players" },
