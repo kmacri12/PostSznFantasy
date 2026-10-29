@@ -1,10 +1,8 @@
 from api.models.auth_models import LoginRequest, LoginResponse
 from api.models.base import BaseSchema
 from api.models.draft_models import (
-    DraftInfoResponse,
     DraftPickResponse,
-    DraftPickSubmit,
-    DraftStateEvent,
+    DraftStateResponse,
 )
 from api.models.enums import PlayerPosition
 from api.models.league_models import (
@@ -25,10 +23,8 @@ from api.models.players_models import (
 
 __all__ = [
     "BaseSchema",
-    "DraftInfoResponse",
     "DraftPickResponse",
-    "DraftPickSubmit",
-    "DraftStateEvent",
+    "DraftStateResponse",
     "LeagueCreate",
     "LeagueCreateResponse",
     "LeagueSettingsResponse",

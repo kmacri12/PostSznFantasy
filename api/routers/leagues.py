@@ -1,33 +1,47 @@
+from typing import Any
+
 from fastapi import APIRouter, HTTPException, status
+from fastapi.exceptions import RequestValidationError
+from pydantic import ValidationError
 from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 
+from api.core.config import get_settings
 from api.db.models.draft import Draft, DraftPick
 from api.db.models.league import (
     League,
     LeagueSettings,
     LeagueStanding,
     Team,
-    TeamPlayer,
 )
-from api.db.models.nfl import NFLPlayer
+from api.db.models.league import (
+    LeagueMember as LeagueMemberRow,
+)
 from api.db.models.user import User
 from api.db.session import DbSession
 from api.dependencies.auth import CurrentUser
-from api.dependencies.league import LeagueMember, TeamMember
-from api.models.enums import DraftStatus, DraftType
+from api.dependencies.league import LeagueCommissioner, LeagueMember
+from api.models.enums import DraftStatus, DraftType, LeagueRole
 from api.models.league_models import (
     LeagueCreate,
     LeagueCreateResponse,
+    LeagueOverview,
     LeaguesByUser,
+    LeagueSettingsPatch,
     LeagueSettingsResponse,
-    LeagueSettingsUpdate,
-    RosterPlayer,
+    LeagueUpdate,
+    MemberRoleUpdate,
+    MemberSummary,
     ScoringSettings,
     Standings,
-    TeamDetails,
     TeamSimple,
 )
+from api.services.league_admin import (
+    ROSTER_LOCKED_FIELDS,
+    draft_has_started,
+    set_team_count,
+)
+from api.services.league_members import LeagueRuleError, remove_member, set_role
 
 router = APIRouter()
 
@@ -43,6 +57,10 @@ async def get_scoring_defaults() -> dict[str, float]:
     return ScoringSettings().model_dump(by_alias=False)
 
 
+def _rule_error(exc: LeagueRuleError) -> HTTPException:
+    return HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
+
+
 @router.post(
     "/create-league",
     response_model=LeagueCreateResponse,
@@ -53,10 +71,12 @@ async def create_league(
     current_user_id: CurrentUser,
     db: DbSession,
 ) -> LeagueCreateResponse:
-    """Create a new league, its settings, default teams, and a scheduled snake draft."""
-    user_stmt = select(User).where(User.supabase_uid == current_user_id)
-    user_res = await db.execute(user_stmt)
-    user = user_res.scalars().first()
+    """Create a league (the creator becomes commissioner), its teams and an unordered draft."""
+    user = (
+        (await db.execute(select(User).where(User.supabase_uid == current_user_id)))
+        .scalars()
+        .first()
+    )
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
@@ -69,44 +89,48 @@ async def create_league(
             detail="Valid league name and at least 2 teams required",
         )
 
-    # 1. Create League
-    new_league = League(name=payload.league_name, commissioner_id=user.id)
+    new_league = League(name=payload.league_name, season=get_settings().season_year)
     db.add(new_league)
     await db.flush()
 
-    # 2. Create LeagueSettings
-    roster_dict = payload.roster_settings.model_dump(by_alias=False)
-    scoring_dict = payload.scoring_settings.model_dump(by_alias=False)
-    settings = LeagueSettings(
-        league_id=new_league.id,
-        **roster_dict,
-        **scoring_dict,
-    )
-    db.add(settings)
-
-    # 3. Create Teams
-    new_teams: list[Team] = []
-    for i in range(number_of_teams):
-        team = Team(
-            name=f"Team {i + 1}",
-            owner_id=user.id if i == 0 else None,
-            league_id=new_league.id,
+    db.add(
+        LeagueMemberRow(
+            league_id=new_league.id, user_id=user.id, role=LeagueRole.COMMISSIONER.value
         )
-        new_teams.append(team)
-        db.add(team)
+    )
+    db.add(
+        LeagueSettings(
+            league_id=new_league.id,
+            **payload.roster_settings.model_dump(by_alias=False),
+            **payload.scoring_settings.model_dump(by_alias=False),
+            **payload.postseason_settings.model_dump(by_alias=False, mode="json"),
+        )
+    )
+    for i in range(number_of_teams):
+        db.add(
+            Team(
+                name=f"Team {i + 1}",
+                owner_id=user.id if i == 0 else None,
+                league_id=new_league.id,
+            )
+        )
     await db.flush()
 
-    # 4. Create Draft
-    new_draft = Draft(
-        league_id=new_league.id,
-        status=DraftStatus.SCHEDULED.value,
-        start_time=payload.draft_start_time,
-        draft_type=DraftType.SNAKE.value,
-        time_per_pick_seconds=payload.time_per_pick_seconds,
-        alphabetical_sort=False,
-        draft_order_team_ids=[t.id for t in new_teams],
+    db.add(
+        Draft(
+            league_id=new_league.id,
+            status=(
+                DraftStatus.SCHEDULED.value
+                if payload.draft_start_time
+                else DraftStatus.UNSCHEDULED.value
+            ),
+            start_time=payload.draft_start_time,
+            draft_type=DraftType.SNAKE.value,
+            rounds=payload.roster_settings.roster_total,
+            time_per_pick_seconds=payload.time_per_pick_seconds,
+            draft_order_team_ids=[],
+        )
     )
-    db.add(new_draft)
 
     return LeagueCreateResponse(
         message=f"League '{payload.league_name}' created successfully",
@@ -119,28 +143,149 @@ async def get_user_leagues(
     current_user_id: CurrentUser,
     db: DbSession,
 ) -> list[LeaguesByUser]:
-    """Retrieve all leagues the current user participates in."""
-    user_stmt = select(User).where(User.supabase_uid == current_user_id)
-    user_res = await db.execute(user_stmt)
-    user = user_res.scalars().first()
+    """Retrieve all leagues the current user belongs to."""
+    user = (
+        (await db.execute(select(User).where(User.supabase_uid == current_user_id)))
+        .scalars()
+        .first()
+    )
     if not user:
         return []
 
-    stmt = (
-        select(Team).options(selectinload(Team.league)).where(Team.owner_id == user.id)
+    members = (
+        (
+            await db.execute(
+                select(LeagueMemberRow)
+                .options(selectinload(LeagueMemberRow.league))
+                .where(LeagueMemberRow.user_id == user.id)
+                .order_by(LeagueMemberRow.joined_at)
+            )
+        )
+        .scalars()
+        .all()
     )
-    res = await db.execute(stmt)
-    teams = res.scalars().all()
-
+    team_ids = dict(
+        (
+            await db.execute(
+                select(Team.league_id, Team.id).where(Team.owner_id == user.id)
+            )
+        ).all()
+    )
     return [
         LeaguesByUser(
-            id=team.league.id,
-            name=team.league.name,
-            commissioner_id=team.league.commissioner_id,
-            user_team_id=team.id,
+            id=member.league.id,
+            name=member.league.name,
+            season=member.league.season,
+            is_commissioner=member.role == LeagueRole.COMMISSIONER.value,
+            user_team_id=team_ids.get(member.league_id),
         )
-        for team in teams
+        for member in members
     ]
+
+
+@router.get("/{league_id}", response_model=LeagueOverview)
+async def get_league(
+    league_id: int,
+    membership: LeagueMember,
+    db: DbSession,
+) -> LeagueOverview:
+    """Everything the League page needs in one call: info, members and draft status."""
+    members = (
+        (
+            await db.execute(
+                select(LeagueMemberRow)
+                .options(selectinload(LeagueMemberRow.user))
+                .where(LeagueMemberRow.league_id == league_id)
+                .order_by(LeagueMemberRow.joined_at)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    teams = (
+        (await db.execute(select(Team).where(Team.league_id == league_id)))
+        .scalars()
+        .all()
+    )
+    team_by_owner = {team.owner_id: team for team in teams if team.owner_id}
+    draft = (
+        await db.execute(select(Draft).where(Draft.league_id == league_id))
+    ).scalar_one_or_none()
+    return LeagueOverview(
+        id=membership.league.id,
+        name=membership.league.name,
+        season=membership.league.season,
+        number_teams=len(teams),
+        open_spots=sum(1 for team in teams if team.owner_id is None),
+        my_role=LeagueRole(membership.role),
+        my_team_id=membership.team.id if membership.team else None,
+        draft_status=DraftStatus(draft.status) if draft else DraftStatus.UNSCHEDULED,
+        draft_start_time=draft.start_time if draft else None,
+        members=[
+            MemberSummary(
+                user_id=m.user_id,
+                username=m.user.username,
+                role=LeagueRole(m.role),
+                team_id=team_by_owner[m.user_id].id
+                if m.user_id in team_by_owner
+                else None,
+                team_name=team_by_owner[m.user_id].name
+                if m.user_id in team_by_owner
+                else None,
+            )
+            for m in members
+        ],
+    )
+
+
+@router.patch("/{league_id}", response_model=LeagueOverview)
+async def update_league(
+    league_id: int,
+    payload: LeagueUpdate,
+    membership: LeagueCommissioner,
+    db: DbSession,
+) -> LeagueOverview:
+    """Rename the league or change its team count (the season is read-only)."""
+    if payload.name is not None:
+        membership.league.name = payload.name
+    if payload.number_teams is not None:
+        try:
+            await set_team_count(db, league_id, payload.number_teams)
+        except LeagueRuleError as exc:
+            raise _rule_error(exc) from exc
+    await db.flush()
+    return await get_league(league_id, membership, db)
+
+
+@router.patch("/{league_id}/members/{user_id}", response_model=LeagueOverview)
+async def update_member_role(
+    league_id: int,
+    user_id: int,
+    payload: MemberRoleUpdate,
+    membership: LeagueCommissioner,
+    db: DbSession,
+) -> LeagueOverview:
+    try:
+        await set_role(db, league_id, user_id, payload.role)
+    except LeagueRuleError as exc:
+        raise _rule_error(exc) from exc
+    await db.flush()
+    return await get_league(league_id, membership, db)
+
+
+@router.delete("/{league_id}/members/{user_id}", response_model=LeagueOverview)
+async def delete_member(
+    league_id: int,
+    user_id: int,
+    membership: LeagueCommissioner,
+    db: DbSession,
+) -> LeagueOverview:
+    try:
+        await remove_member(db, league_id, user_id)
+    except LeagueRuleError as exc:
+        raise _rule_error(exc) from exc
+    await db.flush()
+    return await get_league(league_id, membership, db)
 
 
 @router.get("/{league_id}/settings", response_model=LeagueSettingsResponse)
@@ -150,45 +295,6 @@ async def get_league_settings(
     db: DbSession,
 ) -> LeagueSettings:
     """Retrieve settings for a given league."""
-    stmt = select(LeagueSettings).where(LeagueSettings.league_id == league_id)
-    res = await db.execute(stmt)
-    settings = res.scalars().first()
-    if not settings:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="League settings not found",
-        )
-    return settings
-
-
-@router.put("/{league_id}/settings", response_model=LeagueSettingsResponse)
-async def update_league_settings(
-    league_id: int,
-    payload: LeagueSettingsUpdate,
-    current_user_id: CurrentUser,
-    db: DbSession,
-) -> LeagueSettings:
-    """Update roster and scoring settings; commissioner only."""
-    league = (
-        (await db.execute(select(League).where(League.id == league_id)))
-        .scalars()
-        .first()
-    )
-    if not league:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="League not found"
-        )
-    user = (
-        (await db.execute(select(User).where(User.supabase_uid == current_user_id)))
-        .scalars()
-        .first()
-    )
-    if not user or user.id != league.commissioner_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only the commissioner can update league settings",
-        )
-
     settings = (
         (
             await db.execute(
@@ -203,14 +309,47 @@ async def update_league_settings(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="League settings not found",
         )
+    return settings
 
-    # Teams are created with the league, so the team count is immutable here.
-    updates = {
-        **payload.roster_settings.model_dump(by_alias=False, exclude={"number_teams"}),
-        **payload.scoring_settings.model_dump(by_alias=False),
-    }
+
+@router.patch("/{league_id}/settings", response_model=LeagueSettingsResponse)
+async def update_league_settings(
+    league_id: int,
+    body: dict[str, Any],
+    _: LeagueCommissioner,
+    db: DbSession,
+) -> LeagueSettings:
+    """Partially update roster, scoring and postseason settings; commissioner only."""
+    settings = await get_league_settings(league_id, _, db)
+    try:
+        patch = LeagueSettingsPatch.model_validate(body)
+    except ValidationError as exc:
+        raise RequestValidationError(exc.errors()) from exc
+    updates = patch.model_dump(exclude_unset=True, by_alias=False, mode="json")
+    updates = {key: value for key, value in updates.items() if value is not None}
+
+    if await draft_has_started(db, league_id):
+        locked = [
+            key
+            for key in updates
+            if key in ROSTER_LOCKED_FIELDS
+            and float(getattr(settings, key)) != float(updates[key])
+        ]
+        if locked:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"Locked once the draft starts: {', '.join(sorted(locked))}",
+            )
+
+    team_count = updates.pop("number_teams", None)
+    if team_count is not None and team_count != settings.number_teams:
+        try:
+            await set_team_count(db, league_id, team_count)
+        except LeagueRuleError as exc:
+            raise _rule_error(exc) from exc
     for field, value in updates.items():
         setattr(settings, field, value)
+    await db.flush()
     return settings
 
 
@@ -240,9 +379,7 @@ async def get_league_teams(
                 .where(DraftPick.team_id.in_([t.id for t in teams]))
                 .group_by(DraftPick.team_id)
             )
-        )
-        .tuples()
-        .all()
+        ).all()
     )
     return [
         TeamSimple(
@@ -254,60 +391,6 @@ async def get_league_teams(
         )
         for team in teams
     ]
-
-
-@router.get("/teams/{team_id}", response_model=TeamDetails)
-async def get_team(
-    team_id: int,
-    _: TeamMember,
-    db: DbSession,
-) -> TeamDetails:
-    """Team roster with each player's playoff survival (NFL team still active)."""
-    team = (
-        (
-            await db.execute(
-                select(Team).options(selectinload(Team.owner)).where(Team.id == team_id)
-            )
-        )
-        .scalars()
-        .first()
-    )
-    if not team:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Team not found"
-        )
-
-    players = (
-        (
-            await db.execute(
-                select(NFLPlayer)
-                .options(selectinload(NFLPlayer.team))
-                .join(TeamPlayer, TeamPlayer.player_id == NFLPlayer.id)
-                .where(TeamPlayer.team_id == team_id)
-                .order_by(NFLPlayer.name)
-            )
-        )
-        .scalars()
-        .all()
-    )
-    # Lineup slot assignment is not persisted per player yet, so everything is BENCH.
-    return TeamDetails(
-        id=team.id,
-        name=team.name or f"Team {team.id}",
-        league_id=team.league_id,
-        owner_name=team.owner.username if team.owner else None,
-        roster=[
-            RosterPlayer(
-                id=p.id,
-                name=p.name or "",
-                position=p.position or "",
-                team_abv=p.team.team_abv if p.team else None,
-                slot="BENCH",
-                is_active=p.team.is_active if p.team else False,
-            )
-            for p in players
-        ],
-    )
 
 
 @router.get("/{league_id}/standings", response_model=list[Standings])

@@ -7,33 +7,39 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.db.models.draft import Draft
 from api.db.models.league import League, Team
+from api.db.models.league import LeagueMember as LeagueMemberRow
 from api.db.models.user import User
 from api.db.session import DbSession
 from api.dependencies.auth import CurrentUser
+from api.models.enums import LeagueRole
 
 
 @dataclass(frozen=True)
 class LeagueMembership:
     user: User
     league: League
+    role: str
     team: Team | None
 
     @property
     def is_commissioner(self) -> bool:
-        return self.league.commissioner_id == self.user.id
+        return self.role == LeagueRole.COMMISSIONER.value
 
 
 async def find_membership(
     db: AsyncSession, league_id: int, supabase_uid: str
 ) -> LeagueMembership | None:
-    """Return the caller's membership, or None unless they own a team or run the league."""
+    """Return the caller's membership, or None unless they belong to the league."""
     user = (
         (await db.execute(select(User).where(User.supabase_uid == supabase_uid)))
         .scalars()
         .first()
     )
+    if user is None:
+        return None
+    member = await db.get(LeagueMemberRow, (league_id, user.id))
     league = await db.get(League, league_id)
-    if user is None or league is None:
+    if member is None or league is None:
         return None
 
     team = (
@@ -47,9 +53,7 @@ async def find_membership(
         .scalars()
         .first()
     )
-    if team is None and league.commissioner_id != user.id:
-        return None
-    return LeagueMembership(user=user, league=league, team=team)
+    return LeagueMembership(user=user, league=league, role=member.role, team=team)
 
 
 async def require_league_member(
@@ -69,6 +73,18 @@ async def get_league_member(
 ) -> LeagueMembership:
     """Guard for routes with a `{league_id}` path parameter."""
     return await require_league_member(db, league_id, supabase_uid)
+
+
+async def require_commissioner(
+    membership: Annotated[LeagueMembership, Depends(get_league_member)],
+) -> LeagueMembership:
+    """Guard for settings, invites, draft control and member management."""
+    if not membership.is_commissioner:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Commissioner access required",
+        )
+    return membership
 
 
 async def get_draft_member(
@@ -100,5 +116,6 @@ async def get_team_member(
 
 
 LeagueMember = Annotated[LeagueMembership, Depends(get_league_member)]
+LeagueCommissioner = Annotated[LeagueMembership, Depends(require_commissioner)]
 DraftMember = Annotated[LeagueMembership, Depends(get_draft_member)]
 TeamMember = Annotated[LeagueMembership, Depends(get_team_member)]

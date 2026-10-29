@@ -1,12 +1,18 @@
-from datetime import UTC, datetime, timedelta
+from datetime import datetime
+from typing import Any
 
-from pydantic import Field
+from pydantic import Field, create_model
 
 from api.models.base import BaseSchema
-
-
-def _default_draft_start() -> datetime:
-    return datetime.now(UTC) + timedelta(days=7)
+from api.models.enums import (
+    ByeWeekHandling,
+    DraftStatus,
+    FreeAgencyClaimOrder,
+    FreeAgencyWindow,
+    LeagueRole,
+    RosterLock,
+    Tiebreaker,
+)
 
 
 class RosterSettings(BaseSchema):
@@ -102,11 +108,29 @@ class ScoringSettings(BaseSchema):
     scoring_dst_two_point_return: float = 0
 
 
+class PostseasonSettings(BaseSchema):
+    """What makes this different from a regular-season league."""
+
+    allow_join_after_draft_start: bool = False
+    free_agency_enabled: bool = False
+    free_agency_window: FreeAgencyWindow = FreeAgencyWindow.BETWEEN_ROUNDS
+    free_agency_claim_order: FreeAgencyClaimOrder = FreeAgencyClaimOrder.FIRST_COME
+    multiplier_wild_card: float = Field(default=1, ge=0, le=10)
+    multiplier_divisional: float = Field(default=1, ge=0, le=10)
+    multiplier_conference: float = Field(default=1, ge=0, le=10)
+    multiplier_super_bowl: float = Field(default=1, ge=0, le=10)
+    roster_lock: RosterLock = RosterLock.ROUND_START
+    allow_swap_eliminated: bool = True
+    tiebreaker: Tiebreaker = Tiebreaker.MOST_PLAYERS_ALIVE
+    bye_week_handling: ByeWeekHandling = ByeWeekHandling.ALIVE_NO_SCORE
+
+
 class LeagueCreate(BaseSchema):
     league_name: str = Field(min_length=1, max_length=100)
     roster_settings: RosterSettings = Field(default_factory=RosterSettings)
     scoring_settings: ScoringSettings = Field(default_factory=ScoringSettings)
-    draft_start_time: datetime = Field(default_factory=_default_draft_start)
+    postseason_settings: PostseasonSettings = Field(default_factory=PostseasonSettings)
+    draft_start_time: datetime | None = None
     time_per_pick_seconds: int = Field(default=60, ge=10, le=86400)
 
 
@@ -115,7 +139,7 @@ class LeagueCreateResponse(BaseSchema):
     league_id: int | None = None
 
 
-class LeagueSettingsResponse(RosterSettings, ScoringSettings):
+class LeagueSettingsResponse(RosterSettings, ScoringSettings, PostseasonSettings):
     id: int
     league_id: int
 
@@ -123,13 +147,54 @@ class LeagueSettingsResponse(RosterSettings, ScoringSettings):
 class LeaguesByUser(BaseSchema):
     id: int
     name: str
-    commissioner_id: int
-    user_team_id: int
+    season: int
+    is_commissioner: bool
+    user_team_id: int | None = None
 
 
-class LeagueSettingsUpdate(BaseSchema):
-    roster_settings: RosterSettings
-    scoring_settings: ScoringSettings
+def _all_optional(name: str, *models: type[BaseSchema]) -> type[BaseSchema]:
+    fields: dict[str, Any] = {}
+    for model in models:
+        for field, info in model.model_fields.items():
+            annotation: Any = info.annotation
+            fields[field] = (annotation | None, None)
+    return create_model(name, __base__=BaseSchema, **fields)
+
+
+# Partial update body: any subset of the roster, scoring and postseason fields.
+LeagueSettingsPatch = _all_optional(
+    "LeagueSettingsPatch", RosterSettings, ScoringSettings, PostseasonSettings
+)
+
+
+class LeagueUpdate(BaseSchema):
+    name: str | None = Field(default=None, min_length=1, max_length=100)
+    number_teams: int | None = Field(default=None, ge=2, le=32)
+
+
+class MemberSummary(BaseSchema):
+    user_id: int
+    username: str
+    role: LeagueRole
+    team_id: int | None = None
+    team_name: str | None = None
+
+
+class MemberRoleUpdate(BaseSchema):
+    role: LeagueRole
+
+
+class LeagueOverview(BaseSchema):
+    id: int
+    name: str
+    season: int
+    number_teams: int
+    open_spots: int
+    my_role: LeagueRole
+    my_team_id: int | None = None
+    draft_status: DraftStatus
+    draft_start_time: datetime | None = None
+    members: list[MemberSummary]
 
 
 class Standings(BaseSchema):
@@ -153,6 +218,12 @@ class TeamSimple(BaseSchema):
     picks_made: int = 0
 
 
+class NextGame(BaseSchema):
+    opponent_abv: str | None = None
+    game_time_epoch: str | None = None
+    status: str | None = None
+
+
 class RosterPlayer(BaseSchema):
     id: int
     name: str
@@ -160,6 +231,12 @@ class RosterPlayer(BaseSchema):
     team_abv: str | None = None
     slot: str
     is_active: bool
+    next_game: NextGame | None = None
+
+
+class RosterSlot(BaseSchema):
+    slot: str
+    player: RosterPlayer | None = None
 
 
 class TeamDetails(BaseSchema):
@@ -167,4 +244,45 @@ class TeamDetails(BaseSchema):
     name: str
     league_id: int
     owner_name: str | None = None
+    can_edit: bool
+    can_manage_roster: bool
     roster: list[RosterPlayer]
+    slots: list[RosterSlot]
+
+
+class TeamRename(BaseSchema):
+    name: str = Field(min_length=1, max_length=40)
+
+
+class AddDropRequest(BaseSchema):
+    add_player_id: int | None = None
+    drop_player_id: int | None = None
+
+
+class InviteCreate(BaseSchema):
+    expires_at: datetime | None = None
+    max_uses: int | None = Field(default=None, ge=1)
+
+
+class InviteResponse(BaseSchema):
+    code: str
+    league_id: int
+    expires_at: datetime | None = None
+    max_uses: int | None = None
+    uses: int
+    revoked: bool
+
+
+class InvitePreview(BaseSchema):
+    code: str
+    league_name: str
+    season: int
+    open_spots: int
+    joinable: bool
+    reason: str | None = None
+
+
+class JoinResponse(BaseSchema):
+    league_id: int
+    team_id: int | None = None
+    already_member: bool = False

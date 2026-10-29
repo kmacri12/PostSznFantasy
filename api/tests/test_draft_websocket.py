@@ -35,18 +35,29 @@ def client() -> TestClient:
     return TestClient(app)
 
 
+def join(ws: Any) -> None:
+    """Authenticate and consume the greeting: a snapshot, then the presence broadcast."""
+    ws.send_json(auth_message())
+    assert ws.receive_json()["eventType"] == "SNAPSHOT"
+    assert ws.receive_json() == {"eventType": "PRESENCE", "data": [1]}
+
+
 def auth_message(token: str = "valid") -> dict[str, str]:
     return {"eventType": "AUTH", "token": token}
 
 
 def as_member(uid: str = "uid-1") -> Any:
-    membership = SimpleNamespace(user=SimpleNamespace(id=1, supabase_uid=uid))
+    membership = SimpleNamespace(
+        user=SimpleNamespace(id=1, supabase_uid=uid), team=SimpleNamespace(id=5)
+    )
+    snapshot = {"eventType": "SNAPSHOT", "data": {"status": "in_progress"}}
     return (
         patch("api.routers.drafts.verify_token", return_value=uid),
         patch(
             "api.routers.drafts.find_membership",
             new=AsyncMock(return_value=membership),
         ),
+        patch("api.routers.drafts._snapshot", new=AsyncMock(return_value=snapshot)),
     )
 
 
@@ -85,10 +96,9 @@ def test_non_member_is_rejected(client: TestClient) -> None:
 
 
 def test_member_can_ping_and_unknown_events_are_rejected(client: TestClient) -> None:
-    verify, membership = as_member()
-    with verify, membership, client.websocket_connect(WS_URL) as ws:
-        ws.send_json(auth_message())
-        assert ws.receive_json()["eventType"] == "CONNECTED"
+    verify, membership, snapshot = as_member()
+    with verify, membership, snapshot, client.websocket_connect(WS_URL) as ws:
+        join(ws)
 
         ws.send_json({"eventType": "PING", "timestamp": 5})
         assert ws.receive_json() == {"eventType": "PONG", "timestamp": 5}
@@ -101,19 +111,17 @@ def test_member_can_ping_and_unknown_events_are_rejected(client: TestClient) -> 
 
 
 def test_client_cannot_spoof_a_broadcast(client: TestClient) -> None:
-    verify, membership = as_member()
-    with verify, membership, client.websocket_connect(WS_URL) as ws:
-        ws.send_json(auth_message())
-        ws.receive_json()
+    verify, membership, snapshot = as_member()
+    with verify, membership, snapshot, client.websocket_connect(WS_URL) as ws:
+        join(ws)
         ws.send_json({"eventType": "DRAFT_COMPLETE"})
         assert ws.receive_json()["eventType"] == "ERROR"
 
 
 def test_make_pick_requires_player_id(client: TestClient) -> None:
-    verify, membership = as_member()
-    with verify, membership, client.websocket_connect(WS_URL) as ws:
-        ws.send_json(auth_message())
-        ws.receive_json()
+    verify, membership, snapshot = as_member()
+    with verify, membership, snapshot, client.websocket_connect(WS_URL) as ws:
+        join(ws)
         ws.send_json({"eventType": "MAKE_PICK", "data": {}})
         assert ws.receive_json()["message"] == "playerId is required"
 
@@ -121,18 +129,18 @@ def test_make_pick_requires_player_id(client: TestClient) -> None:
 def test_rejected_pick_returns_error_only_to_sender(
     client: TestClient, db: AsyncMock
 ) -> None:
-    verify, membership = as_member()
+    verify, membership, snapshot = as_member()
     with (
         verify,
         membership,
+        snapshot,
         patch(
             "api.routers.drafts.make_pick",
             new=AsyncMock(side_effect=DraftPickError("It is not your turn to pick")),
         ),
         client.websocket_connect(WS_URL) as ws,
     ):
-        ws.send_json(auth_message())
-        ws.receive_json()
+        join(ws)
         ws.send_json({"eventType": "MAKE_PICK", "data": {"playerId": 3}})
         assert ws.receive_json() == {
             "eventType": "ERROR",
@@ -156,20 +164,26 @@ def test_valid_pick_is_committed_and_broadcast(
     result = PickResult(
         pick=pick, player_name="Star QB", next_pick_overall=2, draft_complete=False
     )
-    verify, membership = as_member()
+    events = [
+        {"eventType": "PICK_MADE", "data": {"playerId": 3, "playerName": "Star QB"}},
+        {"eventType": "DRAFT_STATE", "data": {"currentPickOverall": 2}},
+    ]
+    verify, membership, snapshot = as_member()
     with (
         verify,
         membership,
+        snapshot,
         patch("api.routers.drafts.make_pick", new=AsyncMock(return_value=result)),
+        patch("api.routers.drafts._draft_for_session", new=AsyncMock()),
+        patch("api.routers.drafts.pick_events", new=AsyncMock(return_value=events)),
         client.websocket_connect(WS_URL) as ws,
     ):
-        ws.send_json(auth_message())
-        ws.receive_json()
+        join(ws)
         ws.send_json({"eventType": "MAKE_PICK", "data": {"playerId": 3}})
-        event = ws.receive_json()
+        picked = ws.receive_json()
+        state = ws.receive_json()
 
-    assert event["eventType"] == "PICK_MADE"
-    assert event["data"]["playerId"] == 3
-    assert event["data"]["playerName"] == "Star QB"
-    assert event["data"]["currentPickIndex"] == 2
+    assert picked["eventType"] == "PICK_MADE"
+    assert picked["data"]["playerName"] == "Star QB"
+    assert state["eventType"] == "DRAFT_STATE"
     db.commit.assert_awaited()

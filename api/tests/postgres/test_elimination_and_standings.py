@@ -16,7 +16,10 @@ async def test_losing_teams_are_eliminated_and_players_left_drops(
     await db.flush()
     players = await make_players(db, ["QB", "RB"], nfl_team=kc)
     players += await make_players(db, ["WR"], nfl_team=buf, first_id=2000)
-    db.add_all(TeamPlayer(team_id=teams[0].id, player_id=p.id) for p in players)
+    db.add_all(
+        TeamPlayer(team_id=teams[0].id, league_id=league.id, player_id=p.id)
+        for p in players
+    )
     await db.flush()
     assert await get_players_left(teams[0].id, league.id, db) == 3
 

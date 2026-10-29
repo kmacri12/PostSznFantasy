@@ -1,5 +1,6 @@
 import logging
 from dataclasses import dataclass
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -8,16 +9,13 @@ from api.db.models.draft import Draft, DraftPick
 from api.db.models.league import LeagueSettings, Team, TeamPlayer
 from api.db.models.nfl import NFLPlayer
 from api.db.models.user import User
-from api.models.enums import DraftStatus, PlayerPosition
+from api.models.enums import DraftStatus, DraftType, PlayerPosition
 
 logger = logging.getLogger(__name__)
 
-DRAFT_IN_PROGRESS = DraftStatus.IN_PROGRESS.value
-DRAFT_COMPLETED = DraftStatus.COMPLETED.value
-
 
 class DraftPickError(Exception):
-    """A pick was rejected; the message is safe to show to the drafter."""
+    """A pick or draft action was rejected; the message is safe to show to the drafter."""
 
 
 @dataclass(frozen=True)
@@ -26,14 +24,20 @@ class PickResult:
     player_name: str
     next_pick_overall: int
     draft_complete: bool
+    already_recorded: bool = False
 
 
 def team_on_the_clock(order: list[int], pick_index: int, draft_type: str | None) -> int:
-    """Team id owning the zero-based `pick_index`, reversing odd rounds for snake drafts."""
+    """Team id owning the zero-based `pick_index`, honouring the draft type's reversals."""
     round_index, slot = divmod(pick_index, len(order))
-    if draft_type == "snake" and round_index % 2 == 1:
-        slot = len(order) - 1 - slot
-    return order[slot]
+    if draft_type == DraftType.SNAKE.value:
+        reverse = round_index % 2 == 1
+    elif draft_type == DraftType.THIRD_ROUND_REVERSAL.value:
+        # Rounds 1-2 snake, round 3 repeats round 2's direction, then snake resumes.
+        reverse = round_index == 1 or (round_index >= 2 and round_index % 2 == 0)
+    else:
+        reverse = False
+    return order[len(order) - 1 - slot if reverse else slot]
 
 
 def check_roster_limits(
@@ -52,13 +56,11 @@ def check_roster_limits(
         raise DraftPickError(f"Roster limit reached for {candidate_position.value}")
 
 
-async def make_pick(
-    db: AsyncSession, league_id: int, user: User, player_id: int
-) -> PickResult:
-    """Validate and persist the next pick; the caller owns commit/rollback.
+def next_deadline(draft: Draft, now: datetime) -> datetime:
+    return now + timedelta(seconds=draft.time_per_pick_seconds)
 
-    The draft row is locked so concurrent submissions cannot claim the same slot.
-    """
+
+async def load_draft_for_update(db: AsyncSession, league_id: int) -> Draft:
     draft = (
         (
             await db.execute(
@@ -68,22 +70,43 @@ async def make_pick(
         .scalars()
         .first()
     )
-    settings = (
-        (
-            await db.execute(
-                select(LeagueSettings).where(LeagueSettings.league_id == league_id)
-            )
-        )
-        .scalars()
-        .first()
-    )
-    if draft is None or settings is None:
+    if draft is None:
         raise DraftPickError("Draft not found")
-    order = draft.draft_order_team_ids or []
+    return draft
+
+
+async def load_settings(db: AsyncSession, league_id: int) -> LeagueSettings:
+    settings = (
+        await db.execute(
+            select(LeagueSettings).where(LeagueSettings.league_id == league_id)
+        )
+    ).scalar_one_or_none()
+    if settings is None:
+        raise DraftPickError("Draft not found")
+    return settings
+
+
+async def record_pick(
+    db: AsyncSession,
+    draft: Draft,
+    settings: LeagueSettings,
+    player_id: int,
+    *,
+    acting_user: User | None,
+    autopick: bool = False,
+) -> PickResult:
+    """Validate and persist the next pick, then advance the server-side clock.
+
+    `acting_user` is None for server-initiated picks (auto-pick, forced pick), which
+    skip the ownership check but obey every other rule. The draft row must be locked.
+    """
+    order = draft.draft_order_team_ids
     if not order:
         raise DraftPickError("Draft order has not been set")
-    if draft.status == DRAFT_COMPLETED:
+    if draft.status == DraftStatus.COMPLETED.value:
         raise DraftPickError("The draft is already complete")
+    if draft.status != DraftStatus.IN_PROGRESS.value:
+        raise DraftPickError("The draft is not in progress")
 
     picks = list(
         (await db.execute(select(DraftPick).where(DraftPick.draft_id == draft.id)))
@@ -91,13 +114,13 @@ async def make_pick(
         .all()
     )
     pick_index = len(picks)
-    total_picks = len(order) * settings.roster_total
+    total_picks = len(order) * draft.rounds
     if pick_index >= total_picks:
         raise DraftPickError("The draft is already complete")
 
     team_id = team_on_the_clock(order, pick_index, draft.draft_type)
     team = await db.get(Team, team_id)
-    if team is None or team.owner_id != user.id:
+    if team is None or (acting_user is not None and team.owner_id != acting_user.id):
         raise DraftPickError("It is not your turn to pick")
 
     if any(p.player_id == player_id for p in picks):
@@ -134,17 +157,25 @@ async def make_pick(
         number_round=pick_index // len(order) + 1,
         number_pick_overall=pick_index + 1,
         number_pick_in_round=pick_index % len(order) + 1,
-        autopick=False,
+        autopick=autopick,
     )
     db.add(pick)
-    db.add(TeamPlayer(team_id=team_id, player_id=player_id))
+    db.add(TeamPlayer(team_id=team_id, league_id=draft.league_id, player_id=player_id))
+
     draft_complete = pick_index + 1 >= total_picks
-    draft.status = DRAFT_COMPLETED if draft_complete else DRAFT_IN_PROGRESS
+    now = datetime.now(UTC)
+    if draft_complete:
+        draft.status = DraftStatus.COMPLETED.value
+        draft.pick_started_at = None
+        draft.current_pick_deadline = None
+    else:
+        draft.pick_started_at = now
+        draft.current_pick_deadline = next_deadline(draft, now)
     await db.flush()
 
     logger.info(
         "Draft pick recorded",
-        extra={"league_id": league_id, "pick": pick.number_pick_overall},
+        extra={"league_id": draft.league_id, "pick": pick.number_pick_overall},
     )
     return PickResult(
         pick=pick,
@@ -152,3 +183,36 @@ async def make_pick(
         next_pick_overall=pick_index + 2,
         draft_complete=draft_complete,
     )
+
+
+async def make_pick(
+    db: AsyncSession, league_id: int, user: User, player_id: int
+) -> PickResult:
+    """A drafter's pick. Replaying the pick just made returns it instead of failing."""
+    draft = await load_draft_for_update(db, league_id)
+    settings = await load_settings(db, league_id)
+
+    latest = (
+        (
+            await db.execute(
+                select(DraftPick)
+                .where(DraftPick.draft_id == draft.id)
+                .order_by(DraftPick.number_pick_overall.desc())
+                .limit(1)
+            )
+        )
+        .scalars()
+        .first()
+    )
+    if latest is not None and latest.player_id == player_id and not latest.autopick:
+        owner = await db.scalar(select(Team.owner_id).where(Team.id == latest.team_id))
+        if owner == user.id:
+            player = await db.get(NFLPlayer, player_id)
+            return PickResult(
+                pick=latest,
+                player_name=(player.name if player else "") or "",
+                next_pick_overall=latest.number_pick_overall + 1,
+                draft_complete=draft.status == DraftStatus.COMPLETED.value,
+                already_recorded=True,
+            )
+    return await record_pick(db, draft, settings, player_id, acting_user=user)

@@ -16,7 +16,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from api.db.base import Base
-from api.models.enums import DraftStatus, DraftType
+from api.models.enums import DraftStatus, DraftType, PickTimeoutAction
 
 if TYPE_CHECKING:
     from api.db.models.league import League, Team
@@ -36,6 +36,10 @@ class Draft(Base):
         CheckConstraint(
             f"draft_type IN ({_sql_list(DraftType)})", name="ck_drafts_draft_type"
         ),
+        CheckConstraint(
+            f"pick_timeout_action IN ({_sql_list(PickTimeoutAction)})",
+            name="ck_drafts_pick_timeout_action",
+        ),
         {"schema": "fantasy"},
     )
 
@@ -47,14 +51,28 @@ class Draft(Base):
         unique=True,
     )
     status: Mapped[str] = mapped_column(
-        String(20), nullable=False, default=DraftStatus.SCHEDULED.value
+        String(20), nullable=False, default=DraftStatus.UNSCHEDULED.value
     )
     start_time: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
     draft_type: Mapped[str] = mapped_column(
-        String(20), nullable=False, default=DraftType.SNAKE.value
+        String(24), nullable=False, default=DraftType.SNAKE.value
     )
+    rounds: Mapped[int] = mapped_column(Integer, nullable=False, default=18)
+    pick_timeout_action: Mapped[str] = mapped_column(
+        String(30),
+        nullable=False,
+        default=PickTimeoutAction.QUEUE_THEN_BEST.value,
+    )
+    # Server-authoritative clock: clients render countdowns from these, never their own timers.
+    pick_started_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    current_pick_deadline: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    paused_remaining_seconds: Mapped[int | None] = mapped_column(Integer, nullable=True)
     time_per_pick_seconds: Mapped[int] = mapped_column(
         Integer, nullable=False, default=60
     )
@@ -117,3 +135,23 @@ class DraftPick(Base):
     player: Mapped["NFLPlayer"] = relationship(
         "NFLPlayer", back_populates="draft_picks"
     )
+
+
+class DraftQueueItem(Base):
+    """A team's pre-ranked wish list; consumed in order by auto-pick."""
+
+    __tablename__ = "draft_queue"
+    __table_args__ = {"schema": "fantasy"}
+
+    draft_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("fantasy.drafts.id", ondelete="CASCADE"), primary_key=True
+    )
+    team_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("fantasy.teams.id", ondelete="CASCADE"), primary_key=True
+    )
+    player_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("nfl.nfl_players.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    position: Mapped[int] = mapped_column(Integer, nullable=False)

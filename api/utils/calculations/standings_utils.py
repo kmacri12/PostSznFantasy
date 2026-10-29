@@ -33,6 +33,24 @@ async def get_players_left(team_id: int, league_id: int, db: AsyncSession) -> in
     return count or 0
 
 
+# Postseason rounds in order; the schedule feed numbers them 1-4 or continues the
+# regular season as 19-22.
+ROUND_MULTIPLIER_FIELDS = (
+    "multiplier_wild_card",
+    "multiplier_divisional",
+    "multiplier_conference",
+    "multiplier_super_bowl",
+)
+
+
+def round_multiplier(settings: LeagueSettings, week: int) -> Decimal:
+    """Commissioner-configured scoring multiplier for the postseason round of `week`."""
+    index = week - 19 if week >= 19 else week - 1
+    if not 0 <= index < len(ROUND_MULTIPLIER_FIELDS):
+        return Decimal(1)
+    return Decimal(str(getattr(settings, ROUND_MULTIPLIER_FIELDS[index])))
+
+
 async def get_team_fantasy_points_by_week(
     team_id: int,
     league_id: int,
@@ -86,7 +104,9 @@ async def get_team_fantasy_points_by_week(
             select(NFLPlayer).where(NFLPlayer.id == game_stat.player_id)
         )
         position = PlayerPosition.from_str(player.position) if player else None
-        pts = calculate_player_points(game_stat, league_settings, position)
+        pts = calculate_player_points(
+            game_stat, league_settings, position
+        ) * round_multiplier(league_settings, week)
         total += pts
 
         # Upsert PlayerScore

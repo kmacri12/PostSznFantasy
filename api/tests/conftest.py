@@ -1,3 +1,4 @@
+import os
 from collections.abc import AsyncGenerator
 from unittest.mock import AsyncMock, MagicMock
 
@@ -13,6 +14,10 @@ from api.dependencies.league import (
     get_team_member,
 )
 from api.main import app
+
+# Settings need these to exist; individual tests override them with monkeypatch.
+os.environ.setdefault("PG_HOST", "localhost")
+os.environ.setdefault("SUPABASE_URL", "https://test.supabase.co")
 
 
 @pytest.fixture

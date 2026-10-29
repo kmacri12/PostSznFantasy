@@ -1,3 +1,4 @@
+from datetime import UTC, datetime
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any
 
@@ -5,6 +6,8 @@ from sqlalchemy import (
     DECIMAL,
     JSON,
     Boolean,
+    CheckConstraint,
+    DateTime,
     ForeignKey,
     Integer,
     Numeric,
@@ -14,6 +17,14 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from api.db.base import Base
+from api.models.enums import (
+    ByeWeekHandling,
+    FreeAgencyClaimOrder,
+    FreeAgencyWindow,
+    LeagueRole,
+    RosterLock,
+    Tiebreaker,
+)
 
 if TYPE_CHECKING:
     from api.db.models.draft import Draft, DraftPick
@@ -26,14 +37,14 @@ class League(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
-    commissioner_id: Mapped[int] = mapped_column(
-        Integer,
-        ForeignKey("fantasy.users.id", ondelete="CASCADE"),
-        nullable=False,
-        index=True,
-    )
+    season: Mapped[int] = mapped_column(Integer, nullable=False)
 
-    commissioner: Mapped["User"] = relationship("User")
+    members: Mapped[list["LeagueMember"]] = relationship(
+        "LeagueMember", back_populates="league", cascade="all, delete-orphan"
+    )
+    invites: Mapped[list["LeagueInvite"]] = relationship(
+        "LeagueInvite", back_populates="league", cascade="all, delete-orphan"
+    )
     teams: Mapped[list["Team"]] = relationship(
         "Team", back_populates="league", cascade="all, delete-orphan"
     )
@@ -57,12 +68,70 @@ class League(Base):
         return f"<League(id={self.id}, name={self.name})>"
 
 
+class LeagueMember(Base):
+    __tablename__ = "league_members"
+    __table_args__ = (
+        CheckConstraint(
+            f"role IN ({', '.join(repr(r.value) for r in LeagueRole)})",
+            name="ck_league_members_role",
+        ),
+        {"schema": "fantasy"},
+    )
+
+    league_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("fantasy.leagues.id", ondelete="CASCADE"), primary_key=True
+    )
+    user_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("fantasy.users.id", ondelete="CASCADE"),
+        primary_key=True,
+        index=True,
+    )
+    role: Mapped[str] = mapped_column(
+        String(20), nullable=False, default=LeagueRole.MEMBER.value
+    )
+    joined_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC)
+    )
+
+    league: Mapped["League"] = relationship("League", back_populates="members")
+    user: Mapped["User"] = relationship("User")
+
+
+class LeagueInvite(Base):
+    __tablename__ = "league_invites"
+    __table_args__ = {"schema": "fantasy"}
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    code: Mapped[str] = mapped_column(String(16), unique=True, nullable=False)
+    league_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("fantasy.leagues.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    created_by: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("fantasy.users.id", ondelete="SET NULL"), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC)
+    )
+    expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    max_uses: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    uses: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    revoked: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+
+    league: Mapped["League"] = relationship("League", back_populates="invites")
+
+
 class Team(Base):
     __tablename__ = "teams"
     __table_args__ = {"schema": "fantasy"}
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    name: Mapped[str | None] = mapped_column(String(20))
+    name: Mapped[str | None] = mapped_column(String(40))
     owner_id: Mapped[int | None] = mapped_column(
         Integer,
         ForeignKey("fantasy.users.id", ondelete="SET NULL"),
@@ -301,6 +370,42 @@ class LeagueSettings(Base):
     scoring_dst_two_point_return: Mapped[Decimal] = mapped_column(
         Numeric(6, 2), nullable=False
     )
+    allow_join_after_draft_start: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False
+    )
+    free_agency_enabled: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False
+    )
+    free_agency_window: Mapped[str] = mapped_column(
+        String(20), nullable=False, default=FreeAgencyWindow.BETWEEN_ROUNDS.value
+    )
+    free_agency_claim_order: Mapped[str] = mapped_column(
+        String(20), nullable=False, default=FreeAgencyClaimOrder.FIRST_COME.value
+    )
+    multiplier_wild_card: Mapped[Decimal] = mapped_column(
+        Numeric(6, 2), nullable=False, default=1
+    )
+    multiplier_divisional: Mapped[Decimal] = mapped_column(
+        Numeric(6, 2), nullable=False, default=1
+    )
+    multiplier_conference: Mapped[Decimal] = mapped_column(
+        Numeric(6, 2), nullable=False, default=1
+    )
+    multiplier_super_bowl: Mapped[Decimal] = mapped_column(
+        Numeric(6, 2), nullable=False, default=1
+    )
+    roster_lock: Mapped[str] = mapped_column(
+        String(20), nullable=False, default=RosterLock.ROUND_START.value
+    )
+    allow_swap_eliminated: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True
+    )
+    tiebreaker: Mapped[str] = mapped_column(
+        String(30), nullable=False, default=Tiebreaker.MOST_PLAYERS_ALIVE.value
+    )
+    bye_week_handling: Mapped[str] = mapped_column(
+        String(30), nullable=False, default=ByeWeekHandling.ALIVE_NO_SCORE.value
+    )
 
     league: Mapped["League"] = relationship("League", back_populates="settings")
 
@@ -309,8 +414,17 @@ class TeamPlayer(Base):
     """A player on a fantasy team's roster (filled by the draft)."""
 
     __tablename__ = "team_players"
-    __table_args__ = {"schema": "fantasy"}
+    __table_args__ = (
+        UniqueConstraint("league_id", "player_id"),
+        {"schema": "fantasy"},
+    )
 
+    # Denormalized from the team so the database can enforce one owner per player per league.
+    league_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("fantasy.leagues.id", ondelete="CASCADE"),
+        nullable=False,
+    )
     team_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("fantasy.teams.id", ondelete="CASCADE"), primary_key=True
     )

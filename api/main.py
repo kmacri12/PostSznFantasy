@@ -11,7 +11,8 @@ from sqlalchemy.exc import SQLAlchemyError
 from api.core.config import get_settings
 from api.core.logging import RequestLoggingMiddleware, setup_logging
 from api.db.session import DbSession, close_db, init_db
-from api.routers import admin, auth, drafts, leagues, players
+from api.routers import admin, auth, drafts, invites, leagues, players, teams
+from api.services.draft_clock import run_draft_clock
 from api.services.scheduler import run_scheduler
 from api.utils.rapidapi.rapidapi import close_rapidapi_client
 
@@ -23,10 +24,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     settings = get_settings()
     setup_logging()
     init_db()
+    clock_task = asyncio.create_task(run_draft_clock())
     scheduler_task = (
         asyncio.create_task(run_scheduler()) if settings.scheduler_enabled else None
     )
     yield
+    clock_task.cancel()
     if scheduler_task:
         scheduler_task.cancel()
     await close_rapidapi_client()
@@ -52,9 +55,17 @@ app.add_middleware(RequestLoggingMiddleware)
 
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(leagues.router, prefix="/api/leagues", tags=["leagues"])
+app.include_router(teams.router, prefix="/api/teams", tags=["teams"])
+app.include_router(invites.router, prefix="/api", tags=["invites"])
 app.include_router(drafts.router, prefix="/api/drafts", tags=["drafts"])
 app.include_router(players.router, prefix="/api/players", tags=["players"])
 app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
+
+
+@app.get("/api/config", tags=["config"])
+async def public_config() -> dict[str, int]:
+    """Single source of truth for values the frontend must not hardcode."""
+    return {"season": get_settings().season_year}
 
 
 @app.get("/api", tags=["health"])

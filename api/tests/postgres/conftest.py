@@ -7,14 +7,18 @@ when it is unreachable, except in CI where a missing database must fail loudly.
 
 import asyncio
 import os
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator, Callable
 
 import pytest
+from httpx import ASGITransport, AsyncClient
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
 from api.db.models import Base
+from api.db.session import get_db
+from api.dependencies.auth import get_current_user
+from api.main import app
 
 TEST_DATABASE_URL = os.environ.get(
     "TEST_DATABASE_URL",
@@ -61,3 +65,21 @@ async def db() -> AsyncGenerator[AsyncSession]:
             await session.close()
             await transaction.rollback()
     await engine.dispose()
+
+
+ClientFactory = Callable[[str], AsyncClient]
+
+
+@pytest.fixture
+async def client_as(db: AsyncSession) -> AsyncGenerator[ClientFactory]:
+    async def override_db() -> AsyncGenerator[AsyncSession]:
+        yield db
+
+    app.dependency_overrides[get_db] = override_db
+
+    def build(uid: str) -> AsyncClient:
+        app.dependency_overrides[get_current_user] = lambda: uid
+        return AsyncClient(transport=ASGITransport(app=app), base_url="http://test")
+
+    yield build
+    app.dependency_overrides.clear()

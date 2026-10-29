@@ -1,55 +1,29 @@
-from collections.abc import AsyncGenerator, Callable
-
-import pytest
-from httpx import ASGITransport, AsyncClient
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.db.models import LeagueSettings
-from api.db.session import get_db
-from api.dependencies.auth import get_current_user
-from api.main import app
+from api.tests.postgres.conftest import ClientFactory
 from api.tests.postgres.factories import make_league
-
-ClientFactory = Callable[[str], AsyncClient]
-
-
-@pytest.fixture
-async def client_as(db: AsyncSession) -> AsyncGenerator[ClientFactory]:
-    async def override_db() -> AsyncGenerator[AsyncSession]:
-        yield db
-
-    app.dependency_overrides[get_db] = override_db
-
-    def build(uid: str) -> AsyncClient:
-        app.dependency_overrides[get_current_user] = lambda: uid
-        return AsyncClient(transport=ASGITransport(app=app), base_url="http://test")
-
-    yield build
-    app.dependency_overrides.clear()
 
 
 def update_body(**roster: int) -> dict[str, object]:
-    return {
-        "rosterSettings": {"numberTeams": 2, **roster},
-        "scoringSettings": {"scoringPassingTd": 6},
-    }
+    return {"scoringPassingTd": 6, **roster}
 
 
 async def test_only_the_commissioner_can_update_settings(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
-    league, _, _, _ = await make_league(db)
+    league, _, _, _ = await make_league(db, draft_status="scheduled")
     build = client_as
 
     async with build("uid-1") as member:
-        denied = await member.put(
+        denied = await member.patch(
             f"/api/leagues/{league.id}/settings", json=update_body()
         )
     assert denied.status_code == 403
 
     async with build("uid-0") as commissioner:
-        ok = await commissioner.put(
+        ok = await commissioner.patch(
             f"/api/leagues/{league.id}/settings", json=update_body(rosterTotal=5)
         )
     assert ok.status_code == 200
@@ -78,3 +52,25 @@ async def test_outsiders_cannot_read_league_data(
         assert (
             await stranger.get(f"/api/leagues/{league.id}/settings")
         ).status_code == 403
+
+
+async def test_roster_shape_locks_once_the_draft_starts(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    league, _, _, _ = await make_league(db)  # in_progress
+    async with client_as("uid-0") as commissioner:
+        locked = await commissioner.patch(
+            f"/api/leagues/{league.id}/settings", json={"rosterTotal": 9}
+        )
+        unchanged = await commissioner.patch(
+            f"/api/leagues/{league.id}/settings", json={"rosterTotal": 2}
+        )
+        scoring = await commissioner.patch(
+            f"/api/leagues/{league.id}/settings",
+            json={"scoringPassingTd": 5, "multiplierSuperBowl": 3},
+        )
+    assert locked.status_code == 409
+    assert "roster_total" in locked.json()["detail"]
+    assert unchanged.status_code == 200
+    assert scoring.status_code == 200
+    assert scoring.json()["multiplierSuperBowl"] == 3

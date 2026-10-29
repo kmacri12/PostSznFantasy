@@ -1,7 +1,9 @@
 from api.db.base import Base
-from api.db.models.draft import Draft, DraftPick
+from api.db.models.draft import Draft, DraftPick, DraftQueueItem
 from api.db.models.league import (
     League,
+    LeagueInvite,
+    LeagueMember,
     LeagueSettings,
     LeagueStanding,
     Lineup,
@@ -23,7 +25,10 @@ __all__ = [
     "Base",
     "Draft",
     "DraftPick",
+    "DraftQueueItem",
     "League",
+    "LeagueInvite",
+    "LeagueMember",
     "LeagueSettings",
     "LeagueStanding",
     "Lineup",

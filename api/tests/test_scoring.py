@@ -315,9 +315,28 @@ def test_dst_blocked_kick_and_two_point_return(
 
 
 def test_orm_settings_columns_match_pydantic_schemas() -> None:
-    from api.models.league_models import RosterSettings
+    from api.models.league_models import PostseasonSettings, RosterSettings
 
     columns = {c.key for c in LeagueSettings.__table__.columns}
-    declared = set(RosterSettings.model_fields) | set(ScoringSettings.model_fields)
+    declared = (
+        set(RosterSettings.model_fields)
+        | set(ScoringSettings.model_fields)
+        | set(PostseasonSettings.model_fields)
+    )
     assert declared <= columns
     assert columns - declared == {"id", "league_id"}
+
+
+@pytest.mark.parametrize(
+    ("week", "expected"),
+    [(1, 1), (2, 1.5), (3, 2), (4, 3), (19, 1), (22, 3), (7, 1), (0, 1)],
+)
+def test_round_multiplier_maps_postseason_weeks(week: int, expected: float) -> None:
+    from api.utils.calculations.standings_utils import round_multiplier
+
+    settings = LeagueSettings()
+    settings.multiplier_wild_card = Decimal(1)
+    settings.multiplier_divisional = Decimal("1.5")
+    settings.multiplier_conference = Decimal(2)
+    settings.multiplier_super_bowl = Decimal(3)
+    assert round_multiplier(settings, week) == Decimal(str(expected))

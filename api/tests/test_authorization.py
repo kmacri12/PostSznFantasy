@@ -9,7 +9,7 @@ LEAGUE_ROUTES = [
     "/api/leagues/1/teams",
     "/api/leagues/1/standings",
 ]
-LOOKUP_ROUTES = ["/api/drafts/draft-picks/1", "/api/leagues/teams/1"]
+LOOKUP_ROUTES = ["/api/drafts/draft-picks/1", "/api/teams/1"]
 
 
 def no_rows() -> MagicMock:

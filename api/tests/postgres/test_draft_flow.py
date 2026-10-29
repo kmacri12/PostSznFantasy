@@ -27,7 +27,7 @@ async def test_snake_draft_runs_to_completion(db: AsyncSession) -> None:
     assert [r.pick.number_pick_overall for r in results] == [1, 2, 3, 4]
     assert results[-1].draft_complete
     await db.refresh(draft)
-    assert draft.status == "Completed"
+    assert draft.status == "completed"
 
     rostered = (
         (
