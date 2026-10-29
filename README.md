@@ -126,7 +126,7 @@ PYTHONPATH=.. uv run python -m api.scripts.seed_nfl_data --season 2024 --with-bo
 ```
 
 #### Option B: Admin API Trigger
-Trigger complete batch ingestion over HTTP via the admin router:
+Trigger complete batch ingestion over HTTP via the admin router. Only users whose Supabase id (the JWT `sub`) is listed in `ADMIN_SUPABASE_UIDS` in `api/.env` are allowed; everyone else gets a 403:
 
 ```bash
 curl -X POST http://localhost:8000/api/admin/update/all \

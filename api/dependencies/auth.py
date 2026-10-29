@@ -77,3 +77,13 @@ async def get_current_user(
 
 # Convenience alias so route signatures read: user_id: CurrentUser
 CurrentUser = Annotated[str, Depends(get_current_user)]
+
+
+async def require_admin(supabase_uid: CurrentUser) -> str:
+    """Allow only users listed in ADMIN_SUPABASE_UIDS (ingestion is paid and global)."""
+    if supabase_uid not in get_settings().admin_supabase_uids:
+        logger.warning("Admin access denied", extra={"supabase_uid": supabase_uid})
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required"
+        )
+    return supabase_uid

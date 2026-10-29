@@ -1,9 +1,9 @@
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
-from api.dependencies.auth import CurrentUser
+from api.dependencies.auth import require_admin
 from api.dependencies.db import DbSession
 from api.models.base import BaseSchema
 from api.services.ingestion import (
@@ -15,7 +15,7 @@ from api.services.ingestion import (
 )
 from api.utils.db.update import mark_eliminated_teams
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(require_admin)])
 
 
 @router.get("/")
@@ -54,7 +54,6 @@ class IngestAllResponse(BaseSchema):
 
 @router.post("/update/all", response_model=IngestAllResponse)
 async def update_all(
-    _: CurrentUser,
     db: DbSession,
     body: UpdateAllRequest | None = None,
 ) -> dict[str, Any]:
@@ -74,7 +73,6 @@ async def update_all(
 
 @router.post("/update/nfl_teams")
 async def update_nfl_teams(
-    _: CurrentUser,
     db: DbSession,
 ) -> dict[str, str]:
     await ingest_nfl_teams(db)
@@ -84,7 +82,6 @@ async def update_nfl_teams(
 
 @router.post("/update/nfl_players")
 async def update_nfl_players(
-    _: CurrentUser,
     db: DbSession,
 ) -> dict[str, str]:
     await ingest_nfl_players(db)
@@ -94,7 +91,6 @@ async def update_nfl_players(
 
 @router.post("/update/nfl_players_and_stats")
 async def update_nfl_players_and_stats(
-    _: CurrentUser,
     db: DbSession,
 ) -> dict[str, str]:
     await ingest_season_stats(db)
@@ -105,7 +101,6 @@ async def update_nfl_players_and_stats(
 @router.post("/update/box_scores")
 async def update_box_scores(
     body: BoxScoreRequest,
-    _: CurrentUser,
     db: DbSession,
 ) -> dict[str, str]:
     await ingest_box_scores(db, body.season, body.season_type, body.week)
@@ -116,7 +111,6 @@ async def update_box_scores(
 @router.post("/update/eliminate_teams")
 async def eliminate_teams(
     body: EliminateTeamsRequest,
-    _: CurrentUser,
     db: DbSession,
 ) -> dict[str, str]:
     await mark_eliminated_teams(db, body.team_ids)

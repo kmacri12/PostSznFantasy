@@ -1,8 +1,14 @@
 from functools import lru_cache
-from typing import Literal
+from typing import Annotated, Literal
 
-from pydantic import Field, PostgresDsn, computed_field, model_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import (
+    Field,
+    PostgresDsn,
+    computed_field,
+    field_validator,
+    model_validator,
+)
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -29,6 +35,16 @@ class Settings(BaseSettings):
     def supabase_jwks_url(self) -> str:
         """Standard JWKS endpoint for asymmetric JWT verification."""
         return f"{self.supabase_url.rstrip('/')}/auth/v1/.well-known/jwks.json"
+
+    # Comma-separated Supabase user ids allowed to call /api/admin/*; empty means nobody.
+    admin_supabase_uids: Annotated[list[str], NoDecode] = []
+
+    @field_validator("admin_supabase_uids", mode="before")
+    @classmethod
+    def _split_admin_uids(cls, value: object) -> object:
+        if isinstance(value, str):
+            return [uid.strip() for uid in value.split(",") if uid.strip()]
+        return value
 
     # RapidAPI
     rapidapi_baseurl: str = ""
