@@ -28,12 +28,12 @@ import { useConfig, usePlayerSeasonStats, useUserLeagues } from "../../api/queri
 import { useUser } from "../../contexts/UserContext";
 import { tokens } from "../../theme";
 import {
-  POSITIONS,
-  type PlayerSeasonStats,
-  type PositionFilter,
-  STAT_COLUMNS,
   filterPlayers,
   formatPoints,
+  type PlayerSeasonStats,
+  POSITIONS,
+  type PositionFilter,
+  STAT_COLUMNS,
   sortPlayers,
   statValue,
   teamOf,

@@ -23,7 +23,7 @@ import MembersSection from "../components/settings/MembersSection";
 import PostseasonForm from "../components/settings/PostseasonForm";
 import RosterForm from "../components/settings/RosterForm";
 import ScoringForm from "../components/settings/ScoringForm";
-import { ROSTER_KEYS, SCORING_KEYS, fromApi, postseasonFromApi } from "../settings/convert";
+import { fromApi, postseasonFromApi, ROSTER_KEYS, SCORING_KEYS } from "../settings/convert";
 import { POSTSEASON_KEYS, type PostseasonValues } from "../settings/postseasonFields";
 import type { SettingsValues } from "../settings/types";
 
