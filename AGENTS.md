@@ -128,10 +128,10 @@ PostSznFantasy/
         │   ├── draft/          # DraftBoard, Countdown, PlayerSelector
         │   ├── league/         # StandingsTable
         │   ├── players/        # PlayersTable (TanStack Table v8)
-        │   └── settings/       # LeagueInfo & scoring settings accordion
+        │   └── settings/       # SettingsSection/ScoringForm/RosterForm generated from src/settings schemas
         ├── utils/
         │   ├── draftCue.ts     # Web Audio on-deck beep
-        │   ├── scoring.ts      # Scoring defaults fetch + numeric coercion for league forms
+        │   ├── scoring.ts      # Numeric coercion + defaults diff for league forms
         │   ├── logger.ts       # Leveled client logger (debug/info dev-only)
         │   └── supabase.ts     # Supabase client singleton
         └── test/               # Vitest environment setup

@@ -90,8 +90,8 @@ Guiding principles: KISS, comments explain *why* only, self-documenting names.
   - [x] `npm audit fix` (7 vulnerabilities in prod deps incl. 1 critical, 4 high).
   - [x] Remove `@types/axios`, `@types/react-router-dom` (libs ship own types) and unused `dotenv`.
   - [x] Review upgrades: Vite, Vitest, `@mui/*` 5.18, `react-router-dom` 6.30.x.
-- [ ] **Type safety**: replace the 33 Biome `any` warnings (settings components take `any`); use generated or shared API types; consider `noUncheckedIndexedAccess`.
-- [ ] **Deduplicate settings UI**: the 7 `Scoring*SettingsComponent` files become one data-driven component fed by a field schema.
+- [x] **Type safety**: replace the 33 Biome `any` warnings (settings components take `any`); use generated or shared API types; consider `noUncheckedIndexedAccess`.
+- [x] **Deduplicate settings UI**: the 7 `Scoring*SettingsComponent` files become one data-driven component fed by a field schema.
 - [x] **Dev proxy**: add a Vite `server.proxy` for `/api` and `/api/drafts/ws` so `VITE_API_URL` / CORS config become optional locally.
 - [ ] **Tests**: cover `useWebSocket` reconnect/backoff, auth flow, draft page.
 

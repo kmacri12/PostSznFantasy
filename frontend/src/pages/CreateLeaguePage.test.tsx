@@ -82,8 +82,8 @@ describe("CreateLeaguePage submit", () => {
     await submitWizard();
     await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith("/league/7"));
     expect(onLeagueCreated).toHaveBeenCalledWith(7);
-    expect(onLeagueCreated.mock.invocationCallOrder[0]).toBeLessThan(
-      mockNavigate.mock.invocationCallOrder[0],
+    expect(onLeagueCreated.mock.invocationCallOrder[0] ?? Number.NaN).toBeLessThan(
+      mockNavigate.mock.invocationCallOrder[0] ?? Number.NaN,
     );
   });
 

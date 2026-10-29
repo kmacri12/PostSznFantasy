@@ -17,14 +17,8 @@ import type React from "react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCreateLeague, useScoringDefaults } from "../api/queries";
-import RosterSettingsComponent from "../components/settings/RosterSettingsComponent";
-import ScoringCarryingSettingsComponent from "../components/settings/ScoringCarryingSettingsComponent";
-import ScoringDSTSettingsComponent from "../components/settings/ScoringDSTSettingsComponent";
-import ScoringKickingSettingsComponent from "../components/settings/ScoringKickingSettingsComponent";
-import ScoringPassingSettingsComponent from "../components/settings/ScoringPassingSettingsComponent";
-import ScoringReceivingSettingsComponent from "../components/settings/ScoringReceivingSettingsComponent";
-import ScoringRushingSettingsComponent from "../components/settings/ScoringRushingSettingsComponent";
-import ScoringSpecialTeamsSettingsComponent from "../components/settings/ScoringSpecialTeamsSettingsComponent";
+import RosterForm from "../components/settings/RosterForm";
+import ScoringForm from "../components/settings/ScoringForm";
 import { createLogger } from "../utils/logger";
 import {
   type ScoringSettingsState,
@@ -36,16 +30,6 @@ const logger = createLogger("CreateLeaguePage");
 
 const STEPS = ["League", "Roster", "Scoring", "Review"];
 
-type ExpandedSection =
-  | "roster"
-  | "passing"
-  | "rushing"
-  | "receiving"
-  | "carrying"
-  | "kicking"
-  | "specialTeams"
-  | "defense";
-
 const CreateLeaguePage = ({
   onLeagueCreated,
 }: {
@@ -54,16 +38,6 @@ const CreateLeaguePage = ({
   const navigate = useNavigate();
   const [leagueName, setLeagueName] = useState("MyLeague");
   const [step, setStep] = useState(0);
-  const [expanded, setExpanded] = useState<Record<ExpandedSection, boolean>>({
-    roster: true,
-    passing: false,
-    rushing: false,
-    receiving: false,
-    carrying: false,
-    kicking: false,
-    specialTeams: false,
-    defense: false,
-  });
 
   // Roster Settings
   const [rosterSettings, setRosterSettings] = useState({
@@ -99,10 +73,6 @@ const CreateLeaguePage = ({
     if (defaultsQuery.data) setScoringSettings(defaultsQuery.data);
   }, [defaultsQuery.data]);
 
-  const handleExpandClick = (section: ExpandedSection) => {
-    setExpanded((prev) => ({ ...prev, [section]: !prev[section] }));
-  };
-
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setSubmitError(null);
@@ -126,27 +96,6 @@ const CreateLeaguePage = ({
       setSubmitError("Could not create the league. Please try again.");
     }
   };
-
-  const scoringSection = (
-    key: ExpandedSection,
-    Component: React.ComponentType<{
-      expanded: boolean;
-      scoringSettings: typeof scoringSettings;
-      setScoringSettings: (settings: ScoringSettingsState) => void;
-      handleExpandClick: () => void;
-    }>,
-  ) => (
-    <Box sx={{ mb: 2 }}>
-      <Component
-        expanded={expanded[key]}
-        scoringSettings={scoringSettings}
-        setScoringSettings={(newSettings) =>
-          setScoringSettings((prevSettings) => ({ ...prevSettings, ...newSettings }))
-        }
-        handleExpandClick={() => handleExpandClick(key)}
-      />
-    </Box>
-  );
 
   const changedCount = scoringDefaults
     ? countChangedFromDefaults(scoringSettings, scoringDefaults)
@@ -217,13 +166,9 @@ const CreateLeaguePage = ({
         )}
 
         {step === 1 && (
-          <RosterSettingsComponent
-            expanded={expanded.roster}
-            rosterSettings={rosterSettings}
-            setRosterSettings={(newSettings) =>
-              setRosterSettings((prevSettings) => ({ ...prevSettings, ...newSettings }))
-            }
-            handleExpandClick={() => handleExpandClick("roster")}
+          <RosterForm
+            values={rosterSettings}
+            onChange={(next) => setRosterSettings(next as typeof rosterSettings)}
           />
         )}
 
@@ -247,13 +192,12 @@ const CreateLeaguePage = ({
                 Reset to Sleeper defaults
               </Button>
             </Box>
-            {scoringSection("passing", ScoringPassingSettingsComponent)}
-            {scoringSection("rushing", ScoringRushingSettingsComponent)}
-            {scoringSection("receiving", ScoringReceivingSettingsComponent)}
-            {scoringSection("carrying", ScoringCarryingSettingsComponent)}
-            {scoringSection("kicking", ScoringKickingSettingsComponent)}
-            {scoringSection("specialTeams", ScoringSpecialTeamsSettingsComponent)}
-            {scoringSection("defense", ScoringDSTSettingsComponent)}
+            <ScoringForm
+              values={scoringSettings}
+              onChange={(key, rawValue) =>
+                setScoringSettings((previous) => ({ ...previous, [key]: rawValue }))
+              }
+            />
           </>
         )}
 

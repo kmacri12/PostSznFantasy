@@ -41,6 +41,12 @@ class MockWebSocket {
   }
 }
 
+const socketAt = (index: number): MockWebSocket => {
+  const socket = MockWebSocket.instances[index];
+  if (!socket) throw new Error(`no socket #${index}`);
+  return socket;
+};
+
 describe("useWebSocket hook", () => {
   const originalWebSocket = globalThis.WebSocket;
 
@@ -59,14 +65,14 @@ describe("useWebSocket hook", () => {
     const { result } = renderHook(() => useWebSocket(URL));
     expect(result.current.isConnected).toBe(false);
 
-    act(() => MockWebSocket.instances[0].simulateOpen());
+    act(() => socketAt(0).simulateOpen());
     expect(result.current.isConnected).toBe(true);
   });
 
   it("delivers every message to the callback, not just the latest", () => {
     const onMessage = vi.fn();
     renderHook(() => useWebSocket(URL, { onMessage }));
-    const socket = MockWebSocket.instances[0];
+    const socket = socketAt(0);
 
     act(() => {
       socket.simulateOpen();
@@ -76,13 +82,13 @@ describe("useWebSocket hook", () => {
     });
 
     expect(onMessage).toHaveBeenCalledTimes(2);
-    expect(onMessage.mock.calls[1][0].data.playerId).toBe(2);
+    expect(onMessage.mock.calls[1]?.[0].data.playerId).toBe(2);
   });
 
   it("authenticates with the token as the first message", async () => {
     const getToken = vi.fn().mockResolvedValue("jwt");
     renderHook(() => useWebSocket(URL, { getToken }));
-    const socket = MockWebSocket.instances[0];
+    const socket = socketAt(0);
 
     await act(async () => socket.simulateOpen());
 
@@ -101,12 +107,12 @@ describe("useWebSocket hook", () => {
   it("reconnects with exponential backoff after an unclean drop", () => {
     renderHook(() => useWebSocket(URL));
 
-    act(() => MockWebSocket.instances[0].simulateDrop());
+    act(() => socketAt(0).simulateDrop());
     expect(MockWebSocket.instances).toHaveLength(1);
     act(() => vi.advanceTimersByTime(backoffDelay(0)));
     expect(MockWebSocket.instances).toHaveLength(2);
 
-    act(() => MockWebSocket.instances[1].simulateDrop());
+    act(() => socketAt(1).simulateDrop());
     act(() => vi.advanceTimersByTime(backoffDelay(1) - 1));
     expect(MockWebSocket.instances).toHaveLength(2);
     act(() => vi.advanceTimersByTime(1));
@@ -115,10 +121,10 @@ describe("useWebSocket hook", () => {
 
   it("resets the backoff after a successful connection", () => {
     renderHook(() => useWebSocket(URL));
-    act(() => MockWebSocket.instances[0].simulateDrop());
+    act(() => socketAt(0).simulateDrop());
     act(() => vi.advanceTimersByTime(backoffDelay(0)));
-    act(() => MockWebSocket.instances[1].simulateOpen());
-    act(() => MockWebSocket.instances[1].simulateDrop());
+    act(() => socketAt(1).simulateOpen());
+    act(() => socketAt(1).simulateDrop());
     act(() => vi.advanceTimersByTime(backoffDelay(0)));
     expect(MockWebSocket.instances).toHaveLength(3);
   });
@@ -129,7 +135,7 @@ describe("useWebSocket hook", () => {
 
   it.each([1000, 1008])("does not reconnect after close code %i", (code) => {
     renderHook(() => useWebSocket(URL));
-    act(() => MockWebSocket.instances[0].simulateDrop(code));
+    act(() => socketAt(0).simulateDrop(code));
     act(() => vi.advanceTimersByTime(60_000));
     expect(MockWebSocket.instances).toHaveLength(1);
   });
@@ -143,7 +149,7 @@ describe("useWebSocket hook", () => {
 
   it("sends JSON only while the socket is open", () => {
     const { result } = renderHook(() => useWebSocket(URL));
-    const socket = MockWebSocket.instances[0];
+    const socket = socketAt(0);
 
     act(() => result.current.sendMessage({ eventType: "SYNC_REQUEST" }));
     expect(socket.send).not.toHaveBeenCalled();

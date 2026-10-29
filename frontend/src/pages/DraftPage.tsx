@@ -139,7 +139,7 @@ const DraftPage: FC = () => {
           .map((_, teamIndex) => ({
             id: -1,
             draftId: draftSettings?.id,
-            teamId: teams[teamIndex].id,
+            teamId: teams[teamIndex]?.id ?? -1,
             playerId: null,
             playerName: "",
             numberRound: roundIndex + 1,

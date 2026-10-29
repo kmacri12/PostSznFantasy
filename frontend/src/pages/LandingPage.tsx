@@ -110,7 +110,7 @@ const LandingPage = ({ leagues }: { leagues: LeagueByUser[] }) => {
                   size="large"
                   color="inherit"
                   component={Link}
-                  to={`/league/${leagues[0].id}`}
+                  to={`/league/${leagues[0]?.id}`}
                 >
                   View your leagues
                 </Button>
