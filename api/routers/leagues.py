@@ -1,11 +1,12 @@
 from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 
-from api.db.models.draft import Draft
+from api.db.models.draft import Draft, DraftPick
 from api.db.models.league import League, LeagueSettings, LeagueStanding, Team
+from api.db.models.nfl import NFLPlayer
 from api.db.models.user import User
 from api.dependencies.auth import CurrentUser
 from api.dependencies.db import DbSession
@@ -14,6 +15,11 @@ from api.models.league_models import (
     LeagueCreateResponse,
     LeaguesByUser,
     LeagueSettingsResponse,
+    LeagueSettingsUpdate,
+    RosterPlayer,
+    Standings,
+    TeamDetails,
+    TeamSimple,
 )
 
 router = APIRouter()
@@ -145,21 +151,171 @@ async def get_league_settings(
     return settings
 
 
-@router.get("/{league_id}/standings")
+@router.put("/{league_id}/settings", response_model=LeagueSettingsResponse)
+async def update_league_settings(
+    league_id: int,
+    payload: LeagueSettingsUpdate,
+    current_user_id: CurrentUser,
+    db: DbSession,
+) -> LeagueSettings:
+    """Update roster and scoring settings; commissioner only."""
+    league = (
+        (await db.execute(select(League).where(League.id == league_id)))
+        .scalars()
+        .first()
+    )
+    if not league:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="League not found"
+        )
+    user = (
+        (await db.execute(select(User).where(User.supabase_uid == current_user_id)))
+        .scalars()
+        .first()
+    )
+    if not user or user.id != league.commissioner_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only the commissioner can update league settings",
+        )
+
+    settings = (
+        (
+            await db.execute(
+                select(LeagueSettings).where(LeagueSettings.league_id == league_id)
+            )
+        )
+        .scalars()
+        .first()
+    )
+    if not settings:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="League settings not found",
+        )
+
+    # Teams are created with the league, so the team count is immutable here.
+    updates = {
+        **payload.roster_settings.model_dump(by_alias=False, exclude={"number_teams"}),
+        **payload.scoring_settings.model_dump(by_alias=False),
+    }
+    for field, value in updates.items():
+        setattr(settings, field, value)
+    await db.commit()
+    return settings
+
+
+@router.get("/{league_id}/teams", response_model=list[TeamSimple])
+async def get_league_teams(
+    league_id: int,
+    _: CurrentUser,
+    db: DbSession,
+) -> list[TeamSimple]:
+    """List a league's teams with owner names and number of draft picks made."""
+    teams = (
+        (
+            await db.execute(
+                select(Team)
+                .options(selectinload(Team.owner))
+                .where(Team.league_id == league_id)
+                .order_by(Team.id)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    pick_counts = dict(
+        (
+            await db.execute(
+                select(DraftPick.team_id, func.count(DraftPick.id))
+                .where(DraftPick.team_id.in_([t.id for t in teams]))
+                .group_by(DraftPick.team_id)
+            )
+        )
+        .tuples()
+        .all()
+    )
+    return [
+        TeamSimple(
+            id=team.id,
+            name=team.name or f"Team {team.id}",
+            owner_id=team.owner_id,
+            owner_name=team.owner.username if team.owner else None,
+            picks_made=pick_counts.get(team.id, 0),
+        )
+        for team in teams
+    ]
+
+
+@router.get("/teams/{team_id}", response_model=TeamDetails)
+async def get_team(
+    team_id: int,
+    _: CurrentUser,
+    db: DbSession,
+) -> TeamDetails:
+    """Team roster with each player's playoff survival (NFL team still active)."""
+    team = (
+        (
+            await db.execute(
+                select(Team).options(selectinload(Team.owner)).where(Team.id == team_id)
+            )
+        )
+        .scalars()
+        .first()
+    )
+    if not team:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Team not found"
+        )
+
+    players: list[NFLPlayer] = []
+    if team.roster:
+        players = list(
+            (
+                await db.execute(
+                    select(NFLPlayer)
+                    .options(selectinload(NFLPlayer.team))
+                    .where(NFLPlayer.id.in_(team.roster))
+                )
+            )
+            .scalars()
+            .all()
+        )
+    # Lineup slot assignment is not persisted per player yet, so everything is BENCH.
+    return TeamDetails(
+        id=team.id,
+        name=team.name or f"Team {team.id}",
+        league_id=team.league_id,
+        owner_name=team.owner.username if team.owner else None,
+        roster=[
+            RosterPlayer(
+                id=p.id,
+                name=p.name or "",
+                position=p.position or "",
+                team_abv=p.team.team_abv if p.team else None,
+                slot="BENCH",
+                is_active=p.team.is_active if p.team else False,
+            )
+            for p in players
+        ],
+    )
+
+
+@router.get("/{league_id}/standings", response_model=list[Standings])
 async def get_standings(
     league_id: int,
     _: CurrentUser,
     db: DbSession,
-) -> list[dict[str, object]]:
-    """Return stored standing rows for the league.
+) -> list[Standings]:
+    """Return the stored standings snapshot enriched with team and owner names.
 
-    players_left and weekly totals are persisted separately by the scoring engine;
-    this endpoint serves the current snapshot from the standings table.
+    players_left and weekly totals are persisted separately by the scoring engine.
     """
     rows = (
         (
             await db.execute(
                 select(LeagueStanding)
+                .options(selectinload(LeagueStanding.team).selectinload(Team.owner))
                 .where(LeagueStanding.league_id == league_id)
                 .order_by(LeagueStanding.rank)
             )
@@ -169,15 +325,17 @@ async def get_standings(
     )
 
     return [
-        {
-            "teamId": row.team_id,
-            "rank": row.rank,
-            "playersLeft": row.players_left,
-            "wildCard": row.wild_card,
-            "divisional": row.divisional,
-            "confChamp": row.conf_champ,
-            "superBowl": row.super_bowl,
-            "total": float(row.total) if row.total is not None else None,
-        }
+        Standings(
+            team_id=row.team_id,
+            rank=row.rank,
+            team_name=row.team.name or f"Team {row.team_id}",
+            owner=row.team.owner.username if row.team.owner else "Unclaimed",
+            players_left=row.players_left or 0,
+            wild_card=row.wild_card or 0,
+            divisional=row.divisional or 0,
+            conf_champ=row.conf_champ or 0,
+            super_bowl=row.super_bowl or 0,
+            total=float(row.total or 0),
+        )
         for row in rows
     ]

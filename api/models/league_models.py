@@ -176,7 +176,14 @@ class LeaguesByUser(BaseSchema):
     user_team_id: int
 
 
+class LeagueSettingsUpdate(BaseSchema):
+    roster_settings: RosterSettings
+    scoring_settings: ScoringSettings
+
+
 class Standings(BaseSchema):
+    team_id: int
+    rank: int
     team_name: str
     owner: str
     players_left: int
@@ -190,5 +197,23 @@ class Standings(BaseSchema):
 class TeamSimple(BaseSchema):
     id: int
     name: str
-    owner_id: int
-    owner_name: str
+    owner_id: int | None = None
+    owner_name: str | None = None
+    picks_made: int = 0
+
+
+class RosterPlayer(BaseSchema):
+    id: int
+    name: str
+    position: str
+    team_abv: str | None = None
+    slot: str
+    is_active: bool
+
+
+class TeamDetails(BaseSchema):
+    id: int
+    name: str
+    league_id: int
+    owner_name: str | None = None
+    roster: list[RosterPlayer]

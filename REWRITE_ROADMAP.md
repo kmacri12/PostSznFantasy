@@ -340,16 +340,16 @@ This checklist outlines the sequence of refactor tasks for developers and AI cod
 ---
 
 ### Phase 11: Complete Missing Backend Endpoints & API Contract Alignment
-- [ ] **Player Directory & Stats Endpoints (`api/routers/players.py`)**:
-  - [ ] `GET /api/players/player-season-stats`: Query `NFLPlayerSeasonStats` joined with `NFLPlayer` and `NFLTeam`, supporting query params `season` and optional `position`. Returns `list[PlayerSeasonStatsResponse]`.
-  - [ ] `GET /api/players/player-list`: Query active NFL players with their team information, optionally filterable by `position` and `is_active` NFL teams. Returns `list[Player]`.
-  - [ ] Add unit/integration tests for player endpoints in `api/tests/test_api_integration.py`.
-- [ ] **Missing League & Team Endpoints (`api/routers/leagues.py`)**:
-  - [ ] `GET /api/leagues/{league_id}/teams`: Return all teams participating in the league with team IDs, team names, user/owner details, and draft pick status. (Required by `DraftPage.tsx`).
-  - [ ] `GET /api/leagues/teams/{team_id}`: Return detailed team roster, slot assignments, and player playoff survival statuses. (Required by `TeamPage.tsx`).
-  - [ ] `PUT /api/leagues/{league_id}/settings`: Allow commissioners to update roster configuration and custom scoring settings. (Required by `SettingsPage.tsx`).
-- [ ] **Standings Enrichment**:
-  - [ ] Enrich `GET /api/leagues/{league_id}/standings` to include team names and owner display names alongside rank, scores, and active player counts.
+- [x] **Player Directory & Stats Endpoints (`api/routers/players.py`)**:
+  - [x] `GET /api/players/player-season-stats`: Query `NFLPlayerSeasonStats` joined with `NFLPlayer` and `NFLTeam`, supporting query params `season` and optional `position`. Returns `list[PlayerSeasonStatsResponse]`.
+  - [x] `GET /api/players/player-list`: Query active NFL players with their team information, optionally filterable by `position` and `is_active` NFL teams. Returns `list[Player]`.
+  - [x] Add unit/integration tests for player endpoints in `api/tests/test_api_integration.py`.
+- [x] **Missing League & Team Endpoints (`api/routers/leagues.py`)**:
+  - [x] `GET /api/leagues/{league_id}/teams`: Return all teams participating in the league with team IDs, team names, user/owner details, and draft pick status. (Required by `DraftPage.tsx`).
+  - [x] `GET /api/leagues/teams/{team_id}`: Return detailed team roster, slot assignments, and player playoff survival statuses. (Required by `TeamPage.tsx`).
+  - [x] `PUT /api/leagues/{league_id}/settings`: Allow commissioners to update roster configuration and custom scoring settings. (Required by `SettingsPage.tsx`).
+- [x] **Standings Enrichment**:
+  - [x] Enrich `GET /api/leagues/{league_id}/standings` to include team names and owner display names alongside rank, scores, and active player counts.
 
 ---
 
