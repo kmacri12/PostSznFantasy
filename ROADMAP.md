@@ -175,3 +175,24 @@ Goal: one discoverable entry point for running the API, frontend and checks, rep
   - [x] Tiebreaker rules and handling of bye-week teams (no game in Wild Card round).
   - [x] Settings stored on `LeagueSettings` with sane defaults and surfaced in the Settings page and landing explainer.
 - [x] **Docs**: update `README.md`, `AGENTS.md` (route map, new models/endpoints), and `.env.example` as each piece lands.
+
+---
+
+## Phase 21: Mobile Polish, Members in Settings, Lineup Management & League-Scored Players
+
+- [ ] **Top bar on phones**: the signed-in avatar/menu is cut off. Keep it visible on narrow screens (and hide the dev-only seed button there / move it into the drawer).
+- [ ] **League page simplification**:
+  - [ ] Remove the Members section and its manage/demote/make-commissioner/remove buttons from the League page.
+  - [ ] Standings shows team name plus the owner's display name.
+- [ ] **Members live in Settings**:
+  - [ ] A Members section on the Settings page: roles (promote/demote), remove, and assign a member to a team (commissioner only).
+  - [ ] Backend endpoint to assign/unassign a team owner with the same commissioner guard.
+- [ ] **My Team layout**:
+  - [ ] Phone: the full starting lineup fits on one screen (compact rows instead of large cards).
+  - [ ] Desktop: a vertical list instead of the sparse card grid.
+  - [ ] Drag and drop (touch + mouse) between starter slots and bench; persisted server-side with position-eligibility validation.
+- [ ] **Scoring helpers**: plain-language conversions next to scoring inputs (e.g. 0.04 per passing yard = 1 point per 25 yards) for every rate that needs one.
+- [ ] **Players page**:
+  - [ ] Fantasy points computed with the selected league's scoring settings (server-side), sorted by points by default.
+  - [ ] Phone layout shows name, position, team, fantasy points and key stats without sideways scrolling.
+  - [ ] Desktop table leads with fantasy points alongside the full stat columns.
