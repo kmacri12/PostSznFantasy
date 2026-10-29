@@ -106,6 +106,8 @@ The API service is now accessible at `http://localhost:8000`. Interactive OpenAP
 
 ### 4. Database Seeding & Ingestion Pipeline
 
+> An opt-in background scheduler (`api/services/scheduler.py`) can run the daily sync, poll box scores during live playoff games, and auto-eliminate losing teams. It is **off by default**; set `SCHEDULER_ENABLED=true` (plus `SCHEDULER_ROSTER_SYNC_HOURS`, `SCHEDULER_LIVE_POLL_SECONDS`) to enable.
+
 PostSzn Fantasy includes an asynchronous batch ingestion pipeline that populates NFL teams, active rosters/players, season stats, and playoff game box scores from RapidAPI using chunked PostgreSQL `INSERT ... ON CONFLICT DO UPDATE` operations.
 
 #### Option A: On-Demand CLI Seeding
@@ -233,7 +235,8 @@ PostSznFantasy/
 ├── README.md                   # System documentation & developer quickstart
 ├── CONTRIBUTING.md             # Developer workflow, branching, standards, and definition of done
 ├── AGENTS.md                   # Agent guidelines, domain playbook, and architectural specs
-├── REWRITE_ROADMAP.md          # Multi-phase refactoring roadmap
+├── ROADMAP.md                  # Active roadmap
+├── REWRITE_ROADMAP.md          # Archived refactoring history (phases 1-14)
 ├── api/                        # FastAPI application service
 │   ├── alembic/                # Database migrations
 │   ├── core/                   # Application config (`Settings`) & constants

@@ -1,3 +1,4 @@
+import asyncio
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
@@ -8,14 +9,20 @@ from api.core.config import get_settings
 from api.core.logging import RequestLoggingMiddleware, setup_logging
 from api.db.session import close_db, init_db
 from api.routers import admin, auth, drafts, leagues, players
+from api.services.scheduler import run_scheduler
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
-    get_settings()
+    settings = get_settings()
     setup_logging()
     init_db()
+    scheduler_task = (
+        asyncio.create_task(run_scheduler()) if settings.scheduler_enabled else None
+    )
     yield
+    if scheduler_task:
+        scheduler_task.cancel()
     await close_db()
 
 

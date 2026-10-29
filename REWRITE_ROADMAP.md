@@ -1,5 +1,8 @@
 # REWRITE_ROADMAP.md — Modernization & Best Practices Checklist
 
+> [!NOTE]
+> **Archived (phases 1–14).** Active, forward-looking work lives in [ROADMAP.md](ROADMAP.md).
+
 ## 1. Executive Summary & App Domain
 
 > [!IMPORTANT]
@@ -463,10 +466,11 @@ This checklist outlines the sequence of refactor tasks for developers and AI cod
 ## 4. Backlog & Future Enhancements
 
 ### Backlog Item 1: Automated Background Data Scheduler (APScheduler / Celery / Event-Driven)
-- [ ] **Game-Aware Scheduler**:
-  - [ ] Schedule regular season roster syncs (e.g. daily/weekly pre-playoffs).
-  - [ ] Implement game-state-driven polling loop during active playoff games (polling RapidAPI box scores every 60–120s only during active game windows, stopping when games conclude).
-  - [ ] Auto-detect final game states to trigger team elimination and update playoff survival metrics without manual intervention.
+- [x] **Game-Aware Scheduler**:
+  - [x] Schedule regular season roster syncs (e.g. daily/weekly pre-playoffs).
+  - [x] Implement game-state-driven polling loop during active playoff games (polling RapidAPI box scores every 60–120s only during active game windows, stopping when games conclude).
+  - [x] Auto-detect final game states to trigger team elimination and update playoff survival metrics without manual intervention.
+  - Ships **disabled** (`SCHEDULER_ENABLED=false`); enable per environment.
 
 ### Backlog Item 2: Standardized Logging Framework (UI & API)
 - [x] **Backend Structured Logging (`api/`)**:

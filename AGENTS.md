@@ -41,7 +41,8 @@ PostSznFantasy/
 ├── README.md                   # System documentation & developer quickstart
 ├── CONTRIBUTING.md             # Contribution guidelines, branching, & DoD
 ├── AGENTS.md                   # This agent operational playbook
-├── REWRITE_ROADMAP.md          # Modernization & refactoring roadmap
+├── ROADMAP.md                  # Active roadmap (hardening & best practices)
+├── REWRITE_ROADMAP.md          # Archived modernization history (phases 1-14)
 ├── api/                        # Backend service (Python 3.13 + FastAPI)
 │   ├── alembic/                # Database migrations
 │   │   ├── versions/           # Migration revisions
@@ -75,6 +76,7 @@ PostSznFantasy/
 │   ├── scripts/                # Database seeding & administrative CLI scripts
 │   │   └── seed_nfl_data.py    # Unified on-demand NFL data seeder
 │   ├── services/               # Decoupled ingestion & domain services
+│   │   ├── scheduler.py        # Opt-in background sync/live-poll/elimination loop
 │   │   └── ingestion/          # Async batch upsert services
 │   │       ├── schemas.py      # Upstream DTOs & parsing helpers
 │   │       ├── teams_ingest.py # Multi-row NFL team upserts
