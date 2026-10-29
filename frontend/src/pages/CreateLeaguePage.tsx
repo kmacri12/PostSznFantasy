@@ -21,8 +21,8 @@ import RosterForm from "../components/settings/RosterForm";
 import ScoringForm from "../components/settings/ScoringForm";
 import { createLogger } from "../utils/logger";
 import {
-  type ScoringSettingsState,
   countChangedFromDefaults,
+  type ScoringSettingsState,
   toNumericScoring,
 } from "../utils/scoring";
 

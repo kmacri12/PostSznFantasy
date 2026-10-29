@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
-  type PlayerSeasonStats,
   filterPlayers,
   formatPoints,
+  type PlayerSeasonStats,
   sortPlayers,
   teamOf,
 } from "./playerStats";

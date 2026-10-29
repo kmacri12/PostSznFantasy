@@ -5,6 +5,7 @@ import SportsFootballIcon from "@mui/icons-material/SportsFootball";
 import {
   AppBar,
   Avatar,
+  alpha,
   Box,
   Button,
   Chip,
@@ -18,7 +19,6 @@ import {
   MenuItem,
   Toolbar,
   Typography,
-  alpha,
   useMediaQuery,
   useTheme,
 } from "@mui/material";

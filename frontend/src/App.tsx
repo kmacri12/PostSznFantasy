@@ -1,5 +1,5 @@
 import { Box, CircularProgress } from "@mui/material";
-import { Suspense, lazy, useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Route, Routes } from "react-router-dom";
 import { useUserLeagues } from "./api/queries";
 import NavBar from "./components/layout/NavBar";
