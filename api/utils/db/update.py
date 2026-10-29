@@ -14,7 +14,7 @@ from api.db.models.nfl import (
     NFLPlayerSeasonStats,
     NFLTeam,
 )
-from api.utils.rapidapi.rapidapi import RapidApiClient
+from api.utils.rapidapi.rapidapi import get_rapidapi_client
 from sqlalchemy import select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -35,7 +35,7 @@ def _str(val: object) -> str | None:
 
 async def sync_nfl_teams(db: AsyncSession) -> None:
     """Fetch teams from RapidAPI and upsert into nfl_teams."""
-    client = RapidApiClient()
+    client = get_rapidapi_client()
     teams = await client.get_nfl_teams()
     for raw in teams:
         team_id = _int(raw.get("teamID"))
@@ -67,7 +67,7 @@ async def sync_nfl_teams(db: AsyncSession) -> None:
 
 async def sync_nfl_players(db: AsyncSession) -> None:
     """Fetch all players from RapidAPI and upsert into nfl_players."""
-    client = RapidApiClient()
+    client = get_rapidapi_client()
     players = await client.get_nfl_players()
     for raw in players:
         player_id = _int(raw.get("playerID"))
@@ -158,7 +158,7 @@ async def sync_nfl_players_and_stats(db: AsyncSession) -> None:
     from api.core.config import get_settings
 
     season = str(get_settings().season_year)
-    client = RapidApiClient()
+    client = get_rapidapi_client()
 
     active_teams = (
         (await db.execute(select(NFLTeam).where(NFLTeam.is_active.is_(True))))
@@ -271,7 +271,7 @@ async def sync_game_box_scores(
     week: str = "all",
 ) -> None:
     """Fetch games list then pull each box score and upsert NFLGame + NFLPlayerGameStats."""
-    client = RapidApiClient()
+    client = get_rapidapi_client()
     games = await client.get_nfl_games_list(season, season_type, week)
 
     for game_summary in games:

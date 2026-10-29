@@ -3,7 +3,7 @@ from typing import Any
 
 from api.db.models.nfl import NFLGame, NFLPlayer, NFLPlayerGameStats, NFLTeam
 from api.services.ingestion.schemas import safe_int, safe_str
-from api.utils.rapidapi.rapidapi import RapidApiClient
+from api.utils.rapidapi.rapidapi import RapidApiClient, get_rapidapi_client
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -97,7 +97,7 @@ async def ingest_box_scores(
     mock_box_scores: dict[str, dict[str, Any]] | None = None,
 ) -> int:
     """Fetch playoff games and box scores, bulk upserting games and player game stats."""
-    client = client or RapidApiClient()
+    client = client or get_rapidapi_client()
 
     if mock_games is not None:
         games = mock_games

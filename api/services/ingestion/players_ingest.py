@@ -3,7 +3,7 @@ from typing import Any
 
 from api.db.models.nfl import NFLPlayer, NFLTeam
 from api.services.ingestion.schemas import safe_int, safe_str
-from api.utils.rapidapi.rapidapi import RapidApiClient
+from api.utils.rapidapi.rapidapi import RapidApiClient, get_rapidapi_client
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -20,7 +20,7 @@ async def ingest_nfl_players(
 ) -> int:
     """Fetch and bulk upsert active NFL players in chunked batches."""
     if raw_data is None:
-        client = client or RapidApiClient()
+        client = client or get_rapidapi_client()
         raw_data = await client.get_nfl_players()
 
     # Get valid team IDs to ensure FK constraint holds

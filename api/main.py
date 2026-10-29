@@ -13,6 +13,7 @@ from api.core.logging import RequestLoggingMiddleware, setup_logging
 from api.db.session import DbSession, close_db, init_db
 from api.routers import admin, auth, drafts, leagues, players
 from api.services.scheduler import run_scheduler
+from api.utils.rapidapi.rapidapi import close_rapidapi_client
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +29,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     yield
     if scheduler_task:
         scheduler_task.cancel()
+    await close_rapidapi_client()
     await close_db()
 
 

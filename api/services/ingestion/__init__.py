@@ -7,7 +7,7 @@ from api.services.ingestion.box_scores_ingest import ingest_box_scores
 from api.services.ingestion.players_ingest import ingest_nfl_players
 from api.services.ingestion.season_stats_ingest import ingest_season_stats
 from api.services.ingestion.teams_ingest import ingest_nfl_teams
-from api.utils.rapidapi.rapidapi import RapidApiClient
+from api.utils.rapidapi.rapidapi import RapidApiClient, get_rapidapi_client
 from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
@@ -23,7 +23,7 @@ async def run_full_ingestion_pipeline(
     """Run the complete ingestion pipeline: teams -> players -> season stats -> (optional) box scores."""
     start_time = time.monotonic()
     season = season or str(get_settings().season_year)
-    client = client or RapidApiClient()
+    client = client or get_rapidapi_client()
 
     logger.info("Starting ingestion pipeline for season %s", season)
 

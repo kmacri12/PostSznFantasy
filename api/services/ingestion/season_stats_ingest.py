@@ -4,7 +4,7 @@ from typing import Any
 from api.core.config import get_settings
 from api.db.models.nfl import NFLPlayer, NFLPlayerSeasonStats, NFLTeam
 from api.services.ingestion.schemas import safe_int
-from api.utils.rapidapi.rapidapi import RapidApiClient
+from api.utils.rapidapi.rapidapi import RapidApiClient, get_rapidapi_client
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -74,7 +74,7 @@ async def ingest_season_stats(
 ) -> int:
     """Fetch and bulk upsert season stats for all active teams."""
     season = season or str(get_settings().season_year)
-    client = client or RapidApiClient()
+    client = client or get_rapidapi_client()
 
     # Query active teams
     teams = (

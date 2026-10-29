@@ -10,6 +10,7 @@ from api.services.ingestion.box_scores_ingest import ingest_box_scores
 from api.services.ingestion.players_ingest import ingest_nfl_players
 from api.services.ingestion.season_stats_ingest import ingest_season_stats
 from api.services.ingestion.teams_ingest import ingest_nfl_teams
+from api.utils.rapidapi.rapidapi import close_rapidapi_client
 
 logger = logging.getLogger("seed_nfl_data")
 
@@ -117,6 +118,7 @@ async def main() -> None:
             logger.exception("Ingestion failed: %s", e)
             raise SystemExit(1) from e
         finally:
+            await close_rapidapi_client()
             await close_db()
 
 

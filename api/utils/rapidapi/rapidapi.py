@@ -1,24 +1,36 @@
 import asyncio
-import logging
 import time
+from collections import OrderedDict
+from functools import lru_cache
 from typing import Any
 
 import httpx
 from api.core.config import get_settings
 from tenacity import (
     AsyncRetrying,
-    retry_if_exception_type,
+    retry_if_exception,
     stop_after_attempt,
     wait_exponential,
 )
 
-logger = logging.getLogger(__name__)
+CACHE_MAX_ENTRIES = 64
+
+
+def _is_retryable(exc: BaseException) -> bool:
+    if isinstance(exc, httpx.HTTPStatusError):
+        return exc.response.status_code >= 500
+    return isinstance(exc, httpx.TransportError)
 
 
 class RapidApiClient:
-    """Async HTTP client for RapidAPI NFL endpoints with rate-limiting & exponential retries."""
+    """Async HTTP client for RapidAPI NFL endpoints with rate-limiting & exponential retries.
 
-    def __init__(self, requests_per_second: float = 4.0) -> None:
+    Failures propagate to the caller so a failed sync is never mistaken for an empty one.
+    """
+
+    def __init__(
+        self, requests_per_second: float = 4.0, cache_size: int = CACHE_MAX_ENTRIES
+    ) -> None:
         settings = get_settings()
         self._base_url = settings.rapidapi_baseurl.rstrip("/")
         self._headers = {
@@ -30,7 +42,19 @@ class RapidApiClient:
         )
         self._last_request_time = 0.0
         self._lock = asyncio.Lock()
-        self._cache: dict[str, Any] = {}
+        self._cache: OrderedDict[str, Any] = OrderedDict()
+        self._cache_size = cache_size
+        self._http: httpx.AsyncClient | None = None
+
+    async def aclose(self) -> None:
+        if self._http is not None:
+            await self._http.aclose()
+            self._http = None
+
+    def _client(self) -> httpx.AsyncClient:
+        if self._http is None:
+            self._http = httpx.AsyncClient(timeout=60.0, headers=self._headers)
+        return self._http
 
     async def _throttle(self) -> None:
         async with self._lock:
@@ -38,6 +62,12 @@ class RapidApiClient:
             if elapsed < self._min_interval:
                 await asyncio.sleep(self._min_interval - elapsed)
             self._last_request_time = time.monotonic()
+
+    def _remember(self, key: str, data: Any) -> None:
+        self._cache[key] = data
+        self._cache.move_to_end(key)
+        while len(self._cache) > self._cache_size:
+            self._cache.popitem(last=False)
 
     async def _get(
         self,
@@ -47,79 +77,60 @@ class RapidApiClient:
     ) -> Any:
         cache_key = f"{route}:{sorted(params.items()) if params else ''}"
         if use_cache and cache_key in self._cache:
+            self._cache.move_to_end(cache_key)
             return self._cache[cache_key]
 
         await self._throttle()
-        url = self._base_url + route
         async for attempt in AsyncRetrying(
-            retry=retry_if_exception_type((httpx.HTTPStatusError, httpx.RequestError)),
+            retry=retry_if_exception(_is_retryable),
             wait=wait_exponential(multiplier=1, min=1, max=30),
             stop=stop_after_attempt(3),
             reraise=True,
         ):
             with attempt:
-                async with httpx.AsyncClient(timeout=60.0) as client:
-                    response = await client.get(
-                        url, headers=self._headers, params=params
-                    )
-                    response.raise_for_status()
-                    data = response.json()
-                    if use_cache:
-                        self._cache[cache_key] = data
-                    return data
-        return {}
+                response = await self._client().get(
+                    self._base_url + route, params=params
+                )
+                response.raise_for_status()
+                data = response.json()
+        if use_cache:
+            self._remember(cache_key, data)
+        return data
 
     async def get_nfl_teams(self) -> list[dict[str, Any]]:
-        try:
-            data = await self._get("/getNFLTeams", use_cache=True)
-            return list(data.get("body", []))
-        except Exception:
-            logger.exception("Failed to fetch NFL teams")
-            return []
+        data = await self._get("/getNFLTeams", use_cache=True)
+        return list(data.get("body", []))
 
     async def get_nfl_players(self) -> list[dict[str, Any]]:
-        try:
-            data = await self._get("/getNFLPlayerList", use_cache=True)
-            return list(data.get("body", []))
-        except Exception:
-            logger.exception("Failed to fetch NFL player list")
-            return []
+        data = await self._get("/getNFLPlayerList", use_cache=True)
+        return list(data.get("body", []))
 
     async def get_nfl_games_list(
         self, season: str, season_type: str, week: str = "all"
     ) -> list[dict[str, Any]]:
-        try:
-            params = {"week": week, "seasonType": season_type, "season": season}
-            data = await self._get("/getNFLGamesForWeek", params=params)
-            return list(data.get("body", []))
-        except Exception:
-            logger.exception(
-                "Failed to fetch NFL games list for season=%s, type=%s",
-                season,
-                season_type,
-            )
-            return []
+        params = {"week": week, "seasonType": season_type, "season": season}
+        data = await self._get("/getNFLGamesForWeek", params=params)
+        return list(data.get("body", []))
 
     async def get_nfl_box_score(self, game_id: str) -> dict[str, Any]:
-        try:
-            data = await self._get("/getNFLBoxScore", params={"gameID": game_id})
-            return dict(data.get("body", {}))
-        except Exception:
-            logger.exception("Failed to fetch box score for game %s", game_id)
-            return {}
+        data = await self._get("/getNFLBoxScore", params={"gameID": game_id})
+        return dict(data.get("body", {}))
 
     async def get_stats_for_team(
         self, team_id: str, team_abv: str
     ) -> list[dict[str, Any]]:
-        try:
-            params = {"teamID": team_id, "teamAbv": team_abv, "getStats": "true"}
-            data = await self._get("/getNFLTeamRoster", params=params)
-            roster = data.get("body", {}).get("roster", [])
-            return list(roster)
-        except Exception:
-            logger.exception("Failed to fetch roster/stats for team %s", team_abv)
-            return []
+        params = {"teamID": team_id, "teamAbv": team_abv, "getStats": "true"}
+        data = await self._get("/getNFLTeamRoster", params=params)
+        return list(data.get("body", {}).get("roster", []))
 
 
-# Backward-compatibility alias
-RapidApi = RapidApiClient
+@lru_cache(maxsize=1)
+def get_rapidapi_client() -> RapidApiClient:
+    """Process-wide client so the connection pool, throttle and cache are shared."""
+    return RapidApiClient()
+
+
+async def close_rapidapi_client() -> None:
+    if get_rapidapi_client.cache_info().currsize:
+        await get_rapidapi_client().aclose()
+        get_rapidapi_client.cache_clear()
