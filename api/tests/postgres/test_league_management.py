@@ -3,9 +3,19 @@ from datetime import UTC, datetime, timedelta
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.db.models import LeagueInvite, LeagueMember, LeagueSettings, Team, User
+from api.db.models import (
+    DraftPick,
+    LeagueInvite,
+    LeagueMember,
+    LeagueSettings,
+    NFLTeam,
+    Team,
+    User,
+)
+from api.services import draft_flow
+from api.services.draft_picks import make_pick
 from api.tests.postgres.conftest import ClientFactory
-from api.tests.postgres.factories import make_league
+from api.tests.postgres.factories import make_league, make_players
 
 
 async def test_overview_lists_members_and_roles(
@@ -68,6 +78,38 @@ async def test_removing_a_member_frees_their_team(
     await db.refresh(teams[1])
     assert teams[1].owner_id is None
     assert await db.get(LeagueMember, (league.id, users[1].id)) is None
+
+
+async def test_removing_a_drafter_mid_draft_keeps_picks_and_autopicks_for_the_team(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    league, users, teams, draft = await make_league(db, roster_total=3)
+    kc = NFLTeam(id=1, team_abv="KC", is_active=True)
+    db.add(kc)
+    await db.flush()
+    players = await make_players(db, ["QB", "RB", "WR", "TE"], nfl_team=kc)
+    await make_pick(db, league.id, users[0], players[0].id)
+    await make_pick(db, league.id, users[1], players[1].id)  # snake: B picks again next
+
+    async with client_as("uid-0") as commissioner:
+        response = await commissioner.delete(
+            f"/api/leagues/{league.id}/members/{users[1].id}"
+        )
+    assert response.status_code == 200
+    await db.refresh(teams[1])
+    assert teams[1].owner_id is None
+
+    covered = await draft_flow.auto_pick(db, league.id)
+    assert covered.pick.team_id == teams[1].id
+    assert covered.pick.autopick is True
+    kept = (
+        (await db.execute(select(DraftPick).where(DraftPick.draft_id == draft.id)))
+        .scalars()
+        .all()
+    )
+    assert sorted((p.team_id, p.autopick) for p in kept) == sorted(
+        [(teams[0].id, False), (teams[1].id, False), (teams[1].id, True)]
+    )
 
 
 async def test_commissioner_renames_league_and_resizes_before_draft(
