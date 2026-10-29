@@ -152,7 +152,7 @@ Goal: one discoverable entry point for running the API, frontend and checks, rep
   - [x] Alive/eliminated badges and next-game status per player.
 - [x] **Draft Lifecycle Rebuild (match Sleeper / ESPN draft room)**:
   - [x] Draft states: `unscheduled` → `scheduled` → `lobby/waiting` → `in_progress` → `paused` → `completed`. Visiting the Draft tab must **never** auto-start a timer.
-  - [x] Commissioner **draft setup**: date/time, time per pick, draft type (snake, linear, third-round reversal; auction later), rounds, pick-clock behavior on timeout (auto-pick from queue / best available).
+  - [x] Commissioner **draft setup**: date/time, time per pick, draft type (snake, linear, third-round reversal; auction later), pick-clock behavior on timeout (auto-pick from queue / best available). Rounds are derived from the roster size (`roster_total`), not configured.
   - [x] **Draft order**: no pre-assigned slots. Commissioner assigns each team to a slot manually, with a randomize button and manual reorder; order locked once started.
   - [x] Draft lobby: participants join the room, presence indicators, countdown to scheduled start, commissioner **Start / Pause / Resume** controls.
   - [x] **Server-authoritative timer**: persist `current_pick_deadline`/`pick_started_at` in the DB and broadcast over WebSocket; clients render countdown from server time so page reloads never reset the clock.
@@ -165,7 +165,7 @@ Goal: one discoverable entry point for running the API, frontend and checks, rep
   - [x] League `season` is **read-only**, defaulted from `.env` at creation.
 - [x] **Unified League Settings (editable by commissioners)**:
   - [x] Header block editable: league name, number of teams, commissioners (one or more). Season displayed but not editable.
-  - [x] Single **Settings** page with grouped sections: **League**, **Roster**, **Scoring** (all scoring combined under one header with subheaders: passing, rushing, receiving, kicking, defense, etc.), **Draft** (centralized: type, date/time, time per pick, order, rounds), and **Postseason**.
+  - [x] Single **Settings** page with grouped sections: **League**, **Roster**, **Scoring** (all scoring combined under one header with subheaders: passing, rushing, receiving, kicking, defense, etc.), **Draft** (centralized: type, date/time, time per pick, order), and **Postseason**.
   - [x] Lock settings that can't change after the draft starts (team count, roster size, draft order).
   - [x] Backend `PATCH` endpoints with validation + commissioner authorization; changes reflected live for members.
 - [x] **Postseason-Specific Fantasy Settings** (what makes this different from a regular season):

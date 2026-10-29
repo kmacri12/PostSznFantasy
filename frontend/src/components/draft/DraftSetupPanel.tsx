@@ -1,5 +1,14 @@
-import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
-import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
+import {
+  DndContext,
+  type DragEndEvent,
+  MouseSensor,
+  TouchSensor,
+  useDraggable,
+  useDroppable,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
 import {
   Alert,
   Box,
@@ -7,19 +16,16 @@ import {
   Card,
   FormControl,
   Grid,
-  IconButton,
   InputLabel,
-  List,
-  ListItem,
-  ListItemText,
   MenuItem,
   Select,
   TextField,
   Typography,
 } from "@mui/material";
-import { useEffect, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { useDraftControl, useDraftOrder, useDraftSetup, useLeagueTeams } from "../../api/queries";
-import type { DraftState, DraftType, PickTimeoutAction } from "../../api/types";
+import type { DraftSlot, DraftState, DraftType, PickTimeoutAction } from "../../api/types";
+import { tokens } from "../../theme";
 
 const toLocalInput = (iso: string | null): string => {
   if (!iso) return "";
@@ -31,7 +37,133 @@ const toLocalInput = (iso: string | null): string => {
 const detail = (error: unknown): string | null =>
   (error as { response?: { data?: { detail?: string } } } | null)?.response?.data?.detail ?? null;
 
-/** Commissioner draft setup: schedule, clock, type, rounds, timeout behaviour and slot order. */
+const POOL_ID = "pool";
+const slotId = (index: number) => `slot-${index}`;
+const teamDragId = (teamId: number) => `team-${teamId}`;
+
+const initialSlots = (placed: DraftSlot[], slotCount: number): (number | null)[] =>
+  Array.from(
+    { length: slotCount },
+    (_, index) => placed.find((slot) => slot.slot === index + 1)?.teamId ?? null,
+  );
+
+interface TeamChipProps {
+  teamId: number;
+  name: string;
+  canDrag: boolean;
+}
+
+const TeamChip = ({ teamId, name, canDrag }: TeamChipProps) => {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: teamDragId(teamId),
+    disabled: !canDrag,
+  });
+  return (
+    <Box
+      ref={setNodeRef}
+      {...attributes}
+      {...listeners}
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        gap: 0.5,
+        px: 1,
+        height: 56,
+        borderRadius: 1,
+        bgcolor: "background.paper",
+        border: "1px solid",
+        borderColor: "divider",
+        cursor: canDrag ? "grab" : "default",
+        position: "relative",
+        zIndex: isDragging ? 10 : "auto",
+        boxShadow: isDragging ? 6 : "none",
+        transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
+      }}
+    >
+      {canDrag && <DragIndicatorIcon fontSize="small" />}
+      <Typography
+        fontWeight={600}
+        sx={{
+          fontSize: 13,
+          lineHeight: 1.25,
+          overflowWrap: "anywhere",
+          display: "-webkit-box",
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: "vertical",
+          overflow: "hidden",
+        }}
+      >
+        {name}
+      </Typography>
+    </Box>
+  );
+};
+
+interface OrderSlotProps {
+  index: number;
+  children: ReactNode;
+}
+
+const OrderSlot = ({ index, children }: OrderSlotProps) => {
+  const { setNodeRef, isOver } = useDroppable({ id: slotId(index) });
+  return (
+    <Box
+      ref={setNodeRef}
+      data-testid={`order-slot-${index + 1}`}
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        gap: 1,
+        p: 0.5,
+        height: 56,
+        borderRadius: 1,
+        border: "1px dashed",
+        borderColor: isOver ? tokens.gold : "divider",
+        bgcolor: isOver ? "rgba(251,191,36,.08)" : "transparent",
+      }}
+    >
+      <Typography color="text.secondary" sx={{ width: 28, textAlign: "center", flexShrink: 0 }}>
+        {index + 1}
+      </Typography>
+      <Box sx={{ flexGrow: 1, minWidth: 0 }}>{children}</Box>
+    </Box>
+  );
+};
+
+const TeamPool = ({
+  teamIds,
+  teamName,
+}: {
+  teamIds: number[];
+  teamName: (id: number) => string;
+}) => {
+  const { setNodeRef, isOver } = useDroppable({ id: POOL_ID });
+  return (
+    <Box
+      ref={setNodeRef}
+      aria-label="Unplaced teams"
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 1,
+        p: 0.5,
+        position: "sticky",
+        top: 8,
+        borderRadius: 1,
+        bgcolor: isOver ? "rgba(251,191,36,.08)" : "transparent",
+      }}
+    >
+      <Typography variant="body2" color="text.secondary">
+        {teamIds.length > 0 ? "Teams" : "All placed"}
+      </Typography>
+      {teamIds.map((id) => (
+        <TeamChip key={id} teamId={id} name={teamName(id)} canDrag />
+      ))}
+    </Box>
+  );
+};
+
+/** Commissioner draft setup: schedule, clock, type, timeout behaviour and slot order. */
 const DraftSetupPanel = ({ draft, canEdit }: { draft: DraftState; canEdit: boolean }) => {
   const leagueId = draft.leagueId;
   const setup = useDraftSetup(leagueId);
@@ -39,49 +171,56 @@ const DraftSetupPanel = ({ draft, canEdit }: { draft: DraftState; canEdit: boole
   const control = useDraftControl(leagueId);
   const teams = useLeagueTeams(leagueId);
 
+  const allTeamIds = useMemo(() => (teams.data ?? []).map((team) => team.id), [teams.data]);
+
   const [startTime, setStartTime] = useState(toLocalInput(draft.startTime));
   const [timePerPick, setTimePerPick] = useState(String(draft.timePerPickSeconds));
-  const [rounds, setRounds] = useState(String(draft.rounds));
   const [draftType, setDraftType] = useState<DraftType>(draft.draftType);
   const [timeout, setTimeoutAction] = useState<PickTimeoutAction>(draft.pickTimeoutAction);
-  const [order, setOrder] = useState<number[]>(draft.order.map((slot) => slot.teamId));
+  const [slots, setSlots] = useState<(number | null)[]>([]);
 
   useEffect(() => {
     setStartTime(toLocalInput(draft.startTime));
     setTimePerPick(String(draft.timePerPickSeconds));
-    setRounds(String(draft.rounds));
     setDraftType(draft.draftType);
     setTimeoutAction(draft.pickTimeoutAction);
-    setOrder(draft.order.map((slot) => slot.teamId));
-  }, [draft]);
+    setSlots(initialSlots(draft.order, allTeamIds.length));
+  }, [draft, allTeamIds]);
 
   const locked = draft.orderLocked || !canEdit;
   const teamName = (id: number) =>
     draft.order.find((slot) => slot.teamId === id)?.teamName ??
     teams.data?.find((team) => team.id === id)?.name ??
     `Team ${id}`;
-  const unassigned = (teams.data ?? []).map((team) => team.id).filter((id) => !order.includes(id));
+  const sensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 6 } }),
+  );
 
-  const move = (index: number, delta: number) => {
-    const next = [...order];
-    const target = index + delta;
-    if (target < 0 || target >= next.length) return;
-    const moved = next[index];
-    const swapped = next[target];
-    if (moved === undefined || swapped === undefined) return;
-    next[index] = swapped;
-    next[target] = moved;
-    setOrder(next);
+  const onDragEnd = ({ active, over }: DragEndEvent) => {
+    if (!over) return;
+    const teamId = Number(String(active.id).replace("team-", ""));
+    const from = slots.indexOf(teamId);
+    const next = [...slots];
+    if (from >= 0) next[from] = null;
+    if (over.id !== POOL_ID) {
+      const to = Number(String(over.id).replace("slot-", ""));
+      const displaced = next[to] ?? null;
+      next[to] = teamId;
+      // A displaced team takes the dragged team's old slot, or returns to the pool.
+      if (displaced !== null && from >= 0) next[from] = displaced;
+    }
+    setSlots(next);
   };
+
+  const unplaced = allTeamIds.filter((id) => !slots.includes(id));
 
   const saveSetup = () =>
     setup.mutate({
       startTime: startTime ? new Date(startTime).toISOString() : undefined,
       clearStartTime: startTime === "" && draft.startTime !== null,
       timePerPickSeconds: Number(timePerPick),
-      ...(draft.orderLocked
-        ? {}
-        : { draftType, rounds: Number(rounds), pickTimeoutAction: timeout }),
+      ...(draft.orderLocked ? {} : { draftType, pickTimeoutAction: timeout }),
     });
 
   const failure = detail(setup.error) ?? detail(saveOrder.error) ?? detail(control.error);
@@ -108,22 +247,13 @@ const DraftSetupPanel = ({ draft, canEdit }: { draft: DraftState; canEdit: boole
             onChange={(event) => setStartTime(event.target.value)}
           />
         </Grid>
-        <Grid item xs={6} sm={3}>
+        <Grid item xs={12} sm={6}>
           <TextField
             fullWidth
             label="Seconds per pick"
             value={timePerPick}
             disabled={!canEdit}
             onChange={(event) => setTimePerPick(event.target.value)}
-          />
-        </Grid>
-        <Grid item xs={6} sm={3}>
-          <TextField
-            fullWidth
-            label="Rounds"
-            value={rounds}
-            disabled={locked}
-            onChange={(event) => setRounds(event.target.value)}
           />
         </Grid>
         <Grid item xs={12} sm={6}>
@@ -164,68 +294,51 @@ const DraftSetupPanel = ({ draft, canEdit }: { draft: DraftState; canEdit: boole
         </Button>
       )}
 
-      <Typography variant="subtitle1" fontWeight={600} sx={{ mt: 3 }}>
+      <Typography variant="subtitle1" fontWeight={600} sx={{ mt: 3, mb: 0.5 }}>
         Draft order {draft.orderLocked && "(locked)"}
       </Typography>
-      <List dense aria-label="Draft order">
-        {order.map((teamId, index) => (
-          <ListItem
-            key={teamId}
-            secondaryAction={
-              !locked && (
-                <>
-                  <IconButton
-                    aria-label={`Move ${teamName(teamId)} up`}
-                    onClick={() => move(index, -1)}
-                  >
-                    <ArrowUpwardIcon fontSize="small" />
-                  </IconButton>
-                  <IconButton
-                    aria-label={`Move ${teamName(teamId)} down`}
-                    onClick={() => move(index, 1)}
-                  >
-                    <ArrowDownwardIcon fontSize="small" />
-                  </IconButton>
-                  <Button
-                    size="small"
-                    onClick={() => setOrder(order.filter((id) => id !== teamId))}
-                  >
-                    Unassign
-                  </Button>
-                </>
-              )
-            }
-          >
-            <ListItemText primary={`${index + 1}. ${teamName(teamId)}`} />
-          </ListItem>
-        ))}
-      </List>
-      {unassigned.length > 0 && (
-        <Box sx={{ mb: 1 }}>
-          <Typography variant="body2" color="text.secondary">
-            Unassigned teams
-          </Typography>
-          {unassigned.map((teamId) => (
-            <Button
-              key={teamId}
-              size="small"
-              disabled={locked}
-              onClick={() => setOrder([...order, teamId])}
-            >
-              + {teamName(teamId)}
-            </Button>
-          ))}
-        </Box>
-      )}
       {!locked && (
-        <Box sx={{ display: "flex", gap: 1 }}>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+          Drag teams from the right into pick slots on the left. Drop on a filled slot to swap.
+        </Typography>
+      )}
+      <DndContext sensors={sensors} onDragEnd={onDragEnd}>
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: locked ? "minmax(0, 1fr)" : "repeat(2, minmax(0, 1fr))",
+            gap: 1,
+            alignItems: "start",
+            mb: 2,
+          }}
+        >
+          <Box aria-label="Draft order" sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+            <Typography variant="body2" color="text.secondary" sx={{ p: 0.5 }}>
+              Pick order
+            </Typography>
+            {slots.map((teamId, index) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: slots are positional
+              <OrderSlot key={index} index={index}>
+                {teamId !== null ? (
+                  <TeamChip teamId={teamId} name={teamName(teamId)} canDrag={!locked} />
+                ) : (
+                  <Typography color="text.disabled">Empty</Typography>
+                )}
+              </OrderSlot>
+            ))}
+          </Box>
+          {!locked && <TeamPool teamIds={unplaced} teamName={teamName} />}
+        </Box>
+      </DndContext>
+      {!locked && (
+        <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
           <Button variant="outlined" onClick={() => control.mutate("randomize")}>
             Randomize
           </Button>
           <Button
             variant="contained"
             disabled={saveOrder.isPending}
-            onClick={() => saveOrder.mutate(order)}
+            onClick={() => saveOrder.mutate(slots)}
           >
             Save order
           </Button>

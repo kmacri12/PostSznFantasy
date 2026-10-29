@@ -27,6 +27,11 @@ class PickResult:
     already_recorded: bool = False
 
 
+def placed_order(draft: Draft) -> list[int]:
+    """The order without empty slots; complete whenever a draft is running."""
+    return [team_id for team_id in draft.draft_order_team_ids if team_id is not None]
+
+
 def team_on_the_clock(order: list[int], pick_index: int, draft_type: str | None) -> int:
     """Team id owning the zero-based `pick_index`, honouring the draft type's reversals."""
     round_index, slot = divmod(pick_index, len(order))
@@ -100,7 +105,7 @@ async def record_pick(
     `acting_user` is None for server-initiated picks (auto-pick, forced pick), which
     skip the ownership check but obey every other rule. The draft row must be locked.
     """
-    order = draft.draft_order_team_ids
+    order = placed_order(draft)
     if not order:
         raise DraftPickError("Draft order has not been set")
     if draft.status == DraftStatus.COMPLETED.value:

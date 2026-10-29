@@ -56,12 +56,11 @@ class DraftSetup(BaseSchema):
     clear_start_time: bool = False
     time_per_pick_seconds: int | None = Field(default=None, ge=10, le=86400)
     draft_type: DraftType | None = None
-    rounds: int | None = Field(default=None, ge=1, le=50)
     pick_timeout_action: PickTimeoutAction | None = None
 
 
 class DraftOrderUpdate(BaseSchema):
-    team_ids: list[int]
+    team_ids: list[int | None]
 
 
 class PickRequest(BaseSchema):

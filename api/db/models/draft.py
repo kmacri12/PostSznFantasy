@@ -88,7 +88,8 @@ class Draft(Base):
     alphabetical_sort: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False
     )
-    draft_order_team_ids: Mapped[list[int]] = mapped_column(
+    # None marks a slot the commissioner has not filled yet.
+    draft_order_team_ids: Mapped[list[int | None]] = mapped_column(
         ARRAY(Integer), nullable=False, default=list
     )
 

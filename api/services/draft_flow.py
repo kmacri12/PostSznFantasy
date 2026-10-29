@@ -26,6 +26,7 @@ from api.services.draft_picks import (
     load_draft_for_update,
     load_settings,
     next_deadline,
+    placed_order,
     record_pick,
     team_on_the_clock,
 )
@@ -63,7 +64,7 @@ async def build_state(db: AsyncSession, draft: Draft) -> DraftStateResponse:
             owner_name=owner_names.get(by_id[team_id].owner_id or -1),
         )
         for index, team_id in enumerate(draft.draft_order_team_ids)
-        if team_id in by_id
+        if team_id is not None and team_id in by_id
     ]
     pick_rows = (
         await db.execute(
@@ -89,7 +90,7 @@ async def build_state(db: AsyncSession, draft: Draft) -> DraftStateResponse:
         for p, name, position in pick_rows
     ]
 
-    ids = draft.draft_order_team_ids
+    ids = placed_order(draft)
     total = len(ids) * draft.rounds
     live = draft.status in (DraftStatus.IN_PROGRESS.value, DraftStatus.PAUSED.value)
     current = len(picks)
@@ -145,13 +146,11 @@ async def apply_setup(db: AsyncSession, league_id: int, setup: DraftSetup) -> Dr
     if draft.status == DraftStatus.COMPLETED.value:
         raise DraftPickError("The draft is already complete")
     fields = setup.model_fields_set
-    structural = {"draft_type", "rounds", "pick_timeout_action"} & fields
+    structural = {"draft_type", "pick_timeout_action"} & fields
     if structural or setup.start_time or setup.clear_start_time:
         _require_pre_draft(draft)
     if setup.draft_type is not None:
         draft.draft_type = setup.draft_type.value
-    if setup.rounds is not None:
-        draft.rounds = setup.rounds
     if setup.pick_timeout_action is not None:
         draft.pick_timeout_action = setup.pick_timeout_action.value
     if setup.time_per_pick_seconds is not None:
@@ -168,7 +167,9 @@ async def apply_setup(db: AsyncSession, league_id: int, setup: DraftSetup) -> Dr
     return draft
 
 
-async def set_order(db: AsyncSession, league_id: int, team_ids: list[int]) -> Draft:
+async def set_order(
+    db: AsyncSession, league_id: int, team_ids: list[int | None]
+) -> Draft:
     draft = await load_draft_for_update(db, league_id)
     _require_pre_draft(draft)
     league_team_ids = set(
@@ -176,7 +177,12 @@ async def set_order(db: AsyncSession, league_id: int, team_ids: list[int]) -> Dr
         .scalars()
         .all()
     )
-    if len(set(team_ids)) != len(team_ids) or not set(team_ids) <= league_team_ids:
+    placed = [team_id for team_id in team_ids if team_id is not None]
+    if (
+        len(set(placed)) != len(placed)
+        or not set(placed) <= league_team_ids
+        or len(team_ids) > len(league_team_ids)
+    ):
         raise DraftPickError(
             "Draft order must list each team of this league at most once"
         )
@@ -192,7 +198,7 @@ async def randomize_order(db: AsyncSession, league_id: int) -> Draft:
         .all()
     )
     random.shuffle(team_ids)
-    return await set_order(db, league_id, team_ids)
+    return await set_order(db, league_id, [*team_ids])
 
 
 async def open_lobby(db: AsyncSession, league_id: int) -> Draft:
@@ -214,7 +220,8 @@ async def start_draft(db: AsyncSession, league_id: int) -> Draft:
     team_count = await db.scalar(
         select(func.count()).select_from(Team).where(Team.league_id == league_id)
     )
-    if len(draft.draft_order_team_ids) != team_count:
+    order = draft.draft_order_team_ids
+    if len(order) != team_count or None in order:
         raise DraftPickError("Assign every team to a draft slot before starting")
     now = datetime.now(UTC)
     draft.status = DraftStatus.IN_PROGRESS.value
@@ -394,9 +401,7 @@ async def auto_pick(db: AsyncSession, league_id: int) -> PickResult:
         .select_from(DraftPick)
         .where(DraftPick.draft_id == draft.id)
     )
-    team_id = team_on_the_clock(
-        draft.draft_order_team_ids, picks_made or 0, draft.draft_type
-    )
+    team_id = team_on_the_clock(placed_order(draft), picks_made or 0, draft.draft_type)
 
     candidates: list[int] = []
     if draft.pick_timeout_action == PickTimeoutAction.QUEUE_THEN_BEST.value:

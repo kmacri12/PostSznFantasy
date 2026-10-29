@@ -11,6 +11,7 @@ All contributions—whether submitted by human engineers or AI agents—must adh
 - **KISS (Keep It Simple, Stupid)**: Build the simplest working solution. Avoid premature abstractions, speculative interfaces, or gratuitous indirection.
 - **Intent-Driven Comments (Explain WHY, Not WHAT)**: Code must be self-explanatory through expressive naming and clear logic. Reserve comments strictly for non-obvious domain rules, hardware/protocol quirks, or external library workarounds. Never write comments that merely narrate what the next line of code does.
 - **Self-Documenting Code**: Choose descriptive names for functions, classes, and variables so that the intent is immediately clear from the code alone.
+- **Mobile-First UI**: The app is used primarily on phones. Every UI is designed for a ~375px-wide viewport first and then scaled up. Prefer a single vertical column; never spread one control across multiple rows or columns of a grid, and avoid horizontal scrolling and hover-only interactions. Touch targets are at least 44px tall.
 - **Documentation Synchronization Mandate**: Whenever you introduce or modify endpoints, database schemas, environment variables, dependencies, or workflows, you **must update the relevant documentation** (`README.md`, `AGENTS.md`, `CONTRIBUTING.md`, or `.env.example`). Stale documentation is treated as a build-breaking defect.
 
 ---
@@ -68,6 +69,9 @@ A pull request is ready for merge only when all of the following criteria are me
    - Database modifications include an Alembic migration (`make migration m="..."`).
    - Request/response contracts use typed Pydantic models with camelCase aliasing (`BaseSchema`).
    - Async database sessions are scoped via FastAPI dependency injection (`DbSession`).
-4. **Documentation Synchronization**:
+4. **Mobile Verification (every UI change)**:
+   - Run the app and look at the changed screen at phone width (375x812) and at desktop width before calling the work done: no horizontal scroll, no clipped or truncated text, no overlapping elements, tap targets of at least 44px, and drag interactions that work by touch.
+   - Fix anything that looks off, then re-check. Do not hand off UI work that has only been type-checked.
+5. **Documentation Synchronization**:
    - Any new environment variables are documented in `api/.env.example` or `frontend/.env.example` and registered in `api/core/config.py`.
    - Structural or workflow changes are reflected in `README.md` and `AGENTS.md`.

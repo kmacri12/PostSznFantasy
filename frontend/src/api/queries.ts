@@ -288,7 +288,7 @@ export const useDraftSetup = (leagueId: Id | undefined) => {
 export const useDraftOrder = (leagueId: Id | undefined) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (teamIds: number[]) =>
+    mutationFn: async (teamIds: (number | null)[]) =>
       (await api.put<DraftState>(`/api/drafts/${leagueId}/order`, { teamIds })).data,
     onSuccess: (data) => queryClient.setQueryData(keys.draft(leagueId ?? ""), data),
   });

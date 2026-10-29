@@ -82,7 +82,7 @@ async def _broadcast_state(db: DbSession, draft: Draft) -> DraftStateResponse:
 async def update_setup(
     league_id: int, payload: DraftSetup, _: LeagueCommissioner, db: DbSession
 ) -> DraftStateResponse:
-    """Date/time, time per pick, type, rounds and timeout behaviour."""
+    """Date/time, time per pick, type and timeout behaviour."""
     try:
         draft = await draft_flow.apply_setup(db, league_id, payload)
     except DraftPickError as exc:

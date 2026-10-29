@@ -70,7 +70,8 @@ async def set_team_count(db: AsyncSession, league_id: int, count: int) -> None:
         if draft is not None:
             gone = {team.id for team in dropped}
             draft.draft_order_team_ids = [
-                team_id for team_id in draft.draft_order_team_ids if team_id not in gone
+                None if team_id in gone else team_id
+                for team_id in draft.draft_order_team_ids
             ]
 
     settings = (

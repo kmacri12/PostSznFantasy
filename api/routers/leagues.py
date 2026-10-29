@@ -397,6 +397,12 @@ async def update_league_settings(
             raise _rule_error(exc) from exc
     for field, value in updates.items():
         setattr(settings, field, value)
+    if "roster_total" in updates:
+        await db.execute(
+            update(Draft)
+            .where(Draft.league_id == league_id)
+            .values(rounds=settings.roster_total)
+        )
     await db.flush()
     return settings
 

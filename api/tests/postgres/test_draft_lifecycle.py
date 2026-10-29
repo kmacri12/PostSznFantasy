@@ -97,7 +97,6 @@ async def test_setup_schedules_the_draft(
             json={
                 "startTime": "2030-01-05T18:00:00Z",
                 "draftType": "third_round_reversal",
-                "rounds": 3,
                 "pickTimeoutAction": "best_available",
             },
         )
@@ -108,7 +107,6 @@ async def test_setup_schedules_the_draft(
     body = scheduled.json()
     assert body["status"] == "scheduled"
     assert body["draftType"] == "third_round_reversal"
-    assert body["rounds"] == 3
     assert lobby.json()["status"] == "lobby"
     assert cleared.json()["status"] == "unscheduled"
     await db.refresh(draft)
@@ -286,3 +284,23 @@ async def test_draft_completes_after_the_last_round(db: AsyncSession) -> None:
     assert draft.status == "completed"
     assert draft.current_pick_deadline is None
     assert isinstance(draft, Draft)
+
+
+async def test_partial_order_keeps_slot_positions_but_cannot_start(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    league, _, teams, _ = await make_league(
+        db, teams=4, draft_status="unscheduled", ordered=False
+    )
+    url = f"/api/drafts/{league.id}"
+    async with client_as("uid-0") as commissioner:
+        saved = await commissioner.put(
+            f"{url}/order", json={"teamIds": [None, teams[0].id, None, teams[1].id]}
+        )
+        started = await commissioner.post(f"{url}/control/start")
+    assert saved.status_code == 200
+    assert [(s["slot"], s["teamId"]) for s in saved.json()["order"]] == [
+        (2, teams[0].id),
+        (4, teams[1].id),
+    ]
+    assert started.status_code == 409
