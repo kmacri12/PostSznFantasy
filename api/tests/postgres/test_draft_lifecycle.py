@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.db.models import Draft, DraftPick, NFLTeam, TeamPlayer
 from api.services import draft_clock, draft_flow
-from api.services.draft_picks import PickNotDue
+from api.services.draft_picks import DraftPickError, PickNotDue
 from api.tests.postgres.conftest import ClientFactory
 from api.tests.postgres.factories import make_league, make_players
 
@@ -290,6 +290,40 @@ async def test_clock_skips_a_pick_whose_deadline_was_reset_after_it_looked(
     await db.flush()
     result = await draft_flow.auto_pick(db, league.id, only_if_overdue=True)
     assert result.pick.autopick is True
+
+
+async def _overdue_draft_with_pool(db: AsyncSession):  # type: ignore[no-untyped-def]
+    league, users, _, draft = await make_league(db, roster_total=3)
+    kc = NFLTeam(id=1, team_abv="KC", is_active=True)
+    db.add(kc)
+    await db.flush()
+    await make_players(db, ["QB", "RB", "WR", "TE"], nfl_team=kc)
+    draft.current_pick_deadline = datetime.now(UTC) - timedelta(seconds=1)
+    await db.flush()
+    return league, draft
+
+
+async def test_clock_does_nothing_for_a_draft_paused_after_its_scan(
+    db: AsyncSession,
+) -> None:
+    league, draft = await _overdue_draft_with_pool(db)
+    await draft_flow.pause_draft(db, league.id)
+
+    with pytest.raises(DraftPickError, match="not in progress"):
+        await draft_flow.auto_pick(db, league.id, only_if_overdue=True)
+    assert (await db.execute(select(DraftPick))).scalars().all() == []
+
+
+async def test_clock_does_not_pick_again_after_an_undo_reset_the_deadline(
+    db: AsyncSession,
+) -> None:
+    league, draft = await _overdue_draft_with_pool(db)
+    await draft_flow.auto_pick(db, league.id)
+    await draft_flow.undo_last_pick(db, league.id)
+
+    with pytest.raises(PickNotDue):
+        await draft_flow.auto_pick(db, league.id, only_if_overdue=True)
+    assert (await db.execute(select(DraftPick))).scalars().all() == []
 
 
 async def test_draft_completes_after_the_last_round(db: AsyncSession) -> None:
