@@ -14,7 +14,7 @@ PostSzn Fantasy is architected as an asynchronous backend API service paired wit
   - **Framework**: [FastAPI](https://fastapi.tiangolo.com/) (ASGI, async route handlers, automatic OpenAPI docs).
   - **Packaging & Tooling**: Managed with [`uv`](https://docs.astral.sh/uv/) via `pyproject.toml` and `uv.lock`.
   - **Code Quality**: Strict type enforcement via [Mypy](https://mypy-lang.org/) and linting/formatting via [Ruff](https://docs.astral.sh/ruff/).
-  - **Database & ORM**: PostgreSQL 16 accessed via asynchronous [SQLAlchemy 2.0](https://www.sqlalchemy.org/) (`asyncpg`), with migrations managed by [Alembic](https://alembic.sqlalchemy.org/).
+  - **Database & ORM**: PostgreSQL 18 accessed via asynchronous [SQLAlchemy 2.0](https://www.sqlalchemy.org/) (`asyncpg`), with migrations managed by [Alembic](https://alembic.sqlalchemy.org/).
   - **Configuration**: Strongly typed application settings via [Pydantic Settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/).
   - **Real-Time Communication**: Native RFC 6455 WebSockets with a centralized connection manager (`DraftConnectionManager`) broadcasting live draft state, timers, and picks. Clients authenticate with an `AUTH` message carrying their Supabase JWT, send `MAKE_PICK {playerId}`, and the server validates turn order, availability and roster limits before persisting and broadcasting `PICK_MADE`.
   - **Authentication**: Token verification via Supabase Auth (Asymmetric ES256 verification via Supabase JWKS using `pyjwt[crypto]`) with dependency injection (`get_current_user`).
@@ -79,13 +79,15 @@ Review `api/.env` and `frontend/.env`. Provide your Supabase project credentials
 ### 2. Start the Stack
 
 ```bash
-make db-up      # PostgreSQL 16 via Docker Compose (waits until healthy)
+make db-up      # PostgreSQL 18 via Docker Compose (waits until healthy)
 make migrate    # alembic upgrade head
 make api        # FastAPI on http://localhost:8000 (docs at /docs), auto-reload
 make web        # Vite on http://localhost:5173 (proxies /api to the API)
 ```
 
-`make dev` runs the database, migrations, API and web server together. After a schema change that is not backwards compatible (this project has no data to preserve), `make db-reset` wipes and recreates the local database.
+`make dev` runs the database, migrations, API and web server together.
+
+Upgrading from the old PostgreSQL 16 container: its volume is incompatible with 18, so run `make db-reset` once. After a schema change that is not backwards compatible (this project has no data to preserve), `make db-reset` wipes and recreates the local database.
 
 The API is a package imported as `api.main` from the repository root (`uvicorn api.main:app`); the `make` targets handle this, and `api/` holds its own `pyproject.toml` and `uv.lock`.
 
@@ -209,7 +211,7 @@ They skip automatically when the database is unreachable and fail in CI.
 
 ```
 PostSznFantasy/
-├── docker-compose.yml          # Local PostgreSQL 16 container definition
+├── docker-compose.yml          # Local PostgreSQL 18 container definition
 ├── pyproject.toml              # UV workspace root (tool configurations)
 ├── README.md                   # System documentation & developer quickstart
 ├── CONTRIBUTING.md             # Developer workflow, branching, standards, and definition of done

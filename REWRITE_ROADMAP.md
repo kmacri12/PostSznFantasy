@@ -98,7 +98,7 @@ This checklist outlines the sequence of refactor tasks for developers and AI cod
     - Backend (`api/.env.example`): `PG_URI`, `PG_HOST`, `PG_PORT`, `PG_USER`, `PG_PASSWORD`, `PG_DBNAME`, `FIREBASE_SERVICE_ACCOUNT_KEY_PATH`, `RAPIDAPI_BASEURL`, `RAPIDAPI_APIKEY`, `RAPIDAPI_APIHOST`, `SEASON_YEAR`.
     - Frontend (`frontend/.env.example`): `VITE_API_URL`, `VITE_WS_URL`, `VITE_FIREBASE_*`.
 - [x] **Local Containerization**:
-  - [x] Create `docker-compose.yml` defining PostgreSQL 16 with healthchecks and a volume mount for local development.
+  - [x] Create `docker-compose.yml` defining PostgreSQL 18 with healthchecks and a volume mount for local development.
 
 ---
 
@@ -249,7 +249,7 @@ This checklist outlines the sequence of refactor tasks for developers and AI cod
 ### Phase 7: Repository Documentation & Developer Experience
 - [x] **Core Documentation Overhaul (`README.md`)**:
   - [x] Rewrite root `README.md` to provide full architectural context, high-level system overview, and quickstart instructions.
-  - [x] Document prerequisites (Python 3.13+, `uv`, Node.js 20+, Docker Compose, PostgreSQL 16).
+  - [x] Document prerequisites (Python 3.13+, `uv`, Node.js 20+, Docker Compose, PostgreSQL 18).
   - [x] Provide step-by-step local setup: cloning, `.env` file configuration, DB startup (`docker compose up -d`), backend startup (`uv run uvicorn ...`), and frontend startup (`npm run dev`).
   - [x] Include common troubleshooting tips (database connection, Firebase emulator or credentials setup, seed data).
 - [x] **Contribution & Development Standards (`CONTRIBUTING.md`)**:
