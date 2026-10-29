@@ -22,6 +22,9 @@ import PlayerSelector, { type Player } from "../components/draft/PlayerSelector"
 import { useUser } from "../contexts/UserContext";
 import { useWebSocket } from "../hooks/useWebSocket";
 import { playOnDeckCue } from "../utils/draftCue";
+import { createLogger } from "../utils/logger";
+
+const logger = createLogger("DraftPage");
 
 export interface Team {
   id: number;
@@ -133,7 +136,7 @@ const DraftPage: FC = () => {
         });
         setTeams(response.data);
       } catch (error) {
-        console.error("Error fetching teams:", error);
+        logger.error("Error fetching teams:", error);
       }
     };
 
@@ -148,7 +151,7 @@ const DraftPage: FC = () => {
           setTimer(response.data.timePerPickSeconds);
         }
       } catch (error) {
-        console.error("Error fetching draft settings:", error);
+        logger.error("Error fetching draft settings:", error);
       }
     };
 
@@ -183,7 +186,7 @@ const DraftPage: FC = () => {
         });
         setNumRounds(calculateNumRounds(response.data));
       } catch (error) {
-        console.error("Error fetching league settings:", error);
+        logger.error("Error fetching league settings:", error);
       }
     };
 

@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useUser } from "../contexts/UserContext";
 import { tokens } from "../theme";
+import { createLogger } from "../utils/logger";
+
+const logger = createLogger("TeamPage");
 
 export interface RosterPlayer {
   id: number;
@@ -40,7 +43,7 @@ function TeamPage() {
         });
         setTeam(response.data);
       } catch (error) {
-        console.error("Error fetching team:", error);
+        logger.error("Error fetching team:", error);
       } finally {
         setLoading(false);
       }

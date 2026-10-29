@@ -14,6 +14,9 @@ import axios from "axios";
 import type React from "react";
 import { useState } from "react";
 import { useUser } from "../../contexts/UserContext";
+import { createLogger } from "../../utils/logger";
+
+const logger = createLogger("DevQuickSync");
 
 interface SyncResult {
   status: string;
@@ -56,7 +59,7 @@ export const DevQuickSync: React.FC = () => {
       );
       setResult(response.data);
     } catch (err: unknown) {
-      console.error("Quick sync failed:", err);
+      logger.error("Quick sync failed:", err);
       setError("Failed to run sync. Check server logs.");
     } finally {
       setLoading(false);

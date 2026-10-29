@@ -469,14 +469,14 @@ This checklist outlines the sequence of refactor tasks for developers and AI cod
   - [ ] Auto-detect final game states to trigger team elimination and update playoff survival metrics without manual intervention.
 
 ### Backlog Item 2: Standardized Logging Framework (UI & API)
-- [ ] **Backend Structured Logging (`api/`)**:
-  - [ ] Configure Python standard `logging` / `structlog` via centralized setup in `api/core/logging.py`.
-  - [ ] Standardize log output format: JSON in production/containerized environments, colorized human-readable format for local development.
-  - [ ] Add FastAPI request logging middleware to track incoming requests, method, path, status code, response time, and correlation/request IDs (`X-Request-ID`).
-  - [ ] Integrate contextual logging for key lifecycle and domain events: database connection pool status, WebSocket draft room connection/disconnection/events, RapidAPI ingestion jobs, and auth failures.
-  - [ ] Replace any leftover `print()` statements across backend modules with typed logger instances (`logger = logging.getLogger(__name__)`).
-- [ ] **Frontend Logging & Telemetry (`frontend/`)**:
-  - [ ] Create a lightweight client logging utility (`src/utils/logger.ts`) supporting log levels (`DEBUG`, `INFO`, `WARN`, `ERROR`).
-  - [ ] Guard debug/info logs behind environment flags (`import.meta.env.DEV`) to prevent console pollution in production builds.
-  - [ ] Instrument WebSocket events in `useWebSocket.ts` (connection states, reconnection attempts, protocol payload mismatches) with clear contextual logs.
-  - [ ] Standardize frontend error logging across React Error Boundaries and API fetch wrappers.
+- [x] **Backend Structured Logging (`api/`)**:
+  - [x] Configure Python standard `logging` / `structlog` via centralized setup in `api/core/logging.py`.
+  - [x] Standardize log output format: JSON in production/containerized environments, colorized human-readable format for local development.
+  - [x] Add FastAPI request logging middleware to track incoming requests, method, path, status code, response time, and correlation/request IDs (`X-Request-ID`).
+  - [x] Integrate contextual logging for key lifecycle and domain events: database connection pool status, WebSocket draft room connection/disconnection/events, RapidAPI ingestion jobs, and auth failures.
+  - [x] Replace any leftover `print()` statements across backend modules with typed logger instances (`logger = logging.getLogger(__name__)`).
+- [x] **Frontend Logging & Telemetry (`frontend/`)**:
+  - [x] Create a lightweight client logging utility (`src/utils/logger.ts`) supporting log levels (`DEBUG`, `INFO`, `WARN`, `ERROR`).
+  - [x] Guard debug/info logs behind environment flags (`import.meta.env.DEV`) to prevent console pollution in production builds.
+  - [x] Instrument WebSocket events in `useWebSocket.ts` (connection states, reconnection attempts, protocol payload mismatches) with clear contextual logs.
+  - [x] Standardize frontend error logging across React Error Boundaries and API fetch wrappers.

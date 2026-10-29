@@ -26,12 +26,15 @@ import ScoringReceivingSettingsComponent from "../components/settings/ScoringRec
 import ScoringRushingSettingsComponent from "../components/settings/ScoringRushingSettingsComponent";
 import ScoringSpecialTeamsSettingsComponent from "../components/settings/ScoringSpecialTeamsSettingsComponent";
 import { useUser } from "../contexts/UserContext";
+import { createLogger } from "../utils/logger";
 import {
   type ScoringSettingsState,
   countChangedFromDefaults,
   fetchScoringDefaults,
   toNumericScoring,
 } from "../utils/scoring";
+
+const logger = createLogger("CreateLeaguePage");
 
 const STEPS = ["League", "Roster", "Scoring", "Review"];
 
@@ -102,7 +105,7 @@ const CreateLeaguePage = ({
         setDefaultsFailed(false);
       })
       .catch((error) => {
-        console.error("Error fetching scoring defaults:", error);
+        logger.error("Error fetching scoring defaults:", error);
         setDefaultsFailed(true);
       });
   }, [apiUrl]);
@@ -143,7 +146,7 @@ const CreateLeaguePage = ({
       await onLeagueCreated(createdLeagueId);
       navigate(`/league/${createdLeagueId}`);
     } catch (error) {
-      console.error("Error creating league:", error);
+      logger.error("Error creating league:", error);
       setSubmitError("Could not create the league. Please try again.");
     }
   };

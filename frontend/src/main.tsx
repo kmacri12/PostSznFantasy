@@ -3,6 +3,7 @@ import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App.tsx";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { UserProvider } from "./contexts/UserContext";
 import theme from "./theme";
 import "./index.css";
@@ -13,11 +14,13 @@ if (rootElement) {
     <StrictMode>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <UserProvider>
-          <BrowserRouter>
-            <App />
-          </BrowserRouter>
-        </UserProvider>
+        <ErrorBoundary>
+          <UserProvider>
+            <BrowserRouter>
+              <App />
+            </BrowserRouter>
+          </UserProvider>
+        </ErrorBoundary>
       </ThemeProvider>
     </StrictMode>,
   );

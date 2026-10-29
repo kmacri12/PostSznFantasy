@@ -1,3 +1,4 @@
+import logging
 from functools import lru_cache
 from typing import Annotated
 
@@ -8,6 +9,8 @@ from jwt import PyJWKClient
 from jwt.exceptions import PyJWKClientError, PyJWTError
 
 from api.core.config import get_settings
+
+logger = logging.getLogger(__name__)
 
 _bearer = HTTPBearer()
 
@@ -34,6 +37,7 @@ async def get_current_user(
     try:
         unverified_header = jwt.get_unverified_header(token)
     except PyJWTError as exc:
+        logger.warning("Auth failure: malformed token header: %s", exc)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Malformed token header: {exc}",
@@ -61,12 +65,14 @@ async def get_current_user(
 
         sub = payload.get("sub")
         if not sub:
+            logger.warning("Auth failure: token missing 'sub' claim")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Token missing 'sub' claim",
             )
         return str(sub)
     except (PyJWTError, PyJWKClientError) as exc:
+        logger.warning("Auth failure: invalid or expired token: %s", exc)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Invalid or expired token: {exc}",

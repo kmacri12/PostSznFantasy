@@ -4,6 +4,9 @@ import Chip from "@mui/material/Chip";
 import TextField from "@mui/material/TextField";
 import axios from "axios";
 import { useEffect, useState } from "react";
+import { createLogger } from "../../utils/logger";
+
+const logger = createLogger("PlayerSelector");
 
 const POSITIONS = ["ALL", "QB", "RB", "WR", "TE", "K", "DST"];
 
@@ -36,7 +39,7 @@ const PlayerSelector = ({ onPlayerSelected, isMyTurn, selectedPlayerIDs }: Playe
         const response = await axios.get(`${apiUrl}/api/players/player-list`);
         setPlayers(response.data);
       } catch (error) {
-        console.error("Error fetching players:", error);
+        logger.error("Error fetching players:", error);
       }
     };
 

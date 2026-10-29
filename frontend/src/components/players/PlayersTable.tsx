@@ -25,6 +25,9 @@ import {
 import axios from "axios";
 import { useEffect, useMemo, useState } from "react";
 import "./PlayersTable.css";
+import { createLogger } from "../../utils/logger";
+
+const logger = createLogger("PlayersTable");
 
 export interface PlayerInfo {
   id: number;
@@ -79,7 +82,7 @@ const PlayersTable = () => {
         setPlayerStats(response.data || []);
       })
       .catch((error) => {
-        console.error("Error fetching player stats:", error);
+        logger.error("Error fetching player stats:", error);
       });
   }, [apiUrl]);
 

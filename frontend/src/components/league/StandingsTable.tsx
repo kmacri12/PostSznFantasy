@@ -17,6 +17,9 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useUser } from "../../contexts/UserContext";
 import { tokens } from "../../theme";
+import { createLogger } from "../../utils/logger";
+
+const logger = createLogger("StandingsTable");
 
 interface StandingsTableProps {
   leagueId: string;
@@ -62,7 +65,7 @@ const StandingsTable: React.FC<StandingsTableProps> = ({ leagueId }) => {
         const idToken = await getIdToken();
 
         if (!idToken) {
-          console.error("No user is currently signed in.");
+          logger.error("No user is currently signed in.");
           return;
         }
 
@@ -72,7 +75,7 @@ const StandingsTable: React.FC<StandingsTableProps> = ({ leagueId }) => {
         );
         setStandings([...response.data].sort((a, b) => a.rank - b.rank));
       } catch (error) {
-        console.error("Error fetching standings:", error);
+        logger.error("Error fetching standings:", error);
       } finally {
         setLoading(false);
       }

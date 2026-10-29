@@ -43,7 +43,10 @@ def init_db() -> None:
         autocommit=False,
         autoflush=False,
     )
-    logger.info("Initialized async database engine.")
+    logger.info(
+        "Initialized async database engine.",
+        extra={"pool_size": 20, "max_overflow": 10},
+    )
 
 
 async def close_db() -> None:

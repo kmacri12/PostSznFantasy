@@ -1,4 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createLogger } from "../utils/logger";
+
+const logger = createLogger("useWebSocket");
 
 export interface DraftMessage {
   eventType?: string;
@@ -26,7 +29,7 @@ export const useWebSocket = (url: string) => {
 
       socket.onopen = () => {
         setIsConnected(true);
-        console.log("Draft WebSocket connection established");
+        logger.info("Connection established", url);
 
         // Send periodic heartbeat ping
         if (heartbeatIntervalRef.current) clearInterval(heartbeatIntervalRef.current);
@@ -42,29 +45,29 @@ export const useWebSocket = (url: string) => {
           const parsedData: DraftMessage = JSON.parse(event.data);
           setData(parsedData);
         } catch (e) {
-          console.warn("Received non-JSON message:", event.data);
+          logger.warn("Protocol mismatch: received non-JSON payload", event.data);
         }
       };
 
       socket.onclose = (event) => {
         setIsConnected(false);
         if (heartbeatIntervalRef.current) clearInterval(heartbeatIntervalRef.current);
-        console.log("Draft WebSocket connection closed:", event.code, event.reason);
+        logger.info("Connection closed", event.code, event.reason);
 
         // Reconnect backoff unless closed cleanly
         if (event.code !== 1000) {
           reconnectTimeoutRef.current = setTimeout(() => {
-            console.log("Attempting WebSocket reconnection...");
+            logger.info("Reconnecting in 3s after unclean close");
             connect();
           }, 3000);
         }
       };
 
       socket.onerror = (error) => {
-        console.error("Draft WebSocket error:", error);
+        logger.error("Socket error", error);
       };
     } catch (err) {
-      console.error("Failed to construct WebSocket:", err);
+      logger.error("Failed to construct socket", err);
     }
   }, [url]);
 
@@ -85,7 +88,7 @@ export const useWebSocket = (url: string) => {
       const payload = typeof msg === "string" ? msg : JSON.stringify(msg);
       socketRef.current.send(payload);
     } else {
-      console.error("Draft WebSocket is not open.");
+      logger.warn("Dropped outbound message: socket is not open");
     }
   }, []);
 

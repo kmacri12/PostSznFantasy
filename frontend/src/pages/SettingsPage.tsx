@@ -10,6 +10,9 @@ import ScoringReceivingSettingsComponent from "../components/settings/ScoringRec
 import ScoringRushingSettingsComponent from "../components/settings/ScoringRushingSettingsComponent";
 import ScoringSpecialTeamsSettingsComponent from "../components/settings/ScoringSpecialTeamsSettingsComponent";
 import { useUser } from "../contexts/UserContext";
+import { createLogger } from "../utils/logger";
+
+const logger = createLogger("SettingsPage");
 
 function SettingsPage() {
   const [searchParams] = useSearchParams();
@@ -82,7 +85,7 @@ function SettingsPage() {
           setScoringSettings((prev: any) => ({ ...prev, ...response.data }));
         }
       } catch (err) {
-        console.error("Error fetching league settings:", err);
+        logger.error("Error fetching league settings:", err);
       } finally {
         setLoading(false);
       }
@@ -111,7 +114,7 @@ function SettingsPage() {
       );
       alert("Settings saved successfully!");
     } catch (err) {
-      console.error("Failed to update settings:", err);
+      logger.error("Failed to update settings:", err);
     }
   };
 

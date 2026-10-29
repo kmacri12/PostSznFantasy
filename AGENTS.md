@@ -47,7 +47,8 @@ PostSznFantasy/
 │   │   ├── versions/           # Migration revisions
 │   │   └── env.py              # Alembic environment runner
 │   ├── core/                   # Centralized application configuration
-│   │   └── config.py           # Settings model via pydantic-settings
+│   │   ├── config.py           # Settings model via pydantic-settings
+│   │   └── logging.py          # Logging setup (JSON/console) + request-ID middleware
 │   ├── db/                     # Async database sessions & models
 │   │   ├── base.py             # DeclarativeBase metadata
 │   │   ├── session.py          # asyncpg connection engine & get_db dependency
@@ -127,6 +128,7 @@ PostSznFantasy/
         ├── utils/
         │   ├── draftCue.ts     # Web Audio on-deck beep
         │   ├── scoring.ts      # Scoring defaults fetch + numeric coercion for league forms
+        │   ├── logger.ts       # Leveled client logger (debug/info dev-only)
         │   └── supabase.ts     # Supabase client singleton
         └── test/               # Vitest environment setup
 ```
@@ -210,6 +212,7 @@ npm run test
   - Pydantic models (`api/models/`) define external API payloads and schemas.
 - **Route Authorization**: Protected routes inject `Depends(get_current_user)`, which extracts and verifies Supabase JWT Bearer tokens from the `Authorization` header.
 - **Async Database Connection**: All database access uses SQLAlchemy 2.0 async sessions injected via `DbSession` (`Annotated[AsyncSession, Depends(get_db)]`).
+- **Logging**: Use `logger = logging.getLogger(__name__)`, never `print()`. `setup_logging()` (called in lifespan and CLI scripts) emits JSON unless `ENVIRONMENT=development`; `RequestLoggingMiddleware` logs every request and sets `X-Request-ID`. Frontend uses `createLogger(scope)` from `utils/logger.ts`, not `console.*`.
 - **Centralized Configuration**: All environment variables are strongly typed and accessed via `get_settings()` from `api/core/config.py`.
 
 ### Frontend Patterns

@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.core.config import get_settings
+from api.core.logging import RequestLoggingMiddleware, setup_logging
 from api.db.session import close_db, init_db
 from api.routers import admin, auth, drafts, leagues, players
 
@@ -12,6 +13,7 @@ from api.routers import admin, auth, drafts, leagues, players
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     get_settings()
+    setup_logging()
     init_db()
     yield
     await close_db()
@@ -31,6 +33,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.add_middleware(RequestLoggingMiddleware)
 
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(leagues.router, prefix="/api/leagues", tags=["leagues"])

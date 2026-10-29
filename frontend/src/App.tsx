@@ -11,6 +11,9 @@ import NotFoundPage from "./pages/NotFoundPage";
 import PlayersPage from "./pages/PlayersPage";
 import SettingsPage from "./pages/SettingsPage";
 import TeamPage from "./pages/TeamPage";
+import { createLogger } from "./utils/logger";
+
+const logger = createLogger("App");
 
 function App() {
   const apiUrl = import.meta.env.VITE_API_URL;
@@ -27,7 +30,7 @@ function App() {
       setLeagues(response.data);
       setSelectedLeague((current) => current || String(response.data[0]?.id ?? ""));
     } catch (error) {
-      console.error("Error fetching leagues:", error);
+      logger.error("Error fetching leagues:", error);
     }
   }, [apiUrl, getIdToken]);
 

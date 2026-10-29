@@ -1,4 +1,5 @@
 from functools import lru_cache
+from typing import Literal
 
 from pydantic import PostgresDsn, computed_field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -37,6 +38,11 @@ class Settings(BaseSettings):
 
     # App
     season_year: int = 2025
+
+    # Logging
+    environment: str = "development"
+    log_level: str = "INFO"
+    log_format: Literal["auto", "json", "console"] = "auto"
 
     @model_validator(mode="after")
     def _require_db_config(self) -> "Settings":

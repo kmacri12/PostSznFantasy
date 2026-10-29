@@ -2,7 +2,10 @@ import type { User as SupabaseUser } from "@supabase/supabase-js";
 import axios from "axios";
 import type React from "react";
 import { type ReactNode, createContext, useCallback, useContext, useEffect, useState } from "react";
+import { createLogger } from "../utils/logger";
 import { supabase } from "../utils/supabase";
+
+const logger = createLogger("UserContext");
 
 interface UserContextType {
   user: SupabaseUser | null;
@@ -52,7 +55,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setUserId(response.data.user_id);
       }
     } catch (error) {
-      console.error("Error syncing user with backend:", error);
+      logger.error("Error syncing user with backend:", error);
     }
   };
 
@@ -72,7 +75,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           setIdToken(null);
         }
       } catch (err) {
-        console.error("Error checking Supabase session:", err);
+        logger.error("Error checking Supabase session:", err);
       } finally {
         setLoading(false);
       }
@@ -110,7 +113,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       });
       if (error) throw error;
     } catch (error) {
-      console.error("Error signing in with Google:", error);
+      logger.error("Error signing in with Google:", error);
     }
   };
 
@@ -121,7 +124,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setUserId(null);
       setIdToken(null);
     } catch (error) {
-      console.error("Error signing out:", error);
+      logger.error("Error signing out:", error);
     }
   };
 

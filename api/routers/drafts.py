@@ -81,6 +81,9 @@ async def websocket_draft_endpoint(websocket: WebSocket, league_id: int) -> None
             try:
                 message: dict[str, Any] = json.loads(raw_text)
             except json.JSONDecodeError:
+                logger.warning(
+                    "Invalid JSON from draft client", extra={"league_id": league_id}
+                )
                 await draft_manager.send_personal(
                     websocket,
                     {"eventType": "ERROR", "message": "Invalid JSON format"},
@@ -95,6 +98,7 @@ async def websocket_draft_endpoint(websocket: WebSocket, league_id: int) -> None
                     {"eventType": "PONG", "timestamp": message.get("timestamp")},
                 )
             elif event_type == "PICK_MADE":
+                logger.info("Draft pick broadcast", extra={"league_id": league_id})
                 # Broadcast the pick to all participants in this draft room
                 await draft_manager.broadcast(
                     league_id,
