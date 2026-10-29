@@ -50,7 +50,7 @@ Guiding principles: KISS, comments explain *why* only, self-documenting names.
 - [x] **C4 — Restrict `/api/admin/*`**: add an admin check (allow-list or role); today any logged-in user can trigger paid ingestion or eliminate NFL teams.
 - [x] **C5 — Stop leaking exception text** in 401 responses; log details server-side, return a generic message.
 - [x] **C6 — Fix `login_or_register`** (`api/routers/auth.py`): use `INSERT … ON CONFLICT` to remove the first-login race; drop the `user.id or 1` fallback; drop fake `@postszn.local` emails (make email nullable or require it).
-- [ ] Tests for each of the above (unauthenticated WS, non-member access, non-admin admin call, forged token).
+- [x] Tests for each of the above (unauthenticated WS, non-member access, non-admin admin call, forged token) — see `api/tests/test_auth.py`, `test_draft_websocket.py`, `test_draft_picks.py`, `test_authorization.py`, `test_admin_access.py`.
 
 ---
 
