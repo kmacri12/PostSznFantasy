@@ -42,10 +42,10 @@ Guiding principles: KISS, comments explain *why* only, self-documenting names.
 ## Phase 15: Security Fixes (Critical)
 
 - [x] **C1 — Remove the unsigned-JWT fallback** (`api/dependencies/auth.py`): when `SUPABASE_URL` is unset the code decodes with `verify_signature=False`, so a missing env var in a deployed environment lets anyone forge any identity. Make `SUPABASE_URL` required at startup; tests already override `get_current_user`.
-- [ ] **C2 — Authenticate and authorize the draft WebSocket** (`api/routers/drafts.py`): anyone can connect to `/api/drafts/ws/{league_id}` and broadcast arbitrary events; the fallback branch rebroadcasts any client message.
-  - [ ] Verify the JWT on connect (query param or first message) and require league membership.
-  - [ ] Replace client-trusted `PICK_MADE` relaying with server-side pick validation (turn order, availability, roster limits), persistence to `DraftPick`, then broadcast.
-  - [ ] Whitelist inbound event types; reject the rest.
+- [x] **C2 — Authenticate and authorize the draft WebSocket** (`api/routers/drafts.py`): anyone can connect to `/api/drafts/ws/{league_id}` and broadcast arbitrary events; the fallback branch rebroadcasts any client message.
+  - [x] Verify the JWT on connect (query param or first message) and require league membership.
+  - [x] Replace client-trusted `PICK_MADE` relaying with server-side pick validation (turn order, availability, roster limits), persistence to `DraftPick`, then broadcast.
+  - [x] Whitelist inbound event types; reject the rest.
 - [ ] **C3 — League-membership authorization**: `draft-info`, `draft-picks`, settings, teams, standings and `teams/{id}` only require a login. Add a shared dependency (e.g. `LeagueMember`) and apply it. Decide which `/api/players/*` routes need auth (they currently have none).
 - [ ] **C4 — Restrict `/api/admin/*`**: add an admin check (allow-list or role); today any logged-in user can trigger paid ingestion or eliminate NFL teams.
 - [ ] **C5 — Stop leaking exception text** in 401 responses; log details server-side, return a generic message.

@@ -59,7 +59,8 @@ PostSznFantasy/
 │   │       ├── draft.py        # Draft and DraftPick models
 │   │       └── nfl.py          # NFLTeam, NFLPlayer, Stats, Game models
 │   ├── dependencies/           # FastAPI dependency providers
-│   │   ├── auth.py             # Supabase JWT token validation (get_current_user)
+│   │   ├── auth.py             # Supabase JWT validation (verify_token, get_current_user)
+│   │   ├── league.py           # find_membership: league membership lookup
 │   │   └── db.py               # DbSession dependency alias
 │   ├── models/                 # Pydantic v2 DTO schemas (camelCase serialization)
 │   │   ├── base.py             # BaseSchema with alias_generator = to_camel
@@ -70,12 +71,13 @@ PostSznFantasy/
 │   ├── routers/                # Modular APIRouters
 │   │   ├── admin.py            # Ingestion triggers & healthcheck
 │   │   ├── auth.py             # User onboarding & token exchange
-│   │   ├── drafts.py           # Draft status, REST pick submission
+│   │   ├── drafts.py           # Draft info/picks + authenticated draft WebSocket
 │   │   ├── leagues.py          # League CRUD, teams, rosters, standings
 │   │   └── players.py          # Player database & stats endpoints
 │   ├── scripts/                # Database seeding & administrative CLI scripts
 │   │   └── seed_nfl_data.py    # Unified on-demand NFL data seeder
 │   ├── services/               # Decoupled ingestion & domain services
+│   │   ├── draft_picks.py      # Server-side pick validation (turn, availability, roster limits)
 │   │   ├── scheduler.py        # Opt-in background sync/live-poll/elimination loop
 │   │   └── ingestion/          # Async batch upsert services
 │   │       ├── schemas.py      # Upstream DTOs & parsing helpers
@@ -89,7 +91,7 @@ PostSznFantasy/
 │   │   │   └── standings_utils.py     # Round scoring & player survival queries
 │   │   └── rapidapi/
 │   │       └── rapidapi.py     # Resilient httpx client for NFL data
-│   ├── ws/                     # Real-time WebSocket layer
+│   ├── ws/                     # Real-time WebSocket layer (join after AUTH; inbound events whitelisted in routers/drafts.py)
 │   │   └── draft_manager.py    # DraftConnectionManager (state, pick broadcasts)
 │   ├── tests/                  # Pytest backend test suite
 │   │   ├── conftest.py         # Test fixtures & dependency overrides

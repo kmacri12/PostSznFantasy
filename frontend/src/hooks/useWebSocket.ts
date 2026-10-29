@@ -13,9 +13,12 @@ export interface DraftMessage {
   activeConnections?: number;
 }
 
-export const useWebSocket = (url: string) => {
+export const useWebSocket = (url: string, getToken?: () => Promise<string | null>) => {
   const [data, setData] = useState<DraftMessage | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  // A ref keeps an unstable caller-supplied function from forcing reconnects.
+  const getTokenRef = useRef(getToken);
+  getTokenRef.current = getToken;
   const socketRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const heartbeatIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -30,6 +33,15 @@ export const useWebSocket = (url: string) => {
       socket.onopen = () => {
         setIsConnected(true);
         logger.info("Connection established", url);
+
+        // The server expects credentials as the first message (kept out of the URL).
+        if (getTokenRef.current) {
+          getTokenRef.current().then((token) => {
+            if (token && socket.readyState === WebSocket.OPEN) {
+              socket.send(JSON.stringify({ eventType: "AUTH", token }));
+            }
+          });
+        }
 
         // Send periodic heartbeat ping
         if (heartbeatIntervalRef.current) clearInterval(heartbeatIntervalRef.current);

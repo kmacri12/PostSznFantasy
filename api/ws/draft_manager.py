@@ -20,9 +20,8 @@ class DraftConnectionManager:
         self._rooms: dict[int, set[WebSocket]] = defaultdict(set)
         self._lock = asyncio.Lock()
 
-    async def connect(self, league_id: int, websocket: WebSocket) -> None:
-        """Accept the WebSocket connection and register it in the league room."""
-        await websocket.accept()
+    async def join(self, league_id: int, websocket: WebSocket) -> None:
+        """Register an already-accepted, authenticated socket in the league room."""
         async with self._lock:
             self._rooms[league_id].add(websocket)
         logger.info(

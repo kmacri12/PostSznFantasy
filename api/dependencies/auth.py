@@ -20,17 +20,14 @@ def _get_jwk_client(jwks_url: str) -> PyJWKClient:
     return PyJWKClient(jwks_url, cache_keys=True, lifespan=300)
 
 
-async def get_current_user(
-    credentials: Annotated[HTTPAuthorizationCredentials, Depends(_bearer)],
-) -> str:
-    """Verify a Supabase JWT Bearer token using modern asymmetric keys (JWKS).
+def verify_token(token: str) -> str:
+    """Verify a Supabase JWT using modern asymmetric keys (JWKS) and return its `sub`.
 
     Retrieves public signing keys dynamically from Supabase's JWKS endpoint
     (`https://<project-ref>.supabase.co/auth/v1/.well-known/jwks.json`).
 
-    Raises 401 if the token is missing, malformed, expired, or signature is invalid.
+    Raises 401 if the token is malformed, expired, or its signature is invalid.
     """
-    token = credentials.credentials
     settings = get_settings()
 
     try:
@@ -69,6 +66,13 @@ async def get_current_user(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Invalid or expired token: {exc}",
         ) from exc
+
+
+async def get_current_user(
+    credentials: Annotated[HTTPAuthorizationCredentials, Depends(_bearer)],
+) -> str:
+    """Resolve the Supabase user id (`sub`) from the Bearer token."""
+    return verify_token(credentials.credentials)
 
 
 # Convenience alias so route signatures read: user_id: CurrentUser

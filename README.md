@@ -16,7 +16,7 @@ PostSzn Fantasy is architected as an asynchronous backend API service paired wit
   - **Code Quality**: Strict type enforcement via [Mypy](https://mypy-lang.org/) and linting/formatting via [Ruff](https://docs.astral.sh/ruff/).
   - **Database & ORM**: PostgreSQL 16 accessed via asynchronous [SQLAlchemy 2.0](https://www.sqlalchemy.org/) (`asyncpg`), with migrations managed by [Alembic](https://alembic.sqlalchemy.org/).
   - **Configuration**: Strongly typed application settings via [Pydantic Settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/).
-  - **Real-Time Communication**: Native RFC 6455 WebSockets with a centralized connection manager (`DraftConnectionManager`) broadcasting live draft state, timers, and picks.
+  - **Real-Time Communication**: Native RFC 6455 WebSockets with a centralized connection manager (`DraftConnectionManager`) broadcasting live draft state, timers, and picks. Clients authenticate with an `AUTH` message carrying their Supabase JWT, send `MAKE_PICK {playerId}`, and the server validates turn order, availability and roster limits before persisting and broadcasting `PICK_MADE`.
   - **Authentication**: Token verification via Supabase Auth (Asymmetric ES256 verification via Supabase JWKS using `pyjwt[crypto]`) with dependency injection (`get_current_user`).
   - **External Ingestion**: Asynchronous HTTP client ([HTTPX](https://www.python-httpx.org/)) with exponential backoff retries via [Tenacity](https://tenacity.readthedocs.io/) for RapidAPI NFL stats.
 

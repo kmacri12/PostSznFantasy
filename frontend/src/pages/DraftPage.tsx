@@ -68,7 +68,7 @@ const DraftPage: FC = () => {
   const { getIdToken, userId } = useUser();
 
   const websocketUrl = leagueId ? `${wsUrl}/api/drafts/ws/${leagueId}` : "";
-  const { data, sendMessage } = useWebSocket(websocketUrl);
+  const { data, sendMessage } = useWebSocket(websocketUrl, getIdToken);
 
   const [draftSettings, setDraftSettings] = useState<DraftSettings | null>(null);
   const [openSettings, setOpenSettings] = useState(false);
@@ -203,46 +203,30 @@ const DraftPage: FC = () => {
       const pickData = data.data;
       if (pickData.playerId) {
         setSelectedPlayerIDs((prev) => [...prev, pickData.playerId]);
+        setDraftBoard((board) =>
+          board.map((round) =>
+            round.map((pick) =>
+              pick.numberPickOverall === pickData.numberPickOverall
+                ? { ...pick, playerId: pickData.playerId, playerName: pickData.playerName }
+                : pick,
+            ),
+          ),
+        );
       }
       if (pickData.currentPickIndex) {
         setCurrentPickIndex(pickData.currentPickIndex);
+        setTimer(draftSettings?.timePerPickSeconds || 60);
       }
+    } else if (eventType === "ERROR") {
+      logger.warn("Draft server rejected a message", data.message);
     } else if (eventType === "TIMER_UPDATE" && data.data?.time !== undefined) {
       setTimer(data.data.time);
     }
   }, [data]);
 
+  // The server validates the pick and broadcasts PICK_MADE; the board updates from that echo.
   const handlePlayerSelection = (player: Player) => {
-    const roundIndex = Math.floor((currentPickIndex - 1) / (teams.length || 1));
-    const picksInRound = draftBoard[roundIndex] || [];
-    const currentPick = picksInRound.find((pick) => pick.numberPickOverall === currentPickIndex);
-
-    if (currentPick) {
-      const updatedDraftPick = {
-        ...currentPick,
-        playerId: player.id,
-        playerName: player.name,
-      };
-      const updatedDraftBoard = draftBoard.map((round) =>
-        round.map((pick) =>
-          pick.numberPickOverall === currentPickIndex ? updatedDraftPick : pick,
-        ),
-      );
-      setDraftBoard(updatedDraftBoard);
-    }
-
-    setSelectedPlayerIDs((prev) => [...prev, player.id]);
-    setCurrentPickIndex((prev) => prev + 1);
-    setTimer(draftSettings?.timePerPickSeconds || 60);
-
-    sendMessage({
-      eventType: "PICK_MADE",
-      data: {
-        playerId: player.id,
-        playerName: player.name,
-        currentPickIndex: currentPickIndex + 1,
-      },
-    });
+    sendMessage({ eventType: "MAKE_PICK", data: { playerId: player.id } });
   };
 
   return (
