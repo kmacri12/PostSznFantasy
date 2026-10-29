@@ -1,7 +1,7 @@
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, status
-from pydantic import BaseModel, Field
+from pydantic import Field
 from sqlalchemy import Boolean, literal_column
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.exc import IntegrityError
@@ -10,11 +10,12 @@ from api.db.models.user import User
 from api.dependencies.auth import CurrentUser
 from api.dependencies.db import DbSession
 from api.models.auth_models import LoginResponse
+from api.models.base import BaseSchema
 
 router = APIRouter()
 
 
-class LoginPayload(BaseModel):
+class LoginPayload(BaseSchema):
     email: str | None = Field(default=None, max_length=120)
     username: str | None = Field(default=None, max_length=20)
 

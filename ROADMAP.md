@@ -56,7 +56,7 @@ Guiding principles: KISS, comments explain *why* only, self-documenting names.
 
 ## Phase 16: Backend FastAPI Best-Practice Gaps
 
-- [ ] **Camel-case contract**: make `LoginPayload`, `BoxScoreRequest`, `EliminateTeamsRequest`, `UpdateAllRequest` extend `BaseSchema`.
+- [x] **Camel-case contract**: make `LoginPayload`, `BoxScoreRequest`, `EliminateTeamsRequest`, `UpdateAllRequest` extend `BaseSchema`.
 - [ ] **Single source of truth for settings fields**: `ScoringSettings`, `LeagueSettingsResponse`, the ORM `LeagueSettings` and the 7 frontend settings components repeat ~80 fields. Generate the response from `ScoringSettings` / `RosterSettings` (or restructure into a grouped/JSON model).
 - [ ] **One transaction pattern**: `get_db` commits on success *and* routes call `commit()`. Pick one (recommended: `get_db` owns commit; routes only `flush`).
 - [ ] **Remove cruft routes**: legacy `/get_leagues_by_user` alias; five identical router-level `GET /` health endpoints; keep one health endpoint that also checks the DB.

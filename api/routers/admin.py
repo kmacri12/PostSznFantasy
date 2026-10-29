@@ -1,7 +1,6 @@
 from typing import Any
 
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel
 
 from api.dependencies.auth import require_admin
 from api.dependencies.db import DbSession
@@ -23,17 +22,17 @@ async def health() -> dict[str, str]:
     return {"status": "healthy"}
 
 
-class BoxScoreRequest(BaseModel):
+class BoxScoreRequest(BaseSchema):
     season: str
     season_type: str
     week: str = "all"
 
 
-class EliminateTeamsRequest(BaseModel):
+class EliminateTeamsRequest(BaseSchema):
     team_ids: list[int]
 
 
-class UpdateAllRequest(BaseModel):
+class UpdateAllRequest(BaseSchema):
     season: str | None = None
     with_stats: bool = True
     with_box_scores: bool = False
