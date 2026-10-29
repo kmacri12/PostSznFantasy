@@ -84,7 +84,7 @@ Guiding principles: KISS, comments explain *why* only, self-documenting names.
   - [x] Drop the `user_id` / `userId` dual handling and the redundant `idToken` state.
   - [x] Don't `await` backend calls inside `onAuthStateChange`; avoid re-posting `/auth/login` on every token refresh.
   - [x] Surface login-sync failures to the UI instead of only logging.
-- [ ] **`useWebSocket`**: send the auth token; exponential backoff with cap; don't reconnect after intentional close; use `ReturnType<typeof setTimeout>`; keep a message queue/callback rather than only the latest message; send `eventType` consistently with the server.
+- [x] **`useWebSocket`**: send the auth token; exponential backoff with cap; don't reconnect after intentional close; use `ReturnType<typeof setTimeout>`; keep a message queue/callback rather than only the latest message; send `eventType` consistently with the server.
 - [ ] **Route-level code splitting**: `React.lazy` + `Suspense` per page (bundle is ~850 kB / 250 kB gzip); split MUI/vendor chunks.
 - [x] **Dependency hygiene**:
   - [x] `npm audit fix` (7 vulnerabilities in prod deps incl. 1 critical, 4 high).

@@ -13,14 +13,14 @@ import {
   Typography,
 } from "@mui/material";
 import type { FC } from "react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useDraftInfo, useLeagueSettings, useLeagueTeams } from "../api/queries";
 import Countdown from "../components/draft/Countdown";
 import DraftBoard from "../components/draft/DraftBoard";
 import PlayerSelector, { type Player } from "../components/draft/PlayerSelector";
 import { useUser } from "../contexts/UserContext";
-import { useWebSocket } from "../hooks/useWebSocket";
+import { type DraftMessage, useWebSocket } from "../hooks/useWebSocket";
 import { playOnDeckCue } from "../utils/draftCue";
 import { createLogger } from "../utils/logger";
 
@@ -86,7 +86,6 @@ const DraftPage: FC = () => {
   const { getIdToken, userId } = useUser();
 
   const websocketUrl = leagueId ? `${wsUrl}/api/drafts/ws/${leagueId}` : "";
-  const { data, sendMessage } = useWebSocket(websocketUrl, getIdToken);
 
   const teamsQuery = useLeagueTeams(leagueId);
   const draftQuery = useDraftInfo(leagueId);
@@ -151,34 +150,40 @@ const DraftPage: FC = () => {
     }
   }, [teams, numRounds, draftSettings?.id]);
 
-  useEffect(() => {
-    if (!data) return;
-
-    const eventType = data.eventType || data.type;
-    if (eventType === "PICK_MADE" && data.data) {
-      const pickData = data.data;
-      if (pickData.playerId) {
-        setSelectedPlayerIDs((prev) => [...prev, pickData.playerId]);
-        setDraftBoard((board) =>
-          board.map((round) =>
-            round.map((pick) =>
-              pick.numberPickOverall === pickData.numberPickOverall
-                ? { ...pick, playerId: pickData.playerId, playerName: pickData.playerName }
-                : pick,
+  const handleMessage = useCallback(
+    (data: DraftMessage) => {
+      const eventType = data.eventType;
+      if (eventType === "PICK_MADE" && data.data) {
+        const pickData = data.data;
+        if (pickData.playerId) {
+          setSelectedPlayerIDs((prev) => [...prev, pickData.playerId]);
+          setDraftBoard((board) =>
+            board.map((round) =>
+              round.map((pick) =>
+                pick.numberPickOverall === pickData.numberPickOverall
+                  ? { ...pick, playerId: pickData.playerId, playerName: pickData.playerName }
+                  : pick,
+              ),
             ),
-          ),
-        );
+          );
+        }
+        if (pickData.currentPickIndex) {
+          setCurrentPickIndex(pickData.currentPickIndex);
+          setTimer(draftSettings?.timePerPickSeconds || 60);
+        }
+      } else if (eventType === "ERROR") {
+        logger.warn("Draft server rejected a message", data.message);
+      } else if (eventType === "TIMER_UPDATE" && data.data?.time !== undefined) {
+        setTimer(data.data.time);
       }
-      if (pickData.currentPickIndex) {
-        setCurrentPickIndex(pickData.currentPickIndex);
-        setTimer(draftSettings?.timePerPickSeconds || 60);
-      }
-    } else if (eventType === "ERROR") {
-      logger.warn("Draft server rejected a message", data.message);
-    } else if (eventType === "TIMER_UPDATE" && data.data?.time !== undefined) {
-      setTimer(data.data.time);
-    }
-  }, [data]);
+    },
+    [draftSettings?.timePerPickSeconds],
+  );
+
+  const { sendMessage } = useWebSocket(websocketUrl, {
+    getToken: getIdToken,
+    onMessage: handleMessage,
+  });
 
   // The server validates the pick and broadcasts PICK_MADE; the board updates from that echo.
   const handlePlayerSelection = (player: Player) => {
