@@ -44,50 +44,14 @@ Keep summaries imperative and lowercase (e.g., `feat(api): add player playoff st
 
 ## 3. Code Standards & Verification Commands
 
-Before opening a pull request, verify all code quality checks locally. Both the backend and frontend must pass all verification steps without errors or warnings.
-
-### Backend (`api/`)
-
-The backend is built with FastAPI, Python 3.13, and managed via `uv`.
+Before opening a pull request, run everything CI runs. Both the backend and frontend must pass without errors or warnings.
 
 ```bash
-cd api
-
-# 1. Lint check (Ruff)
-uv run ruff check .
-
-# 2. Auto-fix linting issues if necessary
-uv run ruff check --fix .
-
-# 3. Format check (Ruff)
-uv run ruff format --check .
-
-# 4. Strict Static Type Checking (Mypy)
-uv run mypy .
-
-# 5. Unit & Integration Tests (Pytest)
-uv run pytest
+make check      # lint + type check + tests + production build
+make format     # auto-fix Ruff and Biome findings
 ```
 
-### Frontend (`frontend/`)
-
-The frontend is built with React 18, TypeScript, Vite, and checked with Biome.
-
-```bash
-cd frontend
-
-# 1. Lint, formatting check, and import sorting (Biome)
-npx @biomejs/biome check src/
-
-# 2. Auto-fix formatting and lint issues
-npx @biomejs/biome check --write src/
-
-# 3. TypeScript compilation & production build check
-npm run build
-
-# 4. Unit tests (Vitest)
-npm run test
-```
+Narrower targets: `make lint`, `make typecheck`, `make test`, each with `-api` / `-web` variants. The backend is FastAPI on Python 3.13 managed by `uv` (Ruff, strict Mypy, pytest); the frontend is React 18 + TypeScript + Vite checked with Biome and Vitest. A pre-commit hook runs Ruff and Biome on staged files (`pre-commit install`).
 
 ---
 
@@ -96,15 +60,12 @@ npm run test
 A pull request is ready for merge only when all of the following criteria are met:
 
 1. **Clean Checks & Build**:
-   - `uv run ruff check .` and `uv run ruff format --check .` succeed with zero errors.
-   - `uv run mypy .` succeeds with zero errors under strict mode.
-   - `npx @biomejs/biome check src/` passes.
-   - `npm run build` succeeds cleanly without TypeScript compilation errors.
+   - `make check` succeeds: Ruff, strict Mypy, Biome, `tsc`, tests and the production build.
 2. **Comprehensive Test Coverage**:
-   - All existing tests pass (`uv run pytest` and `npm run test`).
+   - All existing tests pass (`make test`).
    - New business logic, scoring formulas, or API routes include corresponding unit/integration tests.
 3. **Architectural Consistency**:
-   - Database modifications include an Alembic migration (`uv run alembic revision --autogenerate -m "..."`).
+   - Database modifications include an Alembic migration (`make migration m="..."`).
    - Request/response contracts use typed Pydantic models with camelCase aliasing (`BaseSchema`).
    - Async database sessions are scoped via FastAPI dependency injection (`DbSession`).
 4. **Documentation Synchronization**:

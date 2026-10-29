@@ -37,11 +37,11 @@
 ```
 PostSznFantasy/
 ├── docker-compose.yml          # PostgreSQL 16 container definition
-├── pyproject.toml              # UV workspace root (tool configurations)
+├── Makefile                    # Single entry point for setup, run, lint, test
 ├── README.md                   # System documentation & developer quickstart
 ├── CONTRIBUTING.md             # Contribution guidelines, branching, & DoD
 ├── AGENTS.md                   # This agent operational playbook
-├── ROADMAP.md                  # Active roadmap (hardening & best practices)
+├── ROADMAP.md                  # Active roadmap (phases 15+)
 ├── REWRITE_ROADMAP.md          # Archived modernization history (phases 1-14)
 ├── api/                        # Backend service (Python 3.13 + FastAPI)
 │   ├── alembic/                # Database migrations
@@ -141,58 +141,25 @@ PostSznFantasy/
 
 ## 3. Core Development Commands
 
-### Backend (`api/` or root with `uv`)
-
-The project uses **`uv`** as the unified Python package and project manager.
+Everything is driven from the repository root through the `Makefile` (`make help` lists targets). CI runs the same `check-api` / `check-web` targets, so local and CI cannot drift.
 
 ```bash
-cd api
+make setup      # uv sync + npm install + create missing .env files
+make db-up      # Postgres via Docker Compose        (make db-down / make db-reset)
+make migrate    # alembic upgrade head               (make migration m="message" to autogenerate)
+make api        # uvicorn api.main:app --reload on :8000
+make web        # Vite dev server on :5173 (proxies /api)
+make dev        # database + migrations + API + web
+make seed       # NFL data seeder (SEED_ARGS="--season 2025 --with-box-scores")
 
-# Install / sync dependencies from pyproject.toml & uv.lock
-uv sync
-
-# Run database migrations:
-uv run alembic upgrade head
-
-# Run FastAPI backend with auto-reload:
-uv run uvicorn api.main:app --app-dir .. --host 0.0.0.0 --port 8000 --reload
-
-# Linting and formatting with Ruff:
-uv run ruff check .          # Lint check
-uv run ruff check --fix .    # Auto-fix lint violations
-uv run ruff format .         # Format Python files
-uv run ruff format --check . # Check formatting
-
-# Static type checking with Mypy:
-uv run mypy .
-
-# Run pytest test suite:
-uv run pytest
+make lint       # Ruff check + format check, Biome
+make typecheck  # Mypy (strict) and tsc
+make test       # pytest (incl. the Postgres tier, see below) and Vitest
+make check      # all of the above plus the production build
+make format     # auto-fix Ruff and Biome
 ```
 
-### Frontend (`frontend/`)
-
-The frontend uses **Biome** for fast formatting and linting, and **Vitest** for unit tests.
-
-```bash
-cd frontend
-
-# Install dependencies
-npm install
-
-# Start Vite dev server (http://localhost:5173)
-npm run dev
-
-# Run Biome lint, formatting check, and import sorting:
-npx @biomejs/biome check src/
-npx @biomejs/biome check --write src/  # Auto-fix lint & format issues
-
-# Run TypeScript type check & production build:
-npm run build
-
-# Run Vitest test suite:
-npm run test
-```
+`api/` is a Python package imported as `api.main` from the repo root; it has its own `pyproject.toml` and `uv.lock` (there is no root `pyproject.toml`). Tests under `api/tests/postgres/` need a throwaway database via `TEST_DATABASE_URL` and skip without one.
 
 ---
 

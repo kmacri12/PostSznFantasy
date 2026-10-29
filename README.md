@@ -42,20 +42,19 @@ Before running the application locally, ensure you have the following installed:
 
 ## Local Setup & Quickstart
 
-### 1. Clone Repository & Setup Environment Files
+### 1. Clone, Install & Configure
+
+Prerequisites: [`uv`](https://docs.astral.sh/uv/), Node.js >= 22.12 (see `frontend/.nvmrc`), Docker and `make`. Run `make help` to list every target.
 
 ```bash
 git clone https://github.com/your-org/postsznfantasy.git
 cd PostSznFantasy
 
-# Configure backend environment
-cp api/.env.example api/.env
-
-# Configure frontend environment
-cp frontend/.env.example frontend/.env
+# Installs backend + frontend dependencies and creates api/.env and frontend/.env
+make setup
 ```
 
-Review `api/.env` and `frontend/.env` to customize settings. Provide your Supabase project credentials (`SUPABASE_URL` in backend; `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` in frontend).
+Review `api/.env` and `frontend/.env`. Provide your Supabase project credentials (`SUPABASE_URL` in backend; `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` in frontend).
 
 #### Setting Up Supabase Auth & Google OAuth
 1. Create a project at [supabase.com](https://supabase.com).
@@ -71,38 +70,18 @@ Review `api/.env` and `frontend/.env` to customize settings. Provide your Supaba
    - Paste the Google Client ID and Client Secret into Supabase and enable Google provider.
    - In **Authentication > URL Configuration**, add `http://localhost:5173` to the Redirect URLs list.
 
-### 2. Start PostgreSQL Database
-
-Launch PostgreSQL 16 using Docker Compose:
+### 2. Start the Stack
 
 ```bash
-docker compose up -d
+make db-up      # PostgreSQL 16 via Docker Compose (waits until healthy)
+make migrate    # alembic upgrade head
+make api        # FastAPI on http://localhost:8000 (docs at /docs), auto-reload
+make web        # Vite on http://localhost:5173 (proxies /api to the API)
 ```
 
-Verify that the container is healthy:
+`make dev` runs the database, migrations, API and web server together. After a schema change that is not backwards compatible (this project has no data to preserve), `make db-reset` wipes and recreates the local database.
 
-```bash
-docker compose ps
-```
-
-### 3. Setup and Run Backend Service (`api/`)
-
-From the `api/` directory:
-
-```bash
-cd api
-
-# Install all runtime and development dependencies
-uv sync
-
-# Run database migrations with Alembic
-uv run alembic upgrade head
-
-# Start the FastAPI application with auto-reload
-uv run uvicorn api.main:app --app-dir .. --host 0.0.0.0 --port 8000 --reload
-```
-
-The API service is now accessible at `http://localhost:8000`. Interactive OpenAPI documentation is available at `http://localhost:8000/docs`.
+The API is a package imported as `api.main` from the repository root (`uvicorn api.main:app`); the `make` targets handle this, and `api/` holds its own `pyproject.toml` and `uv.lock`.
 
 ### 4. Database Seeding & Ingestion Pipeline
 
@@ -111,18 +90,15 @@ The API service is now accessible at `http://localhost:8000`. Interactive OpenAP
 PostSzn Fantasy includes an asynchronous batch ingestion pipeline that populates NFL teams, active rosters/players, season stats, and playoff game box scores from RapidAPI using chunked PostgreSQL `INSERT ... ON CONFLICT DO UPDATE` operations.
 
 #### Option A: On-Demand CLI Seeding
-From the `api/` directory, run the standalone seeding runner:
 
 ```bash
-cd api
+# Default: teams + active players + season stats
+make seed
 
-# Full seed (teams + active players + season stats)
-PYTHONPATH=.. uv run python -m api.scripts.seed_nfl_data
-
-# Seeding with specific flags
-PYTHONPATH=.. uv run python -m api.scripts.seed_nfl_data --season 2024 --teams-only
-PYTHONPATH=.. uv run python -m api.scripts.seed_nfl_data --season 2024 --players-only
-PYTHONPATH=.. uv run python -m api.scripts.seed_nfl_data --season 2024 --with-box-scores
+# Specific flags
+make seed SEED_ARGS="--season 2025 --teams-only"
+make seed SEED_ARGS="--season 2025 --players-only"
+make seed SEED_ARGS="--season 2025 --with-box-scores"
 ```
 
 #### Option B: Admin API Trigger
@@ -172,37 +148,20 @@ The frontend application is now accessible at `http://localhost:5173`.
 
 ## Verification & Testing
 
-### Backend Verification
-From the `api/` directory:
 ```bash
-# Check formatting and linting
-uv run ruff check .
-uv run ruff format --check .
-
-# Run static type checking
-uv run mypy .
-
-# Run unit and integration tests
-uv run pytest
+make check      # everything CI runs: lint, type check, tests, production build
+make lint       # Ruff (check + format) and Biome
+make typecheck  # Mypy and tsc
+make test       # pytest and Vitest
+make format     # auto-fix both apps
 ```
+
+Each target also has an `-api` / `-web` variant (e.g. `make check-api`). CI runs the same `make check-api` and `make check-web` targets.
 
 The tests under `api/tests/postgres/` run against a real, throwaway Postgres database
 (`TEST_DATABASE_URL`, default `postgresql+asyncpg://postgres:postgres@localhost:5432/postszn_test`;
 the schemas are dropped and recreated each run, so never point it at a database you care about).
 They skip automatically when the database is unreachable and fail in CI.
-
-### Frontend Verification
-From the `frontend/` directory:
-```bash
-# Lint, format check, and import sorting
-npx @biomejs/biome check src/
-
-# Run TypeScript type check and production bundle build
-npm run build
-
-# Run frontend unit tests
-npm run test
-```
 
 ---
 

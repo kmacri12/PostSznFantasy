@@ -101,17 +101,17 @@ Guiding principles: KISS, comments explain *why* only, self-documenting names.
 
 Goal: one discoverable entry point for running the API, frontend and checks, replacing the multi-line command blocks in README / AGENTS / CONTRIBUTING.
 
-- [ ] Add a root `Makefile` (`.PHONY`, `make help` listing targets via `##` comments) with at least:
-  - [ ] `make setup` — `uv sync` + `npm install` + copy `.env.example` files if missing
-  - [ ] `make db-up` / `db-down` / `db-reset` — Docker Compose Postgres
-  - [ ] `make migrate` — `alembic upgrade head`; `make migration m="msg"` — autogenerate
-  - [ ] `make api` — uvicorn with reload (hides the awkward `--app-dir ..` invocation)
-  - [ ] `make web` — Vite dev server; `make dev` — DB + API + web
-  - [ ] `make seed` — run `seed_nfl_data.py`
-  - [ ] `make lint` / `format` / `typecheck` / `test` / `check` (everything CI runs)
-- [ ] Make the API runnable the standard way: decide whether `api/` is a package imported as `api.main` from the repo root (current `--app-dir ..` hack) and simplify, e.g. a root `pyproject.toml` workspace or running uvicorn from the repo root. AGENTS.md already claims a root `pyproject.toml` that does not exist — fix the code or the doc.
-- [ ] Point CI at the same `make` targets so local and CI cannot drift.
-- [ ] Update README, CONTRIBUTING and AGENTS to use `make` targets.
+- [x] Add a root `Makefile` (`.PHONY`, `make help` listing targets via `##` comments) with at least:
+  - [x] `make setup` — `uv sync` + `npm install` + copy `.env.example` files if missing
+  - [x] `make db-up` / `db-down` / `db-reset` — Docker Compose Postgres
+  - [x] `make migrate` — `alembic upgrade head`; `make migration m="msg"` — autogenerate
+  - [x] `make api` — uvicorn with reload (hides the awkward `--app-dir ..` invocation)
+  - [x] `make web` — Vite dev server; `make dev` — DB + API + web
+  - [x] `make seed` — run `seed_nfl_data.py`
+  - [x] `make lint` / `format` / `typecheck` / `test` / `check` (everything CI runs)
+- [x] Make the API runnable the standard way: decide whether `api/` is a package imported as `api.main` from the repo root (current `--app-dir ..` hack) and simplify, e.g. a root `pyproject.toml` workspace or running uvicorn from the repo root. AGENTS.md already claims a root `pyproject.toml` that does not exist — fix the code or the doc.
+- [x] Point CI at the same `make` targets so local and CI cannot drift.
+- [x] Update README, CONTRIBUTING and AGENTS to use `make` targets.
 
 ---
 
