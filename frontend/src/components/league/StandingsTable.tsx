@@ -1,4 +1,7 @@
 import {
+  Avatar,
+  Box,
+  Chip,
   Paper,
   Table,
   TableBody,
@@ -6,63 +9,48 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Typography,
 } from "@mui/material";
-import axios from "axios";
 import type React from "react";
-import { useEffect, useState } from "react";
-import { useUser } from "../../contexts/UserContext";
+import { Link } from "react-router-dom";
+import { useStandings } from "../../api/queries";
+import { tokens } from "../../theme";
 
 interface StandingsTableProps {
   leagueId: string;
 }
 
-interface Standings {
-  teamName: string;
-  owner: string;
-  playersLeft: number;
-  wildCard: number;
-  divisional: number;
-  confChamp: number;
-  superBowl: number;
-  total: number;
-}
+const RANK_COLORS = [tokens.gold, "#cbd5e1", "#d97706"];
+
+const RoundBadge = ({ points }: { points: number }) => (
+  <Chip
+    size="small"
+    label={points}
+    variant={points > 0 ? "filled" : "outlined"}
+    sx={{
+      minWidth: 52,
+      bgcolor: points > 0 ? "rgba(34,211,238,.14)" : "transparent",
+      color: points > 0 ? tokens.cyan : tokens.muted,
+    }}
+  />
+);
 
 const StandingsTable: React.FC<StandingsTableProps> = ({ leagueId }) => {
-  const [standings, setStandings] = useState<Standings[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { getIdToken } = useUser();
+  const { data, isLoading } = useStandings(leagueId);
+  const standings = [...(data ?? [])].sort((a, b) => a.rank - b.rank);
 
-  useEffect(() => {
-    const fetchStandings = async () => {
-      try {
-        const apiUrl = import.meta.env.VITE_API_URL;
-        const idToken = await getIdToken();
+  if (isLoading) {
+    return <Typography color="text.secondary">Loading standings...</Typography>;
+  }
 
-        if (!idToken) {
-          console.error("No user is currently signed in.");
-          return;
-        }
-
-        const response = await axios.get(`${apiUrl}/api/leagues/${leagueId}/standings`, {
-          headers: { Authorization: `Bearer ${idToken}` },
-        });
-
-        const sortedStandings = response.data.sort(
-          (a: Standings, b: Standings) => b.total - a.total,
-        );
-        setStandings(sortedStandings);
-      } catch (error) {
-        console.error("Error fetching standings:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchStandings();
-  }, [leagueId]);
-
-  if (loading) {
-    return <div>Loading...</div>;
+  if (standings.length === 0) {
+    return (
+      <Paper sx={{ p: 4, textAlign: "center" }}>
+        <Typography color="text.secondary">
+          Standings appear once the playoffs begin and scores are in.
+        </Typography>
+      </Paper>
+    );
   }
 
   return (
@@ -70,27 +58,72 @@ const StandingsTable: React.FC<StandingsTableProps> = ({ leagueId }) => {
       <Table>
         <TableHead>
           <TableRow>
-            <TableCell>Team Name</TableCell>
-            <TableCell>Owner</TableCell>
-            <TableCell>Players Left</TableCell>
-            <TableCell>Wild Card</TableCell>
-            <TableCell>Divisional</TableCell>
-            <TableCell>Conf Champ</TableCell>
-            <TableCell>Super Bowl</TableCell>
-            <TableCell>Total</TableCell>
+            <TableCell width={56}>#</TableCell>
+            <TableCell>Team</TableCell>
+            <TableCell align="center">Alive</TableCell>
+            <TableCell align="center">Wild Card</TableCell>
+            <TableCell align="center">Divisional</TableCell>
+            <TableCell align="center">Conf</TableCell>
+            <TableCell align="center">Super Bowl</TableCell>
+            <TableCell align="right">Total</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {standings.map((row) => (
-            <TableRow key={row.teamName}>
-              <TableCell>{row.teamName}</TableCell>
-              <TableCell>{row.owner}</TableCell>
-              <TableCell>{row.playersLeft}</TableCell>
-              <TableCell>{row.wildCard}</TableCell>
-              <TableCell>{row.divisional}</TableCell>
-              <TableCell>{row.confChamp}</TableCell>
-              <TableCell>{row.superBowl}</TableCell>
-              <TableCell>{row.total}</TableCell>
+            <TableRow key={row.teamId} hover>
+              <TableCell sx={{ fontWeight: 800, color: RANK_COLORS[row.rank - 1] ?? tokens.muted }}>
+                {row.rank}
+              </TableCell>
+              <TableCell>
+                <Box
+                  component={Link}
+                  to={`/team/${row.teamId}`}
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1.5,
+                    color: "inherit",
+                    textDecoration: "none",
+                  }}
+                >
+                  <Avatar
+                    sx={{ width: 32, height: 32, bgcolor: tokens.borderStrong, fontSize: 14 }}
+                  >
+                    {row.teamName[0]}
+                  </Avatar>
+                  <Box>
+                    <Typography fontWeight={600} lineHeight={1.2}>
+                      {row.teamName}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {row.owner}
+                    </Typography>
+                  </Box>
+                </Box>
+              </TableCell>
+              <TableCell align="center">
+                <Chip
+                  size="small"
+                  color={row.playersLeft > 0 ? "success" : "default"}
+                  label={`${row.playersLeft} alive`}
+                  variant="outlined"
+                />
+              </TableCell>
+              <TableCell align="center">
+                <RoundBadge points={row.wildCard} />
+              </TableCell>
+              <TableCell align="center">
+                <RoundBadge points={row.divisional} />
+              </TableCell>
+              <TableCell align="center">
+                <RoundBadge points={row.confChamp} />
+              </TableCell>
+              <TableCell align="center">
+                <RoundBadge points={row.superBowl} />
+              </TableCell>
+              <TableCell align="right" sx={{ fontWeight: 800, fontSize: 18 }}>
+                {row.total}
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>

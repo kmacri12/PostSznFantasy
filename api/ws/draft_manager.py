@@ -18,13 +18,17 @@ class DraftConnectionManager:
 
     def __init__(self) -> None:
         self._rooms: dict[int, set[WebSocket]] = defaultdict(set)
+        self._users: dict[WebSocket, int] = {}
         self._lock = asyncio.Lock()
 
-    async def connect(self, league_id: int, websocket: WebSocket) -> None:
-        """Accept the WebSocket connection and register it in the league room."""
-        await websocket.accept()
+    async def join(
+        self, league_id: int, websocket: WebSocket, user_id: int | None = None
+    ) -> None:
+        """Register an already-accepted, authenticated socket in the league room."""
         async with self._lock:
             self._rooms[league_id].add(websocket)
+            if user_id is not None:
+                self._users[websocket] = user_id
         logger.info(
             "WebSocket connected to league %s. Total connections: %s",
             league_id,
@@ -34,6 +38,7 @@ class DraftConnectionManager:
     async def disconnect(self, league_id: int, websocket: WebSocket) -> None:
         """Unregister a WebSocket from the league room."""
         async with self._lock:
+            self._users.pop(websocket, None)
             if league_id in self._rooms:
                 self._rooms[league_id].discard(websocket)
                 if not self._rooms[league_id]:
@@ -76,6 +81,12 @@ class DraftConnectionManager:
     ) -> None:
         """Send a direct JSON message to a single connected client."""
         await websocket.send_text(json.dumps(message))
+
+    def present_user_ids(self, league_id: int) -> list[int]:
+        """Distinct users with at least one open socket in the room."""
+        return sorted(
+            {self._users[s] for s in self._rooms.get(league_id, ()) if s in self._users}
+        )
 
     def get_room_size(self, league_id: int) -> int:
         """Return the count of active connections for a given league room."""

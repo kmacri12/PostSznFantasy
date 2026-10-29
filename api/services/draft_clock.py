@@ -1,0 +1,102 @@
+import asyncio
+import logging
+from datetime import UTC, datetime
+
+from sqlalchemy import select
+
+from api.db.models.draft import Draft
+from api.db.session import get_session_factory
+from api.models.enums import DraftStatus
+from api.services import draft_flow
+from api.services.draft_events import pick_events
+from api.services.draft_picks import DraftPickError, PickNotDue, next_deadline
+from api.ws.draft_manager import draft_manager
+
+logger = logging.getLogger(__name__)
+
+TICK_SECONDS = 1
+
+
+async def expire_overdue_picks() -> int:
+    """Auto-pick for every draft whose server-side deadline has passed."""
+    now = datetime.now(UTC)
+    async with get_session_factory()() as db:
+        league_ids = list(
+            (
+                await db.execute(
+                    select(Draft.league_id).where(
+                        Draft.status == DraftStatus.IN_PROGRESS.value,
+                        Draft.current_pick_deadline <= now,
+                    )
+                )
+            )
+            .scalars()
+            .all()
+        )
+
+    handled = 0
+    for league_id in league_ids:
+        async with get_session_factory()() as db:
+            try:
+                result = await draft_flow.auto_pick(db, league_id, only_if_overdue=True)
+                draft = await db.scalar(
+                    select(Draft).where(Draft.league_id == league_id)
+                )
+                assert draft is not None
+                events = await pick_events(db, draft, result)
+                await db.commit()
+            except PickNotDue:
+                await db.rollback()
+                continue
+            except DraftPickError as exc:
+                await db.rollback()
+                logger.warning(
+                    "Auto-pick failed",
+                    extra={"league_id": league_id, "error": str(exc)},
+                )
+                continue
+        for event in events:
+            await draft_manager.broadcast(league_id, event)
+        handled += 1
+    return handled
+
+
+async def extend_overdue_deadlines() -> int:
+    """Give a fresh pick window to drafts whose deadline lapsed while we were down.
+
+    Without this, a restart mid-draft would auto-pick for every team the outage
+    skipped, one per tick.
+    """
+    now = datetime.now(UTC)
+    async with get_session_factory()() as db:
+        drafts = (
+            (
+                await db.execute(
+                    select(Draft)
+                    .where(
+                        Draft.status == DraftStatus.IN_PROGRESS.value,
+                        Draft.current_pick_deadline <= now,
+                    )
+                    .with_for_update()
+                )
+            )
+            .scalars()
+            .all()
+        )
+        for draft in drafts:
+            draft.pick_started_at = now
+            draft.current_pick_deadline = next_deadline(draft, now)
+        await db.commit()
+    return len(drafts)
+
+
+async def run_draft_clock() -> None:
+    """Loop until cancelled; a failing tick is logged and retried."""
+    extended = await extend_overdue_deadlines()
+    logger.info("Draft clock started", extra={"extended_drafts": extended})
+    while True:
+        try:
+            await expire_overdue_picks()
+        except Exception:
+            logger.exception("Draft clock tick failed")
+        await asyncio.sleep(TICK_SECONDS)

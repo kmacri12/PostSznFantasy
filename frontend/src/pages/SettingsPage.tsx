@@ -1,185 +1,190 @@
-import { Box, Button, CircularProgress, Typography } from "@mui/material";
-import axios from "axios";
+import {
+  Alert,
+  Box,
+  Button,
+  Chip,
+  CircularProgress,
+  Container,
+  Divider,
+  TextField,
+  Typography,
+} from "@mui/material";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import LeagueInfo from "../components/settings/LeagueInfo";
-import RosterSettingsComponent from "../components/settings/RosterSettingsComponent";
-import ScoringDSTSettingsComponent from "../components/settings/ScoringDSTSettingsComponent";
-import ScoringPassingSettingsComponent from "../components/settings/ScoringPassingSettingsComponent";
-import ScoringReceivingSettingsComponent from "../components/settings/ScoringReceivingSettingsComponent";
-import ScoringRushingSettingsComponent from "../components/settings/ScoringRushingSettingsComponent";
-import { useUser } from "../contexts/UserContext";
+import {
+  useDraft,
+  useLeague,
+  useLeagueSettings,
+  useUpdateLeague,
+  useUpdateSettings,
+} from "../api/queries";
+import DraftSetupPanel from "../components/draft/DraftSetupPanel";
+import MembersSection from "../components/settings/MembersSection";
+import PostseasonForm from "../components/settings/PostseasonForm";
+import RosterForm from "../components/settings/RosterForm";
+import ScoringForm from "../components/settings/ScoringForm";
+import { ROSTER_KEYS, SCORING_KEYS, fromApi, postseasonFromApi } from "../settings/convert";
+import { POSTSEASON_KEYS, type PostseasonValues } from "../settings/postseasonFields";
+import type { SettingsValues } from "../settings/types";
 
+const detail = (error: unknown): string | null =>
+  (error as { response?: { data?: { detail?: string } } } | null)?.response?.data?.detail ?? null;
+
+/** One page, grouped sections: League, Roster, Scoring, Draft, Postseason. */
 function SettingsPage() {
   const [searchParams] = useSearchParams();
-  const leagueId = searchParams.get("leagueId");
-  const apiUrl = import.meta.env.VITE_API_URL;
-  const { getIdToken } = useUser();
+  const leagueId = searchParams.get("leagueId") ?? undefined;
+  const league = useLeague(leagueId);
+  const settingsQuery = useLeagueSettings(leagueId);
+  const draft = useDraft(leagueId);
+  const updateSettings = useUpdateSettings(leagueId);
+  const updateLeague = useUpdateLeague(leagueId);
 
-  const [loading, setLoading] = useState(false);
-  const [leagueDetails, setLeagueDetails] = useState<any>(null);
-  const [rosterSettings, setRosterSettings] = useState<any>({
-    number_teams: 12,
-    roster_total: 18,
-    roster_num_qb: 1,
-    roster_num_rb: 2,
-    roster_num_wr: 2,
-    roster_num_te: 1,
-    roster_num_flex_wr_rb_te: 1,
-    roster_num_flex_wr_rb: 0,
-    roster_num_flex_wr_te: 0,
-    roster_num_flex_qb_wr_rb_te: 0,
-    roster_num_k: 1,
-    roster_num_dst: 1,
-    roster_num_bench: 9,
-    roster_max_qb: 2,
-    roster_max_rb: 99,
-    roster_max_wr: 99,
-    roster_max_te: 99,
-    roster_max_k: 2,
-    roster_max_dst: 2,
-  });
-
-  const [scoringSettings, setScoringSettings] = useState<any>({
-    scoring_passing_yard: 0,
-    scoring_passing_td: 0,
-    scoring_passing_2pt: 0,
-    scoring_passing_interception: 0,
-    scoring_rushing_yard: 0,
-    scoring_rushing_td: 0,
-    scoring_rushing_2pt: 0,
-    scoring_receiving_reception: 0,
-    scoring_receiving_yard: 0,
-    scoring_receiving_td: 0,
-    scoring_dst_td: 0,
-    scoring_dst_sack: 0,
-    scoring_dst_safety: 0,
-  });
-
-  const [expandedSection, setExpandedSection] = useState({
-    roster: true,
-    passing: false,
-    rushing: false,
-    receiving: false,
-    defense: false,
-  });
+  const [name, setName] = useState("");
+  const [teamCount, setTeamCount] = useState("");
+  const [roster, setRoster] = useState<SettingsValues>({});
+  const [scoring, setScoring] = useState<SettingsValues>({});
+  const [postseason, setPostseason] = useState<PostseasonValues>({});
 
   useEffect(() => {
-    if (!leagueId) return;
-    setLoading(true);
+    if (!settingsQuery.data) return;
+    setRoster(fromApi(settingsQuery.data, ROSTER_KEYS));
+    setScoring(fromApi(settingsQuery.data, SCORING_KEYS));
+    setPostseason(postseasonFromApi(settingsQuery.data, POSTSEASON_KEYS));
+  }, [settingsQuery.data]);
 
-    const fetchSettings = async () => {
-      try {
-        const token = await getIdToken();
-        const response = await axios.get(`${apiUrl}/api/leagues/${leagueId}/settings`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        });
-        if (response.data) {
-          setLeagueDetails(response.data);
-          setRosterSettings((prev: any) => ({ ...prev, ...response.data }));
-          setScoringSettings((prev: any) => ({ ...prev, ...response.data }));
-        }
-      } catch (err) {
-        console.error("Error fetching league settings:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  useEffect(() => {
+    if (!league.data) return;
+    setName(league.data.name);
+    setTeamCount(String(league.data.numberTeams));
+  }, [league.data]);
 
-    fetchSettings();
-  }, [leagueId, apiUrl, getIdToken]);
-
-  const toggleSection = (section: keyof typeof expandedSection) => {
-    setExpandedSection((prev) => ({ ...prev, [section]: !prev[section] }));
-  };
-
-  const handleSave = async () => {
-    if (!leagueId) return;
-    try {
-      const token = await getIdToken();
-      await axios.put(
-        `${apiUrl}/api/leagues/${leagueId}/settings`,
-        {
-          rosterSettings,
-          scoringSettings,
-        },
-        {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        },
-      );
-      alert("Settings saved successfully!");
-    } catch (err) {
-      console.error("Failed to update settings:", err);
-    }
-  };
-
-  if (loading) {
+  if (!leagueId) return <Alert severity="info">Pick a league to view its settings.</Alert>;
+  if (league.isLoading || settingsQuery.isLoading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
         <CircularProgress />
       </Box>
     );
   }
+  if (league.isError || settingsQuery.isError || !league.data) {
+    return <Alert severity="error">Could not load this league's settings.</Alert>;
+  }
+
+  const canEdit = league.data.myRole === "commissioner";
+  const started = ["in_progress", "paused", "completed"].includes(draft.data?.status ?? "");
+
+  const save = async () => {
+    await updateSettings.mutateAsync({
+      ...roster,
+      ...Object.fromEntries(
+        Object.entries(scoring).map(([key, value]) => [key, Number(value) || 0]),
+      ),
+      ...Object.fromEntries(
+        Object.entries(postseason).map(([key, value]) => [
+          key,
+          key.startsWith("multiplier_") ? Number(value) || 0 : value,
+        ]),
+      ),
+    });
+    if (name.trim() !== league.data?.name || Number(teamCount) !== league.data?.numberTeams) {
+      await updateLeague.mutateAsync({ name: name.trim(), numberTeams: Number(teamCount) });
+    }
+  };
+
+  const failure = detail(updateSettings.error) ?? detail(updateLeague.error);
 
   return (
-    <Box sx={{ padding: 3 }}>
+    <Container maxWidth="md" sx={{ py: 3 }}>
       <Typography variant="h4" gutterBottom>
         League Settings
       </Typography>
+      {!canEdit && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          Only commissioners can change settings.
+        </Alert>
+      )}
+      {started && (
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          The draft has started, so team count, roster size and draft order are locked.
+        </Alert>
+      )}
 
-      <LeagueInfo
-        leagueName={leagueDetails?.name || `League #${leagueId || ""}`}
-        season={leagueDetails?.season || 2024}
-        totalTeams={rosterSettings.number_teams}
-      />
+      <Typography variant="h6" sx={{ mb: 1 }}>
+        League
+      </Typography>
+      <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", alignItems: "center", mb: 3 }}>
+        <TextField
+          label="League name"
+          value={name}
+          disabled={!canEdit}
+          onChange={(event) => setName(event.target.value)}
+        />
+        <TextField
+          label="Number of teams"
+          value={teamCount}
+          disabled={!canEdit || started}
+          onChange={(event) => setTeamCount(event.target.value)}
+          sx={{ width: 160 }}
+        />
+        <Chip label={`${league.data.season} season (read-only)`} />
+        <Typography variant="body2" color="text.secondary">
+          Commissioners:{" "}
+          {league.data.members
+            .filter((member) => member.role === "commissioner")
+            .map((member) => member.username)
+            .join(", ")}
+        </Typography>
+      </Box>
+      <Divider sx={{ mb: 3 }} />
 
-      <RosterSettingsComponent
-        expanded={expandedSection.roster}
-        rosterSettings={rosterSettings}
-        setRosterSettings={setRosterSettings}
-        handleExpandClick={() => toggleSection("roster")}
-      />
+      <Box sx={{ mb: 3 }}>
+        <MembersSection league={league.data} />
+      </Box>
+      <Divider sx={{ mb: 3 }} />
 
-      <Box sx={{ mt: 2 }} />
+      <RosterForm values={roster} onChange={setRoster} disabled={!canEdit || started} />
+      <Box sx={{ mt: 3 }}>
+        <ScoringForm
+          values={scoring}
+          disabled={!canEdit}
+          onChange={(key, rawValue) => setScoring((previous) => ({ ...previous, [key]: rawValue }))}
+        />
+      </Box>
+      <Box sx={{ mt: 3 }}>
+        <PostseasonForm
+          values={postseason}
+          disabled={!canEdit}
+          onChange={(key, value) => setPostseason((previous) => ({ ...previous, [key]: value }))}
+        />
+      </Box>
+      {draft.data && (
+        <Box sx={{ mt: 3 }}>
+          <DraftSetupPanel draft={draft.data} canEdit={canEdit} />
+        </Box>
+      )}
 
-      <ScoringPassingSettingsComponent
-        expanded={expandedSection.passing}
-        scoringSettings={scoringSettings}
-        setScoringSettings={setScoringSettings}
-        handleExpandClick={() => toggleSection("passing")}
-      />
-
-      <Box sx={{ mt: 2 }} />
-
-      <ScoringRushingSettingsComponent
-        expanded={expandedSection.rushing}
-        scoringSettings={scoringSettings}
-        setScoringSettings={setScoringSettings}
-        handleExpandClick={() => toggleSection("rushing")}
-      />
-
-      <Box sx={{ mt: 2 }} />
-
-      <ScoringReceivingSettingsComponent
-        expanded={expandedSection.receiving}
-        scoringSettings={scoringSettings}
-        setScoringSettings={setScoringSettings}
-        handleExpandClick={() => toggleSection("receiving")}
-      />
-
-      <Box sx={{ mt: 2 }} />
-
-      <ScoringDSTSettingsComponent
-        expanded={expandedSection.defense}
-        scoringSettings={scoringSettings}
-        setScoringSettings={setScoringSettings}
-        handleExpandClick={() => toggleSection("defense")}
-      />
-
-      <Button variant="contained" color="primary" onClick={handleSave} sx={{ mt: 3 }}>
-        Save Settings
-      </Button>
-    </Box>
+      {failure && (
+        <Alert severity="error" sx={{ mt: 2 }}>
+          {failure}
+        </Alert>
+      )}
+      {updateSettings.isSuccess && !failure && (
+        <Alert severity="success" sx={{ mt: 2 }}>
+          Settings saved.
+        </Alert>
+      )}
+      {canEdit && (
+        <Button
+          variant="contained"
+          onClick={save}
+          disabled={updateSettings.isPending || updateLeague.isPending}
+          sx={{ mt: 3 }}
+        >
+          Save settings
+        </Button>
+      )}
+    </Container>
   );
 }
 

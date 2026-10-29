@@ -1,18 +1,21 @@
 import logging
 from typing import Any
 
-from api.db.models.nfl import NFLPlayer, NFLTeam
-from api.services.ingestion.schemas import safe_int, safe_str
-from api.utils.rapidapi.rapidapi import RapidApiClient
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from api.db.models.nfl import NFLPlayer, NFLTeam
+from api.services.ingestion.guard import IngestionKind, guarded
+from api.services.ingestion.schemas import safe_int, safe_str
+from api.utils.rapidapi.rapidapi import RapidApiClient, get_rapidapi_client
 
 logger = logging.getLogger(__name__)
 
 CHUNK_SIZE = 500
 
 
+@guarded(IngestionKind.PLAYERS)
 async def ingest_nfl_players(
     db: AsyncSession,
     client: RapidApiClient | None = None,
@@ -20,7 +23,7 @@ async def ingest_nfl_players(
 ) -> int:
     """Fetch and bulk upsert active NFL players in chunked batches."""
     if raw_data is None:
-        client = client or RapidApiClient()
+        client = client or get_rapidapi_client()
         raw_data = await client.get_nfl_players()
 
     # Get valid team IDs to ensure FK constraint holds

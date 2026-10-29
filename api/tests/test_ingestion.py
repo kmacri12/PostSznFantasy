@@ -3,12 +3,16 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from httpx import AsyncClient
 
+from api.dependencies.auth import require_admin
+from api.main import app
+
 
 @pytest.mark.asyncio
 async def test_admin_update_all_endpoint(
     async_client: AsyncClient,
     mock_db_session: AsyncMock,
 ) -> None:
+    app.dependency_overrides[require_admin] = lambda: "admin-uid"
     with patch(
         "api.routers.admin.run_full_ingestion_pipeline",
         new_callable=AsyncMock,

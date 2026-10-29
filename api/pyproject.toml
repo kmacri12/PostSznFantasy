@@ -9,7 +9,6 @@ dependencies = [
     "asyncpg>=0.30.0",
     "fastapi>=0.115.0",
     "httpx>=0.28.0",
-    "psycopg2-binary>=2.9.10",
     "pydantic>=2.11.2",
     "pydantic-settings>=2.16.1",
     "pyjwt[crypto]>=2.10.1",
@@ -35,6 +34,9 @@ target-version = "py313"
 select = ["E", "F", "I", "B", "UP"]
 ignore = ["E501"]
 
+[tool.ruff.lint.isort]
+known-first-party = ["api"]
+
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
@@ -48,16 +50,8 @@ plugins = ["pydantic.mypy"]
 [[tool.mypy.overrides]]
 module = [
     "requests_cache.*",
-    "psycopg2.*",
 ]
 ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module = [
-    "utils.*",
-    "api.utils.*",
-]
-ignore_errors = true
 
 [tool.pytest.ini_options]
 pythonpath = ["..", "."]

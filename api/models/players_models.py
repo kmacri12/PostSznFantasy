@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from api.models.base import BaseSchema
 from api.models.enums import PlayerPosition
 
@@ -29,6 +31,8 @@ class PlayerSeasonStatsResponse(BaseSchema):
     season: str
     player_id: int
     player: Player | None = None
+    fantasy_points: float | None = None
+    kicking_fg_made: int = 0
     passing_completions: int = 0
     passing_attempts: int = 0
     passing_yards: int = 0
@@ -65,3 +69,8 @@ class PlayerSeasonStatsResponse(BaseSchema):
     dst_safeties: int = 0
     dst_fumbles_recovered: int = 0
     dst_interceptions: int = 0
+
+
+class IngestionStatusResponse(BaseSchema):
+    kind: str
+    last_synced_at: datetime

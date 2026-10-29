@@ -1,97 +1,117 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createLogger } from "../utils/logger";
+
+const logger = createLogger("useWebSocket");
 
 export interface DraftMessage {
-  eventType?: string;
-  type?: string;
+  eventType: string;
   leagueId?: number;
   message?: string;
+  // biome-ignore lint/suspicious/noExplicitAny: payload shape depends on eventType
   data?: any;
   timestamp?: number | string;
   activeConnections?: number;
 }
 
-export const useWebSocket = (url: string) => {
-  const [data, setData] = useState<DraftMessage | null>(null);
+interface Options {
+  getToken?: () => Promise<string | null>;
+  onMessage?: (message: DraftMessage) => void;
+}
+
+const HEARTBEAT_MS = 20_000;
+const BASE_BACKOFF_MS = 1_000;
+const MAX_BACKOFF_MS = 30_000;
+const NORMAL_CLOSURE = 1000;
+// The server closes with 1008 when auth or league membership fails; retrying cannot help.
+const POLICY_VIOLATION = 1008;
+
+export const backoffDelay = (attempt: number): number =>
+  Math.min(BASE_BACKOFF_MS * 2 ** attempt, MAX_BACKOFF_MS);
+
+export const useWebSocket = (url: string, options: Options = {}) => {
   const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef<WebSocket | null>(null);
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const heartbeatIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  const connect = useCallback(() => {
+  // Refs keep unstable caller-supplied functions from forcing reconnects.
+  const getTokenRef = useRef(options.getToken);
+  const onMessageRef = useRef(options.onMessage);
+  getTokenRef.current = options.getToken;
+  onMessageRef.current = options.onMessage;
+
+  useEffect(() => {
     if (!url) return;
 
-    try {
+    let disposed = false;
+    let attempt = 0;
+    let reconnectTimer: ReturnType<typeof setTimeout> | undefined;
+    let heartbeatTimer: ReturnType<typeof setInterval> | undefined;
+
+    const connect = () => {
       const socket = new WebSocket(url);
       socketRef.current = socket;
 
       socket.onopen = () => {
+        attempt = 0;
         setIsConnected(true);
-        console.log("Draft WebSocket connection established");
+        logger.info("Connection established", url);
 
-        // Send periodic heartbeat ping
-        if (heartbeatIntervalRef.current) clearInterval(heartbeatIntervalRef.current);
-        heartbeatIntervalRef.current = setInterval(() => {
-          if (socket.readyState === WebSocket.OPEN) {
-            socket.send(JSON.stringify({ type: "PING", timestamp: Date.now() }));
+        // The server expects credentials as the first message (kept out of the URL).
+        getTokenRef.current?.().then((token) => {
+          if (token && socket.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify({ eventType: "AUTH", token }));
           }
-        }, 20000);
+        });
+
+        heartbeatTimer = setInterval(() => {
+          if (socket.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify({ eventType: "PING", timestamp: Date.now() }));
+          }
+        }, HEARTBEAT_MS);
       };
 
       socket.onmessage = (event) => {
         try {
-          const parsedData: DraftMessage = JSON.parse(event.data);
-          setData(parsedData);
-        } catch (e) {
-          console.warn("Received non-JSON message:", event.data);
+          onMessageRef.current?.(JSON.parse(event.data) as DraftMessage);
+        } catch {
+          logger.warn("Protocol mismatch: received non-JSON payload", event.data);
         }
       };
 
       socket.onclose = (event) => {
         setIsConnected(false);
-        if (heartbeatIntervalRef.current) clearInterval(heartbeatIntervalRef.current);
-        console.log("Draft WebSocket connection closed:", event.code, event.reason);
+        clearInterval(heartbeatTimer);
+        logger.info("Connection closed", event.code, event.reason);
 
-        // Reconnect backoff unless closed cleanly
-        if (event.code !== 1000) {
-          reconnectTimeoutRef.current = setTimeout(() => {
-            console.log("Attempting WebSocket reconnection...");
-            connect();
-          }, 3000);
+        if (disposed || event.code === NORMAL_CLOSURE || event.code === POLICY_VIOLATION) {
+          return;
         }
+        const delay = backoffDelay(attempt++);
+        logger.info(`Reconnecting in ${delay}ms`);
+        reconnectTimer = setTimeout(connect, delay);
       };
 
       socket.onerror = (error) => {
-        console.error("Draft WebSocket error:", error);
+        logger.error("Socket error", error);
       };
-    } catch (err) {
-      console.error("Failed to construct WebSocket:", err);
-    }
-  }, [url]);
+    };
 
-  useEffect(() => {
     connect();
 
     return () => {
-      if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
-      if (heartbeatIntervalRef.current) clearInterval(heartbeatIntervalRef.current);
-      if (socketRef.current) {
-        socketRef.current.close(1000, "Component unmounted");
-      }
+      disposed = true;
+      clearTimeout(reconnectTimer);
+      clearInterval(heartbeatTimer);
+      socketRef.current?.close(NORMAL_CLOSURE, "Component unmounted");
     };
-  }, [connect]);
+  }, [url]);
 
-  const sendMessage = useCallback((msg: object | string) => {
-    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
-      const payload = typeof msg === "string" ? msg : JSON.stringify(msg);
-      socketRef.current.send(payload);
+  const sendMessage = useCallback((message: object) => {
+    if (socketRef.current?.readyState === WebSocket.OPEN) {
+      socketRef.current.send(JSON.stringify(message));
     } else {
-      console.error("Draft WebSocket is not open.");
+      logger.warn("Dropped outbound message: socket is not open");
     }
   }, []);
 
-  return {
-    data,
-    isConnected,
-    sendMessage,
-  };
+  return { isConnected, sendMessage };
 };

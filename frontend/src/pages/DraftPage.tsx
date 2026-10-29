@@ -1,272 +1,149 @@
-import { Settings as SettingsIcon } from "@mui/icons-material";
 import {
-  Button,
+  Alert,
+  Box,
+  Chip,
+  Container,
   Dialog,
-  DialogActions,
   DialogContent,
-  DialogTitle,
-  Grid,
-  IconButton,
+  Paper,
+  Tab,
+  Tabs,
+  Typography,
 } from "@mui/material";
-import axios from "axios";
-import type { FC } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import Countdown from "../components/draft/Countdown";
+import { useLeague, usePlayerList, useSaveQueue } from "../api/queries";
+import AvailablePlayers from "../components/draft/AvailablePlayers";
+import CommissionerControls from "../components/draft/CommissionerControls";
 import DraftBoard from "../components/draft/DraftBoard";
-import PlayerSelector, { type Player } from "../components/draft/PlayerSelector";
-import { useUser } from "../contexts/UserContext";
-import { useWebSocket } from "../hooks/useWebSocket";
+import DraftSetupPanel from "../components/draft/DraftSetupPanel";
+import DraftStatusBar from "../components/draft/DraftStatusBar";
+import MyRosterPanel from "../components/draft/MyRosterPanel";
+import PickFeed from "../components/draft/PickFeed";
+import QueuePanel from "../components/draft/QueuePanel";
+import { useDraftRoom } from "../hooks/useDraftRoom";
+import { playOnDeckCue } from "../utils/draftCue";
 
-export interface Team {
-  id: number;
-  name: string;
-  ownerId: number;
-  ownerName: string;
-}
+type TabKey = "board" | "players" | "queue" | "roster" | "feed";
 
-export interface DraftSettings {
-  id: number;
-  leagueId: number;
-  status: string;
-  startTime?: string | Date;
-  draftType: string;
-  timePerPickSeconds: number;
-  slowDraftAutoPause: boolean;
-  slowDraftPauseFrom: string;
-  slowDraftPauseTo: string;
-  slowDraftPauseTimezone: string;
-  cpuAutopick: boolean;
-  alphabeticalSort: boolean;
-  draftOrderTeamIds: number[];
-}
-
-export interface DraftPick {
-  id: number;
-  draftId?: number;
-  teamId: number;
-  playerId: number | null;
-  playerName: string;
-  numberRound: number;
-  numberPickOverall: number;
-  numberPickInRound: number;
-  autopick: boolean;
-}
-
-const DraftPage: FC = () => {
+const DraftPage = () => {
   const { leagueId } = useParams<{ leagueId: string }>();
-  const wsUrl = import.meta.env.VITE_WS_URL || "ws://localhost:8000";
-  const apiUrl = import.meta.env.VITE_API_URL;
-  const { getIdToken } = useUser();
+  const room = useDraftRoom(leagueId);
+  const league = useLeague(leagueId);
+  const playersQuery = usePlayerList();
+  const saveQueue = useSaveQueue(leagueId);
+  const [tab, setTab] = useState<TabKey>("board");
+  const [showSetup, setShowSetup] = useState(false);
 
-  const websocketUrl = leagueId ? `${wsUrl}/api/drafts/ws/${leagueId}` : "";
-  const { data, sendMessage } = useWebSocket(websocketUrl);
+  const state = room.state;
+  const myTeamId = state?.myTeamId ?? null;
+  const isCommissioner = league.data?.myRole === "commissioner";
+  const myTurn =
+    state?.status === "in_progress" && myTeamId !== null && state.onTheClockTeamId === myTeamId;
+  const onDeck =
+    state?.status === "in_progress" && myTeamId !== null && state.onDeckTeamId === myTeamId;
 
-  const [draftSettings, setDraftSettings] = useState<DraftSettings | null>(null);
-  const [openSettings, setOpenSettings] = useState(false);
-  const [draftBoard, setDraftBoard] = useState<DraftPick[][]>([[]]);
-  const [currentPickIndex, setCurrentPickIndex] = useState<number>(1);
-  const [timer, setTimer] = useState<number>(60);
-  const [teams, setTeams] = useState<Team[]>([]);
-  const [numRounds, setNumRounds] = useState<number>(0);
-  const [selectedPlayerIDs, setSelectedPlayerIDs] = useState<number[]>([]);
-
-  const calculatePickOverall = (roundIndex: number, teamIndex: number) => {
-    const roundNumber = roundIndex + 1;
-    const isOddRound = roundNumber % 2 === 1;
-    const roundPickOne = teams.length * (roundNumber - 1) + 1;
-    const teamOffset = isOddRound ? teamIndex : teams.length - teamIndex - 1;
-    return roundPickOne + teamOffset;
-  };
-
-  const calculatePickInRound = (roundIndex: number, teamIndex: number) => {
-    const isOddRound = (roundIndex + 1) % 2 === 1;
-    const teamOffset = isOddRound ? teamIndex : teams.length - 1 - teamIndex;
-    return teamOffset + 1;
-  };
+  const players = useMemo(
+    () => new Map((playersQuery.data ?? []).map((p) => [p.id, p])),
+    [playersQuery.data],
+  );
+  const draftedIds = useMemo(
+    () => new Set(state?.picks.map((p) => p.playerId) ?? []),
+    [state?.picks],
+  );
 
   useEffect(() => {
-    if (teams.length > 0 && numRounds > 0) {
-      const newDraftBoard = Array.from({ length: numRounds }, (_, roundIndex) =>
-        Array(teams.length)
-          .fill(null)
-          .map((_, teamIndex) => ({
-            id: -1,
-            draftId: draftSettings?.id,
-            teamId: teams[teamIndex].id,
-            playerId: null,
-            playerName: "",
-            numberRound: roundIndex + 1,
-            numberPickOverall: calculatePickOverall(roundIndex, teamIndex),
-            numberPickInRound: calculatePickInRound(roundIndex, teamIndex),
-            autopick: false,
-          })),
-      );
-      setDraftBoard(newDraftBoard);
-    }
-  }, [teams, numRounds, draftSettings?.id]);
+    if (onDeck && !myTurn) playOnDeckCue();
+  }, [onDeck, myTurn]);
 
-  useEffect(() => {
-    if (!leagueId) return;
+  if (!state) {
+    return (
+      <Container maxWidth="md" sx={{ py: 4 }}>
+        <Alert severity={room.isConnected ? "info" : "warning"}>
+          {room.isConnected ? "Loading the draft room…" : "Connecting to the draft room…"}
+        </Alert>
+      </Container>
+    );
+  }
 
-    const fetchTeams = async () => {
-      try {
-        const idToken = await getIdToken();
-        const response = await axios.get(`${apiUrl}/api/leagues/${leagueId}/teams`, {
-          headers: idToken ? { Authorization: `Bearer ${idToken}` } : {},
-        });
-        setTeams(response.data);
-      } catch (error) {
-        console.error("Error fetching teams:", error);
-      }
-    };
-
-    const fetchDraftSettings = async () => {
-      try {
-        const idToken = await getIdToken();
-        const response = await axios.get(`${apiUrl}/api/drafts/draft-info/${leagueId}`, {
-          headers: idToken ? { Authorization: `Bearer ${idToken}` } : {},
-        });
-        setDraftSettings(response.data);
-        if (response.data?.timePerPickSeconds) {
-          setTimer(response.data.timePerPickSeconds);
-        }
-      } catch (error) {
-        console.error("Error fetching draft settings:", error);
-      }
-    };
-
-    const calculateNumRounds = (settings: Record<string, number>) => {
-      const rosterNumKeys: string[] = [
-        "roster_num_bench",
-        "roster_num_dst",
-        "roster_num_flex_qb_wr_rb_te",
-        "roster_num_flex_wr_rb",
-        "roster_num_flex_wr_te",
-        "roster_num_k",
-        "roster_num_qb",
-        "roster_num_rb",
-        "roster_num_te",
-        "roster_num_wr",
-      ];
-
-      let totalRosterNum = 0;
-      for (const key of rosterNumKeys) {
-        if (typeof settings[key] === "number") {
-          totalRosterNum += settings[key];
-        }
-      }
-      return totalRosterNum || 18;
-    };
-
-    const fetchLeagueSettings = async () => {
-      try {
-        const idToken = await getIdToken();
-        const response = await axios.get(`${apiUrl}/api/leagues/${leagueId}/settings`, {
-          headers: idToken ? { Authorization: `Bearer ${idToken}` } : {},
-        });
-        setNumRounds(calculateNumRounds(response.data));
-      } catch (error) {
-        console.error("Error fetching league settings:", error);
-      }
-    };
-
-    fetchTeams();
-    fetchDraftSettings();
-    fetchLeagueSettings();
-  }, [leagueId, apiUrl, getIdToken]);
-
-  useEffect(() => {
-    if (!data) return;
-
-    const eventType = data.eventType || data.type;
-    if (eventType === "PICK_MADE" && data.data) {
-      const pickData = data.data;
-      if (pickData.playerId) {
-        setSelectedPlayerIDs((prev) => [...prev, pickData.playerId]);
-      }
-      if (pickData.currentPickIndex) {
-        setCurrentPickIndex(pickData.currentPickIndex);
-      }
-    } else if (eventType === "TIMER_UPDATE" && data.data?.time !== undefined) {
-      setTimer(data.data.time);
-    }
-  }, [data]);
-
-  const handlePlayerSelection = (player: Player) => {
-    const roundIndex = Math.floor((currentPickIndex - 1) / (teams.length || 1));
-    const picksInRound = draftBoard[roundIndex] || [];
-    const currentPick = picksInRound.find((pick) => pick.numberPickOverall === currentPickIndex);
-
-    if (currentPick) {
-      const updatedDraftPick = {
-        ...currentPick,
-        playerId: player.id,
-        playerName: player.name,
-      };
-      const updatedDraftBoard = draftBoard.map((round) =>
-        round.map((pick) =>
-          pick.numberPickOverall === currentPickIndex ? updatedDraftPick : pick,
-        ),
-      );
-      setDraftBoard(updatedDraftBoard);
-    }
-
-    setSelectedPlayerIDs((prev) => [...prev, player.id]);
-    setCurrentPickIndex((prev) => prev + 1);
-    setTimer(draftSettings?.timePerPickSeconds || 60);
-
-    sendMessage({
-      eventType: "PICK_MADE",
-      data: {
-        playerId: player.id,
-        playerName: player.name,
-        currentPickIndex: currentPickIndex + 1,
-      },
-    });
+  const updateQueue = (next: number[]) => {
+    room.setQueueLocal(next);
+    saveQueue.mutate(next);
   };
 
   return (
-    <div style={{ padding: "16px", position: "relative" }}>
-      <PlayerSelector
-        onPlayerSelected={handlePlayerSelection}
-        isMyTurn={true}
-        selectedPlayerIDs={selectedPlayerIDs}
-      />
-      <Grid container spacing={2}>
-        <DraftBoard
-          teams={teams}
-          draftPicks={draftBoard}
-          currentPickIndex={currentPickIndex}
-          timer={timer}
-          onPlayerSelected={handlePlayerSelection}
-          isMyTurn={true}
-          selectedPlayerIDs={selectedPlayerIDs}
+    <Container maxWidth={false} sx={{ py: 3 }}>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2, flexWrap: "wrap" }}>
+        <Typography variant="h4" sx={{ flexGrow: 1 }}>
+          Draft room
+        </Typography>
+        <Chip
+          size="small"
+          color={room.isConnected ? "success" : "warning"}
+          label={room.isConnected ? "Live" : "Reconnecting…"}
         />
+        <Chip size="small" variant="outlined" label={`${state.presence.length} here`} />
+        {isCommissioner && (
+          <Chip clickable label="Draft setup" onClick={() => setShowSetup(true)} />
+        )}
+      </Box>
 
-        <IconButton
-          style={{ position: "absolute", top: 16, right: 16 }}
-          onClick={() => setOpenSettings(true)}
-        >
-          <SettingsIcon />
-        </IconButton>
+      <DraftStatusBar
+        state={state}
+        secondsLeft={room.secondsLeft}
+        secondsToStart={room.secondsToStart}
+        myTeamId={myTeamId}
+      />
+      {room.lastError && (
+        <Alert severity="error" sx={{ mt: 1 }}>
+          {room.lastError}
+        </Alert>
+      )}
+      {isCommissioner && (
+        <Box sx={{ mt: 2 }}>
+          <CommissionerControls draft={state} />
+        </Box>
+      )}
 
-        <Grid item xs={12}>
-          <Countdown time={timer} />
-        </Grid>
-      </Grid>
+      <Paper sx={{ mt: 2 }}>
+        <Tabs value={tab} onChange={(_, value: TabKey) => setTab(value)} variant="scrollable">
+          <Tab value="board" label="Board" />
+          <Tab value="players" label="Players" />
+          <Tab value="queue" label={`Queue (${state.queue.length})`} />
+          <Tab value="roster" label="My roster" />
+          <Tab value="feed" label="Pick feed" />
+        </Tabs>
+        <Box sx={{ p: 2 }}>
+          {tab === "board" && <DraftBoard state={state} myTeamId={myTeamId} />}
+          {tab === "players" && (
+            <AvailablePlayers
+              players={playersQuery.data ?? []}
+              draftedIds={draftedIds}
+              queue={state.queue}
+              canPick={myTurn}
+              onPick={(player) => room.makePick(player.id)}
+              onQueue={(id) => updateQueue([...state.queue, id])}
+            />
+          )}
+          {tab === "queue" && (
+            <QueuePanel
+              queue={state.queue}
+              players={players}
+              draftedIds={draftedIds}
+              onChange={updateQueue}
+            />
+          )}
+          {tab === "roster" && <MyRosterPanel state={state} myTeamId={myTeamId} />}
+          {tab === "feed" && <PickFeed state={state} />}
+        </Box>
+      </Paper>
 
-      <Dialog open={openSettings} onClose={() => setOpenSettings(false)}>
-        <DialogTitle>Draft Settings</DialogTitle>
+      <Dialog open={showSetup} onClose={() => setShowSetup(false)} fullWidth maxWidth="md">
         <DialogContent>
-          <p>Draft Type: {draftSettings?.draftType || "Snake"}</p>
-          <p>Time Per Pick: {draftSettings?.timePerPickSeconds || 60} seconds</p>
+          <DraftSetupPanel draft={state} canEdit={isCommissioner} />
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenSettings(false)}>Close</Button>
-        </DialogActions>
       </Dialog>
-    </div>
+    </Container>
   );
 };
 

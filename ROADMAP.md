@@ -1,0 +1,236 @@
+# ROADMAP.md — Hardening & Best-Practices Phase
+
+Forward-looking work now lives in [GitHub Issues](https://github.com/kmacri12/PostSznFantasy/issues); this file is kept as history. Completed phases 1–14 are archived in [REWRITE_ROADMAP.md](REWRITE_ROADMAP.md); open items from it are carried over below. Update this file as items land (and keep [AGENTS.md](AGENTS.md) / [README.md](README.md) in sync per the documentation mandate).
+
+> [!IMPORTANT]
+> **PRE-DEVELOPMENT / LOCAL-ONLY CONTEXT**: no production DB, no users, no legacy data. Schema wipes, route renames and wholesale rewrites are fine — no migrations shims or backward compatibility.
+
+**PostSzn Fantasy**: fantasy football for the NFL postseason (Wild Card → Divisional → Conference Championships → Super Bowl). Drafted players are eliminated as their real teams lose, so player survival drives the standings.
+
+Stack: FastAPI + async SQLAlchemy 2.0 + Postgres 16 (Alembic) · Supabase Auth (JWT/JWKS) · React 18 + Vite + MUI + TanStack Table · uv, Ruff, Mypy, Biome, Vitest, pytest.
+
+Guiding principles: KISS, comments explain *why* only, self-documenting names.
+
+---
+
+## History (done)
+
+| Phase | Summary |
+| :--- | :--- |
+| 1 | Tooling: `uv` + `pyproject.toml`, Ruff/Mypy, Biome, `.env.example`s, Docker Compose Postgres |
+| 2 | Flask → FastAPI: routers, lifespan, `Depends` auth/DB, Pydantic v2 schemas, native WebSockets |
+| 3 / 3.5 | SQLAlchemy 2.0 models, async session, Alembic, FK cascades, Pydantic Settings |
+| 4 | Scoring engine, elimination logic, resilient httpx RapidAPI client |
+| 5 | Frontend refactor: user context, missing views, WS client, TanStack Table v8, TS build fixes |
+| 6 | Backend/frontend test suites, GitHub Actions CI |
+| 7 | README, CONTRIBUTING, AGENTS docs |
+| 8 | Firebase → Supabase Auth (JWKS verification) |
+| 9 | Ingestion pipeline, `seed_nfl_data.py`, admin "update all" endpoint, dev quick-sync UI |
+| 10 | Postgres schema segregation (`fantasy` / `nfl`) |
+| 11 | Missing player/team/settings endpoints, enriched standings |
+| 12 | Dark-first UI overhaul and landing page |
+| 13 | Sleeper-default PPR scoring, fractional scoring columns |
+| 14 | Fix stale league list after league creation |
+| Backlog 2 | Structured logging (API + frontend) |
+
+### Carried over (still open)
+- [x] Phase 10: ingestion and queries use the schema-qualified `fantasy` / `nfl` models only; the connection-level `search_path` override is removed (verified against a freshly migrated DB).
+- [x] Phase 13: Sleeper scoring gaps closed — blocked kick and defensive 2-pt return (DST), per-length FG-miss penalties, and stacking 300/400 pass, 100/200 rush and 100/200 receiving yardage bonuses. New stat columns (`kicking_fg_yards_missed`, `dst_blocked_kicks`, `dst_two_point_returns`) are read from RapidAPI keys `FGYardsMissed`, `DSTBlockedKicks`, `DST2PtReturns`; verify those key names against live box scores, since they default to 0 if absent.
+
+---
+
+## Phase 15: Security Fixes (Critical)
+
+- [x] **C1 — Remove the unsigned-JWT fallback** (`api/dependencies/auth.py`): when `SUPABASE_URL` is unset the code decodes with `verify_signature=False`, so a missing env var in a deployed environment lets anyone forge any identity. Make `SUPABASE_URL` required at startup; tests already override `get_current_user`.
+- [x] **C2 — Authenticate and authorize the draft WebSocket** (`api/routers/drafts.py`): anyone can connect to `/api/drafts/ws/{league_id}` and broadcast arbitrary events; the fallback branch rebroadcasts any client message.
+  - [x] Verify the JWT on connect (query param or first message) and require league membership.
+  - [x] Replace client-trusted `PICK_MADE` relaying with server-side pick validation (turn order, availability, roster limits), persistence to `DraftPick`, then broadcast.
+  - [x] Whitelist inbound event types; reject the rest.
+- [x] **C3 — League-membership authorization**: `draft-info`, `draft-picks`, settings, teams, standings and `teams/{id}` only require a login. Add a shared dependency (e.g. `LeagueMember`) and apply it. Decide which `/api/players/*` routes need auth (they currently have none).
+- [x] **C4 — Restrict `/api/admin/*`**: add an admin check (allow-list or role); today any logged-in user can trigger paid ingestion or eliminate NFL teams.
+- [x] **C5 — Stop leaking exception text** in 401 responses; log details server-side, return a generic message.
+- [x] **C6 — Fix `login_or_register`** (`api/routers/auth.py`): use `INSERT … ON CONFLICT` to remove the first-login race; drop the `user.id or 1` fallback; drop fake `@postszn.local` emails (make email nullable or require it).
+- [x] Tests for each of the above (unauthenticated WS, non-member access, non-admin admin call, forged token) — see `api/tests/test_auth.py`, `test_draft_websocket.py`, `test_draft_picks.py`, `test_authorization.py`, `test_admin_access.py`.
+
+---
+
+## Phase 16: Backend FastAPI Best-Practice Gaps
+
+- [x] **Camel-case contract**: make `LoginPayload`, `BoxScoreRequest`, `EliminateTeamsRequest`, `UpdateAllRequest` extend `BaseSchema`.
+- [x] **Single source of truth for settings fields**: `ScoringSettings`, `LeagueSettingsResponse`, the ORM `LeagueSettings` and the 7 frontend settings components repeat ~80 fields. Generate the response from `ScoringSettings` / `RosterSettings` (or restructure into a grouped/JSON model).
+- [x] **One transaction pattern**: `get_db` commits on success *and* routes call `commit()`. Pick one (recommended: `get_db` owns commit; routes only `flush`).
+- [x] **Remove cruft routes**: legacy `/get_leagues_by_user` alias; five identical router-level `GET /` health endpoints; keep one health endpoint that also checks the DB.
+- [x] **Config-driven deployment settings**: CORS origins, pool size/overflow into `Settings`; resolve `.env` path independent of working directory.
+- [x] **Schema hygiene** (DB is disposable — redo the migration freely):
+  - [x] Add indexes on FKs (`teams.league_id`, `teams.owner_id`, `draft_picks.draft_id`, `draft_picks.team_id`, `standings.league_id`, …) and a unique constraint on `league_settings.league_id` (and `drafts.league_id` if one draft per league). Verify against the current migration first.
+  - [x] Tighten nullability (`Draft.status`, `league_id`-style columns, etc.); use enums / `CheckConstraint` for `status` and `draft_type` (`api/models/enums.py` exists).
+  - [x] Replace `Team.roster` `ARRAY(Integer)` with a proper roster join table.
+  - [x] Move the hardcoded draft defaults in `create_league` (start in 7 days, 60 s/pick) into settings or the request.
+  - [x] Run `alembic revision --autogenerate` on a fresh DB and confirm the diff is empty.
+- [x] **RapidAPI client** (`api/utils/rapidapi/rapidapi.py`): reuse one `httpx.AsyncClient`; bound the cache; retry only 5xx / transport errors (not 4xx); let failures propagate so a failed sync is not reported as "0 rows synced"; delete the `RapidApi` alias.
+- [x] **Typing**: remove the mypy `ignore_errors` override for `api.utils.*` and fix what surfaces.
+- [x] **Tooling**: set Ruff `known-first-party = ["api"]` so `api.*` imports sort correctly.
+- [x] **Layout cleanup**: delete `api/utils/db/models.py` shim; move `update.py`'s logic into `services/`; collapse `dependencies/db.py` re-export; consider dropping `psycopg2-binary` (run Alembic with an async env).
+- [x] **Tests**: add a Postgres-backed test tier (CI service container) for SQL, relationships and scoring/elimination paths; add WebSocket and commissioner-only settings tests. Current tests mock the session entirely.
+
+---
+
+## Phase 17: Frontend React Best-Practice Gaps
+
+- [x] **Single API client**: ~15 call sites hand-build `${apiUrl}/api/...` and `Authorization` headers. Create one axios instance (or `fetch` wrapper) with `baseURL` and a token interceptor.
+- [x] **Server-state layer**: adopt TanStack Query for loading/error/caching/cancellation; remove hand-rolled `useEffect` fetching (no abort handling today).
+- [x] **`UserContext`**:
+  - [x] Memoize the context value and wrap functions in `useCallback`.
+  - [x] Drop the `user_id` / `userId` dual handling and the redundant `idToken` state.
+  - [x] Don't `await` backend calls inside `onAuthStateChange`; avoid re-posting `/auth/login` on every token refresh.
+  - [x] Surface login-sync failures to the UI instead of only logging.
+- [x] **`useWebSocket`**: send the auth token; exponential backoff with cap; don't reconnect after intentional close; use `ReturnType<typeof setTimeout>`; keep a message queue/callback rather than only the latest message; send `eventType` consistently with the server.
+- [x] **Route-level code splitting**: `React.lazy` + `Suspense` per page (bundle is ~850 kB / 250 kB gzip); split MUI/vendor chunks.
+- [x] **Dependency hygiene**:
+  - [x] `npm audit fix` (7 vulnerabilities in prod deps incl. 1 critical, 4 high).
+  - [x] Remove `@types/axios`, `@types/react-router-dom` (libs ship own types) and unused `dotenv`.
+  - [x] Review upgrades: Vite, Vitest, `@mui/*` 5.18, `react-router-dom` 6.30.x.
+- [x] **Type safety**: replace the 33 Biome `any` warnings (settings components take `any`); use generated or shared API types; consider `noUncheckedIndexedAccess`.
+- [x] **Deduplicate settings UI**: the 7 `Scoring*SettingsComponent` files become one data-driven component fed by a field schema.
+- [x] **Dev proxy**: add a Vite `server.proxy` for `/api` and `/api/drafts/ws` so `VITE_API_URL` / CORS config become optional locally.
+- [x] **Tests**: cover `useWebSocket` reconnect/backoff, auth flow, draft page.
+
+---
+
+## Phase 18: Makefile & Developer Workflow
+
+Goal: one discoverable entry point for running the API, frontend and checks, replacing the multi-line command blocks in README / AGENTS / CONTRIBUTING.
+
+- [x] Add a root `Makefile` (`.PHONY`, `make help` listing targets via `##` comments) with at least:
+  - [x] `make setup` — `uv sync` + `npm install` + copy `.env.example` files if missing
+  - [x] `make db-up` / `db-down` / `db-reset` — Docker Compose Postgres
+  - [x] `make migrate` — `alembic upgrade head`; `make migration m="msg"` — autogenerate
+  - [x] `make api` — uvicorn with reload (hides the awkward `--app-dir ..` invocation)
+  - [x] `make web` — Vite dev server; `make dev` — DB + API + web
+  - [x] `make seed` — run `seed_nfl_data.py`
+  - [x] `make lint` / `format` / `typecheck` / `test` / `check` (everything CI runs)
+- [x] Make the API runnable the standard way: decide whether `api/` is a package imported as `api.main` from the repo root (current `--app-dir ..` hack) and simplify, e.g. a root `pyproject.toml` workspace or running uvicorn from the repo root. AGENTS.md already claims a root `pyproject.toml` that does not exist — fix the code or the doc.
+- [x] Point CI at the same `make` targets so local and CI cannot drift.
+- [x] Update README, CONTRIBUTING and AGENTS to use `make` targets.
+
+---
+
+## Phase 19: Repository Hygiene
+
+- [x] Reconcile docs with reality: AGENTS.md references a root `pyproject.toml`, a `utils/db/` that contradicts the documented layout, and `REWRITE_ROADMAP.md` as the active roadmap; mark `REWRITE_ROADMAP.md` as archived and link this file from README / AGENTS.
+- [x] Review `.gitignore`: it is a generic template with duplicate entries (`.env`, `*firebase*.json`, `.pylintrc`, `yarn.lock` ignored while Firebase is gone). Trim to what applies; ensure `.bin/`, caches and `dist/` stay ignored.
+- [x] Confirm CI (`.github/workflows/ci.yml`) runs Ruff check + format check, Mypy, pytest, Biome, `tsc`/build and Vitest, with dependency caching and a Postgres service for the new DB tests.
+- [x] Add dependency-update automation (Dependabot / Renovate) and a periodic `npm audit` / `pip-audit` step.
+- [x] Pin runtime versions (`.python-version` exists; add `.nvmrc` / `engines` for Node).
+- [x] Add pre-commit (or `make check` hook) running Ruff + Biome.
+- [x] Remove dead leftovers: Firebase mentions, stale "transitional shim" comments, unused assets (`react.svg`), the `DevQuickSync` once the admin flow is settled (kept: it is dev-only and still the quickest way to sync).
+- [x] Add a `LICENSE` and basic `SECURITY.md` if the repo is to be public. (`SECURITY.md` added; the `LICENSE` choice is left to the repo owner.)
+
+---
+
+## Phase 20: League Management, Invites, Draft Room Rebuild & Unified Settings
+> Notes on a Sleeper/ESPN-style draft lifecycle. Pre-dev rules apply: redesign schemas freely, no migrations of old data.
+
+- [x] **League Page (replaces "Standings")**:
+  - [x] Rename the standings concept to a **League** page: standings, league info, members, commissioner tools, and upcoming draft status in one place.
+  - [x] Route/nav labels and `LeaguePage.tsx` updated; `StandingsTable` becomes one section of the page.
+- [x] **Commissioner Roles**:
+  - [x] Support one or more commissioners per league (`league_members.role`), enforced invariant: **never zero commissioners** (reject demoting/removing the last one).
+  - [x] Commissioner-only dependency on routes (`require_commissioner`) for settings, invites, draft control, and member management.
+  - [x] UI to promote/demote commissioners and remove members.
+- [x] **Invite Flow (Link + Join Code)**:
+  - [x] `league_invites` table: unique short code, league FK, created_by, optional expiry/max uses, revoked flag.
+  - [x] Endpoints: create/regenerate/revoke invite (commissioner), resolve invite (`GET /api/invites/{code}`), join (`POST /api/invites/{code}/join`).
+  - [x] Shareable link `/join/:code`: unauthenticated users are sent through login then returned to auto-join.
+  - [x] Homepage "Join with Code" input accepting the same code.
+  - [x] Commissioner invite panel on the League page: copy link, copy code, regenerate.
+  - [x] Joining creates a team for the user; block joins when league is full or draft has started (configurable).
+- [x] **My Team Page**:
+  - [x] Show the roster slot layout even when empty (QB/RB/WR/TE/FLEX/K/DEF etc. per league roster settings), with placeholders per slot.
+  - [x] Owner can edit team name (and avatar later); commissioner can edit any team name.
+  - [x] Roster management actions allowed by league rules (add/drop when free agency is enabled, swaps between rounds).
+  - [x] Alive/eliminated badges and next-game status per player.
+- [x] **Draft Lifecycle Rebuild (match Sleeper / ESPN draft room)**:
+  - [x] Draft states: `unscheduled` → `scheduled` → `lobby/waiting` → `in_progress` → `paused` → `completed`. Visiting the Draft tab must **never** auto-start a timer.
+  - [x] Commissioner **draft setup**: date/time, time per pick, draft type (snake, linear, third-round reversal; auction later), pick-clock behavior on timeout (auto-pick from queue / best available). Rounds are derived from the roster size (`roster_total`), not configured.
+  - [x] **Draft order**: no pre-assigned slots. Commissioner assigns each team to a slot manually, with a randomize button and manual reorder; order locked once started.
+  - [x] Draft lobby: participants join the room, presence indicators, countdown to scheduled start, commissioner **Start / Pause / Resume** controls.
+  - [x] **Server-authoritative timer**: persist `current_pick_deadline`/`pick_started_at` in the DB and broadcast over WebSocket; clients render countdown from server time so page reloads never reset the clock.
+  - [x] Fix pick submission: clicking Draft on a player must validate turn, player availability, and roster rules, then broadcast to all clients (REST + WS parity, idempotent).
+  - [x] Draft room UI: board grid (teams as columns in assigned order, rounds as rows, cells colored by position), available players list with search/position filters, **pick queue** (pre-rank), your-roster tab, pick feed, on-the-clock / on-deck indicators.
+  - [x] Reconnect/resync: full state snapshot on WebSocket connect.
+  - [x] Commissioner extras: undo last pick, force/auto pick, edit time per pick mid-draft.
+- [x] **Season & Players Defaults**:
+  - [x] Players page defaults to the configured season (`.env` season, currently 2026) instead of hardcoded 2024; single source of truth exposed via a `/api/config` (or similar) endpoint to the frontend.
+  - [x] League `season` is **read-only**, defaulted from `.env` at creation.
+- [x] **Unified League Settings (editable by commissioners)**:
+  - [x] Header block editable: league name, number of teams, commissioners (one or more). Season displayed but not editable.
+  - [x] Single **Settings** page with grouped sections: **League**, **Roster**, **Scoring** (all scoring combined under one header with subheaders: passing, rushing, receiving, kicking, defense, etc.), **Draft** (centralized: type, date/time, time per pick, order), and **Postseason**.
+  - [x] Lock settings that can't change after the draft starts (team count, roster size, draft order).
+  - [x] Backend `PATCH` endpoints with validation + commissioner authorization; changes reflected live for members.
+- [x] **Postseason-Specific Fantasy Settings** (what makes this different from a regular season):
+  - [x] **Free agency toggle**: whether players can be picked up from the free agent pool during the playoffs (and when: between rounds only, waiver priority vs. first-come).
+  - [x] **Per-round scoring multipliers** (e.g. Wild Card 1x, Divisional 1.5x, Conference 2x, Super Bowl 3x), configurable by commissioner.
+  - [x] Roster lock timing per round, and whether eliminated players can be swapped out between rounds.
+  - [x] Tiebreaker rules and handling of bye-week teams (no game in Wild Card round).
+  - [x] Settings stored on `LeagueSettings` with sane defaults and surfaced in the Settings page and landing explainer.
+- [x] **Docs**: update `README.md`, `AGENTS.md` (route map, new models/endpoints), and `.env.example` as each piece lands.
+
+---
+
+## Phase 21: Mobile Polish, Members in Settings, Lineup Management & League-Scored Players
+
+- [x] **Top bar on phones**: the signed-in avatar/menu is cut off. Keep it visible on narrow screens (and hide the dev-only seed button there / move it into the drawer).
+- [x] **League page simplification**:
+  - [x] Remove the Members section and its manage/demote/make-commissioner/remove buttons from the League page.
+  - [x] Standings shows team name plus the owner's display name.
+- [x] **Members live in Settings**:
+  - [x] A Members section on the Settings page: roles (promote/demote), remove, and assign a member to a team (commissioner only).
+  - [x] Backend endpoint to assign/unassign a team owner with the same commissioner guard.
+- [x] **My Team layout**:
+  - [x] Phone: the full starting lineup fits on one screen (compact rows instead of large cards).
+  - [x] Desktop: a vertical list instead of the sparse card grid.
+  - [x] Drag and drop (touch + mouse) between starter slots and bench; persisted server-side with position-eligibility validation.
+- [x] **Scoring helpers**: plain-language conversions next to scoring inputs (e.g. 0.04 per passing yard = 1 point per 25 yards) for every rate that needs one.
+- [x] **Players page**:
+  - [x] Fantasy points computed with the selected league's scoring settings (server-side), sorted by points by default.
+  - [x] Phone layout shows name, position, team, fantasy points and key stats without sideways scrolling.
+  - [x] Desktop table leads with fantasy points alongside the full stat columns.
+
+---
+
+## Phase 22: RapidAPI Ingestion Hardening
+
+Root cause of the all-zero Players tab: Tank01 nests player stats by category (`Passing.passYds`, ...) with string values, while the parsers read flat keys, so every stat silently became 0. Details in [docs/rapidapi-tank01.md](docs/rapidapi-tank01.md).
+
+- [x] **Parsers**: one declarative column to (category, key) mapper shared by roster and box-score ingest; derived sacked, missed XP/FG; made-FG distances from `scoringPlays`; `POSTSEASON_WEEKS`; `StatsShapeError`.
+- [x] **Season stats ingest**: rows labelled with `SEASON_YEAR` (2026); raises `StatsShapeError` when players carry stats but none parse; zero-stat players still get zero rows.
+- [x] **Box score ingest**: skips snap-count-only entries, fills `kicking_fg_yards_made`, `game_week` 19-22, keeps a 0-0 score as 0 (not NULL), takes `gameTime_epoch`/`espnLink` from the games list, normalises "Final"/"Completed" to "Completed".
+- [x] **Schema**: `kicking_fg_made` on season and game stats (Alembic `0002`); Players endpoint reads the column.
+- [x] **Client**: logs and exposes `x-ratelimit-requests-remaining`, warns when low, retries 429 honouring `Retry-After`, optional dev disk cache (`RAPIDAPI_CACHE_DIR`).
+- [x] **Seed script**: fails when teams/players/stats come back empty, `--no-stats` replaces the always-true `--with-stats`, prints remaining quota.
+- [x] **Config**: `SEASON_YEAR=2026` default, `.env.example` and docs.
+- [x] **Docs**: `docs/rapidapi-tank01.md`, linked from README and AGENTS.
+- [x] **Tests**: fixture-based parser tests (real trimmed payloads), client tests for quota, 429 and disk cache.
+- [x] **Verified end to end**: 2026 seed yields 1619 season stat rows with nonzero stats.
+- [ ] **Open: per-team DST stats.** Box `DST` is per team; derive team defence rows (and a team-as-player model) before DST scoring can work.
+- [ ] **Open: kicker season FG scoring.** Season rows have a made count but no distances, so distance bonuses are not applied to season points; only the flat per-FG rate is. Fix needs per-game data (box scores or `getNFLGamesForPlayer`).
+- [ ] **Open: archive-season backfill** via `getNFLGamesForPlayer` (roster stats only exist for the current season).
+- [ ] **Open: 2026 postseason box scores** cannot be seeded until January 2027.
+
+---
+
+## Phase 23: API Review Fixes (MVP readiness)
+
+Outcome of an API design review; remaining forward-looking work (deploy, scaling) is tracked in [GitHub Issues](https://github.com/kmacri12/PostSznFantasy/issues) and decisions in [docs/api-decisions.md](docs/api-decisions.md).
+
+- [x] **Auto-pick race**: the clock re-checks the deadline under the draft lock (`auto_pick(only_if_overdue=True)`, `PickNotDue`) so a drafter's pick no longer burns the next team's turn.
+- [x] **Draft lock audit** (#3): every draft mutation takes the row lock; added pause-vs-clock and undo-vs-clock tests.
+- [x] **Restart safety** (#4): lapsed pick deadlines get a fresh window on startup instead of a burst of auto-picks.
+- [x] **WebSocket resync** (#5): verified a full `SNAPSHOT` follows AUTH on every connect (no change needed).
+- [x] **Gzip** (#6): `GZipMiddleware` for responses over 1 KB.
+- [x] **Draftable positions** (#7): season stats default to QB/RB/WR/TE/K/DST.
+- [x] **Invite expiry** (#8): 7-day default shown in the invite panel; joining after the draft starts defaults to allowed.
+- [x] **Ingestion guard** (#9): per-type advisory lock, `nfl.ingestion_status` (migration 0003) and `GET /api/players/sync-status`.
+- [x] **Member removal mid-draft** (#10): behaviour pinned by a test (unassign, keep picks, auto-pick covers the team).
+- [ ] Deploy plan (#11) and WebSocket fan-out beyond one process (#12) are open issues, not part of this phase.

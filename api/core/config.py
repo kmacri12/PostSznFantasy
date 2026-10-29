@@ -1,12 +1,23 @@
 from functools import lru_cache
+from pathlib import Path
+from typing import Annotated, Literal
 
-from pydantic import PostgresDsn, computed_field, model_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import (
+    Field,
+    PostgresDsn,
+    computed_field,
+    field_validator,
+    model_validator,
+)
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
+
+# Anchored to the package so uvicorn, Alembic and pytest agree regardless of cwd.
+ENV_FILE = Path(__file__).resolve().parents[1] / ".env"
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=ENV_FILE,
         env_file_encoding="utf-8",
         extra="ignore",
     )
@@ -14,29 +25,55 @@ class Settings(BaseSettings):
     # Database — accept either a full URI or discrete parts; URI takes priority.
     pg_uri: PostgresDsn | None = None
     pg_host: str | None = None
-    pg_port: int = 5432
+    pg_port: int = 5433
     pg_user: str = "postgres"
     pg_password: str = "postgres"
     pg_dbname: str = "postszn"
 
     # Supabase Auth
-    supabase_url: str = ""
+    # Required: without it there is no key to verify tokens against.
+    supabase_url: str = Field(min_length=1)
 
     @computed_field  # type: ignore[prop-decorator]
     @property
-    def supabase_jwks_url(self) -> str | None:
+    def supabase_jwks_url(self) -> str:
         """Standard JWKS endpoint for asymmetric JWT verification."""
-        if not self.supabase_url:
-            return None
         return f"{self.supabase_url.rstrip('/')}/auth/v1/.well-known/jwks.json"
+
+    # Deployment
+    cors_origins: Annotated[list[str], NoDecode] = ["http://localhost:5173"]
+    db_pool_size: int = 20
+    db_max_overflow: int = 10
+
+    # Comma-separated Supabase user ids allowed to call /api/admin/*; empty means nobody.
+    admin_supabase_uids: Annotated[list[str], NoDecode] = []
+
+    @field_validator("admin_supabase_uids", "cors_origins", mode="before")
+    @classmethod
+    def _split_csv(cls, value: object) -> object:
+        if isinstance(value, str):
+            return [item.strip() for item in value.split(",") if item.strip()]
+        return value
 
     # RapidAPI
     rapidapi_baseurl: str = ""
     rapidapi_apikey: str = ""
     rapidapi_apihost: str = ""
+    # Set to a directory to cache API responses on disk (dev only; never expires).
+    rapidapi_cache_dir: str = ""
 
     # App
-    season_year: int = 2025
+    season_year: int = 2026
+
+    # Background scheduler (off by default; every tick can spend RapidAPI quota)
+    scheduler_enabled: bool = False
+    scheduler_roster_sync_hours: int = 24
+    scheduler_live_poll_seconds: int = 90
+
+    # Logging
+    environment: str = "development"
+    log_level: str = "INFO"
+    log_format: Literal["auto", "json", "console"] = "auto"
 
     @model_validator(mode="after")
     def _require_db_config(self) -> "Settings":
@@ -57,14 +94,6 @@ class Settings(BaseSettings):
         return (
             f"postgresql+asyncpg://{self.pg_user}:{self.pg_password}"
             f"@{self.pg_host}:{self.pg_port}/{self.pg_dbname}"
-        )
-
-    @computed_field  # type: ignore[prop-decorator]
-    @property
-    def sync_database_url(self) -> str:
-        """Sync-dialect URL for Alembic migrations (psycopg2)."""
-        return self.async_database_url.replace(
-            "postgresql+asyncpg://", "postgresql+psycopg2://", 1
         )
 
 

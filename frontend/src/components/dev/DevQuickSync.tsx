@@ -10,10 +10,13 @@ import {
   DialogTitle,
   Typography,
 } from "@mui/material";
-import axios from "axios";
 import type React from "react";
 import { useState } from "react";
+import { useAdminSync } from "../../api/queries";
 import { useUser } from "../../contexts/UserContext";
+import { createLogger } from "../../utils/logger";
+
+const logger = createLogger("DevQuickSync");
 
 interface SyncResult {
   status: string;
@@ -27,7 +30,8 @@ interface SyncResult {
 }
 
 export const DevQuickSync: React.FC = () => {
-  const { user, getIdToken } = useUser();
+  const { user } = useUser();
+  const sync = useAdminSync();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<SyncResult | null>(null);
@@ -43,20 +47,9 @@ export const DevQuickSync: React.FC = () => {
     setResult(null);
 
     try {
-      const apiUrl = import.meta.env.VITE_API_URL;
-      const token = await getIdToken();
-      const response = await axios.post(
-        `${apiUrl}/api/admin/update/all`,
-        { withStats: true, withBoxScores: false },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-      setResult(response.data);
+      setResult(await sync.mutateAsync());
     } catch (err: unknown) {
-      console.error("Quick sync failed:", err);
+      logger.error("Quick sync failed:", err);
       setError("Failed to run sync. Check server logs.");
     } finally {
       setLoading(false);

@@ -1,0 +1,312 @@
+{
+ "statusCode": 200,
+ "body": {
+  "gameID": "20260110_LAR@CAR",
+  "gameDate": "20260110",
+  "gameStatus": "Completed",
+  "gameWeek": "Wild Card",
+  "seasonType": "Postseason",
+  "teamIDHome": "5",
+  "teamIDAway": "19",
+  "homePts": "31",
+  "awayPts": "34",
+  "scoringPlays": [
+   {
+    "score": "Puka Nacua 14 Yd pass from Matthew Stafford (Harrison Mevis Kick)",
+    "scorePeriod": "Q1",
+    "homeScore": "0",
+    "awayScore": "7",
+    "teamID": "19",
+    "scoreDetails": "4 plays, 45 yards, 1:51",
+    "scoreType": "TD",
+    "scoreTime": "11:35",
+    "team": "LAR",
+    "playerIDs": [
+     "12483",
+     "4426515",
+     "4574716"
+    ]
+   },
+   {
+    "score": "Puka Nacua 5 Yd Rush (Harrison Mevis Kick)",
+    "scorePeriod": "Q2",
+    "homeScore": "0",
+    "awayScore": "14",
+    "teamID": "19",
+    "scoreDetails": "7 plays, 48 yards, 4:01",
+    "scoreType": "TD",
+    "scoreTime": "12:16",
+    "team": "LAR",
+    "playerIDs": [
+     "4426515",
+     "4574716"
+    ]
+   },
+   {
+    "score": "Chuba Hubbard 1 Yd Rush (Ryan Fitzgerald Kick)",
+    "scorePeriod": "Q2",
+    "homeScore": "7",
+    "awayScore": "14",
+    "teamID": "5",
+    "scoreDetails": "7 plays, 65 yards, 3:23",
+    "scoreType": "TD",
+    "scoreTime": "8:53",
+    "team": "CAR",
+    "playerIDs": [
+     "4241416",
+     "4568263"
+    ]
+   },
+   {
+    "score": "Harrison Mevis 46 Yd Field Goal",
+    "scorePeriod": "Q2",
+    "homeScore": "7",
+    "awayScore": "17",
+    "teamID": "19",
+    "scoreDetails": "6 plays, 37 yards, 3:29",
+    "scoreType": "FG",
+    "scoreTime": "5:24",
+    "team": "LAR",
+    "playerIDs": [
+     "4574716"
+    ]
+   },
+   {
+    "score": "Bryce Young 16 Yd Rush (Ryan Fitzgerald Kick)",
+    "scorePeriod": "Q2",
+    "homeScore": "14",
+    "awayScore": "17",
+    "teamID": "5",
+    "scoreDetails": "5 plays, 81 yards, 0:54",
+    "scoreType": "TD",
+    "scoreTime": "0:37",
+    "team": "CAR",
+    "playerIDs": [
+     "4685720",
+     "4568263"
+    ]
+   },
+   {
+    "score": "Ryan Fitzgerald 46 Yd Field Goal",
+    "scorePeriod": "Q3",
+    "homeScore": "17",
+    "awayScore": "17",
+    "teamID": "5",
+    "scoreDetails": "13 plays, 59 yards, 7:08",
+    "scoreType": "FG",
+    "scoreTime": "7:29",
+    "team": "CAR",
+    "playerIDs": [
+     "4568263"
+    ]
+   },
+   {
+    "score": "Harrison Mevis 42 Yd Field Goal",
+    "scorePeriod": "Q3",
+    "homeScore": "17",
+    "awayScore": "20",
+    "teamID": "19",
+    "scoreDetails": "9 plays, 46 yards, 3:12",
+    "scoreType": "FG",
+    "scoreTime": "4:17",
+    "team": "LAR",
+    "playerIDs": [
+     "4574716"
+    ]
+   },
+   {
+    "score": "Chuba Hubbard 3 Yd Rush (Ryan Fitzgerald Kick)",
+    "scorePeriod": "Q4",
+    "homeScore": "24",
+    "awayScore": "20",
+    "teamID": "5",
+    "scoreDetails": "4 plays, 62 yards, 1:40",
+    "scoreType": "TD",
+    "scoreTime": "14:34",
+    "team": "CAR",
+    "playerIDs": [
+     "4241416",
+     "4568263"
+    ]
+   },
+   {
+    "score": "Kyren Williams 13 Yd pass from Matthew Stafford (Harrison Mevis Kick)",
+    "scorePeriod": "Q4",
+    "homeScore": "24",
+    "awayScore": "27",
+    "teamID": "19",
+    "scoreDetails": "11 plays, 67 yards, 5:47",
+    "scoreType": "TD",
+    "scoreTime": "8:47",
+    "team": "LAR",
+    "playerIDs": [
+     "12483",
+     "4430737",
+     "4574716"
+    ]
+   },
+   {
+    "score": "Jalen Coker 7 Yd pass from Bryce Young (Ryan Fitzgerald Kick)",
+    "scorePeriod": "Q4",
+    "homeScore": "31",
+    "awayScore": "27",
+    "teamID": "5",
+    "scoreDetails": "4 plays, 30 yards, 1:33",
+    "scoreType": "TD",
+    "scoreTime": "2:39",
+    "team": "CAR",
+    "playerIDs": [
+     "4685720",
+     "4695883",
+     "4568263"
+    ]
+   },
+   {
+    "score": "Colby Parkinson 19 Yd pass from Matthew Stafford (Harrison Mevis Kick)",
+    "scorePeriod": "Q4",
+    "homeScore": "31",
+    "awayScore": "34",
+    "teamID": "19",
+    "scoreDetails": "7 plays, 71 yards, 2:01",
+    "scoreType": "TD",
+    "scoreTime": "0:38",
+    "team": "LAR",
+    "playerIDs": [
+     "12483",
+     "4242557",
+     "4574716"
+    ]
+   }
+  ],
+  "DST": {
+   "away": {
+    "teamAbv": "LAR",
+    "teamID": "19",
+    "defTD": "0",
+    "defensiveInterceptions": "1",
+    "sacks": "2",
+    "ydsAllowed": "333",
+    "fumblesRecovered": "1",
+    "ptsAllowed": "31",
+    "safeties": "0"
+   },
+   "home": {
+    "teamAbv": "CAR",
+    "teamID": "5",
+    "defTD": "0",
+    "defensiveInterceptions": "1",
+    "sacks": "1",
+    "ydsAllowed": "411",
+    "fumblesRecovered": "0",
+    "ptsAllowed": "34",
+    "safeties": "0"
+   }
+  },
+  "playerStats": {
+   "12483": {
+    "gameID": "20260110_LAR@CAR",
+    "Rushing": {
+     "rushAvg": "0.0",
+     "rushYds": "0",
+     "carries": "2",
+     "longRush": "2",
+     "rushTD": "0"
+    },
+    "Passing": {
+     "qbr": "48.7",
+     "rtg": "93.8",
+     "sacked": "1-9",
+     "passAttempts": "42",
+     "passAvg": "7.2",
+     "passTD": "3",
+     "passYds": "304",
+     "int": "1",
+     "passCompletions": "24"
+    },
+    "teamID": "19",
+    "snapCounts": {
+     "offSnapPct": "1.00",
+     "defSnap": "0",
+     "stSnap": "0",
+     "stSnapPct": "0.00",
+     "offSnap": "76",
+     "defSnapPct": "0.00"
+    },
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "playerID": "12483",
+    "longName": "Matthew Stafford"
+   },
+   "4574716": {
+    "gameID": "20260110_LAR@CAR",
+    "teamID": "19",
+    "snapCounts": {
+     "offSnapPct": "0.00",
+     "defSnap": "0",
+     "stSnap": "6",
+     "stSnapPct": "0.19",
+     "offSnap": "0",
+     "defSnapPct": "0.00"
+    },
+    "Kicking": {
+     "fgLong": "46",
+     "fgMade": "2",
+     "fgAttempts": "2",
+     "xpMade": "4",
+     "fgPct": "100.0",
+     "kickingPts": "10",
+     "xpAttempts": "4",
+     "fgMissed": "0",
+     "xpMissed": "0"
+    },
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "playerID": "4574716",
+    "longName": "Harrison Mevis"
+   },
+   "4568263": {
+    "gameID": "20260110_LAR@CAR",
+    "teamID": "5",
+    "snapCounts": {
+     "offSnapPct": "0.00",
+     "defSnap": "0",
+     "stSnap": "11",
+     "stSnapPct": "0.34",
+     "offSnap": "0",
+     "defSnapPct": "0.00"
+    },
+    "Kicking": {
+     "fgLong": "46",
+     "fgMade": "1",
+     "fgAttempts": "1",
+     "xpMade": "4",
+     "fgPct": "100.0",
+     "kickingPts": "7",
+     "xpAttempts": "4",
+     "fgMissed": "0",
+     "xpMissed": "0"
+    },
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "playerID": "4568263",
+    "longName": "Ryan Fitzgerald"
+   },
+   "4036135": {
+    "gameID": "20260110_LAR@CAR",
+    "teamID": "19",
+    "snapCounts": {
+     "offSnapPct": "1.00",
+     "defSnap": "0",
+     "stSnap": "6",
+     "stSnapPct": "0.19",
+     "offSnap": "76",
+     "defSnapPct": "0.00"
+    },
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "playerID": "4036135",
+    "longName": "Alaric Jackson"
+   }
+  }
+ }
+}

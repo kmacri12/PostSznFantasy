@@ -11,6 +11,7 @@ All contributions—whether submitted by human engineers or AI agents—must adh
 - **KISS (Keep It Simple, Stupid)**: Build the simplest working solution. Avoid premature abstractions, speculative interfaces, or gratuitous indirection.
 - **Intent-Driven Comments (Explain WHY, Not WHAT)**: Code must be self-explanatory through expressive naming and clear logic. Reserve comments strictly for non-obvious domain rules, hardware/protocol quirks, or external library workarounds. Never write comments that merely narrate what the next line of code does.
 - **Self-Documenting Code**: Choose descriptive names for functions, classes, and variables so that the intent is immediately clear from the code alone.
+- **Mobile-First UI**: The app is used primarily on phones. Every UI is designed for a ~375px-wide viewport first and then scaled up. Prefer a single vertical column; never spread one control across multiple rows or columns of a grid, and avoid horizontal scrolling and hover-only interactions. Touch targets are at least 44px tall.
 - **Documentation Synchronization Mandate**: Whenever you introduce or modify endpoints, database schemas, environment variables, dependencies, or workflows, you **must update the relevant documentation** (`README.md`, `AGENTS.md`, `CONTRIBUTING.md`, or `.env.example`). Stale documentation is treated as a build-breaking defect.
 
 ---
@@ -44,50 +45,14 @@ Keep summaries imperative and lowercase (e.g., `feat(api): add player playoff st
 
 ## 3. Code Standards & Verification Commands
 
-Before opening a pull request, verify all code quality checks locally. Both the backend and frontend must pass all verification steps without errors or warnings.
-
-### Backend (`api/`)
-
-The backend is built with FastAPI, Python 3.13, and managed via `uv`.
+Before opening a pull request, run everything CI runs. Both the backend and frontend must pass without errors or warnings.
 
 ```bash
-cd api
-
-# 1. Lint check (Ruff)
-uv run ruff check .
-
-# 2. Auto-fix linting issues if necessary
-uv run ruff check --fix .
-
-# 3. Format check (Ruff)
-uv run ruff format --check .
-
-# 4. Strict Static Type Checking (Mypy)
-uv run mypy .
-
-# 5. Unit & Integration Tests (Pytest)
-uv run pytest
+make check      # lint + type check + tests + production build
+make format     # auto-fix Ruff and Biome findings
 ```
 
-### Frontend (`frontend/`)
-
-The frontend is built with React 18, TypeScript, Vite, and checked with Biome.
-
-```bash
-cd frontend
-
-# 1. Lint, formatting check, and import sorting (Biome)
-npx @biomejs/biome check src/
-
-# 2. Auto-fix formatting and lint issues
-npx @biomejs/biome check --write src/
-
-# 3. TypeScript compilation & production build check
-npm run build
-
-# 4. Unit tests (Vitest)
-npm run test
-```
+Narrower targets: `make lint`, `make typecheck`, `make test`, each with `-api` / `-web` variants. The backend is FastAPI on Python 3.13 managed by `uv` (Ruff, strict Mypy, pytest); the frontend is React 18 + TypeScript + Vite checked with Biome and Vitest. A pre-commit hook runs Ruff and Biome on staged files (`pre-commit install`).
 
 ---
 
@@ -96,17 +61,17 @@ npm run test
 A pull request is ready for merge only when all of the following criteria are met:
 
 1. **Clean Checks & Build**:
-   - `uv run ruff check .` and `uv run ruff format --check .` succeed with zero errors.
-   - `uv run mypy .` succeeds with zero errors under strict mode.
-   - `npx @biomejs/biome check src/` passes.
-   - `npm run build` succeeds cleanly without TypeScript compilation errors.
+   - `make check` succeeds: Ruff, strict Mypy, Biome, `tsc`, tests and the production build.
 2. **Comprehensive Test Coverage**:
-   - All existing tests pass (`uv run pytest` and `npm run test`).
+   - All existing tests pass (`make test`).
    - New business logic, scoring formulas, or API routes include corresponding unit/integration tests.
 3. **Architectural Consistency**:
-   - Database modifications include an Alembic migration (`uv run alembic revision --autogenerate -m "..."`).
+   - Database modifications include an Alembic migration (`make migration m="..."`).
    - Request/response contracts use typed Pydantic models with camelCase aliasing (`BaseSchema`).
    - Async database sessions are scoped via FastAPI dependency injection (`DbSession`).
-4. **Documentation Synchronization**:
+4. **Mobile Verification (every UI change)**:
+   - Run the app and look at the changed screen at phone width (375x812) and at desktop width before calling the work done: no horizontal scroll, no clipped or truncated text, no overlapping elements, tap targets of at least 44px, and drag interactions that work by touch.
+   - Fix anything that looks off, then re-check. Do not hand off UI work that has only been type-checked.
+5. **Documentation Synchronization**:
    - Any new environment variables are documented in `api/.env.example` or `frontend/.env.example` and registered in `api/core/config.py`.
    - Structural or workflow changes are reflected in `README.md` and `AGENTS.md`.

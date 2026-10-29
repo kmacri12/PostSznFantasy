@@ -1,55 +1,43 @@
-import ExpandLessIcon from "@mui/icons-material/ExpandLess";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {
+  Alert,
   Box,
   Button,
-  Collapse,
-  Divider,
+  Card,
+  Container,
   FormControl,
   Grid,
-  IconButton,
   InputLabel,
   OutlinedInput,
+  Step,
+  StepLabel,
+  Stepper,
   Typography,
 } from "@mui/material";
-import axios from "axios";
 import type React from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import RosterSettingsComponent from "../components/settings/RosterSettingsComponent";
-import ScoringCarryingSettingsComponent from "../components/settings/ScoringCarryingSettingsComponent";
-import ScoringDSTSettingsComponent from "../components/settings/ScoringDSTSettingsComponent";
-import ScoringKickingSettingsComponent from "../components/settings/ScoringKickingSettingsComponent";
-import ScoringPassingSettingsComponent from "../components/settings/ScoringPassingSettingsComponent";
-import ScoringReceivingSettingsComponent from "../components/settings/ScoringReceivingSettingsComponent";
-import ScoringRushingSettingsComponent from "../components/settings/ScoringRushingSettingsComponent";
-import { useUser } from "../contexts/UserContext";
+import { useCreateLeague, useScoringDefaults } from "../api/queries";
+import RosterForm from "../components/settings/RosterForm";
+import ScoringForm from "../components/settings/ScoringForm";
+import { createLogger } from "../utils/logger";
+import {
+  type ScoringSettingsState,
+  countChangedFromDefaults,
+  toNumericScoring,
+} from "../utils/scoring";
 
-type ExpandedSection =
-  | "league"
-  | "roster"
-  | "passing"
-  | "rushing"
-  | "receiving"
-  | "carrying"
-  | "kicking"
-  | "defense";
+const logger = createLogger("CreateLeaguePage");
 
-const CreateLeaguePage = () => {
-  const apiUrl = import.meta.env.VITE_API_URL;
-  const { getIdToken } = useUser();
+const STEPS = ["League", "Roster", "Scoring", "Review"];
+
+const CreateLeaguePage = ({
+  onLeagueCreated,
+}: {
+  onLeagueCreated: (leagueId: number) => Promise<void>;
+}) => {
   const navigate = useNavigate();
   const [leagueName, setLeagueName] = useState("MyLeague");
-  const [expanded, setExpanded] = useState<Record<ExpandedSection, boolean>>({
-    league: true,
-    roster: false,
-    passing: false,
-    rushing: false,
-    receiving: false,
-    carrying: false,
-    kicking: false,
-    defense: false,
-  });
+  const [step, setStep] = useState(0);
 
   // Roster Settings
   const [rosterSettings, setRosterSettings] = useState({
@@ -74,249 +62,194 @@ const CreateLeaguePage = () => {
     roster_max_dst: 2,
   });
 
-  // Scoring Settings
-  const [scoringSettings, setScoringSettings] = useState({
-    scoring_passing_yard: 0,
-    scoring_passing_td: 0,
-    scoring_passing_2pt: 0,
-    scoring_passing_interception: 0,
-    scoring_passing_completion: 0,
-    scoring_passing_attempt: 0,
-    scoring_passing_sack: 0,
-    scoring_rushing_yard: 0,
-    scoring_rushing_td: 0,
-    scoring_rushing_2pt: 0,
-    scoring_rushing_attempt: 0,
-    scoring_receiving_reception: 0,
-    scoring_receiving_yard: 0,
-    scoring_receiving_td: 0,
-    scoring_receiving_2pt: 0,
-    scoring_receiving_target: 0,
-    scoring_receiving_reception_bonus_rb: 0,
-    scoring_receiving_reception_bonus_wr: 0,
-    scoring_receiving_reception_bonus_te: 0,
-    scoring_carrying_fumble: 0,
-    scoring_carrying_fumble_lost: 0,
-    scoring_special_punt_return_yard: 0,
-    scoring_special_punt_return_td: 0,
-    scoring_special_kick_return_yard: 0,
-    scoring_special_kick_return_td: 0,
-    scoring_kicking_fg_made: 0,
-    scoring_kicking_fg_miss: 0,
-    scoring_kicking_fg_made_0_19: 0,
-    scoring_kicking_fg_made_20_29: 0,
-    scoring_kicking_fg_made_30_39: 0,
-    scoring_kicking_fg_made_40_49: 0,
-    scoring_kicking_fg_made_50_plus: 0,
-    scoring_kicking_fg_yard: 0,
-    scoring_kicking_xp_made: 0,
-    scoring_kicking_xp_miss: 0,
-    scoring_dst_td: 0,
-    scoring_dst_pts_allowed_0: 0,
-    scoring_dst_pts_allowed_1_6: 0,
-    scoring_dst_pts_allowed_7_13: 0,
-    scoring_dst_pts_allowed_14_20: 0,
-    scoring_dst_pts_allowed_21_27: 0,
-    scoring_dst_pts_allowed_28_34: 0,
-    scoring_dst_pts_allowed_35_plus: 0,
-    scoring_dst_yards_allowed_under_100: 0,
-    scoring_dst_yards_allowed_100_199: 0,
-    scoring_dst_yards_allowed_200_299: 0,
-    scoring_dst_yards_allowed_300_399: 0,
-    scoring_dst_yards_allowed_400_499: 0,
-    scoring_dst_yards_allowed_500_plus: 0,
-    scoring_dst_sack: 0,
-    scoring_dst_safety: 0,
-    scoring_dst_fumble_recover: 0,
-    scoring_dst_interception: 0,
-  });
+  const [scoringSettings, setScoringSettings] = useState<ScoringSettingsState>({});
+  const defaultsQuery = useScoringDefaults();
+  const createLeague = useCreateLeague();
+  const scoringDefaults = defaultsQuery.data ?? null;
+  const defaultsFailed = defaultsQuery.isError;
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const handleExpandClick = (section: ExpandedSection) => {
-    setExpanded((prev) => ({ ...prev, [section]: !prev[section] }));
-  };
+  useEffect(() => {
+    if (defaultsQuery.data) setScoringSettings(defaultsQuery.data);
+  }, [defaultsQuery.data]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    const token = await getIdToken();
-    if (!token) {
-      console.error("No user is currently signed in.");
-      return;
-    }
+    setSubmitError(null);
 
     try {
-      const response = await axios.post(
-        `${apiUrl}/api/leagues/create-league`,
-        {
-          leagueName,
-          rosterSettings,
-          scoringSettings,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
+      const response = await createLeague.mutateAsync({
+        leagueName,
+        rosterSettings,
+        scoringSettings: toNumericScoring(scoringSettings),
+      });
 
-      if (response.status === 201 || response.status === 200) {
-        const createdLeagueId = response.data.leagueId || response.data.league_id;
-        if (createdLeagueId) {
-          navigate(`/league/${createdLeagueId}`);
-        } else {
-          navigate("/");
-        }
+      const createdLeagueId = response.leagueId;
+      if (!createdLeagueId) {
+        setSubmitError("League was created but the server returned no league id.");
+        return;
       }
+      await onLeagueCreated(createdLeagueId);
+      navigate(`/league/${createdLeagueId}`);
     } catch (error) {
-      console.error("Error creating league:", error);
+      logger.error("Error creating league:", error);
+      setSubmitError("Could not create the league. Please try again.");
     }
   };
 
+  const changedCount = scoringDefaults
+    ? countChangedFromDefaults(scoringSettings, scoringDefaults)
+    : 0;
+  const isLastStep = step === STEPS.length - 1;
+  const canAdvance = step !== 0 || (leagueName.trim() !== "" && rosterSettings.number_teams >= 2);
+
   return (
-    <Box component="form" onSubmit={handleSubmit} sx={{ padding: 2 }}>
-      <div id="league-info">
-        <Typography variant="h6" gutterBottom onClick={() => handleExpandClick("league")}>
-          League Information
-          <IconButton size="small" edge="end">
-            {expanded.league ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-          </IconButton>
-        </Typography>
-        <Collapse in={expanded.league}>
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth margin="normal">
-                <InputLabel htmlFor="league-name">Name</InputLabel>
-                <OutlinedInput
-                  id="league-name"
-                  value={leagueName}
-                  onChange={(e) => setLeagueName(e.target.value)}
-                  label="League Name"
-                  required
-                />
-              </FormControl>
+    <Container maxWidth="md" sx={{ py: 4 }}>
+      <Typography variant="h4" sx={{ mb: 3 }}>
+        Create a league
+      </Typography>
+      {submitError && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {submitError}
+        </Alert>
+      )}
+      <Stepper activeStep={step} alternativeLabel sx={{ mb: 4 }}>
+        {STEPS.map((label) => (
+          <Step key={label}>
+            <StepLabel>{label}</StepLabel>
+          </Step>
+        ))}
+      </Stepper>
+
+      <Box
+        component="form"
+        onSubmit={(event: React.FormEvent) => {
+          event.preventDefault();
+          if (isLastStep) handleSubmit(event);
+          else setStep((current) => current + 1);
+        }}
+      >
+        {step === 0 && (
+          <Card sx={{ p: 3 }}>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={8}>
+                <FormControl fullWidth>
+                  <InputLabel htmlFor="league-name">League name</InputLabel>
+                  <OutlinedInput
+                    id="league-name"
+                    value={leagueName}
+                    onChange={(e) => setLeagueName(e.target.value)}
+                    label="League name"
+                    required
+                  />
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <FormControl fullWidth>
+                  <InputLabel htmlFor="number-teams">Teams</InputLabel>
+                  <OutlinedInput
+                    id="number-teams"
+                    type="number"
+                    value={rosterSettings.number_teams || ""}
+                    onChange={(e) =>
+                      setRosterSettings({
+                        ...rosterSettings,
+                        number_teams: Number.parseInt(e.target.value, 10) || 0,
+                      })
+                    }
+                    label="Teams"
+                  />
+                </FormControl>
+              </Grid>
             </Grid>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth margin="normal">
-                <InputLabel htmlFor="number-teams">Teams</InputLabel>
-                <OutlinedInput
-                  id="number-teams"
-                  type="number"
-                  value={rosterSettings.number_teams || ""}
-                  onChange={(e) =>
-                    setRosterSettings({
-                      ...rosterSettings,
-                      number_teams: Number.parseInt(e.target.value, 10) || 0,
-                    })
-                  }
-                  label="Teams"
-                />
-              </FormControl>
-            </Grid>
-          </Grid>
-        </Collapse>
-      </div>
+          </Card>
+        )}
 
-      <Divider sx={{ margin: "20px 0" }} />
+        {step === 1 && (
+          <RosterForm
+            values={rosterSettings}
+            onChange={(next) => setRosterSettings(next as typeof rosterSettings)}
+          />
+        )}
 
-      <RosterSettingsComponent
-        expanded={expanded.roster}
-        rosterSettings={rosterSettings}
-        setRosterSettings={(newSettings) =>
-          setRosterSettings((prevSettings) => ({
-            ...prevSettings,
-            ...newSettings,
-          }))
-        }
-        handleExpandClick={() => handleExpandClick("roster")}
-      />
+        {step === 2 && defaultsFailed && (
+          <Alert severity="error">
+            Couldn't load the default scoring settings. Check that the API is running and reload.
+          </Alert>
+        )}
 
-      <Divider sx={{ margin: "20px 0" }} />
+        {step === 2 && scoringDefaults && (
+          <>
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <Typography color="text.secondary">
+                Defaults follow Sleeper's standard PPR.
+              </Typography>
+              <Button
+                type="button"
+                size="small"
+                onClick={() => setScoringSettings(scoringDefaults)}
+              >
+                Reset to Sleeper defaults
+              </Button>
+            </Box>
+            <ScoringForm
+              values={scoringSettings}
+              onChange={(key, rawValue) =>
+                setScoringSettings((previous) => ({ ...previous, [key]: rawValue }))
+              }
+            />
+          </>
+        )}
 
-      <ScoringPassingSettingsComponent
-        expanded={expanded.passing}
-        scoringSettings={scoringSettings}
-        setScoringSettings={(newSettings) =>
-          setScoringSettings((prevSettings) => ({
-            ...prevSettings,
-            ...newSettings,
-          }))
-        }
-        handleExpandClick={() => handleExpandClick("passing")}
-      />
+        {step === 3 && (
+          <Card sx={{ p: 3 }}>
+            <Typography variant="h6">{leagueName}</Typography>
+            <Typography color="text.secondary" sx={{ mt: 1 }}>
+              {rosterSettings.number_teams} teams · {rosterSettings.roster_total} roster spots
+            </Typography>
+            <Typography color="text.secondary" sx={{ mt: 1 }}>
+              Starters: {rosterSettings.roster_num_qb} QB, {rosterSettings.roster_num_rb} RB,{" "}
+              {rosterSettings.roster_num_wr} WR, {rosterSettings.roster_num_te} TE,{" "}
+              {rosterSettings.roster_num_flex_wr_rb_te} FLEX, {rosterSettings.roster_num_k} K,{" "}
+              {rosterSettings.roster_num_dst} DST
+            </Typography>
+            {scoringDefaults && (
+              <>
+                <Typography color="text.secondary" sx={{ mt: 1 }}>
+                  Scoring: {scoringSettings.scoring_passing_td} pt pass TD,{" "}
+                  {scoringSettings.scoring_receiving_reception} pt per reception,{" "}
+                  {scoringSettings.scoring_passing_yard} / {scoringSettings.scoring_rushing_yard} /{" "}
+                  {scoringSettings.scoring_receiving_yard} per pass / rush / rec yard
+                </Typography>
+                <Typography color="text.secondary" sx={{ mt: 1 }}>
+                  {changedCount === 0
+                    ? "Scoring matches Sleeper's standard PPR defaults."
+                    : `${changedCount} scoring setting${changedCount === 1 ? "" : "s"} changed from Sleeper defaults.`}
+                </Typography>
+              </>
+            )}
+          </Card>
+        )}
 
-      <Divider sx={{ margin: "20px 0" }} />
-
-      <ScoringRushingSettingsComponent
-        expanded={expanded.rushing}
-        scoringSettings={scoringSettings}
-        setScoringSettings={(newSettings) =>
-          setScoringSettings((prevSettings) => ({
-            ...prevSettings,
-            ...newSettings,
-          }))
-        }
-        handleExpandClick={() => handleExpandClick("rushing")}
-      />
-
-      <Divider sx={{ margin: "20px 0" }} />
-
-      <ScoringReceivingSettingsComponent
-        expanded={expanded.receiving}
-        scoringSettings={scoringSettings}
-        setScoringSettings={(newSettings) =>
-          setScoringSettings((prevSettings) => ({
-            ...prevSettings,
-            ...newSettings,
-          }))
-        }
-        handleExpandClick={() => handleExpandClick("receiving")}
-      />
-
-      <Divider sx={{ margin: "20px 0" }} />
-
-      <ScoringCarryingSettingsComponent
-        expanded={expanded.carrying}
-        scoringSettings={scoringSettings}
-        setScoringSettings={(newSettings) =>
-          setScoringSettings((prevSettings) => ({
-            ...prevSettings,
-            ...newSettings,
-          }))
-        }
-        handleExpandClick={() => handleExpandClick("carrying")}
-      />
-
-      <Divider sx={{ margin: "20px 0" }} />
-
-      <ScoringKickingSettingsComponent
-        expanded={expanded.kicking}
-        scoringSettings={scoringSettings}
-        setScoringSettings={(newSettings) =>
-          setScoringSettings((prevSettings) => ({
-            ...prevSettings,
-            ...newSettings,
-          }))
-        }
-        handleExpandClick={() => handleExpandClick("kicking")}
-      />
-
-      <Divider sx={{ margin: "20px 0" }} />
-
-      <ScoringDSTSettingsComponent
-        expanded={expanded.defense}
-        scoringSettings={scoringSettings}
-        setScoringSettings={(newSettings) =>
-          setScoringSettings((prevSettings) => ({
-            ...prevSettings,
-            ...newSettings,
-          }))
-        }
-        handleExpandClick={() => handleExpandClick("defense")}
-      />
-
-      <Button type="submit" variant="contained" color="primary" sx={{ marginTop: 2 }}>
-        Create League
-      </Button>
-    </Box>
+        <Box sx={{ display: "flex", justifyContent: "space-between", mt: 3 }}>
+          <Button
+            type="button"
+            color="inherit"
+            disabled={step === 0}
+            onClick={() => setStep((current) => current - 1)}
+          >
+            Back
+          </Button>
+          <Button
+            type="submit"
+            variant="contained"
+            disabled={!canAdvance || (isLastStep && !scoringDefaults)}
+          >
+            {isLastStep ? "Create league" : "Next"}
+          </Button>
+        </Box>
+      </Box>
+    </Container>
   );
 };
 

@@ -1,0 +1,18 @@
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: ruff check
+        entry: bash -c 'cd api && uv run ruff check --fix "${@#api/}"' --
+        language: system
+        files: ^api/.*\.py$
+      - id: ruff-format
+        name: ruff format
+        entry: bash -c 'cd api && uv run ruff format "${@#api/}"' --
+        language: system
+        files: ^api/.*\.py$
+      - id: biome
+        name: biome check
+        entry: bash -c 'cd frontend && npx @biomejs/biome check --write --no-errors-on-unmatched "${@#frontend/}"' --
+        language: system
+        files: ^frontend/src/.*\.(ts|tsx|json)$

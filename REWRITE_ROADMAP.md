@@ -1,5 +1,8 @@
 # REWRITE_ROADMAP.md — Modernization & Best Practices Checklist
 
+> [!NOTE]
+> **Archived (phases 1–14).** Active, forward-looking work lives in [ROADMAP.md](ROADMAP.md).
+
 ## 1. Executive Summary & App Domain
 
 > [!IMPORTANT]
@@ -340,57 +343,144 @@ This checklist outlines the sequence of refactor tasks for developers and AI cod
 ---
 
 ### Phase 11: Complete Missing Backend Endpoints & API Contract Alignment
-- [ ] **Player Directory & Stats Endpoints (`api/routers/players.py`)**:
-  - [ ] `GET /api/players/player-season-stats`: Query `NFLPlayerSeasonStats` joined with `NFLPlayer` and `NFLTeam`, supporting query params `season` and optional `position`. Returns `list[PlayerSeasonStatsResponse]`.
-  - [ ] `GET /api/players/player-list`: Query active NFL players with their team information, optionally filterable by `position` and `is_active` NFL teams. Returns `list[Player]`.
-  - [ ] Add unit/integration tests for player endpoints in `api/tests/test_api_integration.py`.
-- [ ] **Missing League & Team Endpoints (`api/routers/leagues.py`)**:
-  - [ ] `GET /api/leagues/{league_id}/teams`: Return all teams participating in the league with team IDs, team names, user/owner details, and draft pick status. (Required by `DraftPage.tsx`).
-  - [ ] `GET /api/leagues/teams/{team_id}`: Return detailed team roster, slot assignments, and player playoff survival statuses. (Required by `TeamPage.tsx`).
-  - [ ] `PUT /api/leagues/{league_id}/settings`: Allow commissioners to update roster configuration and custom scoring settings. (Required by `SettingsPage.tsx`).
-- [ ] **Standings Enrichment**:
-  - [ ] Enrich `GET /api/leagues/{league_id}/standings` to include team names and owner display names alongside rank, scores, and active player counts.
+- [x] **Player Directory & Stats Endpoints (`api/routers/players.py`)**:
+  - [x] `GET /api/players/player-season-stats`: Query `NFLPlayerSeasonStats` joined with `NFLPlayer` and `NFLTeam`, supporting query params `season` and optional `position`. Returns `list[PlayerSeasonStatsResponse]`.
+  - [x] `GET /api/players/player-list`: Query active NFL players with their team information, optionally filterable by `position` and `is_active` NFL teams. Returns `list[Player]`.
+  - [x] Add unit/integration tests for player endpoints in `api/tests/test_api_integration.py`.
+- [x] **Missing League & Team Endpoints (`api/routers/leagues.py`)**:
+  - [x] `GET /api/leagues/{league_id}/teams`: Return all teams participating in the league with team IDs, team names, user/owner details, and draft pick status. (Required by `DraftPage.tsx`).
+  - [x] `GET /api/leagues/teams/{team_id}`: Return detailed team roster, slot assignments, and player playoff survival statuses. (Required by `TeamPage.tsx`).
+  - [x] `PUT /api/leagues/{league_id}/settings`: Allow commissioners to update roster configuration and custom scoring settings. (Required by `SettingsPage.tsx`).
+- [x] **Standings Enrichment**:
+  - [x] Enrich `GET /api/leagues/{league_id}/standings` to include team names and owner display names alongside rank, scores, and active player counts.
 
 ---
 
 ### Phase 12: Modern Frontend UI/UX Overhaul & Dedicated Landing Experience
-- [ ] **Default Route & Dedicated Landing Page (`LandingPage.tsx`)**:
-  - [ ] Discontinue using `PlayersPage` as the root (`/`) route.
-  - [ ] Build a sleek, modern landing page (`frontend/src/pages/LandingPage.tsx`):
+- [x] **Default Route & Dedicated Landing Page (`LandingPage.tsx`)**:
+  - [x] Discontinue using `PlayersPage` as the root (`/`) route.
+  - [x] Build a sleek, modern landing page (`frontend/src/pages/LandingPage.tsx`):
     - **Hero Section**: High-impact playoff football branding explaining the cascading elimination mechanics.
     - **Interactive CTA**: Direct links to "Create a League", "View Your Leagues", or "Join with Code".
     - **How It Works / Rules Explainer**: Visual 4-round progression cards (Wild Card ➔ Divisional ➔ Conference Championships ➔ Super Bowl).
     - **Active User Dashboard Widget**: When authenticated, display the user's active leagues, current standings rank, and next scheduled draft at a glance.
-- [ ] **Modern Visual Design System (Shedding "2015 Material UI")**:
-  - [ ] Establish a dark-mode-first, sports-centric design theme using modern styling tokens (deep slate/charcoal backgrounds `#0f172a`, vibrant playoff accent colors, glassmorphism cards with subtle border strokes `border-slate-800`, crisp typography).
-  - [ ] Replace dated default MUI components (`Paper`, default `AppBar`, boxy dropdowns) with styled, modern components or Tailwind/CSS tokens with sharp border radii, subtle glow/gradient effects, and refined micro-interactions.
-  - [ ] Redesign the top navigation header (`App.tsx`):
+- [x] **Modern Visual Design System (Shedding "2015 Material UI")**:
+  - [x] Establish a dark-mode-first, sports-centric design theme using modern styling tokens (deep slate/charcoal backgrounds `#0f172a`, vibrant playoff accent colors, glassmorphism cards with subtle border strokes `border-slate-800`, crisp typography).
+  - [x] Replace dated default MUI components (`Paper`, default `AppBar`, boxy dropdowns) with styled, modern components or Tailwind/CSS tokens with sharp border radii, subtle glow/gradient effects, and refined micro-interactions.
+  - [x] Redesign the top navigation header (`App.tsx`):
     - Replace basic white/blue toolbar with a sleek blurred navbar with modern league switcher pill, user profile avatar, and responsive drawer.
-- [ ] **Page & Component Refresh**:
-  - [ ] **Draft Room (`DraftPage.tsx`, `DraftBoard.tsx`, `PlayerSelector.tsx`)**: Modernize the draft board into an interactive draft grid with live pulsating pick timers, sound/visual cues on deck, and modern search pills.
-  - [ ] **Standings Table (`StandingsTable.tsx`)**: Clean data visualization with round-by-round points badges, alive/eliminated player counters, and team avatars.
-  - [ ] **Roster View (`TeamPage.tsx`)**: Field or card-based roster view with elimination badges and game status.
-  - [ ] **League Creation Flow (`CreateLeaguePage.tsx`)**: Multi-step sleek wizard instead of clunky stacked accordions.
+- [x] **Page & Component Refresh**:
+  - [x] **Draft Room (`DraftPage.tsx`, `DraftBoard.tsx`, `PlayerSelector.tsx`)**: Modernize the draft board into an interactive draft grid with live pulsating pick timers, sound/visual cues on deck, and modern search pills.
+  - [x] **Standings Table (`StandingsTable.tsx`)**: Clean data visualization with round-by-round points badges, alive/eliminated player counters, and team avatars.
+  - [x] **Roster View (`TeamPage.tsx`)**: Field or card-based roster view with elimination badges and game status.
+  - [x] **League Creation Flow (`CreateLeaguePage.tsx`)**: Multi-step sleek wizard instead of clunky stacked accordions.
+
+---
+
+### Phase 13: Sleeper-Default PPR Scoring in the League Creation Flow
+> [!NOTE]
+> Every scoring field currently defaults to `0` in both `CreateLeaguePage.tsx` and the `ScoringSettings` Pydantic model, so a league created without touching the scoring steps scores nothing. Defaults below are Sleeper's standard PPR template. **Verify each value against a fresh Sleeper league's scoring screen before implementing** — they were written from memory, not copied from Sleeper.
+
+- [x] **Fractional scoring support (blocker)**: Per-yard values like `0.04` (1 pt / 25 pass yds) and `0.1` (1 pt / 10 rush/rec yds) cannot be stored today because all `scoring_*` columns are `Integer` (`api/db/models/league.py`) and `int` in `api/models/league_models.py`.
+  - [x] Change `scoring_*` columns to `Numeric(6, 2)` (`Decimal` in the ORM, `float` in `ScoringSettings` / `LeagueSettingsResponse` / `LeagueSettingsUpdate`). Per AGENTS.md pre-dev rules, edit the model and regenerate/replace the Alembic revision instead of writing a data migration.
+  - [x] Confirm `fantasy_points_utils.py` and its tests handle `Decimal`/`float` rates without rounding drift (round only the final total).
+  - [x] Make the scoring inputs in `components/settings/Scoring*SettingsComponent.tsx` accept decimals (`step="any"`, parse with `Number.parseFloat`, not `parseInt`).
+- [x] **Single source of truth for defaults**: Define the defaults once in `ScoringSettings` (`api/models/league_models.py`) and stop duplicating them as `0` literals in `CreateLeaguePage.tsx`.
+  - [x] Option A (preferred): `GET /api/leagues/scoring-defaults` returns the default `ScoringSettings`; the wizard fetches it to initialize state.
+  - ~~Option B~~ (not needed): Option A shipped. `GET /api/leagues/scoring-defaults` returns snake_case keys (not camelCase) because `to_camel` is not reversible for bands like `fg_made_0_19`.
+  - [x] Add a "Reset to Sleeper defaults" button on the wizard's Scoring step.
+  - [ ] Follow-up: add the same button to `SettingsPage.tsx`. It first needs its camelCase GET response mapped onto the snake_case form-state keys, which is a pre-existing mismatch.
+- [x] **Default values (Sleeper standard PPR)**:
+
+| Category | Setting | Default |
+| :--- | :--- | :--- |
+| Passing | Yard | 0.04 |
+| Passing | TD | 4 |
+| Passing | Interception | -1 |
+| Passing | 2-pt conversion | 2 |
+| Passing | Completion / attempt / sack | 0 |
+| Rushing | Yard | 0.1 |
+| Rushing | TD | 6 |
+| Rushing | 2-pt conversion | 2 |
+| Rushing | Attempt | 0 |
+| Receiving | Reception (PPR) | 1 |
+| Receiving | Yard | 0.1 |
+| Receiving | TD | 6 |
+| Receiving | 2-pt conversion | 2 |
+| Receiving | Target; RB / WR / TE reception bonus | 0 |
+| Carrying | Fumble lost | -2 |
+| Carrying | Fumble (any) | 0 |
+| Kicking | FG made 0–19 / 20–29 / 30–39 | 3 |
+| Kicking | FG made 40–49 | 4 |
+| Kicking | FG made 50+ | 5 |
+| Kicking | XP made | 1 |
+| Kicking | FG missed / XP missed / flat FG made / per FG yard | 0 |
+| Special teams | Punt return TD / kick return TD | 6 |
+| Special teams | Punt / kick return yard | 0 |
+| Defense | Sack | 1 |
+| Defense | Interception | 2 |
+| Defense | Fumble recovery | 2 |
+| Defense | Defensive / special-teams TD | 6 |
+| Defense | Safety | 2 |
+| Defense | Points allowed 0 | 10 |
+| Defense | Points allowed 1–6 | 7 |
+| Defense | Points allowed 7–13 | 4 |
+| Defense | Points allowed 14–20 | 1 |
+| Defense | Points allowed 21–27 | 0 |
+| Defense | Points allowed 28–34 | -1 |
+| Defense | Points allowed 35+ | -4 |
+| Defense | Yards-allowed bands (all six) | 0 |
+
+- [x] **Wizard integration (`CreateLeaguePage.tsx`)**:
+  - [x] Initialize `scoringSettings` from the defaults above; the Review step summarizes key rates (pass TD, PPR, per-yard) and flags anything changed from default.
+  - [x] Render each category (passing, rushing, receiving, carrying, kicking, special teams, defense) as its own labeled group in the Scoring step. Special teams return scoring currently lives inside the carrying/kicking components — split it out so it is discoverable.
+- [ ] **Gaps vs. Sleeper's full scoring list** (deferred — no columns added): blocked kick, defensive 2-pt return, per-length FG-miss penalties, and bonus thresholds (e.g. 100-yard rushing/receiving, 300-yard passing). None have a column today.
+- [x] **Tests**:
+  - [x] Backend: creating a league with no `scoringSettings` persists the Sleeper defaults; fractional values round-trip through create → `GET settings` → `PUT settings`.
+  - [x] Backend: scoring evaluator produces the expected total for a fixture stat line using the default template.
+  - [x] Frontend: wizard test asserting initial state matches the defaults and "Reset to Sleeper defaults" restores them.
+
+### Phase 14: Fix Stale League List After Creating a League
+> [!NOTE]
+> **Bug**: After submitting the Create League wizard, the app returns to the home screen but "Your leagues" (and the NavBar league switcher) is empty until a full page refresh.
+
+**Root cause (frontend state ownership, not the backend)**:
+- `App.tsx` owns the `leagues` array and fetches `GET /api/leagues/user-leagues` in a `useEffect` keyed only on `[userId, apiUrl, getIdToken]`. That fetch runs once per sign-in; nothing re-runs it on navigation.
+- `CreateLeaguePage.handleSubmit` POSTs `/api/leagues/create-league` and then calls `navigate(...)`. It has no access to `setLeagues`, so `App`'s array is never updated. `LandingPage` and `NavBar` render from that stale prop, so the new league is missing until a reload re-mounts `App` and refetches.
+- The backend is correct: `create_league` creates the league, settings, teams (team 1 owned by the creator) and draft, and `user-leagues` returns it. It returns `{message, leagueId}` only, so the client cannot append the row itself without a refetch.
+- Secondary fragility: `getIdToken` in `UserContext.tsx` is recreated on every render and sits in the effect's dependency array, so the fetch re-fires on unrelated provider re-renders (and never on the event we actually need).
+- To confirm during implementation: the user observed landing on the home screen, but the success path navigates to `/league/:id`. Check whether `response.data.leagueId` is present and whether any error is swallowed by the `catch` (it only `console.error`s), since the code falls back to `navigate("/")` when the id is missing.
+
+- [x] **Expose a `refreshLeagues` function**: Extract `fetchLeagues` from the effect in `App.tsx` into a stable `useCallback`, and make it available to pages (shipped as the alternative: `App` passes an `onLeagueCreated(leagueId)` prop to `CreateLeaguePage`, which refetches and selects the new league; no context needed for one consumer).
+- [x] **Refresh after create**: In `CreateLeaguePage.handleSubmit`, `await refreshLeagues()` after a successful POST and before `navigate`, and set the new league as the selected league in the NavBar.
+- [x] **Stabilize `getIdToken`**: Wrap it in `useCallback` in `UserContext.tsx` so effects depending on it do not re-run spuriously.
+- [x] **Surface failures**: Show an error message in the wizard when the POST fails or no `leagueId` is returned, instead of silently logging or falling back to `/`.
+- [x] **Tests**:
+  - [x] Frontend: after a mocked successful create, `refreshLeagues` is called and the landing page lists the new league without a reload.
+  - [x] Frontend: a failed POST keeps the user on the wizard and shows an error.
+
+---
 
 ---
 
 ## 4. Backlog & Future Enhancements
 
 ### Backlog Item 1: Automated Background Data Scheduler (APScheduler / Celery / Event-Driven)
-- [ ] **Game-Aware Scheduler**:
-  - [ ] Schedule regular season roster syncs (e.g. daily/weekly pre-playoffs).
-  - [ ] Implement game-state-driven polling loop during active playoff games (polling RapidAPI box scores every 60–120s only during active game windows, stopping when games conclude).
-  - [ ] Auto-detect final game states to trigger team elimination and update playoff survival metrics without manual intervention.
+- [x] **Game-Aware Scheduler**:
+  - [x] Schedule regular season roster syncs (e.g. daily/weekly pre-playoffs).
+  - [x] Implement game-state-driven polling loop during active playoff games (polling RapidAPI box scores every 60–120s only during active game windows, stopping when games conclude).
+  - [x] Auto-detect final game states to trigger team elimination and update playoff survival metrics without manual intervention.
+  - Ships **disabled** (`SCHEDULER_ENABLED=false`); enable per environment.
 
 ### Backlog Item 2: Standardized Logging Framework (UI & API)
-- [ ] **Backend Structured Logging (`api/`)**:
-  - [ ] Configure Python standard `logging` / `structlog` via centralized setup in `api/core/logging.py`.
-  - [ ] Standardize log output format: JSON in production/containerized environments, colorized human-readable format for local development.
-  - [ ] Add FastAPI request logging middleware to track incoming requests, method, path, status code, response time, and correlation/request IDs (`X-Request-ID`).
-  - [ ] Integrate contextual logging for key lifecycle and domain events: database connection pool status, WebSocket draft room connection/disconnection/events, RapidAPI ingestion jobs, and auth failures.
-  - [ ] Replace any leftover `print()` statements across backend modules with typed logger instances (`logger = logging.getLogger(__name__)`).
-- [ ] **Frontend Logging & Telemetry (`frontend/`)**:
-  - [ ] Create a lightweight client logging utility (`src/utils/logger.ts`) supporting log levels (`DEBUG`, `INFO`, `WARN`, `ERROR`).
-  - [ ] Guard debug/info logs behind environment flags (`import.meta.env.DEV`) to prevent console pollution in production builds.
-  - [ ] Instrument WebSocket events in `useWebSocket.ts` (connection states, reconnection attempts, protocol payload mismatches) with clear contextual logs.
-  - [ ] Standardize frontend error logging across React Error Boundaries and API fetch wrappers.
+- [x] **Backend Structured Logging (`api/`)**:
+  - [x] Configure Python standard `logging` / `structlog` via centralized setup in `api/core/logging.py`.
+  - [x] Standardize log output format: JSON in production/containerized environments, colorized human-readable format for local development.
+  - [x] Add FastAPI request logging middleware to track incoming requests, method, path, status code, response time, and correlation/request IDs (`X-Request-ID`).
+  - [x] Integrate contextual logging for key lifecycle and domain events: database connection pool status, WebSocket draft room connection/disconnection/events, RapidAPI ingestion jobs, and auth failures.
+  - [x] Replace any leftover `print()` statements across backend modules with typed logger instances (`logger = logging.getLogger(__name__)`).
+- [x] **Frontend Logging & Telemetry (`frontend/`)**:
+  - [x] Create a lightweight client logging utility (`src/utils/logger.ts`) supporting log levels (`DEBUG`, `INFO`, `WARN`, `ERROR`).
+  - [x] Guard debug/info logs behind environment flags (`import.meta.env.DEV`) to prevent console pollution in production builds.
+  - [x] Instrument WebSocket events in `useWebSocket.ts` (connection states, reconnection attempts, protocol payload mismatches) with clear contextual logs.
+  - [x] Standardize frontend error logging across React Error Boundaries and API fetch wrappers.

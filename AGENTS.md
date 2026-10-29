@@ -37,17 +37,19 @@
 ```
 PostSznFantasy/
 ├── docker-compose.yml          # PostgreSQL 16 container definition
-├── pyproject.toml              # UV workspace root (tool configurations)
+├── Makefile                    # Single entry point for setup, run, lint, test
 ├── README.md                   # System documentation & developer quickstart
 ├── CONTRIBUTING.md             # Contribution guidelines, branching, & DoD
 ├── AGENTS.md                   # This agent operational playbook
-├── REWRITE_ROADMAP.md          # Modernization & refactoring roadmap
+├── ROADMAP.md                  # Active roadmap (phases 15+)
+├── REWRITE_ROADMAP.md          # Archived modernization history (phases 1-14)
 ├── api/                        # Backend service (Python 3.13 + FastAPI)
 │   ├── alembic/                # Database migrations
 │   │   ├── versions/           # Migration revisions
 │   │   └── env.py              # Alembic environment runner
 │   ├── core/                   # Centralized application configuration
-│   │   └── config.py           # Settings model via pydantic-settings
+│   │   ├── config.py           # Settings model via pydantic-settings
+│   │   └── logging.py          # Logging setup (JSON/console) + request-ID middleware
 │   ├── db/                     # Async database sessions & models
 │   │   ├── base.py             # DeclarativeBase metadata
 │   │   ├── session.py          # asyncpg connection engine & get_db dependency
@@ -57,8 +59,8 @@ PostSznFantasy/
 │   │       ├── draft.py        # Draft and DraftPick models
 │   │       └── nfl.py          # NFLTeam, NFLPlayer, Stats, Game models
 │   ├── dependencies/           # FastAPI dependency providers
-│   │   ├── auth.py             # Supabase JWT token validation (get_current_user)
-│   │   └── db.py               # DbSession dependency alias
+│   │   ├── auth.py             # Supabase JWT validation (verify_token, get_current_user)
+│   │   └── league.py           # LeagueMember/DraftMember/TeamMember guards (403 for non-members)
 │   ├── models/                 # Pydantic v2 DTO schemas (camelCase serialization)
 │   │   ├── base.py             # BaseSchema with alias_generator = to_camel
 │   │   ├── auth_models.py      # Auth exchange DTOs
@@ -66,17 +68,30 @@ PostSznFantasy/
 │   │   ├── draft_models.py     # Draft status and pick DTOs
 │   │   └── players_models.py   # Player directory DTOs
 │   ├── routers/                # Modular APIRouters
-│   │   ├── admin.py            # Ingestion triggers & healthcheck
+│   │   ├── admin.py            # Ingestion triggers (admin only)
 │   │   ├── auth.py             # User onboarding & token exchange
-│   │   ├── drafts.py           # Draft status, REST pick submission
-│   │   ├── leagues.py          # League CRUD, teams, rosters, standings
+│   │   ├── drafts.py           # Draft state/setup/order/controls/queue/REST picks + authenticated WebSocket
+│   │   ├── invites.py          # Invite create/regenerate/revoke, public preview, join
+│   │   ├── leagues.py          # League CRUD, members/roles, settings PATCH, standings
+│   │   ├── teams.py            # Team page: slot layout, rename, add/drop
 │   │   └── players.py          # Player database & stats endpoints
 │   ├── scripts/                # Database seeding & administrative CLI scripts
 │   │   └── seed_nfl_data.py    # Unified on-demand NFL data seeder
 │   ├── services/               # Decoupled ingestion & domain services
+│   │   ├── eliminations.py     # mark_eliminated_teams
+│   │   ├── draft_flow.py       # Draft state machine, order, pause/resume/undo, queue, auto-pick
+│   │   ├── draft_clock.py      # 1s loop auto-picking expired server-side deadlines
+│   │   ├── draft_events.py     # PICK_MADE / DRAFT_STATE broadcast payloads
+│   │   ├── invites.py          # Invite codes and joining
+│   │   ├── league_members.py   # Role changes with the never-zero-commissioners rule
+│   │   ├── league_admin.py     # Team resizing and post-draft locks
+│   │   ├── roster_slots.py     # Empty roster template and slot assignment
+│   │   ├── draft_picks.py      # Server-side pick validation (turn, availability, roster limits)
+│   │   ├── scheduler.py        # Opt-in background sync/live-poll/elimination loop
 │   │   └── ingestion/          # Async batch upsert services
 │   │       ├── schemas.py      # Upstream DTOs & parsing helpers
 │   │       ├── teams_ingest.py # Multi-row NFL team upserts
+│   │       ├── guard.py    # Per-type advisory lock (skip overlapping runs) + last-synced record
 │   │       ├── players_ingest.py # Chunked active player upserts
 │   │       ├── season_stats_ingest.py # Chunked regular season stat upserts
 │   │       └── box_scores_ingest.py # Playoff games & player box score upserts
@@ -86,7 +101,7 @@ PostSznFantasy/
 │   │   │   └── standings_utils.py     # Round scoring & player survival queries
 │   │   └── rapidapi/
 │   │       └── rapidapi.py     # Resilient httpx client for NFL data
-│   ├── ws/                     # Real-time WebSocket layer
+│   ├── ws/                     # Real-time WebSocket layer (join after AUTH; inbound events whitelisted in routers/drafts.py)
 │   │   └── draft_manager.py    # DraftConnectionManager (state, pick broadcasts)
 │   ├── tests/                  # Pytest backend test suite
 │   │   ├── conftest.py         # Test fixtures & dependency overrides
@@ -101,7 +116,8 @@ PostSznFantasy/
     ├── vite.config.ts          # Vite build configuration
     ├── biome.json              # Biome linter, formatter & import sorting config
     └── src/
-        ├── App.tsx             # Root layout, MUI AppBar, auth trigger, routes
+        ├── App.tsx             # Routes, league list state, wires NavBar
+        ├── theme.ts            # Dark-first MUI theme + design tokens
         ├── main.tsx            # Vite DOM mount point
         ├── contexts/
         │   └── UserContext.tsx # Authentication & current user context
@@ -109,7 +125,8 @@ PostSznFantasy/
         │   ├── useWebSocket.ts # Native RFC 6455 WebSocket hook
         │   └── useWebSocket.test.ts # Hook test suite
         ├── pages/
-        │   ├── CreateLeaguePage.tsx # Multi-accordion league configuration
+        │   ├── LandingPage.tsx # Root route: hero, round explainer, user's leagues
+        │   ├── CreateLeaguePage.tsx # Multi-step league creation wizard
         │   ├── DraftPage.tsx   # Live synchronized draft room
         │   ├── LeaguePage.tsx  # Standings display
         │   ├── PlayersPage.tsx # Player directory with TanStack Table
@@ -117,11 +134,15 @@ PostSznFantasy/
         │   ├── TeamPage.tsx    # Roster management view
         │   └── NotFoundPage.tsx# 404 handler
         ├── components/
+        │   ├── layout/         # NavBar (blurred header, league switcher, drawer)
         │   ├── draft/          # DraftBoard, Countdown, PlayerSelector
         │   ├── league/         # StandingsTable
         │   ├── players/        # PlayersTable (TanStack Table v8)
-        │   └── settings/       # LeagueInfo & scoring settings accordion
+        │   └── settings/       # SettingsSection/ScoringForm/RosterForm generated from src/settings schemas
         ├── utils/
+        │   ├── draftCue.ts     # Web Audio on-deck beep
+        │   ├── scoring.ts      # Numeric coercion + defaults diff for league forms
+        │   ├── logger.ts       # Leveled client logger (debug/info dev-only)
         │   └── supabase.ts     # Supabase client singleton
         └── test/               # Vitest environment setup
 ```
@@ -130,60 +151,40 @@ PostSznFantasy/
 
 ## 3. Core Development Commands
 
-### Backend (`api/` or root with `uv`)
-
-The project uses **`uv`** as the unified Python package and project manager.
+Everything is driven from the repository root through the `Makefile` (`make help` lists targets). CI runs the same `check-api` / `check-web` targets, so local and CI cannot drift.
 
 ```bash
-cd api
+make setup      # uv sync + npm install + create missing .env files
+make db-up      # Postgres via Docker Compose        (make db-down / make db-reset)
+make migrate    # alembic upgrade head               (make migration m="message" to autogenerate)
+make api        # uvicorn api.main:app --reload on :8000
+make web        # Vite dev server on :5173 (proxies /api)
+make dev        # database + migrations + API + web
+make seed       # NFL data seeder (SEED_ARGS="--season 2026 --with-box-scores"; --no-stats skips season stats)
 
-# Install / sync dependencies from pyproject.toml & uv.lock
-uv sync
-
-# Run database migrations:
-uv run alembic upgrade head
-
-# Run FastAPI backend with auto-reload:
-uv run uvicorn api.main:app --app-dir .. --host 0.0.0.0 --port 8000 --reload
-
-# Linting and formatting with Ruff:
-uv run ruff check .          # Lint check
-uv run ruff check --fix .    # Auto-fix lint violations
-uv run ruff format .         # Format Python files
-uv run ruff format --check . # Check formatting
-
-# Static type checking with Mypy:
-uv run mypy .
-
-# Run pytest test suite:
-uv run pytest
+make lint       # Ruff check + format check, Biome
+make typecheck  # Mypy (strict) and tsc
+make test       # pytest (incl. the Postgres tier, see below) and Vitest
+make check      # all of the above plus the production build
+make format     # auto-fix Ruff and Biome
 ```
 
-### Frontend (`frontend/`)
-
-The frontend uses **Biome** for fast formatting and linting, and **Vitest** for unit tests.
-
-```bash
-cd frontend
-
-# Install dependencies
-npm install
-
-# Start Vite dev server (http://localhost:5173)
-npm run dev
-
-# Run Biome lint, formatting check, and import sorting:
-npx @biomejs/biome check src/
-npx @biomejs/biome check --write src/  # Auto-fix lint & format issues
-
-# Run TypeScript type check & production build:
-npm run build
-
-# Run Vitest test suite:
-npm run test
-```
+`api/` is a Python package imported as `api.main` from the repo root; it has its own `pyproject.toml` and `uv.lock` (there is no root `pyproject.toml`). Tests under `api/tests/postgres/` need a throwaway database via `TEST_DATABASE_URL` and skip without one.
 
 ---
+
+## 3b. Route Map (Phase 20)
+
+| Area | Endpoints |
+| :--- | :--- |
+| Config | `GET /api/config` (season) |
+| Leagues | `POST /api/leagues/create-league`, `GET /api/leagues/user-leagues`, `GET/PATCH /api/leagues/{id}`, `GET/PATCH /api/leagues/{id}/settings` (roster/scoring/postseason; roster shape locks once the draft starts), `PATCH/DELETE /api/leagues/{id}/members/{userId}` |
+| Invites | `GET/POST/DELETE /api/leagues/{id}/invite` (commissioner), `GET /api/invites/{code}` (public preview), `POST /api/invites/{code}/join` |
+| Teams | `GET/PATCH /api/teams/{id}`, `POST /api/teams/{id}/roster` (add/drop under the league's free-agency rules), `POST /api/teams/{id}/lineup` (drag-and-drop move between starter slots and bench), `PUT /api/leagues/{id}/teams/{teamId}/owner` (commissioner assigns/unassigns a team) |
+| Players | `GET /api/players/player-list`, `GET /api/players/player-season-stats?season=&leagueId=` (`fantasyPoints` scored under that league's settings; draftable positions only unless `position` is given), `GET /api/players/sync-status` (last successful sync per ingestion type) |
+| Draft | `GET /api/drafts/draft-info/{leagueId}`, `PATCH /api/drafts/{leagueId}` (setup), `PUT .../order` (`teamIds` may contain `null` for unfilled slots; starting requires a full order), `POST .../order/randomize`, `POST .../control/{lobby,start,pause,resume,undo}`, `POST .../force-pick`, `POST .../picks`, `GET/PUT .../queue`, `WS /api/drafts/ws/{leagueId}` |
+
+Authorization: `LeagueMember` (any member), `LeagueCommissioner` (`require_commissioner`) and `TeamMember`/`DraftMember` dependencies in `api/dependencies/league.py`. A league always keeps at least one commissioner. Draft states: `unscheduled -> scheduled -> lobby -> in_progress <-> paused -> completed`; only an explicit commissioner action starts a draft, and the pick deadline is persisted server-side (clients render countdowns from `currentPickDeadline` + `serverTime`).
 
 ## 4. Coding Conventions & Architectural Patterns
 
@@ -199,18 +200,22 @@ npm run test
 - **Frontend Quality**: Managed by **Biome** (`biome.json`) for unified AST-based linting, whitespace formatting, and automatic import organization.
 
 ### Backend Patterns
+- **RapidAPI ingestion**: Tank01 nests stats by category with string values; all mapping lives in `api/services/ingestion/schemas.py`. Read [docs/rapidapi-tank01.md](docs/rapidapi-tank01.md) before touching ingest.
 - **CamelCase API Contract**: All API JSON responses are formatted in `camelCase` for TypeScript consumption, while internal Python uses `snake_case`. The base schema `api/models/base.py` enforces this using Pydantic's `alias_generator = to_camel` with `populate_by_name = True`.
 - **Dual Model Layer**: 
   - SQLAlchemy models (`api/db/models/`) represent relational database tables.
   - Pydantic models (`api/models/`) define external API payloads and schemas.
 - **Route Authorization**: Protected routes inject `Depends(get_current_user)`, which extracts and verifies Supabase JWT Bearer tokens from the `Authorization` header.
 - **Async Database Connection**: All database access uses SQLAlchemy 2.0 async sessions injected via `DbSession` (`Annotated[AsyncSession, Depends(get_db)]`).
+- **Logging**: Use `logger = logging.getLogger(__name__)`, never `print()`. `setup_logging()` (called in lifespan and CLI scripts) emits JSON unless `ENVIRONMENT=development`; `RequestLoggingMiddleware` logs every request and sets `X-Request-ID`. Frontend uses `createLogger(scope)` from `utils/logger.ts`, not `console.*`.
 - **Centralized Configuration**: All environment variables are strongly typed and accessed via `get_settings()` from `api/core/config.py`.
 
 ### Frontend Patterns
+- **Mobile-first, always**: The app is used primarily on phones. Design every screen for ~375px width first, then scale up. Default to one vertical column; do not spread a single control across rows/columns of a grid; no horizontal scrolling or hover-only interactions; touch targets at least 44px; drag-and-drop must work by touch (delayed `TouchSensor` so scrolling still works).
+- **Visual verification is part of every UI change**: After each UI step, launch the app (the `run` skill / built-in browser), use `resize_window` with the `mobile` preset (375x812) and look at the actual rendering, then check desktop. Fix anything clipped, overlapping, cramped or oddly laid out before reporting the work done. Reset the viewport to `desktop` afterward.
 - **Environment Configuration**: Runtime variables use Vite conventions (`import.meta.env.VITE_*`).
-  - `VITE_API_URL`: Backend HTTP origin (`http://localhost:8000`).
-  - `VITE_WS_URL`: WebSocket endpoint (`ws://localhost:8000`).
+  - `VITE_API_URL`: Backend HTTP origin; optional locally because the Vite dev server proxies `/api` to `http://localhost:8000`.
+  - `VITE_WS_URL`: WebSocket origin; optional for the same reason (defaults to the page origin).
   - `VITE_SUPABASE_URL`: Supabase project URL.
   - `VITE_SUPABASE_PUBLISHABLE_KEY`: Supabase project publishable API key (`sb_publishable_...`, with fallback to legacy `VITE_SUPABASE_ANON_KEY`).
 - **Component Styling**: Material-UI (MUI v5) styled components and `sx` prop.

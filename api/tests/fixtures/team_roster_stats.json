@@ -1,0 +1,91 @@
+{
+ "statusCode": 200,
+ "body": {
+  "roster": [
+   {
+    "playerID": "3055899",
+    "longName": "Harrison Butker",
+    "pos": "PK",
+    "team": "KC",
+    "teamID": "16",
+    "stats": {
+     "Defense": {
+      "defTD": "0.0",
+      "defensiveInterceptions": "0.0",
+      "fumbles": "0.0",
+      "fumblesLost": "0.0",
+      "fumblesRecovered": "0.0",
+      "passDeflections": "0.0",
+      "qbHits": "0.0",
+      "sacks": "0.0",
+      "soloTackles": "0.0",
+      "tfl": "0.0",
+      "totalTackles": "2.0",
+      "twoPointConversionReturn": "0.0"
+     },
+     "Kicking": {
+      "fgAttempts": "16.0",
+      "fgMade": "11.0",
+      "fgYds": "0.0",
+      "kickYards": "0.0",
+      "xpAttempts": "15.0",
+      "xpMade": "14.0"
+     },
+     "gamesPlayed": "6",
+     "teamID": "16",
+     "team": "KC",
+     "teamAbv": "KC"
+    }
+   },
+   {
+    "playerID": "3139477",
+    "longName": "Patrick Mahomes",
+    "pos": "QB",
+    "team": "KC",
+    "teamID": "16",
+    "stats": {
+     "Defense": {
+      "defTD": "0.0",
+      "defensiveInterceptions": "0.0",
+      "fumbles": "1.0",
+      "fumblesLost": "0.0",
+      "fumblesRecovered": "6.0",
+      "passDeflections": "0.0",
+      "qbHits": "0.0",
+      "sacks": "0.0",
+      "soloTackles": "0.0",
+      "tfl": "0.0",
+      "totalTackles": "0.0",
+      "twoPointConversionReturn": "0.0"
+     },
+     "Passing": {
+      "int": "4.0",
+      "passAttempts": "191.0",
+      "passCompletions": "124.0",
+      "passTD": "9.0",
+      "passYds": "1474.0",
+      "passingTwoPointConversion": "0.0"
+     },
+     "Rushing": {
+      "carries": "19.0",
+      "rushTD": "1.0",
+      "rushYds": "71.0",
+      "rushingTwoPointConversion": "0.0"
+     },
+     "gamesPlayed": "6",
+     "teamID": "16",
+     "team": "KC",
+     "teamAbv": "KC"
+    }
+   },
+   {
+    "playerID": "4567747",
+    "longName": "Garrett Nussmeier",
+    "pos": "QB",
+    "team": "KC",
+    "teamID": "16",
+    "stats": {}
+   }
+  ]
+ }
+}

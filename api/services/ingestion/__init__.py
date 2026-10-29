@@ -2,13 +2,14 @@ import logging
 import time
 from typing import Any
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from api.core.config import get_settings
 from api.services.ingestion.box_scores_ingest import ingest_box_scores
 from api.services.ingestion.players_ingest import ingest_nfl_players
 from api.services.ingestion.season_stats_ingest import ingest_season_stats
 from api.services.ingestion.teams_ingest import ingest_nfl_teams
-from api.utils.rapidapi.rapidapi import RapidApiClient
-from sqlalchemy.ext.asyncio import AsyncSession
+from api.utils.rapidapi.rapidapi import RapidApiClient, get_rapidapi_client
 
 logger = logging.getLogger(__name__)
 
@@ -23,28 +24,20 @@ async def run_full_ingestion_pipeline(
     """Run the complete ingestion pipeline: teams -> players -> season stats -> (optional) box scores."""
     start_time = time.monotonic()
     season = season or str(get_settings().season_year)
-    client = client or RapidApiClient()
+    client = client or get_rapidapi_client()
 
     logger.info("Starting ingestion pipeline for season %s", season)
 
     teams_count = await ingest_nfl_teams(db, client=client)
-    await db.commit()
-
     players_count = await ingest_nfl_players(db, client=client)
-    await db.commit()
-
     stats_count = 0
     if with_stats:
         stats_count = await ingest_season_stats(db, season=season, client=client)
-        await db.commit()
-
     games_count = 0
     if with_box_scores:
         games_count = await ingest_box_scores(
             db, season=season, season_type="post", week="all", client=client
         )
-        await db.commit()
-
     duration_ms = int((time.monotonic() - start_time) * 1000)
     summary = {
         "status": "success",

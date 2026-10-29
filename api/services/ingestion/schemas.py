@@ -1,11 +1,75 @@
+"""Shared parsing for Tank01 player stat blocks (see docs/rapidapi-tank01.md).
+
+Roster (`getNFLTeamRoster?getStats=true`) and box score (`getNFLBoxScore`) player stats
+share one nested shape: `{"Passing": {"passYds": "1474.0"}, "Rushing": {...}, ...}`.
+"""
+
+import re
 from typing import Any
 
-from pydantic import BaseModel, Field
+
+class StatsShapeError(ValueError):
+    """The upstream stats payload no longer matches the shape the mappers expect."""
+
+
+# Weeks 19-22 match `round_multiplier` in utils/calculations/standings_utils.py.
+POSTSEASON_WEEKS = {
+    "Wild Card": 19,
+    "Divisional Round": 20,
+    "Conference Championship": 21,
+    "Super Bowl": 22,
+}
+
+STAT_CATEGORIES = frozenset(
+    {"Passing", "Rushing", "Receiving", "Defense", "Kicking", "Punting"}
+)
+
+# column -> (category, key). Keys marked box-only are absent from roster stats and
+# simply resolve to 0 there.
+STAT_FIELDS: dict[str, tuple[str, str]] = {
+    "passing_completions": ("Passing", "passCompletions"),
+    "passing_attempts": ("Passing", "passAttempts"),
+    "passing_yards": ("Passing", "passYds"),
+    "passing_touchdowns": ("Passing", "passTD"),
+    "passing_interceptions": ("Passing", "int"),
+    "passing_two_point_conversions": ("Passing", "passingTwoPointConversion"),
+    "rushing_carries": ("Rushing", "carries"),
+    "rushing_yards": ("Rushing", "rushYds"),
+    "rushing_touchdowns": ("Rushing", "rushTD"),
+    "rushing_long_rush": ("Rushing", "longRush"),  # box-only
+    "rushing_two_point_conversions": ("Rushing", "rushingTwoPointConversion"),
+    "receiving_receptions": ("Receiving", "receptions"),
+    "receiving_targets": ("Receiving", "targets"),
+    "receiving_yards": ("Receiving", "recYds"),
+    "receiving_touchdowns": ("Receiving", "recTD"),
+    "receiving_long_reception": ("Receiving", "longRec"),  # box-only
+    "receiving_two_point_conversions": ("Receiving", "receivingTwoPointConversion"),
+    "carrying_fumbles": ("Defense", "fumbles"),
+    "carrying_fumbles_lost": ("Defense", "fumblesLost"),
+    "punt_return_yards": ("Punting", "puntReturnYds"),  # box-only
+    "punt_return_td": ("Punting", "puntReturnTD"),  # box-only
+    "kick_return_yards": ("Kicking", "kickReturnYds"),  # box-only
+    "kick_return_td": ("Kicking", "kickReturnTD"),  # box-only
+    "kicking_xp_made": ("Kicking", "xpMade"),
+    "kicking_fg_made": ("Kicking", "fgMade"),
+}
+
+# Derived columns are included so a player with no stats still gets a complete zero row.
+STAT_COLUMNS = (
+    *STAT_FIELDS,
+    "passing_sacked",
+    "passing_sacked_yards",
+    "kicking_xp_missed",
+    "kicking_fg_missed",
+)
+
+_FIELD_GOAL_YARDS = re.compile(r"(\d+) Yd Field Goal")
 
 
 def safe_int(val: Any, default: int = 0) -> int:
+    """Tank01 numbers are strings like "124.0"; go through float to accept them."""
     try:
-        return int(val) if val is not None else default
+        return int(float(val)) if val is not None else default
     except (TypeError, ValueError):
         return default
 
@@ -17,22 +81,55 @@ def safe_str(val: Any) -> str | None:
     return s if s else None
 
 
-class RapidApiTeamPayload(BaseModel):
-    team_id: int = Field(alias="teamID")
-    team_abv: str | None = Field(default=None, alias="teamAbv")
-    team_city: str | None = Field(default=None, alias="teamCity")
-    team_name: str | None = Field(default=None, alias="teamName")
-    team_logo_url: str | None = Field(default=None, alias="teamLogoUrl")
+def empty_stat_line() -> dict[str, int]:
+    return dict.fromkeys(STAT_COLUMNS, 0)
 
 
-class RapidApiPlayerPayload(BaseModel):
-    player_id: int = Field(alias="playerID")
-    name: str | None = Field(default=None, alias="longName")
-    pos: str | None = Field(default=None)
-    espn_headshot: str | None = Field(default=None, alias="espnHeadshot")
-    jersey_num: str | None = Field(default=None, alias="jerseyNum")
-    bday: str | None = Field(default=None, alias="bDay")
-    height: str | None = Field(default=None)
-    weight: str | None = Field(default=None)
-    exp: str | None = Field(default=None)
-    team_id: int | None = Field(default=None, alias="teamID")
+def _category(stats: dict[str, Any], name: str) -> dict[str, Any]:
+    block = stats.get(name)
+    return block if isinstance(block, dict) else {}
+
+
+def _sacked(passing: dict[str, Any]) -> tuple[int, int]:
+    """Box scores report "times-yards", e.g. "1-9"."""
+    times, _, yards = str(passing.get("sacked", "")).partition("-")
+    return safe_int(times), safe_int(yards)
+
+
+def _missed(
+    kicking: dict[str, Any], missed_key: str, attempts_key: str, made_key: str
+) -> int:
+    if missed_key in kicking:
+        return safe_int(kicking[missed_key])
+    return max(safe_int(kicking.get(attempts_key)) - safe_int(kicking.get(made_key)), 0)
+
+
+def parse_stat_line(stats: Any) -> dict[str, int] | None:
+    """Map a nested stat block to DB columns; None if it has no known category."""
+    if not isinstance(stats, dict) or not STAT_CATEGORIES.intersection(stats):
+        return None
+
+    line = {
+        column: safe_int(_category(stats, category).get(key))
+        for column, (category, key) in STAT_FIELDS.items()
+    }
+    line["passing_sacked"], line["passing_sacked_yards"] = _sacked(
+        _category(stats, "Passing")
+    )
+    kicking = _category(stats, "Kicking")
+    line["kicking_xp_missed"] = _missed(kicking, "xpMissed", "xpAttempts", "xpMade")
+    line["kicking_fg_missed"] = _missed(kicking, "fgMissed", "fgAttempts", "fgMade")
+    return line
+
+
+def field_goal_yards_by_kicker(scoring_plays: Any) -> dict[int, list[int]]:
+    """Made-FG distances per kicker id; box scores have no per-kick list, only these plays."""
+    yards_by_kicker: dict[int, list[int]] = {}
+    for play in scoring_plays or []:
+        if play.get("scoreType") != "FG" or not play.get("playerIDs"):
+            continue
+        match = _FIELD_GOAL_YARDS.search(str(play.get("score", "")))
+        kicker_id = safe_int(play["playerIDs"][0])
+        if match and kicker_id:
+            yards_by_kicker.setdefault(kicker_id, []).append(int(match.group(1)))
+    return yards_by_kicker

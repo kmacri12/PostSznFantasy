@@ -1,6 +1,10 @@
 import {
+  Alert,
+  Box,
+  Card,
+  Chip,
+  CircularProgress,
   FormControl,
-  Grid,
   InputLabel,
   MenuItem,
   Paper,
@@ -12,266 +16,261 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TableSortLabel,
   TextField,
+  Typography,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
+import { useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { useConfig, usePlayerSeasonStats, useUserLeagues } from "../../api/queries";
+import { useUser } from "../../contexts/UserContext";
+import { tokens } from "../../theme";
 import {
-  type ColumnDef,
-  type SortingState,
-  flexRender,
-  getCoreRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-import axios from "axios";
-import { useEffect, useMemo, useState } from "react";
-import "./PlayersTable.css";
-
-export interface PlayerInfo {
-  id: number;
-  name: string;
-  position: string;
-  teamAbv?: string;
-  jerseyNum?: string;
-  team?: {
-    teamAbv?: string;
-  };
-}
-
-export interface PlayerSeasonStats {
-  season: string;
-  playerId: number;
-  player?: PlayerInfo;
-  passingCompletions?: number;
-  passingAttempts?: number;
-  passingYards?: number;
-  passingTouchdowns?: number;
-  passingInterceptions?: number;
-  rushingCarries?: number;
-  rushingYards?: number;
-  rushingTouchdowns?: number;
-  carryingFumblesLost?: number;
-  receivingReceptions?: number;
-  receivingYards?: number;
-  receivingTouchdowns?: number;
-  kickingFgMade?: number;
-  kickingFgMissed?: number;
-  kickingXpMade?: number;
-  kickingXpMissed?: number;
-  dstPointsAllowed?: number;
-  dstYardsAllowed?: number;
-  dstSacks?: number;
-  dstInterceptions?: number;
-  dstDefTd?: number;
-}
+  POSITIONS,
+  type PlayerSeasonStats,
+  type PositionFilter,
+  STAT_COLUMNS,
+  filterPlayers,
+  formatPoints,
+  sortPlayers,
+  statValue,
+  teamOf,
+} from "./playerStats";
 
 const PlayersTable = () => {
-  const apiUrl = import.meta.env.VITE_API_URL;
-  const [selectedSeason, setSelectedSeason] = useState("2024");
-  const [selectedPosition, setSelectedPosition] = useState("QB");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [playerStats, setPlayerStats] = useState<PlayerSeasonStats[]>([]);
-  const [sorting, setSorting] = useState<SortingState>([]);
+  const theme = useTheme();
+  const isPhone = useMediaQuery(theme.breakpoints.down("sm"));
+  const { userId } = useUser();
+  const { data: config } = useConfig();
+  const { data: leagues = [] } = useUserLeagues(userId !== null);
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  useEffect(() => {
-    axios
-      .get(`${apiUrl}/api/players/player-season-stats`)
-      .then((response) => {
-        setPlayerStats(response.data || []);
-      })
-      .catch((error) => {
-        console.error("Error fetching player stats:", error);
-      });
-  }, [apiUrl]);
+  const [pickedSeason, setPickedSeason] = useState<string | null>(null);
+  const [position, setPosition] = useState<PositionFilter>("QB");
+  const [search, setSearch] = useState("");
+  const [sortKey, setSortKey] = useState("fantasyPoints");
 
-  const filteredData = useMemo(() => {
-    return playerStats.filter((row) => {
-      const pos = row.player?.position || "";
-      const matchesPosition =
-        selectedPosition === "FLX" ? ["RB", "WR", "TE"].includes(pos) : pos === selectedPosition;
+  // Follows the configured season until the user picks another one.
+  const currentSeason = config?.season;
+  const season = pickedSeason ?? (currentSeason ? String(currentSeason) : undefined);
+  const seasonOptions = currentSeason
+    ? [currentSeason, currentSeason - 1, currentSeason - 2].map(String)
+    : [];
 
-      const matchesSeason = !selectedSeason || row.season === selectedSeason;
-      const matchesSearch =
-        !searchQuery ||
-        (row.player?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
+  const requestedLeague = searchParams.get("leagueId");
+  const league = leagues.find((l) => String(l.id) === requestedLeague) ?? leagues[0];
 
-      return matchesPosition && matchesSeason && matchesSearch;
-    });
-  }, [playerStats, selectedPosition, selectedSeason, searchQuery]);
-
-  const positionColumns = useMemo<ColumnDef<PlayerSeasonStats>[]>(() => {
-    switch (selectedPosition) {
-      case "QB":
-        return [
-          { header: "Cmp", accessorKey: "passingCompletions" },
-          { header: "Att", accessorKey: "passingAttempts" },
-          { header: "Pass Yds", accessorKey: "passingYards" },
-          { header: "Pass TD", accessorKey: "passingTouchdowns" },
-          { header: "INT", accessorKey: "passingInterceptions" },
-          { header: "Rush Yds", accessorKey: "rushingYards" },
-          { header: "Rush TD", accessorKey: "rushingTouchdowns" },
-        ];
-      case "RB":
-      case "WR":
-      case "TE":
-      case "FLX":
-        return [
-          { header: "Rec", accessorKey: "receivingReceptions" },
-          { header: "Rec Yds", accessorKey: "receivingYards" },
-          { header: "Rec TD", accessorKey: "receivingTouchdowns" },
-          { header: "Carries", accessorKey: "rushingCarries" },
-          { header: "Rush Yds", accessorKey: "rushingYards" },
-          { header: "Rush TD", accessorKey: "rushingTouchdowns" },
-          { header: "Fumbles Lost", accessorKey: "carryingFumblesLost" },
-        ];
-      case "PK":
-      case "K":
-        return [
-          { header: "FG Made", accessorKey: "kickingFgMade" },
-          { header: "FG Miss", accessorKey: "kickingFgMissed" },
-          { header: "XP Made", accessorKey: "kickingXpMade" },
-          { header: "XP Miss", accessorKey: "kickingXpMissed" },
-        ];
-      case "DST":
-        return [
-          { header: "Pts Allowed", accessorKey: "dstPointsAllowed" },
-          { header: "Yds Allowed", accessorKey: "dstYardsAllowed" },
-          { header: "Sacks", accessorKey: "dstSacks" },
-          { header: "INT", accessorKey: "dstInterceptions" },
-          { header: "Def TD", accessorKey: "dstDefTd" },
-        ];
-      default:
-        return [];
-    }
-  }, [selectedPosition]);
-
-  const columns = useMemo<ColumnDef<PlayerSeasonStats>[]>(
-    () => [
-      {
-        header: "Name",
-        accessorFn: (row) => row.player?.name ?? "Unknown",
-        id: "name",
-      },
-      {
-        header: "Pos",
-        accessorFn: (row) => row.player?.position ?? "-",
-        id: "position",
-      },
-      {
-        header: "Team",
-        accessorFn: (row) => row.player?.teamAbv || row.player?.team?.teamAbv || "-",
-        id: "team",
-      },
-      ...positionColumns,
-    ],
-    [positionColumns],
+  const stats = usePlayerSeasonStats<PlayerSeasonStats>(season, league?.id);
+  const columns = STAT_COLUMNS[position];
+  const rows = useMemo(
+    () => sortPlayers(filterPlayers(stats.data ?? [], position, search), sortKey),
+    [stats.data, position, search, sortKey],
   );
-
-  const table = useReactTable({
-    data: filteredData,
-    columns,
-    state: { sorting },
-    onSortingChange: setSorting,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-  });
+  const hasPoints = league !== undefined;
 
   return (
-    <div style={{ padding: "16px" }}>
-      <Grid container spacing={2} alignItems="center" sx={{ mb: 2 }}>
-        <Grid item xs={12} sm={3}>
-          <FormControl fullWidth size="small">
-            <InputLabel id="season-select-label">Season</InputLabel>
-            <Select
-              labelId="season-select-label"
-              value={selectedSeason}
-              label="Season"
-              onChange={(e: SelectChangeEvent) => setSelectedSeason(e.target.value)}
-            >
-              <MenuItem value="2025">2025</MenuItem>
-              <MenuItem value="2024">2024</MenuItem>
-              <MenuItem value="2023">2023</MenuItem>
-            </Select>
-          </FormControl>
-        </Grid>
-        <Grid item xs={12} sm={3}>
-          <FormControl fullWidth size="small">
-            <InputLabel id="position-select-label">Position</InputLabel>
-            <Select
-              labelId="position-select-label"
-              value={selectedPosition}
-              label="Position"
-              onChange={(e: SelectChangeEvent) => setSelectedPosition(e.target.value)}
-            >
-              <MenuItem value="QB">QB</MenuItem>
-              <MenuItem value="RB">RB</MenuItem>
-              <MenuItem value="WR">WR</MenuItem>
-              <MenuItem value="TE">TE</MenuItem>
-              <MenuItem value="FLX">FLX</MenuItem>
-              <MenuItem value="PK">PK</MenuItem>
-              <MenuItem value="DST">DST</MenuItem>
-            </Select>
-          </FormControl>
-        </Grid>
-        <Grid item xs={12} sm={6}>
-          <TextField
-            fullWidth
-            size="small"
-            label="Search player"
-            variant="outlined"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </Grid>
-      </Grid>
-
-      <TableContainer component={Paper}>
-        <Table className="players-table">
-          <TableHead>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  const canSort = header.column.getCanSort();
-                  const sorted = header.column.getIsSorted();
-                  return (
-                    <TableCell
-                      key={header.id}
-                      onClick={header.column.getToggleSortingHandler()}
-                      style={{
-                        cursor: canSort ? "pointer" : "default",
-                        fontWeight: "bold",
-                        userSelect: "none",
-                      }}
-                    >
-                      {flexRender(header.column.columnDef.header, header.getContext())}
-                      {sorted === "asc" ? " 🔼" : sorted === "desc" ? " 🔽" : ""}
-                    </TableCell>
-                  );
-                })}
-              </TableRow>
+    <Box sx={{ p: { xs: 1.5, sm: 2 } }}>
+      <Box
+        sx={{
+          display: "grid",
+          gap: 1.5,
+          gridTemplateColumns: { xs: "1fr 1fr", sm: "140px 140px 1fr" },
+          mb: 1.5,
+        }}
+      >
+        <FormControl size="small">
+          <InputLabel id="season-select-label">Season</InputLabel>
+          <Select
+            labelId="season-select-label"
+            value={season ?? ""}
+            label="Season"
+            onChange={(e: SelectChangeEvent) => setPickedSeason(e.target.value)}
+          >
+            {seasonOptions.map((option) => (
+              <MenuItem key={option} value={option}>
+                {option}
+              </MenuItem>
             ))}
-          </TableHead>
-          <TableBody>
-            {table.getRowModel().rows.length === 0 ? (
+          </Select>
+        </FormControl>
+        <FormControl size="small">
+          <InputLabel id="position-select-label">Position</InputLabel>
+          <Select
+            labelId="position-select-label"
+            value={position}
+            label="Position"
+            onChange={(e: SelectChangeEvent) => setPosition(e.target.value as PositionFilter)}
+          >
+            {POSITIONS.map((pos) => (
+              <MenuItem key={pos} value={pos}>
+                {pos}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <TextField
+          size="small"
+          label="Search player"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          sx={{ gridColumn: { xs: "1 / -1", sm: "auto" } }}
+        />
+      </Box>
+
+      {hasPoints ? (
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap", mb: 1.5 }}>
+          <Typography variant="body2" color="text.secondary">
+            Fantasy points use
+          </Typography>
+          {leagues.length > 1 ? (
+            <Select
+              size="small"
+              value={String(league.id)}
+              onChange={(e) => setSearchParams({ leagueId: e.target.value })}
+              inputProps={{ "aria-label": "Scoring league" }}
+            >
+              {leagues.map((l) => (
+                <MenuItem key={l.id} value={String(l.id)}>
+                  {l.name}
+                </MenuItem>
+              ))}
+            </Select>
+          ) : (
+            <Chip size="small" label={league.name} />
+          )}
+          <Typography variant="body2" color="text.secondary">
+            scoring
+          </Typography>
+        </Box>
+      ) : (
+        <Alert severity="info" sx={{ mb: 1.5 }}>
+          Join or create a league to see fantasy points under its scoring settings.
+        </Alert>
+      )}
+
+      {stats.isLoading && (
+        <Box display="flex" justifyContent="center" py={4}>
+          <CircularProgress />
+        </Box>
+      )}
+      {!stats.isLoading && rows.length === 0 && (
+        <Typography color="text.secondary" align="center" sx={{ py: 4 }}>
+          No player statistics found.
+        </Typography>
+      )}
+
+      {rows.length > 0 && isPhone && (
+        <Box sx={{ display: "grid", gap: 1 }} aria-label="Players">
+          {rows.map((row, index) => (
+            <Card key={row.playerId} sx={{ p: 1.5 }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                <Typography color="text.secondary" sx={{ width: 24 }}>
+                  {index + 1}
+                </Typography>
+                <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                  <Typography noWrap fontWeight={700}>
+                    {row.player?.name ?? "Unknown"}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {row.player?.position} · {teamOf(row)}
+                  </Typography>
+                </Box>
+                {hasPoints && (
+                  <Box sx={{ textAlign: "right" }}>
+                    <Typography variant="h6" sx={{ color: tokens.gold, lineHeight: 1 }}>
+                      {formatPoints(row.fantasyPoints)}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      fantasy pts
+                    </Typography>
+                  </Box>
+                )}
+              </Box>
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.75, mt: 1 }}>
+                {columns.map((column) => (
+                  <Chip
+                    key={column.key}
+                    size="small"
+                    variant="outlined"
+                    label={`${column.header} ${statValue(row, column.key)}`}
+                  />
+                ))}
+              </Box>
+            </Card>
+          ))}
+        </Box>
+      )}
+
+      {rows.length > 0 && !isPhone && (
+        <TableContainer component={Paper}>
+          <Table size="small" stickyHeader>
+            <TableHead>
               <TableRow>
-                <TableCell colSpan={columns.length} align="center">
-                  No player statistics found.
+                <TableCell width={40}>#</TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={sortKey === "name"}
+                    direction="asc"
+                    onClick={() => setSortKey("name")}
+                  >
+                    Player
+                  </TableSortLabel>
                 </TableCell>
+                <TableCell>Team</TableCell>
+                {hasPoints && (
+                  <TableCell align="right">
+                    <TableSortLabel
+                      active={sortKey === "fantasyPoints"}
+                      direction="desc"
+                      onClick={() => setSortKey("fantasyPoints")}
+                    >
+                      Fantasy Pts
+                    </TableSortLabel>
+                  </TableCell>
+                )}
+                {columns.map((column) => (
+                  <TableCell key={column.key} align="right">
+                    <TableSortLabel
+                      active={sortKey === column.key}
+                      direction="desc"
+                      onClick={() => setSortKey(column.key)}
+                    >
+                      {column.header}
+                    </TableSortLabel>
+                  </TableCell>
+                ))}
               </TableRow>
-            ) : (
-              table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+            </TableHead>
+            <TableBody>
+              {rows.map((row, index) => (
+                <TableRow key={row.playerId} hover>
+                  <TableCell>{index + 1}</TableCell>
+                  <TableCell>
+                    <Typography fontWeight={600}>{row.player?.name ?? "Unknown"}</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {row.player?.position}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>{teamOf(row)}</TableCell>
+                  {hasPoints && (
+                    <TableCell align="right" sx={{ color: tokens.gold, fontWeight: 700 }}>
+                      {formatPoints(row.fantasyPoints)}
+                    </TableCell>
+                  )}
+                  {columns.map((column) => (
+                    <TableCell key={column.key} align="right">
+                      {statValue(row, column.key)}
                     </TableCell>
                   ))}
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </div>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
+    </Box>
   );
 };
 

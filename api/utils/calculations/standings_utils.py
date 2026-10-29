@@ -1,30 +1,54 @@
 from decimal import Decimal
 
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from api.core.config import get_settings
-from api.db.models.league import LeagueSettings, Lineup, PlayerScore, Team
+from api.db.models.league import (
+    LeagueSettings,
+    Lineup,
+    PlayerScore,
+    Team,
+    TeamPlayer,
+)
 from api.db.models.nfl import NFLGame, NFLPlayer, NFLPlayerGameStats, NFLTeam
 from api.models.enums import PlayerPosition
 from api.utils.calculations.fantasy_points_utils import calculate_player_points
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 
 async def get_players_left(team_id: int, league_id: int, db: AsyncSession) -> int:
     """Count rostered players whose NFL team is still active (not eliminated)."""
-    team_row = await db.scalar(
-        select(Team).where(Team.id == team_id, Team.league_id == league_id)
+    count = await db.scalar(
+        select(func.count())
+        .select_from(TeamPlayer)
+        .join(Team, Team.id == TeamPlayer.team_id)
+        .join(NFLPlayer, NFLPlayer.id == TeamPlayer.player_id)
+        .join(NFLTeam, NFLTeam.id == NFLPlayer.team_id)
+        .where(
+            TeamPlayer.team_id == team_id,
+            Team.league_id == league_id,
+            NFLTeam.is_active.is_(True),
+        )
     )
-    if team_row is None or not team_row.roster:
-        return 0
+    return count or 0
 
-    roster_ids: list[int] = team_row.roster
 
-    result = await db.execute(
-        select(NFLPlayer)
-        .join(NFLTeam, NFLPlayer.team_id == NFLTeam.id)
-        .where(NFLPlayer.id.in_(roster_ids), NFLTeam.is_active.is_(True))
-    )
-    return len(result.scalars().all())
+# Postseason rounds in order; the schedule feed numbers them 1-4 or continues the
+# regular season as 19-22.
+ROUND_MULTIPLIER_FIELDS = (
+    "multiplier_wild_card",
+    "multiplier_divisional",
+    "multiplier_conference",
+    "multiplier_super_bowl",
+)
+
+
+def round_multiplier(settings: LeagueSettings, week: int) -> Decimal:
+    """Commissioner-configured scoring multiplier for the postseason round of `week`."""
+    index = week - 19 if week >= 19 else week - 1
+    if not 0 <= index < len(ROUND_MULTIPLIER_FIELDS):
+        return Decimal(1)
+    return Decimal(str(getattr(settings, ROUND_MULTIPLIER_FIELDS[index])))
 
 
 async def get_team_fantasy_points_by_week(
@@ -80,7 +104,9 @@ async def get_team_fantasy_points_by_week(
             select(NFLPlayer).where(NFLPlayer.id == game_stat.player_id)
         )
         position = PlayerPosition.from_str(player.position) if player else None
-        pts = calculate_player_points(game_stat, league_settings, position)
+        pts = calculate_player_points(
+            game_stat, league_settings, position
+        ) * round_multiplier(league_settings, week)
         total += pts
 
         # Upsert PlayerScore

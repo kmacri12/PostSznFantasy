@@ -16,7 +16,7 @@ PostSzn Fantasy is architected as an asynchronous backend API service paired wit
   - **Code Quality**: Strict type enforcement via [Mypy](https://mypy-lang.org/) and linting/formatting via [Ruff](https://docs.astral.sh/ruff/).
   - **Database & ORM**: PostgreSQL 16 accessed via asynchronous [SQLAlchemy 2.0](https://www.sqlalchemy.org/) (`asyncpg`), with migrations managed by [Alembic](https://alembic.sqlalchemy.org/).
   - **Configuration**: Strongly typed application settings via [Pydantic Settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/).
-  - **Real-Time Communication**: Native RFC 6455 WebSockets with a centralized connection manager (`DraftConnectionManager`) broadcasting live draft state, timers, and picks.
+  - **Real-Time Communication**: Native RFC 6455 WebSockets with a centralized connection manager (`DraftConnectionManager`) broadcasting live draft state, timers, and picks. Clients authenticate with an `AUTH` message carrying their Supabase JWT, send `MAKE_PICK {playerId}`, and the server validates turn order, availability and roster limits before persisting and broadcasting `PICK_MADE`.
   - **Authentication**: Token verification via Supabase Auth (Asymmetric ES256 verification via Supabase JWKS using `pyjwt[crypto]`) with dependency injection (`get_current_user`).
   - **External Ingestion**: Asynchronous HTTP client ([HTTPX](https://www.python-httpx.org/)) with exponential backoff retries via [Tenacity](https://tenacity.readthedocs.io/) for RapidAPI NFL stats.
 
@@ -40,22 +40,27 @@ Before running the application locally, ensure you have the following installed:
 
 ---
 
+## Playing a League
+
+- **Leagues & invites:** the creator is a commissioner (promote more, never fewer than one). Share the invite link (`/join/CODE`) or the code; joining claims an open team, and is blocked once the league is full or the draft has started (configurable).
+- **Draft:** the commissioner schedules it, assigns slots (manual or randomize), opens the lobby and presses Start. The pick clock lives on the server, so reloads never reset it; expired picks auto-pick from the team's queue, then best available.
+- **Settings:** one page for League, Roster, Scoring, Draft and Postseason (round multipliers, free agency, roster locks, tiebreakers, bye handling). The season comes from `SEASON_YEAR` and is read-only per league.
+
 ## Local Setup & Quickstart
 
-### 1. Clone Repository & Setup Environment Files
+### 1. Clone, Install & Configure
+
+Prerequisites: [`uv`](https://docs.astral.sh/uv/), Node.js >= 22.12 (see `frontend/.nvmrc`), Docker and `make`. Run `make help` to list every target.
 
 ```bash
 git clone https://github.com/your-org/postsznfantasy.git
 cd PostSznFantasy
 
-# Configure backend environment
-cp api/.env.example api/.env
-
-# Configure frontend environment
-cp frontend/.env.example frontend/.env
+# Installs backend + frontend dependencies and creates api/.env and frontend/.env
+make setup
 ```
 
-Review `api/.env` and `frontend/.env` to customize settings. Provide your Supabase project credentials (`SUPABASE_URL` in backend; `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` in frontend).
+Review `api/.env` and `frontend/.env`. Provide your Supabase project credentials (`SUPABASE_URL` in backend; `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` in frontend).
 
 #### Setting Up Supabase Auth & Google OAuth
 1. Create a project at [supabase.com](https://supabase.com).
@@ -71,60 +76,42 @@ Review `api/.env` and `frontend/.env` to customize settings. Provide your Supaba
    - Paste the Google Client ID and Client Secret into Supabase and enable Google provider.
    - In **Authentication > URL Configuration**, add `http://localhost:5173` to the Redirect URLs list.
 
-### 2. Start PostgreSQL Database
-
-Launch PostgreSQL 16 using Docker Compose:
+### 2. Start the Stack
 
 ```bash
-docker compose up -d
+make db-up      # PostgreSQL 16 via Docker Compose (waits until healthy)
+make migrate    # alembic upgrade head
+make api        # FastAPI on http://localhost:8000 (docs at /docs), auto-reload
+make web        # Vite on http://localhost:5173 (proxies /api to the API)
 ```
 
-Verify that the container is healthy:
+`make dev` runs the database, migrations, API and web server together. After a schema change that is not backwards compatible (this project has no data to preserve), `make db-reset` wipes and recreates the local database.
 
-```bash
-docker compose ps
-```
-
-### 3. Setup and Run Backend Service (`api/`)
-
-From the `api/` directory:
-
-```bash
-cd api
-
-# Install all runtime and development dependencies
-uv sync
-
-# Run database migrations with Alembic
-uv run alembic upgrade head
-
-# Start the FastAPI application with auto-reload
-uv run uvicorn api.main:app --app-dir .. --host 0.0.0.0 --port 8000 --reload
-```
-
-The API service is now accessible at `http://localhost:8000`. Interactive OpenAPI documentation is available at `http://localhost:8000/docs`.
+The API is a package imported as `api.main` from the repository root (`uvicorn api.main:app`); the `make` targets handle this, and `api/` holds its own `pyproject.toml` and `uv.lock`.
 
 ### 4. Database Seeding & Ingestion Pipeline
+
+> An opt-in background scheduler (`api/services/scheduler.py`) can run the daily sync, poll box scores during live playoff games, and auto-eliminate losing teams. It is **off by default**; set `SCHEDULER_ENABLED=true` (plus `SCHEDULER_ROSTER_SYNC_HOURS`, `SCHEDULER_LIVE_POLL_SECONDS`) to enable.
 
 PostSzn Fantasy includes an asynchronous batch ingestion pipeline that populates NFL teams, active rosters/players, season stats, and playoff game box scores from RapidAPI using chunked PostgreSQL `INSERT ... ON CONFLICT DO UPDATE` operations.
 
 #### Option A: On-Demand CLI Seeding
-From the `api/` directory, run the standalone seeding runner:
 
 ```bash
-cd api
+# Default: teams + active players + season stats
+make seed
+make seed SEED_ARGS="--no-stats"   # skip season stats
 
-# Full seed (teams + active players + season stats)
-PYTHONPATH=.. uv run python -m api.scripts.seed_nfl_data
-
-# Seeding with specific flags
-PYTHONPATH=.. uv run python -m api.scripts.seed_nfl_data --season 2024 --teams-only
-PYTHONPATH=.. uv run python -m api.scripts.seed_nfl_data --season 2024 --players-only
-PYTHONPATH=.. uv run python -m api.scripts.seed_nfl_data --season 2024 --with-box-scores
+# Specific flags
+make seed SEED_ARGS="--season 2026 --teams-only"
+make seed SEED_ARGS="--season 2026 --players-only"
+make seed SEED_ARGS="--season 2026 --with-box-scores"
 ```
 
+The seed fails loudly if teams, players or stats come back empty, and prints the remaining RapidAPI quota. The roster endpoint only serves the current season, so keep `SEASON_YEAR` current. Set `RAPIDAPI_CACHE_DIR` in `api/.env` to replay responses from disk while developing. API details and quirks: [docs/rapidapi-tank01.md](docs/rapidapi-tank01.md).
+
 #### Option B: Admin API Trigger
-Trigger complete batch ingestion over HTTP via the admin router:
+Trigger complete batch ingestion over HTTP via the admin router. Only users whose Supabase id (the JWT `sub`) is listed in `ADMIN_SUPABASE_UIDS` in `api/.env` are allowed; everyone else gets a 403:
 
 ```bash
 curl -X POST http://localhost:8000/api/admin/update/all \
@@ -168,34 +155,28 @@ The frontend application is now accessible at `http://localhost:5173`.
 
 ---
 
+## Deployment Constraints
+
+- **One process only.** Run `uvicorn api.main:app --workers 1 --proxy-headers` on a single always-on instance. `DraftConnectionManager` keeps WebSocket connections in memory and the draft clock runs inside the API process, so extra workers or instances would split broadcasts. Hosts that sleep when idle (free tiers) are unsuitable because nothing auto-picks while the server is asleep.
+- User requests never call Tank01; only `/api/admin/*` and the opt-in scheduler spend RapidAPI quota.
+- Open work is tracked in [GitHub Issues](https://github.com/kmacri12/PostSznFantasy/issues) (labels `draft`, `ingestion`, `deploy`, `scaling`). Design decisions: [docs/api-decisions.md](docs/api-decisions.md).
+
 ## Verification & Testing
 
-### Backend Verification
-From the `api/` directory:
 ```bash
-# Check formatting and linting
-uv run ruff check .
-uv run ruff format --check .
-
-# Run static type checking
-uv run mypy .
-
-# Run unit and integration tests
-uv run pytest
+make check      # everything CI runs: lint, type check, tests, production build
+make lint       # Ruff (check + format) and Biome
+make typecheck  # Mypy and tsc
+make test       # pytest and Vitest
+make format     # auto-fix both apps
 ```
 
-### Frontend Verification
-From the `frontend/` directory:
-```bash
-# Lint, format check, and import sorting
-npx @biomejs/biome check src/
+Each target also has an `-api` / `-web` variant (e.g. `make check-api`). CI runs the same `make check-api` and `make check-web` targets.
 
-# Run TypeScript type check and production bundle build
-npm run build
-
-# Run frontend unit tests
-npm run test
-```
+The tests under `api/tests/postgres/` run against a real, throwaway Postgres database
+(`TEST_DATABASE_URL`, default `postgresql+asyncpg://postgres:postgres@localhost:5433/postszn_test`;
+the schemas are dropped and recreated each run, so never point it at a database you care about).
+They skip automatically when the database is unreachable and fail in CI.
 
 ---
 
@@ -203,11 +184,11 @@ npm run test
 
 - **PostgreSQL Connection Failures**:
   - Ensure the Docker container is up: `docker compose ps`.
-  - Verify that the port (`5432`) is not already claimed by a local PostgreSQL daemon (`lsof -i :5432` or `sudo systemctl status postgresql`).
+  - Compose publishes Postgres on host port `5433` (override with `PG_PORT`) so it does not clash with a system PostgreSQL on `5432`; if `5433` is also taken, check `lsof -i :5433` or `sudo systemctl status postgresql`.
   - Verify that `PG_URI` in `api/.env` aligns with the credentials in `docker-compose.yml`.
 
 - **Supabase Authentication Setup**:
-  - In local development without live Supabase credentials, backend JWT verification decodes unverified tokens as fallback if `SUPABASE_URL` is not configured.
+  - `SUPABASE_URL` is required: the API refuses to start without it and always verifies token signatures against the project JWKS (there is no unsigned fallback).
   - When configuring live authentication, verify that `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` are defined in `frontend/.env`, and that `SUPABASE_URL` is set in `api/.env`. Modern asymmetric tokens are validated against Supabase's JWKS endpoint automatically without needing a shared secret.
 
 - **Alembic Database Migration Desync**:
@@ -220,7 +201,7 @@ npm run test
 
 - **WebSocket Connection Refused on Draft Page**:
   - Verify that the backend is running at `http://localhost:8000`.
-  - Confirm that `VITE_WS_URL=ws://localhost:8000` is present in `frontend/.env`.
+  - Locally the Vite dev server proxies `/api` (including the WebSocket) to port 8000; make sure the API is running there, or set `VITE_API_URL` / `VITE_WS_URL` in `frontend/.env` if it lives elsewhere.
 
 ---
 
@@ -233,7 +214,8 @@ PostSznFantasy/
 ├── README.md                   # System documentation & developer quickstart
 ├── CONTRIBUTING.md             # Developer workflow, branching, standards, and definition of done
 ├── AGENTS.md                   # Agent guidelines, domain playbook, and architectural specs
-├── REWRITE_ROADMAP.md          # Multi-phase refactoring roadmap
+├── ROADMAP.md                  # Active roadmap
+├── REWRITE_ROADMAP.md          # Archived refactoring history (phases 1-14)
 ├── api/                        # FastAPI application service
 │   ├── alembic/                # Database migrations
 │   ├── core/                   # Application config (`Settings`) & constants

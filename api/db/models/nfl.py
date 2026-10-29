@@ -1,9 +1,11 @@
+from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import (
     ARRAY,
     JSON,
     Boolean,
+    DateTime,
     ForeignKey,
     Integer,
     SmallInteger,
@@ -49,7 +51,10 @@ class NFLPlayer(Base):
     weight: Mapped[str | None] = mapped_column(String(255), nullable=True)
     exp: Mapped[str | None] = mapped_column(String(255), nullable=True)
     team_id: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("nfl.nfl_teams.id", ondelete="SET NULL"), nullable=True
+        Integer,
+        ForeignKey("nfl.nfl_teams.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
     )
 
     team: Mapped["NFLTeam | None"] = relationship("NFLTeam", back_populates="players")
@@ -101,6 +106,7 @@ class NFLPlayerSeasonStats(Base):
     kick_return_td: Mapped[int] = mapped_column(SmallInteger, default=0)
     kicking_xp_made: Mapped[int] = mapped_column(SmallInteger, default=0)
     kicking_xp_missed: Mapped[int] = mapped_column(SmallInteger, default=0)
+    kicking_fg_made: Mapped[int] = mapped_column(SmallInteger, default=0)
     kicking_fg_missed: Mapped[int] = mapped_column(SmallInteger, default=0)
     kicking_fg_yards_made: Mapped[list[int]] = mapped_column(
         ARRAY(SmallInteger), default=list
@@ -155,8 +161,12 @@ class NFLPlayerGameStats(Base):
     kick_return_td: Mapped[int] = mapped_column(SmallInteger, default=0)
     kicking_xp_made: Mapped[int] = mapped_column(SmallInteger, default=0)
     kicking_xp_missed: Mapped[int] = mapped_column(SmallInteger, default=0)
+    kicking_fg_made: Mapped[int] = mapped_column(SmallInteger, default=0)
     kicking_fg_missed: Mapped[int] = mapped_column(SmallInteger, default=0)
     kicking_fg_yards_made: Mapped[list[int]] = mapped_column(
+        ARRAY(SmallInteger), default=list
+    )
+    kicking_fg_yards_missed: Mapped[list[int]] = mapped_column(
         ARRAY(SmallInteger), default=list
     )
     dst_yards_allowed: Mapped[int] = mapped_column(SmallInteger, default=0)
@@ -166,6 +176,8 @@ class NFLPlayerGameStats(Base):
     dst_safeties: Mapped[int] = mapped_column(SmallInteger, default=0)
     dst_fumbles_recovered: Mapped[int] = mapped_column(SmallInteger, default=0)
     dst_interceptions: Mapped[int] = mapped_column(SmallInteger, default=0)
+    dst_blocked_kicks: Mapped[int] = mapped_column(SmallInteger, default=0)
+    dst_two_point_returns: Mapped[int] = mapped_column(SmallInteger, default=0)
 
     player: Mapped["NFLPlayer"] = relationship("NFLPlayer", back_populates="game_stats")
 
@@ -202,4 +214,16 @@ class NFLGame(Base):
     )
     away_team: Mapped["NFLTeam | None"] = relationship(
         "NFLTeam", foreign_keys=[team_id_away]
+    )
+
+
+class IngestionStatus(Base):
+    """When each ingestion type last completed, so the UI can show data freshness."""
+
+    __tablename__ = "ingestion_status"
+    __table_args__ = {"schema": "nfl"}
+
+    kind: Mapped[str] = mapped_column(String(32), primary_key=True)
+    last_synced_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
     )
