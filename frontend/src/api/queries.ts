@@ -100,10 +100,15 @@ export const usePlayerList = () =>
     staleTime: 5 * 60_000,
   });
 
-export const usePlayerSeasonStats = <T>() =>
+export const usePlayerSeasonStats = <T>(season: string | undefined, leagueId: Id | undefined) =>
   useQuery({
-    queryKey: keys.seasonStats,
-    queryFn: ({ signal }) => get<T[]>("/api/players/player-season-stats", signal),
+    queryKey: [...keys.seasonStats, season, leagueId ?? "none"],
+    queryFn: ({ signal }) => {
+      const params = new URLSearchParams({ season: season ?? "" });
+      if (leagueId !== undefined) params.set("leagueId", String(leagueId));
+      return get<T[]>(`/api/players/player-season-stats?${params}`, signal);
+    },
+    enabled: !!season,
     staleTime: 5 * 60_000,
   });
 

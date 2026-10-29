@@ -59,7 +59,7 @@ const NavBar = ({
         { label: "League", to: `/league/${selected.id}` },
         { label: "My Team", to: `/team/${selected.userTeamId}` },
         { label: "Draft", to: `/league/${selected.id}/draft` },
-        { label: "Players", to: "/players" },
+        { label: "Players", to: `/players?leagueId=${selected.id}` },
         { label: "Settings", to: `/settings?leagueId=${selected.id}` },
       ]
     : [{ label: "Players", to: "/players" }];

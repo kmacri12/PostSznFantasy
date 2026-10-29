@@ -193,6 +193,6 @@ Goal: one discoverable entry point for running the API, frontend and checks, rep
   - [x] Drag and drop (touch + mouse) between starter slots and bench; persisted server-side with position-eligibility validation.
 - [x] **Scoring helpers**: plain-language conversions next to scoring inputs (e.g. 0.04 per passing yard = 1 point per 25 yards) for every rate that needs one.
 - [ ] **Players page**:
-  - [ ] Fantasy points computed with the selected league's scoring settings (server-side), sorted by points by default.
-  - [ ] Phone layout shows name, position, team, fantasy points and key stats without sideways scrolling.
-  - [ ] Desktop table leads with fantasy points alongside the full stat columns.
+  - [x] Fantasy points computed with the selected league's scoring settings (server-side), sorted by points by default.
+  - [x] Phone layout shows name, position, team, fantasy points and key stats without sideways scrolling.
+  - [x] Desktop table leads with fantasy points alongside the full stat columns.
