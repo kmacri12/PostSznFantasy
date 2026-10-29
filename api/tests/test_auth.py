@@ -132,3 +132,56 @@ async def test_get_current_user_invalid_signature(
         assert exc_info.value.status_code == 401
 
     get_settings.cache_clear()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "token", ["not-a-jwt", "a.b.c"], ids=["malformed", "garbage-segments"]
+)
+async def test_auth_errors_do_not_leak_exception_details(
+    monkeypatch: pytest.MonkeyPatch, token: str
+) -> None:
+    monkeypatch.setenv("PG_HOST", "localhost")
+    monkeypatch.setenv("SUPABASE_URL", "https://xyzcompany.supabase.co")
+    from api.core.config import get_settings
+
+    get_settings.cache_clear()
+    creds = HTTPAuthorizationCredentials(scheme="Bearer", credentials=token)
+    with pytest.raises(HTTPException) as exc_info:
+        await get_current_user(creds)
+
+    assert exc_info.value.status_code == 401
+    assert exc_info.value.detail == "Invalid or expired credentials"
+    get_settings.cache_clear()
+
+
+@pytest.mark.asyncio
+async def test_invalid_signature_detail_is_generic(
+    monkeypatch: pytest.MonkeyPatch,
+    ec_key_pair: tuple[ec.EllipticCurvePrivateKey, ec.EllipticCurvePublicKey],
+) -> None:
+    private_key, _ = ec_key_pair
+    other_key = ec.generate_private_key(ec.SECP256R1()).public_key()
+    monkeypatch.setenv("PG_HOST", "localhost")
+    monkeypatch.setenv("SUPABASE_URL", "https://xyzcompany.supabase.co")
+    from api.core.config import get_settings
+
+    get_settings.cache_clear()
+    token = jwt.encode(
+        {"sub": "u", "aud": "authenticated"},
+        private_key,
+        algorithm="ES256",
+        headers={"kid": "k"},
+    )
+
+    with patch("api.dependencies.auth._get_jwk_client") as mock_get_client:
+        mock_get_client.return_value.get_signing_key_from_jwt.return_value = MagicMock(
+            key=other_key
+        )
+        creds = HTTPAuthorizationCredentials(scheme="Bearer", credentials=token)
+        with pytest.raises(HTTPException) as exc_info:
+            await get_current_user(creds)
+
+    assert exc_info.value.detail == "Invalid or expired credentials"
+    assert "ignature" not in str(exc_info.value.detail)
+    get_settings.cache_clear()

@@ -14,6 +14,9 @@ logger = logging.getLogger(__name__)
 
 _bearer = HTTPBearer()
 
+# Deliberately vague: the specific JWT failure is logged, never returned to the caller.
+INVALID_CREDENTIALS_DETAIL = "Invalid or expired credentials"
+
 
 @lru_cache(maxsize=1)
 def _get_jwk_client(jwks_url: str) -> PyJWKClient:
@@ -36,7 +39,7 @@ def verify_token(token: str) -> str:
         logger.warning("Auth failure: malformed token header: %s", exc)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Malformed token header: {exc}",
+            detail=INVALID_CREDENTIALS_DETAIL,
         ) from exc
 
     alg = unverified_header.get("alg", "ES256")
@@ -57,14 +60,14 @@ def verify_token(token: str) -> str:
             logger.warning("Auth failure: token missing 'sub' claim")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Token missing 'sub' claim",
+                detail=INVALID_CREDENTIALS_DETAIL,
             )
         return str(sub)
     except (PyJWTError, PyJWKClientError) as exc:
         logger.warning("Auth failure: invalid or expired token: %s", exc)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Invalid or expired token: {exc}",
+            detail=INVALID_CREDENTIALS_DETAIL,
         ) from exc
 
 
