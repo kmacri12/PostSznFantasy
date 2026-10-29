@@ -85,9 +85,7 @@ make api        # FastAPI on http://localhost:8000 (docs at /docs), auto-reload
 make web        # Vite on http://localhost:5173 (proxies /api to the API)
 ```
 
-`make dev` runs the database, migrations, API and web server together.
-
-Upgrading from the old PostgreSQL 16 container: its volume is incompatible with 18, so run `make db-reset` once. After a schema change that is not backwards compatible (this project has no data to preserve), `make db-reset` wipes and recreates the local database.
+`make dev` runs the database, migrations, API and web server together. After a schema change that is not backwards compatible (this project has no data to preserve), `make db-reset` wipes and recreates the local database. Upgrading from the old PostgreSQL 16 container also requires one `make db-reset`, since its volume is incompatible with 18.
 
 The API is a package imported as `api.main` from the repository root (`uvicorn api.main:app`); the `make` targets handle this, and `api/` holds its own `pyproject.toml` and `uv.lock`.
 
