@@ -3,9 +3,10 @@ import logging
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -14,6 +15,7 @@ from api.core.logging import RequestLoggingMiddleware, setup_logging
 from api.db.session import DbSession, close_db, init_db
 from api.routers import admin, auth, drafts, invites, leagues, players, teams
 from api.services.draft_clock import run_draft_clock
+from api.services.ingestion.guard import IngestionBusy
 from api.services.scheduler import run_scheduler
 from api.utils.rapidapi.rapidapi import close_rapidapi_client
 
@@ -54,6 +56,14 @@ app.add_middleware(
 
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.add_middleware(RequestLoggingMiddleware)
+
+
+@app.exception_handler(IngestionBusy)
+async def ingestion_busy_handler(_: Request, exc: IngestionBusy) -> JSONResponse:
+    return JSONResponse(
+        status_code=status.HTTP_409_CONFLICT, content={"detail": str(exc)}
+    )
+
 
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(leagues.router, prefix="/api/leagues", tags=["leagues"])

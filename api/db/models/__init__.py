@@ -13,6 +13,7 @@ from api.db.models.league import (
     Week,
 )
 from api.db.models.nfl import (
+    IngestionStatus,
     NFLGame,
     NFLPlayer,
     NFLPlayerGameStats,
@@ -26,6 +27,7 @@ __all__ = [
     "Draft",
     "DraftPick",
     "DraftQueueItem",
+    "IngestionStatus",
     "League",
     "LeagueInvite",
     "LeagueMember",

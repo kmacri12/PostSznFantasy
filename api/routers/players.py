@@ -5,12 +5,13 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 
 from api.db.models.league import LeagueSettings
-from api.db.models.nfl import NFLPlayer, NFLPlayerSeasonStats, NFLTeam
+from api.db.models.nfl import IngestionStatus, NFLPlayer, NFLPlayerSeasonStats, NFLTeam
 from api.db.session import DbSession
 from api.dependencies.auth import CurrentUser, get_current_user
 from api.dependencies.league import require_league_member
 from api.models.enums import DRAFTABLE_POSITION_VALUES
 from api.models.players_models import (
+    IngestionStatusResponse,
     NFLTeamSimple,
     Player,
     PlayerSeasonStatsResponse,
@@ -36,6 +37,16 @@ def _to_player(player: NFLPlayer) -> Player:
         exp=player.exp,
         team_id=player.team_id,
         team=NFLTeamSimple.model_validate(team) if team else None,
+    )
+
+
+@router.get("/sync-status", response_model=list[IngestionStatusResponse])
+async def get_sync_status(db: DbSession) -> list[IngestionStatus]:
+    """When each kind of NFL data last synced, so the UI can show how fresh it is."""
+    return list(
+        (await db.execute(select(IngestionStatus).order_by(IngestionStatus.kind)))
+        .scalars()
+        .all()
     )
 
 

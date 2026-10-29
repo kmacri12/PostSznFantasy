@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from api.models.base import BaseSchema
 from api.models.enums import PlayerPosition
 
@@ -67,3 +69,8 @@ class PlayerSeasonStatsResponse(BaseSchema):
     dst_safeties: int = 0
     dst_fumbles_recovered: int = 0
     dst_interceptions: int = 0
+
+
+class IngestionStatusResponse(BaseSchema):
+    kind: str
+    last_synced_at: datetime

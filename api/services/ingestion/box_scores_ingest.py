@@ -6,6 +6,7 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.db.models.nfl import NFLGame, NFLPlayer, NFLPlayerGameStats, NFLTeam
+from api.services.ingestion.guard import IngestionKind, guarded
 from api.services.ingestion.schemas import (
     POSTSEASON_WEEKS,
     field_goal_yards_by_kicker,
@@ -59,6 +60,7 @@ def _points(val: Any) -> int | None:
     return None if val is None or val == "" else safe_int(val)
 
 
+@guarded(IngestionKind.BOX_SCORES)
 async def ingest_box_scores(
     db: AsyncSession,
     season: str,

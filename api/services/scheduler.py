@@ -10,6 +10,7 @@ from api.db.models.nfl import NFLGame
 from api.db.session import get_session_factory
 from api.services.eliminations import mark_eliminated_teams
 from api.services.ingestion import ingest_box_scores, run_full_ingestion_pipeline
+from api.services.ingestion.guard import IngestionBusy
 
 logger = logging.getLogger(__name__)
 
@@ -98,6 +99,8 @@ async def run_scheduler() -> None:
             await run_sync_cycle(roster_sync_due=roster_sync_due)
             if roster_sync_due:
                 last_roster_sync = time.monotonic()
+        except IngestionBusy as busy:
+            logger.info("Scheduler cycle skipped: %s", busy)
         except Exception:
             logger.exception("Scheduler cycle failed")
         await asyncio.sleep(settings.scheduler_live_poll_seconds)

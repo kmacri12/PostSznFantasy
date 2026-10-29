@@ -1,9 +1,11 @@
+from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import (
     ARRAY,
     JSON,
     Boolean,
+    DateTime,
     ForeignKey,
     Integer,
     SmallInteger,
@@ -212,4 +214,16 @@ class NFLGame(Base):
     )
     away_team: Mapped["NFLTeam | None"] = relationship(
         "NFLTeam", foreign_keys=[team_id_away]
+    )
+
+
+class IngestionStatus(Base):
+    """When each ingestion type last completed, so the UI can show data freshness."""
+
+    __tablename__ = "ingestion_status"
+    __table_args__ = {"schema": "nfl"}
+
+    kind: Mapped[str] = mapped_column(String(32), primary_key=True)
+    last_synced_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
     )

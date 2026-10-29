@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.core.config import get_settings
 from api.db.models.nfl import NFLPlayer, NFLPlayerSeasonStats, NFLTeam
+from api.services.ingestion.guard import IngestionKind, guarded
 from api.services.ingestion.schemas import (
     StatsShapeError,
     empty_stat_line,
@@ -44,6 +45,7 @@ def ensure_stats_shape(players: list[dict[str, Any]]) -> None:
         )
 
 
+@guarded(IngestionKind.SEASON_STATS)
 async def ingest_season_stats(
     db: AsyncSession,
     season: str | None = None,
