@@ -27,7 +27,6 @@ async def get_current_user(
 
     Retrieves public signing keys dynamically from Supabase's JWKS endpoint
     (`https://<project-ref>.supabase.co/auth/v1/.well-known/jwks.json`).
-    Falls back to unverified decode only if SUPABASE_URL is unset (for local testing/dev).
 
     Raises 401 if the token is missing, malformed, expired, or signature is invalid.
     """
@@ -46,22 +45,15 @@ async def get_current_user(
     alg = unverified_header.get("alg", "ES256")
 
     try:
-        if settings.supabase_jwks_url:
-            jwks_client = _get_jwk_client(settings.supabase_jwks_url)
-            signing_key = jwks_client.get_signing_key_from_jwt(token)
-            payload = jwt.decode(
-                token,
-                signing_key.key,
-                algorithms=[alg],
-                audience="authenticated",
-                options={"verify_aud": True},
-            )
-        else:
-            # Fallback for offline local dev/tests without SUPABASE_URL configured
-            payload = jwt.decode(
-                token,
-                options={"verify_signature": False},
-            )
+        jwks_client = _get_jwk_client(settings.supabase_jwks_url)
+        signing_key = jwks_client.get_signing_key_from_jwt(token)
+        payload = jwt.decode(
+            token,
+            signing_key.key,
+            algorithms=[alg],
+            audience="authenticated",
+            options={"verify_aud": True},
+        )
 
         sub = payload.get("sub")
         if not sub:

@@ -1,7 +1,7 @@
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import PostgresDsn, computed_field, model_validator
+from pydantic import Field, PostgresDsn, computed_field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -21,14 +21,13 @@ class Settings(BaseSettings):
     pg_dbname: str = "postszn"
 
     # Supabase Auth
-    supabase_url: str = ""
+    # Required: without it there is no key to verify tokens against.
+    supabase_url: str = Field(min_length=1)
 
     @computed_field  # type: ignore[prop-decorator]
     @property
-    def supabase_jwks_url(self) -> str | None:
+    def supabase_jwks_url(self) -> str:
         """Standard JWKS endpoint for asymmetric JWT verification."""
-        if not self.supabase_url:
-            return None
         return f"{self.supabase_url.rstrip('/')}/auth/v1/.well-known/jwks.json"
 
     # RapidAPI

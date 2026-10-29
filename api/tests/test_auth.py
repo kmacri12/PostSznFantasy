@@ -2,10 +2,13 @@ from unittest.mock import MagicMock, patch
 
 import jwt
 import pytest
+from api.core.config import Settings
 from api.dependencies.auth import get_current_user
 from cryptography.hazmat.primitives.asymmetric import ec
 from fastapi import HTTPException
 from fastapi.security import HTTPAuthorizationCredentials
+from jwt.exceptions import PyJWKClientError
+from pydantic import ValidationError
 
 
 @pytest.fixture
@@ -15,22 +18,39 @@ def ec_key_pair() -> tuple[ec.EllipticCurvePrivateKey, ec.EllipticCurvePublicKey
     return private_key, public_key
 
 
+def test_settings_reject_missing_supabase_url(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Without SUPABASE_URL tokens cannot be verified, so startup must fail."""
+    monkeypatch.setenv("PG_HOST", "localhost")
+    monkeypatch.delenv("SUPABASE_URL", raising=False)
+
+    with pytest.raises(ValidationError):
+        Settings(_env_file=None)
+
+
 @pytest.mark.asyncio
-async def test_get_current_user_local_fallback(monkeypatch: pytest.MonkeyPatch) -> None:
-    """When SUPABASE_URL is empty, decode payload without verification for offline tests."""
-    monkeypatch.setenv("SUPABASE_URL", "")
+async def test_get_current_user_rejects_unsigned_token(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A forged HS256 token must not be accepted even though it decodes cleanly."""
+    monkeypatch.setenv("PG_HOST", "localhost")
+    monkeypatch.setenv("SUPABASE_URL", "https://xyzcompany.supabase.co")
     from api.core.config import get_settings
 
     get_settings.cache_clear()
-
-    payload = {"sub": "user-supabase-fallback-123"}
-    token = jwt.encode(
-        payload, "dummy-secret-key-of-at-least-32-chars", algorithm="HS256"
+    forged = jwt.encode(
+        {"sub": "victim", "aud": "authenticated"},
+        "dummy-secret-key-of-at-least-32-chars",
+        algorithm="HS256",
     )
 
-    creds = HTTPAuthorizationCredentials(scheme="Bearer", credentials=token)
-    user_id = await get_current_user(creds)
-    assert user_id == "user-supabase-fallback-123"
+    with patch("api.dependencies.auth._get_jwk_client") as mock_get_client:
+        mock_get_client.return_value.get_signing_key_from_jwt.side_effect = (
+            PyJWKClientError("no matching key")
+        )
+        creds = HTTPAuthorizationCredentials(scheme="Bearer", credentials=forged)
+        with pytest.raises(HTTPException) as exc_info:
+            await get_current_user(creds)
+    assert exc_info.value.status_code == 401
     get_settings.cache_clear()
 
 

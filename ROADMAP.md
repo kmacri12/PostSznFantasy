@@ -41,7 +41,7 @@ Guiding principles: KISS, comments explain *why* only, self-documenting names.
 
 ## Phase 15: Security Fixes (Critical)
 
-- [ ] **C1 — Remove the unsigned-JWT fallback** (`api/dependencies/auth.py`): when `SUPABASE_URL` is unset the code decodes with `verify_signature=False`, so a missing env var in a deployed environment lets anyone forge any identity. Make `SUPABASE_URL` required at startup; tests already override `get_current_user`.
+- [x] **C1 — Remove the unsigned-JWT fallback** (`api/dependencies/auth.py`): when `SUPABASE_URL` is unset the code decodes with `verify_signature=False`, so a missing env var in a deployed environment lets anyone forge any identity. Make `SUPABASE_URL` required at startup; tests already override `get_current_user`.
 - [ ] **C2 — Authenticate and authorize the draft WebSocket** (`api/routers/drafts.py`): anyone can connect to `/api/drafts/ws/{league_id}` and broadcast arbitrary events; the fallback branch rebroadcasts any client message.
   - [ ] Verify the JWT on connect (query param or first message) and require league membership.
   - [ ] Replace client-trusted `PICK_MADE` relaying with server-side pick validation (turn order, availability, roster limits), persistence to `DraftPick`, then broadcast.

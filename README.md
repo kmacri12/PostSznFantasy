@@ -209,7 +209,7 @@ npm run test
   - Verify that `PG_URI` in `api/.env` aligns with the credentials in `docker-compose.yml`.
 
 - **Supabase Authentication Setup**:
-  - In local development without live Supabase credentials, backend JWT verification decodes unverified tokens as fallback if `SUPABASE_URL` is not configured.
+  - `SUPABASE_URL` is required: the API refuses to start without it and always verifies token signatures against the project JWKS (there is no unsigned fallback).
   - When configuring live authentication, verify that `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` are defined in `frontend/.env`, and that `SUPABASE_URL` is set in `api/.env`. Modern asymmetric tokens are validated against Supabase's JWKS endpoint automatically without needing a shared secret.
 
 - **Alembic Database Migration Desync**:
