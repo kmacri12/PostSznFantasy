@@ -1,7 +1,7 @@
 """Postgres-backed test tier: real SQL, constraints and relationships.
 
 Needs a throwaway database (TEST_DATABASE_URL, default
-postgresql+asyncpg://postgres:postgres@localhost:5432/postszn_test). Tests skip
+postgresql+asyncpg://postgres:postgres@localhost:5433/postszn_test). Tests skip
 when it is unreachable, except in CI where a missing database must fail loudly.
 """
 
@@ -22,7 +22,7 @@ from api.main import app
 
 TEST_DATABASE_URL = os.environ.get(
     "TEST_DATABASE_URL",
-    "postgresql+asyncpg://postgres:postgres@localhost:5432/postszn_test",
+    "postgresql+asyncpg://postgres:postgres@localhost:5433/postszn_test",
 )
 
 

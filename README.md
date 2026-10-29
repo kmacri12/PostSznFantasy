@@ -165,7 +165,7 @@ make format     # auto-fix both apps
 Each target also has an `-api` / `-web` variant (e.g. `make check-api`). CI runs the same `make check-api` and `make check-web` targets.
 
 The tests under `api/tests/postgres/` run against a real, throwaway Postgres database
-(`TEST_DATABASE_URL`, default `postgresql+asyncpg://postgres:postgres@localhost:5432/postszn_test`;
+(`TEST_DATABASE_URL`, default `postgresql+asyncpg://postgres:postgres@localhost:5433/postszn_test`;
 the schemas are dropped and recreated each run, so never point it at a database you care about).
 They skip automatically when the database is unreachable and fail in CI.
 
@@ -175,7 +175,7 @@ They skip automatically when the database is unreachable and fail in CI.
 
 - **PostgreSQL Connection Failures**:
   - Ensure the Docker container is up: `docker compose ps`.
-  - Verify that the port (`5432`) is not already claimed by a local PostgreSQL daemon (`lsof -i :5432` or `sudo systemctl status postgresql`).
+  - Compose publishes Postgres on host port `5433` (override with `PG_PORT`) so it does not clash with a system PostgreSQL on `5432`; if `5433` is also taken, check `lsof -i :5433` or `sudo systemctl status postgresql`.
   - Verify that `PG_URI` in `api/.env` aligns with the credentials in `docker-compose.yml`.
 
 - **Supabase Authentication Setup**:

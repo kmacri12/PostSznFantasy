@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     # Database — accept either a full URI or discrete parts; URI takes priority.
     pg_uri: PostgresDsn | None = None
     pg_host: str | None = None
-    pg_port: int = 5432
+    pg_port: int = 5433
     pg_user: str = "postgres"
     pg_password: str = "postgres"
     pg_dbname: str = "postszn"
