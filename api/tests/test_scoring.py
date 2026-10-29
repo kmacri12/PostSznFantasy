@@ -311,3 +311,12 @@ def test_dst_blocked_kick_and_two_point_return(
     stats.dst_blocked_kicks = 2
     stats.dst_two_point_returns = 1
     assert calculate_dst_points(stats, standard_league_settings) == Decimal(6)
+
+
+def test_orm_settings_columns_match_pydantic_schemas() -> None:
+    from api.models.league_models import RosterSettings
+
+    columns = {c.key for c in LeagueSettings.__table__.columns}
+    declared = set(RosterSettings.model_fields) | set(ScoringSettings.model_fields)
+    assert declared <= columns
+    assert columns - declared == {"id", "league_id"}

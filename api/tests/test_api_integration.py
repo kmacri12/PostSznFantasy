@@ -5,6 +5,7 @@ from api.db.models.draft import Draft, DraftPick
 from api.db.models.league import League, LeagueSettings, LeagueStanding, Team
 from api.db.models.nfl import NFLPlayer, NFLPlayerSeasonStats, NFLTeam
 from api.db.models.user import User
+from api.models.league_models import RosterSettings, ScoringSettings
 from httpx import AsyncClient
 from sqlalchemy.exc import IntegrityError
 
@@ -145,19 +146,8 @@ async def test_get_league_settings_and_standings(
     settings = LeagueSettings(
         id=1,
         league_id=99,
-        number_teams=8,
-        roster_total=14,
-        roster_num_qb=1,
-        roster_num_rb=2,
-        roster_num_wr=2,
-        roster_num_te=1,
-        roster_num_flex_wr_rb_te=1,
-        roster_num_flex_wr_rb=0,
-        roster_num_flex_wr_te=0,
-        roster_num_flex_qb_wr_rb_te=0,
-        roster_num_k=1,
-        roster_num_dst=1,
-        roster_num_bench=5,
+        **RosterSettings(number_teams=8, roster_total=14).model_dump(by_alias=False),
+        **ScoringSettings().model_dump(by_alias=False),
     )
     mock_settings_res = MagicMock()
     mock_settings_res.scalars.return_value.first.return_value = settings

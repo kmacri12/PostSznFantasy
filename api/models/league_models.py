@@ -107,94 +107,9 @@ class LeagueCreateResponse(BaseSchema):
     league_id: int | None = None
 
 
-class LeagueSettingsResponse(BaseSchema):
+class LeagueSettingsResponse(RosterSettings, ScoringSettings):
     id: int
     league_id: int
-    number_teams: int
-    roster_total: int
-    roster_num_qb: int
-    roster_num_rb: int
-    roster_num_wr: int
-    roster_num_te: int
-    roster_num_flex_wr_rb_te: int
-    roster_num_flex_wr_rb: int
-    roster_num_flex_wr_te: int
-    roster_num_flex_qb_wr_rb_te: int
-    roster_num_k: int
-    roster_num_dst: int
-    roster_num_bench: int
-    roster_max_qb: int | None = None
-    roster_max_rb: int | None = None
-    roster_max_wr: int | None = None
-    roster_max_te: int | None = None
-    roster_max_k: int | None = None
-    roster_max_dst: int | None = None
-    scoring_passing_yard: float | None = None
-    scoring_passing_td: float | None = None
-    scoring_passing_2pt: float | None = None
-    scoring_passing_interception: float | None = None
-    scoring_passing_completion: float | None = None
-    scoring_passing_attempt: float | None = None
-    scoring_passing_sack: float | None = None
-    scoring_passing_bonus_300_yards: float | None = None
-    scoring_passing_bonus_400_yards: float | None = None
-    scoring_rushing_yard: float | None = None
-    scoring_rushing_td: float | None = None
-    scoring_rushing_2pt: float | None = None
-    scoring_rushing_attempt: float | None = None
-    scoring_rushing_bonus_100_yards: float | None = None
-    scoring_rushing_bonus_200_yards: float | None = None
-    scoring_receiving_reception: float | None = None
-    scoring_receiving_yard: float | None = None
-    scoring_receiving_td: float | None = None
-    scoring_receiving_2pt: float | None = None
-    scoring_receiving_target: float | None = None
-    scoring_receiving_reception_bonus_rb: float | None = None
-    scoring_receiving_reception_bonus_wr: float | None = None
-    scoring_receiving_reception_bonus_te: float | None = None
-    scoring_receiving_bonus_100_yards: float | None = None
-    scoring_receiving_bonus_200_yards: float | None = None
-    scoring_carrying_fumble: float | None = None
-    scoring_carrying_fumble_lost: float | None = None
-    scoring_special_punt_return_yard: float | None = None
-    scoring_special_punt_return_td: float | None = None
-    scoring_special_kick_return_yard: float | None = None
-    scoring_special_kick_return_td: float | None = None
-    scoring_kicking_fg_made: float | None = None
-    scoring_kicking_fg_miss: float | None = None
-    scoring_kicking_fg_miss_0_19: float | None = None
-    scoring_kicking_fg_miss_20_29: float | None = None
-    scoring_kicking_fg_miss_30_39: float | None = None
-    scoring_kicking_fg_miss_40_49: float | None = None
-    scoring_kicking_fg_miss_50_plus: float | None = None
-    scoring_kicking_fg_made_0_19: float | None = None
-    scoring_kicking_fg_made_20_29: float | None = None
-    scoring_kicking_fg_made_30_39: float | None = None
-    scoring_kicking_fg_made_40_49: float | None = None
-    scoring_kicking_fg_made_50_plus: float | None = None
-    scoring_kicking_fg_yard: float | None = None
-    scoring_kicking_xp_made: float | None = None
-    scoring_kicking_xp_miss: float | None = None
-    scoring_dst_td: float | None = None
-    scoring_dst_pts_allowed_0: float | None = None
-    scoring_dst_pts_allowed_1_6: float | None = None
-    scoring_dst_pts_allowed_7_13: float | None = None
-    scoring_dst_pts_allowed_14_20: float | None = None
-    scoring_dst_pts_allowed_21_27: float | None = None
-    scoring_dst_pts_allowed_28_34: float | None = None
-    scoring_dst_pts_allowed_35_plus: float | None = None
-    scoring_dst_yards_allowed_under_100: float | None = None
-    scoring_dst_yards_allowed_100_199: float | None = None
-    scoring_dst_yards_allowed_200_299: float | None = None
-    scoring_dst_yards_allowed_300_399: float | None = None
-    scoring_dst_yards_allowed_400_499: float | None = None
-    scoring_dst_yards_allowed_500_plus: float | None = None
-    scoring_dst_sack: float | None = None
-    scoring_dst_safety: float | None = None
-    scoring_dst_fumble_recover: float | None = None
-    scoring_dst_interception: float | None = None
-    scoring_dst_blocked_kick: float | None = None
-    scoring_dst_two_point_return: float | None = None
 
 
 class LeaguesByUser(BaseSchema):
