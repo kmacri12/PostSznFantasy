@@ -133,6 +133,9 @@ async def create_league(
             draft_order_team_ids=[],
         )
     )
+    # The client refetches the league list as soon as this responds, and get_db
+    # would only commit after the response is sent.
+    await db.commit()
 
     return LeagueCreateResponse(
         message=f"League '{payload.league_name}' created successfully",
