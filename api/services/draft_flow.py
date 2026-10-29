@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.db.models.draft import Draft, DraftPick, DraftQueueItem
 from api.db.models.league import LeagueSettings, Team, TeamPlayer
-from api.db.models.nfl import NFLPlayer, NFLPlayerGameStats, NFLPlayerSeasonStats
+from api.db.models.nfl import NFLPlayer, NFLPlayerSeasonStats
 from api.models.draft_models import (
     DraftPickResponse,
     DraftSetup,
@@ -29,7 +29,7 @@ from api.services.draft_picks import (
     record_pick,
     team_on_the_clock,
 )
-from api.utils.calculations.fantasy_points_utils import calculate_player_points
+from api.utils.calculations.fantasy_points_utils import season_points
 
 STARTED = {
     DraftStatus.IN_PROGRESS.value,
@@ -338,22 +338,6 @@ async def set_queue(
     return unique
 
 
-_SHARED_STAT_COLUMNS = [
-    c.key
-    for c in NFLPlayerSeasonStats.__table__.columns
-    if c.key in NFLPlayerGameStats.__table__.columns and c.key not in ("player_id",)
-]
-
-
-def _season_points(
-    stats: NFLPlayerSeasonStats, settings: LeagueSettings, position: str | None
-) -> float:
-    view = NFLPlayerGameStats()
-    for column in _SHARED_STAT_COLUMNS:
-        setattr(view, column, getattr(stats, column))
-    return float(calculate_player_points(view, settings, position))
-
-
 async def _best_available_ids(
     db: AsyncSession, draft: Draft, settings: LeagueSettings
 ) -> list[int]:
@@ -389,7 +373,7 @@ async def _best_available_ids(
         }
     scored = [
         (
-            _season_points(stats[p.id], settings, p.position)
+            float(season_points(stats[p.id], settings, p.position))
             if p.id in stats
             else -1.0,
             p.id,

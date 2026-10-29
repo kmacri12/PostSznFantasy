@@ -10,13 +10,20 @@ from api.dependencies.league import LeagueMembership, TeamMember
 from api.models.enums import DraftStatus, PlayerPosition
 from api.models.league_models import (
     AddDropRequest,
+    LineupMove,
     NextGame,
     RosterPlayer,
     RosterSlot,
     TeamDetails,
     TeamRename,
 )
-from api.services.roster_slots import BENCH, assign_players, slot_layout
+from api.services.roster_slots import (
+    BENCH,
+    LineupError,
+    assign_players,
+    move_player,
+    slot_layout,
+)
 
 router = APIRouter()
 
@@ -113,9 +120,22 @@ async def build_team_details(
         {p.team_id for p in players if p.team_id is not None},
     )
 
+    preferred = {
+        player_id: slot_index
+        for player_id, slot_index in (
+            await db.execute(
+                select(TeamPlayer.player_id, TeamPlayer.slot_index).where(
+                    TeamPlayer.team_id == team.id, TeamPlayer.slot_index.is_not(None)
+                )
+            )
+        ).all()
+        if slot_index is not None
+    }
     specs = slot_layout(settings)
     placed = assign_players(
-        specs, [(p.id, PlayerPosition.from_str(p.position)) for p in players]
+        specs,
+        [(p.id, PlayerPosition.from_str(p.position)) for p in players],
+        preferred,
     )
     slot_of = {pid: specs[i].slot for i, pid in enumerate(placed) if pid is not None}
 
@@ -134,10 +154,11 @@ async def build_team_details(
     roster = [view(p, slot_of.get(p.id, BENCH)) for p in players]
     slots = [
         RosterSlot(
+            index=index,
             slot=spec.slot,
             player=view(by_id[pid], spec.slot) if pid is not None else None,
         )
-        for spec, pid in zip(specs, placed, strict=True)
+        for index, (spec, pid) in enumerate(zip(specs, placed, strict=True))
     ]
     is_owner = team.owner_id == membership.user.id
     return TeamDetails(
@@ -290,4 +311,52 @@ async def add_drop(
         )
     await db.flush()
     await db.refresh(team, attribute_names=["roster"])
+    return await build_team_details(db, team, membership)
+
+
+@router.post("/{team_id}/lineup", response_model=TeamDetails)
+async def move_in_lineup(
+    team_id: int, payload: LineupMove, membership: TeamMember, db: DbSession
+) -> TeamDetails:
+    """Drag-and-drop move between starter slots and the bench; the owner only."""
+    team = await _team_or_404(db, team_id)
+    if team.owner_id != membership.user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only the team owner can set the lineup",
+        )
+    details = await build_team_details(db, team, membership)
+    if all(player.id != payload.player_id for player in details.roster):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="That player is not on your roster",
+        )
+    settings = (
+        await db.execute(
+            select(LeagueSettings).where(LeagueSettings.league_id == team.league_id)
+        )
+    ).scalar_one()
+    specs = slot_layout(settings)
+    placement = [slot.player.id if slot.player else None for slot in details.slots]
+    positions = {
+        player.id: PlayerPosition.from_str(player.position) for player in details.roster
+    }
+    try:
+        moved = move_player(
+            specs, placement, positions, payload.player_id, payload.slot_index
+        )
+    except LineupError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail=str(exc)
+        ) from exc
+
+    slot_of = {pid: index for index, pid in enumerate(moved) if pid is not None}
+    rows = (
+        (await db.execute(select(TeamPlayer).where(TeamPlayer.team_id == team.id)))
+        .scalars()
+        .all()
+    )
+    for row in rows:
+        row.slot_index = slot_of.get(row.player_id)
+    await db.flush()
     return await build_team_details(db, team, membership)

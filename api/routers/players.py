@@ -1,15 +1,20 @@
-from fastapi import APIRouter, Depends
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 
+from api.db.models.league import LeagueSettings
 from api.db.models.nfl import NFLPlayer, NFLPlayerSeasonStats, NFLTeam
 from api.db.session import DbSession
-from api.dependencies.auth import get_current_user
+from api.dependencies.auth import CurrentUser, get_current_user
+from api.dependencies.league import require_league_member
 from api.models.players_models import (
     NFLTeamSimple,
     Player,
     PlayerSeasonStatsResponse,
 )
+from api.utils.calculations.fantasy_points_utils import season_points
 
 # Every player route requires a login: the directory is cheap to scrape and not meant to be public.
 router = APIRouter(dependencies=[Depends(get_current_user)])
@@ -56,10 +61,23 @@ async def get_player_list(
 @router.get("/player-season-stats", response_model=list[PlayerSeasonStatsResponse])
 async def get_player_season_stats(
     db: DbSession,
+    supabase_uid: CurrentUser,
     season: str | None = None,
     position: str | None = None,
+    league_id: Annotated[int | None, Query(alias="leagueId")] = None,
 ) -> list[PlayerSeasonStatsResponse]:
-    """Season stats joined with player and team; defaults to the latest season."""
+    """Season stats joined with player and team; defaults to the latest season.
+
+    With `league_id`, `fantasyPoints` is scored under that league's settings (members only).
+    """
+    settings: LeagueSettings | None = None
+    if league_id is not None:
+        await require_league_member(db, league_id, supabase_uid)
+        settings = (
+            await db.execute(
+                select(LeagueSettings).where(LeagueSettings.league_id == league_id)
+            )
+        ).scalar_one_or_none()
     if season is None:
         season = (
             await db.execute(select(func.max(NFLPlayerSeasonStats.season)))
@@ -76,7 +94,15 @@ async def get_player_season_stats(
     rows = (await db.execute(stmt)).scalars().all()
     return [
         PlayerSeasonStatsResponse.model_validate(row).model_copy(
-            update={"player": _to_player(row.player)}
+            update={
+                "player": _to_player(row.player),
+                "kicking_fg_made": len(row.kicking_fg_yards_made or []),
+                "fantasy_points": (
+                    round(float(season_points(row, settings, row.player.position)), 1)
+                    if settings is not None
+                    else None
+                ),
+            }
         )
         for row in rows
     ]

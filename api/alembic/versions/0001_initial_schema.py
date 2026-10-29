@@ -2,7 +2,7 @@
 
 Revision ID: 0001
 Revises:
-Create Date: 2026-10-28 22:46:30.523870
+Create Date: 2026-10-28 23:18:18.153269
 
 """
 
@@ -682,6 +682,7 @@ def upgrade() -> None:
         sa.Column("league_id", sa.Integer(), nullable=False),
         sa.Column("team_id", sa.Integer(), nullable=False),
         sa.Column("player_id", sa.Integer(), nullable=False),
+        sa.Column("slot_index", sa.Integer(), nullable=True),
         sa.ForeignKeyConstraint(
             ["league_id"], ["fantasy.leagues.id"], ondelete="CASCADE"
         ),

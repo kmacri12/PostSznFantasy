@@ -29,6 +29,8 @@ class PlayerSeasonStatsResponse(BaseSchema):
     season: str
     player_id: int
     player: Player | None = None
+    fantasy_points: float | None = None
+    kicking_fg_made: int = 0
     passing_completions: int = 0
     passing_attempts: int = 0
     passing_yards: int = 0

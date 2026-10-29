@@ -184,6 +184,22 @@ class MemberRoleUpdate(BaseSchema):
     role: LeagueRole
 
 
+class TeamBrief(BaseSchema):
+    id: int
+    name: str
+    owner_user_id: int | None = None
+    owner_name: str | None = None
+
+
+class TeamOwnerUpdate(BaseSchema):
+    user_id: int | None = None
+
+
+class LineupMove(BaseSchema):
+    player_id: int
+    slot_index: int = Field(ge=0)
+
+
 class LeagueOverview(BaseSchema):
     id: int
     name: str
@@ -195,6 +211,7 @@ class LeagueOverview(BaseSchema):
     draft_status: DraftStatus
     draft_start_time: datetime | None = None
     members: list[MemberSummary]
+    teams: list[TeamBrief]
 
 
 class Standings(BaseSchema):
@@ -235,6 +252,7 @@ class RosterPlayer(BaseSchema):
 
 
 class RosterSlot(BaseSchema):
+    index: int
     slot: str
     player: RosterPlayer | None = None
 

@@ -340,3 +340,16 @@ def test_round_multiplier_maps_postseason_weeks(week: int, expected: float) -> N
     settings.multiplier_conference = Decimal(2)
     settings.multiplier_super_bowl = Decimal(3)
     assert round_multiplier(settings, week) == Decimal(str(expected))
+
+
+def test_defense_scoring_only_applies_to_defenses(
+    standard_league_settings: LeagueSettings,
+) -> None:
+    """A QB row has 0 points allowed; it must not earn the shutout bonus."""
+    standard_league_settings.scoring_dst_pts_allowed_0 = Decimal(10)
+    stats = NFLPlayerGameStats()
+    stats.dst_points_allowed = 0
+    assert calculate_player_points(stats, standard_league_settings, "QB") == Decimal(0)
+    assert calculate_player_points(stats, standard_league_settings, "DST") == Decimal(
+        10
+    )

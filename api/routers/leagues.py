@@ -3,7 +3,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, status
 from fastapi.exceptions import RequestValidationError
 from pydantic import ValidationError
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.orm import selectinload
 
 from api.core.config import get_settings
@@ -34,6 +34,8 @@ from api.models.league_models import (
     MemberSummary,
     ScoringSettings,
     Standings,
+    TeamBrief,
+    TeamOwnerUpdate,
     TeamSimple,
 )
 from api.services.league_admin import (
@@ -221,6 +223,18 @@ async def get_league(
         my_team_id=membership.team.id if membership.team else None,
         draft_status=DraftStatus(draft.status) if draft else DraftStatus.UNSCHEDULED,
         draft_start_time=draft.start_time if draft else None,
+        teams=[
+            TeamBrief(
+                id=team.id,
+                name=team.name or f"Team {team.id}",
+                owner_user_id=team.owner_id,
+                owner_name=next(
+                    (m.user.username for m in members if m.user_id == team.owner_id),
+                    None,
+                ),
+            )
+            for team in sorted(teams, key=lambda t: t.id)
+        ],
         members=[
             MemberSummary(
                 user_id=m.user_id,
@@ -270,6 +284,37 @@ async def update_member_role(
     except LeagueRuleError as exc:
         raise _rule_error(exc) from exc
     await db.flush()
+    return await get_league(league_id, membership, db)
+
+
+@router.put("/{league_id}/teams/{team_id}/owner", response_model=LeagueOverview)
+async def assign_team_owner(
+    league_id: int,
+    team_id: int,
+    payload: TeamOwnerUpdate,
+    membership: LeagueCommissioner,
+    db: DbSession,
+) -> LeagueOverview:
+    """Give a team to a member (moving them off any team they had) or unassign it."""
+    team = await db.get(Team, team_id)
+    if team is None or team.league_id != league_id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Team not found"
+        )
+    if payload.user_id is not None:
+        if await db.get(LeagueMemberRow, (league_id, payload.user_id)) is None:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="That user is not a member of this league",
+            )
+        await db.execute(
+            update(Team)
+            .where(Team.league_id == league_id, Team.owner_id == payload.user_id)
+            .values(owner_id=None)
+        )
+    team.owner_id = payload.user_id
+    await db.flush()
+    await db.refresh(team)
     return await get_league(league_id, membership, db)
 
 

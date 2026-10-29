@@ -1,7 +1,7 @@
 from decimal import Decimal
 
 from api.db.models.league import LeagueSettings
-from api.db.models.nfl import NFLPlayerGameStats
+from api.db.models.nfl import NFLPlayerGameStats, NFLPlayerSeasonStats
 from api.models.enums import PlayerPosition
 
 
@@ -234,12 +234,39 @@ def calculate_player_points(
     Scoring fields are decimal points-per-unit (or per-event), e.g. 0.04 per passing yard.
     None means the scoring category is disabled; treated as 0.
     """
-    return (
+    position = (
+        player_position
+        if isinstance(player_position, PlayerPosition)
+        else PlayerPosition.from_str(player_position)
+    )
+    total = (
         calculate_passing_points(stats, settings)
         + calculate_rushing_points(stats, settings)
         + calculate_receiving_points(stats, settings, player_position)
         + calculate_turnover_points(stats, settings)
         + calculate_special_teams_points(stats, settings)
         + calculate_kicking_points(stats, settings)
-        + calculate_dst_points(stats, settings)
     )
+    # A non-defense row has 0 points allowed, which would otherwise earn the shutout bonus.
+    if position == PlayerPosition.DST:
+        total += calculate_dst_points(stats, settings)
+    return total
+
+
+_SHARED_STAT_COLUMNS = [
+    column.key
+    for column in NFLPlayerSeasonStats.__table__.columns
+    if column.key in NFLPlayerGameStats.__table__.columns and column.key != "player_id"
+]
+
+
+def season_points(
+    stats: NFLPlayerSeasonStats,
+    settings: LeagueSettings,
+    player_position: PlayerPosition | str | None,
+) -> Decimal:
+    """Fantasy points for a season-stat row, scored like a single game under `settings`."""
+    view = NFLPlayerGameStats()
+    for column in _SHARED_STAT_COLUMNS:
+        setattr(view, column, getattr(stats, column))
+    return calculate_player_points(view, settings, player_position)

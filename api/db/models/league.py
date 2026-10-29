@@ -434,6 +434,8 @@ class TeamPlayer(Base):
         primary_key=True,
         index=True,
     )
+    # Explicit lineup position (index into the league's slot layout); None = auto-placed.
+    slot_index: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     team: Mapped["Team"] = relationship("Team", back_populates="roster")
 
