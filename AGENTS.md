@@ -159,7 +159,7 @@ make migrate    # alembic upgrade head               (make migration m="message"
 make api        # uvicorn api.main:app --reload on :8000
 make web        # Vite dev server on :5173 (proxies /api)
 make dev        # database + migrations + API + web
-make seed       # NFL data seeder (SEED_ARGS="--season 2025 --with-box-scores")
+make seed       # NFL data seeder (SEED_ARGS="--season 2026 --with-box-scores"; --no-stats skips season stats)
 
 make lint       # Ruff check + format check, Biome
 make typecheck  # Mypy (strict) and tsc
@@ -199,6 +199,7 @@ Authorization: `LeagueMember` (any member), `LeagueCommissioner` (`require_commi
 - **Frontend Quality**: Managed by **Biome** (`biome.json`) for unified AST-based linting, whitespace formatting, and automatic import organization.
 
 ### Backend Patterns
+- **RapidAPI ingestion**: Tank01 nests stats by category with string values; all mapping lives in `api/services/ingestion/schemas.py`. Read [docs/rapidapi-tank01.md](docs/rapidapi-tank01.md) before touching ingest.
 - **CamelCase API Contract**: All API JSON responses are formatted in `camelCase` for TypeScript consumption, while internal Python uses `snake_case`. The base schema `api/models/base.py` enforces this using Pydantic's `alias_generator = to_camel` with `populate_by_name = True`.
 - **Dual Model Layer**: 
   - SQLAlchemy models (`api/db/models/`) represent relational database tables.

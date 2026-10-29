@@ -100,12 +100,15 @@ PostSzn Fantasy includes an asynchronous batch ingestion pipeline that populates
 ```bash
 # Default: teams + active players + season stats
 make seed
+make seed SEED_ARGS="--no-stats"   # skip season stats
 
 # Specific flags
-make seed SEED_ARGS="--season 2025 --teams-only"
-make seed SEED_ARGS="--season 2025 --players-only"
-make seed SEED_ARGS="--season 2025 --with-box-scores"
+make seed SEED_ARGS="--season 2026 --teams-only"
+make seed SEED_ARGS="--season 2026 --players-only"
+make seed SEED_ARGS="--season 2026 --with-box-scores"
 ```
+
+The seed fails loudly if teams, players or stats come back empty, and prints the remaining RapidAPI quota. The roster endpoint only serves the current season, so keep `SEASON_YEAR` current. Set `RAPIDAPI_CACHE_DIR` in `api/.env` to replay responses from disk while developing. API details and quirks: [docs/rapidapi-tank01.md](docs/rapidapi-tank01.md).
 
 #### Option B: Admin API Trigger
 Trigger complete batch ingestion over HTTP via the admin router. Only users whose Supabase id (the JWT `sub`) is listed in `ADMIN_SUPABASE_UIDS` in `api/.env` are allowed; everyone else gets a 403:

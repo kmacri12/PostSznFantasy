@@ -161,7 +161,7 @@ Goal: one discoverable entry point for running the API, frontend and checks, rep
   - [x] Reconnect/resync: full state snapshot on WebSocket connect.
   - [x] Commissioner extras: undo last pick, force/auto pick, edit time per pick mid-draft.
 - [x] **Season & Players Defaults**:
-  - [x] Players page defaults to the configured season (`.env` season, currently 2025) instead of hardcoded 2024; single source of truth exposed via a `/api/config` (or similar) endpoint to the frontend.
+  - [x] Players page defaults to the configured season (`.env` season, currently 2026) instead of hardcoded 2024; single source of truth exposed via a `/api/config` (or similar) endpoint to the frontend.
   - [x] League `season` is **read-only**, defaulted from `.env` at creation.
 - [x] **Unified League Settings (editable by commissioners)**:
   - [x] Header block editable: league name, number of teams, commissioners (one or more). Season displayed but not editable.
@@ -196,3 +196,24 @@ Goal: one discoverable entry point for running the API, frontend and checks, rep
   - [x] Fantasy points computed with the selected league's scoring settings (server-side), sorted by points by default.
   - [x] Phone layout shows name, position, team, fantasy points and key stats without sideways scrolling.
   - [x] Desktop table leads with fantasy points alongside the full stat columns.
+
+---
+
+## Phase 22: RapidAPI Ingestion Hardening
+
+Root cause of the all-zero Players tab: Tank01 nests player stats by category (`Passing.passYds`, ...) with string values, while the parsers read flat keys, so every stat silently became 0. Details in [docs/rapidapi-tank01.md](docs/rapidapi-tank01.md).
+
+- [x] **Parsers**: one declarative column to (category, key) mapper shared by roster and box-score ingest; derived sacked, missed XP/FG; made-FG distances from `scoringPlays`; `POSTSEASON_WEEKS`; `StatsShapeError`.
+- [x] **Season stats ingest**: rows labelled with `SEASON_YEAR` (2026); raises `StatsShapeError` when players carry stats but none parse; zero-stat players still get zero rows.
+- [x] **Box score ingest**: skips snap-count-only entries, fills `kicking_fg_yards_made`, `game_week` 19-22, keeps a 0-0 score as 0 (not NULL), takes `gameTime_epoch`/`espnLink` from the games list, normalises "Final"/"Completed" to "Completed".
+- [x] **Schema**: `kicking_fg_made` on season and game stats (Alembic `0002`); Players endpoint reads the column.
+- [x] **Client**: logs and exposes `x-ratelimit-requests-remaining`, warns when low, retries 429 honouring `Retry-After`, optional dev disk cache (`RAPIDAPI_CACHE_DIR`).
+- [x] **Seed script**: fails when teams/players/stats come back empty, `--no-stats` replaces the always-true `--with-stats`, prints remaining quota.
+- [x] **Config**: `SEASON_YEAR=2026` default, `.env.example` and docs.
+- [x] **Docs**: `docs/rapidapi-tank01.md`, linked from README and AGENTS.
+- [x] **Tests**: fixture-based parser tests (real trimmed payloads), client tests for quota, 429 and disk cache.
+- [x] **Verified end to end**: 2026 seed yields 1619 season stat rows with nonzero stats.
+- [ ] **Open: per-team DST stats.** Box `DST` is per team; derive team defence rows (and a team-as-player model) before DST scoring can work.
+- [ ] **Open: kicker season FG scoring.** Season rows have a made count but no distances, so distance bonuses are not applied to season points; only the flat per-FG rate is. Fix needs per-game data (box scores or `getNFLGamesForPlayer`).
+- [ ] **Open: archive-season backfill** via `getNFLGamesForPlayer` (roster stats only exist for the current season).
+- [ ] **Open: 2026 postseason box scores** cannot be seeded until January 2027.
