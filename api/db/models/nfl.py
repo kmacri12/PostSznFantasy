@@ -104,6 +104,7 @@ class NFLPlayerSeasonStats(Base):
     kick_return_td: Mapped[int] = mapped_column(SmallInteger, default=0)
     kicking_xp_made: Mapped[int] = mapped_column(SmallInteger, default=0)
     kicking_xp_missed: Mapped[int] = mapped_column(SmallInteger, default=0)
+    kicking_fg_made: Mapped[int] = mapped_column(SmallInteger, default=0)
     kicking_fg_missed: Mapped[int] = mapped_column(SmallInteger, default=0)
     kicking_fg_yards_made: Mapped[list[int]] = mapped_column(
         ARRAY(SmallInteger), default=list
@@ -158,6 +159,7 @@ class NFLPlayerGameStats(Base):
     kick_return_td: Mapped[int] = mapped_column(SmallInteger, default=0)
     kicking_xp_made: Mapped[int] = mapped_column(SmallInteger, default=0)
     kicking_xp_missed: Mapped[int] = mapped_column(SmallInteger, default=0)
+    kicking_fg_made: Mapped[int] = mapped_column(SmallInteger, default=0)
     kicking_fg_missed: Mapped[int] = mapped_column(SmallInteger, default=0)
     kicking_fg_yards_made: Mapped[list[int]] = mapped_column(
         ARRAY(SmallInteger), default=list

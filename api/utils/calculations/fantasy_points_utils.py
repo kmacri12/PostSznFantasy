@@ -195,6 +195,8 @@ def calculate_kicking_points(
     fg_yards: list[int] = stats.kicking_fg_yards_made or []
     flat_per_fg = _safe(settings.scoring_kicking_fg_made)
     per_yard = _safe(settings.scoring_kicking_fg_yard)
+    # Season rows carry a made count but no distances, so only the flat rate applies there.
+    points += flat_per_fg * max((stats.kicking_fg_made or 0) - len(fg_yards), 0)
     for yards in fg_yards:
         points += flat_per_fg
         points += _fg_distance_bonus(yards, settings)

@@ -353,3 +353,13 @@ def test_defense_scoring_only_applies_to_defenses(
     assert calculate_player_points(stats, standard_league_settings, "DST") == Decimal(
         10
     )
+
+
+def test_season_kicking_points_use_flat_rate_for_count_without_distances(
+    standard_league_settings: LeagueSettings,
+) -> None:
+    stats = NFLPlayerGameStats()
+    stats.kicking_fg_made = 11
+    stats.kicking_fg_yards_made = []
+
+    assert calculate_kicking_points(stats, standard_league_settings) == Decimal(33)

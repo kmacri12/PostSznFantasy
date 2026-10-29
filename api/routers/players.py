@@ -96,7 +96,6 @@ async def get_player_season_stats(
         PlayerSeasonStatsResponse.model_validate(row).model_copy(
             update={
                 "player": _to_player(row.player),
-                "kicking_fg_made": len(row.kicking_fg_yards_made or []),
                 "fantasy_points": (
                     round(float(season_points(row, settings, row.player.position)), 1)
                     if settings is not None

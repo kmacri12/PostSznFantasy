@@ -1,0 +1,24 @@
+{
+ "statusCode": 200,
+ "body": [
+  {
+   "gameID": "20260110_LAR@CAR",
+   "seasonType": "Postseason",
+   "away": "LAR",
+   "gameDate": "20260110",
+   "espnID": "401772979",
+   "teamIDHome": "5",
+   "gameStatus": "Final",
+   "gameWeek": "Wild Card",
+   "teamIDAway": "19",
+   "home": "CAR",
+   "espnLink": "https://www.espn.com/nfl/boxscore/_/gameId/401772979",
+   "cbsLink": "https://www.cbssports.com/nfl/gametracker/boxscore/NFL_20260110_LAR@CAR",
+   "gameTime": "4:30p",
+   "gameTime_epoch": "1768080600.0",
+   "season": "2025",
+   "neutralSite": "False",
+   "gameStatusCode": "2"
+  }
+ ]
+}

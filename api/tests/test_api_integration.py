@@ -131,7 +131,7 @@ async def test_player_list_and_season_stats(
             setattr(
                 stats,
                 column.name,
-                [] if column.name.endswith("made") and "fg" in column.name else 0,
+                [] if column.name == "kicking_fg_yards_made" else 0,
             )
     stats.passing_yards = 4000
     stats.player = player
