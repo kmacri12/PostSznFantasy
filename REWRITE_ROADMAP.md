@@ -318,24 +318,24 @@ This checklist outlines the sequence of refactor tasks for developers and AI cod
 > Currently, all application tables are dumped into PostgreSQL's default `public` schema. In modern multi-domain systems, dumping external sports data, league runtime entities, and authentication/user models into `public` causes namespace pollution, privilege confusion, and poor domain separation.
 > Since this project is in pre-dev / local-only context with zero legacy migration baggage, we can cleanly segment domain models into dedicated PostgreSQL schemas and configure Alembic + SQLAlchemy to manage them cleanly.
 
-- [ ] **Schema Architecture Decision**:
+- [x] **Schema Architecture Decision**:
   - Segregate database objects into clean, domain-scoped PostgreSQL schemas:
     - **`nfl`**: External sports reference data (`nfl_teams`, `nfl_players`, `nfl_player_season_stats`, `nfl_player_game_stats`, `nfl_games`). Keeps large read-heavy ingested datasets isolated.
     - **`fantasy`**: Core application & league runtime state (`users`, `leagues`, `league_settings`, `teams`, `rosters`, `drafts`, `draft_picks`, `league_standings`).
-- [ ] **SQLAlchemy ORM Model Updates**:
-  - [ ] Add `__table_args__ = {"schema": "nfl"}` to all models in `api/db/models/nfl.py`.
-  - [ ] Add `__table_args__ = {"schema": "fantasy"}` to models in `api/db/models/user.py`, `api/db/models/league.py`, and `api/db/models/draft.py`.
-  - [ ] Update all foreign key string references with schema qualification (e.g., `ForeignKey("nfl.nfl_teams.id")`, `ForeignKey("fantasy.users.id")`).
-- [ ] **Alembic Multi-Schema Configuration**:
-  - [ ] Configure `api/alembic/env.py` with `include_schemas=True` and ensure DDL emissions include `CREATE SCHEMA IF NOT EXISTS nfl;` and `CREATE SCHEMA IF NOT EXISTS fantasy;`.
-  - [ ] Update or regenerate clean Alembic revision for target multi-schema DDL.
+- [x] **SQLAlchemy ORM Model Updates**:
+  - [x] Add `__table_args__ = {"schema": "nfl"}` to all models in `api/db/models/nfl.py`.
+  - [x] Add `__table_args__ = {"schema": "fantasy"}` to models in `api/db/models/user.py`, `api/db/models/league.py`, and `api/db/models/draft.py`.
+  - [x] Update all foreign key string references with schema qualification (e.g., `ForeignKey("nfl.nfl_teams.id")`, `ForeignKey("fantasy.users.id")`).
+- [x] **Alembic Multi-Schema Configuration**:
+  - [x] Configure `api/alembic/env.py` with `include_schemas=True` and ensure DDL emissions include `CREATE SCHEMA IF NOT EXISTS nfl;` and `CREATE SCHEMA IF NOT EXISTS fantasy;`.
+  - [x] Update or regenerate clean Alembic revision for target multi-schema DDL.
 - [ ] **Ingestion & Query Alignment**:
-  - [ ] Verify `api/services/ingestion/` bulk upsert queries (`insert()`, `on_conflict_do_update()`) cleanly target schema-qualified tables.
-  - [ ] Set `search_path=fantasy,nfl,public` in async database connection pool / engine configuration (`api/db/session.py`) for transparent fallback.
-- [ ] **Verification**:
-  - [ ] Rebuild local database container cleanly (`docker compose down -v && docker compose up -d`).
-  - [ ] Run `uv run alembic upgrade head` and verify `\dn` and `\dt *.*` in psql show zero application tables under `public`.
-  - [ ] Run test suite (`uv run pytest`) and seed CLI (`uv run python -m api.scripts.seed_nfl_data --teams-only`) to confirm full end-to-end functionality.
+  - [x] Verify `api/services/ingestion/` bulk upsert queries (`insert()`, `on_conflict_do_update()`) cleanly target schema-qualified tables.
+  - [x] Set `search_path=fantasy,nfl,public` in async database connection pool / engine configuration (`api/db/session.py`) for transparent fallback.
+- [x] **Verification**:
+  - [x] Rebuild local database container cleanly (`docker compose down -v && docker compose up -d`).
+  - [x] Run `uv run alembic upgrade head` and verify `\dn` and `\dt *.*` in psql show zero application tables under `public`.
+  - [x] Run test suite (`uv run pytest`) and seed CLI (`uv run python -m api.scripts.seed_nfl_data --teams-only`) to confirm full end-to-end functionality.
 
 ---
 
