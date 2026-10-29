@@ -66,7 +66,7 @@ const SlotRow = ({ slot, canDrag }: RowProps) => {
       >
         <Chip
           size="small"
-          label={slot.slot === "SUPER_FLEX" ? "SFLX" : slot.slot}
+          label={slot.slot === "SUPER_FLEX" ? "SFLX" : slot.slot === BENCH_SLOT ? "BN" : slot.slot}
           sx={{ width: 58, color: slot.slot === BENCH_SLOT ? tokens.muted : tokens.gold }}
         />
         {player ? (
