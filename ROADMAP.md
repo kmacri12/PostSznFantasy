@@ -180,7 +180,7 @@ Goal: one discoverable entry point for running the API, frontend and checks, rep
 
 ## Phase 21: Mobile Polish, Members in Settings, Lineup Management & League-Scored Players
 
-- [ ] **Top bar on phones**: the signed-in avatar/menu is cut off. Keep it visible on narrow screens (and hide the dev-only seed button there / move it into the drawer).
+- [x] **Top bar on phones**: the signed-in avatar/menu is cut off. Keep it visible on narrow screens (and hide the dev-only seed button there / move it into the drawer).
 - [ ] **League page simplification**:
   - [ ] Remove the Members section and its manage/demote/make-commissioner/remove buttons from the League page.
   - [ ] Standings shows team name plus the owner's display name.

@@ -92,7 +92,8 @@ const NavBar = ({
             gap: 1,
             color: "inherit",
             textDecoration: "none",
-            mr: 2,
+            mr: { xs: 0, md: 2 },
+            minWidth: 0,
           }}
         >
           <SportsFootballIcon sx={{ color: tokens.gold }} />
@@ -121,9 +122,9 @@ const NavBar = ({
           ))}
 
         <Box sx={{ flexGrow: 1 }} />
-        <DevQuickSync />
+        {!isMobile && <DevQuickSync />}
 
-        {user && (
+        {user && !isMobile && (
           <Chip
             clickable
             onClick={(event) => setLeagueAnchor(event.currentTarget)}
@@ -193,7 +194,39 @@ const NavBar = ({
       </Toolbar>
 
       <Drawer anchor="left" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
-        <List sx={{ width: 250 }}>
+        <List sx={{ width: 280 }}>
+          {user && (
+            <>
+              <ListItemText
+                primary="Your leagues"
+                primaryTypographyProps={{ variant: "overline", color: "text.secondary" }}
+                sx={{ px: 2, pt: 1 }}
+              />
+              {leagues.map((league) => (
+                <ListItemButton
+                  key={league.id}
+                  selected={String(league.id) === selectedLeagueId}
+                  onClick={() => {
+                    onSelectLeague(String(league.id));
+                    setDrawerOpen(false);
+                    navigate(`/league/${league.id}`);
+                  }}
+                >
+                  <ListItemText primary={league.name} />
+                </ListItemButton>
+              ))}
+              <ListItemButton
+                onClick={() => {
+                  setDrawerOpen(false);
+                  navigate("/create-league");
+                }}
+              >
+                <AddIcon fontSize="small" sx={{ mr: 1 }} />
+                <ListItemText primary="Create new league" />
+              </ListItemButton>
+              <Divider />
+            </>
+          )}
           {links.map((link) => (
             <ListItemButton
               key={link.to}
