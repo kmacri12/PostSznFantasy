@@ -18,6 +18,10 @@ class DraftPickError(Exception):
     """A pick or draft action was rejected; the message is safe to show to the drafter."""
 
 
+class PickNotDue(DraftPickError):
+    """The deadline was reset (a drafter picked) between the clock's scan and its lock."""
+
+
 @dataclass(frozen=True)
 class PickResult:
     pick: DraftPick

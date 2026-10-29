@@ -155,6 +155,12 @@ The frontend application is now accessible at `http://localhost:5173`.
 
 ---
 
+## Deployment Constraints
+
+- **One process only.** Run `uvicorn api.main:app --workers 1 --proxy-headers` on a single always-on instance. `DraftConnectionManager` keeps WebSocket connections in memory and the draft clock runs inside the API process, so extra workers or instances would split broadcasts. Hosts that sleep when idle (free tiers) are unsuitable because nothing auto-picks while the server is asleep.
+- User requests never call Tank01; only `/api/admin/*` and the opt-in scheduler spend RapidAPI quota.
+- Open work is tracked in [GitHub Issues](https://github.com/kmacri12/PostSznFantasy/issues) (labels `draft`, `ingestion`, `deploy`, `scaling`). Design decisions: [docs/api-decisions.md](docs/api-decisions.md).
+
 ## Verification & Testing
 
 ```bash

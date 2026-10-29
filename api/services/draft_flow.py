@@ -21,6 +21,7 @@ from api.models.enums import (
 )
 from api.services.draft_picks import (
     DraftPickError,
+    PickNotDue,
     PickResult,
     check_roster_limits,
     load_draft_for_update,
@@ -390,12 +391,24 @@ async def _best_available_ids(
     return [pid for _, pid in sorted(scored, key=lambda item: (-item[0], item[1]))]
 
 
-async def auto_pick(db: AsyncSession, league_id: int) -> PickResult:
-    """Pick for whoever is on the clock: their queue first (if configured), then best available."""
+async def auto_pick(
+    db: AsyncSession, league_id: int, *, only_if_overdue: bool = False
+) -> PickResult:
+    """Pick for whoever is on the clock: their queue first (if configured), then best available.
+
+    The clock sets `only_if_overdue` because it scans for expired deadlines before taking
+    the lock; a drafter may have picked in between, which would burn the next team's turn.
+    """
     draft = await load_draft_for_update(db, league_id)
     settings = await load_settings(db, league_id)
     if draft.status != DraftStatus.IN_PROGRESS.value:
         raise DraftPickError("The draft is not in progress")
+    if (
+        only_if_overdue
+        and draft.current_pick_deadline is not None
+        and draft.current_pick_deadline > datetime.now(UTC)
+    ):
+        raise PickNotDue("The pick deadline has not passed")
     picks_made = await db.scalar(
         select(func.count())
         .select_from(DraftPick)

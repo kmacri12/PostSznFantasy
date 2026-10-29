@@ -9,7 +9,7 @@ from api.db.session import get_session_factory
 from api.models.enums import DraftStatus
 from api.services import draft_flow
 from api.services.draft_events import pick_events
-from api.services.draft_picks import DraftPickError
+from api.services.draft_picks import DraftPickError, PickNotDue
 from api.ws.draft_manager import draft_manager
 
 logger = logging.getLogger(__name__)
@@ -38,13 +38,16 @@ async def expire_overdue_picks() -> int:
     for league_id in league_ids:
         async with get_session_factory()() as db:
             try:
-                result = await draft_flow.auto_pick(db, league_id)
+                result = await draft_flow.auto_pick(db, league_id, only_if_overdue=True)
                 draft = await db.scalar(
                     select(Draft).where(Draft.league_id == league_id)
                 )
                 assert draft is not None
                 events = await pick_events(db, draft, result)
                 await db.commit()
+            except PickNotDue:
+                await db.rollback()
+                continue
             except DraftPickError as exc:
                 await db.rollback()
                 logger.warning(

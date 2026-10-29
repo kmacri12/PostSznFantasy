@@ -1,6 +1,6 @@
 # ROADMAP.md — Hardening & Best-Practices Phase
 
-Forward-looking work only. Completed phases 1–14 are archived in [REWRITE_ROADMAP.md](REWRITE_ROADMAP.md); open items from it are carried over below. Update this file as items land (and keep [AGENTS.md](AGENTS.md) / [README.md](README.md) in sync per the documentation mandate).
+Forward-looking work now lives in [GitHub Issues](https://github.com/kmacri12/PostSznFantasy/issues); this file is kept as history. Completed phases 1–14 are archived in [REWRITE_ROADMAP.md](REWRITE_ROADMAP.md); open items from it are carried over below. Update this file as items land (and keep [AGENTS.md](AGENTS.md) / [README.md](README.md) in sync per the documentation mandate).
 
 > [!IMPORTANT]
 > **PRE-DEVELOPMENT / LOCAL-ONLY CONTEXT**: no production DB, no users, no legacy data. Schema wipes, route renames and wholesale rewrites are fine — no migrations shims or backward compatibility.
