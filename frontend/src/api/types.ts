@@ -35,6 +35,14 @@ export interface LeagueOverview {
   draftStatus: DraftStatus;
   draftStartTime: string | null;
   members: MemberSummary[];
+  teams: TeamBrief[];
+}
+
+export interface TeamBrief {
+  id: number;
+  name: string;
+  ownerUserId: number | null;
+  ownerName: string | null;
 }
 
 export interface Invite {
@@ -99,6 +107,7 @@ export interface RosterPlayer {
 }
 
 export interface RosterSlot {
+  index: number;
   slot: string;
   player: RosterPlayer | null;
 }

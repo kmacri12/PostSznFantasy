@@ -182,11 +182,11 @@ Goal: one discoverable entry point for running the API, frontend and checks, rep
 
 - [x] **Top bar on phones**: the signed-in avatar/menu is cut off. Keep it visible on narrow screens (and hide the dev-only seed button there / move it into the drawer).
 - [ ] **League page simplification**:
-  - [ ] Remove the Members section and its manage/demote/make-commissioner/remove buttons from the League page.
-  - [ ] Standings shows team name plus the owner's display name.
+  - [x] Remove the Members section and its manage/demote/make-commissioner/remove buttons from the League page.
+  - [x] Standings shows team name plus the owner's display name.
 - [ ] **Members live in Settings**:
-  - [ ] A Members section on the Settings page: roles (promote/demote), remove, and assign a member to a team (commissioner only).
-  - [ ] Backend endpoint to assign/unassign a team owner with the same commissioner guard.
+  - [x] A Members section on the Settings page: roles (promote/demote), remove, and assign a member to a team (commissioner only).
+  - [x] Backend endpoint to assign/unassign a team owner with the same commissioner guard.
 - [ ] **My Team layout**:
   - [ ] Phone: the full starting lineup fits on one screen (compact rows instead of large cards).
   - [ ] Desktop: a vertical list instead of the sparse card grid.

@@ -22,7 +22,6 @@ import { Link, useParams } from "react-router-dom";
 import { useLeague, useUpdateLeague } from "../api/queries";
 import type { LeagueOverview } from "../api/types";
 import InvitePanel from "../components/league/InvitePanel";
-import MembersPanel from "../components/league/MembersPanel";
 import StandingsTable from "../components/league/StandingsTable";
 
 const DRAFT_LABELS: Record<LeagueOverview["draftStatus"], string> = {
@@ -129,14 +128,8 @@ const LeaguePage: React.FC = () => {
       </Box>
 
       <Grid container spacing={3}>
-        <Grid item xs={12} md={isCommissioner ? 8 : 12} sx={{ minWidth: 0 }}>
-          <Typography variant="h6" sx={{ mb: 1 }}>
-            Members
-          </Typography>
-          <MembersPanel league={league} />
-        </Grid>
         {isCommissioner && (
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12}>
             <InvitePanel leagueId={league.id} />
           </Grid>
         )}

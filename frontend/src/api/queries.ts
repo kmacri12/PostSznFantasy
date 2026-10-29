@@ -182,6 +182,17 @@ export const useSetMemberRole = (leagueId: Id | undefined) =>
       ).data,
   );
 
+export const useAssignTeamOwner = (leagueId: Id | undefined) =>
+  useLeagueMutation(
+    leagueId,
+    async (v: { teamId: number; userId: number | null }) =>
+      (
+        await api.put<LeagueOverview>(`/api/leagues/${leagueId}/teams/${v.teamId}/owner`, {
+          userId: v.userId,
+        })
+      ).data,
+  );
+
 export const useRemoveMember = (leagueId: Id | undefined) =>
   useLeagueMutation(
     leagueId,
@@ -219,6 +230,15 @@ export const useRenameTeam = (teamId: Id | undefined) => {
       queryClient.invalidateQueries({ queryKey: ["league"] });
       queryClient.invalidateQueries({ queryKey: ["standings"] });
     },
+  });
+};
+
+export const useMoveInLineup = (teamId: Id | undefined) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (body: { playerId: number; slotIndex: number }) =>
+      (await api.post<TeamDetails>(`/api/teams/${teamId}/lineup`, body)).data,
+    onSuccess: (data) => queryClient.setQueryData(keys.team(teamId ?? ""), data),
   });
 };
 

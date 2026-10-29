@@ -19,6 +19,7 @@ import {
   useUpdateSettings,
 } from "../api/queries";
 import DraftSetupPanel from "../components/draft/DraftSetupPanel";
+import MembersSection from "../components/settings/MembersSection";
 import PostseasonForm from "../components/settings/PostseasonForm";
 import RosterForm from "../components/settings/RosterForm";
 import ScoringForm from "../components/settings/ScoringForm";
@@ -134,6 +135,11 @@ function SettingsPage() {
             .map((member) => member.username)
             .join(", ")}
         </Typography>
+      </Box>
+      <Divider sx={{ mb: 3 }} />
+
+      <Box sx={{ mb: 3 }}>
+        <MembersSection league={league.data} />
       </Box>
       <Divider sx={{ mb: 3 }} />
 
