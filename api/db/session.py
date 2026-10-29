@@ -33,7 +33,6 @@ def init_db() -> None:
         pool_size=20,
         max_overflow=10,
         pool_pre_ping=True,  # Detect and discard stale/dead connections
-        connect_args={"server_settings": {"search_path": "fantasy,nfl,public"}},
     )
 
     AsyncSessionLocal = async_sessionmaker(
