@@ -181,18 +181,18 @@ Goal: one discoverable entry point for running the API, frontend and checks, rep
 ## Phase 21: Mobile Polish, Members in Settings, Lineup Management & League-Scored Players
 
 - [x] **Top bar on phones**: the signed-in avatar/menu is cut off. Keep it visible on narrow screens (and hide the dev-only seed button there / move it into the drawer).
-- [ ] **League page simplification**:
+- [x] **League page simplification**:
   - [x] Remove the Members section and its manage/demote/make-commissioner/remove buttons from the League page.
   - [x] Standings shows team name plus the owner's display name.
-- [ ] **Members live in Settings**:
+- [x] **Members live in Settings**:
   - [x] A Members section on the Settings page: roles (promote/demote), remove, and assign a member to a team (commissioner only).
   - [x] Backend endpoint to assign/unassign a team owner with the same commissioner guard.
-- [ ] **My Team layout**:
+- [x] **My Team layout**:
   - [x] Phone: the full starting lineup fits on one screen (compact rows instead of large cards).
   - [x] Desktop: a vertical list instead of the sparse card grid.
   - [x] Drag and drop (touch + mouse) between starter slots and bench; persisted server-side with position-eligibility validation.
 - [x] **Scoring helpers**: plain-language conversions next to scoring inputs (e.g. 0.04 per passing yard = 1 point per 25 yards) for every rate that needs one.
-- [ ] **Players page**:
+- [x] **Players page**:
   - [x] Fantasy points computed with the selected league's scoring settings (server-side), sorted by points by default.
   - [x] Phone layout shows name, position, team, fantasy points and key stats without sideways scrolling.
   - [x] Desktop table leads with fantasy points alongside the full stat columns.
