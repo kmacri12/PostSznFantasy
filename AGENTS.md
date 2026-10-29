@@ -70,13 +70,22 @@ PostSznFantasy/
 │   ├── routers/                # Modular APIRouters
 │   │   ├── admin.py            # Ingestion triggers (admin only)
 │   │   ├── auth.py             # User onboarding & token exchange
-│   │   ├── drafts.py           # Draft info/picks + authenticated draft WebSocket
-│   │   ├── leagues.py          # League CRUD, teams, rosters, standings
+│   │   ├── drafts.py           # Draft state/setup/order/controls/queue/REST picks + authenticated WebSocket
+│   │   ├── invites.py          # Invite create/regenerate/revoke, public preview, join
+│   │   ├── leagues.py          # League CRUD, members/roles, settings PATCH, standings
+│   │   ├── teams.py            # Team page: slot layout, rename, add/drop
 │   │   └── players.py          # Player database & stats endpoints
 │   ├── scripts/                # Database seeding & administrative CLI scripts
 │   │   └── seed_nfl_data.py    # Unified on-demand NFL data seeder
 │   ├── services/               # Decoupled ingestion & domain services
 │   │   ├── eliminations.py     # mark_eliminated_teams
+│   │   ├── draft_flow.py       # Draft state machine, order, pause/resume/undo, queue, auto-pick
+│   │   ├── draft_clock.py      # 1s loop auto-picking expired server-side deadlines
+│   │   ├── draft_events.py     # PICK_MADE / DRAFT_STATE broadcast payloads
+│   │   ├── invites.py          # Invite codes and joining
+│   │   ├── league_members.py   # Role changes with the never-zero-commissioners rule
+│   │   ├── league_admin.py     # Team resizing and post-draft locks
+│   │   ├── roster_slots.py     # Empty roster template and slot assignment
 │   │   ├── draft_picks.py      # Server-side pick validation (turn, availability, roster limits)
 │   │   ├── scheduler.py        # Opt-in background sync/live-poll/elimination loop
 │   │   └── ingestion/          # Async batch upsert services
@@ -162,6 +171,18 @@ make format     # auto-fix Ruff and Biome
 `api/` is a Python package imported as `api.main` from the repo root; it has its own `pyproject.toml` and `uv.lock` (there is no root `pyproject.toml`). Tests under `api/tests/postgres/` need a throwaway database via `TEST_DATABASE_URL` and skip without one.
 
 ---
+
+## 3b. Route Map (Phase 20)
+
+| Area | Endpoints |
+| :--- | :--- |
+| Config | `GET /api/config` (season) |
+| Leagues | `POST /api/leagues/create-league`, `GET /api/leagues/user-leagues`, `GET/PATCH /api/leagues/{id}`, `GET/PATCH /api/leagues/{id}/settings` (roster/scoring/postseason; roster shape locks once the draft starts), `PATCH/DELETE /api/leagues/{id}/members/{userId}` |
+| Invites | `GET/POST/DELETE /api/leagues/{id}/invite` (commissioner), `GET /api/invites/{code}` (public preview), `POST /api/invites/{code}/join` |
+| Teams | `GET/PATCH /api/teams/{id}`, `POST /api/teams/{id}/roster` (add/drop under the league's free-agency rules) |
+| Draft | `GET /api/drafts/draft-info/{leagueId}`, `PATCH /api/drafts/{leagueId}` (setup), `PUT .../order`, `POST .../order/randomize`, `POST .../control/{lobby,start,pause,resume,undo}`, `POST .../force-pick`, `POST .../picks`, `GET/PUT .../queue`, `WS /api/drafts/ws/{leagueId}` |
+
+Authorization: `LeagueMember` (any member), `LeagueCommissioner` (`require_commissioner`) and `TeamMember`/`DraftMember` dependencies in `api/dependencies/league.py`. A league always keeps at least one commissioner. Draft states: `unscheduled -> scheduled -> lobby -> in_progress <-> paused -> completed`; only an explicit commissioner action starts a draft, and the pick deadline is persisted server-side (clients render countdowns from `currentPickDeadline` + `serverTime`).
 
 ## 4. Coding Conventions & Architectural Patterns
 

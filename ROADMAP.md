@@ -93,7 +93,7 @@ Guiding principles: KISS, comments explain *why* only, self-documenting names.
 - [x] **Type safety**: replace the 33 Biome `any` warnings (settings components take `any`); use generated or shared API types; consider `noUncheckedIndexedAccess`.
 - [x] **Deduplicate settings UI**: the 7 `Scoring*SettingsComponent` files become one data-driven component fed by a field schema.
 - [x] **Dev proxy**: add a Vite `server.proxy` for `/api` and `/api/drafts/ws` so `VITE_API_URL` / CORS config become optional locally.
-- [ ] **Tests**: cover `useWebSocket` reconnect/backoff, auth flow, draft page.
+- [x] **Tests**: cover `useWebSocket` reconnect/backoff, auth flow, draft page.
 
 ---
 
@@ -131,47 +131,47 @@ Goal: one discoverable entry point for running the API, frontend and checks, rep
 ## Phase 20: League Management, Invites, Draft Room Rebuild & Unified Settings
 > Notes on a Sleeper/ESPN-style draft lifecycle. Pre-dev rules apply: redesign schemas freely, no migrations of old data.
 
-- [ ] **League Page (replaces "Standings")**:
-  - [ ] Rename the standings concept to a **League** page: standings, league info, members, commissioner tools, and upcoming draft status in one place.
-  - [ ] Route/nav labels and `LeaguePage.tsx` updated; `StandingsTable` becomes one section of the page.
-- [ ] **Commissioner Roles**:
-  - [ ] Support one or more commissioners per league (`league_members.role`), enforced invariant: **never zero commissioners** (reject demoting/removing the last one).
-  - [ ] Commissioner-only dependency on routes (`require_commissioner`) for settings, invites, draft control, and member management.
-  - [ ] UI to promote/demote commissioners and remove members.
-- [ ] **Invite Flow (Link + Join Code)**:
-  - [ ] `league_invites` table: unique short code, league FK, created_by, optional expiry/max uses, revoked flag.
-  - [ ] Endpoints: create/regenerate/revoke invite (commissioner), resolve invite (`GET /api/invites/{code}`), join (`POST /api/invites/{code}/join`).
-  - [ ] Shareable link `/join/:code`: unauthenticated users are sent through login then returned to auto-join.
-  - [ ] Homepage "Join with Code" input accepting the same code.
-  - [ ] Commissioner invite panel on the League page: copy link, copy code, regenerate.
-  - [ ] Joining creates a team for the user; block joins when league is full or draft has started (configurable).
-- [ ] **My Team Page**:
-  - [ ] Show the roster slot layout even when empty (QB/RB/WR/TE/FLEX/K/DEF etc. per league roster settings), with placeholders per slot.
-  - [ ] Owner can edit team name (and avatar later); commissioner can edit any team name.
-  - [ ] Roster management actions allowed by league rules (add/drop when free agency is enabled, swaps between rounds).
-  - [ ] Alive/eliminated badges and next-game status per player.
-- [ ] **Draft Lifecycle Rebuild (match Sleeper / ESPN draft room)**:
-  - [ ] Draft states: `unscheduled` → `scheduled` → `lobby/waiting` → `in_progress` → `paused` → `completed`. Visiting the Draft tab must **never** auto-start a timer.
-  - [ ] Commissioner **draft setup**: date/time, time per pick, draft type (snake, linear, third-round reversal; auction later), rounds, pick-clock behavior on timeout (auto-pick from queue / best available).
-  - [ ] **Draft order**: no pre-assigned slots. Commissioner assigns each team to a slot manually, with a randomize button and manual reorder; order locked once started.
-  - [ ] Draft lobby: participants join the room, presence indicators, countdown to scheduled start, commissioner **Start / Pause / Resume** controls.
-  - [ ] **Server-authoritative timer**: persist `current_pick_deadline`/`pick_started_at` in the DB and broadcast over WebSocket; clients render countdown from server time so page reloads never reset the clock.
-  - [ ] Fix pick submission: clicking Draft on a player must validate turn, player availability, and roster rules, then broadcast to all clients (REST + WS parity, idempotent).
-  - [ ] Draft room UI: board grid (teams as columns in assigned order, rounds as rows, cells colored by position), available players list with search/position filters, **pick queue** (pre-rank), your-roster tab, pick feed, on-the-clock / on-deck indicators.
-  - [ ] Reconnect/resync: full state snapshot on WebSocket connect.
-  - [ ] Commissioner extras: undo last pick, force/auto pick, edit time per pick mid-draft.
-- [ ] **Season & Players Defaults**:
-  - [ ] Players page defaults to the configured season (`.env` season, currently 2025) instead of hardcoded 2024; single source of truth exposed via a `/api/config` (or similar) endpoint to the frontend.
-  - [ ] League `season` is **read-only**, defaulted from `.env` at creation.
-- [ ] **Unified League Settings (editable by commissioners)**:
-  - [ ] Header block editable: league name, number of teams, commissioners (one or more). Season displayed but not editable.
-  - [ ] Single **Settings** page with grouped sections: **League**, **Roster**, **Scoring** (all scoring combined under one header with subheaders: passing, rushing, receiving, kicking, defense, etc.), **Draft** (centralized: type, date/time, time per pick, order, rounds), and **Postseason**.
-  - [ ] Lock settings that can't change after the draft starts (team count, roster size, draft order).
-  - [ ] Backend `PATCH` endpoints with validation + commissioner authorization; changes reflected live for members.
-- [ ] **Postseason-Specific Fantasy Settings** (what makes this different from a regular season):
-  - [ ] **Free agency toggle**: whether players can be picked up from the free agent pool during the playoffs (and when: between rounds only, waiver priority vs. first-come).
-  - [ ] **Per-round scoring multipliers** (e.g. Wild Card 1x, Divisional 1.5x, Conference 2x, Super Bowl 3x), configurable by commissioner.
-  - [ ] Roster lock timing per round, and whether eliminated players can be swapped out between rounds.
-  - [ ] Tiebreaker rules and handling of bye-week teams (no game in Wild Card round).
-  - [ ] Settings stored on `LeagueSettings` with sane defaults and surfaced in the Settings page and landing explainer.
-- [ ] **Docs**: update `README.md`, `AGENTS.md` (route map, new models/endpoints), and `.env.example` as each piece lands.
+- [x] **League Page (replaces "Standings")**:
+  - [x] Rename the standings concept to a **League** page: standings, league info, members, commissioner tools, and upcoming draft status in one place.
+  - [x] Route/nav labels and `LeaguePage.tsx` updated; `StandingsTable` becomes one section of the page.
+- [x] **Commissioner Roles**:
+  - [x] Support one or more commissioners per league (`league_members.role`), enforced invariant: **never zero commissioners** (reject demoting/removing the last one).
+  - [x] Commissioner-only dependency on routes (`require_commissioner`) for settings, invites, draft control, and member management.
+  - [x] UI to promote/demote commissioners and remove members.
+- [x] **Invite Flow (Link + Join Code)**:
+  - [x] `league_invites` table: unique short code, league FK, created_by, optional expiry/max uses, revoked flag.
+  - [x] Endpoints: create/regenerate/revoke invite (commissioner), resolve invite (`GET /api/invites/{code}`), join (`POST /api/invites/{code}/join`).
+  - [x] Shareable link `/join/:code`: unauthenticated users are sent through login then returned to auto-join.
+  - [x] Homepage "Join with Code" input accepting the same code.
+  - [x] Commissioner invite panel on the League page: copy link, copy code, regenerate.
+  - [x] Joining creates a team for the user; block joins when league is full or draft has started (configurable).
+- [x] **My Team Page**:
+  - [x] Show the roster slot layout even when empty (QB/RB/WR/TE/FLEX/K/DEF etc. per league roster settings), with placeholders per slot.
+  - [x] Owner can edit team name (and avatar later); commissioner can edit any team name.
+  - [x] Roster management actions allowed by league rules (add/drop when free agency is enabled, swaps between rounds).
+  - [x] Alive/eliminated badges and next-game status per player.
+- [x] **Draft Lifecycle Rebuild (match Sleeper / ESPN draft room)**:
+  - [x] Draft states: `unscheduled` → `scheduled` → `lobby/waiting` → `in_progress` → `paused` → `completed`. Visiting the Draft tab must **never** auto-start a timer.
+  - [x] Commissioner **draft setup**: date/time, time per pick, draft type (snake, linear, third-round reversal; auction later), rounds, pick-clock behavior on timeout (auto-pick from queue / best available).
+  - [x] **Draft order**: no pre-assigned slots. Commissioner assigns each team to a slot manually, with a randomize button and manual reorder; order locked once started.
+  - [x] Draft lobby: participants join the room, presence indicators, countdown to scheduled start, commissioner **Start / Pause / Resume** controls.
+  - [x] **Server-authoritative timer**: persist `current_pick_deadline`/`pick_started_at` in the DB and broadcast over WebSocket; clients render countdown from server time so page reloads never reset the clock.
+  - [x] Fix pick submission: clicking Draft on a player must validate turn, player availability, and roster rules, then broadcast to all clients (REST + WS parity, idempotent).
+  - [x] Draft room UI: board grid (teams as columns in assigned order, rounds as rows, cells colored by position), available players list with search/position filters, **pick queue** (pre-rank), your-roster tab, pick feed, on-the-clock / on-deck indicators.
+  - [x] Reconnect/resync: full state snapshot on WebSocket connect.
+  - [x] Commissioner extras: undo last pick, force/auto pick, edit time per pick mid-draft.
+- [x] **Season & Players Defaults**:
+  - [x] Players page defaults to the configured season (`.env` season, currently 2025) instead of hardcoded 2024; single source of truth exposed via a `/api/config` (or similar) endpoint to the frontend.
+  - [x] League `season` is **read-only**, defaulted from `.env` at creation.
+- [x] **Unified League Settings (editable by commissioners)**:
+  - [x] Header block editable: league name, number of teams, commissioners (one or more). Season displayed but not editable.
+  - [x] Single **Settings** page with grouped sections: **League**, **Roster**, **Scoring** (all scoring combined under one header with subheaders: passing, rushing, receiving, kicking, defense, etc.), **Draft** (centralized: type, date/time, time per pick, order, rounds), and **Postseason**.
+  - [x] Lock settings that can't change after the draft starts (team count, roster size, draft order).
+  - [x] Backend `PATCH` endpoints with validation + commissioner authorization; changes reflected live for members.
+- [x] **Postseason-Specific Fantasy Settings** (what makes this different from a regular season):
+  - [x] **Free agency toggle**: whether players can be picked up from the free agent pool during the playoffs (and when: between rounds only, waiver priority vs. first-come).
+  - [x] **Per-round scoring multipliers** (e.g. Wild Card 1x, Divisional 1.5x, Conference 2x, Super Bowl 3x), configurable by commissioner.
+  - [x] Roster lock timing per round, and whether eliminated players can be swapped out between rounds.
+  - [x] Tiebreaker rules and handling of bye-week teams (no game in Wild Card round).
+  - [x] Settings stored on `LeagueSettings` with sane defaults and surfaced in the Settings page and landing explainer.
+- [x] **Docs**: update `README.md`, `AGENTS.md` (route map, new models/endpoints), and `.env.example` as each piece lands.
