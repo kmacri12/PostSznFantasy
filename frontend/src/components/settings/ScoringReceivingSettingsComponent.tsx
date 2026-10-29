@@ -1,15 +1,15 @@
+import ExpandLessIcon from "@mui/icons-material/ExpandLess";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {
-  Typography,
-  IconButton,
   Collapse,
-  Grid,
   FormControl,
+  Grid,
+  IconButton,
   InputLabel,
   OutlinedInput,
+  Typography,
 } from "@mui/material";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import ExpandLessIcon from "@mui/icons-material/ExpandLess";
-import React from "react";
+import type React from "react";
 
 interface ScoringReceivingSettingsProps {
   scoringSettings: any;
@@ -18,9 +18,12 @@ interface ScoringReceivingSettingsProps {
   handleExpandClick: () => void;
 }
 
-const ScoringReceivingSettingsComponent: React.FC<
-  ScoringReceivingSettingsProps
-> = ({ scoringSettings, setScoringSettings, expanded, handleExpandClick }) => {
+const ScoringReceivingSettingsComponent: React.FC<ScoringReceivingSettingsProps> = ({
+  scoringSettings,
+  setScoringSettings,
+  expanded,
+  handleExpandClick,
+}) => {
   return (
     <div id="receiving-scoring-settings">
       <Typography variant="h6" gutterBottom onClick={handleExpandClick}>
@@ -33,9 +36,7 @@ const ScoringReceivingSettingsComponent: React.FC<
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth margin="normal">
-              <InputLabel htmlFor="scoring-receiving-reception">
-                Reception
-              </InputLabel>
+              <InputLabel htmlFor="scoring-receiving-reception">Reception</InputLabel>
               <OutlinedInput
                 id="scoring-receiving-reception"
                 value={scoringSettings.scoring_receiving_reception}

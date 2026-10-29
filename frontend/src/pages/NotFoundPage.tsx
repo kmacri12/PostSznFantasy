@@ -1,11 +1,8 @@
-// src/pages/NotFoundPage.tsx
-import React from 'react';
-
 function NotFoundPage() {
   return (
-    <div>
-      <h1>NotFoundPage </h1>
-      {/* Add your league content here */}
+    <div style={{ padding: "32px", textAlign: "center" }}>
+      <h2>404 - Page Not Found</h2>
+      <p>The requested page does not exist.</p>
     </div>
   );
 }

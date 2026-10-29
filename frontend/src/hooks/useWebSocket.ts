@@ -1,53 +1,93 @@
-import { useState, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-interface DraftSyncData {
-  board: any[]; // Adjust the type according to your board structure
-  pick: any; // Adjust the type according to your pick structure
-  time: number; // Time left for the current pick (seconds)
+export interface DraftMessage {
+  eventType?: string;
+  type?: string;
+  leagueId?: number;
+  message?: string;
+  data?: any;
+  timestamp?: number | string;
+  activeConnections?: number;
 }
 
 export const useWebSocket = (url: string) => {
-  const [data, setData] = useState<DraftSyncData | null>(null);
+  const [data, setData] = useState<DraftMessage | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef<WebSocket | null>(null);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const heartbeatIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    // Open WebSocket connection
-    const socket = new WebSocket(url);
-    socketRef.current = socket;
+  const connect = useCallback(() => {
+    if (!url) return;
 
-    socket.onopen = () => {
-      setIsConnected(true);
-      console.log("WebSocket connection opened");
-    };
+    try {
+      const socket = new WebSocket(url);
+      socketRef.current = socket;
 
-    socket.onmessage = (event) => {
-      const parsedData: DraftSyncData = JSON.parse(event.data);
-      setData(parsedData); // Update the state with the received data
-    };
+      socket.onopen = () => {
+        setIsConnected(true);
+        console.log("Draft WebSocket connection established");
 
-    socket.onclose = () => {
-      setIsConnected(false);
-      console.log("WebSocket connection closed");
-    };
+        // Send periodic heartbeat ping
+        if (heartbeatIntervalRef.current) clearInterval(heartbeatIntervalRef.current);
+        heartbeatIntervalRef.current = setInterval(() => {
+          if (socket.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify({ type: "PING", timestamp: Date.now() }));
+          }
+        }, 20000);
+      };
 
-    socket.onerror = (error) => {
-      console.error("WebSocket error:", error);
-    };
+      socket.onmessage = (event) => {
+        try {
+          const parsedData: DraftMessage = JSON.parse(event.data);
+          setData(parsedData);
+        } catch (e) {
+          console.warn("Received non-JSON message:", event.data);
+        }
+      };
 
-    // Cleanup WebSocket connection on unmount
-    return () => {
-      socket.close();
-    };
+      socket.onclose = (event) => {
+        setIsConnected(false);
+        if (heartbeatIntervalRef.current) clearInterval(heartbeatIntervalRef.current);
+        console.log("Draft WebSocket connection closed:", event.code, event.reason);
+
+        // Reconnect backoff unless closed cleanly
+        if (event.code !== 1000) {
+          reconnectTimeoutRef.current = setTimeout(() => {
+            console.log("Attempting WebSocket reconnection...");
+            connect();
+          }, 3000);
+        }
+      };
+
+      socket.onerror = (error) => {
+        console.error("Draft WebSocket error:", error);
+      };
+    } catch (err) {
+      console.error("Failed to construct WebSocket:", err);
+    }
   }, [url]);
 
-  const sendMessage = (msg: string) => {
+  useEffect(() => {
+    connect();
+
+    return () => {
+      if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
+      if (heartbeatIntervalRef.current) clearInterval(heartbeatIntervalRef.current);
+      if (socketRef.current) {
+        socketRef.current.close(1000, "Component unmounted");
+      }
+    };
+  }, [connect]);
+
+  const sendMessage = useCallback((msg: object | string) => {
     if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
-      socketRef.current.send(msg);
+      const payload = typeof msg === "string" ? msg : JSON.stringify(msg);
+      socketRef.current.send(payload);
     } else {
-      console.error("WebSocket is not open.");
+      console.error("Draft WebSocket is not open.");
     }
-  };
+  }, []);
 
   return {
     data,

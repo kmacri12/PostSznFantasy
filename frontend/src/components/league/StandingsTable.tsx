@@ -1,15 +1,16 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
 import {
+  Paper,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
 } from "@mui/material";
-import { getAuth } from "firebase/auth";
+import axios from "axios";
+import type React from "react";
+import { useEffect, useState } from "react";
+import { useUser } from "../../contexts/UserContext";
 
 interface StandingsTableProps {
   leagueId: string;
@@ -29,30 +30,25 @@ interface Standings {
 const StandingsTable: React.FC<StandingsTableProps> = ({ leagueId }) => {
   const [standings, setStandings] = useState<Standings[]>([]);
   const [loading, setLoading] = useState(true);
+  const { getIdToken } = useUser();
 
   useEffect(() => {
     const fetchStandings = async () => {
       try {
         const apiUrl = import.meta.env.VITE_API_URL;
-        const auth = getAuth();
-        const user = auth.currentUser;
+        const idToken = await getIdToken();
 
-        if (!user) {
+        if (!idToken) {
           console.error("No user is currently signed in.");
           return;
         }
 
-        const idToken = await user.getIdToken();
-
-        const response = await axios.get(
-          `${apiUrl}/api/league/${leagueId}/standings`,
-          {
-            headers: { Authorization: `Bearer ${idToken}` },
-          }
-        );
+        const response = await axios.get(`${apiUrl}/api/leagues/${leagueId}/standings`, {
+          headers: { Authorization: `Bearer ${idToken}` },
+        });
 
         const sortedStandings = response.data.sort(
-          (a: Standings, b: Standings) => b.total - a.total
+          (a: Standings, b: Standings) => b.total - a.total,
         );
         setStandings(sortedStandings);
       } catch (error) {

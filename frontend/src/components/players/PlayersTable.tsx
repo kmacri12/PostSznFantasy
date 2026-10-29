@@ -1,280 +1,276 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useTable, useSortBy } from "react-table";
-import "./PlayersTable.css";
+import {
+  FormControl,
+  Grid,
+  InputLabel,
+  MenuItem,
+  Paper,
+  Select,
+  type SelectChangeEvent,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+} from "@mui/material";
+import {
+  type ColumnDef,
+  type SortingState,
+  flexRender,
+  getCoreRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
 import axios from "axios";
+import { useEffect, useMemo, useState } from "react";
+import "./PlayersTable.css";
 
-interface PlayerStat {
-  carrying_fumbles: number;
-  carrying_fumbles_lost: number;
-  dst_def_td: number;
-  dst_fumbles_recovered: number;
-  dst_interceptions: number;
-  dst_points_allowed: number;
-  dst_sacks: number;
-  dst_safeties: number;
-  dst_yards_allowed: number;
-  kick_return_td: number;
-  kick_return_yards: number;
-  kicking_fg_missed: number;
-  kicking_fg_yards_made: number[];
-  kicking_xp_made: number;
-  kicking_xp_missed: number;
-  passing_attempts: number;
-  passing_completions: number;
-  passing_interceptions: number;
-  passing_sacked: number;
-  passing_sacked_yards: number;
-  passing_touchdowns: number;
-  passing_two_point_conversions: number;
-  passing_yards: number;
-  player: {
-    birthday: string;
-    espn_headshot_url: string;
-    exp: string;
-    height: string;
-    id: number;
-    jersey_num: string;
-    name: string;
-    position: string;
-    team_id: number;
-    weight: string;
-    team: {
-      id: number;
-      team_abv: string;
-      team_city: string;
-      team_logo_url: string;
-      team_name: string;
-    };
+export interface PlayerInfo {
+  id: number;
+  name: string;
+  position: string;
+  teamAbv?: string;
+  jerseyNum?: string;
+  team?: {
+    teamAbv?: string;
   };
-  player_id: number;
-  punt_return_td: number;
-  punt_return_yards: number;
-  receiving_long_reception: number;
-  receiving_receptions: number;
-  receiving_targets: number;
-  receiving_touchdowns: number;
-  receiving_two_point_conversions: number;
-  receiving_yards: number;
-  rushing_carries: number;
-  rushing_long_rush: number;
-  rushing_touchdowns: number;
-  rushing_two_point_conversions: number;
-  rushing_yards: number;
+}
+
+export interface PlayerSeasonStats {
   season: string;
+  playerId: number;
+  player?: PlayerInfo;
+  passingCompletions?: number;
+  passingAttempts?: number;
+  passingYards?: number;
+  passingTouchdowns?: number;
+  passingInterceptions?: number;
+  rushingCarries?: number;
+  rushingYards?: number;
+  rushingTouchdowns?: number;
+  carryingFumblesLost?: number;
+  receivingReceptions?: number;
+  receivingYards?: number;
+  receivingTouchdowns?: number;
+  kickingFgMade?: number;
+  kickingFgMissed?: number;
+  kickingXpMade?: number;
+  kickingXpMissed?: number;
+  dstPointsAllowed?: number;
+  dstYardsAllowed?: number;
+  dstSacks?: number;
+  dstInterceptions?: number;
+  dstDefTd?: number;
 }
 
 const PlayersTable = () => {
   const apiUrl = import.meta.env.VITE_API_URL;
-  const [selectedSeason, setSelectedSeason] = useState("2023");
+  const [selectedSeason, setSelectedSeason] = useState("2024");
   const [selectedPosition, setSelectedPosition] = useState("QB");
   const [searchQuery, setSearchQuery] = useState("");
-  const [playerStats, setPlayerStats] = useState<[]>([]);
+  const [playerStats, setPlayerStats] = useState<PlayerSeasonStats[]>([]);
+  const [sorting, setSorting] = useState<SortingState>([]);
 
   useEffect(() => {
     axios
       .get(`${apiUrl}/api/players/player-season-stats`)
       .then((response) => {
-        setPlayerStats(response.data);
-        // setLoading(false);
+        setPlayerStats(response.data || []);
       })
       .catch((error) => {
-        console.error(error);
+        console.error("Error fetching player stats:", error);
       });
-  }, []);
+  }, [apiUrl]);
 
-  const getPositionColumns = useCallback((position: string) => {
-    switch (position) {
+  const filteredData = useMemo(() => {
+    return playerStats.filter((row) => {
+      const pos = row.player?.position || "";
+      const matchesPosition =
+        selectedPosition === "FLX" ? ["RB", "WR", "TE"].includes(pos) : pos === selectedPosition;
+
+      const matchesSeason = !selectedSeason || row.season === selectedSeason;
+      const matchesSearch =
+        !searchQuery ||
+        (row.player?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
+
+      return matchesPosition && matchesSeason && matchesSearch;
+    });
+  }, [playerStats, selectedPosition, selectedSeason, searchQuery]);
+
+  const positionColumns = useMemo<ColumnDef<PlayerSeasonStats>[]>(() => {
+    switch (selectedPosition) {
       case "QB":
         return [
-          {
-            Header: "Passing",
-            columns: [
-              { Header: "Completions", accessor: "passing_completions" },
-              { Header: "Attempts", accessor: "passing_attempts" },
-              { Header: "Yards", accessor: "passing_yards" },
-              { Header: "Touchdowns", accessor: "passing_touchdowns" },
-            ],
-          },
-          {
-            Header: "Rushing",
-            columns: [
-              { Header: "Carries", accessor: "rushing_carries" },
-              { Header: "Yards", accessor: "rushing_yards" },
-              { Header: "Touchdowns", accessor: "rushing_touchdowns" },
-              { Header: "Fumbles Lost", accessor: "carrying_fumbles_lost" },
-            ],
-          },
+          { header: "Cmp", accessorKey: "passingCompletions" },
+          { header: "Att", accessorKey: "passingAttempts" },
+          { header: "Pass Yds", accessorKey: "passingYards" },
+          { header: "Pass TD", accessorKey: "passingTouchdowns" },
+          { header: "INT", accessorKey: "passingInterceptions" },
+          { header: "Rush Yds", accessorKey: "rushingYards" },
+          { header: "Rush TD", accessorKey: "rushingTouchdowns" },
         ];
       case "RB":
       case "WR":
       case "TE":
       case "FLX":
         return [
-          {
-            Header: "Receiving",
-            columns: [
-              { Header: "Receptions", accessor: "receiving_receptions" },
-              { Header: "Yards", accessor: "receiving_yards" },
-              { Header: "Touchdowns", accessor: "receiving_touchdowns" },
-            ],
-          },
-          {
-            Header: "Rushing",
-            columns: [
-              { Header: "Carries", accessor: "rushing_carries" },
-              { Header: "Yards", accessor: "rushing_yards" },
-              { Header: "Touchdowns", accessor: "rushing_touchdowns" },
-              { Header: "Fumbles Lost", accessor: "carrying_fumbles_lost" },
-            ],
-          },
+          { header: "Rec", accessorKey: "receivingReceptions" },
+          { header: "Rec Yds", accessorKey: "receivingYards" },
+          { header: "Rec TD", accessorKey: "receivingTouchdowns" },
+          { header: "Carries", accessorKey: "rushingCarries" },
+          { header: "Rush Yds", accessorKey: "rushingYards" },
+          { header: "Rush TD", accessorKey: "rushingTouchdowns" },
+          { header: "Fumbles Lost", accessorKey: "carryingFumblesLost" },
         ];
       case "PK":
+      case "K":
         return [
-          {
-            Header: "Kicking",
-            columns: [
-              { Header: "FG Made", accessor: "kicking_fg_made" },
-              { Header: "FG Missed", accessor: "kicking_fg_missed" },
-              { Header: "XP Made", accessor: "kicking_xp_made" },
-              { Header: "XP Missed", accessor: "kicking_xp_missed" },
-            ],
-          },
+          { header: "FG Made", accessorKey: "kickingFgMade" },
+          { header: "FG Miss", accessorKey: "kickingFgMissed" },
+          { header: "XP Made", accessorKey: "kickingXpMade" },
+          { header: "XP Miss", accessorKey: "kickingXpMissed" },
         ];
       case "DST":
         return [
-          {
-            Header: "Defense",
-            columns: [
-              { Header: "Points Allowed", accessor: "dst_points_allowed" },
-              { Header: "Yards Allowed", accessor: "dst_yards_allowed" },
-              { Header: "Sacks", accessor: "dst_sacks" },
-              { Header: "Interceptions", accessor: "dst_interceptions" },
-            ],
-          },
+          { header: "Pts Allowed", accessorKey: "dstPointsAllowed" },
+          { header: "Yds Allowed", accessorKey: "dstYardsAllowed" },
+          { header: "Sacks", accessorKey: "dstSacks" },
+          { header: "INT", accessorKey: "dstInterceptions" },
+          { header: "Def TD", accessorKey: "dstDefTd" },
         ];
       default:
         return [];
     }
-  }, []);
+  }, [selectedPosition]);
 
-  // Memoize columns and filter logic
-  const columns = useMemo(
-    () => getPositionColumns(selectedPosition),
-    [selectedPosition, getPositionColumns]
-  );
-  const filteredData = useMemo(() => {
-    return playerStats.filter((player) => {
-      const matchesPosition =
-        selectedPosition === "FLX"
-          ? ["RB", "WR", "TE"].includes(player.player.position)
-          : player.player.position === selectedPosition;
-      const matchesSeason = player.season === selectedSeason;
-
-      return matchesPosition && matchesSeason;
-    });
-  }, [playerStats, selectedPosition, searchQuery, selectedSeason]);
-
-  const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
-    useTable(
+  const columns = useMemo<ColumnDef<PlayerSeasonStats>[]>(
+    () => [
       {
-        columns: useMemo(
-          () => [
-            { Header: "Name", accessor: "player.name" },
-            {
-              Header: () => (
-                <div>
-                  <span>Pos </span>
-                  <select
-                    value={selectedPosition}
-                    onChange={(e) => setSelectedPosition(e.target.value)}
-                  >
-                    <option value="QB">QB</option>
-                    <option value="RB">RB</option>
-                    <option value="WR">WR</option>
-                    <option value="TE">TE</option>
-                    <option value="PK">PK</option>
-                    <option value="DST">DST</option>
-                    <option value="FLX">FLX</option>
-                  </select>
-                </div>
-              ),
-              accessor: "player.position",
-              id: "position-selector",
-              disableSortBy: true,
-            },
-            { Header: "Team", accessor: "player.team.team_abv" },
-            ...columns,
-          ],
-          [columns]
-        ),
-        data: filteredData,
+        header: "Name",
+        accessorFn: (row) => row.player?.name ?? "Unknown",
+        id: "name",
       },
-      useSortBy
-    );
+      {
+        header: "Pos",
+        accessorFn: (row) => row.player?.position ?? "-",
+        id: "position",
+      },
+      {
+        header: "Team",
+        accessorFn: (row) => row.player?.teamAbv || row.player?.team?.teamAbv || "-",
+        id: "team",
+      },
+      ...positionColumns,
+    ],
+    [positionColumns],
+  );
+
+  const table = useReactTable({
+    data: filteredData,
+    columns,
+    state: { sorting },
+    onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+  });
 
   return (
-    <div>
-      <select
-        value={selectedSeason}
-        onChange={(e) => setSelectedSeason(e.target.value)}
-        style={{ marginLeft: "10px" }}
-      >
-        <option value="2024">2024</option>
-        <option value="2023">2023</option>
-        <option value="2022">2022</option>
-        <option value="2021">2021</option>
-      </select>
+    <div style={{ padding: "16px" }}>
+      <Grid container spacing={2} alignItems="center" sx={{ mb: 2 }}>
+        <Grid item xs={12} sm={3}>
+          <FormControl fullWidth size="small">
+            <InputLabel id="season-select-label">Season</InputLabel>
+            <Select
+              labelId="season-select-label"
+              value={selectedSeason}
+              label="Season"
+              onChange={(e: SelectChangeEvent) => setSelectedSeason(e.target.value)}
+            >
+              <MenuItem value="2025">2025</MenuItem>
+              <MenuItem value="2024">2024</MenuItem>
+              <MenuItem value="2023">2023</MenuItem>
+            </Select>
+          </FormControl>
+        </Grid>
+        <Grid item xs={12} sm={3}>
+          <FormControl fullWidth size="small">
+            <InputLabel id="position-select-label">Position</InputLabel>
+            <Select
+              labelId="position-select-label"
+              value={selectedPosition}
+              label="Position"
+              onChange={(e: SelectChangeEvent) => setSelectedPosition(e.target.value)}
+            >
+              <MenuItem value="QB">QB</MenuItem>
+              <MenuItem value="RB">RB</MenuItem>
+              <MenuItem value="WR">WR</MenuItem>
+              <MenuItem value="TE">TE</MenuItem>
+              <MenuItem value="FLX">FLX</MenuItem>
+              <MenuItem value="PK">PK</MenuItem>
+              <MenuItem value="DST">DST</MenuItem>
+            </Select>
+          </FormControl>
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            size="small"
+            label="Search player"
+            variant="outlined"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </Grid>
+      </Grid>
 
-      <input
-        type="text"
-        placeholder="Search by name"
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        style={{ marginLeft: "10px" }}
-      />
-
-      <table
-        {...getTableProps()}
-        style={{ border: "solid 1px gray" }}
-        className="players-table"
-      >
-        <thead>
-          {headerGroups.map((headerGroup) => (
-            <tr {...headerGroup.getHeaderGroupProps()} key={headerGroup.id}>
-              {headerGroup.headers.map((column) => (
-                <th
-                  {...column.getHeaderProps(column.getSortByToggleProps())} // Enables sorting on header click
-                  key={column.id}
-                >
-                  {column.render("Header")}
-                  {/* Add a sort direction indicator */}
-                  <span>
-                    {column.isSorted
-                      ? column.isSortedDesc
-                        ? " 🔽" // Sort descending
-                        : " 🔼" // Sort ascending
-                      : ""}
-                  </span>
-                </th>
-              ))}
-            </tr>
-          ))}
-        </thead>
-        <tbody {...getTableBodyProps()}>
-          {rows.map((row) => {
-            prepareRow(row);
-            return (
-              <tr {...row.getRowProps()} key={row.id}>
-                {row.cells.map((cell) => (
-                  <td {...cell.getCellProps()} key={cell.column.id}>
-                    {cell.render("Cell")}
-                  </td>
-                ))}
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+      <TableContainer component={Paper}>
+        <Table className="players-table">
+          <TableHead>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
+                  const canSort = header.column.getCanSort();
+                  const sorted = header.column.getIsSorted();
+                  return (
+                    <TableCell
+                      key={header.id}
+                      onClick={header.column.getToggleSortingHandler()}
+                      style={{
+                        cursor: canSort ? "pointer" : "default",
+                        fontWeight: "bold",
+                        userSelect: "none",
+                      }}
+                    >
+                      {flexRender(header.column.columnDef.header, header.getContext())}
+                      {sorted === "asc" ? " 🔼" : sorted === "desc" ? " 🔽" : ""}
+                    </TableCell>
+                  );
+                })}
+              </TableRow>
+            ))}
+          </TableHead>
+          <TableBody>
+            {table.getRowModel().rows.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={columns.length} align="center">
+                  No player statistics found.
+                </TableCell>
+              </TableRow>
+            ) : (
+              table.getRowModel().rows.map((row) => (
+                <TableRow key={row.id}>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
     </div>
   );
 };

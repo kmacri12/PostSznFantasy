@@ -1,80 +1,104 @@
-import json
+from decimal import Decimal
+
+from api.core.config import get_settings
+from api.db.models.league import LeagueSettings, Lineup, PlayerScore, Team
+from api.db.models.nfl import NFLGame, NFLPlayer, NFLPlayerGameStats, NFLTeam
+from api.models.enums import PlayerPosition
 from api.utils.calculations.fantasy_points_utils import calculate_player_points
-from api.utils.db.models import db, Lineup, PlayerScore, Team, NFLPlayerGameStats, LeagueSettings, NFLPlayer, NFLTeam
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
-def get_players_left(team_id, league_id):
-    # TODO implement this fn
-    import random
-    return random.randint(0, 16)
-    # Fetch the team
-    team = Team.query.filter_by(id=team_id, league_id=league_id).first()
-    if not team:
-        raise ValueError(f"Team with ID {team_id} not found in league {league_id}")
+async def get_players_left(team_id: int, league_id: int, db: AsyncSession) -> int:
+    """Count rostered players whose NFL team is still active (not eliminated)."""
+    team_row = await db.scalar(
+        select(Team).where(Team.id == team_id, Team.league_id == league_id)
+    )
+    if team_row is None or not team_row.roster:
+        return 0
 
-    # Fetch all players on the team
-    players = NFLPlayer.query.filter_by(team_id=team_id).all()
-    
-    # Fetch the status of NFL teams
-    nfl_teams = NFLTeam.query.all()  # Assuming you have a field indicating whether the team is active or not
-    nfl_team_status = {nfl_team.id: nfl_team.is_active for nfl_team in nfl_teams}  # Example field is_active
-    
-    # Count players whose NFL team is still active
-    players_left_count = 0
-    for player in players:
-        nfl_team_id = player.team_id
-        if nfl_team_status.get(nfl_team_id, False):  # Check if the team is active
-            players_left_count += 1
+    roster_ids: list[int] = team_row.roster
 
-    return players_left_count
+    result = await db.execute(
+        select(NFLPlayer)
+        .join(NFLTeam, NFLPlayer.team_id == NFLTeam.id)
+        .where(NFLPlayer.id.in_(roster_ids), NFLTeam.is_active.is_(True))
+    )
+    return len(result.scalars().all())
 
 
-def get_team_fantasy_points_by_week(team_id, league_id, week):
-    # TODO: implement
-    import random
-    return round(random.uniform(10, 100), 2)
-    # Fetch the league settings for scoring details
-    league_settings = LeagueSettings.query.filter_by(league_id=league_id).first()
-    if not league_settings:
-        raise ValueError(f"League settings for league {league_id} not found")
+async def get_team_fantasy_points_by_week(
+    team_id: int,
+    league_id: int,
+    week: int,
+    db: AsyncSession,
+) -> Decimal:
+    """Sum fantasy points for a team's lineup in a given week.
 
-    # Fetch the lineup for the given team and week
-    lineup = Lineup.query.filter_by(team_id=team_id, week_id=week).first()
-    if not lineup:
-        raise ValueError(f"Lineup for team {team_id} and week {week} not found")
+    Fetches game stats for all lineup players, scores them, upserts PlayerScore rows,
+    and returns the total. Caller is responsible for committing the session.
+    """
+    league_settings = await db.scalar(
+        select(LeagueSettings).where(LeagueSettings.league_id == league_id)
+    )
+    if league_settings is None:
+        return Decimal(0)
 
-    # Fetch the games for the wild card week
-    games = NFLPlayerGameStats.query.filter_by(week=week, team_id=team_id).all()
+    lineup_row = await db.scalar(
+        select(Lineup).where(Lineup.team_id == team_id, Lineup.week_id == week)
+    )
+    if lineup_row is None:
+        return Decimal(0)
 
-    # Calculate points
-    total_points = 0
-    player_scores = {}
+    # lineup JSON is position → player_id; collect unique player IDs
+    player_ids = list({int(pid) for pid in lineup_row.lineup.values() if pid})
+    if not player_ids:
+        return Decimal(0)
 
-    for game in games:
-        # Fetch player_stats from the JSONB field
-        player_stats = json.loads(game.player_stats)
+    # Fetch all game stat rows for this week/season for the lineup players
+    season_year = get_settings().season_year
+    game_stats_rows = (
+        (
+            await db.execute(
+                select(NFLPlayerGameStats)
+                .join(NFLGame, NFLPlayerGameStats.game_id == NFLGame.id)
+                .where(
+                    NFLGame.game_week == week,
+                    NFLGame.season == season_year,
+                    NFLPlayerGameStats.player_id.in_(player_ids),
+                )
+            )
+        )
+        .scalars()
+        .all()
+    )
 
-        for player_id, stats in player_stats.items():
-            # Fetch the player
-            player = NFLPlayer.query.filter_by(id=player_id).first()
-            if not player:
-                continue
+    total = Decimal(0)
 
-            # Calculate player points based on the stats and league settings
-            points = calculate_player_points(stats, league_settings)
-            player_scores[player_id] = points
+    for game_stat in game_stats_rows:
+        player = await db.scalar(
+            select(NFLPlayer).where(NFLPlayer.id == game_stat.player_id)
+        )
+        position = PlayerPosition.from_str(player.position) if player else None
+        pts = calculate_player_points(game_stat, league_settings, position)
+        total += pts
 
-    # Save player scores
-    for player_id, points in player_scores.items():
-        player_score = PlayerScore.query.filter_by(lineup_id=lineup.id, player_id=player_id).first()
-        if player_score:
-            player_score.points = points
+        # Upsert PlayerScore
+        existing = await db.scalar(
+            select(PlayerScore).where(
+                PlayerScore.lineup_id == lineup_row.id,
+                PlayerScore.player_id == game_stat.player_id,
+            )
+        )
+        if existing is not None:
+            existing.points = pts
         else:
-            player_score = PlayerScore(lineup_id=lineup.id, player_id=player_id, points=points)
-            db.session.add(player_score)
-    db.session.commit()
+            db.add(
+                PlayerScore(
+                    lineup_id=lineup_row.id,
+                    player_id=game_stat.player_id,
+                    points=pts,
+                )
+            )
 
-    # Fetch player lineups for the team and week
-    total_points = sum(player_scores.values())
-
-    return total_points
+    return total

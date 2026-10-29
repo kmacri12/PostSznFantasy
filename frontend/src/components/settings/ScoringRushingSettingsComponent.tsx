@@ -1,15 +1,15 @@
+import ExpandLessIcon from "@mui/icons-material/ExpandLess";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {
-  Typography,
-  IconButton,
   Collapse,
-  Grid,
   FormControl,
+  Grid,
+  IconButton,
   InputLabel,
   OutlinedInput,
+  Typography,
 } from "@mui/material";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import ExpandLessIcon from "@mui/icons-material/ExpandLess";
-import React from "react";
+import type React from "react";
 
 interface ScoringRushingSettingsProps {
   scoringSettings: any;
@@ -18,9 +18,12 @@ interface ScoringRushingSettingsProps {
   handleExpandClick: () => void;
 }
 
-const ScoringRushingSettingsComponent: React.FC<
-  ScoringRushingSettingsProps
-> = ({ scoringSettings, setScoringSettings, expanded, handleExpandClick }) => {
+const ScoringRushingSettingsComponent: React.FC<ScoringRushingSettingsProps> = ({
+  scoringSettings,
+  setScoringSettings,
+  expanded,
+  handleExpandClick,
+}) => {
   return (
     <div id="rushing-scoring-settings">
       <Typography variant="h6" gutterBottom onClick={handleExpandClick}>

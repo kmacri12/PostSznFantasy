@@ -1,33 +1,19 @@
-import React from "react";
-import {
-  Table,
-  TableCell,
-  TableHead,
-  TableRow,
-  Paper,
-  Grid,
-} from "@mui/material";
-import { Player } from "./PlayerSelector";
+import { Grid, Paper, Table, TableCell, TableHead, TableRow } from "@mui/material";
+import type React from "react";
+import type { DraftPick, Team } from "../../pages/DraftPage";
+import type { Player } from "./PlayerSelector";
 
 interface Props {
   teams: Team[];
   draftPicks: DraftPick[][];
   currentPickIndex: number;
-  timer: number;
-  onPlayerSelected: (player: Player) => void; // Function to handle player selection
-  isMyTurn: boolean; // Flag indicating if it's the user's turn
-  selectedPlayerIDs: number[]; // Array of selected player IDs (optional)
+  timer?: number;
+  onPlayerSelected?: (player: Player) => void;
+  isMyTurn?: boolean;
+  selectedPlayerIDs?: number[];
 }
 
-const DraftBoard: React.FC<Props> = ({
-  teams,
-  draftPicks: draftBoard,
-  currentPickIndex,
-  timer,
-  onPlayerSelected,
-  isMyTurn,
-  selectedPlayerIDs,
-}) => {
+const DraftBoard: React.FC<Props> = ({ teams, draftPicks: draftBoard, currentPickIndex }) => {
   return (
     <Grid item xs={12}>
       <h2>Draft Board</h2>
@@ -36,29 +22,25 @@ const DraftBoard: React.FC<Props> = ({
           <TableHead>
             <TableRow>
               <TableCell>Round</TableCell>
-              {/* Render the team owners in the top row */}
-              {teams?.map((team, teamIndex) => (
-                <TableCell key={teamIndex}>
-                  {team.name} {team.ownerName}
+              {teams?.map((team) => (
+                <TableCell key={team.id}>
+                  {team.name} ({team.ownerName})
                 </TableCell>
               ))}
             </TableRow>
           </TableHead>
-          {/* Render draft picks */}
           {draftBoard.map((round, roundIndex) => (
             <TableRow key={roundIndex}>
               <TableCell>{roundIndex + 1}</TableCell>
-              {round.map((player, teamIndex) => (
+              {round.map((pick) => (
                 <TableCell
-                  key={teamIndex}
+                  key={pick.numberPickOverall}
                   style={{
                     backgroundColor:
-                      player.numberPickOverall === currentPickIndex
-                        ? "#f0f0f0"
-                        : "inherit",
+                      pick.numberPickOverall === currentPickIndex ? "#f0f0f0" : "inherit",
                   }}
                 >
-                  {player.playerName || player.numberPickOverall}
+                  {pick.playerName || `#${pick.numberPickOverall}`}
                 </TableCell>
               ))}
             </TableRow>

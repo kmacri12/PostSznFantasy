@@ -1,15 +1,15 @@
+import ExpandLessIcon from "@mui/icons-material/ExpandLess";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {
-  Typography,
-  IconButton,
   Collapse,
-  Grid,
   FormControl,
+  Grid,
+  IconButton,
   InputLabel,
   OutlinedInput,
+  Typography,
 } from "@mui/material";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import ExpandLessIcon from "@mui/icons-material/ExpandLess";
-import React from "react";
+import type React from "react";
 
 interface ScoringCarryingSettingsProps {
   scoringSettings: any;
@@ -18,9 +18,12 @@ interface ScoringCarryingSettingsProps {
   handleExpandClick: () => void;
 }
 
-const ScoringCarryingSettingsComponent: React.FC<
-  ScoringCarryingSettingsProps
-> = ({ scoringSettings, setScoringSettings, expanded, handleExpandClick }) => {
+const ScoringCarryingSettingsComponent: React.FC<ScoringCarryingSettingsProps> = ({
+  scoringSettings,
+  setScoringSettings,
+  expanded,
+  handleExpandClick,
+}) => {
   return (
     <div id="carrying-scoring-settings">
       <Typography variant="h6" gutterBottom onClick={handleExpandClick}>
@@ -49,9 +52,7 @@ const ScoringCarryingSettingsComponent: React.FC<
           </Grid>
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth margin="normal">
-              <InputLabel htmlFor="scoring-carrying-fumble-lost">
-                Fumble Lost
-              </InputLabel>
+              <InputLabel htmlFor="scoring-carrying-fumble-lost">Fumble Lost</InputLabel>
               <OutlinedInput
                 id="scoring-carrying-fumble-lost"
                 value={scoringSettings.scoring_carrying_fumble_lost}

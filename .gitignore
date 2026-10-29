@@ -187,9 +187,6 @@ Thumbs.db
 yarn-error.log
 yarn.lock
 
-# NPM
-package-lock.json
-
 # Logs
 *.log
 
@@ -197,3 +194,4 @@ package-lock.json
 
 .env
 *firebase*.json
+.bin/
