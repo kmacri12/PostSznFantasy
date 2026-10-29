@@ -26,7 +26,6 @@ async def test_auth_login_create_and_sync(
     )
     assert response.status_code == 200
     assert response.json() == {"message": "User created successfully", "userId": 42}
-    assert mock_db_session.commit.called
 
     # 2. Later logins hit the conflict branch of the same statement
     mock_db_session.execute.return_value = MagicMock(one=lambda: (42, False))
@@ -56,7 +55,6 @@ async def test_auth_login_duplicate_email_conflict(
     mock_db_session.execute.side_effect = IntegrityError("stmt", {}, Exception("dup"))
     response = await async_client.post("/api/auth/login", json={"email": "a@b.co"})
     assert response.status_code == 409
-    mock_db_session.rollback.assert_awaited()
 
 
 @pytest.mark.asyncio
@@ -101,7 +99,7 @@ async def test_create_league_success(
     assert response.status_code == 201
     data = response.json()
     assert "Playoff Showdown" in data["message"]
-    assert mock_db_session.commit.called
+    assert mock_db_session.flush.called
 
 
 @pytest.mark.asyncio

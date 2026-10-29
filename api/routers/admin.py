@@ -75,7 +75,6 @@ async def update_nfl_teams(
     db: DbSession,
 ) -> dict[str, str]:
     await ingest_nfl_teams(db)
-    await db.commit()
     return {"status": "ok"}
 
 
@@ -84,7 +83,6 @@ async def update_nfl_players(
     db: DbSession,
 ) -> dict[str, str]:
     await ingest_nfl_players(db)
-    await db.commit()
     return {"status": "ok"}
 
 
@@ -93,7 +91,6 @@ async def update_nfl_players_and_stats(
     db: DbSession,
 ) -> dict[str, str]:
     await ingest_season_stats(db)
-    await db.commit()
     return {"status": "ok"}
 
 
@@ -103,7 +100,6 @@ async def update_box_scores(
     db: DbSession,
 ) -> dict[str, str]:
     await ingest_box_scores(db, body.season, body.season_type, body.week)
-    await db.commit()
     return {"status": "ok"}
 
 
@@ -113,5 +109,4 @@ async def eliminate_teams(
     db: DbSession,
 ) -> dict[str, str]:
     await mark_eliminated_teams(db, body.team_ids)
-    await db.commit()
     return {"status": "ok"}

@@ -108,8 +108,6 @@ async def create_league(
     )
     db.add(new_draft)
 
-    await db.commit()
-
     return LeagueCreateResponse(
         message=f"League '{payload.league_name}' created successfully",
         league_id=new_league.id,
@@ -214,7 +212,6 @@ async def update_league_settings(
     }
     for field, value in updates.items():
         setattr(settings, field, value)
-    await db.commit()
     return settings
 
 

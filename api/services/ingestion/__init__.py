@@ -28,23 +28,15 @@ async def run_full_ingestion_pipeline(
     logger.info("Starting ingestion pipeline for season %s", season)
 
     teams_count = await ingest_nfl_teams(db, client=client)
-    await db.commit()
-
     players_count = await ingest_nfl_players(db, client=client)
-    await db.commit()
-
     stats_count = 0
     if with_stats:
         stats_count = await ingest_season_stats(db, season=season, client=client)
-        await db.commit()
-
     games_count = 0
     if with_box_scores:
         games_count = await ingest_box_scores(
             db, season=season, season_type="post", week="all", client=client
         )
-        await db.commit()
-
     duration_ms = int((time.monotonic() - start_time) * 1000)
     summary = {
         "status": "success",

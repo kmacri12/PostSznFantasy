@@ -50,9 +50,7 @@ async def login_or_register(
 
     try:
         user_id, created = (await db.execute(upsert_stmt)).one()
-        await db.commit()
     except IntegrityError as exc:
-        await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="That email is already registered to another account",

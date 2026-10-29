@@ -78,7 +78,6 @@ async def run_sync_cycle(*, roster_sync_due: bool) -> None:
             await run_full_ingestion_pipeline(db, with_box_scores=True)
         elif await has_live_games(db, season):
             await ingest_box_scores(db, str(season), "post", "all")
-            await db.commit()
         else:
             return
         eliminated = await eliminate_losing_teams(db, season)
