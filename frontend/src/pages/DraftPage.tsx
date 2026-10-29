@@ -12,10 +12,10 @@ import {
   Paper,
   Typography,
 } from "@mui/material";
-import axios from "axios";
 import type { FC } from "react";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { useDraftInfo, useLeagueSettings, useLeagueTeams } from "../api/queries";
 import Countdown from "../components/draft/Countdown";
 import DraftBoard from "../components/draft/DraftBoard";
 import PlayerSelector, { type Player } from "../components/draft/PlayerSelector";
@@ -61,22 +61,48 @@ export interface DraftPick {
   autopick: boolean;
 }
 
+const EMPTY_TEAMS: Team[] = [];
+
+const ROSTER_SPOT_KEYS = [
+  "rosterNumBench",
+  "rosterNumDst",
+  "rosterNumFlexQbWrRbTe",
+  "rosterNumFlexWrRb",
+  "rosterNumFlexWrTe",
+  "rosterNumFlexWrRbTe",
+  "rosterNumK",
+  "rosterNumQb",
+  "rosterNumRb",
+  "rosterNumTe",
+  "rosterNumWr",
+];
+
+const countRosterSpots = (settings: Record<string, number>) =>
+  ROSTER_SPOT_KEYS.reduce((sum, key) => sum + (settings[key] ?? 0), 0) || 18;
+
 const DraftPage: FC = () => {
   const { leagueId } = useParams<{ leagueId: string }>();
   const wsUrl = import.meta.env.VITE_WS_URL || "ws://localhost:8000";
-  const apiUrl = import.meta.env.VITE_API_URL;
   const { getIdToken, userId } = useUser();
 
   const websocketUrl = leagueId ? `${wsUrl}/api/drafts/ws/${leagueId}` : "";
   const { data, sendMessage } = useWebSocket(websocketUrl, getIdToken);
 
-  const [draftSettings, setDraftSettings] = useState<DraftSettings | null>(null);
+  const teamsQuery = useLeagueTeams(leagueId);
+  const draftQuery = useDraftInfo(leagueId);
+  const settingsQuery = useLeagueSettings(leagueId);
+  const teams = teamsQuery.data ?? EMPTY_TEAMS;
+  const draftSettings = draftQuery.data ?? null;
+  const numRounds = settingsQuery.data ? countRosterSpots(settingsQuery.data) : 0;
+
+  useEffect(() => {
+    if (draftQuery.data?.timePerPickSeconds) setTimer(draftQuery.data.timePerPickSeconds);
+  }, [draftQuery.data?.timePerPickSeconds]);
+
   const [openSettings, setOpenSettings] = useState(false);
   const [draftBoard, setDraftBoard] = useState<DraftPick[][]>([[]]);
   const [currentPickIndex, setCurrentPickIndex] = useState<number>(1);
   const [timer, setTimer] = useState<number>(60);
-  const [teams, setTeams] = useState<Team[]>([]);
-  const [numRounds, setNumRounds] = useState<number>(0);
   const [selectedPlayerIDs, setSelectedPlayerIDs] = useState<number[]>([]);
   const [muted, setMuted] = useState(false);
 
@@ -124,76 +150,6 @@ const DraftPage: FC = () => {
       setDraftBoard(newDraftBoard);
     }
   }, [teams, numRounds, draftSettings?.id]);
-
-  useEffect(() => {
-    if (!leagueId) return;
-
-    const fetchTeams = async () => {
-      try {
-        const idToken = await getIdToken();
-        const response = await axios.get(`${apiUrl}/api/leagues/${leagueId}/teams`, {
-          headers: idToken ? { Authorization: `Bearer ${idToken}` } : {},
-        });
-        setTeams(response.data);
-      } catch (error) {
-        logger.error("Error fetching teams:", error);
-      }
-    };
-
-    const fetchDraftSettings = async () => {
-      try {
-        const idToken = await getIdToken();
-        const response = await axios.get(`${apiUrl}/api/drafts/draft-info/${leagueId}`, {
-          headers: idToken ? { Authorization: `Bearer ${idToken}` } : {},
-        });
-        setDraftSettings(response.data);
-        if (response.data?.timePerPickSeconds) {
-          setTimer(response.data.timePerPickSeconds);
-        }
-      } catch (error) {
-        logger.error("Error fetching draft settings:", error);
-      }
-    };
-
-    const calculateNumRounds = (settings: Record<string, number>) => {
-      const rosterNumKeys: string[] = [
-        "roster_num_bench",
-        "roster_num_dst",
-        "roster_num_flex_qb_wr_rb_te",
-        "roster_num_flex_wr_rb",
-        "roster_num_flex_wr_te",
-        "roster_num_k",
-        "roster_num_qb",
-        "roster_num_rb",
-        "roster_num_te",
-        "roster_num_wr",
-      ];
-
-      let totalRosterNum = 0;
-      for (const key of rosterNumKeys) {
-        if (typeof settings[key] === "number") {
-          totalRosterNum += settings[key];
-        }
-      }
-      return totalRosterNum || 18;
-    };
-
-    const fetchLeagueSettings = async () => {
-      try {
-        const idToken = await getIdToken();
-        const response = await axios.get(`${apiUrl}/api/leagues/${leagueId}/settings`, {
-          headers: idToken ? { Authorization: `Bearer ${idToken}` } : {},
-        });
-        setNumRounds(calculateNumRounds(response.data));
-      } catch (error) {
-        logger.error("Error fetching league settings:", error);
-      }
-    };
-
-    fetchTeams();
-    fetchDraftSettings();
-    fetchLeagueSettings();
-  }, [leagueId, apiUrl, getIdToken]);
 
   useEffect(() => {
     if (!data) return;

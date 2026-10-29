@@ -1,56 +1,11 @@
 import { Box, Card, Chip, Container, Grid, Typography } from "@mui/material";
-import axios from "axios";
-import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { useUser } from "../contexts/UserContext";
+import { useTeam } from "../api/queries";
 import { tokens } from "../theme";
-import { createLogger } from "../utils/logger";
-
-const logger = createLogger("TeamPage");
-
-export interface RosterPlayer {
-  id: number;
-  name: string;
-  position: string;
-  teamAbv?: string;
-  slot?: string;
-  isActive?: boolean;
-}
-
-export interface TeamDetails {
-  id: number;
-  name: string;
-  leagueId: number;
-  ownerName: string;
-  roster: RosterPlayer[];
-}
 
 function TeamPage() {
   const { teamId } = useParams<{ teamId: string }>();
-  const apiUrl = import.meta.env.VITE_API_URL;
-  const { getIdToken } = useUser();
-  const [team, setTeam] = useState<TeamDetails | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!teamId) return;
-
-    const fetchTeam = async () => {
-      try {
-        const token = await getIdToken();
-        const response = await axios.get(`${apiUrl}/api/leagues/teams/${teamId}`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        });
-        setTeam(response.data);
-      } catch (error) {
-        logger.error("Error fetching team:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTeam();
-  }, [teamId, apiUrl, getIdToken]);
+  const { data: team, isLoading: loading } = useTeam(teamId);
 
   if (loading) {
     return (

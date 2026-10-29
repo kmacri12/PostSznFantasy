@@ -1,7 +1,7 @@
 import { Box, Button, CircularProgress, Typography } from "@mui/material";
-import axios from "axios";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { useLeagueSettings, useUpdateSettings } from "../api/queries";
 import LeagueInfo from "../components/settings/LeagueInfo";
 import RosterSettingsComponent from "../components/settings/RosterSettingsComponent";
 import ScoringDSTSettingsComponent from "../components/settings/ScoringDSTSettingsComponent";
@@ -9,7 +9,6 @@ import ScoringPassingSettingsComponent from "../components/settings/ScoringPassi
 import ScoringReceivingSettingsComponent from "../components/settings/ScoringReceivingSettingsComponent";
 import ScoringRushingSettingsComponent from "../components/settings/ScoringRushingSettingsComponent";
 import ScoringSpecialTeamsSettingsComponent from "../components/settings/ScoringSpecialTeamsSettingsComponent";
-import { useUser } from "../contexts/UserContext";
 import { createLogger } from "../utils/logger";
 
 const logger = createLogger("SettingsPage");
@@ -17,11 +16,9 @@ const logger = createLogger("SettingsPage");
 function SettingsPage() {
   const [searchParams] = useSearchParams();
   const leagueId = searchParams.get("leagueId");
-  const apiUrl = import.meta.env.VITE_API_URL;
-  const { getIdToken } = useUser();
-
-  const [loading, setLoading] = useState(false);
-  const [leagueDetails, setLeagueDetails] = useState<any>(null);
+  const settingsQuery = useLeagueSettings(leagueId ?? undefined);
+  const updateSettings = useUpdateSettings(leagueId ?? undefined);
+  const loading = settingsQuery.isLoading;
   const [rosterSettings, setRosterSettings] = useState<any>({
     number_teams: 12,
     roster_total: 18,
@@ -70,29 +67,10 @@ function SettingsPage() {
   });
 
   useEffect(() => {
-    if (!leagueId) return;
-    setLoading(true);
-
-    const fetchSettings = async () => {
-      try {
-        const token = await getIdToken();
-        const response = await axios.get(`${apiUrl}/api/leagues/${leagueId}/settings`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        });
-        if (response.data) {
-          setLeagueDetails(response.data);
-          setRosterSettings((prev: any) => ({ ...prev, ...response.data }));
-          setScoringSettings((prev: any) => ({ ...prev, ...response.data }));
-        }
-      } catch (err) {
-        logger.error("Error fetching league settings:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSettings();
-  }, [leagueId, apiUrl, getIdToken]);
+    if (!settingsQuery.data) return;
+    setRosterSettings((prev: any) => ({ ...prev, ...settingsQuery.data }));
+    setScoringSettings((prev: any) => ({ ...prev, ...settingsQuery.data }));
+  }, [settingsQuery.data]);
 
   const toggleSection = (section: keyof typeof expandedSection) => {
     setExpandedSection((prev) => ({ ...prev, [section]: !prev[section] }));
@@ -101,17 +79,7 @@ function SettingsPage() {
   const handleSave = async () => {
     if (!leagueId) return;
     try {
-      const token = await getIdToken();
-      await axios.put(
-        `${apiUrl}/api/leagues/${leagueId}/settings`,
-        {
-          rosterSettings,
-          scoringSettings,
-        },
-        {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        },
-      );
+      await updateSettings.mutateAsync({ rosterSettings, scoringSettings });
       alert("Settings saved successfully!");
     } catch (err) {
       logger.error("Failed to update settings:", err);
@@ -133,8 +101,8 @@ function SettingsPage() {
       </Typography>
 
       <LeagueInfo
-        leagueName={leagueDetails?.name || `League #${leagueId || ""}`}
-        season={leagueDetails?.season || 2024}
+        leagueName={`League #${leagueId || ""}`}
+        season={2025}
         totalTeams={rosterSettings.number_teams}
       />
 

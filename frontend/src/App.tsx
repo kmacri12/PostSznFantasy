@@ -1,7 +1,7 @@
-import axios from "axios";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Route, Routes } from "react-router-dom";
-import NavBar, { type LeagueByUser } from "./components/layout/NavBar";
+import { useUserLeagues } from "./api/queries";
+import NavBar from "./components/layout/NavBar";
 import { useUser } from "./contexts/UserContext";
 import CreateLeaguePage from "./pages/CreateLeaguePage";
 import DraftPage from "./pages/DraftPage";
@@ -11,40 +11,18 @@ import NotFoundPage from "./pages/NotFoundPage";
 import PlayersPage from "./pages/PlayersPage";
 import SettingsPage from "./pages/SettingsPage";
 import TeamPage from "./pages/TeamPage";
-import { createLogger } from "./utils/logger";
-
-const logger = createLogger("App");
 
 function App() {
-  const apiUrl = import.meta.env.VITE_API_URL;
-  const { user, userId, getIdToken, signIn, signOutUser } = useUser();
-  const [leagues, setLeagues] = useState<LeagueByUser[]>([]);
+  const { user, userId, signIn, signOutUser } = useUser();
+  const { data: leagues = [] } = useUserLeagues(userId !== null);
   const [selectedLeague, setSelectedLeague] = useState<string>("");
 
-  const fetchLeagues = useCallback(async () => {
-    try {
-      const token = await getIdToken();
-      const response = await axios.get<LeagueByUser[]>(`${apiUrl}/api/leagues/user-leagues`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setLeagues(response.data);
-      setSelectedLeague((current) => current || String(response.data[0]?.id ?? ""));
-    } catch (error) {
-      logger.error("Error fetching leagues:", error);
-    }
-  }, [apiUrl, getIdToken]);
-
   useEffect(() => {
-    if (!userId) {
-      setLeagues([]);
-      setSelectedLeague("");
-      return;
-    }
-    fetchLeagues();
-  }, [userId, fetchLeagues]);
+    if (userId === null) setSelectedLeague("");
+    else setSelectedLeague((current) => current || String(leagues[0]?.id ?? ""));
+  }, [userId, leagues]);
 
   const handleLeagueCreated = async (leagueId: number) => {
-    await fetchLeagues();
     setSelectedLeague(String(leagueId));
   };
 

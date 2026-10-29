@@ -13,10 +13,10 @@ import {
   Stepper,
   Typography,
 } from "@mui/material";
-import axios from "axios";
 import type React from "react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useCreateLeague, useScoringDefaults } from "../api/queries";
 import RosterSettingsComponent from "../components/settings/RosterSettingsComponent";
 import ScoringCarryingSettingsComponent from "../components/settings/ScoringCarryingSettingsComponent";
 import ScoringDSTSettingsComponent from "../components/settings/ScoringDSTSettingsComponent";
@@ -25,12 +25,10 @@ import ScoringPassingSettingsComponent from "../components/settings/ScoringPassi
 import ScoringReceivingSettingsComponent from "../components/settings/ScoringReceivingSettingsComponent";
 import ScoringRushingSettingsComponent from "../components/settings/ScoringRushingSettingsComponent";
 import ScoringSpecialTeamsSettingsComponent from "../components/settings/ScoringSpecialTeamsSettingsComponent";
-import { useUser } from "../contexts/UserContext";
 import { createLogger } from "../utils/logger";
 import {
   type ScoringSettingsState,
   countChangedFromDefaults,
-  fetchScoringDefaults,
   toNumericScoring,
 } from "../utils/scoring";
 
@@ -53,8 +51,6 @@ const CreateLeaguePage = ({
 }: {
   onLeagueCreated: (leagueId: number) => Promise<void>;
 }) => {
-  const apiUrl = import.meta.env.VITE_API_URL;
-  const { getIdToken } = useUser();
   const navigate = useNavigate();
   const [leagueName, setLeagueName] = useState("MyLeague");
   const [step, setStep] = useState(0);
@@ -93,22 +89,15 @@ const CreateLeaguePage = ({
   });
 
   const [scoringSettings, setScoringSettings] = useState<ScoringSettingsState>({});
-  const [scoringDefaults, setScoringDefaults] = useState<ScoringSettingsState | null>(null);
-  const [defaultsFailed, setDefaultsFailed] = useState(false);
+  const defaultsQuery = useScoringDefaults();
+  const createLeague = useCreateLeague();
+  const scoringDefaults = defaultsQuery.data ?? null;
+  const defaultsFailed = defaultsQuery.isError;
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchScoringDefaults(apiUrl)
-      .then((defaults) => {
-        setScoringDefaults(defaults);
-        setScoringSettings(defaults);
-        setDefaultsFailed(false);
-      })
-      .catch((error) => {
-        logger.error("Error fetching scoring defaults:", error);
-        setDefaultsFailed(true);
-      });
-  }, [apiUrl]);
+    if (defaultsQuery.data) setScoringSettings(defaultsQuery.data);
+  }, [defaultsQuery.data]);
 
   const handleExpandClick = (section: ExpandedSection) => {
     setExpanded((prev) => ({ ...prev, [section]: !prev[section] }));
@@ -117,28 +106,15 @@ const CreateLeaguePage = ({
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setSubmitError(null);
-    const token = await getIdToken();
-    if (!token) {
-      setSubmitError("You must be signed in to create a league.");
-      return;
-    }
 
     try {
-      const response = await axios.post(
-        `${apiUrl}/api/leagues/create-league`,
-        {
-          leagueName,
-          rosterSettings,
-          scoringSettings: toNumericScoring(scoringSettings),
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
+      const response = await createLeague.mutateAsync({
+        leagueName,
+        rosterSettings,
+        scoringSettings: toNumericScoring(scoringSettings),
+      });
 
-      const createdLeagueId: number | undefined = response.data.leagueId;
+      const createdLeagueId = response.leagueId;
       if (!createdLeagueId) {
         setSubmitError("League was created but the server returned no league id.");
         return;

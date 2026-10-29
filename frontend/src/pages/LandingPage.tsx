@@ -1,9 +1,8 @@
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { Box, Button, Card, Chip, Container, Grid, Skeleton, Typography } from "@mui/material";
-import axios from "axios";
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import type { LeagueByUser } from "../components/layout/NavBar";
+import { useDraftInfo, useStandings } from "../api/queries";
+import type { LeagueByUser } from "../api/types";
 import { useUser } from "../contexts/UserContext";
 import { tokens } from "../theme";
 
@@ -14,39 +13,19 @@ const ROUNDS = [
   { name: "Super Bowl", blurb: "2 teams left. Last roster standing wins." },
 ];
 
-interface LeagueSnapshot {
-  rank: number | null;
-  teams: number;
-  draftStatus: string | null;
-  draftStart: string | null;
-}
-
-const authHeader = (token: string | null) => (token ? { Authorization: `Bearer ${token}` } : {});
-
 const LeagueWidget = ({ league }: { league: LeagueByUser }) => {
-  const apiUrl = import.meta.env.VITE_API_URL;
-  const { getIdToken } = useUser();
-  const [snapshot, setSnapshot] = useState<LeagueSnapshot | null>(null);
-
-  useEffect(() => {
-    const load = async () => {
-      const headers = authHeader(await getIdToken());
-      const [standings, draft] = await Promise.allSettled([
-        axios.get(`${apiUrl}/api/leagues/${league.id}/standings`, { headers }),
-        axios.get(`${apiUrl}/api/drafts/draft-info/${league.id}`, { headers }),
-      ]);
-      const rows: { teamId: number; rank: number }[] =
-        standings.status === "fulfilled" ? standings.value.data : [];
-      const draftData = draft.status === "fulfilled" ? draft.value.data : null;
-      setSnapshot({
+  const standings = useStandings(league.id);
+  const draft = useDraftInfo(league.id);
+  const loaded = !standings.isLoading && !draft.isLoading;
+  const rows = standings.data ?? [];
+  const snapshot = loaded
+    ? {
         rank: rows.find((row) => row.teamId === league.userTeamId)?.rank ?? null,
         teams: rows.length,
-        draftStatus: draftData?.status ?? null,
-        draftStart: draftData?.startTime ?? null,
-      });
-    };
-    load();
-  }, [league.id, league.userTeamId, apiUrl, getIdToken]);
+        draftStatus: draft.data?.status ?? null,
+        draftStart: draft.data?.startTime ?? null,
+      }
+    : null;
 
   return (
     <Card sx={{ p: 2.5, height: "100%" }}>

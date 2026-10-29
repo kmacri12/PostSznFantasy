@@ -11,31 +11,13 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import axios from "axios";
 import type React from "react";
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { useUser } from "../../contexts/UserContext";
+import { useStandings } from "../../api/queries";
 import { tokens } from "../../theme";
-import { createLogger } from "../../utils/logger";
-
-const logger = createLogger("StandingsTable");
 
 interface StandingsTableProps {
   leagueId: string;
-}
-
-interface Standings {
-  teamId: number;
-  rank: number;
-  teamName: string;
-  owner: string;
-  playersLeft: number;
-  wildCard: number;
-  divisional: number;
-  confChamp: number;
-  superBowl: number;
-  total: number;
 }
 
 const RANK_COLORS = [tokens.gold, "#cbd5e1", "#d97706"];
@@ -54,37 +36,10 @@ const RoundBadge = ({ points }: { points: number }) => (
 );
 
 const StandingsTable: React.FC<StandingsTableProps> = ({ leagueId }) => {
-  const [standings, setStandings] = useState<Standings[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { getIdToken } = useUser();
+  const { data, isLoading } = useStandings(leagueId);
+  const standings = [...(data ?? [])].sort((a, b) => a.rank - b.rank);
 
-  useEffect(() => {
-    const fetchStandings = async () => {
-      try {
-        const apiUrl = import.meta.env.VITE_API_URL;
-        const idToken = await getIdToken();
-
-        if (!idToken) {
-          logger.error("No user is currently signed in.");
-          return;
-        }
-
-        const response = await axios.get<Standings[]>(
-          `${apiUrl}/api/leagues/${leagueId}/standings`,
-          { headers: { Authorization: `Bearer ${idToken}` } },
-        );
-        setStandings([...response.data].sort((a, b) => a.rank - b.rank));
-      } catch (error) {
-        logger.error("Error fetching standings:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchStandings();
-  }, [leagueId, getIdToken]);
-
-  if (loading) {
+  if (isLoading) {
     return <Typography color="text.secondary">Loading standings...</Typography>;
   }
 

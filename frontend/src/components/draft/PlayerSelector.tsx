@@ -2,12 +2,8 @@ import Autocomplete from "@mui/material/Autocomplete";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import TextField from "@mui/material/TextField";
-import axios from "axios";
-import { useEffect, useState } from "react";
-import { useUser } from "../../contexts/UserContext";
-import { createLogger } from "../../utils/logger";
-
-const logger = createLogger("PlayerSelector");
+import { useState } from "react";
+import { usePlayerList } from "../../api/queries";
 
 const POSITIONS = ["ALL", "QB", "RB", "WR", "TE", "K", "DST"];
 
@@ -28,28 +24,10 @@ interface PlayerSelectorProps {
 }
 
 const PlayerSelector = ({ onPlayerSelected, isMyTurn, selectedPlayerIDs }: PlayerSelectorProps) => {
-  const apiUrl = import.meta.env.VITE_API_URL;
-  const { getIdToken } = useUser();
-  const [players, setPlayers] = useState<Player[]>([]);
+  const { data: players = [] } = usePlayerList();
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
   const [inputValue, setInputValue] = useState("");
   const [position, setPosition] = useState("ALL");
-
-  useEffect(() => {
-    const fetchPlayers = async () => {
-      try {
-        const token = await getIdToken();
-        const response = await axios.get(`${apiUrl}/api/players/player-list`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        });
-        setPlayers(response.data);
-      } catch (error) {
-        logger.error("Error fetching players:", error);
-      }
-    };
-
-    fetchPlayers();
-  }, [apiUrl, getIdToken]);
 
   const handlePlayerSelect = (_: unknown, newValue: Player | null) => {
     setSelectedPlayer(newValue);

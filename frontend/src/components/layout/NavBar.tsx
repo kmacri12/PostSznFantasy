@@ -25,15 +25,9 @@ import {
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 import { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
+import type { LeagueByUser } from "../../api/types";
 import { tokens } from "../../theme";
 import { DevQuickSync } from "../dev/DevQuickSync";
-
-export interface LeagueByUser {
-  id: number;
-  name: string;
-  commissionerId: number;
-  userTeamId: number;
-}
 
 interface NavBarProps {
   user: SupabaseUser | null;

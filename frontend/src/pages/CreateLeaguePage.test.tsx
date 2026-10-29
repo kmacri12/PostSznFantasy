@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -6,13 +7,10 @@ import CreateLeaguePage from "./CreateLeaguePage";
 const mockGet = vi.hoisted(() => vi.fn());
 const mockPost = vi.hoisted(() => vi.fn());
 const mockNavigate = vi.hoisted(() => vi.fn());
-vi.mock("axios", () => ({ default: { get: mockGet, post: mockPost } }));
+vi.mock("../api/client", () => ({ api: { get: mockGet, post: mockPost } }));
 vi.mock("react-router-dom", async (importOriginal) => ({
   ...(await importOriginal<typeof import("react-router-dom")>()),
   useNavigate: () => mockNavigate,
-}));
-vi.mock("../contexts/UserContext", () => ({
-  useUser: () => ({ getIdToken: vi.fn().mockResolvedValue("token") }),
 }));
 
 const defaults = { scoring_passing_yard: 0.04, scoring_passing_td: 4 };
@@ -20,10 +18,13 @@ const defaults = { scoring_passing_yard: 0.04, scoring_passing_td: 4 };
 const onLeagueCreated = vi.fn().mockResolvedValue(undefined);
 
 async function renderWizard() {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   render(
-    <MemoryRouter>
-      <CreateLeaguePage onLeagueCreated={onLeagueCreated} />
-    </MemoryRouter>,
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter>
+        <CreateLeaguePage onLeagueCreated={onLeagueCreated} />
+      </MemoryRouter>
+    </QueryClientProvider>,
   );
   await waitFor(() => expect(mockGet).toHaveBeenCalled());
 }
