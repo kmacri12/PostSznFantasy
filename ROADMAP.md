@@ -217,3 +217,20 @@ Root cause of the all-zero Players tab: Tank01 nests player stats by category (`
 - [ ] **Open: kicker season FG scoring.** Season rows have a made count but no distances, so distance bonuses are not applied to season points; only the flat per-FG rate is. Fix needs per-game data (box scores or `getNFLGamesForPlayer`).
 - [ ] **Open: archive-season backfill** via `getNFLGamesForPlayer` (roster stats only exist for the current season).
 - [ ] **Open: 2026 postseason box scores** cannot be seeded until January 2027.
+
+---
+
+## Phase 23: API Review Fixes (MVP readiness)
+
+Outcome of an API design review; remaining forward-looking work (deploy, scaling) is tracked in [GitHub Issues](https://github.com/kmacri12/PostSznFantasy/issues) and decisions in [docs/api-decisions.md](docs/api-decisions.md).
+
+- [x] **Auto-pick race**: the clock re-checks the deadline under the draft lock (`auto_pick(only_if_overdue=True)`, `PickNotDue`) so a drafter's pick no longer burns the next team's turn.
+- [x] **Draft lock audit** (#3): every draft mutation takes the row lock; added pause-vs-clock and undo-vs-clock tests.
+- [x] **Restart safety** (#4): lapsed pick deadlines get a fresh window on startup instead of a burst of auto-picks.
+- [x] **WebSocket resync** (#5): verified a full `SNAPSHOT` follows AUTH on every connect (no change needed).
+- [x] **Gzip** (#6): `GZipMiddleware` for responses over 1 KB.
+- [x] **Draftable positions** (#7): season stats default to QB/RB/WR/TE/K/DST.
+- [x] **Invite expiry** (#8): 7-day default shown in the invite panel; joining after the draft starts defaults to allowed.
+- [x] **Ingestion guard** (#9): per-type advisory lock, `nfl.ingestion_status` (migration 0003) and `GET /api/players/sync-status`.
+- [x] **Member removal mid-draft** (#10): behaviour pinned by a test (unassign, keep picks, auto-pick covers the team).
+- [ ] Deploy plan (#11) and WebSocket fan-out beyond one process (#12) are open issues, not part of this phase.
