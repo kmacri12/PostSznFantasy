@@ -38,3 +38,25 @@ async def test_fantasy_points_follow_the_leagues_scoring(
 
     async with client_as("stranger") as outsider:
         assert (await outsider.get(url)).status_code == 403
+
+
+async def test_season_stats_default_to_draftable_positions(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    await make_league(db)
+    kc = NFLTeam(id=1, team_abv="KC", is_active=True)
+    db.add(kc)
+    await db.flush()
+    players = await make_players(db, ["QB", "PK", "DEF", "OL", "LB"], nfl_team=kc)
+    db.add_all(NFLPlayerSeasonStats(season="2025", player_id=p.id) for p in players)
+    await db.flush()
+
+    async with client_as("uid-0") as member:
+        default = (
+            await member.get("/api/players/player-season-stats?season=2025")
+        ).json()
+        linemen = (
+            await member.get("/api/players/player-season-stats?season=2025&position=OL")
+        ).json()
+    assert sorted(row["player"]["position"] for row in default) == ["DEF", "PK", "QB"]
+    assert [row["player"]["position"] for row in linemen] == ["OL"]

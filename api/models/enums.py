@@ -26,6 +26,10 @@ class PlayerPosition(StrEnum):
             return None
 
 
+# Raw `pos` values Tank01 may store for the six draftable positions (see from_str).
+DRAFTABLE_POSITION_VALUES = (*(p.value for p in PlayerPosition), "DEF", "D/ST", "PK")
+
+
 class DraftStatus(StrEnum):
     UNSCHEDULED = "unscheduled"
     SCHEDULED = "scheduled"

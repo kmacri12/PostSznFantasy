@@ -9,6 +9,7 @@ from api.db.models.nfl import NFLPlayer, NFLPlayerSeasonStats, NFLTeam
 from api.db.session import DbSession
 from api.dependencies.auth import CurrentUser, get_current_user
 from api.dependencies.league import require_league_member
+from api.models.enums import DRAFTABLE_POSITION_VALUES
 from api.models.players_models import (
     NFLTeamSimple,
     Player,
@@ -68,6 +69,8 @@ async def get_player_season_stats(
 ) -> list[PlayerSeasonStatsResponse]:
     """Season stats joined with player and team; defaults to the latest season.
 
+    Without `position`, only draftable positions (QB/RB/WR/TE/K/DST) are returned.
+
     With `league_id`, `fantasyPoints` is scored under that league's settings (members only).
     """
     settings: LeagueSettings | None = None
@@ -91,6 +94,8 @@ async def get_player_season_stats(
     )
     if position:
         stmt = stmt.where(NFLPlayer.position == position.upper())
+    else:
+        stmt = stmt.where(NFLPlayer.position.in_(DRAFTABLE_POSITION_VALUES))
     rows = (await db.execute(stmt)).scalars().all()
     return [
         PlayerSeasonStatsResponse.model_validate(row).model_copy(
