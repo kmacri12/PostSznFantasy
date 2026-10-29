@@ -5,11 +5,12 @@ from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from api.main import app
-from api.services.draft_picks import DraftPickError, PickResult
 from fastapi import HTTPException
 from starlette.testclient import TestClient
 from starlette.websockets import WebSocketDisconnect
+
+from api.main import app
+from api.services.draft_picks import DraftPickError, PickResult
 
 WS_URL = "/api/drafts/ws/7"
 

@@ -3,6 +3,7 @@ from collections.abc import AsyncIterator
 import httpx
 import pytest
 import tenacity
+
 from api.utils.rapidapi import rapidapi
 from api.utils.rapidapi.rapidapi import RapidApiClient
 

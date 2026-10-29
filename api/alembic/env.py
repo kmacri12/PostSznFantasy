@@ -7,11 +7,11 @@ project_root = str(Path(__file__).resolve().parents[2])
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
-from api.core.config import get_settings  # noqa: E402
-from api.db.models import Base  # noqa: E402
 from sqlalchemy import engine_from_config, pool, text  # noqa: E402
 
 from alembic import context  # noqa: E402
+from api.core.config import get_settings  # noqa: E402
+from api.db.models import Base  # noqa: E402
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

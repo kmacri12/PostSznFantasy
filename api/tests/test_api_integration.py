@@ -1,13 +1,14 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from httpx import AsyncClient
+from sqlalchemy.exc import IntegrityError, OperationalError
+
 from api.db.models.draft import Draft, DraftPick
 from api.db.models.league import League, LeagueSettings, LeagueStanding, Team
 from api.db.models.nfl import NFLPlayer, NFLPlayerSeasonStats, NFLTeam
 from api.db.models.user import User
 from api.models.league_models import RosterSettings, ScoringSettings
-from httpx import AsyncClient
-from sqlalchemy.exc import IntegrityError, OperationalError
 
 
 @pytest.mark.asyncio

@@ -2,13 +2,14 @@ import asyncio
 import logging
 import time
 
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from api.core.config import get_settings
 from api.db.models.nfl import NFLGame
 from api.db.session import get_session_factory
 from api.services.ingestion import ingest_box_scores, run_full_ingestion_pipeline
 from api.utils.db.update import mark_eliminated_teams
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
 

@@ -2,8 +2,9 @@ from collections.abc import Iterator
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from api.core.config import get_settings
 from httpx import AsyncClient
+
+from api.core.config import get_settings
 
 
 @pytest.fixture(autouse=True)

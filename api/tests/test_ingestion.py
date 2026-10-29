@@ -1,9 +1,10 @@
 from unittest.mock import AsyncMock, patch
 
 import pytest
+from httpx import AsyncClient
+
 from api.dependencies.auth import require_admin
 from api.main import app
-from httpx import AsyncClient
 
 
 @pytest.mark.asyncio

@@ -1,12 +1,13 @@
 import logging
 from typing import Any
 
-from api.db.models.nfl import NFLPlayer, NFLTeam
-from api.services.ingestion.schemas import safe_int, safe_str
-from api.utils.rapidapi.rapidapi import RapidApiClient, get_rapidapi_client
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from api.db.models.nfl import NFLPlayer, NFLTeam
+from api.services.ingestion.schemas import safe_int, safe_str
+from api.utils.rapidapi.rapidapi import RapidApiClient, get_rapidapi_client
 
 logger = logging.getLogger(__name__)
 

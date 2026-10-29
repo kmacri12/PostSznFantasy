@@ -5,13 +5,14 @@ from functools import lru_cache
 from typing import Any
 
 import httpx
-from api.core.config import get_settings
 from tenacity import (
     AsyncRetrying,
     retry_if_exception,
     stop_after_attempt,
     wait_exponential,
 )
+
+from api.core.config import get_settings
 
 CACHE_MAX_ENTRIES = 64
 

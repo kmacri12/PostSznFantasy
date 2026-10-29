@@ -2,6 +2,8 @@ from collections.abc import AsyncGenerator
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from httpx import ASGITransport, AsyncClient
+
 from api.dependencies.auth import get_current_user
 from api.dependencies.db import get_db
 from api.dependencies.league import (
@@ -11,7 +13,6 @@ from api.dependencies.league import (
     get_team_member,
 )
 from api.main import app
-from httpx import ASGITransport, AsyncClient
 
 
 @pytest.fixture

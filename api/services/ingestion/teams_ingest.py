@@ -1,11 +1,12 @@
 import logging
 from typing import Any
 
+from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from api.db.models.nfl import NFLTeam
 from api.services.ingestion.schemas import safe_int, safe_str
 from api.utils.rapidapi.rapidapi import RapidApiClient, get_rapidapi_client
-from sqlalchemy.dialects.postgresql import insert
-from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
 

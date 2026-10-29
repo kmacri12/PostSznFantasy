@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 import pytest
+
 from api.db.models.league import LeagueSettings
 from api.db.models.nfl import NFLPlayerGameStats
 from api.models.enums import PlayerPosition

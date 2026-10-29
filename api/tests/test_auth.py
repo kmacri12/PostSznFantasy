@@ -2,13 +2,14 @@ from unittest.mock import MagicMock, patch
 
 import jwt
 import pytest
-from api.core.config import Settings
-from api.dependencies.auth import get_current_user
 from cryptography.hazmat.primitives.asymmetric import ec
 from fastapi import HTTPException
 from fastapi.security import HTTPAuthorizationCredentials
 from jwt.exceptions import PyJWKClientError
 from pydantic import ValidationError
+
+from api.core.config import Settings
+from api.dependencies.auth import get_current_user
 
 
 @pytest.fixture

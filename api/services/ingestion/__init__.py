@@ -2,13 +2,14 @@ import logging
 import time
 from typing import Any
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from api.core.config import get_settings
 from api.services.ingestion.box_scores_ingest import ingest_box_scores
 from api.services.ingestion.players_ingest import ingest_nfl_players
 from api.services.ingestion.season_stats_ingest import ingest_season_stats
 from api.services.ingestion.teams_ingest import ingest_nfl_teams
 from api.utils.rapidapi.rapidapi import RapidApiClient, get_rapidapi_client
-from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
 

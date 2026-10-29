@@ -1,5 +1,8 @@
 from decimal import Decimal
 
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from api.core.config import get_settings
 from api.db.models.league import (
     LeagueSettings,
@@ -11,8 +14,6 @@ from api.db.models.league import (
 from api.db.models.nfl import NFLGame, NFLPlayer, NFLPlayerGameStats, NFLTeam
 from api.models.enums import PlayerPosition
 from api.utils.calculations.fantasy_points_utils import calculate_player_points
-from sqlalchemy import func, select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 
 async def get_players_left(team_id: int, league_id: int, db: AsyncSession) -> int:

@@ -3,6 +3,7 @@ from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+
 from api.db.models.league import LeagueSettings
 from api.models.enums import PlayerPosition
 from api.services.draft_picks import (

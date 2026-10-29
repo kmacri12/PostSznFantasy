@@ -58,8 +58,9 @@ async def test_non_member_is_forbidden_when_resolving_league(
     ["/api/players/player-list", "/api/players/player-season-stats"],
 )
 async def test_player_routes_require_login(path: str) -> None:
-    from api.main import app
     from httpx import ASGITransport
+
+    from api.main import app
 
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
