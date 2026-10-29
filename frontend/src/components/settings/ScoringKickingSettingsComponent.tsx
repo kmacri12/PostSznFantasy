@@ -194,6 +194,86 @@ const ScoringKickingSettingsComponent: React.FC<ScoringKickingSettingsProps> = (
               />
             </FormControl>
           </Grid>
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth margin="normal">
+              <InputLabel htmlFor="scoring-kicking-fg-miss-0-19">FG Miss 0-19</InputLabel>
+              <OutlinedInput
+                id="scoring-kicking-fg-miss-0-19"
+                value={scoringSettings.scoring_kicking_fg_miss_0_19}
+                onChange={(e) =>
+                  setScoringSettings({
+                    ...scoringSettings,
+                    scoring_kicking_fg_miss_0_19: e.target.value,
+                  })
+                }
+                label="FG Miss 0-19"
+              />
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth margin="normal">
+              <InputLabel htmlFor="scoring-kicking-fg-miss-20-29">FG Miss 20-29</InputLabel>
+              <OutlinedInput
+                id="scoring-kicking-fg-miss-20-29"
+                value={scoringSettings.scoring_kicking_fg_miss_20_29}
+                onChange={(e) =>
+                  setScoringSettings({
+                    ...scoringSettings,
+                    scoring_kicking_fg_miss_20_29: e.target.value,
+                  })
+                }
+                label="FG Miss 20-29"
+              />
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth margin="normal">
+              <InputLabel htmlFor="scoring-kicking-fg-miss-30-39">FG Miss 30-39</InputLabel>
+              <OutlinedInput
+                id="scoring-kicking-fg-miss-30-39"
+                value={scoringSettings.scoring_kicking_fg_miss_30_39}
+                onChange={(e) =>
+                  setScoringSettings({
+                    ...scoringSettings,
+                    scoring_kicking_fg_miss_30_39: e.target.value,
+                  })
+                }
+                label="FG Miss 30-39"
+              />
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth margin="normal">
+              <InputLabel htmlFor="scoring-kicking-fg-miss-40-49">FG Miss 40-49</InputLabel>
+              <OutlinedInput
+                id="scoring-kicking-fg-miss-40-49"
+                value={scoringSettings.scoring_kicking_fg_miss_40_49}
+                onChange={(e) =>
+                  setScoringSettings({
+                    ...scoringSettings,
+                    scoring_kicking_fg_miss_40_49: e.target.value,
+                  })
+                }
+                label="FG Miss 40-49"
+              />
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth margin="normal">
+              <InputLabel htmlFor="scoring-kicking-fg-miss-50-plus">FG Miss 50+</InputLabel>
+              <OutlinedInput
+                id="scoring-kicking-fg-miss-50-plus"
+                value={scoringSettings.scoring_kicking_fg_miss_50_plus}
+                onChange={(e) =>
+                  setScoringSettings({
+                    ...scoringSettings,
+                    scoring_kicking_fg_miss_50_plus: e.target.value,
+                  })
+                }
+                label="FG Miss 50+"
+              />
+            </FormControl>
+          </Grid>
         </Grid>
       </Collapse>
     </div>

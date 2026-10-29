@@ -245,3 +245,69 @@ def test_default_template_dst_and_kicker() -> None:
     kicker.kicking_xp_made = 2
     # 3 + 4 + 5 + 2 = 14
     assert calculate_kicking_points(kicker, settings) == Decimal(14)
+
+
+def test_yardage_bonuses_stack_at_each_threshold(
+    standard_league_settings: LeagueSettings,
+) -> None:
+    standard_league_settings.scoring_passing_bonus_300_yards = Decimal(3)
+    standard_league_settings.scoring_passing_bonus_400_yards = Decimal(2)
+    standard_league_settings.scoring_rushing_bonus_100_yards = Decimal(3)
+    standard_league_settings.scoring_rushing_bonus_200_yards = Decimal(2)
+    standard_league_settings.scoring_receiving_bonus_100_yards = Decimal(3)
+    standard_league_settings.scoring_receiving_bonus_200_yards = Decimal(2)
+
+    stats = NFLPlayerGameStats()
+    stats.passing_yards = 299
+    stats.rushing_yards = 99
+    stats.receiving_yards = 99
+    assert calculate_passing_points(stats, standard_league_settings) == Decimal(299)
+    assert calculate_rushing_points(stats, standard_league_settings) == Decimal(99)
+    assert calculate_receiving_points(
+        stats, standard_league_settings, PlayerPosition.WR
+    ) == Decimal(99)
+
+    stats.passing_yards = 300
+    stats.rushing_yards = 100
+    stats.receiving_yards = 100
+    assert calculate_passing_points(stats, standard_league_settings) == Decimal(303)
+    assert calculate_rushing_points(stats, standard_league_settings) == Decimal(103)
+    assert calculate_receiving_points(
+        stats, standard_league_settings, PlayerPosition.WR
+    ) == Decimal(103)
+
+    stats.passing_yards = 400
+    stats.rushing_yards = 200
+    stats.receiving_yards = 200
+    assert calculate_passing_points(stats, standard_league_settings) == Decimal(405)
+    assert calculate_rushing_points(stats, standard_league_settings) == Decimal(205)
+    assert calculate_receiving_points(
+        stats, standard_league_settings, PlayerPosition.WR
+    ) == Decimal(205)
+
+
+def test_fg_miss_penalties_apply_per_missed_length(
+    standard_league_settings: LeagueSettings,
+) -> None:
+    standard_league_settings.scoring_kicking_fg_miss = Decimal(0)
+    standard_league_settings.scoring_kicking_fg_miss_0_19 = Decimal(-4)
+    standard_league_settings.scoring_kicking_fg_miss_20_29 = Decimal(-3)
+    standard_league_settings.scoring_kicking_fg_miss_30_39 = Decimal(-2)
+    standard_league_settings.scoring_kicking_fg_miss_40_49 = Decimal(-1)
+    standard_league_settings.scoring_kicking_fg_miss_50_plus = Decimal(0)
+
+    stats = NFLPlayerGameStats()
+    stats.kicking_fg_yards_missed = [19, 25, 39, 40, 55]
+    assert calculate_kicking_points(stats, standard_league_settings) == Decimal(-10)
+
+
+def test_dst_blocked_kick_and_two_point_return(
+    standard_league_settings: LeagueSettings,
+) -> None:
+    standard_league_settings.scoring_dst_blocked_kick = Decimal(2)
+    standard_league_settings.scoring_dst_two_point_return = Decimal(2)
+
+    stats = NFLPlayerGameStats()
+    stats.dst_blocked_kicks = 2
+    stats.dst_two_point_returns = 1
+    assert calculate_dst_points(stats, standard_league_settings) == Decimal(6)

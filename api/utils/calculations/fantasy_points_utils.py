@@ -56,6 +56,29 @@ def _fg_distance_bonus(yards: int, settings: LeagueSettings) -> Decimal:
     return _safe(settings.scoring_kicking_fg_made_50_plus)
 
 
+def _fg_miss_distance_penalty(yards: int, settings: LeagueSettings) -> Decimal:
+    if yards < 20:
+        return _safe(settings.scoring_kicking_fg_miss_0_19)
+    if yards < 30:
+        return _safe(settings.scoring_kicking_fg_miss_20_29)
+    if yards < 40:
+        return _safe(settings.scoring_kicking_fg_miss_30_39)
+    if yards < 50:
+        return _safe(settings.scoring_kicking_fg_miss_40_49)
+    return _safe(settings.scoring_kicking_fg_miss_50_plus)
+
+
+def _yardage_bonus(
+    yards: int | None, lower: Decimal, upper: Decimal, thresholds: tuple[int, int]
+) -> Decimal:
+    # Thresholds stack: a 400-yard passer earns both the 300 and the 400 bonus.
+    total = _safe(yards)
+    low, high = thresholds
+    return (lower if total >= low else Decimal(0)) + (
+        upper if total >= high else Decimal(0)
+    )
+
+
 def calculate_passing_points(
     stats: NFLPlayerGameStats, settings: LeagueSettings
 ) -> Decimal:
@@ -69,6 +92,12 @@ def calculate_passing_points(
         + _safe(stats.passing_completions) * _safe(settings.scoring_passing_completion)
         + _safe(stats.passing_attempts) * _safe(settings.scoring_passing_attempt)
         + _safe(stats.passing_sacked) * _safe(settings.scoring_passing_sack)
+        + _yardage_bonus(
+            stats.passing_yards,
+            _safe(settings.scoring_passing_bonus_300_yards),
+            _safe(settings.scoring_passing_bonus_400_yards),
+            (300, 400),
+        )
     )
 
 
@@ -81,6 +110,12 @@ def calculate_rushing_points(
         + _safe(stats.rushing_two_point_conversions)
         * _safe(settings.scoring_rushing_2pt)
         + _safe(stats.rushing_carries) * _safe(settings.scoring_rushing_attempt)
+        + _yardage_bonus(
+            stats.rushing_yards,
+            _safe(settings.scoring_rushing_bonus_100_yards),
+            _safe(settings.scoring_rushing_bonus_200_yards),
+            (100, 200),
+        )
     )
 
 
@@ -96,6 +131,12 @@ def calculate_receiving_points(
         + _safe(stats.receiving_two_point_conversions)
         * _safe(settings.scoring_receiving_2pt)
         + _safe(stats.receiving_targets) * _safe(settings.scoring_receiving_target)
+        + _yardage_bonus(
+            stats.receiving_yards,
+            _safe(settings.scoring_receiving_bonus_100_yards),
+            _safe(settings.scoring_receiving_bonus_200_yards),
+            (100, 200),
+        )
     )
 
     pos = (
@@ -159,6 +200,9 @@ def calculate_kicking_points(
         points += _fg_distance_bonus(yards, settings)
         points += Decimal(yards) * per_yard
 
+    for yards in stats.kicking_fg_yards_missed or []:
+        points += _fg_miss_distance_penalty(yards, settings)
+
     return points
 
 
@@ -172,6 +216,9 @@ def calculate_dst_points(
         + _safe(stats.dst_fumbles_recovered)
         * _safe(settings.scoring_dst_fumble_recover)
         + _safe(stats.dst_interceptions) * _safe(settings.scoring_dst_interception)
+        + _safe(stats.dst_blocked_kicks) * _safe(settings.scoring_dst_blocked_kick)
+        + _safe(stats.dst_two_point_returns)
+        * _safe(settings.scoring_dst_two_point_return)
         + _dst_pts_allowed_bonus(stats.dst_points_allowed, settings)
         + _dst_yards_allowed_bonus(stats.dst_yards_allowed, settings)
     )

@@ -159,6 +159,9 @@ class NFLPlayerGameStats(Base):
     kicking_fg_yards_made: Mapped[list[int]] = mapped_column(
         ARRAY(SmallInteger), default=list
     )
+    kicking_fg_yards_missed: Mapped[list[int]] = mapped_column(
+        ARRAY(SmallInteger), default=list
+    )
     dst_yards_allowed: Mapped[int] = mapped_column(SmallInteger, default=0)
     dst_points_allowed: Mapped[int] = mapped_column(SmallInteger, default=0)
     dst_sacks: Mapped[int] = mapped_column(SmallInteger, default=0)
@@ -166,6 +169,8 @@ class NFLPlayerGameStats(Base):
     dst_safeties: Mapped[int] = mapped_column(SmallInteger, default=0)
     dst_fumbles_recovered: Mapped[int] = mapped_column(SmallInteger, default=0)
     dst_interceptions: Mapped[int] = mapped_column(SmallInteger, default=0)
+    dst_blocked_kicks: Mapped[int] = mapped_column(SmallInteger, default=0)
+    dst_two_point_returns: Mapped[int] = mapped_column(SmallInteger, default=0)
 
     player: Mapped["NFLPlayer"] = relationship("NFLPlayer", back_populates="game_stats")
 

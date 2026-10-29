@@ -98,6 +98,42 @@ const ScoringRushingSettingsComponent: React.FC<ScoringRushingSettingsProps> = (
               />
             </FormControl>
           </Grid>
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth margin="normal">
+              <InputLabel htmlFor="scoring-rushing-bonus-100-yards">
+                100+ Yard Game Bonus
+              </InputLabel>
+              <OutlinedInput
+                id="scoring-rushing-bonus-100-yards"
+                value={scoringSettings.scoring_rushing_bonus_100_yards}
+                onChange={(e) =>
+                  setScoringSettings({
+                    ...scoringSettings,
+                    scoring_rushing_bonus_100_yards: e.target.value,
+                  })
+                }
+                label="100+ Yard Game Bonus"
+              />
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth margin="normal">
+              <InputLabel htmlFor="scoring-rushing-bonus-200-yards">
+                200+ Yard Game Bonus
+              </InputLabel>
+              <OutlinedInput
+                id="scoring-rushing-bonus-200-yards"
+                value={scoringSettings.scoring_rushing_bonus_200_yards}
+                onChange={(e) =>
+                  setScoringSettings({
+                    ...scoringSettings,
+                    scoring_rushing_bonus_200_yards: e.target.value,
+                  })
+                }
+                label="200+ Yard Game Bonus"
+              />
+            </FormControl>
+          </Grid>
         </Grid>
       </Collapse>
     </div>

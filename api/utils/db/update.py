@@ -211,6 +211,10 @@ def _parse_game_player_stats(
         fg_yards: list[int] = (
             [_int(y) for y in fg_raw] if isinstance(fg_raw, list) else []
         )
+        fg_missed_raw = s.get("FGYardsMissed", [])
+        fg_yards_missed: list[int] = (
+            [_int(y) for y in fg_missed_raw] if isinstance(fg_missed_raw, list) else []
+        )
 
         rows.append(
             {
@@ -245,6 +249,7 @@ def _parse_game_player_stats(
                 "kicking_xp_missed": _int(s.get("XPMissed")),
                 "kicking_fg_missed": _int(s.get("FGMissed")),
                 "kicking_fg_yards_made": fg_yards,
+                "kicking_fg_yards_missed": fg_yards_missed,
                 "dst_yards_allowed": _int(s.get("DSTYdsAllowed")),
                 "dst_points_allowed": _int(s.get("DSTPtsAllowed")),
                 "dst_sacks": _int(s.get("DSTSacks")),
@@ -252,6 +257,8 @@ def _parse_game_player_stats(
                 "dst_safeties": _int(s.get("DSTSafeties")),
                 "dst_fumbles_recovered": _int(s.get("DSTFumblesRecovered")),
                 "dst_interceptions": _int(s.get("DSTInterceptions")),
+                "dst_blocked_kicks": _int(s.get("DSTBlockedKicks")),
+                "dst_two_point_returns": _int(s.get("DST2PtReturns")),
             }
         )
     return rows

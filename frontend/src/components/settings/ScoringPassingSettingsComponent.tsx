@@ -146,6 +146,42 @@ const ScoringPassingSettingsComponent: React.FC<ScoringPassingSettingsProps> = (
               />
             </FormControl>
           </Grid>
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth margin="normal">
+              <InputLabel htmlFor="scoring-passing-bonus-300-yards">
+                300+ Yard Game Bonus
+              </InputLabel>
+              <OutlinedInput
+                id="scoring-passing-bonus-300-yards"
+                value={scoringSettings.scoring_passing_bonus_300_yards}
+                onChange={(e) =>
+                  setScoringSettings({
+                    ...scoringSettings,
+                    scoring_passing_bonus_300_yards: e.target.value,
+                  })
+                }
+                label="300+ Yard Game Bonus"
+              />
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth margin="normal">
+              <InputLabel htmlFor="scoring-passing-bonus-400-yards">
+                400+ Yard Game Bonus
+              </InputLabel>
+              <OutlinedInput
+                id="scoring-passing-bonus-400-yards"
+                value={scoringSettings.scoring_passing_bonus_400_yards}
+                onChange={(e) =>
+                  setScoringSettings({
+                    ...scoringSettings,
+                    scoring_passing_bonus_400_yards: e.target.value,
+                  })
+                }
+                label="400+ Yard Game Bonus"
+              />
+            </FormControl>
+          </Grid>
         </Grid>
       </Collapse>
     </div>

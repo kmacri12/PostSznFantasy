@@ -226,6 +226,38 @@ const ScoringDSTSettingsComponent: React.FC<ScoringDSTSettingsProps> = ({
               />
             </FormControl>
           </Grid>
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth margin="normal">
+              <InputLabel htmlFor="scoring-dst-blocked-kick">Blocked Kick</InputLabel>
+              <OutlinedInput
+                id="scoring-dst-blocked-kick"
+                value={scoringSettings.scoring_dst_blocked_kick}
+                onChange={(e) =>
+                  setScoringSettings({
+                    ...scoringSettings,
+                    scoring_dst_blocked_kick: e.target.value,
+                  })
+                }
+                label="Blocked Kick"
+              />
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth margin="normal">
+              <InputLabel htmlFor="scoring-dst-two-point-return">2-Point Return</InputLabel>
+              <OutlinedInput
+                id="scoring-dst-two-point-return"
+                value={scoringSettings.scoring_dst_two_point_return}
+                onChange={(e) =>
+                  setScoringSettings({
+                    ...scoringSettings,
+                    scoring_dst_two_point_return: e.target.value,
+                  })
+                }
+                label="2-Point Return"
+              />
+            </FormControl>
+          </Grid>
         </Grid>
       </Collapse>
     </div>

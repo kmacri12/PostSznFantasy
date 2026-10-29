@@ -132,6 +132,12 @@ class LeagueSettings(Base):
     scoring_passing_sack: Mapped[Decimal | None] = mapped_column(
         Numeric(6, 2), nullable=True
     )
+    scoring_passing_bonus_300_yards: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
+    )
+    scoring_passing_bonus_400_yards: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
+    )
     scoring_rushing_yard: Mapped[Decimal | None] = mapped_column(
         Numeric(6, 2), nullable=True
     )
@@ -142,6 +148,12 @@ class LeagueSettings(Base):
         Numeric(6, 2), nullable=True
     )
     scoring_rushing_attempt: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
+    )
+    scoring_rushing_bonus_100_yards: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
+    )
+    scoring_rushing_bonus_200_yards: Mapped[Decimal | None] = mapped_column(
         Numeric(6, 2), nullable=True
     )
     scoring_receiving_reception: Mapped[Decimal | None] = mapped_column(
@@ -168,6 +180,12 @@ class LeagueSettings(Base):
     scoring_receiving_reception_bonus_te: Mapped[Decimal | None] = mapped_column(
         Numeric(6, 2), nullable=True
     )
+    scoring_receiving_bonus_100_yards: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
+    )
+    scoring_receiving_bonus_200_yards: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
+    )
     scoring_carrying_fumble: Mapped[Decimal | None] = mapped_column(
         Numeric(6, 2), nullable=True
     )
@@ -190,6 +208,21 @@ class LeagueSettings(Base):
         Numeric(6, 2), nullable=True
     )
     scoring_kicking_fg_miss: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
+    )
+    scoring_kicking_fg_miss_0_19: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
+    )
+    scoring_kicking_fg_miss_20_29: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
+    )
+    scoring_kicking_fg_miss_30_39: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
+    )
+    scoring_kicking_fg_miss_40_49: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
+    )
+    scoring_kicking_fg_miss_50_plus: Mapped[Decimal | None] = mapped_column(
         Numeric(6, 2), nullable=True
     )
     scoring_kicking_fg_made_0_19: Mapped[Decimal | None] = mapped_column(
@@ -266,6 +299,12 @@ class LeagueSettings(Base):
         Numeric(6, 2), nullable=True
     )
     scoring_dst_interception: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
+    )
+    scoring_dst_blocked_kick: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
+    )
+    scoring_dst_two_point_return: Mapped[Decimal | None] = mapped_column(
         Numeric(6, 2), nullable=True
     )
 
