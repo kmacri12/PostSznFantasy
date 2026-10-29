@@ -82,7 +82,9 @@ const countRosterSpots = (settings: Record<string, number>) =>
 
 const DraftPage: FC = () => {
   const { leagueId } = useParams<{ leagueId: string }>();
-  const wsUrl = import.meta.env.VITE_WS_URL || "ws://localhost:8000";
+  const wsUrl =
+    import.meta.env.VITE_WS_URL ||
+    `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}`;
   const { getIdToken, userId } = useUser();
 
   const websocketUrl = leagueId ? `${wsUrl}/api/drafts/ws/${leagueId}` : "";

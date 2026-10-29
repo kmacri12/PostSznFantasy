@@ -227,7 +227,7 @@ npm run test
 
 - **WebSocket Connection Refused on Draft Page**:
   - Verify that the backend is running at `http://localhost:8000`.
-  - Confirm that `VITE_WS_URL=ws://localhost:8000` is present in `frontend/.env`.
+  - Locally the Vite dev server proxies `/api` (including the WebSocket) to port 8000; make sure the API is running there, or set `VITE_API_URL` / `VITE_WS_URL` in `frontend/.env` if it lives elsewhere.
 
 ---
 

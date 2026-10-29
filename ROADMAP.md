@@ -85,14 +85,14 @@ Guiding principles: KISS, comments explain *why* only, self-documenting names.
   - [x] Don't `await` backend calls inside `onAuthStateChange`; avoid re-posting `/auth/login` on every token refresh.
   - [x] Surface login-sync failures to the UI instead of only logging.
 - [x] **`useWebSocket`**: send the auth token; exponential backoff with cap; don't reconnect after intentional close; use `ReturnType<typeof setTimeout>`; keep a message queue/callback rather than only the latest message; send `eventType` consistently with the server.
-- [ ] **Route-level code splitting**: `React.lazy` + `Suspense` per page (bundle is ~850 kB / 250 kB gzip); split MUI/vendor chunks.
+- [x] **Route-level code splitting**: `React.lazy` + `Suspense` per page (bundle is ~850 kB / 250 kB gzip); split MUI/vendor chunks.
 - [x] **Dependency hygiene**:
   - [x] `npm audit fix` (7 vulnerabilities in prod deps incl. 1 critical, 4 high).
   - [x] Remove `@types/axios`, `@types/react-router-dom` (libs ship own types) and unused `dotenv`.
   - [x] Review upgrades: Vite, Vitest, `@mui/*` 5.18, `react-router-dom` 6.30.x.
 - [ ] **Type safety**: replace the 33 Biome `any` warnings (settings components take `any`); use generated or shared API types; consider `noUncheckedIndexedAccess`.
 - [ ] **Deduplicate settings UI**: the 7 `Scoring*SettingsComponent` files become one data-driven component fed by a field schema.
-- [ ] **Dev proxy**: add a Vite `server.proxy` for `/api` and `/api/drafts/ws` so `VITE_API_URL` / CORS config become optional locally.
+- [x] **Dev proxy**: add a Vite `server.proxy` for `/api` and `/api/drafts/ws` so `VITE_API_URL` / CORS config become optional locally.
 - [ ] **Tests**: cover `useWebSocket` reconnect/backoff, auth flow, draft page.
 
 ---

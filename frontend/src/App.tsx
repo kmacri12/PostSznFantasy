@@ -1,16 +1,18 @@
-import { useEffect, useState } from "react";
+import { Box, CircularProgress } from "@mui/material";
+import { Suspense, lazy, useEffect, useState } from "react";
 import { Route, Routes } from "react-router-dom";
 import { useUserLeagues } from "./api/queries";
 import NavBar from "./components/layout/NavBar";
 import { useUser } from "./contexts/UserContext";
-import CreateLeaguePage from "./pages/CreateLeaguePage";
-import DraftPage from "./pages/DraftPage";
-import LandingPage from "./pages/LandingPage";
-import LeaguePage from "./pages/LeaguePage";
-import NotFoundPage from "./pages/NotFoundPage";
-import PlayersPage from "./pages/PlayersPage";
-import SettingsPage from "./pages/SettingsPage";
-import TeamPage from "./pages/TeamPage";
+
+const CreateLeaguePage = lazy(() => import("./pages/CreateLeaguePage"));
+const DraftPage = lazy(() => import("./pages/DraftPage"));
+const LandingPage = lazy(() => import("./pages/LandingPage"));
+const LeaguePage = lazy(() => import("./pages/LeaguePage"));
+const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
+const PlayersPage = lazy(() => import("./pages/PlayersPage"));
+const SettingsPage = lazy(() => import("./pages/SettingsPage"));
+const TeamPage = lazy(() => import("./pages/TeamPage"));
 
 function App() {
   const { user, userId, signIn, signOutUser } = useUser();
@@ -36,19 +38,27 @@ function App() {
         onSignIn={signIn}
         onSignOut={signOutUser}
       />
-      <Routes>
-        <Route path="/" element={<LandingPage leagues={leagues} />} />
-        <Route path="/league/:leagueId" element={<LeaguePage />} />
-        <Route path="/team/:teamId" element={<TeamPage />} />
-        <Route path="/players" element={<PlayersPage />} />
-        <Route path="/league/:leagueId/draft" element={<DraftPage />} />
-        <Route path="/settings" element={<SettingsPage />} />
-        <Route
-          path="/create-league"
-          element={<CreateLeaguePage onLeagueCreated={handleLeagueCreated} />}
-        />
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
+      <Suspense
+        fallback={
+          <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+            <CircularProgress />
+          </Box>
+        }
+      >
+        <Routes>
+          <Route path="/" element={<LandingPage leagues={leagues} />} />
+          <Route path="/league/:leagueId" element={<LeaguePage />} />
+          <Route path="/team/:teamId" element={<TeamPage />} />
+          <Route path="/players" element={<PlayersPage />} />
+          <Route path="/league/:leagueId/draft" element={<DraftPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route
+            path="/create-league"
+            element={<CreateLeaguePage onLeagueCreated={handleLeagueCreated} />}
+          />
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </Suspense>
     </>
   );
 }
