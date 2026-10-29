@@ -52,13 +52,6 @@ module = [
 ]
 ignore_missing_imports = true
 
-[[tool.mypy.overrides]]
-module = [
-    "utils.*",
-    "api.utils.*",
-]
-ignore_errors = true
-
 [tool.pytest.ini_options]
 pythonpath = ["..", "."]
 asyncio_mode = "auto"

@@ -7,6 +7,10 @@ committing or rolling back the session.
 import logging
 from typing import Any
 
+from sqlalchemy import select, update
+from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from api.db.models.nfl import (
     NFLGame,
     NFLPlayer,
@@ -15,16 +19,13 @@ from api.db.models.nfl import (
     NFLTeam,
 )
 from api.utils.rapidapi.rapidapi import get_rapidapi_client
-from sqlalchemy import select, update
-from sqlalchemy.dialects.postgresql import insert
-from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
 
 
-def _int(val: object, default: int = 0) -> int:
+def _int(val: Any, default: int = 0) -> int:
     try:
-        return int(val)  # type: ignore[arg-type]
+        return int(val)
     except (TypeError, ValueError):
         return default
 
@@ -167,7 +168,7 @@ async def sync_nfl_players_and_stats(db: AsyncSession) -> None:
     )
 
     for team in active_teams:
-        if not team.team_abv:  # type: ignore[attr-defined]
+        if not team.team_abv:
             continue
         roster = await client.get_stats_for_team(str(team.id), team.team_abv or "")
         for raw in roster:
