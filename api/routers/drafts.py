@@ -10,9 +10,9 @@ from sqlalchemy import select
 from api.db.models.draft import Draft, DraftPick
 from api.db.models.user import User
 from api.db.session import get_session_factory
-from api.dependencies.auth import CurrentUser, verify_token
+from api.dependencies.auth import verify_token
 from api.dependencies.db import DbSession
-from api.dependencies.league import find_membership
+from api.dependencies.league import DraftMember, LeagueMember, find_membership
 from api.models.draft_models import DraftInfoResponse, DraftPickResponse
 from api.services.draft_picks import DraftPickError, make_pick
 from api.ws.draft_manager import draft_manager
@@ -33,7 +33,7 @@ async def health() -> dict[str, str]:
 @router.get("/draft-info/{league_id}", response_model=DraftInfoResponse)
 async def get_draft_info(
     league_id: int,
-    user_id: CurrentUser,
+    _: LeagueMember,
     db: DbSession,
 ) -> Any:
     """Retrieve draft details and configuration for a league."""
@@ -51,7 +51,7 @@ async def get_draft_info(
 @router.get("/draft-picks/{draft_id}", response_model=list[DraftPickResponse])
 async def get_draft_picks(
     draft_id: int,
-    user_id: CurrentUser,
+    _: DraftMember,
     db: DbSession,
 ) -> Any:
     """Retrieve all draft picks made for a draft."""

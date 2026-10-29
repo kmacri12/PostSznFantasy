@@ -1,8 +1,9 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 
 from api.db.models.nfl import NFLPlayer, NFLPlayerSeasonStats, NFLTeam
+from api.dependencies.auth import get_current_user
 from api.dependencies.db import DbSession
 from api.models.players_models import (
     NFLTeamSimple,
@@ -10,7 +11,8 @@ from api.models.players_models import (
     PlayerSeasonStatsResponse,
 )
 
-router = APIRouter()
+# Every player route requires a login: the directory is cheap to scrape and not meant to be public.
+router = APIRouter(dependencies=[Depends(get_current_user)])
 
 
 @router.get("/")

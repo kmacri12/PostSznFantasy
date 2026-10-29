@@ -60,7 +60,7 @@ PostSznFantasy/
 │   │       └── nfl.py          # NFLTeam, NFLPlayer, Stats, Game models
 │   ├── dependencies/           # FastAPI dependency providers
 │   │   ├── auth.py             # Supabase JWT validation (verify_token, get_current_user)
-│   │   ├── league.py           # find_membership: league membership lookup
+│   │   ├── league.py           # LeagueMember/DraftMember/TeamMember guards (403 for non-members)
 │   │   └── db.py               # DbSession dependency alias
 │   ├── models/                 # Pydantic v2 DTO schemas (camelCase serialization)
 │   │   ├── base.py             # BaseSchema with alias_generator = to_camel

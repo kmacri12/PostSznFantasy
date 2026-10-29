@@ -4,6 +4,7 @@ import Chip from "@mui/material/Chip";
 import TextField from "@mui/material/TextField";
 import axios from "axios";
 import { useEffect, useState } from "react";
+import { useUser } from "../../contexts/UserContext";
 import { createLogger } from "../../utils/logger";
 
 const logger = createLogger("PlayerSelector");
@@ -28,6 +29,7 @@ interface PlayerSelectorProps {
 
 const PlayerSelector = ({ onPlayerSelected, isMyTurn, selectedPlayerIDs }: PlayerSelectorProps) => {
   const apiUrl = import.meta.env.VITE_API_URL;
+  const { getIdToken } = useUser();
   const [players, setPlayers] = useState<Player[]>([]);
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
   const [inputValue, setInputValue] = useState("");
@@ -36,7 +38,10 @@ const PlayerSelector = ({ onPlayerSelected, isMyTurn, selectedPlayerIDs }: Playe
   useEffect(() => {
     const fetchPlayers = async () => {
       try {
-        const response = await axios.get(`${apiUrl}/api/players/player-list`);
+        const token = await getIdToken();
+        const response = await axios.get(`${apiUrl}/api/players/player-list`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
         setPlayers(response.data);
       } catch (error) {
         logger.error("Error fetching players:", error);
@@ -44,7 +49,7 @@ const PlayerSelector = ({ onPlayerSelected, isMyTurn, selectedPlayerIDs }: Playe
     };
 
     fetchPlayers();
-  }, [apiUrl]);
+  }, [apiUrl, getIdToken]);
 
   const handlePlayerSelect = (_: unknown, newValue: Player | null) => {
     setSelectedPlayer(newValue);

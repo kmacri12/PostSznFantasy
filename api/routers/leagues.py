@@ -10,6 +10,7 @@ from api.db.models.nfl import NFLPlayer
 from api.db.models.user import User
 from api.dependencies.auth import CurrentUser
 from api.dependencies.db import DbSession
+from api.dependencies.league import LeagueMember, TeamMember
 from api.models.league_models import (
     LeagueCreate,
     LeagueCreateResponse,
@@ -148,7 +149,7 @@ async def get_user_leagues(
 @router.get("/{league_id}/settings", response_model=LeagueSettingsResponse)
 async def get_league_settings(
     league_id: int,
-    _: CurrentUser,
+    _: LeagueMember,
     db: DbSession,
 ) -> LeagueSettings:
     """Retrieve settings for a given league."""
@@ -220,7 +221,7 @@ async def update_league_settings(
 @router.get("/{league_id}/teams", response_model=list[TeamSimple])
 async def get_league_teams(
     league_id: int,
-    _: CurrentUser,
+    _: LeagueMember,
     db: DbSession,
 ) -> list[TeamSimple]:
     """List a league's teams with owner names and number of draft picks made."""
@@ -262,7 +263,7 @@ async def get_league_teams(
 @router.get("/teams/{team_id}", response_model=TeamDetails)
 async def get_team(
     team_id: int,
-    _: CurrentUser,
+    _: TeamMember,
     db: DbSession,
 ) -> TeamDetails:
     """Team roster with each player's playoff survival (NFL team still active)."""
@@ -316,7 +317,7 @@ async def get_team(
 @router.get("/{league_id}/standings", response_model=list[Standings])
 async def get_standings(
     league_id: int,
-    _: CurrentUser,
+    _: LeagueMember,
     db: DbSession,
 ) -> list[Standings]:
     """Return the stored standings snapshot enriched with team and owner names.

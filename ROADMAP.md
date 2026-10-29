@@ -46,7 +46,7 @@ Guiding principles: KISS, comments explain *why* only, self-documenting names.
   - [x] Verify the JWT on connect (query param or first message) and require league membership.
   - [x] Replace client-trusted `PICK_MADE` relaying with server-side pick validation (turn order, availability, roster limits), persistence to `DraftPick`, then broadcast.
   - [x] Whitelist inbound event types; reject the rest.
-- [ ] **C3 — League-membership authorization**: `draft-info`, `draft-picks`, settings, teams, standings and `teams/{id}` only require a login. Add a shared dependency (e.g. `LeagueMember`) and apply it. Decide which `/api/players/*` routes need auth (they currently have none).
+- [x] **C3 — League-membership authorization**: `draft-info`, `draft-picks`, settings, teams, standings and `teams/{id}` only require a login. Add a shared dependency (e.g. `LeagueMember`) and apply it. Decide which `/api/players/*` routes need auth (they currently have none).
 - [ ] **C4 — Restrict `/api/admin/*`**: add an admin check (allow-list or role); today any logged-in user can trigger paid ingestion or eliminate NFL teams.
 - [ ] **C5 — Stop leaking exception text** in 401 responses; log details server-side, return a generic message.
 - [ ] **C6 — Fix `login_or_register`** (`api/routers/auth.py`): use `INSERT … ON CONFLICT` to remove the first-login race; drop the `user.id or 1` fallback; drop fake `@postszn.local` emails (make email nullable or require it).

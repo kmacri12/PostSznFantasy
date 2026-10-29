@@ -25,6 +25,7 @@ import {
 import axios from "axios";
 import { useEffect, useMemo, useState } from "react";
 import "./PlayersTable.css";
+import { useUser } from "../../contexts/UserContext";
 import { createLogger } from "../../utils/logger";
 
 const logger = createLogger("PlayersTable");
@@ -69,6 +70,7 @@ export interface PlayerSeasonStats {
 
 const PlayersTable = () => {
   const apiUrl = import.meta.env.VITE_API_URL;
+  const { getIdToken } = useUser();
   const [selectedSeason, setSelectedSeason] = useState("2024");
   const [selectedPosition, setSelectedPosition] = useState("QB");
   const [searchQuery, setSearchQuery] = useState("");
@@ -76,15 +78,20 @@ const PlayersTable = () => {
   const [sorting, setSorting] = useState<SortingState>([]);
 
   useEffect(() => {
-    axios
-      .get(`${apiUrl}/api/players/player-season-stats`)
-      .then((response) => {
+    const fetchStats = async () => {
+      try {
+        const token = await getIdToken();
+        const response = await axios.get(`${apiUrl}/api/players/player-season-stats`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
         setPlayerStats(response.data || []);
-      })
-      .catch((error) => {
+      } catch (error) {
         logger.error("Error fetching player stats:", error);
-      });
-  }, [apiUrl]);
+      }
+    };
+
+    fetchStats();
+  }, [apiUrl, getIdToken]);
 
   const filteredData = useMemo(() => {
     return playerStats.filter((row) => {
