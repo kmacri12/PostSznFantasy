@@ -60,7 +60,7 @@ Guiding principles: KISS, comments explain *why* only, self-documenting names.
 - [x] **Single source of truth for settings fields**: `ScoringSettings`, `LeagueSettingsResponse`, the ORM `LeagueSettings` and the 7 frontend settings components repeat ~80 fields. Generate the response from `ScoringSettings` / `RosterSettings` (or restructure into a grouped/JSON model).
 - [x] **One transaction pattern**: `get_db` commits on success *and* routes call `commit()`. Pick one (recommended: `get_db` owns commit; routes only `flush`).
 - [x] **Remove cruft routes**: legacy `/get_leagues_by_user` alias; five identical router-level `GET /` health endpoints; keep one health endpoint that also checks the DB.
-- [ ] **Config-driven deployment settings**: CORS origins, pool size/overflow into `Settings`; resolve `.env` path independent of working directory.
+- [x] **Config-driven deployment settings**: CORS origins, pool size/overflow into `Settings`; resolve `.env` path independent of working directory.
 - [ ] **Schema hygiene** (DB is disposable — redo the migration freely):
   - [ ] Add indexes on FKs (`teams.league_id`, `teams.owner_id`, `draft_picks.draft_id`, `draft_picks.team_id`, `standings.league_id`, …) and a unique constraint on `league_settings.league_id` (and `drafts.league_id` if one draft per league). Verify against the current migration first.
   - [ ] Tighten nullability (`Draft.status`, `league_id`-style columns, etc.); use enums / `CheckConstraint` for `status` and `draft_type` (`api/models/enums.py` exists).

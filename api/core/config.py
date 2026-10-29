@@ -1,4 +1,5 @@
 from functools import lru_cache
+from pathlib import Path
 from typing import Annotated, Literal
 
 from pydantic import (
@@ -10,10 +11,13 @@ from pydantic import (
 )
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
+# Anchored to the package so uvicorn, Alembic and pytest agree regardless of cwd.
+ENV_FILE = Path(__file__).resolve().parents[1] / ".env"
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=ENV_FILE,
         env_file_encoding="utf-8",
         extra="ignore",
     )
@@ -36,14 +40,19 @@ class Settings(BaseSettings):
         """Standard JWKS endpoint for asymmetric JWT verification."""
         return f"{self.supabase_url.rstrip('/')}/auth/v1/.well-known/jwks.json"
 
+    # Deployment
+    cors_origins: Annotated[list[str], NoDecode] = ["http://localhost:5173"]
+    db_pool_size: int = 20
+    db_max_overflow: int = 10
+
     # Comma-separated Supabase user ids allowed to call /api/admin/*; empty means nobody.
     admin_supabase_uids: Annotated[list[str], NoDecode] = []
 
-    @field_validator("admin_supabase_uids", mode="before")
+    @field_validator("admin_supabase_uids", "cors_origins", mode="before")
     @classmethod
-    def _split_admin_uids(cls, value: object) -> object:
+    def _split_csv(cls, value: object) -> object:
         if isinstance(value, str):
-            return [uid.strip() for uid in value.split(",") if uid.strip()]
+            return [item.strip() for item in value.split(",") if item.strip()]
         return value
 
     # RapidAPI

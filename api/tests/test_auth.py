@@ -185,3 +185,19 @@ async def test_invalid_signature_detail_is_generic(
     assert exc_info.value.detail == "Invalid or expired credentials"
     assert "ignature" not in str(exc_info.value.detail)
     get_settings.cache_clear()
+
+
+def test_settings_parse_csv_lists_and_env_file_is_cwd_independent(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from api.core.config import ENV_FILE
+
+    monkeypatch.setenv("PG_HOST", "localhost")
+    monkeypatch.setenv("SUPABASE_URL", "https://xyzcompany.supabase.co")
+    monkeypatch.setenv("CORS_ORIGINS", "https://a.example, https://b.example")
+    settings = Settings(_env_file=None)
+
+    assert settings.cors_origins == ["https://a.example", "https://b.example"]
+    assert ENV_FILE.is_absolute()
+    assert ENV_FILE.name == ".env"
+    assert ENV_FILE.parent.name == "api"

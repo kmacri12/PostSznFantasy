@@ -25,13 +25,14 @@ def init_db() -> None:
     Configured with production-grade pooling and connection health checks.
     """
     global engine, AsyncSessionLocal
-    db_url = get_settings().async_database_url
+    settings = get_settings()
+    db_url = settings.async_database_url
 
     engine = create_async_engine(
         db_url,
         echo=False,
-        pool_size=20,
-        max_overflow=10,
+        pool_size=settings.db_pool_size,
+        max_overflow=settings.db_max_overflow,
         pool_pre_ping=True,  # Detect and discard stale/dead connections
     )
 
@@ -44,7 +45,10 @@ def init_db() -> None:
     )
     logger.info(
         "Initialized async database engine.",
-        extra={"pool_size": 20, "max_overflow": 10},
+        extra={
+            "pool_size": settings.db_pool_size,
+            "max_overflow": settings.db_max_overflow,
+        },
     )
 
 
