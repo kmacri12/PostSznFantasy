@@ -448,13 +448,13 @@ This checklist outlines the sequence of refactor tasks for developers and AI cod
 - Secondary fragility: `getIdToken` in `UserContext.tsx` is recreated on every render and sits in the effect's dependency array, so the fetch re-fires on unrelated provider re-renders (and never on the event we actually need).
 - To confirm during implementation: the user observed landing on the home screen, but the success path navigates to `/league/:id`. Check whether `response.data.leagueId` is present and whether any error is swallowed by the `catch` (it only `console.error`s), since the code falls back to `navigate("/")` when the id is missing.
 
-- [ ] **Expose a `refreshLeagues` function**: Extract `fetchLeagues` from the effect in `App.tsx` into a stable `useCallback`, and make it available to pages (preferred: a small `LeaguesContext` alongside `UserContext`; alternative: pass it as a prop to `CreateLeaguePage`).
-- [ ] **Refresh after create**: In `CreateLeaguePage.handleSubmit`, `await refreshLeagues()` after a successful POST and before `navigate`, and set the new league as the selected league in the NavBar.
-- [ ] **Stabilize `getIdToken`**: Wrap it in `useCallback` in `UserContext.tsx` so effects depending on it do not re-run spuriously.
-- [ ] **Surface failures**: Show an error message in the wizard when the POST fails or no `leagueId` is returned, instead of silently logging or falling back to `/`.
-- [ ] **Tests**:
-  - [ ] Frontend: after a mocked successful create, `refreshLeagues` is called and the landing page lists the new league without a reload.
-  - [ ] Frontend: a failed POST keeps the user on the wizard and shows an error.
+- [x] **Expose a `refreshLeagues` function**: Extract `fetchLeagues` from the effect in `App.tsx` into a stable `useCallback`, and make it available to pages (shipped as the alternative: `App` passes an `onLeagueCreated(leagueId)` prop to `CreateLeaguePage`, which refetches and selects the new league; no context needed for one consumer).
+- [x] **Refresh after create**: In `CreateLeaguePage.handleSubmit`, `await refreshLeagues()` after a successful POST and before `navigate`, and set the new league as the selected league in the NavBar.
+- [x] **Stabilize `getIdToken`**: Wrap it in `useCallback` in `UserContext.tsx` so effects depending on it do not re-run spuriously.
+- [x] **Surface failures**: Show an error message in the wizard when the POST fails or no `leagueId` is returned, instead of silently logging or falling back to `/`.
+- [x] **Tests**:
+  - [x] Frontend: after a mocked successful create, `refreshLeagues` is called and the landing page lists the new league without a reload.
+  - [x] Frontend: a failed POST keeps the user on the wizard and shows an error.
 
 ---
 

@@ -4,20 +4,32 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import CreateLeaguePage from "./CreateLeaguePage";
 
 const mockGet = vi.hoisted(() => vi.fn());
-vi.mock("axios", () => ({ default: { get: mockGet, post: vi.fn() } }));
+const mockPost = vi.hoisted(() => vi.fn());
+const mockNavigate = vi.hoisted(() => vi.fn());
+vi.mock("axios", () => ({ default: { get: mockGet, post: mockPost } }));
+vi.mock("react-router-dom", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("react-router-dom")>()),
+  useNavigate: () => mockNavigate,
+}));
 vi.mock("../contexts/UserContext", () => ({
   useUser: () => ({ getIdToken: vi.fn().mockResolvedValue("token") }),
 }));
 
 const defaults = { scoring_passing_yard: 0.04, scoring_passing_td: 4 };
 
-async function openScoringStep() {
+const onLeagueCreated = vi.fn().mockResolvedValue(undefined);
+
+async function renderWizard() {
   render(
     <MemoryRouter>
-      <CreateLeaguePage />
+      <CreateLeaguePage onLeagueCreated={onLeagueCreated} />
     </MemoryRouter>,
   );
   await waitFor(() => expect(mockGet).toHaveBeenCalled());
+}
+
+async function openScoringStep() {
+  await renderWizard();
   fireEvent.click(screen.getByRole("button", { name: "Next" }));
   fireEvent.click(screen.getByRole("button", { name: "Next" }));
 }
@@ -46,5 +58,39 @@ describe("CreateLeaguePage scoring step", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Reset to Sleeper defaults" }));
     await waitFor(() => expect(td.value).toBe("4"));
+  });
+});
+
+describe("CreateLeaguePage submit", () => {
+  async function submitWizard() {
+    await renderWizard();
+    for (let i = 0; i < 3; i++) fireEvent.click(screen.getByRole("button", { name: "Next" }));
+    fireEvent.click(screen.getByRole("button", { name: /create/i }));
+  }
+
+  beforeEach(() => {
+    mockGet.mockReset();
+    mockGet.mockResolvedValue({ data: defaults });
+    mockPost.mockReset();
+    mockNavigate.mockReset();
+    onLeagueCreated.mockClear();
+  });
+
+  it("refreshes the league list before navigating to the new league", async () => {
+    mockPost.mockResolvedValue({ status: 201, data: { leagueId: 7 } });
+    await submitWizard();
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith("/league/7"));
+    expect(onLeagueCreated).toHaveBeenCalledWith(7);
+    expect(onLeagueCreated.mock.invocationCallOrder[0]).toBeLessThan(
+      mockNavigate.mock.invocationCallOrder[0],
+    );
+  });
+
+  it("stays on the wizard and shows an error when the request fails", async () => {
+    mockPost.mockRejectedValue(new Error("boom"));
+    await submitWizard();
+    expect(await screen.findByText(/could not create the league/i)).toBeTruthy();
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(onLeagueCreated).not.toHaveBeenCalled();
   });
 });

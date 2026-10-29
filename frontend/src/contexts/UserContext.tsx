@@ -1,7 +1,7 @@
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 import axios from "axios";
 import type React from "react";
-import { type ReactNode, createContext, useContext, useEffect, useState } from "react";
+import { type ReactNode, createContext, useCallback, useContext, useEffect, useState } from "react";
 import { supabase } from "../utils/supabase";
 
 interface UserContextType {
@@ -125,14 +125,14 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const getIdToken = async () => {
+  const getIdToken = useCallback(async () => {
     const {
       data: { session },
     } = await supabase.auth.getSession();
     const token = session?.access_token || null;
     setIdToken(token);
     return token;
-  };
+  }, []);
 
   return (
     <UserContext.Provider

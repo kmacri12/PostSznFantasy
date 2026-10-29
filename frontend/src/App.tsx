@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Route, Routes } from "react-router-dom";
 import NavBar, { type LeagueByUser } from "./components/layout/NavBar";
 import { useUser } from "./contexts/UserContext";
@@ -18,28 +18,32 @@ function App() {
   const [leagues, setLeagues] = useState<LeagueByUser[]>([]);
   const [selectedLeague, setSelectedLeague] = useState<string>("");
 
+  const fetchLeagues = useCallback(async () => {
+    try {
+      const token = await getIdToken();
+      const response = await axios.get<LeagueByUser[]>(`${apiUrl}/api/leagues/user-leagues`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setLeagues(response.data);
+      setSelectedLeague((current) => current || String(response.data[0]?.id ?? ""));
+    } catch (error) {
+      console.error("Error fetching leagues:", error);
+    }
+  }, [apiUrl, getIdToken]);
+
   useEffect(() => {
     if (!userId) {
       setLeagues([]);
       setSelectedLeague("");
       return;
     }
-
-    const fetchLeagues = async () => {
-      try {
-        const token = await getIdToken();
-        const response = await axios.get<LeagueByUser[]>(`${apiUrl}/api/leagues/user-leagues`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setLeagues(response.data);
-        setSelectedLeague((current) => current || String(response.data[0]?.id ?? ""));
-      } catch (error) {
-        console.error("Error fetching leagues:", error);
-      }
-    };
-
     fetchLeagues();
-  }, [userId, apiUrl, getIdToken]);
+  }, [userId, fetchLeagues]);
+
+  const handleLeagueCreated = async (leagueId: number) => {
+    await fetchLeagues();
+    setSelectedLeague(String(leagueId));
+  };
 
   return (
     <>
@@ -58,7 +62,10 @@ function App() {
         <Route path="/players" element={<PlayersPage />} />
         <Route path="/league/:leagueId/draft" element={<DraftPage />} />
         <Route path="/settings" element={<SettingsPage />} />
-        <Route path="/create-league" element={<CreateLeaguePage />} />
+        <Route
+          path="/create-league"
+          element={<CreateLeaguePage onLeagueCreated={handleLeagueCreated} />}
+        />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </>

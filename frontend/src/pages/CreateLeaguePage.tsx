@@ -45,7 +45,11 @@ type ExpandedSection =
   | "specialTeams"
   | "defense";
 
-const CreateLeaguePage = () => {
+const CreateLeaguePage = ({
+  onLeagueCreated,
+}: {
+  onLeagueCreated: (leagueId: number) => Promise<void>;
+}) => {
   const apiUrl = import.meta.env.VITE_API_URL;
   const { getIdToken } = useUser();
   const navigate = useNavigate();
@@ -88,6 +92,7 @@ const CreateLeaguePage = () => {
   const [scoringSettings, setScoringSettings] = useState<ScoringSettingsState>({});
   const [scoringDefaults, setScoringDefaults] = useState<ScoringSettingsState | null>(null);
   const [defaultsFailed, setDefaultsFailed] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchScoringDefaults(apiUrl)
@@ -108,9 +113,10 @@ const CreateLeaguePage = () => {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    setSubmitError(null);
     const token = await getIdToken();
     if (!token) {
-      console.error("No user is currently signed in.");
+      setSubmitError("You must be signed in to create a league.");
       return;
     }
 
@@ -129,16 +135,16 @@ const CreateLeaguePage = () => {
         },
       );
 
-      if (response.status === 201 || response.status === 200) {
-        const createdLeagueId = response.data.leagueId || response.data.league_id;
-        if (createdLeagueId) {
-          navigate(`/league/${createdLeagueId}`);
-        } else {
-          navigate("/");
-        }
+      const createdLeagueId: number | undefined = response.data.leagueId;
+      if (!createdLeagueId) {
+        setSubmitError("League was created but the server returned no league id.");
+        return;
       }
+      await onLeagueCreated(createdLeagueId);
+      navigate(`/league/${createdLeagueId}`);
     } catch (error) {
       console.error("Error creating league:", error);
+      setSubmitError("Could not create the league. Please try again.");
     }
   };
 
@@ -174,6 +180,11 @@ const CreateLeaguePage = () => {
       <Typography variant="h4" sx={{ mb: 3 }}>
         Create a league
       </Typography>
+      {submitError && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {submitError}
+        </Alert>
+      )}
       <Stepper activeStep={step} alternativeLabel sx={{ mb: 4 }}>
         {STEPS.map((label) => (
           <Step key={label}>
