@@ -117,14 +117,14 @@ Goal: one discoverable entry point for running the API, frontend and checks, rep
 
 ## Phase 19: Repository Hygiene
 
-- [ ] Reconcile docs with reality: AGENTS.md references a root `pyproject.toml`, a `utils/db/` that contradicts the documented layout, and `REWRITE_ROADMAP.md` as the active roadmap; mark `REWRITE_ROADMAP.md` as archived and link this file from README / AGENTS.
-- [ ] Review `.gitignore`: it is a generic template with duplicate entries (`.env`, `*firebase*.json`, `.pylintrc`, `yarn.lock` ignored while Firebase is gone). Trim to what applies; ensure `.bin/`, caches and `dist/` stay ignored.
-- [ ] Confirm CI (`.github/workflows/ci.yml`) runs Ruff check + format check, Mypy, pytest, Biome, `tsc`/build and Vitest, with dependency caching and a Postgres service for the new DB tests.
-- [ ] Add dependency-update automation (Dependabot / Renovate) and a periodic `npm audit` / `pip-audit` step.
-- [ ] Pin runtime versions (`.python-version` exists; add `.nvmrc` / `engines` for Node).
-- [ ] Add pre-commit (or `make check` hook) running Ruff + Biome.
-- [ ] Remove dead leftovers: Firebase mentions, stale "transitional shim" comments, unused assets (`react.svg`), the `DevQuickSync` once the admin flow is settled.
-- [ ] Add a `LICENSE` and basic `SECURITY.md` if the repo is to be public.
+- [x] Reconcile docs with reality: AGENTS.md references a root `pyproject.toml`, a `utils/db/` that contradicts the documented layout, and `REWRITE_ROADMAP.md` as the active roadmap; mark `REWRITE_ROADMAP.md` as archived and link this file from README / AGENTS.
+- [x] Review `.gitignore`: it is a generic template with duplicate entries (`.env`, `*firebase*.json`, `.pylintrc`, `yarn.lock` ignored while Firebase is gone). Trim to what applies; ensure `.bin/`, caches and `dist/` stay ignored.
+- [x] Confirm CI (`.github/workflows/ci.yml`) runs Ruff check + format check, Mypy, pytest, Biome, `tsc`/build and Vitest, with dependency caching and a Postgres service for the new DB tests.
+- [x] Add dependency-update automation (Dependabot / Renovate) and a periodic `npm audit` / `pip-audit` step.
+- [x] Pin runtime versions (`.python-version` exists; add `.nvmrc` / `engines` for Node).
+- [x] Add pre-commit (or `make check` hook) running Ruff + Biome.
+- [x] Remove dead leftovers: Firebase mentions, stale "transitional shim" comments, unused assets (`react.svg`), the `DevQuickSync` once the admin flow is settled (kept: it is dev-only and still the quickest way to sync).
+- [x] Add a `LICENSE` and basic `SECURITY.md` if the repo is to be public. (`SECURITY.md` added; the `LICENSE` choice is left to the repo owner.)
 
 ---
 

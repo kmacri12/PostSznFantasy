@@ -408,7 +408,3 @@ class LeagueStanding(Base):
 
     league: Mapped["League"] = relationship("League", back_populates="standings")
     team: Mapped["Team"] = relationship("Team", back_populates="standings")
-
-
-# Compatibility alias
-Standings = LeagueStanding

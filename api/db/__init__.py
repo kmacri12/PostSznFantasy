@@ -6,7 +6,6 @@ from api.db.models.league import (
     LeagueStanding,
     Lineup,
     PlayerScore,
-    Standings,
     Team,
     Week,
 )
@@ -43,7 +42,6 @@ __all__ = [
     "NFLPlayerSeasonStats",
     "NFLTeam",
     "PlayerScore",
-    "Standings",
     "Team",
     "User",
     "Week",
