@@ -11,7 +11,6 @@ from api.db.models.draft import Draft, DraftPick
 from api.db.models.league import (
     League,
     LeagueSettings,
-    LeagueStanding,
     Team,
 )
 from api.db.models.league import (
@@ -51,6 +50,7 @@ from api.services.settings_changes import (
     on_editable_settings_changed,
     record_settings_change,
 )
+from api.services.standings_view import league_standings
 
 router = APIRouter()
 
@@ -491,41 +491,15 @@ async def get_league_teams(
     ]
 
 
-@router.get("/{league_id}/standings", response_model=list[Standings])
+@router.get("/{league_id}/standings", response_model=Standings)
 async def get_standings(
     league_id: int,
     _: LeagueMember,
     db: DbSession,
-) -> list[Standings]:
-    """Return the stored standings snapshot enriched with team and owner names.
+) -> Standings:
+    """Ranked teams with tie reasons and live starter counts, for the league home page.
 
-    Rows are rewritten by api.services.standings whenever scores or eliminations change.
+    Points and players left come from the snapshot api.services.standings rewrites
+    whenever scores or eliminations change; the rest is derived on every read.
     """
-    rows = (
-        (
-            await db.execute(
-                select(LeagueStanding)
-                .options(selectinload(LeagueStanding.team).selectinload(Team.owner))
-                .where(LeagueStanding.league_id == league_id)
-                .order_by(LeagueStanding.rank)
-            )
-        )
-        .scalars()
-        .all()
-    )
-
-    return [
-        Standings(
-            team_id=row.team_id,
-            rank=row.rank,
-            team_name=row.team.name or f"Team {row.team_id}",
-            owner=row.team.owner.username if row.team.owner else "Unclaimed",
-            players_left=row.players_left or 0,
-            wild_card=float(row.wild_card or 0),
-            divisional=float(row.divisional or 0),
-            conf_champ=float(row.conf_champ or 0),
-            super_bowl=float(row.super_bowl or 0),
-            total=float(row.total or 0),
-        )
-        for row in rows
-    ]
+    return await league_standings(db, league_id)

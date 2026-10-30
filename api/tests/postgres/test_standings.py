@@ -139,7 +139,8 @@ async def test_a_poll_that_eliminates_a_team_updates_players_left(
 
     after = await _stored(db, league_id)
     assert (after[kc_owner].players_left, after[buf_owner].players_left) == (1, 0)
-    assert (after[kc_owner].rank, after[buf_owner].rank) == (1, 2)
+    # Players left is shown, but it no longer breaks ties: both teams still have 0.
+    assert (after[kc_owner].rank, after[buf_owner].rank) == (1, 1)
 
 
 async def test_a_manual_result_updates_standings(

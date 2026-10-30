@@ -10,6 +10,7 @@ from api.models.enums import (
     LeagueRole,
     PlayerRoundStatus,
     Tiebreaker,
+    TieRule,
 )
 
 
@@ -196,7 +197,29 @@ class LeagueOverview(BaseSchema):
     teams: list[TeamBrief]
 
 
-class Standings(BaseSchema):
+class StarterProgress(BaseSchema):
+    """A team's starter slots in the current round; the four counts cover every slot."""
+
+    finished: int
+    live: int
+    to_play: int
+    not_playing: int
+
+
+class StandingTieReason(BaseSchema):
+    """Why a fantasy team ranks above the next one although their totals are equal."""
+
+    rule: TieRule
+    # 1-based round whose score separated them; None for the Super Bowl winner step.
+    round: int | None = None
+    over_team_id: int
+    over_team_name: str
+    ahead_value: float
+    behind_value: float
+    message: str
+
+
+class TeamStanding(BaseSchema):
     team_id: int
     rank: int
     team_name: str
@@ -207,6 +230,18 @@ class Standings(BaseSchema):
     conf_champ: float
     super_bowl: float
     total: float
+    tie_reason: StandingTieReason | None = None
+    progress: StarterProgress
+
+
+class Standings(BaseSchema):
+    # The round the live counts describe (1-4).
+    round: int
+    # NFL games being played right now.
+    games_in_progress: int
+    # Players left summed over every fantasy team in the league.
+    players_left: int
+    teams: list[TeamStanding]
 
 
 class TeamSimple(BaseSchema):
