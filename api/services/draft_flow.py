@@ -4,6 +4,7 @@ from datetime import UTC, datetime, timedelta
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from api.core.config import get_settings
 from api.db.models.draft import Draft, DraftPick, DraftQueueItem
 from api.db.models.league import League, LeagueSettings, Team, TeamPlayer
 from api.db.models.nfl import NFLPlayer, NFLPlayerSeasonStats
@@ -33,7 +34,6 @@ from api.services.draft_picks import (
     team_on_the_clock,
 )
 from api.services.playoff_field import (
-    PLAYOFF_FIELD_SIZE,
     first_wild_card_kickoff,
     playoff_team_count,
     require_draft_window_open,
@@ -144,7 +144,8 @@ async def build_state(db: AsyncSession, draft: Draft) -> DraftStateResponse:
         draft_cutoff=await first_wild_card_kickoff(
             db, await _league_season(db, draft.league_id)
         ),
-        playoff_field_set=await playoff_team_count(db) == PLAYOFF_FIELD_SIZE,
+        playoff_field_set=await playoff_team_count(db)
+        == get_settings().playoff_field_size,
     )
 
 

@@ -5,6 +5,7 @@ import {
   Card,
   Container,
   FormControl,
+  FormHelperText,
   Grid,
   InputLabel,
   OutlinedInput,
@@ -18,6 +19,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCreateLeague, useScoringDefaults } from "../api/queries";
 import ErrorState from "../components/common/ErrorState";
+import DraftLockNotice from "../components/league/DraftLockNotice";
+import ExhaustionWarning from "../components/league/ExhaustionWarning";
 import RosterForm from "../components/settings/RosterForm";
 import ScoringForm from "../components/settings/ScoringForm";
 import { createLogger } from "../utils/logger";
@@ -42,7 +45,7 @@ const CreateLeaguePage = ({
 
   // Roster Settings
   const [rosterSettings, setRosterSettings] = useState({
-    number_teams: 12,
+    number_teams: 6,
     roster_total: 18,
     roster_num_qb: 1,
     roster_num_rb: 2,
@@ -104,7 +107,11 @@ const CreateLeaguePage = ({
     ? countChangedFromDefaults(scoringSettings, scoringDefaults)
     : 0;
   const isLastStep = step === STEPS.length - 1;
-  const canAdvance = step !== 0 || (leagueName.trim() !== "" && rosterSettings.number_teams >= 2);
+  const canAdvance =
+    step !== 0 ||
+    (leagueName.trim() !== "" &&
+      rosterSettings.number_teams >= 2 &&
+      rosterSettings.number_teams <= 14);
 
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
@@ -153,6 +160,7 @@ const CreateLeaguePage = ({
                   <OutlinedInput
                     id="number-teams"
                     type="number"
+                    inputProps={{ min: 2, max: 14 }}
                     value={rosterSettings.number_teams || ""}
                     onChange={(e) =>
                       setRosterSettings({
@@ -162,17 +170,25 @@ const CreateLeaguePage = ({
                     }
                     label="Teams"
                   />
+                  <FormHelperText>2 to 14 teams</FormHelperText>
                 </FormControl>
               </Grid>
             </Grid>
+            <Box sx={{ mt: 2 }}>
+              <ExhaustionWarning settings={rosterSettings} />
+            </Box>
           </Card>
         )}
 
         {step === 1 && (
-          <RosterForm
-            values={rosterSettings}
-            onChange={(next) => setRosterSettings(next as typeof rosterSettings)}
-          />
+          <>
+            <DraftLockNotice />
+            <ExhaustionWarning settings={rosterSettings} />
+            <RosterForm
+              values={rosterSettings}
+              onChange={(next) => setRosterSettings(next as typeof rosterSettings)}
+            />
+          </>
         )}
 
         {step === 2 && defaultsFailed && (
@@ -207,6 +223,8 @@ const CreateLeaguePage = ({
 
         {step === 3 && (
           <Card sx={{ p: 3 }}>
+            <DraftLockNotice />
+            <ExhaustionWarning settings={rosterSettings} />
             <Typography variant="h6">{leagueName}</Typography>
             <Typography color="text.secondary" sx={{ mt: 1 }}>
               {rosterSettings.number_teams} teams · {rosterSettings.roster_total} roster spots

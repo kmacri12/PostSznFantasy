@@ -9,11 +9,12 @@ from datetime import UTC, datetime
 from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from api.core.config import get_settings
 from api.db.models.nfl import NFLGame, NFLTeam
 from api.services.draft_picks import DraftPickError
 from api.services.ingestion.schemas import POSTSEASON_WEEKS
 
-PLAYOFF_FIELD_SIZE = 14
+PLAYOFF_FIELD_SIZE = 14  # the real field; see Settings.playoff_field_size
 WILD_CARD_WEEK = POSTSEASON_WEEKS["Wild Card"]
 
 
@@ -28,10 +29,11 @@ async def playoff_team_count(db: AsyncSession) -> int:
 
 async def require_field_set(db: AsyncSession) -> None:
     count = await playoff_team_count(db)
-    if count != PLAYOFF_FIELD_SIZE:
+    size = get_settings().playoff_field_size
+    if count != size:
         raise DraftPickError(
             "The draft can't start until the playoff field is set "
-            f"({count} of {PLAYOFF_FIELD_SIZE} teams so far)",
+            f"({count} of {size} teams so far)",
             code="field_not_set",
         )
 

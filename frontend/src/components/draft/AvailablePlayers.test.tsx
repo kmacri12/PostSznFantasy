@@ -13,6 +13,7 @@ const renderList = (overrides: Partial<Parameters<typeof AvailablePlayers>[0]> =
     <AvailablePlayers
       players={players}
       draftedIds={new Set()}
+      cappedPositions={{}}
       queue={[]}
       canPick
       isConnected
@@ -57,5 +58,18 @@ describe("AvailablePlayers pick submission", () => {
     renderList({ pendingPlayerId: 1 });
     expect(screen.getByRole("button", { name: "Drafting…" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Draft" })).toBeDisabled();
+  });
+});
+
+describe("AvailablePlayers position caps", () => {
+  it("greys out a capped position with its reason and blocks drafting and queueing", () => {
+    renderList({ cappedPositions: { QB: "You already have 2 QBs, the most your league allows" } });
+    expect(screen.getAllByText(/You already have 2 QBs/)).toHaveLength(2);
+    for (const button of screen.getAllByRole("button", { name: "Position full" })) {
+      expect(button).toBeDisabled();
+    }
+    for (const button of screen.getAllByRole("button", { name: "Queue" })) {
+      expect(button).toBeDisabled();
+    }
   });
 });

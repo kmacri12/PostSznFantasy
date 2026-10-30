@@ -58,6 +58,14 @@ _Avoid_: Player list, free agents
 The position shown for every running back and fullback. Fullbacks are never shown as FB.
 _Avoid_: FB
 
+**Playoff field**:
+The 14 NFL teams in the postseason (12 Wild Card teams plus the two byes). The draft pool is built from it, and a draft cannot start until all 14 are known.
+_Avoid_: Bracket, playoff teams (when the set being complete matters)
+
+**Draft cutoff**:
+The first Wild Card kickoff. A draft cannot be scheduled or started after it; one already running may finish, and picks whose game has started lock to the bench.
+_Avoid_: Deadline
+
 **Roster**:
 All the players a fantasy team drafted, whether or not they are in a lineup.
 _Avoid_: Squad
@@ -87,7 +95,7 @@ A player becoming immovable, in whatever slot they are in, at their kickoff. A l
 _Avoid_: Freeze, deadline
 
 **Position cap**:
-The most players of one position a fantasy team may draft (default QB 2, K 2, DST 2).
+The most players of one position a fantasy team may draft (default QB 2, K 2, DST 2; RB, WR and TE uncapped). A team at its cap sees that position greyed out in the draft pool with the reason, and neither REST nor WebSocket will accept the pick.
 _Avoid_: Max roster spots, limit
 
 ### Team positions

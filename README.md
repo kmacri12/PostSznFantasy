@@ -43,7 +43,7 @@ Before running the application locally, ensure you have the following installed:
 ## Playing a League
 
 - **Leagues & invites:** the creator is a commissioner (promote more, never fewer than one). Share the invite link (`/join/CODE`) or the code; joining claims an open team, and is blocked once the league is full or the draft has started (configurable).
-- **Draft:** the commissioner schedules it, assigns slots (manual or randomize), opens the lobby and presses Start. The pick clock lives on the server, so reloads never reset it; expired picks auto-pick from the team's queue, then best available.
+- **Draft:** the commissioner schedules it, assigns slots (manual or randomize), opens the lobby and presses Start. The pick clock lives on the server, so reloads never reset it; expired picks auto-pick from the team's queue, then best available (never a position the team has capped out). The pool is the 14 playoff teams' players, a draft can't start until that field is set or after the first Wild Card kickoff, and roster slots, position caps and team count lock at draft start.
 - **Settings:** one page for League, Roster, Scoring, Draft and Postseason (round multipliers, tiebreaker, joining after the draft starts). The season comes from `SEASON_YEAR` and is read-only per league.
 
 ## Local Setup & Quickstart

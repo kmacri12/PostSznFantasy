@@ -184,6 +184,11 @@ export interface DraftState {
   currentPickOverall: number | null;
   onTheClockTeamId: number | null;
   onDeckTeamId: number | null;
+  /** Only positions with a real cap; a team at its cap can't draft more of them. */
+  positionCaps: Record<string, number>;
+  /** First Wild Card kickoff: no draft can be scheduled or started after it. */
+  draftCutoff: string | null;
+  playoffFieldSet: boolean;
 }
 
 export interface DraftSnapshot extends DraftState {

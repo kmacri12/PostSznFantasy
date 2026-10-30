@@ -11,10 +11,11 @@ import {
 } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import { useLeague, usePlayerList, useSaveQueue } from "../api/queries";
+import { useDraftPool, useLeague, useSaveQueue } from "../api/queries";
 import LoadingState from "../components/common/LoadingState";
 import AvailablePlayers from "../components/draft/AvailablePlayers";
 import CommissionerControls from "../components/draft/CommissionerControls";
+import { cappedPositions } from "../components/draft/caps";
 import DraftBoard from "../components/draft/DraftBoard";
 import DraftSetupPanel from "../components/draft/DraftSetupPanel";
 import DraftStatusBar from "../components/draft/DraftStatusBar";
@@ -23,6 +24,7 @@ import MyRosterPanel from "../components/draft/MyRosterPanel";
 import OnTheClockBanner from "../components/draft/OnTheClockBanner";
 import PausedBanner from "../components/draft/PausedBanner";
 import PickFeed from "../components/draft/PickFeed";
+import PreDraftNotice from "../components/draft/PreDraftNotice";
 import QueuePanel from "../components/draft/QueuePanel";
 import { useDraftRoom } from "../hooks/useDraftRoom";
 import { playOnDeckCue, vibrateOnTurn } from "../utils/draftCue";
@@ -33,7 +35,7 @@ const DraftPage = () => {
   const { leagueId } = useParams<{ leagueId: string }>();
   const room = useDraftRoom(leagueId);
   const league = useLeague(leagueId);
-  const playersQuery = usePlayerList();
+  const playersQuery = useDraftPool();
   const saveQueue = useSaveQueue(leagueId);
   const [tab, setTab] = useState<TabKey>("board");
   const [showSetup, setShowSetup] = useState(false);
@@ -49,6 +51,14 @@ const DraftPage = () => {
   const players = useMemo(
     () => new Map((playersQuery.data ?? []).map((p) => [p.id, p])),
     [playersQuery.data],
+  );
+  const capped = useMemo(
+    () =>
+      cappedPositions(
+        state?.positionCaps ?? {},
+        (state?.picks ?? []).filter((p) => p.teamId === myTeamId).map((p) => p.position ?? ""),
+      ),
+    [state?.positionCaps, state?.picks, myTeamId],
   );
   const draftedIds = useMemo(
     () => new Set([...(state?.picks.map((p) => p.playerId) ?? []), ...room.takenPlayerIds]),
@@ -104,6 +114,7 @@ const DraftPage = () => {
         isConnected={room.isConnected}
         myTeamId={myTeamId}
       />
+      <PreDraftNotice state={state} />
       <PausedBanner status={state.status} />
       <OnTheClockBanner
         active={myTurn}
@@ -126,6 +137,7 @@ const DraftPage = () => {
             <AvailablePlayers
               players={playersQuery.data ?? []}
               draftedIds={draftedIds}
+              cappedPositions={capped}
               queue={state.queue}
               canPick={myTurn}
               isConnected={room.isConnected}
