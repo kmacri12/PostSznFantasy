@@ -56,11 +56,6 @@ def standard_league_settings() -> LeagueSettings:
     settings.scoring_kicking_fg_miss = Decimal(-1)
     settings.scoring_kicking_fg_made = Decimal(3)
     settings.scoring_kicking_fg_yard = Decimal(0)
-    settings.scoring_kicking_fg_made_0_19 = Decimal(0)
-    settings.scoring_kicking_fg_made_20_29 = Decimal(0)
-    settings.scoring_kicking_fg_made_30_39 = Decimal(0)
-    settings.scoring_kicking_fg_made_40_49 = Decimal(1)
-    settings.scoring_kicking_fg_made_50_plus = Decimal(2)
 
     # DST
     settings.scoring_dst_td = Decimal(6)
@@ -69,18 +64,14 @@ def standard_league_settings() -> LeagueSettings:
     settings.scoring_dst_fumble_recover = Decimal(2)
     settings.scoring_dst_interception = Decimal(2)
     settings.scoring_dst_pts_allowed_0 = Decimal(10)
-    settings.scoring_dst_pts_allowed_1_6 = Decimal(7)
-    settings.scoring_dst_pts_allowed_7_13 = Decimal(4)
-    settings.scoring_dst_pts_allowed_14_20 = Decimal(1)
-    settings.scoring_dst_pts_allowed_21_27 = Decimal(0)
-    settings.scoring_dst_pts_allowed_28_34 = Decimal(-1)
-    settings.scoring_dst_pts_allowed_35_plus = Decimal(-4)
+    settings.scoring_dst_pts_allowed_1_13 = Decimal(4)
+    settings.scoring_dst_pts_allowed_14_21 = Decimal(1)
+    settings.scoring_dst_pts_allowed_22_28 = Decimal(-1)
+    settings.scoring_dst_pts_allowed_29_plus = Decimal(-4)
     settings.scoring_dst_yards_allowed_under_100 = Decimal(5)
     settings.scoring_dst_yards_allowed_100_199 = Decimal(3)
     settings.scoring_dst_yards_allowed_200_299 = Decimal(2)
-    settings.scoring_dst_yards_allowed_300_399 = Decimal(0)
-    settings.scoring_dst_yards_allowed_400_499 = Decimal(-1)
-    settings.scoring_dst_yards_allowed_500_plus = Decimal(-3)
+    settings.scoring_dst_yards_allowed_300_plus = Decimal(-1)
 
     return settings
 
@@ -145,28 +136,22 @@ def test_calculate_turnover_and_special_teams_points(
     stats.punt_return_yards = 50
     stats.punt_return_td = 1
     standard_league_settings.scoring_special_punt_return_yard = Decimal(1)
-    standard_league_settings.scoring_special_punt_return_td = Decimal(6)
     st_pts = calculate_special_teams_points(stats, standard_league_settings)
-    assert st_pts == Decimal(56)
+    assert st_pts == Decimal(50)  # the return TD scores for the DST, not the returner
 
 
 def test_calculate_kicking_points(standard_league_settings: LeagueSettings) -> None:
+    standard_league_settings.scoring_kicking_fg_made = Decimal(0)
+    standard_league_settings.scoring_kicking_fg_yard = Decimal("0.1")
     stats = NFLPlayerGameStats()
     stats.kicking_xp_made = 4
     stats.kicking_xp_missed = 1
     stats.kicking_fg_missed = 1
     stats.kicking_fg_yards_made = [25, 45, 52]
 
-    # XP made: 4*1 = 4
-    # XP missed: 1*(-1) = -1
-    # FG miss: 1*(-1) = -1
-    # FG made base: 3*3 = 9
-    # FG 25 yds bonus: 0
-    # FG 45 yds bonus: 1
-    # FG 52 yds bonus: 2
-    # Total = 4 - 1 - 1 + 9 + 0 + 1 + 2 = 14
+    # FG yards: (25 + 45 + 52) * 0.1 = 12.2; XP 4 - 1; FG miss -1 => 14.2
     pts = calculate_kicking_points(stats, standard_league_settings)
-    assert pts == Decimal(14)
+    assert pts == Decimal("14.2")
 
 
 def test_calculate_dst_points(standard_league_settings: LeagueSettings) -> None:
@@ -184,11 +169,11 @@ def test_calculate_dst_points(standard_league_settings: LeagueSettings) -> None:
     # Safeties: 1*2 = 2
     # Fumbles: 1*2 = 2
     # INTs: 2*2 = 4
-    # Points allowed <=6: 7
+    # Points allowed 1-13: 4
     # Yards allowed 100-199: 3
-    # Total = 6 + 4 + 2 + 2 + 4 + 7 + 3 = 28
+    # Total = 6 + 4 + 2 + 2 + 4 + 4 + 3 = 25
     pts = calculate_dst_points(stats, standard_league_settings)
-    assert pts == Decimal(28)
+    assert pts == Decimal(25)
 
 
 def test_calculate_player_points_total(
@@ -210,10 +195,12 @@ def test_calculate_player_points_total(
     assert pts == Decimal(86)
 
 
-def test_default_template_scores_sleeper_ppr_stat_line() -> None:
+def _default_settings() -> LeagueSettings:
     template = ScoringSettings().model_dump(by_alias=False)
-    settings = LeagueSettings(**{k: Decimal(str(v)) for k, v in template.items()})
+    return LeagueSettings(**{k: Decimal(str(v)) for k, v in template.items()})
 
+
+def test_default_template_scores_full_ppr_stat_line() -> None:
     stats = NFLPlayerGameStats()
     stats.passing_yards = 250
     stats.passing_touchdowns = 2
@@ -224,28 +211,137 @@ def test_default_template_scores_sleeper_ppr_stat_line() -> None:
     stats.receiving_yards = 60
     stats.carrying_fumbles_lost = 1
 
-    # 250*.04 + 2*4 - 1 + 30*.1 + 6 + 5*1 + 60*.1 - 2 = 10+8-1+3+6+5+6-2 = 35
-    pts = calculate_player_points(stats, settings, PlayerPosition.RB)
-    assert pts == Decimal(35)
+    # 250*.04 + 2*4 - 2 + 30*.1 + 6 + 5*1 + 60*.1 - 2 = 10+8-2+3+6+5+6-2 = 34
+    pts = calculate_player_points(stats, _default_settings(), PlayerPosition.RB)
+    assert pts == Decimal(34)
 
 
-def test_default_template_dst_and_kicker() -> None:
-    template = ScoringSettings().model_dump(by_alias=False)
-    settings = LeagueSettings(**{k: Decimal(str(v)) for k, v in template.items()})
+def test_default_template_matches_product_rules() -> None:
+    d = ScoringSettings()
+    assert (d.scoring_passing_yard, d.scoring_passing_td) == (0.04, 4)
+    assert d.scoring_passing_interception == -2
+    assert (d.scoring_rushing_yard, d.scoring_rushing_td) == (0.1, 6)
+    assert (d.scoring_receiving_yard, d.scoring_receiving_td) == (0.1, 6)
+    assert d.scoring_receiving_reception == 1
+    assert d.scoring_carrying_fumble_lost == -2
+    assert d.scoring_passing_2pt == d.scoring_rushing_2pt == 2
+    assert d.scoring_receiving_2pt == 2
+    # Everything else the old Sleeper template scored is off.
+    zeros = [
+        d.scoring_passing_completion,
+        d.scoring_passing_attempt,
+        d.scoring_passing_sack,
+        d.scoring_passing_bonus_300_yards,
+        d.scoring_passing_bonus_400_yards,
+        d.scoring_rushing_attempt,
+        d.scoring_rushing_bonus_100_yards,
+        d.scoring_rushing_bonus_200_yards,
+        d.scoring_receiving_target,
+        d.scoring_receiving_bonus_100_yards,
+        d.scoring_receiving_bonus_200_yards,
+        d.scoring_carrying_fumble,
+    ]
+    assert all(value == 0 for value in zeros)
 
-    dst = NFLPlayerGameStats()
-    dst.dst_points_allowed = 10
-    dst.dst_sacks = 3
-    dst.dst_interceptions = 1
-    dst.dst_yards_allowed = 250
-    # 4 (7-13 pts) + 3 + 2 + 0 (yards bands default to 0) = 9
-    assert calculate_dst_points(dst, settings) == Decimal(9)
 
+def test_default_kicker_scores_per_yard() -> None:
+    settings = _default_settings()
     kicker = NFLPlayerGameStats()
-    kicker.kicking_fg_yards_made = [25, 45, 52]
+    kicker.kicking_fg_yards_made = [34]
+    assert calculate_kicking_points(kicker, settings) == Decimal("3.4")
+
     kicker.kicking_xp_made = 2
-    # 3 + 4 + 5 + 2 = 14
-    assert calculate_kicking_points(kicker, settings) == Decimal(14)
+    kicker.kicking_xp_missed = 1
+    kicker.kicking_fg_missed = 1
+    # 3.4 + 2 - 1 - 1 = 3.4
+    assert calculate_kicking_points(kicker, settings) == Decimal("3.4")
+
+    kicker.kicking_fg_yards_made = [25, 45, 52]
+    kicker.kicking_xp_missed = 0
+    kicker.kicking_fg_missed = 0
+    # (25 + 45 + 52) * .1 + 2 = 14.2
+    assert calculate_kicking_points(kicker, settings) == Decimal("14.2")
+
+
+def test_season_rows_cannot_score_a_kicker_by_distance() -> None:
+    kicker = NFLPlayerGameStats()
+    kicker.kicking_fg_made = 11
+    kicker.kicking_fg_yards_made = []
+    assert calculate_kicking_points(kicker, _default_settings()) == Decimal(0)
+
+
+def _dst_stats(points_allowed: int, yards_allowed: int) -> NFLPlayerGameStats:
+    stats = NFLPlayerGameStats()
+    stats.dst_points_allowed = points_allowed
+    stats.dst_yards_allowed = yards_allowed
+    return stats
+
+
+@pytest.mark.parametrize(
+    ("points_allowed", "expected"),
+    [
+        (0, 7),
+        (1, 5),
+        (13, 5),
+        (14, 3),
+        (21, 3),
+        (22, 1),
+        (28, 1),
+        (29, 0),
+        (60, 0),
+    ],
+)
+def test_default_dst_points_allowed_band_edges(
+    points_allowed: int, expected: int
+) -> None:
+    pts = calculate_dst_points(_dst_stats(points_allowed, 400), _default_settings())
+    assert pts == Decimal(expected)
+
+
+@pytest.mark.parametrize(
+    ("yards_allowed", "expected"),
+    [(0, 6), (99, 6), (100, 4), (199, 4), (200, 2), (299, 2), (300, 0), (550, 0)],
+)
+def test_default_dst_yards_allowed_band_edges(
+    yards_allowed: int, expected: int
+) -> None:
+    pts = calculate_dst_points(_dst_stats(40, yards_allowed), _default_settings())
+    assert pts == Decimal(expected)
+
+
+def test_default_dst_event_values() -> None:
+    stats = _dst_stats(40, 400)
+    stats.dst_sacks = 3
+    stats.dst_interceptions = 2
+    stats.dst_fumbles_recovered = 1
+    stats.dst_safeties = 1
+    stats.dst_def_td = 2
+    stats.dst_two_point_returns = 1
+    # 3 + 2 + 1 + 2 + 12 + 2 = 22
+    assert calculate_dst_points(stats, _default_settings()) == Decimal(22)
+
+
+def test_default_dst_hand_calculated_game() -> None:
+    stats = _dst_stats(23, 288)
+    stats.dst_sacks = 4
+    stats.dst_interceptions = 1
+    stats.dst_fumbles_recovered = 1
+    stats.dst_def_td = 1
+    # 1 (23 allowed is 22-28) + 2 (200-299) + 4 + 1 + 1 + 6 = 15
+    assert calculate_player_points(
+        stats, _default_settings(), PlayerPosition.DST
+    ) == Decimal(15)
+
+
+def test_return_tds_never_score_for_the_individual() -> None:
+    returner = NFLPlayerGameStats()
+    returner.kick_return_td = 1
+    returner.punt_return_td = 1
+    returner.receiving_receptions = 2
+    returner.receiving_yards = 20
+    # Only the 2 receptions and 20 yards count: 2 + 2 = 4
+    pts = calculate_player_points(returner, _default_settings(), PlayerPosition.WR)
+    assert pts == Decimal(4)
 
 
 def test_yardage_bonuses_stack_at_each_threshold(
@@ -285,21 +381,6 @@ def test_yardage_bonuses_stack_at_each_threshold(
     assert calculate_receiving_points(
         stats, standard_league_settings, PlayerPosition.WR
     ) == Decimal(205)
-
-
-def test_fg_miss_penalties_apply_per_missed_length(
-    standard_league_settings: LeagueSettings,
-) -> None:
-    standard_league_settings.scoring_kicking_fg_miss = Decimal(0)
-    standard_league_settings.scoring_kicking_fg_miss_0_19 = Decimal(-4)
-    standard_league_settings.scoring_kicking_fg_miss_20_29 = Decimal(-3)
-    standard_league_settings.scoring_kicking_fg_miss_30_39 = Decimal(-2)
-    standard_league_settings.scoring_kicking_fg_miss_40_49 = Decimal(-1)
-    standard_league_settings.scoring_kicking_fg_miss_50_plus = Decimal(0)
-
-    stats = NFLPlayerGameStats()
-    stats.kicking_fg_yards_missed = [19, 25, 39, 40, 55]
-    assert calculate_kicking_points(stats, standard_league_settings) == Decimal(-10)
 
 
 def test_dst_blocked_kick_and_two_point_return(
@@ -346,7 +427,6 @@ def test_defense_scoring_only_applies_to_defenses(
     standard_league_settings: LeagueSettings,
 ) -> None:
     """A QB row has 0 points allowed; it must not earn the shutout bonus."""
-    standard_league_settings.scoring_dst_pts_allowed_0 = Decimal(10)
     stats = NFLPlayerGameStats()
     stats.dst_points_allowed = 0
     assert calculate_player_points(stats, standard_league_settings, "QB") == Decimal(0)

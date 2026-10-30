@@ -1,0 +1,8194 @@
+{
+ "20260110_LAR@CAR": {
+  "DST": {
+   "away": {
+    "defTD": "0",
+    "defensiveInterceptions": "1",
+    "fumblesRecovered": "1",
+    "ptsAllowed": "31",
+    "sacks": "2",
+    "safeties": "0",
+    "teamAbv": "LAR",
+    "teamID": "19",
+    "ydsAllowed": "333"
+   },
+   "home": {
+    "defTD": "0",
+    "defensiveInterceptions": "1",
+    "fumblesRecovered": "0",
+    "ptsAllowed": "34",
+    "sacks": "1",
+    "safeties": "0",
+    "teamAbv": "CAR",
+    "teamID": "5",
+    "ydsAllowed": "411"
+   }
+  },
+  "awayPts": "34",
+  "gameID": "20260110_LAR@CAR",
+  "gameWeek": "Wild Card",
+  "homePts": "31",
+  "playerStats": {
+   "11759": {
+    "gameID": "20260110_LAR@CAR",
+    "longName": "JJ Jansen",
+    "playerID": "11759",
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "teamID": "5"
+   },
+   "12483": {
+    "Passing": {
+     "int": "1",
+     "passAttempts": "42",
+     "passAvg": "7.2",
+     "passCompletions": "24",
+     "passTD": "3",
+     "passYds": "304",
+     "qbr": "48.7",
+     "rtg": "93.8",
+     "sacked": "1-9"
+    },
+    "Rushing": {
+     "carries": "2",
+     "longRush": "2",
+     "rushAvg": "0.0",
+     "rushTD": "0",
+     "rushYds": "0"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Matthew Stafford",
+    "playerID": "12483",
+    "scoringPlays": [
+     {
+      "awayScore": "7",
+      "homeScore": "0",
+      "playerIDs": [
+       "12483",
+       "4426515",
+       "4574716"
+      ],
+      "score": "Puka Nacua 14 Yd pass from Matthew Stafford (Harrison Mevis Kick)",
+      "scoreDetails": "4 plays, 45 yards, 1:51",
+      "scorePeriod": "Q1",
+      "scoreTime": "11:35",
+      "scoreType": "TD",
+      "team": "LAR",
+      "teamID": "19"
+     },
+     {
+      "awayScore": "27",
+      "homeScore": "24",
+      "playerIDs": [
+       "12483",
+       "4430737",
+       "4574716"
+      ],
+      "score": "Kyren Williams 13 Yd pass from Matthew Stafford (Harrison Mevis Kick)",
+      "scoreDetails": "11 plays, 67 yards, 5:47",
+      "scorePeriod": "Q4",
+      "scoreTime": "8:47",
+      "scoreType": "TD",
+      "team": "LAR",
+      "teamID": "19"
+     },
+     {
+      "awayScore": "34",
+      "homeScore": "31",
+      "playerIDs": [
+       "12483",
+       "4242557",
+       "4574716"
+      ],
+      "score": "Colby Parkinson 19 Yd pass from Matthew Stafford (Harrison Mevis Kick)",
+      "scoreDetails": "7 plays, 71 yards, 2:01",
+      "scorePeriod": "Q4",
+      "scoreTime": "0:38",
+      "scoreType": "TD",
+      "team": "LAR",
+      "teamID": "19"
+     }
+    ],
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "14676": {
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Jake McQuaide",
+    "playerID": "14676",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "15928": {
+    "Punting": {
+     "puntAvg": "54.3",
+     "puntLong": "58",
+     "puntTouchBacks": "0",
+     "puntYds": "163",
+     "punts": "3",
+     "puntsin20": "3"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Sam Martin",
+    "playerID": "15928",
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "teamID": "5"
+   },
+   "15946": {
+    "gameID": "20260110_LAR@CAR",
+    "longName": "David Quessenberry",
+    "playerID": "15946",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "16800": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "Receiving": {
+     "longRec": "23",
+     "recAvg": "14.4",
+     "recTD": "0",
+     "recYds": "72",
+     "receptions": "5",
+     "targets": "13"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Davante Adams",
+    "playerID": "16800",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "2573401": {
+    "Receiving": {
+     "longRec": "36",
+     "recAvg": "22.5",
+     "recTD": "0",
+     "recYds": "45",
+     "receptions": "2",
+     "targets": "3"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Tyler Higbee",
+    "playerID": "2573401",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "2576399": {
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Nick Vannett",
+    "playerID": "2576399",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "2971048": {
+    "gameID": "20260110_LAR@CAR",
+    "longName": "D.J. Humphries",
+    "playerID": "2971048",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "2973051": {
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Taylor Moton",
+    "playerID": "2973051",
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "teamID": "5"
+   },
+   "3052180": {
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Coleman Shelton",
+    "playerID": "3052180",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "3054857": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "2",
+     "tfl": "0",
+     "totalTackles": "3"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "A'Shawn Robinson",
+    "playerID": "3054857",
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "teamID": "5"
+   },
+   "3056608": {
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Austin Corbett",
+    "playerID": "3056608",
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "teamID": "5"
+   },
+   "3116177": {
+    "Defense": {
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "fumbles": "0",
+     "fumblesLost": "0",
+     "fumblesRecovered": "1"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Troy Reeder",
+    "playerID": "3116177",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "3116179": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "4",
+     "tfl": "0",
+     "totalTackles": "9"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Nick Scott",
+    "playerID": "3116179",
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "teamID": "5"
+   },
+   "3122630": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Ahkello Witherspoon",
+    "playerID": "3122630",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "3125114": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "1",
+     "sacks": "1",
+     "soloTackles": "1",
+     "tfl": "1",
+     "totalTackles": "2"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Poona Ford",
+    "playerID": "3125114",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "3871880": {
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Yosh Nijman",
+    "playerID": "3871880",
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "teamID": "5"
+   },
+   "3909013": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "1",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "5",
+     "tfl": "0",
+     "totalTackles": "9"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Christian Rozeboom",
+    "playerID": "3909013",
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "teamID": "5"
+   },
+   "3917016": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "1",
+     "sacks": "1",
+     "soloTackles": "2",
+     "tfl": "1",
+     "totalTackles": "2"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Trevis Gipson",
+    "playerID": "3917016",
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "teamID": "5"
+   },
+   "3917592": {
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Robert Hunt",
+    "playerID": "3917592",
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "teamID": "5"
+   },
+   "3917853": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "1",
+     "defensiveInterceptionsYards": "0",
+     "forcedFumbles": "0",
+     "interceptionTDs": "0",
+     "passDeflections": "4",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "3"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Mike Jackson",
+    "playerID": "3917853",
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "teamID": "5"
+   },
+   "4032200": {
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Robert Rochell",
+    "playerID": "4032200",
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "teamID": "5"
+   },
+   "4035462": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Isaiah Simmons",
+    "playerID": "4035462",
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "teamID": "5"
+   },
+   "4035495": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "1",
+     "sacks": "0",
+     "soloTackles": "4",
+     "tfl": "0",
+     "totalTackles": "5"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Derrick Brown",
+    "playerID": "4035495",
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "teamID": "5"
+   },
+   "4035870": {
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Jake Curhan",
+    "playerID": "4035870",
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "teamID": "5"
+   },
+   "4036135": {
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Alaric Jackson",
+    "playerID": "4036135",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4038815": {
+    "Receiving": {
+     "longRec": "6",
+     "recAvg": "6.0",
+     "recTD": "0",
+     "recYds": "6",
+     "receptions": "1",
+     "targets": "2"
+    },
+    "Rushing": {
+     "carries": "5",
+     "longRush": "8",
+     "rushAvg": "1.8",
+     "rushTD": "0",
+     "rushYds": "9"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Rico Dowdle",
+    "playerID": "4038815",
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "teamID": "5"
+   },
+   "4038849": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "2",
+     "qbHits": "1",
+     "sacks": "0",
+     "soloTackles": "2",
+     "tfl": "0",
+     "totalTackles": "5"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "D.J. Wonnum",
+    "playerID": "4038849",
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "teamID": "5"
+   },
+   "4058925": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "2",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "1",
+     "totalTackles": "2"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Tershawn Wharton",
+    "playerID": "4058925",
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "teamID": "5"
+   },
+   "4241416": {
+    "Receiving": {
+     "longRec": "7",
+     "recAvg": "6.5",
+     "recTD": "0",
+     "recYds": "13",
+     "receptions": "2",
+     "targets": "4"
+    },
+    "Rushing": {
+     "carries": "13",
+     "longRush": "8",
+     "rushAvg": "3.5",
+     "rushTD": "2",
+     "rushYds": "46"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Chuba Hubbard",
+    "playerID": "4241416",
+    "scoringPlays": [
+     {
+      "awayScore": "14",
+      "homeScore": "7",
+      "playerIDs": [
+       "4241416",
+       "4568263"
+      ],
+      "score": "Chuba Hubbard 1 Yd Rush (Ryan Fitzgerald Kick)",
+      "scoreDetails": "7 plays, 65 yards, 3:23",
+      "scorePeriod": "Q2",
+      "scoreTime": "8:53",
+      "scoreType": "TD",
+      "team": "CAR",
+      "teamID": "5"
+     },
+     {
+      "awayScore": "20",
+      "homeScore": "24",
+      "playerIDs": [
+       "4241416",
+       "4568263"
+      ],
+      "score": "Chuba Hubbard 3 Yd Rush (Ryan Fitzgerald Kick)",
+      "scoreDetails": "4 plays, 62 yards, 1:40",
+      "scorePeriod": "Q4",
+      "scoreTime": "14:34",
+      "scoreType": "TD",
+      "team": "CAR",
+      "teamID": "5"
+     }
+    ],
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "teamID": "5"
+   },
+   "4242154": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "1",
+     "sacks": "0",
+     "soloTackles": "5",
+     "tfl": "0",
+     "totalTackles": "10"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Kam Curl",
+    "playerID": "4242154",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4242557": {
+    "Receiving": {
+     "longRec": "19",
+     "recAvg": "17.0",
+     "recTD": "1",
+     "recYds": "34",
+     "receptions": "2",
+     "targets": "3"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Colby Parkinson",
+    "playerID": "4242557",
+    "scoringPlays": [
+     {
+      "awayScore": "34",
+      "homeScore": "31",
+      "playerIDs": [
+       "12483",
+       "4242557",
+       "4574716"
+      ],
+      "score": "Colby Parkinson 19 Yd pass from Matthew Stafford (Harrison Mevis Kick)",
+      "scoreDetails": "7 plays, 71 yards, 2:01",
+      "scorePeriod": "Q4",
+      "scoreTime": "0:38",
+      "scoreType": "TD",
+      "team": "LAR",
+      "teamID": "19"
+     }
+    ],
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4243003": {
+    "Kicking": {
+     "kickReturnAvg": "24.3",
+     "kickReturnLong": "29",
+     "kickReturnTD": "0",
+     "kickReturnYds": "73",
+     "kickReturns": "3"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Ronnie Rivers",
+    "playerID": "4243003",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4243181": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "1",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "4",
+     "tfl": "0",
+     "totalTackles": "10"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Nate Landman",
+    "playerID": "4243181",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4244607": {
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Akayleb Evans",
+    "playerID": "4244607",
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "teamID": "5"
+   },
+   "4249128": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "2",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "4",
+     "tfl": "0",
+     "totalTackles": "6"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Quentin Lake",
+    "playerID": "4249128",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4250621": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "1",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Kobie Turner",
+    "playerID": "4250621",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4256224": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "1",
+     "sacks": "0",
+     "soloTackles": "4",
+     "tfl": "0",
+     "totalTackles": "9"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Claudin Cherelus",
+    "playerID": "4256224",
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "teamID": "5"
+   },
+   "4360763": {
+    "Receiving": {
+     "longRec": "0",
+     "recAvg": "0.0",
+     "recTD": "0",
+     "recYds": "0",
+     "receptions": "0",
+     "targets": "1"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Brycen Tremayne",
+    "playerID": "4360763",
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "teamID": "5"
+   },
+   "4360773": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Nick Hampton",
+    "playerID": "4360773",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4360797": {
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Tutu Atwell",
+    "playerID": "4360797",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4360859": {
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Justin Dedich",
+    "playerID": "4360859",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4361651": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Tanner Ingle",
+    "playerID": "4361651",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4361788": {
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Cade Mays",
+    "playerID": "4361788",
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "teamID": "5"
+   },
+   "4361988": {
+    "Receiving": {
+     "longRec": "0",
+     "recAvg": "0.0",
+     "recTD": "0",
+     "recYds": "0",
+     "receptions": "0",
+     "targets": "1"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "James Mitchell",
+    "playerID": "4361988",
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "teamID": "5"
+   },
+   "4362245": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "1",
+     "sacks": "1",
+     "soloTackles": "2",
+     "tfl": "1",
+     "totalTackles": "2"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Braden Fiske",
+    "playerID": "4362245",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4362294": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "0",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Desjuan Johnson",
+    "playerID": "4362294",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4362474": {
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Steve Avila",
+    "playerID": "4362474",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4362487": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "3"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Tre'von Moehrig",
+    "playerID": "4362487",
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "teamID": "5"
+   },
+   "4362647": {
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Damien Lewis",
+    "playerID": "4362647",
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "teamID": "5"
+   },
+   "4362847": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "1",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "2",
+     "tfl": "0",
+     "totalTackles": "4"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Jaycee Horn",
+    "playerID": "4362847",
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "teamID": "5"
+   },
+   "4371973": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "1",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Roger McCreary",
+    "playerID": "4371973",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4372518": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "3",
+     "tfl": "0",
+     "totalTackles": "3"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Bobby Brown III",
+    "playerID": "4372518",
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "teamID": "5"
+   },
+   "4372780": {
+    "Receiving": {
+     "longRec": "11",
+     "recAvg": "7.3",
+     "recTD": "0",
+     "recYds": "22",
+     "receptions": "3",
+     "targets": "3"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Tommy Tremble",
+    "playerID": "4372780",
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "teamID": "5"
+   },
+   "4384549": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "1",
+     "defensiveInterceptionsYards": "11",
+     "forcedFumbles": "0",
+     "interceptionTDs": "0",
+     "passDeflections": "2",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Cobie Durant",
+    "playerID": "4384549",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4386544": {
+    "Punting": {
+     "puntReturnAvg": "-2.0",
+     "puntReturnLong": "-2",
+     "puntReturnTD": "0",
+     "puntReturnYds": "-2",
+     "puntReturns": "1"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Xavier Smith",
+    "playerID": "4386544",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4426512": {
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Warren McClendon Jr.",
+    "playerID": "4426512",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4426515": {
+    "Receiving": {
+     "longRec": "18",
+     "recAvg": "11.1",
+     "recTD": "1",
+     "recYds": "111",
+     "receptions": "10",
+     "targets": "18"
+    },
+    "Rushing": {
+     "carries": "3",
+     "longRush": "5",
+     "rushAvg": "4.7",
+     "rushTD": "1",
+     "rushYds": "14"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Puka Nacua",
+    "playerID": "4426515",
+    "scoringPlays": [
+     {
+      "awayScore": "7",
+      "homeScore": "0",
+      "playerIDs": [
+       "12483",
+       "4426515",
+       "4574716"
+      ],
+      "score": "Puka Nacua 14 Yd pass from Matthew Stafford (Harrison Mevis Kick)",
+      "scoreDetails": "4 plays, 45 yards, 1:51",
+      "scorePeriod": "Q1",
+      "scoreTime": "11:35",
+      "scoreType": "TD",
+      "team": "LAR",
+      "teamID": "19"
+     },
+     {
+      "awayScore": "14",
+      "homeScore": "0",
+      "playerIDs": [
+       "4426515",
+       "4574716"
+      ],
+      "score": "Puka Nacua 5 Yd Rush (Harrison Mevis Kick)",
+      "scoreDetails": "7 plays, 48 yards, 4:01",
+      "scorePeriod": "Q2",
+      "scoreTime": "12:16",
+      "scoreType": "TD",
+      "team": "LAR",
+      "teamID": "19"
+     }
+    ],
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4426553": {
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Davis Allen",
+    "playerID": "4426553",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4427120": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Jaylen McCollough",
+    "playerID": "4427120",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4427132": {
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Ikem Ekwonu",
+    "playerID": "4427132",
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "teamID": "5"
+   },
+   "4428125": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Maema Njongmeta",
+    "playerID": "4428125",
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "teamID": "5"
+   },
+   "4428550": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "2",
+     "tfl": "0",
+     "totalTackles": "2"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Omar Speights",
+    "playerID": "4428550",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4429096": {
+    "Receiving": {
+     "longRec": "9",
+     "recAvg": "6.5",
+     "recTD": "0",
+     "recYds": "13",
+     "receptions": "2",
+     "targets": "2"
+    },
+    "Rushing": {
+     "carries": "11",
+     "longRush": "8",
+     "rushAvg": "4.1",
+     "rushTD": "0",
+     "rushYds": "45"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Blake Corum",
+    "playerID": "4429096",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4429110": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Lathan Ransom",
+    "playerID": "4429110",
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "teamID": "5"
+   },
+   "4429166": {
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Princely Umanmielen",
+    "playerID": "4429166",
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "teamID": "5"
+   },
+   "4429767": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "3",
+     "tfl": "0",
+     "totalTackles": "6"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Emmanuel Forbes Jr.",
+    "playerID": "4429767",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4430034": {
+    "Kicking": {
+     "kickReturnAvg": "22.0",
+     "kickReturnLong": "28",
+     "kickReturnTD": "0",
+     "kickReturnYds": "44",
+     "kickReturns": "2"
+    },
+    "Receiving": {
+     "longRec": "8",
+     "recAvg": "8.0",
+     "recTD": "0",
+     "recYds": "8",
+     "receptions": "1",
+     "targets": "4"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Xavier Legette",
+    "playerID": "4430034",
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "teamID": "5"
+   },
+   "4430737": {
+    "Receiving": {
+     "longRec": "13",
+     "recAvg": "9.0",
+     "recTD": "1",
+     "recYds": "18",
+     "receptions": "2",
+     "targets": "2"
+    },
+    "Rushing": {
+     "carries": "13",
+     "longRush": "8",
+     "rushAvg": "4.4",
+     "rushTD": "0",
+     "rushYds": "57"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Kyren Williams",
+    "playerID": "4430737",
+    "scoringPlays": [
+     {
+      "awayScore": "27",
+      "homeScore": "24",
+      "playerIDs": [
+       "12483",
+       "4430737",
+       "4574716"
+      ],
+      "score": "Kyren Williams 13 Yd pass from Matthew Stafford (Harrison Mevis Kick)",
+      "scoreDetails": "11 plays, 67 yards, 5:47",
+      "scorePeriod": "Q4",
+      "scoreTime": "8:47",
+      "scoreType": "TD",
+      "team": "LAR",
+      "teamID": "19"
+     }
+    ],
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4431118": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "0",
+     "tfl": "0",
+     "totalTackles": "2"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Ty Hamilton",
+    "playerID": "4431118",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4568217": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "1",
+     "sacks": "0",
+     "soloTackles": "0",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Tyler Davis",
+    "playerID": "4568217",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4568263": {
+    "Kicking": {
+     "fgAttempts": "1",
+     "fgLong": "46",
+     "fgMade": "1",
+     "fgMissed": "0",
+     "fgPct": "100.0",
+     "kickingPts": "7",
+     "xpAttempts": "4",
+     "xpMade": "4",
+     "xpMissed": "0"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Ryan Fitzgerald",
+    "playerID": "4568263",
+    "scoringPlays": [
+     {
+      "awayScore": "14",
+      "homeScore": "7",
+      "playerIDs": [
+       "4241416",
+       "4568263"
+      ],
+      "score": "Chuba Hubbard 1 Yd Rush (Ryan Fitzgerald Kick)",
+      "scoreDetails": "7 plays, 65 yards, 3:23",
+      "scorePeriod": "Q2",
+      "scoreTime": "8:53",
+      "scoreType": "TD",
+      "team": "CAR",
+      "teamID": "5"
+     },
+     {
+      "awayScore": "17",
+      "homeScore": "14",
+      "playerIDs": [
+       "4685720",
+       "4568263"
+      ],
+      "score": "Bryce Young 16 Yd Rush (Ryan Fitzgerald Kick)",
+      "scoreDetails": "5 plays, 81 yards, 0:54",
+      "scorePeriod": "Q2",
+      "scoreTime": "0:37",
+      "scoreType": "TD",
+      "team": "CAR",
+      "teamID": "5"
+     },
+     {
+      "awayScore": "17",
+      "homeScore": "17",
+      "playerIDs": [
+       "4568263"
+      ],
+      "score": "Ryan Fitzgerald 46 Yd Field Goal",
+      "scoreDetails": "13 plays, 59 yards, 7:08",
+      "scorePeriod": "Q3",
+      "scoreTime": "7:29",
+      "scoreType": "FG",
+      "team": "CAR",
+      "teamID": "5"
+     },
+     {
+      "awayScore": "20",
+      "homeScore": "24",
+      "playerIDs": [
+       "4241416",
+       "4568263"
+      ],
+      "score": "Chuba Hubbard 3 Yd Rush (Ryan Fitzgerald Kick)",
+      "scoreDetails": "4 plays, 62 yards, 1:40",
+      "scorePeriod": "Q4",
+      "scoreTime": "14:34",
+      "scoreType": "TD",
+      "team": "CAR",
+      "teamID": "5"
+     },
+     {
+      "awayScore": "27",
+      "homeScore": "31",
+      "playerIDs": [
+       "4685720",
+       "4695883",
+       "4568263"
+      ],
+      "score": "Jalen Coker 7 Yd pass from Bryce Young (Ryan Fitzgerald Kick)",
+      "scoreDetails": "4 plays, 30 yards, 1:33",
+      "scorePeriod": "Q4",
+      "scoreTime": "2:39",
+      "scoreType": "TD",
+      "team": "CAR",
+      "teamID": "5"
+     }
+    ],
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "teamID": "5"
+   },
+   "4574716": {
+    "Kicking": {
+     "fgAttempts": "2",
+     "fgLong": "46",
+     "fgMade": "2",
+     "fgMissed": "0",
+     "fgPct": "100.0",
+     "kickingPts": "10",
+     "xpAttempts": "4",
+     "xpMade": "4",
+     "xpMissed": "0"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Harrison Mevis",
+    "playerID": "4574716",
+    "scoringPlays": [
+     {
+      "awayScore": "7",
+      "homeScore": "0",
+      "playerIDs": [
+       "12483",
+       "4426515",
+       "4574716"
+      ],
+      "score": "Puka Nacua 14 Yd pass from Matthew Stafford (Harrison Mevis Kick)",
+      "scoreDetails": "4 plays, 45 yards, 1:51",
+      "scorePeriod": "Q1",
+      "scoreTime": "11:35",
+      "scoreType": "TD",
+      "team": "LAR",
+      "teamID": "19"
+     },
+     {
+      "awayScore": "14",
+      "homeScore": "0",
+      "playerIDs": [
+       "4426515",
+       "4574716"
+      ],
+      "score": "Puka Nacua 5 Yd Rush (Harrison Mevis Kick)",
+      "scoreDetails": "7 plays, 48 yards, 4:01",
+      "scorePeriod": "Q2",
+      "scoreTime": "12:16",
+      "scoreType": "TD",
+      "team": "LAR",
+      "teamID": "19"
+     },
+     {
+      "awayScore": "17",
+      "homeScore": "7",
+      "playerIDs": [
+       "4574716"
+      ],
+      "score": "Harrison Mevis 46 Yd Field Goal",
+      "scoreDetails": "6 plays, 37 yards, 3:29",
+      "scorePeriod": "Q2",
+      "scoreTime": "5:24",
+      "scoreType": "FG",
+      "team": "LAR",
+      "teamID": "19"
+     },
+     {
+      "awayScore": "20",
+      "homeScore": "17",
+      "playerIDs": [
+       "4574716"
+      ],
+      "score": "Harrison Mevis 42 Yd Field Goal",
+      "scoreDetails": "9 plays, 46 yards, 3:12",
+      "scorePeriod": "Q3",
+      "scoreTime": "4:17",
+      "scoreType": "FG",
+      "team": "LAR",
+      "teamID": "19"
+     },
+     {
+      "awayScore": "27",
+      "homeScore": "24",
+      "playerIDs": [
+       "12483",
+       "4430737",
+       "4574716"
+      ],
+      "score": "Kyren Williams 13 Yd pass from Matthew Stafford (Harrison Mevis Kick)",
+      "scoreDetails": "11 plays, 67 yards, 5:47",
+      "scorePeriod": "Q4",
+      "scoreTime": "8:47",
+      "scoreType": "TD",
+      "team": "LAR",
+      "teamID": "19"
+     },
+     {
+      "awayScore": "34",
+      "homeScore": "31",
+      "playerIDs": [
+       "12483",
+       "4242557",
+       "4574716"
+      ],
+      "score": "Colby Parkinson 19 Yd pass from Matthew Stafford (Harrison Mevis Kick)",
+      "scoreDetails": "7 plays, 71 yards, 2:01",
+      "scorePeriod": "Q4",
+      "scoreTime": "0:38",
+      "scoreType": "TD",
+      "team": "LAR",
+      "teamID": "19"
+     }
+    ],
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4578085": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "2",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Jared Verse",
+    "playerID": "4578085",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4596363": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "2",
+     "tfl": "0",
+     "totalTackles": "3"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Kamren Kinchens",
+    "playerID": "4596363",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4608386": {
+    "gameID": "20260110_LAR@CAR",
+    "longName": "D'Anthony Bell",
+    "playerID": "4608386",
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "teamID": "5"
+   },
+   "4682983": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "2"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Josaiah Stewart",
+    "playerID": "4682983",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4683243": {
+    "Receiving": {
+     "longRec": "0",
+     "recAvg": "0.0",
+     "recTD": "0",
+     "recYds": "0",
+     "receptions": "0",
+     "targets": "1"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Mitchell Evans",
+    "playerID": "4683243",
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "teamID": "5"
+   },
+   "4685350": {
+    "Defense": {
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "fumbles": "1",
+     "fumblesLost": "1",
+     "fumblesRecovered": "0"
+    },
+    "Kicking": {
+     "kickReturnAvg": "21.0",
+     "kickReturnLong": "24",
+     "kickReturnTD": "0",
+     "kickReturnYds": "63",
+     "kickReturns": "3"
+    },
+    "Punting": {
+     "puntReturnAvg": "0.0",
+     "puntReturnLong": "0",
+     "puntReturnTD": "0",
+     "puntReturnYds": "0",
+     "puntReturns": "1"
+    },
+    "Rushing": {
+     "carries": "1",
+     "longRush": "4",
+     "rushAvg": "4.0",
+     "rushTD": "0",
+     "rushYds": "4"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Trevor Etienne",
+    "playerID": "4685350",
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "teamID": "5"
+   },
+   "4685472": {
+    "Receiving": {
+     "longRec": "22",
+     "recAvg": "16.2",
+     "recTD": "0",
+     "recYds": "81",
+     "receptions": "5",
+     "targets": "7"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Tetairoa McMillan",
+    "playerID": "4685472",
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "teamID": "5"
+   },
+   "4685720": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "Passing": {
+     "int": "1",
+     "passAttempts": "40",
+     "passAvg": "6.6",
+     "passCompletions": "21",
+     "passTD": "1",
+     "passYds": "264",
+     "qbr": "73.2",
+     "rtg": "71.2",
+     "sacked": "2-14"
+    },
+    "Rushing": {
+     "carries": "3",
+     "longRush": "16",
+     "rushAvg": "8.0",
+     "rushTD": "1",
+     "rushYds": "24"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Bryce Young",
+    "playerID": "4685720",
+    "scoringPlays": [
+     {
+      "awayScore": "17",
+      "homeScore": "14",
+      "playerIDs": [
+       "4685720",
+       "4568263"
+      ],
+      "score": "Bryce Young 16 Yd Rush (Ryan Fitzgerald Kick)",
+      "scoreDetails": "5 plays, 81 yards, 0:54",
+      "scorePeriod": "Q2",
+      "scoreTime": "0:37",
+      "scoreType": "TD",
+      "team": "CAR",
+      "teamID": "5"
+     },
+     {
+      "awayScore": "27",
+      "homeScore": "31",
+      "playerIDs": [
+       "4685720",
+       "4695883",
+       "4568263"
+      ],
+      "score": "Jalen Coker 7 Yd pass from Bryce Young (Ryan Fitzgerald Kick)",
+      "scoreDetails": "4 plays, 30 yards, 1:33",
+      "scorePeriod": "Q4",
+      "scoreTime": "2:39",
+      "scoreType": "TD",
+      "team": "CAR",
+      "teamID": "5"
+     }
+    ],
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "teamID": "5"
+   },
+   "4687513": {
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Cam Jackson",
+    "playerID": "4687513",
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "teamID": "5"
+   },
+   "4695883": {
+    "Receiving": {
+     "longRec": "52",
+     "recAvg": "14.9",
+     "recTD": "1",
+     "recYds": "134",
+     "receptions": "9",
+     "targets": "12"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Jalen Coker",
+    "playerID": "4695883",
+    "scoringPlays": [
+     {
+      "awayScore": "27",
+      "homeScore": "31",
+      "playerIDs": [
+       "4685720",
+       "4695883",
+       "4568263"
+      ],
+      "score": "Jalen Coker 7 Yd pass from Bryce Young (Ryan Fitzgerald Kick)",
+      "scoreDetails": "4 plays, 30 yards, 1:33",
+      "scorePeriod": "Q4",
+      "scoreTime": "2:39",
+      "scoreType": "TD",
+      "team": "CAR",
+      "teamID": "5"
+     }
+    ],
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "teamID": "5"
+   },
+   "4697636": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "3",
+     "tfl": "0",
+     "totalTackles": "4"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Chau Smith-Wade",
+    "playerID": "4697636",
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "teamID": "5"
+   },
+   "4708486": {
+    "Receiving": {
+     "longRec": "0",
+     "recAvg": "0.0",
+     "recTD": "0",
+     "recYds": "0",
+     "receptions": "0",
+     "targets": "2"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Jimmy Horn Jr.",
+    "playerID": "4708486",
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "teamID": "5"
+   },
+   "4710341": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Jarquez Hunter",
+    "playerID": "4710341",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4710855": {
+    "Receiving": {
+     "longRec": "11",
+     "recAvg": "11.0",
+     "recTD": "0",
+     "recYds": "11",
+     "receptions": "1",
+     "targets": "1"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Konata Mumpfield",
+    "playerID": "4710855",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4714157": {
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Thomas Incoom",
+    "playerID": "4714157",
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "teamID": "5"
+   },
+   "4833355": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Nic Scourton",
+    "playerID": "4833355",
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "teamID": "5"
+   },
+   "4875196": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "1",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "1",
+     "totalTackles": "1"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Byron Young",
+    "playerID": "4875196",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4880613": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "2",
+     "tfl": "0",
+     "totalTackles": "2"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Bam Martin-Scott",
+    "playerID": "4880613",
+    "team": "CAR",
+    "teamAbv": "CAR",
+    "teamID": "5"
+   },
+   "5125875": {
+    "Punting": {
+     "puntAvg": "45.5",
+     "puntLong": "52",
+     "puntTouchBacks": "0",
+     "puntYds": "182",
+     "punts": "4",
+     "puntsin20": "3"
+    },
+    "gameID": "20260110_LAR@CAR",
+    "longName": "Ethan Evans",
+    "playerID": "5125875",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   }
+  },
+  "scoringPlays": [
+   {
+    "awayScore": "7",
+    "homeScore": "0",
+    "playerIDs": [
+     "12483",
+     "4426515",
+     "4574716"
+    ],
+    "score": "Puka Nacua 14 Yd pass from Matthew Stafford (Harrison Mevis Kick)",
+    "scoreDetails": "4 plays, 45 yards, 1:51",
+    "scorePeriod": "Q1",
+    "scoreTime": "11:35",
+    "scoreType": "TD",
+    "team": "LAR",
+    "teamID": "19"
+   },
+   {
+    "awayScore": "14",
+    "homeScore": "0",
+    "playerIDs": [
+     "4426515",
+     "4574716"
+    ],
+    "score": "Puka Nacua 5 Yd Rush (Harrison Mevis Kick)",
+    "scoreDetails": "7 plays, 48 yards, 4:01",
+    "scorePeriod": "Q2",
+    "scoreTime": "12:16",
+    "scoreType": "TD",
+    "team": "LAR",
+    "teamID": "19"
+   },
+   {
+    "awayScore": "14",
+    "homeScore": "7",
+    "playerIDs": [
+     "4241416",
+     "4568263"
+    ],
+    "score": "Chuba Hubbard 1 Yd Rush (Ryan Fitzgerald Kick)",
+    "scoreDetails": "7 plays, 65 yards, 3:23",
+    "scorePeriod": "Q2",
+    "scoreTime": "8:53",
+    "scoreType": "TD",
+    "team": "CAR",
+    "teamID": "5"
+   },
+   {
+    "awayScore": "17",
+    "homeScore": "7",
+    "playerIDs": [
+     "4574716"
+    ],
+    "score": "Harrison Mevis 46 Yd Field Goal",
+    "scoreDetails": "6 plays, 37 yards, 3:29",
+    "scorePeriod": "Q2",
+    "scoreTime": "5:24",
+    "scoreType": "FG",
+    "team": "LAR",
+    "teamID": "19"
+   },
+   {
+    "awayScore": "17",
+    "homeScore": "14",
+    "playerIDs": [
+     "4685720",
+     "4568263"
+    ],
+    "score": "Bryce Young 16 Yd Rush (Ryan Fitzgerald Kick)",
+    "scoreDetails": "5 plays, 81 yards, 0:54",
+    "scorePeriod": "Q2",
+    "scoreTime": "0:37",
+    "scoreType": "TD",
+    "team": "CAR",
+    "teamID": "5"
+   },
+   {
+    "awayScore": "17",
+    "homeScore": "17",
+    "playerIDs": [
+     "4568263"
+    ],
+    "score": "Ryan Fitzgerald 46 Yd Field Goal",
+    "scoreDetails": "13 plays, 59 yards, 7:08",
+    "scorePeriod": "Q3",
+    "scoreTime": "7:29",
+    "scoreType": "FG",
+    "team": "CAR",
+    "teamID": "5"
+   },
+   {
+    "awayScore": "20",
+    "homeScore": "17",
+    "playerIDs": [
+     "4574716"
+    ],
+    "score": "Harrison Mevis 42 Yd Field Goal",
+    "scoreDetails": "9 plays, 46 yards, 3:12",
+    "scorePeriod": "Q3",
+    "scoreTime": "4:17",
+    "scoreType": "FG",
+    "team": "LAR",
+    "teamID": "19"
+   },
+   {
+    "awayScore": "20",
+    "homeScore": "24",
+    "playerIDs": [
+     "4241416",
+     "4568263"
+    ],
+    "score": "Chuba Hubbard 3 Yd Rush (Ryan Fitzgerald Kick)",
+    "scoreDetails": "4 plays, 62 yards, 1:40",
+    "scorePeriod": "Q4",
+    "scoreTime": "14:34",
+    "scoreType": "TD",
+    "team": "CAR",
+    "teamID": "5"
+   },
+   {
+    "awayScore": "27",
+    "homeScore": "24",
+    "playerIDs": [
+     "12483",
+     "4430737",
+     "4574716"
+    ],
+    "score": "Kyren Williams 13 Yd pass from Matthew Stafford (Harrison Mevis Kick)",
+    "scoreDetails": "11 plays, 67 yards, 5:47",
+    "scorePeriod": "Q4",
+    "scoreTime": "8:47",
+    "scoreType": "TD",
+    "team": "LAR",
+    "teamID": "19"
+   },
+   {
+    "awayScore": "27",
+    "homeScore": "31",
+    "playerIDs": [
+     "4685720",
+     "4695883",
+     "4568263"
+    ],
+    "score": "Jalen Coker 7 Yd pass from Bryce Young (Ryan Fitzgerald Kick)",
+    "scoreDetails": "4 plays, 30 yards, 1:33",
+    "scorePeriod": "Q4",
+    "scoreTime": "2:39",
+    "scoreType": "TD",
+    "team": "CAR",
+    "teamID": "5"
+   },
+   {
+    "awayScore": "34",
+    "homeScore": "31",
+    "playerIDs": [
+     "12483",
+     "4242557",
+     "4574716"
+    ],
+    "score": "Colby Parkinson 19 Yd pass from Matthew Stafford (Harrison Mevis Kick)",
+    "scoreDetails": "7 plays, 71 yards, 2:01",
+    "scorePeriod": "Q4",
+    "scoreTime": "0:38",
+    "scoreType": "TD",
+    "team": "LAR",
+    "teamID": "19"
+   }
+  ],
+  "teamIDAway": "19",
+  "teamIDHome": "5",
+  "teamStats": {
+   "away": {
+    "defensiveOrSpecialTeamsTds": "0",
+    "defensiveTwoPointConversionReturns": "0",
+    "fumblesLost": "0",
+    "interceptionsThrown": "1",
+    "sacksAndYardsLost": "1-9",
+    "safeties": "0",
+    "teamAbv": "LAR",
+    "teamID": "19",
+    "totalYards": "411"
+   },
+   "home": {
+    "defensiveOrSpecialTeamsTds": "0",
+    "defensiveTwoPointConversionReturns": "0",
+    "fumblesLost": "1",
+    "interceptionsThrown": "1",
+    "sacksAndYardsLost": "2-14",
+    "safeties": "0",
+    "teamAbv": "CAR",
+    "teamID": "5",
+    "totalYards": "333"
+   }
+  }
+ },
+ "20260117_BUF@DEN": {
+  "DST": {
+   "away": {
+    "defTD": "0",
+    "defensiveInterceptions": "1",
+    "fumblesRecovered": "0",
+    "ptsAllowed": "33",
+    "sacks": "0",
+    "safeties": "0",
+    "teamAbv": "BUF",
+    "teamID": "4",
+    "ydsAllowed": "349"
+   },
+   "home": {
+    "defTD": "0",
+    "defensiveInterceptions": "2",
+    "fumblesRecovered": "3",
+    "ptsAllowed": "30",
+    "sacks": "3",
+    "safeties": "0",
+    "teamAbv": "DEN",
+    "teamID": "10",
+    "ydsAllowed": "449"
+   }
+  },
+  "awayPts": "30",
+  "gameID": "20260117_BUF@DEN",
+  "gameWeek": "Divisional Round",
+  "homePts": "33",
+  "playerStats": {
+   "11122": {
+    "Kicking": {
+     "fgAttempts": "3",
+     "fgLong": "50",
+     "fgMade": "3",
+     "fgMissed": "0",
+     "fgPct": "100.0",
+     "kickingPts": "12",
+     "xpAttempts": "3",
+     "xpMade": "3",
+     "xpMissed": "0"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Matt Prater",
+    "playerID": "11122",
+    "scoringPlays": [
+     {
+      "awayScore": "7",
+      "homeScore": "3",
+      "playerIDs": [
+       "3918298",
+       "4035004",
+       "11122"
+      ],
+      "score": "Mecole Hardman Jr. 4 Yd pass from Josh Allen (Matt Prater Kick)",
+      "scoreDetails": "12 plays, 67 yards, 7:24",
+      "scorePeriod": "Q1",
+      "scoreTime": "0:05",
+      "scoreType": "TD",
+      "team": "BUF",
+      "teamID": "4"
+     },
+     {
+      "awayScore": "10",
+      "homeScore": "10",
+      "playerIDs": [
+       "11122"
+      ],
+      "score": "Matt Prater 33 Yd Field Goal ",
+      "scoreDetails": "13 plays, 69 yards, 7:20",
+      "scorePeriod": "Q2",
+      "scoreTime": "2:13",
+      "scoreType": "FG",
+      "team": "BUF",
+      "teamID": "4"
+     },
+     {
+      "awayScore": "17",
+      "homeScore": "23",
+      "playerIDs": [
+       "3918298",
+       "4635008",
+       "11122"
+      ],
+      "score": "Keon Coleman 10 Yd pass from Josh Allen (Matt Prater Kick)",
+      "scoreDetails": "9 plays, 73 yards, 4:46",
+      "scorePeriod": "Q3",
+      "scoreTime": "6:49",
+      "scoreType": "TD",
+      "team": "BUF",
+      "teamID": "4"
+     },
+     {
+      "awayScore": "24",
+      "homeScore": "23",
+      "playerIDs": [
+       "3918298",
+       "4385690",
+       "11122"
+      ],
+      "score": "Dalton Kincaid 14 Yd pass from Josh Allen (Matt Prater Kick)",
+      "scoreDetails": "9 plays, 85 yards, 4:06",
+      "scorePeriod": "Q4",
+      "scoreTime": "13:24",
+      "scoreType": "TD",
+      "team": "BUF",
+      "teamID": "4"
+     },
+     {
+      "awayScore": "27",
+      "homeScore": "23",
+      "playerIDs": [
+       "11122"
+      ],
+      "score": "Matt Prater 31 Yd Field Goal",
+      "scoreDetails": "13 plays, 68 yards, 7:39",
+      "scorePeriod": "Q4",
+      "scoreTime": "4:11",
+      "scoreType": "FG",
+      "team": "BUF",
+      "teamID": "4"
+     },
+     {
+      "awayScore": "30",
+      "homeScore": "30",
+      "playerIDs": [
+       "11122"
+      ],
+      "score": "Matt Prater 50 Yd Field Goal",
+      "scoreDetails": "8 plays, 41 yards, 0:50",
+      "scorePeriod": "Q4",
+      "scoreTime": "0:05",
+      "scoreType": "FG",
+      "team": "BUF",
+      "teamID": "4"
+     }
+    ],
+    "team": "BUF",
+    "teamAbv": "BUF",
+    "teamID": "4"
+   },
+   "16731": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "Receiving": {
+     "longRec": "15",
+     "recAvg": "10.0",
+     "recTD": "0",
+     "recYds": "20",
+     "receptions": "2",
+     "targets": "6"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Brandin Cooks",
+    "playerID": "16731",
+    "team": "BUF",
+    "teamAbv": "BUF",
+    "teamID": "4"
+   },
+   "16910": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "0",
+     "tfl": "0",
+     "totalTackles": "2"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "DaQuan Jones",
+    "playerID": "16910",
+    "team": "BUF",
+    "teamAbv": "BUF",
+    "teamID": "4"
+   },
+   "2612151": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "1",
+     "passDeflections": "0",
+     "qbHits": "1",
+     "sacks": "0",
+     "soloTackles": "11",
+     "tfl": "0",
+     "totalTackles": "14"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Alex Singleton",
+    "playerID": "2612151",
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "teamID": "10"
+   },
+   "2976549": {
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Reid Ferguson",
+    "playerID": "2976549",
+    "team": "BUF",
+    "teamAbv": "BUF",
+    "teamID": "4"
+   },
+   "2978313": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "4",
+     "tfl": "2",
+     "totalTackles": "5"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Shaq Thompson",
+    "playerID": "2978313",
+    "team": "BUF",
+    "teamAbv": "BUF",
+    "teamID": "4"
+   },
+   "2985659": {
+    "Kicking": {
+     "fgAttempts": "4",
+     "fgLong": "50",
+     "fgMade": "4",
+     "fgMissed": "0",
+     "fgPct": "100.0",
+     "kickingPts": "15",
+     "xpAttempts": "3",
+     "xpMade": "3",
+     "xpMissed": "0"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Wil Lutz",
+    "playerID": "2985659",
+    "scoringPlays": [
+     {
+      "awayScore": "0",
+      "homeScore": "3",
+      "playerIDs": [
+       "2985659"
+      ],
+      "score": "Wil Lutz 28 Yd Field Goal",
+      "scoreDetails": "14 plays, 64 yards, 7:31",
+      "scorePeriod": "Q1",
+      "scoreTime": "7:29",
+      "scoreType": "FG",
+      "team": "DEN",
+      "teamID": "10"
+     },
+     {
+      "awayScore": "7",
+      "homeScore": "10",
+      "playerIDs": [
+       "4426338",
+       "4361691",
+       "2985659"
+      ],
+      "score": "Frank Crum 7 Yd pass from Bo Nix (Wil Lutz Kick)",
+      "scoreDetails": "8 plays, 69 yards, 3:47",
+      "scorePeriod": "Q2",
+      "scoreTime": "9:33",
+      "scoreType": "TD",
+      "team": "DEN",
+      "teamID": "10"
+     },
+     {
+      "awayScore": "10",
+      "homeScore": "17",
+      "playerIDs": [
+       "4426338",
+       "4039057",
+       "2985659"
+      ],
+      "score": "Lil'Jordan Humphrey 29 Yd pass from Bo Nix (Wil Lutz Kick)",
+      "scoreDetails": "11 plays, 70 yards, 1:51",
+      "scorePeriod": "Q2",
+      "scoreTime": "0:22",
+      "scoreType": "TD",
+      "team": "DEN",
+      "teamID": "10"
+     },
+     {
+      "awayScore": "10",
+      "homeScore": "20",
+      "playerIDs": [
+       "2985659"
+      ],
+      "score": "Wil Lutz 50 Yd Field Goal ",
+      "scoreDetails": "1 play, 0 yards, 0:02",
+      "scorePeriod": "Q2",
+      "scoreTime": "0:00",
+      "scoreType": "FG",
+      "team": "DEN",
+      "teamID": "10"
+     },
+     {
+      "awayScore": "10",
+      "homeScore": "23",
+      "playerIDs": [
+       "2985659"
+      ],
+      "score": "Wil Lutz 33 Yd Field Goal ",
+      "scoreDetails": "4 plays, 2 yards, 2:33",
+      "scorePeriod": "Q3",
+      "scoreTime": "11:35",
+      "scoreType": "FG",
+      "team": "DEN",
+      "teamID": "10"
+     },
+     {
+      "awayScore": "27",
+      "homeScore": "30",
+      "playerIDs": [
+       "4426338",
+       "4686472",
+       "2985659"
+      ],
+      "score": "Marvin Mims Jr. 26 Yd pass from Bo Nix (Wil Lutz Kick)",
+      "scoreDetails": "8 plays, 73 yards, 3:16",
+      "scorePeriod": "Q4",
+      "scoreTime": "0:55",
+      "scoreType": "TD",
+      "team": "DEN",
+      "teamID": "10"
+     },
+     {
+      "awayScore": "30",
+      "homeScore": "33",
+      "playerIDs": [
+       "2985659"
+      ],
+      "score": "Wil Lutz 23 Yd Field Goal ",
+      "scoreDetails": "6 plays, 75 yards, 3:02",
+      "scorePeriod": "OT",
+      "scoreTime": "4:44",
+      "scoreType": "FG",
+      "team": "DEN",
+      "teamID": "10"
+     }
+    ],
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "teamID": "10"
+   },
+   "3042717": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "3",
+     "tfl": "0",
+     "totalTackles": "4"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Tre'Davious White",
+    "playerID": "3042717",
+    "team": "BUF",
+    "teamAbv": "BUF",
+    "teamID": "4"
+   },
+   "3046287": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "3"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Matt Milano",
+    "playerID": "3046287",
+    "team": "BUF",
+    "teamAbv": "BUF",
+    "teamID": "4"
+   },
+   "3050122": {
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Larry Ogunjobi",
+    "playerID": "3050122",
+    "team": "BUF",
+    "teamAbv": "BUF",
+    "teamID": "4"
+   },
+   "3051324": {
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Dion Dawkins",
+    "playerID": "3051324",
+    "team": "BUF",
+    "teamAbv": "BUF",
+    "teamID": "4"
+   },
+   "3051389": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "2",
+     "tfl": "0",
+     "totalTackles": "3"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Joey Bosa",
+    "playerID": "3051389",
+    "team": "BUF",
+    "teamAbv": "BUF",
+    "teamID": "4"
+   },
+   "3051876": {
+    "Receiving": {
+     "longRec": "7",
+     "recAvg": "7.0",
+     "recTD": "0",
+     "recYds": "7",
+     "receptions": "1",
+     "targets": "3"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Evan Engram",
+    "playerID": "3051876",
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "teamID": "10"
+   },
+   "3052885": {
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Mike McGlinchey",
+    "playerID": "3052885",
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "teamID": "10"
+   },
+   "3120464": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "1",
+     "sacks": "0",
+     "soloTackles": "0",
+     "tfl": "0",
+     "totalTackles": "0"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "John Franklin-Myers",
+    "playerID": "3120464",
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "teamID": "10"
+   },
+   "3121003": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "5",
+     "tfl": "1",
+     "totalTackles": "6"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Taron Johnson",
+    "playerID": "3121003",
+    "team": "BUF",
+    "teamAbv": "BUF",
+    "teamID": "4"
+   },
+   "3121427": {
+    "Receiving": {
+     "longRec": "2",
+     "recAvg": "2.0",
+     "recTD": "0",
+     "recYds": "2",
+     "receptions": "1",
+     "targets": "3"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Curtis Samuel",
+    "playerID": "3121427",
+    "team": "BUF",
+    "teamAbv": "BUF",
+    "teamID": "4"
+   },
+   "3128429": {
+    "Receiving": {
+     "longRec": "25",
+     "recAvg": "13.3",
+     "recTD": "0",
+     "recYds": "53",
+     "receptions": "4",
+     "targets": "9"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Courtland Sutton",
+    "playerID": "3128429",
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "teamID": "10"
+   },
+   "3129307": {
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Sam Mustipher",
+    "playerID": "3129307",
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "teamID": "10"
+   },
+   "3139166": {
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Mitchell Fraboni",
+    "playerID": "3139166",
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "teamID": "10"
+   },
+   "3894915": {
+    "gameID": "20260117_BUF@DEN",
+    "longName": "D.J. Jones",
+    "playerID": "3894915",
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "teamID": "10"
+   },
+   "3895791": {
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Dane Jackson",
+    "playerID": "3895791",
+    "team": "BUF",
+    "teamAbv": "BUF",
+    "teamID": "4"
+   },
+   "3911853": {
+    "Receiving": {
+     "longRec": "0",
+     "recAvg": "0.0",
+     "recTD": "0",
+     "recYds": "0",
+     "receptions": "0",
+     "targets": "2"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Adam Trautman",
+    "playerID": "3911853",
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "teamID": "10"
+   },
+   "3915282": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "3",
+     "sacks": "0.5",
+     "soloTackles": "3",
+     "tfl": "0",
+     "totalTackles": "5"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Zach Allen",
+    "playerID": "3915282",
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "teamID": "10"
+   },
+   "3915419": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "2",
+     "tfl": "0",
+     "totalTackles": "3"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Darnell Savage",
+    "playerID": "3915419",
+    "team": "BUF",
+    "teamAbv": "BUF",
+    "teamID": "4"
+   },
+   "3916577": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "2",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "6",
+     "tfl": "0",
+     "totalTackles": "10"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Cam Lewis",
+    "playerID": "3916577",
+    "team": "BUF",
+    "teamAbv": "BUF",
+    "teamID": "4"
+   },
+   "3916903": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "0",
+     "tfl": "0",
+     "totalTackles": "4"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Dre Greenlaw",
+    "playerID": "3916903",
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "teamID": "10"
+   },
+   "3917660": {
+    "gameID": "20260117_BUF@DEN",
+    "longName": "David Edwards",
+    "playerID": "3917660",
+    "team": "BUF",
+    "teamAbv": "BUF",
+    "teamID": "4"
+   },
+   "3918298": {
+    "Defense": {
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "fumbles": "3",
+     "fumblesLost": "2",
+     "fumblesRecovered": "1"
+    },
+    "Passing": {
+     "int": "2",
+     "passAttempts": "39",
+     "passAvg": "7.3",
+     "passCompletions": "25",
+     "passTD": "3",
+     "passYds": "283",
+     "qbr": "47.7",
+     "rtg": "90.0",
+     "sacked": "3-17"
+    },
+    "Rushing": {
+     "carries": "12",
+     "longRush": "26",
+     "rushAvg": "5.5",
+     "rushTD": "0",
+     "rushYds": "66"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Josh Allen",
+    "playerID": "3918298",
+    "scoringPlays": [
+     {
+      "awayScore": "7",
+      "homeScore": "3",
+      "playerIDs": [
+       "3918298",
+       "4035004",
+       "11122"
+      ],
+      "score": "Mecole Hardman Jr. 4 Yd pass from Josh Allen (Matt Prater Kick)",
+      "scoreDetails": "12 plays, 67 yards, 7:24",
+      "scorePeriod": "Q1",
+      "scoreTime": "0:05",
+      "scoreType": "TD",
+      "team": "BUF",
+      "teamID": "4"
+     },
+     {
+      "awayScore": "17",
+      "homeScore": "23",
+      "playerIDs": [
+       "3918298",
+       "4635008",
+       "11122"
+      ],
+      "score": "Keon Coleman 10 Yd pass from Josh Allen (Matt Prater Kick)",
+      "scoreDetails": "9 plays, 73 yards, 4:46",
+      "scorePeriod": "Q3",
+      "scoreTime": "6:49",
+      "scoreType": "TD",
+      "team": "BUF",
+      "teamID": "4"
+     },
+     {
+      "awayScore": "24",
+      "homeScore": "23",
+      "playerIDs": [
+       "3918298",
+       "4385690",
+       "11122"
+      ],
+      "score": "Dalton Kincaid 14 Yd pass from Josh Allen (Matt Prater Kick)",
+      "scoreDetails": "9 plays, 85 yards, 4:06",
+      "scorePeriod": "Q4",
+      "scoreTime": "13:24",
+      "scoreType": "TD",
+      "team": "BUF",
+      "teamID": "4"
+     }
+    ],
+    "team": "BUF",
+    "teamAbv": "BUF",
+    "teamID": "4"
+   },
+   "3919548": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Justin Strnad",
+    "playerID": "3919548",
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "teamID": "10"
+   },
+   "3929850": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "1",
+     "defensiveInterceptionsYards": "30",
+     "forcedFumbles": "1",
+     "interceptionTDs": "0",
+     "passDeflections": "1",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "6",
+     "tfl": "0",
+     "totalTackles": "9"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "P.J. Locke",
+    "playerID": "3929850",
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "teamID": "10"
+   },
+   "3929914": {
+    "Receiving": {
+     "longRec": "0",
+     "recAvg": "0.0",
+     "recTD": "0",
+     "recYds": "0",
+     "receptions": "0",
+     "targets": "1"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Adam Prentice",
+    "playerID": "3929914",
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "teamID": "10"
+   },
+   "3930086": {
+    "Receiving": {
+     "longRec": "13",
+     "recAvg": "10.7",
+     "recTD": "0",
+     "recYds": "32",
+     "receptions": "3",
+     "targets": "5"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Dawson Knox",
+    "playerID": "3930086",
+    "team": "BUF",
+    "teamAbv": "BUF",
+    "teamID": "4"
+   },
+   "4030899": {
+    "Defense": {
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "fumbles": "0",
+     "fumblesLost": "0",
+     "fumblesRecovered": "1"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Spencer Brown",
+    "playerID": "4030899",
+    "team": "BUF",
+    "teamAbv": "BUF",
+    "teamID": "4"
+   },
+   "4033748": {
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Connor McGovern",
+    "playerID": "4033748",
+    "team": "BUF",
+    "teamAbv": "BUF",
+    "teamID": "4"
+   },
+   "4035004": {
+    "Kicking": {
+     "kickReturnAvg": "22.0",
+     "kickReturnLong": "22",
+     "kickReturnTD": "0",
+     "kickReturnYds": "22",
+     "kickReturns": "1"
+    },
+    "Receiving": {
+     "longRec": "4",
+     "recAvg": "4.0",
+     "recTD": "1",
+     "recYds": "4",
+     "receptions": "1",
+     "targets": "2"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Mecole Hardman Jr.",
+    "playerID": "4035004",
+    "scoringPlays": [
+     {
+      "awayScore": "7",
+      "homeScore": "3",
+      "playerIDs": [
+       "3918298",
+       "4035004",
+       "11122"
+      ],
+      "score": "Mecole Hardman Jr. 4 Yd pass from Josh Allen (Matt Prater Kick)",
+      "scoreDetails": "12 plays, 67 yards, 7:24",
+      "scorePeriod": "Q1",
+      "scoreTime": "0:05",
+      "scoreType": "TD",
+      "team": "BUF",
+      "teamID": "4"
+     }
+    ],
+    "team": "BUF",
+    "teamAbv": "BUF",
+    "teamID": "4"
+   },
+   "4035662": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Garett Bolles",
+    "playerID": "4035662",
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "teamID": "10"
+   },
+   "4035685": {
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Mitch Wishnowsky",
+    "playerID": "4035685",
+    "team": "BUF",
+    "teamAbv": "BUF",
+    "teamID": "4"
+   },
+   "4037559": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "fumbles": "0",
+     "fumblesLost": "0",
+     "fumblesRecovered": "1",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "4",
+     "tfl": "0",
+     "totalTackles": "4"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Devon Key",
+    "playerID": "4037559",
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "teamID": "10"
+   },
+   "4037650": {
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Ben Powers",
+    "playerID": "4037650",
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "teamID": "10"
+   },
+   "4039057": {
+    "Receiving": {
+     "longRec": "29",
+     "recAvg": "16.5",
+     "recTD": "1",
+     "recYds": "33",
+     "receptions": "2",
+     "targets": "5"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Lil'Jordan Humphrey",
+    "playerID": "4039057",
+    "scoringPlays": [
+     {
+      "awayScore": "10",
+      "homeScore": "17",
+      "playerIDs": [
+       "4426338",
+       "4039057",
+       "2985659"
+      ],
+      "score": "Lil'Jordan Humphrey 29 Yd pass from Bo Nix (Wil Lutz Kick)",
+      "scoreDetails": "11 plays, 70 yards, 1:51",
+      "scorePeriod": "Q2",
+      "scoreTime": "0:22",
+      "scoreType": "TD",
+      "team": "DEN",
+      "teamID": "10"
+     }
+    ],
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "teamID": "10"
+   },
+   "4039064": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "1",
+     "fumbles": "0",
+     "fumblesLost": "0",
+     "fumblesRecovered": "1",
+     "passDeflections": "0",
+     "qbHits": "3",
+     "sacks": "1.5",
+     "soloTackles": "3",
+     "tfl": "1",
+     "totalTackles": "5"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Malcolm Roach",
+    "playerID": "4039064",
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "teamID": "10"
+   },
+   "4039303": {
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Ed Oliver",
+    "playerID": "4039303",
+    "team": "BUF",
+    "teamAbv": "BUF",
+    "teamID": "4"
+   },
+   "4039505": {
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Reggie Gilliam",
+    "playerID": "4039505",
+    "team": "BUF",
+    "teamAbv": "BUF",
+    "teamID": "4"
+   },
+   "4040608": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "1",
+     "sacks": "0",
+     "soloTackles": "2",
+     "tfl": "0",
+     "totalTackles": "2"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Jonathon Cooper",
+    "playerID": "4040608",
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "teamID": "10"
+   },
+   "4044133": {
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Sam Franklin Jr.",
+    "playerID": "4044133",
+    "team": "BUF",
+    "teamAbv": "BUF",
+    "teamID": "4"
+   },
+   "4066109": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "3"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Eyioma Uwazurike",
+    "playerID": "4066109",
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "teamID": "10"
+   },
+   "4239140": {
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Ryan Van Demark",
+    "playerID": "4239140",
+    "team": "BUF",
+    "teamAbv": "BUF",
+    "teamID": "4"
+   },
+   "4239997": {
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Baylon Spector",
+    "playerID": "4239997",
+    "team": "BUF",
+    "teamAbv": "BUF",
+    "teamID": "4"
+   },
+   "4240551": {
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Alex Palczewski",
+    "playerID": "4240551",
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "teamID": "10"
+   },
+   "4240585": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "2",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "0",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "AJ Epenesa",
+    "playerID": "4240585",
+    "team": "BUF",
+    "teamAbv": "BUF",
+    "teamID": "4"
+   },
+   "4242503": {
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Alex Forsyth",
+    "playerID": "4242503",
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "teamID": "10"
+   },
+   "4261090": {
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Jordan Jackson",
+    "playerID": "4261090",
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "teamID": "10"
+   },
+   "4360259": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "2",
+     "passDeflections": "0",
+     "qbHits": "1",
+     "sacks": "1",
+     "soloTackles": "2",
+     "tfl": "1",
+     "totalTackles": "3"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Nik Bonitto",
+    "playerID": "4360259",
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "teamID": "10"
+   },
+   "4360853": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "fumbles": "0",
+     "fumblesLost": "0",
+     "fumblesRecovered": "1",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "7",
+     "tfl": "0",
+     "totalTackles": "10"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Talanoa Hufanga",
+    "playerID": "4360853",
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "teamID": "10"
+   },
+   "4361691": {
+    "Receiving": {
+     "longRec": "7",
+     "recAvg": "7.0",
+     "recTD": "1",
+     "recYds": "7",
+     "receptions": "1",
+     "targets": "1"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Frank Crum",
+    "playerID": "4361691",
+    "scoringPlays": [
+     {
+      "awayScore": "7",
+      "homeScore": "10",
+      "playerIDs": [
+       "4426338",
+       "4361691",
+       "2985659"
+      ],
+      "score": "Frank Crum 7 Yd pass from Bo Nix (Wil Lutz Kick)",
+      "scoreDetails": "8 plays, 69 yards, 3:47",
+      "scorePeriod": "Q2",
+      "scoreTime": "9:33",
+      "scoreType": "TD",
+      "team": "DEN",
+      "teamID": "10"
+     }
+    ],
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "teamID": "10"
+   },
+   "4362506": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "1",
+     "passDeflections": "1",
+     "qbHits": "3",
+     "sacks": "0",
+     "soloTackles": "0",
+     "tfl": "0",
+     "totalTackles": "2"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Greg Rousseau",
+    "playerID": "4362506",
+    "team": "BUF",
+    "teamAbv": "BUF",
+    "teamID": "4"
+   },
+   "4362748": {
+    "Kicking": {
+     "kickReturnAvg": "27.0",
+     "kickReturnLong": "27",
+     "kickReturnTD": "0",
+     "kickReturnYds": "27",
+     "kickReturns": "1"
+    },
+    "Receiving": {
+     "longRec": "7",
+     "recAvg": "7.0",
+     "recTD": "0",
+     "recYds": "7",
+     "receptions": "1",
+     "targets": "2"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Tyler Badie",
+    "playerID": "4362748",
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "teamID": "10"
+   },
+   "4366349": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "0",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Joe Andreessen",
+    "playerID": "4366349",
+    "team": "BUF",
+    "teamAbv": "BUF",
+    "teamID": "4"
+   },
+   "4367203": {
+    "Defense": {
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "fumbles": "1",
+     "fumblesLost": "0",
+     "fumblesRecovered": "0"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Alec Anderson",
+    "playerID": "4367203",
+    "team": "BUF",
+    "teamAbv": "BUF",
+    "teamID": "4"
+   },
+   "4372012": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "2",
+     "tfl": "0",
+     "totalTackles": "3"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Pat Surtain II",
+    "playerID": "4372012",
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "teamID": "10"
+   },
+   "4373678": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "Receiving": {
+     "longRec": "46",
+     "recAvg": "10.7",
+     "recTD": "0",
+     "recYds": "75",
+     "receptions": "7",
+     "targets": "9"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Khalil Shakir",
+    "playerID": "4373678",
+    "team": "BUF",
+    "teamAbv": "BUF",
+    "teamID": "4"
+   },
+   "4379399": {
+    "Defense": {
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "fumbles": "1",
+     "fumblesLost": "1",
+     "fumblesRecovered": "0"
+    },
+    "Receiving": {
+     "longRec": "24",
+     "recAvg": "12.0",
+     "recTD": "0",
+     "recYds": "24",
+     "receptions": "2",
+     "targets": "3"
+    },
+    "Rushing": {
+     "carries": "24",
+     "longRush": "24",
+     "rushAvg": "4.9",
+     "rushTD": "0",
+     "rushYds": "117"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "James Cook III",
+    "playerID": "4379399",
+    "team": "BUF",
+    "teamAbv": "BUF",
+    "teamID": "4"
+   },
+   "4379778": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "1",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "2"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Christian Benford",
+    "playerID": "4379778",
+    "team": "BUF",
+    "teamAbv": "BUF",
+    "teamID": "4"
+   },
+   "4382401": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "3",
+     "tfl": "0",
+     "totalTackles": "4"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Riley Moss",
+    "playerID": "4382401",
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "teamID": "10"
+   },
+   "4383440": {
+    "Receiving": {
+     "longRec": "1",
+     "recAvg": "1.0",
+     "recTD": "0",
+     "recYds": "1",
+     "receptions": "1",
+     "targets": "1"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Nate Adkins",
+    "playerID": "4383440",
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "teamID": "10"
+   },
+   "4385690": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "Receiving": {
+     "longRec": "25",
+     "recAvg": "13.8",
+     "recTD": "1",
+     "recYds": "83",
+     "receptions": "6",
+     "targets": "6"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Dalton Kincaid",
+    "playerID": "4385690",
+    "scoringPlays": [
+     {
+      "awayScore": "24",
+      "homeScore": "23",
+      "playerIDs": [
+       "3918298",
+       "4385690",
+       "11122"
+      ],
+      "score": "Dalton Kincaid 14 Yd pass from Josh Allen (Matt Prater Kick)",
+      "scoreDetails": "9 plays, 85 yards, 4:06",
+      "scorePeriod": "Q4",
+      "scoreTime": "13:24",
+      "scoreType": "TD",
+      "team": "BUF",
+      "teamID": "4"
+     }
+    ],
+    "team": "BUF",
+    "teamAbv": "BUF",
+    "teamID": "4"
+   },
+   "4426338": {
+    "Defense": {
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "fumbles": "1",
+     "fumblesLost": "0",
+     "fumblesRecovered": "1"
+    },
+    "Passing": {
+     "int": "1",
+     "passAttempts": "46",
+     "passAvg": "6.1",
+     "passCompletions": "26",
+     "passTD": "3",
+     "passYds": "279",
+     "qbr": "64.7",
+     "rtg": "87.1",
+     "sacked": "0-0"
+    },
+    "Rushing": {
+     "carries": "12",
+     "longRush": "11",
+     "rushAvg": "2.4",
+     "rushTD": "0",
+     "rushYds": "29"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Bo Nix",
+    "playerID": "4426338",
+    "scoringPlays": [
+     {
+      "awayScore": "7",
+      "homeScore": "10",
+      "playerIDs": [
+       "4426338",
+       "4361691",
+       "2985659"
+      ],
+      "score": "Frank Crum 7 Yd pass from Bo Nix (Wil Lutz Kick)",
+      "scoreDetails": "8 plays, 69 yards, 3:47",
+      "scorePeriod": "Q2",
+      "scoreTime": "9:33",
+      "scoreType": "TD",
+      "team": "DEN",
+      "teamID": "10"
+     },
+     {
+      "awayScore": "10",
+      "homeScore": "17",
+      "playerIDs": [
+       "4426338",
+       "4039057",
+       "2985659"
+      ],
+      "score": "Lil'Jordan Humphrey 29 Yd pass from Bo Nix (Wil Lutz Kick)",
+      "scoreDetails": "11 plays, 70 yards, 1:51",
+      "scorePeriod": "Q2",
+      "scoreTime": "0:22",
+      "scoreType": "TD",
+      "team": "DEN",
+      "teamID": "10"
+     },
+     {
+      "awayScore": "27",
+      "homeScore": "30",
+      "playerIDs": [
+       "4426338",
+       "4686472",
+       "2985659"
+      ],
+      "score": "Marvin Mims Jr. 26 Yd pass from Bo Nix (Wil Lutz Kick)",
+      "scoreDetails": "8 plays, 73 yards, 3:16",
+      "scorePeriod": "Q4",
+      "scoreTime": "0:55",
+      "scoreType": "TD",
+      "team": "DEN",
+      "teamID": "10"
+     }
+    ],
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "teamID": "10"
+   },
+   "4428503": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "2"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "JL Skinner",
+    "playerID": "4428503",
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "teamID": "10"
+   },
+   "4428548": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "0",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Javon Solomon",
+    "playerID": "4428548",
+    "team": "BUF",
+    "teamAbv": "BUF",
+    "teamID": "4"
+   },
+   "4428696": {
+    "gameID": "20260117_BUF@DEN",
+    "longName": "O'Cyrus Torrence",
+    "playerID": "4428696",
+    "team": "BUF",
+    "teamAbv": "BUF",
+    "teamID": "4"
+   },
+   "4429193": {
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Kris Abrams-Draine",
+    "playerID": "4429193",
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "teamID": "10"
+   },
+   "4429501": {
+    "Kicking": {
+     "kickReturnAvg": "26.0",
+     "kickReturnLong": "28",
+     "kickReturnTD": "0",
+     "kickReturnYds": "130",
+     "kickReturns": "5"
+    },
+    "Receiving": {
+     "longRec": "24",
+     "recAvg": "16.5",
+     "recTD": "0",
+     "recYds": "33",
+     "receptions": "2",
+     "targets": "2"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Ray Davis",
+    "playerID": "4429501",
+    "team": "BUF",
+    "teamAbv": "BUF",
+    "teamID": "4"
+   },
+   "4429805": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "0",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Frank Gore Jr.",
+    "playerID": "4429805",
+    "team": "BUF",
+    "teamAbv": "BUF",
+    "teamID": "4"
+   },
+   "4430815": {
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Sedrick Van Pran-Granger",
+    "playerID": "4430815",
+    "team": "BUF",
+    "teamAbv": "BUF",
+    "teamID": "4"
+   },
+   "4430925": {
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Jahdae Barron",
+    "playerID": "4430925",
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "teamID": "10"
+   },
+   "4431280": {
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Troy Franklin",
+    "playerID": "4431280",
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "teamID": "10"
+   },
+   "4567462": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "1",
+     "defensiveInterceptionsYards": "0",
+     "forcedFumbles": "0",
+     "interceptionTDs": "0",
+     "passDeflections": "1",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "1",
+     "totalTackles": "1"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Ja'Quan McMillian",
+    "playerID": "4567462",
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "teamID": "10"
+   },
+   "4568490": {
+    "Receiving": {
+     "longRec": "24",
+     "recAvg": "9.2",
+     "recTD": "0",
+     "recYds": "46",
+     "receptions": "5",
+     "targets": "6"
+    },
+    "Rushing": {
+     "carries": "6",
+     "longRush": "12",
+     "rushAvg": "3.3",
+     "rushTD": "0",
+     "rushYds": "20"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "RJ Harvey",
+    "playerID": "4568490",
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "teamID": "10"
+   },
+   "4568624": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Dorian Williams",
+    "playerID": "4568624",
+    "team": "BUF",
+    "teamAbv": "BUF",
+    "teamID": "4"
+   },
+   "4573699": {
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Jackson Hawes",
+    "playerID": "4573699",
+    "team": "BUF",
+    "teamAbv": "BUF",
+    "teamID": "4"
+   },
+   "4589212": {
+    "Punting": {
+     "puntAvg": "47.0",
+     "puntLong": "65",
+     "puntTouchBacks": "1",
+     "puntYds": "188",
+     "punts": "4",
+     "puntsin20": "2"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Jeremy Crawshaw",
+    "playerID": "4589212",
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "teamID": "10"
+   },
+   "4596480": {
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Jordan Hancock",
+    "playerID": "4596480",
+    "team": "BUF",
+    "teamAbv": "BUF",
+    "teamID": "4"
+   },
+   "4600981": {
+    "Receiving": {
+     "longRec": "15",
+     "recAvg": "10.7",
+     "recTD": "0",
+     "recYds": "32",
+     "receptions": "3",
+     "targets": "3"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Pat Bryant",
+    "playerID": "4600981",
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "teamID": "10"
+   },
+   "4608138": {
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Quinn Meinerz",
+    "playerID": "4608138",
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "teamID": "10"
+   },
+   "4635008": {
+    "Receiving": {
+     "longRec": "10",
+     "recAvg": "10.0",
+     "recTD": "1",
+     "recYds": "10",
+     "receptions": "1",
+     "targets": "3"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Keon Coleman",
+    "playerID": "4635008",
+    "scoringPlays": [
+     {
+      "awayScore": "17",
+      "homeScore": "23",
+      "playerIDs": [
+       "3918298",
+       "4635008",
+       "11122"
+      ],
+      "score": "Keon Coleman 10 Yd pass from Josh Allen (Matt Prater Kick)",
+      "scoreDetails": "9 plays, 73 yards, 4:46",
+      "scorePeriod": "Q3",
+      "scoreTime": "6:49",
+      "scoreType": "TD",
+      "team": "BUF",
+      "teamID": "4"
+     }
+    ],
+    "team": "BUF",
+    "teamAbv": "BUF",
+    "teamID": "4"
+   },
+   "4676004": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "7",
+     "tfl": "2",
+     "totalTackles": "12"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Cole Bishop",
+    "playerID": "4676004",
+    "team": "BUF",
+    "teamAbv": "BUF",
+    "teamID": "4"
+   },
+   "4684527": {
+    "gameID": "20260117_BUF@DEN",
+    "longName": "T.J. Sanders",
+    "playerID": "4684527",
+    "team": "BUF",
+    "teamAbv": "BUF",
+    "teamID": "4"
+   },
+   "4686472": {
+    "Kicking": {
+     "kickReturnAvg": "25.0",
+     "kickReturnLong": "25",
+     "kickReturnTD": "0",
+     "kickReturnYds": "50",
+     "kickReturns": "2"
+    },
+    "Receiving": {
+     "longRec": "27",
+     "recAvg": "11.6",
+     "recTD": "1",
+     "recYds": "93",
+     "receptions": "8",
+     "targets": "8"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Marvin Mims Jr.",
+    "playerID": "4686472",
+    "scoringPlays": [
+     {
+      "awayScore": "27",
+      "homeScore": "30",
+      "playerIDs": [
+       "4426338",
+       "4686472",
+       "2985659"
+      ],
+      "score": "Marvin Mims Jr. 26 Yd pass from Bo Nix (Wil Lutz Kick)",
+      "scoreDetails": "8 plays, 73 yards, 3:16",
+      "scorePeriod": "Q4",
+      "scoreTime": "0:55",
+      "scoreType": "TD",
+      "team": "DEN",
+      "teamID": "10"
+     }
+    ],
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "teamID": "10"
+   },
+   "4687592": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "2",
+     "tfl": "0",
+     "totalTackles": "3"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Jonah Elliss",
+    "playerID": "4687592",
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "teamID": "10"
+   },
+   "4693373": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "0",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Jordan Turner",
+    "playerID": "4693373",
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "teamID": "10"
+   },
+   "4722893": {
+    "Kicking": {
+     "kickReturnAvg": "19.7",
+     "kickReturnLong": "27",
+     "kickReturnTD": "0",
+     "kickReturnYds": "59",
+     "kickReturns": "3"
+    },
+    "Receiving": {
+     "longRec": "0",
+     "recAvg": "0.0",
+     "recTD": "0",
+     "recYds": "0",
+     "receptions": "0",
+     "targets": "1"
+    },
+    "Rushing": {
+     "carries": "4",
+     "longRush": "13",
+     "rushAvg": "5.3",
+     "rushTD": "0",
+     "rushYds": "21"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Jaleel McLaughlin",
+    "playerID": "4722893",
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "teamID": "10"
+   },
+   "4831989": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "1",
+     "defensiveInterceptionsYards": "3",
+     "forcedFumbles": "0",
+     "interceptionTDs": "0",
+     "passDeflections": "1",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "2",
+     "tfl": "0",
+     "totalTackles": "3"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Deone Walker",
+    "playerID": "4831989",
+    "team": "BUF",
+    "teamAbv": "BUF",
+    "teamID": "4"
+   },
+   "5216101": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "4",
+     "tfl": "1",
+     "totalTackles": "6"
+    },
+    "gameID": "20260117_BUF@DEN",
+    "longName": "Dondrea Tillman",
+    "playerID": "5216101",
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "teamID": "10"
+   }
+  },
+  "scoringPlays": [
+   {
+    "awayScore": "0",
+    "homeScore": "3",
+    "playerIDs": [
+     "2985659"
+    ],
+    "score": "Wil Lutz 28 Yd Field Goal",
+    "scoreDetails": "14 plays, 64 yards, 7:31",
+    "scorePeriod": "Q1",
+    "scoreTime": "7:29",
+    "scoreType": "FG",
+    "team": "DEN",
+    "teamID": "10"
+   },
+   {
+    "awayScore": "7",
+    "homeScore": "3",
+    "playerIDs": [
+     "3918298",
+     "4035004",
+     "11122"
+    ],
+    "score": "Mecole Hardman Jr. 4 Yd pass from Josh Allen (Matt Prater Kick)",
+    "scoreDetails": "12 plays, 67 yards, 7:24",
+    "scorePeriod": "Q1",
+    "scoreTime": "0:05",
+    "scoreType": "TD",
+    "team": "BUF",
+    "teamID": "4"
+   },
+   {
+    "awayScore": "7",
+    "homeScore": "10",
+    "playerIDs": [
+     "4426338",
+     "4361691",
+     "2985659"
+    ],
+    "score": "Frank Crum 7 Yd pass from Bo Nix (Wil Lutz Kick)",
+    "scoreDetails": "8 plays, 69 yards, 3:47",
+    "scorePeriod": "Q2",
+    "scoreTime": "9:33",
+    "scoreType": "TD",
+    "team": "DEN",
+    "teamID": "10"
+   },
+   {
+    "awayScore": "10",
+    "homeScore": "10",
+    "playerIDs": [
+     "11122"
+    ],
+    "score": "Matt Prater 33 Yd Field Goal ",
+    "scoreDetails": "13 plays, 69 yards, 7:20",
+    "scorePeriod": "Q2",
+    "scoreTime": "2:13",
+    "scoreType": "FG",
+    "team": "BUF",
+    "teamID": "4"
+   },
+   {
+    "awayScore": "10",
+    "homeScore": "17",
+    "playerIDs": [
+     "4426338",
+     "4039057",
+     "2985659"
+    ],
+    "score": "Lil'Jordan Humphrey 29 Yd pass from Bo Nix (Wil Lutz Kick)",
+    "scoreDetails": "11 plays, 70 yards, 1:51",
+    "scorePeriod": "Q2",
+    "scoreTime": "0:22",
+    "scoreType": "TD",
+    "team": "DEN",
+    "teamID": "10"
+   },
+   {
+    "awayScore": "10",
+    "homeScore": "20",
+    "playerIDs": [
+     "2985659"
+    ],
+    "score": "Wil Lutz 50 Yd Field Goal ",
+    "scoreDetails": "1 play, 0 yards, 0:02",
+    "scorePeriod": "Q2",
+    "scoreTime": "0:00",
+    "scoreType": "FG",
+    "team": "DEN",
+    "teamID": "10"
+   },
+   {
+    "awayScore": "10",
+    "homeScore": "23",
+    "playerIDs": [
+     "2985659"
+    ],
+    "score": "Wil Lutz 33 Yd Field Goal ",
+    "scoreDetails": "4 plays, 2 yards, 2:33",
+    "scorePeriod": "Q3",
+    "scoreTime": "11:35",
+    "scoreType": "FG",
+    "team": "DEN",
+    "teamID": "10"
+   },
+   {
+    "awayScore": "17",
+    "homeScore": "23",
+    "playerIDs": [
+     "3918298",
+     "4635008",
+     "11122"
+    ],
+    "score": "Keon Coleman 10 Yd pass from Josh Allen (Matt Prater Kick)",
+    "scoreDetails": "9 plays, 73 yards, 4:46",
+    "scorePeriod": "Q3",
+    "scoreTime": "6:49",
+    "scoreType": "TD",
+    "team": "BUF",
+    "teamID": "4"
+   },
+   {
+    "awayScore": "24",
+    "homeScore": "23",
+    "playerIDs": [
+     "3918298",
+     "4385690",
+     "11122"
+    ],
+    "score": "Dalton Kincaid 14 Yd pass from Josh Allen (Matt Prater Kick)",
+    "scoreDetails": "9 plays, 85 yards, 4:06",
+    "scorePeriod": "Q4",
+    "scoreTime": "13:24",
+    "scoreType": "TD",
+    "team": "BUF",
+    "teamID": "4"
+   },
+   {
+    "awayScore": "27",
+    "homeScore": "23",
+    "playerIDs": [
+     "11122"
+    ],
+    "score": "Matt Prater 31 Yd Field Goal",
+    "scoreDetails": "13 plays, 68 yards, 7:39",
+    "scorePeriod": "Q4",
+    "scoreTime": "4:11",
+    "scoreType": "FG",
+    "team": "BUF",
+    "teamID": "4"
+   },
+   {
+    "awayScore": "27",
+    "homeScore": "30",
+    "playerIDs": [
+     "4426338",
+     "4686472",
+     "2985659"
+    ],
+    "score": "Marvin Mims Jr. 26 Yd pass from Bo Nix (Wil Lutz Kick)",
+    "scoreDetails": "8 plays, 73 yards, 3:16",
+    "scorePeriod": "Q4",
+    "scoreTime": "0:55",
+    "scoreType": "TD",
+    "team": "DEN",
+    "teamID": "10"
+   },
+   {
+    "awayScore": "30",
+    "homeScore": "30",
+    "playerIDs": [
+     "11122"
+    ],
+    "score": "Matt Prater 50 Yd Field Goal",
+    "scoreDetails": "8 plays, 41 yards, 0:50",
+    "scorePeriod": "Q4",
+    "scoreTime": "0:05",
+    "scoreType": "FG",
+    "team": "BUF",
+    "teamID": "4"
+   },
+   {
+    "awayScore": "30",
+    "homeScore": "33",
+    "playerIDs": [
+     "2985659"
+    ],
+    "score": "Wil Lutz 23 Yd Field Goal ",
+    "scoreDetails": "6 plays, 75 yards, 3:02",
+    "scorePeriod": "OT",
+    "scoreTime": "4:44",
+    "scoreType": "FG",
+    "team": "DEN",
+    "teamID": "10"
+   }
+  ],
+  "teamIDAway": "4",
+  "teamIDHome": "10",
+  "teamStats": {
+   "away": {
+    "defensiveOrSpecialTeamsTds": "0",
+    "defensiveTwoPointConversionReturns": "0",
+    "fumblesLost": "3",
+    "interceptionsThrown": "2",
+    "sacksAndYardsLost": "3-17",
+    "safeties": "0",
+    "teamAbv": "BUF",
+    "teamID": "4",
+    "totalYards": "449"
+   },
+   "home": {
+    "defensiveOrSpecialTeamsTds": "0",
+    "defensiveTwoPointConversionReturns": "0",
+    "fumblesLost": "0",
+    "interceptionsThrown": "1",
+    "sacksAndYardsLost": "0-0",
+    "safeties": "0",
+    "teamAbv": "DEN",
+    "teamID": "10",
+    "totalYards": "349"
+   }
+  }
+ },
+ "20260118_LAR@CHI": {
+  "DST": {
+   "away": {
+    "defTD": "0",
+    "defensiveInterceptions": "3",
+    "fumblesRecovered": "0",
+    "ptsAllowed": "17",
+    "sacks": "0",
+    "safeties": "0",
+    "teamAbv": "LAR",
+    "teamID": "19",
+    "ydsAllowed": "417"
+   },
+   "home": {
+    "defTD": "0",
+    "defensiveInterceptions": "0",
+    "fumblesRecovered": "0",
+    "ptsAllowed": "20",
+    "sacks": "4",
+    "safeties": "0",
+    "teamAbv": "CHI",
+    "teamID": "6",
+    "ydsAllowed": "340"
+   }
+  },
+  "awayPts": "20",
+  "gameID": "20260118_LAR@CHI",
+  "gameWeek": "Divisional Round",
+  "homePts": "17",
+  "playerStats": {
+   "12483": {
+    "Defense": {
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "fumbles": "2",
+     "fumblesLost": "0",
+     "fumblesRecovered": "1"
+    },
+    "Passing": {
+     "int": "0",
+     "passAttempts": "42",
+     "passAvg": "6.1",
+     "passCompletions": "20",
+     "passTD": "0",
+     "passYds": "258",
+     "qbr": "31.6",
+     "rtg": "67.4",
+     "sacked": "4-29"
+    },
+    "Rushing": {
+     "carries": "1",
+     "longRush": "-1",
+     "rushAvg": "-1.0",
+     "rushTD": "0",
+     "rushYds": "-1"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Matthew Stafford",
+    "playerID": "12483",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "14676": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "0",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Jake McQuaide",
+    "playerID": "14676",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "15946": {
+    "gameID": "20260118_LAR@CHI",
+    "longName": "David Quessenberry",
+    "playerID": "15946",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "16800": {
+    "Receiving": {
+     "longRec": "12",
+     "recAvg": "12.0",
+     "recTD": "0",
+     "recYds": "24",
+     "receptions": "2",
+     "targets": "6"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Davante Adams",
+    "playerID": "16800",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "17427": {
+    "Kicking": {
+     "fgAttempts": "1",
+     "fgLong": "48",
+     "fgMade": "1",
+     "fgMissed": "0",
+     "fgPct": "100.0",
+     "kickingPts": "5",
+     "xpAttempts": "2",
+     "xpMade": "2",
+     "xpMissed": "0"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Cairo Santos",
+    "playerID": "17427",
+    "scoringPlays": [
+     {
+      "awayScore": "7",
+      "homeScore": "7",
+      "playerIDs": [
+       "4431611",
+       "3915416",
+       "17427"
+      ],
+      "score": "DJ Moore 3 Yd pass from Caleb Williams (Cairo Santos Kick)",
+      "scoreDetails": "12 plays, 80 yards, 6:25",
+      "scorePeriod": "Q2",
+      "scoreTime": "14:55",
+      "scoreType": "TD",
+      "team": "CHI",
+      "teamID": "6"
+     },
+     {
+      "awayScore": "7",
+      "homeScore": "10",
+      "playerIDs": [
+       "17427"
+      ],
+      "score": "Cairo Santos 48 Yd Field Goal",
+      "scoreDetails": "5 plays, 33 yards, 1:44",
+      "scorePeriod": "Q2",
+      "scoreTime": "1:10",
+      "scoreType": "FG",
+      "team": "CHI",
+      "teamID": "6"
+     },
+     {
+      "awayScore": "17",
+      "homeScore": "17",
+      "playerIDs": [
+       "4431611",
+       "4258595",
+       "17427"
+      ],
+      "score": "Cole Kmet 14 Yd pass from Caleb Williams (Cairo Santos Kick)",
+      "scoreDetails": "7 plays, 50 yards, 1:32",
+      "scorePeriod": "Q4",
+      "scoreTime": "0:18",
+      "scoreType": "TD",
+      "team": "CHI",
+      "teamID": "6"
+     }
+    ],
+    "team": "CHI",
+    "teamAbv": "CHI",
+    "teamID": "6"
+   },
+   "2573401": {
+    "Receiving": {
+     "longRec": "27",
+     "recAvg": "27.0",
+     "recTD": "0",
+     "recYds": "27",
+     "receptions": "1",
+     "targets": "2"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Tyler Higbee",
+    "playerID": "2573401",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "2574056": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "4",
+     "tfl": "2",
+     "totalTackles": "5"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Kevin Byard III",
+    "playerID": "2574056",
+    "team": "CHI",
+    "teamAbv": "CHI",
+    "teamID": "6"
+   },
+   "2576492": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "1",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "0",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Grady Jarrett",
+    "playerID": "2576492",
+    "team": "CHI",
+    "teamAbv": "CHI",
+    "teamID": "6"
+   },
+   "2577773": {
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Joe Thuney",
+    "playerID": "2577773",
+    "team": "CHI",
+    "teamAbv": "CHI",
+    "teamID": "6"
+   },
+   "2980138": {
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Scott Daly",
+    "playerID": "2980138",
+    "team": "CHI",
+    "teamAbv": "CHI",
+    "teamID": "6"
+   },
+   "3044729": {
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Jalen Reeves-Maybin",
+    "playerID": "3044729",
+    "team": "CHI",
+    "teamAbv": "CHI",
+    "teamID": "6"
+   },
+   "3051775": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "3"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Andrew Billings",
+    "playerID": "3051775",
+    "team": "CHI",
+    "teamAbv": "CHI",
+    "teamID": "6"
+   },
+   "3052180": {
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Coleman Shelton",
+    "playerID": "3052180",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "3052897": {
+    "Receiving": {
+     "longRec": "5",
+     "recAvg": "5.0",
+     "recTD": "0",
+     "recYds": "5",
+     "receptions": "1",
+     "targets": "1"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Durham Smythe",
+    "playerID": "3052897",
+    "team": "CHI",
+    "teamAbv": "CHI",
+    "teamID": "6"
+   },
+   "3116177": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Troy Reeder",
+    "playerID": "3116177",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "3125114": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "3",
+     "tfl": "1",
+     "totalTackles": "4"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Poona Ford",
+    "playerID": "3125114",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "3134690": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "1",
+     "passDeflections": "0",
+     "qbHits": "1",
+     "sacks": "1",
+     "soloTackles": "2",
+     "tfl": "1",
+     "totalTackles": "2"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Montez Sweat",
+    "playerID": "3134690",
+    "team": "CHI",
+    "teamAbv": "CHI",
+    "teamID": "6"
+   },
+   "3915416": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "Receiving": {
+     "longRec": "34",
+     "recAvg": "10.4",
+     "recTD": "1",
+     "recYds": "52",
+     "receptions": "5",
+     "targets": "8"
+    },
+    "Rushing": {
+     "carries": "1",
+     "longRush": "8",
+     "rushAvg": "8.0",
+     "rushTD": "0",
+     "rushYds": "8"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "DJ Moore",
+    "playerID": "3915416",
+    "scoringPlays": [
+     {
+      "awayScore": "7",
+      "homeScore": "7",
+      "playerIDs": [
+       "4431611",
+       "3915416",
+       "17427"
+      ],
+      "score": "DJ Moore 3 Yd pass from Caleb Williams (Cairo Santos Kick)",
+      "scoreDetails": "12 plays, 80 yards, 6:25",
+      "scorePeriod": "Q2",
+      "scoreTime": "14:55",
+      "scoreType": "TD",
+      "team": "CHI",
+      "teamID": "6"
+     }
+    ],
+    "team": "CHI",
+    "teamAbv": "CHI",
+    "teamID": "6"
+   },
+   "3917599": {
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Kevin Dotson",
+    "playerID": "3917599",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "3917914": {
+    "Receiving": {
+     "longRec": "9",
+     "recAvg": "9.0",
+     "recTD": "0",
+     "recYds": "9",
+     "receptions": "1",
+     "targets": "2"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Olamide Zaccheaus",
+    "playerID": "3917914",
+    "team": "CHI",
+    "teamAbv": "CHI",
+    "teamID": "6"
+   },
+   "3929631": {
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Ryan Bates",
+    "playerID": "3929631",
+    "team": "CHI",
+    "teamAbv": "CHI",
+    "teamID": "6"
+   },
+   "3929950": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "4",
+     "tfl": "0",
+     "totalTackles": "7"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Tremaine Edmunds",
+    "playerID": "3929950",
+    "team": "CHI",
+    "teamAbv": "CHI",
+    "teamID": "6"
+   },
+   "3930040": {
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Jonah Jackson",
+    "playerID": "3930040",
+    "team": "CHI",
+    "teamAbv": "CHI",
+    "teamID": "6"
+   },
+   "4034530": {
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Chris Williams",
+    "playerID": "4034530",
+    "team": "CHI",
+    "teamAbv": "CHI",
+    "teamID": "6"
+   },
+   "4034953": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "1",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "4",
+     "tfl": "0",
+     "totalTackles": "4"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "C.J. Gardner-Johnson",
+    "playerID": "4034953",
+    "team": "CHI",
+    "teamAbv": "CHI",
+    "teamID": "6"
+   },
+   "4036135": {
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Alaric Jackson",
+    "playerID": "4036135",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4037457": {
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Travis Homer",
+    "playerID": "4037457",
+    "team": "CHI",
+    "teamAbv": "CHI",
+    "teamID": "6"
+   },
+   "4038432": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "0",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Amen Ogbongbemiga",
+    "playerID": "4038432",
+    "team": "CHI",
+    "teamAbv": "CHI",
+    "teamID": "6"
+   },
+   "4039050": {
+    "Defense": {
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "fumbles": "1",
+     "fumblesLost": "0",
+     "fumblesRecovered": "1"
+    },
+    "Kicking": {
+     "kickReturnAvg": "29.0",
+     "kickReturnLong": "31",
+     "kickReturnTD": "0",
+     "kickReturnYds": "58",
+     "kickReturns": "2"
+    },
+    "Punting": {
+     "puntReturnAvg": "11.0",
+     "puntReturnLong": "15",
+     "puntReturnTD": "0",
+     "puntReturnYds": "33",
+     "puntReturns": "3"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Devin Duvernay",
+    "playerID": "4039050",
+    "team": "CHI",
+    "teamAbv": "CHI",
+    "teamID": "6"
+   },
+   "4047655": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "0",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Jaylon Jones",
+    "playerID": "4047655",
+    "team": "CHI",
+    "teamAbv": "CHI",
+    "teamID": "6"
+   },
+   "4239833": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "3",
+     "tfl": "0",
+     "totalTackles": "4"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Darious Williams",
+    "playerID": "4239833",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4240459": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Josh Blackwell",
+    "playerID": "4240459",
+    "team": "CHI",
+    "teamAbv": "CHI",
+    "teamID": "6"
+   },
+   "4241007": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "1",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "5",
+     "tfl": "0",
+     "totalTackles": "7"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "D'Marco Jackson",
+    "playerID": "4241007",
+    "team": "CHI",
+    "teamAbv": "CHI",
+    "teamID": "6"
+   },
+   "4242154": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "1",
+     "defensiveInterceptionsYards": "0",
+     "forcedFumbles": "0",
+     "interceptionTDs": "0",
+     "passDeflections": "2",
+     "qbHits": "1",
+     "sacks": "0",
+     "soloTackles": "7",
+     "tfl": "0",
+     "totalTackles": "13"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Kam Curl",
+    "playerID": "4242154",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4242402": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Elijah Hicks",
+    "playerID": "4242402",
+    "team": "CHI",
+    "teamAbv": "CHI",
+    "teamID": "6"
+   },
+   "4242553": {
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Drew Dalman",
+    "playerID": "4242553",
+    "team": "CHI",
+    "teamAbv": "CHI",
+    "teamID": "6"
+   },
+   "4242557": {
+    "Receiving": {
+     "longRec": "35",
+     "recAvg": "18.7",
+     "recTD": "0",
+     "recYds": "56",
+     "receptions": "3",
+     "targets": "7"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Colby Parkinson",
+    "playerID": "4242557",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4243003": {
+    "Kicking": {
+     "kickReturnAvg": "24.5",
+     "kickReturnLong": "26",
+     "kickReturnTD": "0",
+     "kickReturnYds": "49",
+     "kickReturns": "2"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Ronnie Rivers",
+    "playerID": "4243003",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4243181": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "5",
+     "tfl": "1",
+     "totalTackles": "10"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Nate Landman",
+    "playerID": "4243181",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4243253": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "2",
+     "tfl": "0",
+     "totalTackles": "3"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Jaylon Johnson",
+    "playerID": "4243253",
+    "team": "CHI",
+    "teamAbv": "CHI",
+    "teamID": "6"
+   },
+   "4244300": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "1",
+     "passDeflections": "0",
+     "qbHits": "1",
+     "sacks": "1",
+     "soloTackles": "2",
+     "tfl": "1",
+     "totalTackles": "2"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Dominique Robinson",
+    "playerID": "4244300",
+    "team": "CHI",
+    "teamAbv": "CHI",
+    "teamID": "6"
+   },
+   "4249128": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "2",
+     "tfl": "0",
+     "totalTackles": "7"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Quentin Lake",
+    "playerID": "4249128",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4250621": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "0",
+     "tfl": "0",
+     "totalTackles": "2"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Kobie Turner",
+    "playerID": "4250621",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4258595": {
+    "Receiving": {
+     "longRec": "14",
+     "recAvg": "10.3",
+     "recTD": "1",
+     "recYds": "31",
+     "receptions": "3",
+     "targets": "3"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Cole Kmet",
+    "playerID": "4258595",
+    "scoringPlays": [
+     {
+      "awayScore": "17",
+      "homeScore": "17",
+      "playerIDs": [
+       "4431611",
+       "4258595",
+       "17427"
+      ],
+      "score": "Cole Kmet 14 Yd pass from Caleb Williams (Cairo Santos Kick)",
+      "scoreDetails": "7 plays, 50 yards, 1:32",
+      "scorePeriod": "Q4",
+      "scoreTime": "0:18",
+      "scoreType": "TD",
+      "team": "CHI",
+      "teamID": "6"
+     }
+    ],
+    "team": "CHI",
+    "teamAbv": "CHI",
+    "teamID": "6"
+   },
+   "4259545": {
+    "Rushing": {
+     "carries": "19",
+     "longRush": "13",
+     "rushAvg": "4.0",
+     "rushTD": "0",
+     "rushYds": "76"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "D'Andre Swift",
+    "playerID": "4259545",
+    "team": "CHI",
+    "teamAbv": "CHI",
+    "teamID": "6"
+   },
+   "4331768": {
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Jonathan Owens",
+    "playerID": "4331768",
+    "team": "CHI",
+    "teamAbv": "CHI",
+    "teamID": "6"
+   },
+   "4360319": {
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Jordan McFadden",
+    "playerID": "4360319",
+    "team": "CHI",
+    "teamAbv": "CHI",
+    "teamID": "6"
+   },
+   "4360773": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "0",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Nick Hampton",
+    "playerID": "4360773",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4360859": {
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Justin Dedich",
+    "playerID": "4360859",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4361093": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "1",
+     "sacks": "1",
+     "soloTackles": "3",
+     "tfl": "1",
+     "totalTackles": "7"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Kyler Gordon",
+    "playerID": "4361093",
+    "team": "CHI",
+    "teamAbv": "CHI",
+    "teamID": "6"
+   },
+   "4362245": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "2",
+     "tfl": "0",
+     "totalTackles": "4"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Braden Fiske",
+    "playerID": "4362245",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4362294": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "0",
+     "tfl": "0",
+     "totalTackles": "3"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Desjuan Johnson",
+    "playerID": "4362294",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4362474": {
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Steve Avila",
+    "playerID": "4362474",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4365629": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "0",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Daniel Hardy",
+    "playerID": "4365629",
+    "team": "CHI",
+    "teamAbv": "CHI",
+    "teamID": "6"
+   },
+   "4371973": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Roger McCreary",
+    "playerID": "4371973",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4384549": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "2",
+     "defensiveInterceptionsYards": "14",
+     "forcedFumbles": "0",
+     "interceptionTDs": "0",
+     "passDeflections": "3",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "2"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Cobie Durant",
+    "playerID": "4384549",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4386544": {
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Xavier Smith",
+    "playerID": "4386544",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4426358": {
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Darnell Wright",
+    "playerID": "4426358",
+    "team": "CHI",
+    "teamAbv": "CHI",
+    "teamID": "6"
+   },
+   "4426374": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "2",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "0",
+     "tfl": "0",
+     "totalTackles": "3"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Tyrique Stevenson",
+    "playerID": "4426374",
+    "team": "CHI",
+    "teamAbv": "CHI",
+    "teamID": "6"
+   },
+   "4426512": {
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Warren McClendon Jr.",
+    "playerID": "4426512",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4426515": {
+    "Receiving": {
+     "longRec": "16",
+     "recAvg": "11.2",
+     "recTD": "0",
+     "recYds": "56",
+     "receptions": "5",
+     "targets": "10"
+    },
+    "Rushing": {
+     "carries": "2",
+     "longRush": "4",
+     "rushAvg": "3.0",
+     "rushTD": "0",
+     "rushYds": "6"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Puka Nacua",
+    "playerID": "4426515",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4426553": {
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Davis Allen",
+    "playerID": "4426553",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4427120": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "1",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Jaylen McCollough",
+    "playerID": "4427120",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4428098": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "2",
+     "tfl": "0",
+     "totalTackles": "3"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Elias Neal",
+    "playerID": "4428098",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4428550": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "2",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "3",
+     "tfl": "0",
+     "totalTackles": "8"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Omar Speights",
+    "playerID": "4428550",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4429014": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "3"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Gervon Dexter Sr.",
+    "playerID": "4429014",
+    "team": "CHI",
+    "teamAbv": "CHI",
+    "teamID": "6"
+   },
+   "4429096": {
+    "Rushing": {
+     "carries": "6",
+     "longRush": "7",
+     "rushAvg": "3.2",
+     "rushTD": "0",
+     "rushYds": "19"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Blake Corum",
+    "playerID": "4429096",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4429767": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Emmanuel Forbes Jr.",
+    "playerID": "4429767",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4430737": {
+    "Defense": {
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "fumbles": "0",
+     "fumblesLost": "0",
+     "fumblesRecovered": "1"
+    },
+    "Receiving": {
+     "longRec": "14",
+     "recAvg": "7.5",
+     "recTD": "0",
+     "recYds": "30",
+     "receptions": "4",
+     "targets": "5"
+    },
+    "Rushing": {
+     "carries": "21",
+     "longRush": "10",
+     "rushAvg": "4.1",
+     "rushTD": "2",
+     "rushYds": "87"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Kyren Williams",
+    "playerID": "4430737",
+    "scoringPlays": [
+     {
+      "awayScore": "7",
+      "homeScore": "0",
+      "playerIDs": [
+       "4430737",
+       "4574716"
+      ],
+      "score": "Kyren Williams 4 Yd Rush (Harrison Mevis Kick)",
+      "scoreDetails": "14 plays, 85 yards, 6:33",
+      "scorePeriod": "Q1",
+      "scoreTime": "6:20",
+      "scoreType": "TD",
+      "team": "LAR",
+      "teamID": "19"
+     },
+     {
+      "awayScore": "17",
+      "homeScore": "10",
+      "playerIDs": [
+       "4430737",
+       "4574716"
+      ],
+      "score": "Kyren Williams 5 Yd Rush (Harrison Mevis Kick)",
+      "scoreDetails": "14 plays, 91 yards, 6:02",
+      "scorePeriod": "Q4",
+      "scoreTime": "8:50",
+      "scoreType": "TD",
+      "team": "LAR",
+      "teamID": "19"
+     }
+    ],
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4431118": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "0",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Ty Hamilton",
+    "playerID": "4431118",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4431299": {
+    "Receiving": {
+     "longRec": "27",
+     "recAvg": "22.0",
+     "recTD": "0",
+     "recYds": "44",
+     "receptions": "2",
+     "targets": "6"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Rome Odunze",
+    "playerID": "4431299",
+    "team": "CHI",
+    "teamAbv": "CHI",
+    "teamID": "6"
+   },
+   "4431611": {
+    "Passing": {
+     "int": "3",
+     "passAttempts": "42",
+     "passAvg": "6.1",
+     "passCompletions": "23",
+     "passTD": "2",
+     "passYds": "257",
+     "qbr": "70.5",
+     "rtg": "59.3",
+     "sacked": "0-0"
+    },
+    "Rushing": {
+     "carries": "5",
+     "longRush": "26",
+     "rushAvg": "8.0",
+     "rushTD": "0",
+     "rushYds": "40"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Caleb Williams",
+    "playerID": "4431611",
+    "scoringPlays": [
+     {
+      "awayScore": "7",
+      "homeScore": "7",
+      "playerIDs": [
+       "4431611",
+       "3915416",
+       "17427"
+      ],
+      "score": "DJ Moore 3 Yd pass from Caleb Williams (Cairo Santos Kick)",
+      "scoreDetails": "12 plays, 80 yards, 6:25",
+      "scorePeriod": "Q2",
+      "scoreTime": "14:55",
+      "scoreType": "TD",
+      "team": "CHI",
+      "teamID": "6"
+     },
+     {
+      "awayScore": "17",
+      "homeScore": "17",
+      "playerIDs": [
+       "4431611",
+       "4258595",
+       "17427"
+      ],
+      "score": "Cole Kmet 14 Yd pass from Caleb Williams (Cairo Santos Kick)",
+      "scoreDetails": "7 plays, 50 yards, 1:32",
+      "scorePeriod": "Q4",
+      "scoreTime": "0:18",
+      "scoreType": "TD",
+      "team": "CHI",
+      "teamID": "6"
+     }
+    ],
+    "team": "CHI",
+    "teamAbv": "CHI",
+    "teamID": "6"
+   },
+   "4568217": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "4"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Tyler Davis",
+    "playerID": "4568217",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4569382": {
+    "Kicking": {
+     "kickReturnAvg": "19.5",
+     "kickReturnLong": "20",
+     "kickReturnTD": "0",
+     "kickReturnYds": "39",
+     "kickReturns": "2"
+    },
+    "Receiving": {
+     "longRec": "20",
+     "recAvg": "17.5",
+     "recTD": "0",
+     "recYds": "35",
+     "receptions": "2",
+     "targets": "2"
+    },
+    "Rushing": {
+     "carries": "1",
+     "longRush": "0",
+     "rushAvg": "0.0",
+     "rushTD": "0",
+     "rushYds": "0"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Jordan Whittington",
+    "playerID": "4569382",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4570037": {
+    "Receiving": {
+     "longRec": "19",
+     "recAvg": "19.0",
+     "recTD": "0",
+     "recYds": "19",
+     "receptions": "1",
+     "targets": "5"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Terrance Ferguson",
+    "playerID": "4570037",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4570044": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "2",
+     "qbHits": "1",
+     "sacks": "1",
+     "soloTackles": "8",
+     "tfl": "1",
+     "totalTackles": "14"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Jaquan Brisker",
+    "playerID": "4570044",
+    "team": "CHI",
+    "teamAbv": "CHI",
+    "teamID": "6"
+   },
+   "4570470": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "2"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Nahshon Wright",
+    "playerID": "4570470",
+    "team": "CHI",
+    "teamAbv": "CHI",
+    "teamID": "6"
+   },
+   "4572371": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Josh Wallace",
+    "playerID": "4572371",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4574716": {
+    "Kicking": {
+     "fgAttempts": "2",
+     "fgLong": "42",
+     "fgMade": "2",
+     "fgMissed": "0",
+     "fgPct": "100.0",
+     "kickingPts": "8",
+     "xpAttempts": "2",
+     "xpMade": "2",
+     "xpMissed": "0"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Harrison Mevis",
+    "playerID": "4574716",
+    "scoringPlays": [
+     {
+      "awayScore": "7",
+      "homeScore": "0",
+      "playerIDs": [
+       "4430737",
+       "4574716"
+      ],
+      "score": "Kyren Williams 4 Yd Rush (Harrison Mevis Kick)",
+      "scoreDetails": "14 plays, 85 yards, 6:33",
+      "scorePeriod": "Q1",
+      "scoreTime": "6:20",
+      "scoreType": "TD",
+      "team": "LAR",
+      "teamID": "19"
+     },
+     {
+      "awayScore": "10",
+      "homeScore": "10",
+      "playerIDs": [
+       "4574716"
+      ],
+      "score": "Harrison Mevis 32 Yd Field Goal ",
+      "scoreDetails": "8 plays, 66 yards, 1:10",
+      "scorePeriod": "Q2",
+      "scoreTime": "0:00",
+      "scoreType": "FG",
+      "team": "LAR",
+      "teamID": "19"
+     },
+     {
+      "awayScore": "17",
+      "homeScore": "10",
+      "playerIDs": [
+       "4430737",
+       "4574716"
+      ],
+      "score": "Kyren Williams 5 Yd Rush (Harrison Mevis Kick)",
+      "scoreDetails": "14 plays, 91 yards, 6:02",
+      "scorePeriod": "Q4",
+      "scoreTime": "8:50",
+      "scoreType": "TD",
+      "team": "LAR",
+      "teamID": "19"
+     },
+     {
+      "awayScore": "20",
+      "homeScore": "17",
+      "playerIDs": [
+       "4574716"
+      ],
+      "score": "Harrison Mevis 42 Yd Field Goal ",
+      "scoreDetails": "10 plays, 54 yards, 3:20",
+      "scorePeriod": "OT",
+      "scoreTime": "3:19",
+      "scoreType": "FG",
+      "team": "LAR",
+      "teamID": "19"
+     }
+    ],
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4578085": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "2",
+     "sacks": "0",
+     "soloTackles": "2",
+     "tfl": "2",
+     "totalTackles": "3"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Jared Verse",
+    "playerID": "4578085",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4596363": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "1",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "4",
+     "tfl": "0",
+     "totalTackles": "7"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Kamren Kinchens",
+    "playerID": "4596363",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4608686": {
+    "Receiving": {
+     "longRec": "16",
+     "recAvg": "9.0",
+     "recTD": "0",
+     "recYds": "36",
+     "receptions": "4",
+     "targets": "4"
+    },
+    "Rushing": {
+     "carries": "13",
+     "longRush": "15",
+     "rushAvg": "2.8",
+     "rushTD": "0",
+     "rushYds": "36"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Kyle Monangai",
+    "playerID": "4608686",
+    "team": "CHI",
+    "teamAbv": "CHI",
+    "teamID": "6"
+   },
+   "4682983": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "2"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Josaiah Stewart",
+    "playerID": "4682983",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4683553": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "0",
+     "tfl": "0",
+     "totalTackles": "3"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Austin Booker",
+    "playerID": "4683553",
+    "team": "CHI",
+    "teamAbv": "CHI",
+    "teamID": "6"
+   },
+   "4685278": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "2",
+     "tfl": "0",
+     "totalTackles": "2"
+    },
+    "Receiving": {
+     "longRec": "11",
+     "recAvg": "8.0",
+     "recTD": "0",
+     "recYds": "24",
+     "receptions": "3",
+     "targets": "7"
+    },
+    "Rushing": {
+     "carries": "1",
+     "longRush": "0",
+     "rushAvg": "0.0",
+     "rushTD": "0",
+     "rushYds": "0"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Luther Burden III",
+    "playerID": "4685278",
+    "team": "CHI",
+    "teamAbv": "CHI",
+    "teamID": "6"
+   },
+   "4686889": {
+    "Punting": {
+     "puntAvg": "47.0",
+     "puntLong": "51",
+     "puntTouchBacks": "0",
+     "puntYds": "141",
+     "punts": "3",
+     "puntsin20": "1"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Tory Taylor",
+    "playerID": "4686889",
+    "team": "CHI",
+    "teamAbv": "CHI",
+    "teamID": "6"
+   },
+   "4695895": {
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Luke Newman",
+    "playerID": "4695895",
+    "team": "CHI",
+    "teamAbv": "CHI",
+    "teamID": "6"
+   },
+   "4710855": {
+    "Receiving": {
+     "longRec": "6",
+     "recAvg": "5.5",
+     "recTD": "0",
+     "recYds": "11",
+     "receptions": "2",
+     "targets": "3"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Konata Mumpfield",
+    "playerID": "4710855",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4723086": {
+    "Receiving": {
+     "longRec": "23",
+     "recAvg": "14.0",
+     "recTD": "0",
+     "recYds": "56",
+     "receptions": "4",
+     "targets": "10"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Colston Loveland",
+    "playerID": "4723086",
+    "team": "CHI",
+    "teamAbv": "CHI",
+    "teamID": "6"
+   },
+   "4875196": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "1",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "5"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Byron Young",
+    "playerID": "4875196",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   },
+   "4916349": {
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Nikola Kalinic",
+    "playerID": "4916349",
+    "team": "CHI",
+    "teamAbv": "CHI",
+    "teamID": "6"
+   },
+   "5125873": {
+    "Receiving": {
+     "longRec": "0",
+     "recAvg": "0.0",
+     "recTD": "0",
+     "recYds": "0",
+     "receptions": "0",
+     "targets": "1"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Theo Benedet",
+    "playerID": "5125873",
+    "team": "CHI",
+    "teamAbv": "CHI",
+    "teamID": "6"
+   },
+   "5125875": {
+    "Punting": {
+     "puntAvg": "47.5",
+     "puntLong": "61",
+     "puntTouchBacks": "1",
+     "puntYds": "380",
+     "punts": "8",
+     "puntsin20": "3"
+    },
+    "gameID": "20260118_LAR@CHI",
+    "longName": "Ethan Evans",
+    "playerID": "5125875",
+    "team": "LAR",
+    "teamAbv": "LAR",
+    "teamID": "19"
+   }
+  },
+  "scoringPlays": [
+   {
+    "awayScore": "7",
+    "homeScore": "0",
+    "playerIDs": [
+     "4430737",
+     "4574716"
+    ],
+    "score": "Kyren Williams 4 Yd Rush (Harrison Mevis Kick)",
+    "scoreDetails": "14 plays, 85 yards, 6:33",
+    "scorePeriod": "Q1",
+    "scoreTime": "6:20",
+    "scoreType": "TD",
+    "team": "LAR",
+    "teamID": "19"
+   },
+   {
+    "awayScore": "7",
+    "homeScore": "7",
+    "playerIDs": [
+     "4431611",
+     "3915416",
+     "17427"
+    ],
+    "score": "DJ Moore 3 Yd pass from Caleb Williams (Cairo Santos Kick)",
+    "scoreDetails": "12 plays, 80 yards, 6:25",
+    "scorePeriod": "Q2",
+    "scoreTime": "14:55",
+    "scoreType": "TD",
+    "team": "CHI",
+    "teamID": "6"
+   },
+   {
+    "awayScore": "7",
+    "homeScore": "10",
+    "playerIDs": [
+     "17427"
+    ],
+    "score": "Cairo Santos 48 Yd Field Goal",
+    "scoreDetails": "5 plays, 33 yards, 1:44",
+    "scorePeriod": "Q2",
+    "scoreTime": "1:10",
+    "scoreType": "FG",
+    "team": "CHI",
+    "teamID": "6"
+   },
+   {
+    "awayScore": "10",
+    "homeScore": "10",
+    "playerIDs": [
+     "4574716"
+    ],
+    "score": "Harrison Mevis 32 Yd Field Goal ",
+    "scoreDetails": "8 plays, 66 yards, 1:10",
+    "scorePeriod": "Q2",
+    "scoreTime": "0:00",
+    "scoreType": "FG",
+    "team": "LAR",
+    "teamID": "19"
+   },
+   {
+    "awayScore": "17",
+    "homeScore": "10",
+    "playerIDs": [
+     "4430737",
+     "4574716"
+    ],
+    "score": "Kyren Williams 5 Yd Rush (Harrison Mevis Kick)",
+    "scoreDetails": "14 plays, 91 yards, 6:02",
+    "scorePeriod": "Q4",
+    "scoreTime": "8:50",
+    "scoreType": "TD",
+    "team": "LAR",
+    "teamID": "19"
+   },
+   {
+    "awayScore": "17",
+    "homeScore": "17",
+    "playerIDs": [
+     "4431611",
+     "4258595",
+     "17427"
+    ],
+    "score": "Cole Kmet 14 Yd pass from Caleb Williams (Cairo Santos Kick)",
+    "scoreDetails": "7 plays, 50 yards, 1:32",
+    "scorePeriod": "Q4",
+    "scoreTime": "0:18",
+    "scoreType": "TD",
+    "team": "CHI",
+    "teamID": "6"
+   },
+   {
+    "awayScore": "20",
+    "homeScore": "17",
+    "playerIDs": [
+     "4574716"
+    ],
+    "score": "Harrison Mevis 42 Yd Field Goal ",
+    "scoreDetails": "10 plays, 54 yards, 3:20",
+    "scorePeriod": "OT",
+    "scoreTime": "3:19",
+    "scoreType": "FG",
+    "team": "LAR",
+    "teamID": "19"
+   }
+  ],
+  "teamIDAway": "19",
+  "teamIDHome": "6",
+  "teamStats": {
+   "away": {
+    "defensiveOrSpecialTeamsTds": "0",
+    "defensiveTwoPointConversionReturns": "0",
+    "fumblesLost": "0",
+    "interceptionsThrown": "0",
+    "sacksAndYardsLost": "4-29",
+    "safeties": "0",
+    "teamAbv": "LAR",
+    "teamID": "19",
+    "totalYards": "340"
+   },
+   "home": {
+    "defensiveOrSpecialTeamsTds": "0",
+    "defensiveTwoPointConversionReturns": "0",
+    "fumblesLost": "0",
+    "interceptionsThrown": "3",
+    "sacksAndYardsLost": "0-0",
+    "safeties": "0",
+    "teamAbv": "CHI",
+    "teamID": "6",
+    "totalYards": "417"
+   }
+  }
+ },
+ "20260208_SEA@NE": {
+  "DST": {
+   "away": {
+    "defTD": "1",
+    "defensiveInterceptions": "2",
+    "fumblesRecovered": "1",
+    "ptsAllowed": "13",
+    "sacks": "6",
+    "safeties": "0",
+    "teamAbv": "SEA",
+    "teamID": "29",
+    "ydsAllowed": "331"
+   },
+   "home": {
+    "defTD": "0",
+    "defensiveInterceptions": "0",
+    "fumblesRecovered": "0",
+    "ptsAllowed": "23",
+    "sacks": "1",
+    "safeties": "0",
+    "teamAbv": "NE",
+    "teamID": "22",
+    "ydsAllowed": "335"
+   }
+  },
+  "awayPts": "29",
+  "gameID": "20260208_SEA@NE",
+  "gameWeek": "Super Bowl",
+  "homePts": "13",
+  "playerStats": {
+   "16771": {
+    "gameID": "20260208_SEA@NE",
+    "longName": "Morgan Moses",
+    "playerID": "16771",
+    "team": "NE",
+    "teamAbv": "NE",
+    "teamID": "22"
+   },
+   "16802": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "1",
+     "qbHits": "1",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "2"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "DeMarcus Lawrence",
+    "playerID": "16802",
+    "team": "SEA",
+    "teamAbv": "SEA",
+    "teamID": "29"
+   },
+   "2473037": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "Kicking": {
+     "fgAttempts": "5",
+     "fgLong": "41",
+     "fgMade": "5",
+     "fgMissed": "0",
+     "fgPct": "100.0",
+     "kickingPts": "17",
+     "xpAttempts": "2",
+     "xpMade": "2",
+     "xpMissed": "0"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Jason Myers",
+    "playerID": "2473037",
+    "scoringPlays": [
+     {
+      "awayScore": "3",
+      "homeScore": "0",
+      "playerIDs": [
+       "2473037"
+      ],
+      "score": "Jason Myers 33 Yd Field Goal",
+      "scoreDetails": "8 plays, 51 yards, 3:02",
+      "scorePeriod": "Q1",
+      "scoreTime": "11:58",
+      "scoreType": "FG",
+      "team": "SEA",
+      "teamID": "29"
+     },
+     {
+      "awayScore": "6",
+      "homeScore": "0",
+      "playerIDs": [
+       "2473037"
+      ],
+      "score": "Jason Myers 39 Yd Field Goal",
+      "scoreDetails": "8 plays, 55 yards, 2:54",
+      "scorePeriod": "Q2",
+      "scoreTime": "11:16",
+      "scoreType": "FG",
+      "team": "SEA",
+      "teamID": "29"
+     },
+     {
+      "awayScore": "9",
+      "homeScore": "0",
+      "playerIDs": [
+       "2473037"
+      ],
+      "score": "Jason Myers 41 Yd Field Goal",
+      "scoreDetails": "9 plays, 34 yards, 2:39",
+      "scorePeriod": "Q2",
+      "scoreTime": "0:11",
+      "scoreType": "FG",
+      "team": "SEA",
+      "teamID": "29"
+     },
+     {
+      "awayScore": "12",
+      "homeScore": "0",
+      "playerIDs": [
+       "2473037"
+      ],
+      "score": "Jason Myers 41 Yd Field Goal ",
+      "scoreDetails": "10 plays, 69 yards, 4:50",
+      "scorePeriod": "Q3",
+      "scoreTime": "9:12",
+      "scoreType": "FG",
+      "team": "SEA",
+      "teamID": "29"
+     },
+     {
+      "awayScore": "19",
+      "homeScore": "0",
+      "playerIDs": [
+       "3912547",
+       "4576297",
+       "2473037"
+      ],
+      "score": "AJ Barner 16 Yd pass from Sam Darnold (Jason Myers Kick)",
+      "scoreDetails": "5 plays, 37 yards, 1:46",
+      "scorePeriod": "Q4",
+      "scoreTime": "13:24",
+      "scoreType": "TD",
+      "team": "SEA",
+      "teamID": "29"
+     },
+     {
+      "awayScore": "22",
+      "homeScore": "7",
+      "playerIDs": [
+       "2473037"
+      ],
+      "score": "Jason Myers 26 Yd Field Goal",
+      "scoreDetails": "6 plays, 30 yards, 3:02",
+      "scorePeriod": "Q4",
+      "scoreTime": "5:35",
+      "scoreType": "FG",
+      "team": "SEA",
+      "teamID": "29"
+     },
+     {
+      "awayScore": "29",
+      "homeScore": "7",
+      "playerIDs": [
+       "2473037",
+       "3120358"
+      ],
+      "score": "Uchenna Nwosu 45 Yd Interception Return (Jason Myers Kick)",
+      "scoreDetails": "4 plays, 18 yards, 1:08",
+      "scorePeriod": "Q4",
+      "scoreTime": "4:27",
+      "scoreType": "TD",
+      "team": "SEA",
+      "teamID": "29"
+     }
+    ],
+    "team": "SEA",
+    "teamAbv": "SEA",
+    "teamID": "29"
+   },
+   "2971622": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "0",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Leonard Williams",
+    "playerID": "2971622",
+    "team": "SEA",
+    "teamAbv": "SEA",
+    "teamID": "29"
+   },
+   "2975863": {
+    "gameID": "20260208_SEA@NE",
+    "longName": "Eric Saubert",
+    "playerID": "2975863",
+    "team": "SEA",
+    "teamAbv": "SEA",
+    "teamID": "29"
+   },
+   "2976212": {
+    "Receiving": {
+     "longRec": "26",
+     "recAvg": "12.3",
+     "recTD": "0",
+     "recYds": "37",
+     "receptions": "3",
+     "targets": "3"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Stefon Diggs",
+    "playerID": "2976212",
+    "team": "NE",
+    "teamAbv": "NE",
+    "teamID": "22"
+   },
+   "2977187": {
+    "Receiving": {
+     "longRec": "23",
+     "recAvg": "10.2",
+     "recTD": "0",
+     "recYds": "61",
+     "receptions": "6",
+     "targets": "12"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Cooper Kupp",
+    "playerID": "2977187",
+    "team": "SEA",
+    "teamAbv": "SEA",
+    "teamID": "29"
+   },
+   "2991662": {
+    "Receiving": {
+     "longRec": "35",
+     "recAvg": "19.5",
+     "recTD": "1",
+     "recYds": "78",
+     "receptions": "4",
+     "targets": "8"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Mack Hollins",
+    "playerID": "2991662",
+    "scoringPlays": [
+     {
+      "awayScore": "19",
+      "homeScore": "7",
+      "playerIDs": [
+       "4431452",
+       "2991662",
+       "4569923"
+      ],
+      "score": "Mack Hollins 35 Yd pass from Drake Maye (Andy Borregales Kick)",
+      "scoreDetails": "3 plays, 65 yards, 0:57",
+      "scorePeriod": "Q4",
+      "scoreTime": "12:27",
+      "scoreType": "TD",
+      "team": "NE",
+      "teamID": "22"
+     }
+    ],
+    "team": "NE",
+    "teamAbv": "NE",
+    "teamID": "22"
+   },
+   "3043275": {
+    "Receiving": {
+     "longRec": "5",
+     "recAvg": "5.0",
+     "recTD": "0",
+     "recYds": "10",
+     "receptions": "2",
+     "targets": "3"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Austin Hooper",
+    "playerID": "3043275",
+    "team": "NE",
+    "teamAbv": "NE",
+    "teamID": "22"
+   },
+   "3046439": {
+    "Receiving": {
+     "longRec": "16",
+     "recAvg": "10.3",
+     "recTD": "0",
+     "recYds": "31",
+     "receptions": "3",
+     "targets": "5"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Hunter Henry",
+    "playerID": "3046439",
+    "team": "NE",
+    "teamAbv": "NE",
+    "teamID": "22"
+   },
+   "3115312": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "0",
+     "tfl": "0",
+     "totalTackles": "2"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Jarran Reed",
+    "playerID": "3115312",
+    "team": "SEA",
+    "teamAbv": "SEA",
+    "teamID": "29"
+   },
+   "3116729": {
+    "gameID": "20260208_SEA@NE",
+    "longName": "Garrett Bradbury",
+    "playerID": "3116729",
+    "team": "NE",
+    "teamAbv": "NE",
+    "teamID": "22"
+   },
+   "3120358": {
+    "Defense": {
+     "defTD": "1",
+     "defensiveInterceptions": "1",
+     "defensiveInterceptionsYards": "45",
+     "forcedFumbles": "0",
+     "interceptionTDs": "1",
+     "passDeflections": "1",
+     "qbHits": "1",
+     "sacks": "0",
+     "soloTackles": "0",
+     "tfl": "0",
+     "totalTackles": "0"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Uchenna Nwosu",
+    "playerID": "3120358",
+    "scoringPlays": [
+     {
+      "awayScore": "29",
+      "homeScore": "7",
+      "playerIDs": [
+       "2473037",
+       "3120358"
+      ],
+      "score": "Uchenna Nwosu 45 Yd Interception Return (Jason Myers Kick)",
+      "scoreDetails": "4 plays, 18 yards, 1:08",
+      "scorePeriod": "Q4",
+      "scoreTime": "4:27",
+      "scoreType": "TD",
+      "team": "SEA",
+      "teamID": "29"
+     }
+    ],
+    "team": "SEA",
+    "teamAbv": "SEA",
+    "teamID": "29"
+   },
+   "3122793": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "1",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Harold Landry III",
+    "playerID": "3122793",
+    "team": "NE",
+    "teamAbv": "NE",
+    "teamID": "22"
+   },
+   "3124587": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "0",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Jahlani Tavai",
+    "playerID": "3124587",
+    "team": "NE",
+    "teamAbv": "NE",
+    "teamID": "22"
+   },
+   "3129446": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "4"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Robert Spillane",
+    "playerID": "3129446",
+    "team": "NE",
+    "teamAbv": "NE",
+    "teamID": "22"
+   },
+   "3139602": {
+    "Kicking": {
+     "kickReturnAvg": "25.8",
+     "kickReturnLong": "28",
+     "kickReturnTD": "0",
+     "kickReturnYds": "103",
+     "kickReturns": "4"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "D'Ernest Johnson",
+    "playerID": "3139602",
+    "team": "NE",
+    "teamAbv": "NE",
+    "teamID": "22"
+   },
+   "3858276": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "1",
+     "sacks": "0",
+     "soloTackles": "4",
+     "tfl": "0",
+     "totalTackles": "5"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Jaylinn Hawkins",
+    "playerID": "3858276",
+    "team": "NE",
+    "teamAbv": "NE",
+    "teamID": "22"
+   },
+   "3912547": {
+    "Passing": {
+     "int": "0",
+     "passAttempts": "38",
+     "passAvg": "5.3",
+     "passCompletions": "19",
+     "passTD": "1",
+     "passYds": "202",
+     "qbr": "53.0",
+     "rtg": "74.7",
+     "sacked": "1-8"
+    },
+    "Rushing": {
+     "carries": "2",
+     "longRush": "11",
+     "rushAvg": "2.5",
+     "rushTD": "0",
+     "rushYds": "5"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Sam Darnold",
+    "playerID": "3912547",
+    "scoringPlays": [
+     {
+      "awayScore": "19",
+      "homeScore": "0",
+      "playerIDs": [
+       "3912547",
+       "4576297",
+       "2473037"
+      ],
+      "score": "AJ Barner 16 Yd pass from Sam Darnold (Jason Myers Kick)",
+      "scoreDetails": "5 plays, 37 yards, 1:46",
+      "scorePeriod": "Q4",
+      "scoreTime": "13:24",
+      "scoreType": "TD",
+      "team": "SEA",
+      "teamID": "29"
+     }
+    ],
+    "team": "SEA",
+    "teamAbv": "SEA",
+    "teamID": "29"
+   },
+   "3914630": {
+    "gameID": "20260208_SEA@NE",
+    "longName": "Josh Jones",
+    "playerID": "3914630",
+    "team": "SEA",
+    "teamAbv": "SEA",
+    "teamID": "29"
+   },
+   "3916923": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "5",
+     "tfl": "0",
+     "totalTackles": "6"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Carlton Davis III",
+    "playerID": "3916923",
+    "team": "NE",
+    "teamAbv": "NE",
+    "teamID": "22"
+   },
+   "3925350": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "1",
+     "qbHits": "1",
+     "sacks": "0",
+     "soloTackles": "4",
+     "tfl": "1",
+     "totalTackles": "6"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Anfernee Jennings",
+    "playerID": "3925350",
+    "team": "NE",
+    "teamAbv": "NE",
+    "teamID": "22"
+   },
+   "3929851": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "Punting": {
+     "puntAvg": "47.9",
+     "puntLong": "55",
+     "puntTouchBacks": "0",
+     "puntYds": "335",
+     "punts": "7",
+     "puntsin20": "3"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Michael Dickson",
+    "playerID": "3929851",
+    "team": "SEA",
+    "teamAbv": "SEA",
+    "teamID": "29"
+   },
+   "4032473": {
+    "Kicking": {
+     "kickReturnAvg": "20.0",
+     "kickReturnLong": "20",
+     "kickReturnTD": "0",
+     "kickReturnYds": "20",
+     "kickReturns": "1"
+    },
+    "Punting": {
+     "puntReturnAvg": "8.0",
+     "puntReturnLong": "10",
+     "puntReturnTD": "0",
+     "puntReturnYds": "16",
+     "puntReturns": "2"
+    },
+    "Receiving": {
+     "longRec": "16",
+     "recAvg": "13.5",
+     "recTD": "0",
+     "recYds": "27",
+     "receptions": "2",
+     "targets": "5"
+    },
+    "Rushing": {
+     "carries": "1",
+     "longRush": "-5",
+     "rushAvg": "-5.0",
+     "rushTD": "0",
+     "rushYds": "-5"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Rashid Shaheed",
+    "playerID": "4032473",
+    "team": "SEA",
+    "teamAbv": "SEA",
+    "teamID": "29"
+   },
+   "4035693": {
+    "gameID": "20260208_SEA@NE",
+    "longName": "Velus Jones Jr.",
+    "playerID": "4035693",
+    "team": "SEA",
+    "teamAbv": "SEA",
+    "teamID": "29"
+   },
+   "4046545": {
+    "gameID": "20260208_SEA@NE",
+    "longName": "Mike Onwenu",
+    "playerID": "4046545",
+    "team": "NE",
+    "teamAbv": "NE",
+    "teamID": "22"
+   },
+   "4046675": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "1",
+     "defensiveInterceptionsYards": "35",
+     "forcedFumbles": "0",
+     "interceptionTDs": "0",
+     "passDeflections": "1",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "2",
+     "tfl": "0",
+     "totalTackles": "3"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Julian Love",
+    "playerID": "4046675",
+    "team": "SEA",
+    "teamAbv": "SEA",
+    "teamID": "29"
+   },
+   "4047941": {
+    "gameID": "20260208_SEA@NE",
+    "longName": "Brenden Schooler",
+    "playerID": "4047941",
+    "team": "NE",
+    "teamAbv": "NE",
+    "teamID": "22"
+   },
+   "4239094": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "1",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "3",
+     "tfl": "0",
+     "totalTackles": "4"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Coby Bryant",
+    "playerID": "4239094",
+    "team": "SEA",
+    "teamAbv": "SEA",
+    "teamID": "29"
+   },
+   "4239699": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "1",
+     "qbHits": "1",
+     "sacks": "1",
+     "soloTackles": "2",
+     "tfl": "2",
+     "totalTackles": "2"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Milton Williams",
+    "playerID": "4239699",
+    "team": "NE",
+    "teamAbv": "NE",
+    "teamID": "22"
+   },
+   "4240021": {
+    "gameID": "20260208_SEA@NE",
+    "longName": "Cam Akers",
+    "playerID": "4240021",
+    "team": "SEA",
+    "teamAbv": "SEA",
+    "teamID": "29"
+   },
+   "4240042": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "0",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Cory Durden",
+    "playerID": "4240042",
+    "team": "NE",
+    "teamAbv": "NE",
+    "teamID": "22"
+   },
+   "4240545": {
+    "Punting": {
+     "puntAvg": "44.5",
+     "puntLong": "55",
+     "puntTouchBacks": "0",
+     "puntYds": "356",
+     "punts": "8",
+     "puntsin20": "4"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Bryce Baringer",
+    "playerID": "4240545",
+    "team": "NE",
+    "teamAbv": "NE",
+    "teamID": "22"
+   },
+   "4240554": {
+    "gameID": "20260208_SEA@NE",
+    "longName": "Vederian Lowe",
+    "playerID": "4240554",
+    "team": "NE",
+    "teamAbv": "NE",
+    "teamID": "22"
+   },
+   "4240754": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "1",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Boye Mafe",
+    "playerID": "4240754",
+    "team": "SEA",
+    "teamAbv": "SEA",
+    "teamID": "29"
+   },
+   "4241720": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "7",
+     "tfl": "0",
+     "totalTackles": "7"
+    },
+    "Punting": {
+     "puntReturnAvg": "2.0",
+     "puntReturnLong": "4",
+     "puntReturnTD": "0",
+     "puntReturnYds": "4",
+     "puntReturns": "2"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Marcus Jones",
+    "playerID": "4241720",
+    "team": "NE",
+    "teamAbv": "NE",
+    "teamID": "22"
+   },
+   "4242001": {
+    "gameID": "20260208_SEA@NE",
+    "longName": "Thayer Munford Jr.",
+    "playerID": "4242001",
+    "team": "NE",
+    "teamAbv": "NE",
+    "teamID": "22"
+   },
+   "4242205": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "1",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "1",
+     "totalTackles": "1"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "K'Lavon Chaisson",
+    "playerID": "4242205",
+    "team": "NE",
+    "teamAbv": "NE",
+    "teamID": "22"
+   },
+   "4243176": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "0",
+     "tfl": "0",
+     "totalTackles": "2"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Brady Russell",
+    "playerID": "4243176",
+    "team": "SEA",
+    "teamAbv": "SEA",
+    "teamID": "29"
+   },
+   "4245171": {
+    "gameID": "20260208_SEA@NE",
+    "longName": "Abraham Lucas",
+    "playerID": "4245171",
+    "team": "SEA",
+    "teamAbv": "SEA",
+    "teamID": "29"
+   },
+   "4245185": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "4",
+     "tfl": "0",
+     "totalTackles": "4"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Riq Woolen",
+    "playerID": "4245185",
+    "team": "SEA",
+    "teamAbv": "SEA",
+    "teamID": "29"
+   },
+   "4245273": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "1",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "3"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Christian Elliss",
+    "playerID": "4245273",
+    "team": "NE",
+    "teamAbv": "NE",
+    "teamID": "22"
+   },
+   "4247808": {
+    "gameID": "20260208_SEA@NE",
+    "longName": "Ty Okada",
+    "playerID": "4247808",
+    "team": "SEA",
+    "teamAbv": "SEA",
+    "teamID": "29"
+   },
+   "4248899": {
+    "gameID": "20260208_SEA@NE",
+    "longName": "Marte Mapu",
+    "playerID": "4248899",
+    "team": "NE",
+    "teamAbv": "NE",
+    "teamID": "22"
+   },
+   "4249739": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "3",
+     "tfl": "0",
+     "totalTackles": "4"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Jack Gibbens",
+    "playerID": "4249739",
+    "team": "NE",
+    "teamAbv": "NE",
+    "teamID": "22"
+   },
+   "4256074": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "0",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Khyiris Tonga",
+    "playerID": "4256074",
+    "team": "NE",
+    "teamAbv": "NE",
+    "teamID": "22"
+   },
+   "4259606": {
+    "gameID": "20260208_SEA@NE",
+    "longName": "Chris Stoll",
+    "playerID": "4259606",
+    "team": "SEA",
+    "teamAbv": "SEA",
+    "teamID": "29"
+   },
+   "4360405": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "0",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Jake Bobo",
+    "playerID": "4360405",
+    "team": "SEA",
+    "teamAbv": "SEA",
+    "teamID": "29"
+   },
+   "4361100": {
+    "gameID": "20260208_SEA@NE",
+    "longName": "Jack Westover",
+    "playerID": "4361100",
+    "team": "NE",
+    "teamAbv": "NE",
+    "teamID": "22"
+   },
+   "4361707": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Chad Muma",
+    "playerID": "4361707",
+    "team": "NE",
+    "teamAbv": "NE",
+    "teamID": "22"
+   },
+   "4362135": {
+    "gameID": "20260208_SEA@NE",
+    "longName": "Christian Haynes",
+    "playerID": "4362135",
+    "team": "SEA",
+    "teamAbv": "SEA",
+    "teamID": "29"
+   },
+   "4362851": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "10",
+     "tfl": "1",
+     "totalTackles": "11"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Ernest Jones IV",
+    "playerID": "4362851",
+    "team": "SEA",
+    "teamAbv": "SEA",
+    "teamID": "29"
+   },
+   "4362890": {
+    "gameID": "20260208_SEA@NE",
+    "longName": "Ben Brown",
+    "playerID": "4362890",
+    "team": "NE",
+    "teamAbv": "NE",
+    "teamID": "22"
+   },
+   "4364623": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "0",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Patrick O'Connell",
+    "playerID": "4364623",
+    "team": "SEA",
+    "teamAbv": "SEA",
+    "teamID": "29"
+   },
+   "4368113": {
+    "gameID": "20260208_SEA@NE",
+    "longName": "Charles Woods",
+    "playerID": "4368113",
+    "team": "NE",
+    "teamAbv": "NE",
+    "teamID": "22"
+   },
+   "4370807": {
+    "gameID": "20260208_SEA@NE",
+    "longName": "Olu Oluwatimi",
+    "playerID": "4370807",
+    "team": "SEA",
+    "teamAbv": "SEA",
+    "teamID": "29"
+   },
+   "4372020": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "1",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "6",
+     "tfl": "1",
+     "totalTackles": "7"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Josh Jobe",
+    "playerID": "4372020",
+    "team": "SEA",
+    "teamAbv": "SEA",
+    "teamID": "29"
+   },
+   "4372030": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "2",
+     "tfl": "0",
+     "totalTackles": "3"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Christian Barmore",
+    "playerID": "4372030",
+    "team": "NE",
+    "teamAbv": "NE",
+    "teamID": "22"
+   },
+   "4383409": {
+    "gameID": "20260208_SEA@NE",
+    "longName": "Jalen Sundell",
+    "playerID": "4383409",
+    "team": "SEA",
+    "teamAbv": "SEA",
+    "teamID": "29"
+   },
+   "4401805": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Dareke Young",
+    "playerID": "4401805",
+    "team": "SEA",
+    "teamAbv": "SEA",
+    "teamID": "29"
+   },
+   "4426376": {
+    "gameID": "20260208_SEA@NE",
+    "longName": "Charles Cross",
+    "playerID": "4426376",
+    "team": "SEA",
+    "teamAbv": "SEA",
+    "teamID": "29"
+   },
+   "4426599": {
+    "gameID": "20260208_SEA@NE",
+    "longName": "Alex Austin",
+    "playerID": "4426599",
+    "team": "NE",
+    "teamAbv": "NE",
+    "teamID": "22"
+   },
+   "4427095": {
+    "Receiving": {
+     "longRec": "11",
+     "recAvg": "9.0",
+     "recTD": "0",
+     "recYds": "45",
+     "receptions": "5",
+     "targets": "7"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "DeMario Douglas",
+    "playerID": "4427095",
+    "team": "NE",
+    "teamAbv": "NE",
+    "teamID": "22"
+   },
+   "4428232": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "2"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Dell Pettus",
+    "playerID": "4428232",
+    "team": "NE",
+    "teamAbv": "NE",
+    "teamID": "22"
+   },
+   "4428659": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "3",
+     "tfl": "0",
+     "totalTackles": "6"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Drake Thomas",
+    "playerID": "4428659",
+    "team": "SEA",
+    "teamAbv": "SEA",
+    "teamID": "29"
+   },
+   "4428930": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "2",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "7",
+     "tfl": "3",
+     "totalTackles": "10"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Craig Woodson",
+    "playerID": "4428930",
+    "team": "NE",
+    "teamAbv": "NE",
+    "teamID": "22"
+   },
+   "4429022": {
+    "Receiving": {
+     "longRec": "21",
+     "recAvg": "21.0",
+     "recTD": "0",
+     "recYds": "21",
+     "receptions": "1",
+     "targets": "5"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Kayshon Boutte",
+    "playerID": "4429022",
+    "team": "NE",
+    "teamAbv": "NE",
+    "teamID": "22"
+   },
+   "4429211": {
+    "gameID": "20260208_SEA@NE",
+    "longName": "Anthony Bradford",
+    "playerID": "4429211",
+    "team": "SEA",
+    "teamAbv": "SEA",
+    "teamID": "29"
+   },
+   "4429835": {
+    "Receiving": {
+     "longRec": "7",
+     "recAvg": "7.0",
+     "recTD": "0",
+     "recYds": "7",
+     "receptions": "1",
+     "targets": "1"
+    },
+    "Rushing": {
+     "carries": "2",
+     "longRush": "5",
+     "rushAvg": "3.0",
+     "rushTD": "0",
+     "rushYds": "6"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "George Holani",
+    "playerID": "4429835",
+    "team": "SEA",
+    "teamAbv": "SEA",
+    "teamID": "29"
+   },
+   "4430838": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "1",
+     "sacks": "1",
+     "soloTackles": "1",
+     "tfl": "1",
+     "totalTackles": "1"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Rylie Mills",
+    "playerID": "4430838",
+    "team": "SEA",
+    "teamAbv": "SEA",
+    "teamID": "29"
+   },
+   "4430878": {
+    "Receiving": {
+     "longRec": "16",
+     "recAvg": "6.8",
+     "recTD": "0",
+     "recYds": "27",
+     "receptions": "4",
+     "targets": "10"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Jaxon Smith-Njigba",
+    "playerID": "4430878",
+    "team": "SEA",
+    "teamAbv": "SEA",
+    "teamID": "29"
+   },
+   "4431452": {
+    "Defense": {
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "fumbles": "1",
+     "fumblesLost": "1",
+     "fumblesRecovered": "0"
+    },
+    "Passing": {
+     "int": "2",
+     "passAttempts": "43",
+     "passAvg": "6.9",
+     "passCompletions": "27",
+     "passTD": "2",
+     "passYds": "295",
+     "qbr": "16.3",
+     "rtg": "79.1",
+     "sacked": "6-43"
+    },
+    "Rushing": {
+     "carries": "5",
+     "longRush": "16",
+     "rushAvg": "7.4",
+     "rushTD": "0",
+     "rushYds": "37"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Drake Maye",
+    "playerID": "4431452",
+    "scoringPlays": [
+     {
+      "awayScore": "19",
+      "homeScore": "7",
+      "playerIDs": [
+       "4431452",
+       "2991662",
+       "4569923"
+      ],
+      "score": "Mack Hollins 35 Yd pass from Drake Maye (Andy Borregales Kick)",
+      "scoreDetails": "3 plays, 65 yards, 0:57",
+      "scorePeriod": "Q4",
+      "scoreTime": "12:27",
+      "scoreType": "TD",
+      "team": "NE",
+      "teamID": "22"
+     },
+     {
+      "awayScore": "29",
+      "homeScore": "13",
+      "playerIDs": [
+       "4431452",
+       "4569173"
+      ],
+      "score": "Rhamondre Stevenson 7 Yd pass from Drake Maye (Two-Point Pass Conversion Failed)",
+      "scoreDetails": "8 plays, 65 yards, 2:06",
+      "scorePeriod": "Q4",
+      "scoreTime": "2:21",
+      "scoreType": "TD",
+      "team": "NE",
+      "teamID": "22"
+     }
+    ],
+    "team": "NE",
+    "teamAbv": "NE",
+    "teamID": "22"
+   },
+   "4431598": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "0",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Leonard Taylor III",
+    "playerID": "4431598",
+    "team": "NE",
+    "teamAbv": "NE",
+    "teamID": "22"
+   },
+   "4432710": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "Kicking": {
+     "kickReturnAvg": "38.0",
+     "kickReturnLong": "38",
+     "kickReturnTD": "0",
+     "kickReturnYds": "38",
+     "kickReturns": "1"
+    },
+    "Receiving": {
+     "longRec": "24",
+     "recAvg": "8.7",
+     "recTD": "0",
+     "recYds": "26",
+     "receptions": "3",
+     "targets": "3"
+    },
+    "Rushing": {
+     "carries": "6",
+     "longRush": "9",
+     "rushAvg": "3.2",
+     "rushTD": "0",
+     "rushYds": "19"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "TreVeyon Henderson",
+    "playerID": "4432710",
+    "team": "NE",
+    "teamAbv": "NE",
+    "teamID": "22"
+   },
+   "4567048": {
+    "Receiving": {
+     "longRec": "20",
+     "recAvg": "13.0",
+     "recTD": "0",
+     "recYds": "26",
+     "receptions": "2",
+     "targets": "4"
+    },
+    "Rushing": {
+     "carries": "27",
+     "longRush": "30",
+     "rushAvg": "5.0",
+     "rushTD": "0",
+     "rushYds": "135"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Kenneth Walker III",
+    "playerID": "4567048",
+    "team": "SEA",
+    "teamAbv": "SEA",
+    "teamID": "29"
+   },
+   "4567222": {
+    "gameID": "20260208_SEA@NE",
+    "longName": "Nehemiah Pritchett",
+    "playerID": "4567222",
+    "team": "SEA",
+    "teamAbv": "SEA",
+    "teamID": "29"
+   },
+   "4567226": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "1",
+     "passDeflections": "0",
+     "qbHits": "2",
+     "sacks": "2",
+     "soloTackles": "2",
+     "tfl": "2",
+     "totalTackles": "2"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Derick Hall",
+    "playerID": "4567226",
+    "team": "SEA",
+    "teamAbv": "SEA",
+    "teamID": "29"
+   },
+   "4569173": {
+    "Receiving": {
+     "longRec": "13",
+     "recAvg": "8.0",
+     "recTD": "1",
+     "recYds": "40",
+     "receptions": "5",
+     "targets": "5"
+    },
+    "Rushing": {
+     "carries": "7",
+     "longRush": "6",
+     "rushAvg": "3.3",
+     "rushTD": "0",
+     "rushYds": "23"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Rhamondre Stevenson",
+    "playerID": "4569173",
+    "scoringPlays": [
+     {
+      "awayScore": "29",
+      "homeScore": "13",
+      "playerIDs": [
+       "4431452",
+       "4569173"
+      ],
+      "score": "Rhamondre Stevenson 7 Yd pass from Drake Maye (Two-Point Pass Conversion Failed)",
+      "scoreDetails": "8 plays, 65 yards, 2:06",
+      "scorePeriod": "Q4",
+      "scoreTime": "2:21",
+      "scoreType": "TD",
+      "team": "NE",
+      "teamID": "22"
+     }
+    ],
+    "team": "NE",
+    "teamAbv": "NE",
+    "teamID": "22"
+   },
+   "4569923": {
+    "Kicking": {
+     "fgAttempts": "0",
+     "fgLong": "0",
+     "fgMade": "0",
+     "fgMissed": "0",
+     "fgPct": "0.0",
+     "kickingPts": "1",
+     "xpAttempts": "1",
+     "xpMade": "1",
+     "xpMissed": "0"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Andy Borregales",
+    "playerID": "4569923",
+    "scoringPlays": [
+     {
+      "awayScore": "19",
+      "homeScore": "7",
+      "playerIDs": [
+       "4431452",
+       "2991662",
+       "4569923"
+      ],
+      "score": "Mack Hollins 35 Yd pass from Drake Maye (Andy Borregales Kick)",
+      "scoreDetails": "3 plays, 65 yards, 0:57",
+      "scorePeriod": "Q4",
+      "scoreTime": "12:27",
+      "scoreType": "TD",
+      "team": "NE",
+      "teamID": "22"
+     }
+    ],
+    "team": "NE",
+    "teamAbv": "NE",
+    "teamID": "22"
+   },
+   "4570040": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "fumbles": "0",
+     "fumblesLost": "0",
+     "fumblesRecovered": "1",
+     "passDeflections": "0",
+     "qbHits": "2",
+     "sacks": "2",
+     "soloTackles": "2",
+     "tfl": "2",
+     "totalTackles": "2"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Byron Murphy II",
+    "playerID": "4570040",
+    "team": "SEA",
+    "teamAbv": "SEA",
+    "teamID": "29"
+   },
+   "4572055": {
+    "gameID": "20260208_SEA@NE",
+    "longName": "Mike Morris",
+    "playerID": "4572055",
+    "team": "SEA",
+    "teamAbv": "SEA",
+    "teamID": "29"
+   },
+   "4575431": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "1",
+     "qbHits": "3",
+     "sacks": "1",
+     "soloTackles": "4",
+     "tfl": "1",
+     "totalTackles": "4"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Devon Witherspoon",
+    "playerID": "4575431",
+    "team": "SEA",
+    "teamAbv": "SEA",
+    "teamID": "29"
+   },
+   "4576297": {
+    "Receiving": {
+     "longRec": "16",
+     "recAvg": "13.5",
+     "recTD": "1",
+     "recYds": "54",
+     "receptions": "4",
+     "targets": "4"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "AJ Barner",
+    "playerID": "4576297",
+    "scoringPlays": [
+     {
+      "awayScore": "19",
+      "homeScore": "0",
+      "playerIDs": [
+       "3912547",
+       "4576297",
+       "2473037"
+      ],
+      "score": "AJ Barner 16 Yd pass from Sam Darnold (Jason Myers Kick)",
+      "scoreDetails": "5 plays, 37 yards, 1:46",
+      "scorePeriod": "Q4",
+      "scoreTime": "13:24",
+      "scoreType": "TD",
+      "team": "SEA",
+      "teamID": "29"
+     }
+    ],
+    "team": "SEA",
+    "teamAbv": "SEA",
+    "teamID": "29"
+   },
+   "4599198": {
+    "gameID": "20260208_SEA@NE",
+    "longName": "Jared Wilson",
+    "playerID": "4599198",
+    "team": "NE",
+    "teamAbv": "NE",
+    "teamID": "22"
+   },
+   "4605491": {
+    "gameID": "20260208_SEA@NE",
+    "longName": "Connor O'Toole",
+    "playerID": "4605491",
+    "team": "SEA",
+    "teamAbv": "SEA",
+    "teamID": "29"
+   },
+   "4613202": {
+    "Receiving": {
+     "longRec": "7",
+     "recAvg": "7.0",
+     "recTD": "0",
+     "recYds": "7",
+     "receptions": "1",
+     "targets": "2"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Kyle Williams",
+    "playerID": "4613202",
+    "team": "NE",
+    "teamAbv": "NE",
+    "teamID": "22"
+   },
+   "4678006": {
+    "gameID": "20260208_SEA@NE",
+    "longName": "Elijah Arroyo",
+    "playerID": "4678006",
+    "team": "SEA",
+    "teamAbv": "SEA",
+    "teamID": "29"
+   },
+   "4685298": {
+    "gameID": "20260208_SEA@NE",
+    "longName": "Will Campbell",
+    "playerID": "4685298",
+    "team": "NE",
+    "teamAbv": "NE",
+    "teamID": "22"
+   },
+   "4686540": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Tyrice Knight",
+    "playerID": "4686540",
+    "team": "SEA",
+    "teamAbv": "SEA",
+    "teamID": "29"
+   },
+   "4686772": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "3",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "4",
+     "tfl": "0",
+     "totalTackles": "4"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Christian Gonzalez",
+    "playerID": "4686772",
+    "team": "NE",
+    "teamAbv": "NE",
+    "teamID": "22"
+   },
+   "4688432": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Elijah Ponder",
+    "playerID": "4688432",
+    "team": "NE",
+    "teamAbv": "NE",
+    "teamID": "22"
+   },
+   "4693346": {
+    "gameID": "20260208_SEA@NE",
+    "longName": "Grey Zabel",
+    "playerID": "4693346",
+    "team": "SEA",
+    "teamAbv": "SEA",
+    "teamID": "29"
+   },
+   "4695254": {
+    "gameID": "20260208_SEA@NE",
+    "longName": "Julian Ashby",
+    "playerID": "4695254",
+    "team": "NE",
+    "teamAbv": "NE",
+    "teamID": "22"
+   },
+   "4869523": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "4",
+     "tfl": "0",
+     "totalTackles": "5"
+    },
+    "gameID": "20260208_SEA@NE",
+    "longName": "Nick Emmanwori",
+    "playerID": "4869523",
+    "team": "SEA",
+    "teamAbv": "SEA",
+    "teamID": "29"
+   }
+  },
+  "scoringPlays": [
+   {
+    "awayScore": "3",
+    "homeScore": "0",
+    "playerIDs": [
+     "2473037"
+    ],
+    "score": "Jason Myers 33 Yd Field Goal",
+    "scoreDetails": "8 plays, 51 yards, 3:02",
+    "scorePeriod": "Q1",
+    "scoreTime": "11:58",
+    "scoreType": "FG",
+    "team": "SEA",
+    "teamID": "29"
+   },
+   {
+    "awayScore": "6",
+    "homeScore": "0",
+    "playerIDs": [
+     "2473037"
+    ],
+    "score": "Jason Myers 39 Yd Field Goal",
+    "scoreDetails": "8 plays, 55 yards, 2:54",
+    "scorePeriod": "Q2",
+    "scoreTime": "11:16",
+    "scoreType": "FG",
+    "team": "SEA",
+    "teamID": "29"
+   },
+   {
+    "awayScore": "9",
+    "homeScore": "0",
+    "playerIDs": [
+     "2473037"
+    ],
+    "score": "Jason Myers 41 Yd Field Goal",
+    "scoreDetails": "9 plays, 34 yards, 2:39",
+    "scorePeriod": "Q2",
+    "scoreTime": "0:11",
+    "scoreType": "FG",
+    "team": "SEA",
+    "teamID": "29"
+   },
+   {
+    "awayScore": "12",
+    "homeScore": "0",
+    "playerIDs": [
+     "2473037"
+    ],
+    "score": "Jason Myers 41 Yd Field Goal ",
+    "scoreDetails": "10 plays, 69 yards, 4:50",
+    "scorePeriod": "Q3",
+    "scoreTime": "9:12",
+    "scoreType": "FG",
+    "team": "SEA",
+    "teamID": "29"
+   },
+   {
+    "awayScore": "19",
+    "homeScore": "0",
+    "playerIDs": [
+     "3912547",
+     "4576297",
+     "2473037"
+    ],
+    "score": "AJ Barner 16 Yd pass from Sam Darnold (Jason Myers Kick)",
+    "scoreDetails": "5 plays, 37 yards, 1:46",
+    "scorePeriod": "Q4",
+    "scoreTime": "13:24",
+    "scoreType": "TD",
+    "team": "SEA",
+    "teamID": "29"
+   },
+   {
+    "awayScore": "19",
+    "homeScore": "7",
+    "playerIDs": [
+     "4431452",
+     "2991662",
+     "4569923"
+    ],
+    "score": "Mack Hollins 35 Yd pass from Drake Maye (Andy Borregales Kick)",
+    "scoreDetails": "3 plays, 65 yards, 0:57",
+    "scorePeriod": "Q4",
+    "scoreTime": "12:27",
+    "scoreType": "TD",
+    "team": "NE",
+    "teamID": "22"
+   },
+   {
+    "awayScore": "22",
+    "homeScore": "7",
+    "playerIDs": [
+     "2473037"
+    ],
+    "score": "Jason Myers 26 Yd Field Goal",
+    "scoreDetails": "6 plays, 30 yards, 3:02",
+    "scorePeriod": "Q4",
+    "scoreTime": "5:35",
+    "scoreType": "FG",
+    "team": "SEA",
+    "teamID": "29"
+   },
+   {
+    "awayScore": "29",
+    "homeScore": "7",
+    "playerIDs": [
+     "2473037",
+     "3120358"
+    ],
+    "score": "Uchenna Nwosu 45 Yd Interception Return (Jason Myers Kick)",
+    "scoreDetails": "4 plays, 18 yards, 1:08",
+    "scorePeriod": "Q4",
+    "scoreTime": "4:27",
+    "scoreType": "TD",
+    "team": "SEA",
+    "teamID": "29"
+   },
+   {
+    "awayScore": "29",
+    "homeScore": "13",
+    "playerIDs": [
+     "4431452",
+     "4569173"
+    ],
+    "score": "Rhamondre Stevenson 7 Yd pass from Drake Maye (Two-Point Pass Conversion Failed)",
+    "scoreDetails": "8 plays, 65 yards, 2:06",
+    "scorePeriod": "Q4",
+    "scoreTime": "2:21",
+    "scoreType": "TD",
+    "team": "NE",
+    "teamID": "22"
+   }
+  ],
+  "teamIDAway": "29",
+  "teamIDHome": "22",
+  "teamStats": {
+   "away": {
+    "defensiveOrSpecialTeamsTds": "1",
+    "defensiveTwoPointConversionReturns": "0",
+    "fumblesLost": "0",
+    "interceptionsThrown": "0",
+    "sacksAndYardsLost": "1-8",
+    "safeties": "0",
+    "teamAbv": "SEA",
+    "teamID": "29",
+    "totalYards": "335"
+   },
+   "home": {
+    "defensiveOrSpecialTeamsTds": "0",
+    "defensiveTwoPointConversionReturns": "0",
+    "fumblesLost": "1",
+    "interceptionsThrown": "2",
+    "sacksAndYardsLost": "6-43",
+    "safeties": "0",
+    "teamAbv": "NE",
+    "teamID": "22",
+    "totalYards": "331"
+   }
+  }
+ }
+}

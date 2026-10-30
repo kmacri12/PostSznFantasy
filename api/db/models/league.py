@@ -262,49 +262,13 @@ class LeagueSettings(Base):
     scoring_special_punt_return_yard: Mapped[Decimal] = mapped_column(
         Numeric(6, 2), nullable=False
     )
-    scoring_special_punt_return_td: Mapped[Decimal] = mapped_column(
-        Numeric(6, 2), nullable=False
-    )
     scoring_special_kick_return_yard: Mapped[Decimal] = mapped_column(
-        Numeric(6, 2), nullable=False
-    )
-    scoring_special_kick_return_td: Mapped[Decimal] = mapped_column(
         Numeric(6, 2), nullable=False
     )
     scoring_kicking_fg_made: Mapped[Decimal] = mapped_column(
         Numeric(6, 2), nullable=False
     )
     scoring_kicking_fg_miss: Mapped[Decimal] = mapped_column(
-        Numeric(6, 2), nullable=False
-    )
-    scoring_kicking_fg_miss_0_19: Mapped[Decimal] = mapped_column(
-        Numeric(6, 2), nullable=False
-    )
-    scoring_kicking_fg_miss_20_29: Mapped[Decimal] = mapped_column(
-        Numeric(6, 2), nullable=False
-    )
-    scoring_kicking_fg_miss_30_39: Mapped[Decimal] = mapped_column(
-        Numeric(6, 2), nullable=False
-    )
-    scoring_kicking_fg_miss_40_49: Mapped[Decimal] = mapped_column(
-        Numeric(6, 2), nullable=False
-    )
-    scoring_kicking_fg_miss_50_plus: Mapped[Decimal] = mapped_column(
-        Numeric(6, 2), nullable=False
-    )
-    scoring_kicking_fg_made_0_19: Mapped[Decimal] = mapped_column(
-        Numeric(6, 2), nullable=False
-    )
-    scoring_kicking_fg_made_20_29: Mapped[Decimal] = mapped_column(
-        Numeric(6, 2), nullable=False
-    )
-    scoring_kicking_fg_made_30_39: Mapped[Decimal] = mapped_column(
-        Numeric(6, 2), nullable=False
-    )
-    scoring_kicking_fg_made_40_49: Mapped[Decimal] = mapped_column(
-        Numeric(6, 2), nullable=False
-    )
-    scoring_kicking_fg_made_50_plus: Mapped[Decimal] = mapped_column(
         Numeric(6, 2), nullable=False
     )
     scoring_kicking_fg_yard: Mapped[Decimal] = mapped_column(
@@ -320,22 +284,16 @@ class LeagueSettings(Base):
     scoring_dst_pts_allowed_0: Mapped[Decimal] = mapped_column(
         Numeric(6, 2), nullable=False
     )
-    scoring_dst_pts_allowed_1_6: Mapped[Decimal] = mapped_column(
+    scoring_dst_pts_allowed_1_13: Mapped[Decimal] = mapped_column(
         Numeric(6, 2), nullable=False
     )
-    scoring_dst_pts_allowed_7_13: Mapped[Decimal] = mapped_column(
+    scoring_dst_pts_allowed_14_21: Mapped[Decimal] = mapped_column(
         Numeric(6, 2), nullable=False
     )
-    scoring_dst_pts_allowed_14_20: Mapped[Decimal] = mapped_column(
+    scoring_dst_pts_allowed_22_28: Mapped[Decimal] = mapped_column(
         Numeric(6, 2), nullable=False
     )
-    scoring_dst_pts_allowed_21_27: Mapped[Decimal] = mapped_column(
-        Numeric(6, 2), nullable=False
-    )
-    scoring_dst_pts_allowed_28_34: Mapped[Decimal] = mapped_column(
-        Numeric(6, 2), nullable=False
-    )
-    scoring_dst_pts_allowed_35_plus: Mapped[Decimal] = mapped_column(
+    scoring_dst_pts_allowed_29_plus: Mapped[Decimal] = mapped_column(
         Numeric(6, 2), nullable=False
     )
     scoring_dst_yards_allowed_under_100: Mapped[Decimal] = mapped_column(
@@ -347,13 +305,7 @@ class LeagueSettings(Base):
     scoring_dst_yards_allowed_200_299: Mapped[Decimal] = mapped_column(
         Numeric(6, 2), nullable=False
     )
-    scoring_dst_yards_allowed_300_399: Mapped[Decimal] = mapped_column(
-        Numeric(6, 2), nullable=False
-    )
-    scoring_dst_yards_allowed_400_499: Mapped[Decimal] = mapped_column(
-        Numeric(6, 2), nullable=False
-    )
-    scoring_dst_yards_allowed_500_plus: Mapped[Decimal] = mapped_column(
+    scoring_dst_yards_allowed_300_plus: Mapped[Decimal] = mapped_column(
         Numeric(6, 2), nullable=False
     )
     scoring_dst_sack: Mapped[Decimal] = mapped_column(Numeric(6, 2), nullable=False)

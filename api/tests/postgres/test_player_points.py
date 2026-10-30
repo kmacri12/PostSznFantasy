@@ -24,8 +24,8 @@ async def test_fantasy_points_follow_the_leagues_scoring(
 
     async with client_as("uid-0") as member:
         default = (await member.get(url)).json()[0]
-        # 4000 * 0.04 + 30 * 4 - 10 = 270 under the Sleeper defaults.
-        assert default["fantasyPoints"] == 270.0
+        # 4000 * 0.04 + 30 * 4 - 20 = 260 under the default scoring (interception -2).
+        assert default["fantasyPoints"] == 260.0
         await member.patch(
             f"/api/leagues/{league.id}/settings", json={"scoringPassingTd": 6}
         )
@@ -33,7 +33,7 @@ async def test_fantasy_points_follow_the_leagues_scoring(
         no_league = (
             await member.get("/api/players/player-season-stats?season=2025")
         ).json()[0]
-    assert bumped["fantasyPoints"] == 330.0
+    assert bumped["fantasyPoints"] == 320.0
     assert no_league["fantasyPoints"] is None
 
     async with client_as("stranger") as outsider:

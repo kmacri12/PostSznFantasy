@@ -4,7 +4,8 @@ from typing import Any
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.db.models.nfl import NFLTeam
+from api.db.models.nfl import NFLPlayer, NFLTeam
+from api.services.ingestion.dst_stats import dst_player_id
 from api.services.ingestion.guard import IngestionKind, guarded
 from api.services.ingestion.schemas import safe_int, safe_str
 from api.utils.rapidapi.rapidapi import RapidApiClient, get_rapidapi_client
@@ -54,5 +55,33 @@ async def ingest_nfl_teams(
         },
     )
     await db.execute(upsert_stmt)
+    await _upsert_dst_players(db, team_rows)
     logger.info("Bulk upserted %d NFL teams", len(team_rows))
     return len(team_rows)
+
+
+async def _upsert_dst_players(
+    db: AsyncSession, team_rows: list[dict[str, Any]]
+) -> None:
+    """One draftable DST per NFL team, so defenses are players like any other."""
+    dst_rows = [
+        {
+            "id": dst_player_id(team["id"]),
+            "name": f"{team['team_city'] or ''} {team['team_name'] or ''}".strip()
+            or team["team_abv"],
+            "position": "DST",
+            "team_id": team["id"],
+        }
+        for team in team_rows
+    ]
+    stmt = insert(NFLPlayer).values(dst_rows)
+    await db.execute(
+        stmt.on_conflict_do_update(
+            index_elements=["id"],
+            set_={
+                "name": stmt.excluded.name,
+                "position": stmt.excluded.position,
+                "team_id": stmt.excluded.team_id,
+            },
+        )
+    )

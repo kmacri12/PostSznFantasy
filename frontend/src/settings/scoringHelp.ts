@@ -52,12 +52,6 @@ export function scoringHelp(key: string, raw: string | number): string | null {
     return `${points(value)} when the defense allows ${range} ${what}`;
   }
 
-  const fgBand = key.match(/fg_(made|miss)_(\d+_(?:\d+|plus))$/);
-  if (fgBand) {
-    const kind = fgBand[1] === "made" ? "field goal made" : "missed field goal";
-    return `${points(value)} per ${kind} from ${band(fgBand[2] ?? "")} yards`;
-  }
-
   const suffix = Object.keys(NOUNS)
     .filter((noun) => key.endsWith(`_${noun}`))
     .sort((a, b) => b.length - a.length)[0];

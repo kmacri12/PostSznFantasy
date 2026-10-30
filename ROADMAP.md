@@ -213,8 +213,8 @@ Root cause of the all-zero Players tab: Tank01 nests player stats by category (`
 - [x] **Docs**: `docs/rapidapi-tank01.md`, linked from README and AGENTS.
 - [x] **Tests**: fixture-based parser tests (real trimmed payloads), client tests for quota, 429 and disk cache.
 - [x] **Verified end to end**: 2026 seed yields 1619 season stat rows with nonzero stats.
-- [ ] **Open: per-team DST stats.** Box `DST` is per team; derive team defence rows (and a team-as-player model) before DST scoring can work.
-- [ ] **Open: kicker season FG scoring.** Season rows have a made count but no distances, so distance bonuses are not applied to season points; only the flat per-FG rate is. Fix needs per-game data (box scores or `getNFLGamesForPlayer`).
+- [x] **Per-team DST stats** (#148): 32 synthetic DST players (id = -teamID, seeded with the teams) get one `NFLPlayerGameStats` row per game from the box score (`services/ingestion/dst_stats.py`). Return TDs score for the DST only.
+- [x] **Kicker scoring** (#147): 0.1 per made FG yard from box-score distances. Season rows have no distances and cannot score a kicker.
 - [ ] **Open: archive-season backfill** via `getNFLGamesForPlayer` (roster stats only exist for the current season).
 - [ ] **Open: 2026 postseason box scores** cannot be seeded until January 2027.
 

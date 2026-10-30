@@ -44,7 +44,7 @@ describe("CreateLeaguePage scoring step", () => {
     mockGet.mockResolvedValue({ data: defaults });
   });
 
-  it("starts from the Sleeper defaults served by the API", async () => {
+  it("starts from the defaults served by the API", async () => {
     await openScoringStep();
     const yard = (await screen.findByLabelText("Yard", {
       selector: "#scoring-passing-yard",
@@ -60,7 +60,7 @@ describe("CreateLeaguePage scoring step", () => {
     fireEvent.change(td, { target: { value: "6" } });
     expect(td.value).toBe("6");
 
-    fireEvent.click(screen.getByRole("button", { name: "Reset to Sleeper defaults" }));
+    fireEvent.click(screen.getByRole("button", { name: "Reset to defaults" }));
     await waitFor(() => expect(td.value).toBe("4"));
   });
 });

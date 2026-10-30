@@ -91,7 +91,8 @@ PostSznFantasy/
 │   │   ├── scheduler.py        # Opt-in background sync/live-poll/elimination loop
 │   │   └── ingestion/          # Async batch upsert services
 │   │       ├── schemas.py      # Upstream DTOs & parsing helpers
-│   │       ├── teams_ingest.py # Multi-row NFL team upserts
+│   │       ├── teams_ingest.py # Multi-row NFL team upserts (+ one synthetic DST player per team)
+│   │       ├── dst_stats.py # Per-team DST stat rows from a box score (synthetic DST players, id = -teamID)
 │   │       ├── guard.py    # Per-type advisory lock (skip overlapping runs) + last-synced record
 │   │       ├── players_ingest.py # Chunked active player upserts
 │   │       ├── season_stats_ingest.py # Chunked regular season stat upserts
@@ -107,6 +108,7 @@ PostSznFantasy/
 │   ├── tests/                  # Pytest backend test suite
 │   │   ├── conftest.py         # Test fixtures & dependency overrides
 │   │   ├── test_scoring.py     # Unit tests for scoring evaluator
+│   │   ├── test_golden_2025.py # Replays 2025 box scores against the commissioner's sheet (fixtures/golden_2025)
 │   │   └── test_api_integration.py # Integration tests for API endpoints
 │   ├── main.py                 # FastAPI application factory, CORS, lifespan
 │   ├── pyproject.toml          # uv backend project specification & tool settings

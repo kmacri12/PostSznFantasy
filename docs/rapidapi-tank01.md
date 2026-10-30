@@ -89,8 +89,8 @@ like `"1474.0"` (roster) or `"304"` (box); the parser goes through `float`.
 | `receiving_long_reception` | `Receiving.longRec` | box only |
 | `receiving_two_point_conversions` | `Receiving.receivingTwoPointConversion` | |
 | `carrying_fumbles`, `carrying_fumbles_lost` | `Defense.fumbles`, `Defense.fumblesLost` | fumbles live under `Defense` |
-| `punt_return_yards`, `punt_return_td` | `Punting.puntReturnYds`, `puntReturnTD` | box only |
-| `kick_return_yards`, `kick_return_td` | `Kicking.kickReturnYds`, `kickReturnTD` | box only |
+| `punt_return_yards`, `punt_return_td` (stored; scored by the DST, not the returner) | `Punting.puntReturnYds`, `puntReturnTD` | box only |
+| `kick_return_yards`, `kick_return_td` (stored; scored by the DST, not the returner) | `Kicking.kickReturnYds`, `kickReturnTD` | box only |
 | `kicking_xp_made` | `Kicking.xpMade` | |
 | `kicking_xp_missed` | `Kicking.xpMissed`, else `xpAttempts - xpMade` | |
 | `kicking_fg_made` | `Kicking.fgMade` | |
@@ -120,7 +120,11 @@ linemen are skipped), `scoringPlays`, `teamStats`, `lineScore`, and `gameStatus`
   kicker). Missed-kick distances do not exist anywhere, and roster stats have only counts.
 - **`DST` in a box score is per team**, not per player: `{away, home: {defTD,
   defensiveInterceptions, sacks, ydsAllowed, fumblesRecovered, ptsAllowed, safeties}}`. It is
-  stored raw on `NFLGame.dst`; per-player `dst_*` columns stay 0.
+  stored raw on `NFLGame.dst` as a cross-check. DST scoring uses one row per team per game on
+  the synthetic DST players (`services/ingestion/dst_stats.py`): yards allowed is the
+  opponent's `teamStats.totalYards`, points allowed is the opponent's final score minus 6 per
+  opponent `defensiveOrSpecialTeamsTds`, fumble recoveries are the opponent's `fumblesLost`,
+  safeties come from `scoringPlays` with `scoreType == "SF"`.
 
 ## Unverified
 
