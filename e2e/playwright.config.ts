@@ -28,6 +28,8 @@ export default defineConfig({
   reporter: process.env.CI ? [["list"], ["html", { open: "never" }]] : "list",
   use: {
     baseURL: WEB_URL,
+    timezoneId: "UTC",
+    locale: "en-US",
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
   },
@@ -59,11 +61,14 @@ export default defineConfig({
       },
     },
     {
-      command: `npm run dev --prefix frontend -- --port ${WEB_PORT} --strictPort`,
+      // A production build served by `vite preview`: no file watchers, and the bundle is what ships.
+      command:
+        "cd frontend && npx vite build --outDir ../e2e/.web-dist --emptyOutDir" +
+        ` && npx vite preview --outDir ../e2e/.web-dist --port ${WEB_PORT} --strictPort`,
       cwd: "..",
       url: WEB_URL,
       reuseExistingServer: !process.env.CI,
-      timeout: 60_000,
+      timeout: 120_000,
       env: {
         VITE_API_URL: API_URL,
         VITE_WS_URL: `ws://localhost:${API_PORT}`,
