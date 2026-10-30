@@ -8,8 +8,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from api.db.models import IngestionStatus, NFLGame, NFLTeam
 from api.services.scheduler import (
     GAMES_LIST_MAX_AGE_SECONDS,
+    RECONCILE_FIRST_SECONDS,
+    RECONCILE_SECOND_SECONDS,
     games_list_due,
     games_to_poll,
+    reconcile_due,
     run_poll_cycle,
 )
 
@@ -192,3 +195,52 @@ async def test_a_blank_box_score_never_overwrites_scores_with_nothing(
 
     stored = (await db.execute(select(NFLGame).where(NFLGame.id == "g"))).scalar_one()
     assert (stored.home_pts, stored.away_pts) == (10, 7)
+
+
+def test_a_completed_game_is_reconciled_next_morning_then_again_at_48_hours() -> None:
+    kickoff = NOW - 100 * 3600
+    done = game("g", kickoff, "Completed")
+    day_one = kickoff + RECONCILE_FIRST_SECONDS
+    day_two = kickoff + RECONCILE_SECOND_SECONDS
+
+    assert not reconcile_due(done, None, kickoff + 3600)
+    assert reconcile_due(done, None, day_one + 1)
+    assert not reconcile_due(done, day_one + 5, day_one + 600)
+    assert reconcile_due(done, day_one + 5, day_two + 1)
+    assert not reconcile_due(done, day_two + 5, day_two + 10_000)
+    assert not reconcile_due(game("live", kickoff, "Scheduled"), None, day_two)
+
+
+async def test_reconcile_refetches_once_per_window_and_flips_a_changed_result(
+    db: AsyncSession, teams: None
+) -> None:
+    kickoff = NOW - 30 * 3600
+    client = FakeClient(
+        games=[summary("g", kickoff, "Final")],
+        boxes={"g": box("Completed", 24, 20)},
+    )
+    db.add(game("g", kickoff, "Completed"))
+    await db.flush()
+
+    await run_poll_cycle(db, 2025, client=client, now=NOW)  # type: ignore[arg-type]
+    assert client.box_calls == ["g"]
+    await run_poll_cycle(db, 2025, client=client, now=NOW + 150)  # type: ignore[arg-type]
+    assert client.box_calls == ["g"]  # same window: not again
+
+    client.boxes["g"] = box("Completed", 20, 24)  # a scoring correction
+    await run_poll_cycle(
+        db,
+        2025,
+        client=client,  # type: ignore[arg-type]
+        now=kickoff + RECONCILE_SECOND_SECONDS + 1,
+    )
+    assert client.box_calls == ["g", "g"]
+    teams_by_id = {
+        t.id: t
+        for t in (
+            await db.execute(select(NFLTeam).execution_options(populate_existing=True))
+        )
+        .scalars()
+        .all()
+    }
+    assert (teams_by_id[1].is_active, teams_by_id[2].is_active) == (False, True)

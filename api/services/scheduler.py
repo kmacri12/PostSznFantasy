@@ -2,12 +2,14 @@ import asyncio
 import logging
 import time
 from collections.abc import Sequence
+from datetime import UTC, datetime
 
-from sqlalchemy import select
+from sqlalchemy import select, update
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.core.config import get_settings
-from api.db.models.nfl import IngestionStatus, NFLGame
+from api.db.models.nfl import IngestionStatus, NFLGame, NFLTeam
 from api.db.session import get_session_factory
 from api.services.eliminations import mark_eliminated_teams
 from api.services.ingestion import (
@@ -25,6 +27,14 @@ ONE_HOUR_SECONDS = 3600
 GAMES_LIST_MAX_AGE_SECONDS = 24 * ONE_HOUR_SECONDS
 # Longest plausible game (with delays); past this a "live" game is a stale schedule.
 MAX_GAME_SECONDS = 8 * ONE_HOUR_SECONDS
+# Stat corrections land overnight and again two days on. Measured from kickoff because
+# completion time is not stored: a game ends ~3.5h after it, so these are roughly
+# "next morning" and "48 hours after the final whistle".
+RECONCILE_FIRST_SECONDS = 18 * ONE_HOUR_SECONDS
+RECONCILE_SECOND_SECONDS = 48 * ONE_HOUR_SECONDS
+# One freshness row per game records its last reconcile (nfl.ingestion_status.kind is
+# 32 chars; a game id is 16). Hidden from the public sync-status listing.
+RECONCILE_KIND_PREFIX = "rc:"
 
 
 def games_to_poll(games: Sequence[NFLGame], now: float) -> list[NFLGame]:
@@ -44,6 +54,18 @@ def _is_live_window(game: NFLGame, now: float) -> bool:
     if game.game_status == GAME_COMPLETED or kickoff is None:
         return False
     return kickoff <= now < kickoff + MAX_GAME_SECONDS
+
+
+def reconcile_due(game: NFLGame, last_reconciled: float | None, now: float) -> bool:
+    """A completed game is re-fetched once in each correction window."""
+    kickoff = _kickoff(game)
+    if game.game_status != GAME_COMPLETED or kickoff is None:
+        return False
+    last = last_reconciled if last_reconciled is not None else float("-inf")
+    return any(
+        kickoff + window <= now and last < kickoff + window
+        for window in (RECONCILE_FIRST_SECONDS, RECONCILE_SECOND_SECONDS)
+    )
 
 
 def games_list_due(
@@ -70,8 +92,21 @@ def _losing_team_id(game: NFLGame) -> int | None:
     return game.team_id_away if game.home_pts > game.away_pts else game.team_id_home
 
 
-async def eliminate_losing_teams(db: AsyncSession, season: int) -> int:
-    """Mark losers of finished playoff games as eliminated; safe to re-run."""
+def _winning_team_id(game: NFLGame) -> int | None:
+    loser = _losing_team_id(game)
+    if loser is None:
+        return None
+    return game.team_id_home if loser == game.team_id_away else game.team_id_away
+
+
+async def eliminate_losing_teams(
+    db: AsyncSession, season: int, *, reinstate_winners: bool = False
+) -> int:
+    """Mark losers of finished playoff games as eliminated; safe to re-run.
+
+    With `reinstate_winners` (reconcile only), a team that now wins a game it was
+    marked as losing is reactivated, so a corrected final score undoes a wrong cut.
+    """
     games = (
         (
             await db.execute(
@@ -85,6 +120,17 @@ async def eliminate_losing_teams(db: AsyncSession, season: int) -> int:
     )
     loser_ids = [loser for g in games if (loser := _losing_team_id(g)) is not None]
     await mark_eliminated_teams(db, loser_ids)
+    if reinstate_winners:
+        winner_ids = {
+            winner
+            for g in games
+            if _losing_team_id(g) is not None
+            and (winner := _winning_team_id(g)) is not None
+        } - set(loser_ids)
+        if winner_ids:
+            await db.execute(
+                update(NFLTeam).where(NFLTeam.id.in_(winner_ids)).values(is_active=True)
+            )
     return len(loser_ids)
 
 
@@ -101,6 +147,50 @@ async def _playoff_games(db: AsyncSession, season: int) -> list[NFLGame]:
 async def _games_list_last_refreshed(db: AsyncSession) -> float | None:
     row = await db.get(IngestionStatus, IngestionKind.GAMES.name.lower())
     return row.last_synced_at.timestamp() if row else None
+
+
+async def _reconcile_completed(
+    db: AsyncSession,
+    games: Sequence[NFLGame],
+    season: int,
+    client: RapidApiClient,
+    now: float,
+) -> int:
+    kinds = {g.id: RECONCILE_KIND_PREFIX + g.id for g in games}
+    rows = (
+        await db.execute(
+            select(IngestionStatus)
+            .where(IngestionStatus.kind.in_(kinds.values()))
+            .execution_options(populate_existing=True)
+        )
+    ).scalars()
+    last_by_kind = {r.kind: r.last_synced_at.timestamp() for r in rows}
+    due = [g.id for g in games if reconcile_due(g, last_by_kind.get(kinds[g.id]), now)]
+
+    reconciled = 0
+    for game_id in due:
+        try:
+            await poll_game_box_score(db, game_id, str(season), client=client)
+            await db.execute(
+                insert(IngestionStatus)
+                .values(
+                    kind=RECONCILE_KIND_PREFIX + game_id,
+                    last_synced_at=datetime.fromtimestamp(now, UTC),
+                )
+                .on_conflict_do_update(
+                    index_elements=[IngestionStatus.kind],
+                    set_={"last_synced_at": datetime.fromtimestamp(now, UTC)},
+                )
+            )
+            await db.commit()
+            reconciled += 1
+        except IngestionBusy as busy:
+            await db.rollback()
+            logger.info("Reconcile of %s skipped: %s", game_id, busy)
+        except Exception:
+            await db.rollback()
+            logger.exception("Reconcile of %s failed; will retry next tick", game_id)
+    return reconciled
 
 
 async def run_poll_cycle(
@@ -145,8 +235,14 @@ async def run_poll_cycle(
             await db.rollback()
             logger.exception("Poll of %s failed; keeping its last good data", game_id)
 
-    if polled:
-        eliminated = await eliminate_losing_teams(db, season)
+    # A rollback above expired the loaded rows, so reload before reading them.
+    games = await _playoff_games(db, season)
+    reconciled = await _reconcile_completed(db, games, season, client, now)
+
+    if polled or reconciled:
+        eliminated = await eliminate_losing_teams(
+            db, season, reinstate_winners=bool(reconciled)
+        )
         await db.commit()
         logger.info("Polled %d live games; %d eliminations applied", polled, eliminated)
     if client.requests_remaining is not None:
