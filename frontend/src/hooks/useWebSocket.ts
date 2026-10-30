@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createLogger } from "../utils/logger";
+import { addBreadcrumb } from "../utils/sentry";
 
 const logger = createLogger("useWebSocket");
 
@@ -59,6 +60,7 @@ export const useWebSocket = (url: string, options: Options = {}) => {
       socket.onopen = () => {
         attempt = 0;
         setIsConnected(true);
+        addBreadcrumb("draft.connection", "connected");
         logger.info("Connection established", url);
 
         // The server expects credentials as the first message (kept out of the URL).
@@ -91,6 +93,7 @@ export const useWebSocket = (url: string, options: Options = {}) => {
 
       socket.onclose = (event) => {
         setIsConnected(false);
+        addBreadcrumb("draft.connection", "closed", { code: event.code });
         clearInterval(heartbeatTimer);
         logger.info("Connection closed", event.code, event.reason);
 
@@ -99,6 +102,7 @@ export const useWebSocket = (url: string, options: Options = {}) => {
         }
         const delay = backoffDelay(attempt++);
         logger.info(`Reconnecting in ${delay}ms`);
+        addBreadcrumb("draft.connection", "reconnecting", { delay });
         reconnectTimer = setTimeout(connect, delay);
       };
 
@@ -109,6 +113,7 @@ export const useWebSocket = (url: string, options: Options = {}) => {
 
     // Replaces the socket outright; the server's snapshot on connect is the resync.
     const reconnectNow = () => {
+      addBreadcrumb("draft.connection", "resync");
       clearTimeout(reconnectTimer);
       clearInterval(heartbeatTimer);
       const stale = socketRef.current;
