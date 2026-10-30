@@ -250,17 +250,8 @@ export const useRenameTeam = (teamId: Id | undefined) => {
 export const useMoveInLineup = (teamId: Id | undefined) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (body: { playerId: number; slotIndex: number }) =>
+    mutationFn: async (body: { round: number; playerId: number; slotIndex: number | null }) =>
       (await api.post<TeamDetails>(`/api/teams/${teamId}/lineup`, body)).data,
-    onSuccess: (data) => queryClient.setQueryData(keys.team(teamId ?? ""), data),
-  });
-};
-
-export const useAddDrop = (teamId: Id | undefined) => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (body: { addPlayerId?: number; dropPlayerId?: number }) =>
-      (await api.post<TeamDetails>(`/api/teams/${teamId}/roster`, body)).data,
     onSuccess: (data) => queryClient.setQueryData(keys.team(teamId ?? ""), data),
   });
 };

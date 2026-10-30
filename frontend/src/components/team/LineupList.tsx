@@ -9,24 +9,41 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
+import LockIcon from "@mui/icons-material/Lock";
 import { Box, Button, Chip, Paper, Typography } from "@mui/material";
 import { useState } from "react";
-import type { RosterSlot } from "../../api/types";
+import type { LineupPlayer, LineupSlot, RoundLineup } from "../../api/types";
 import { tokens } from "../../theme";
-import { applyTap, BENCH_SLOT, nextGameText, parseMove, playerDragId, slotDropId } from "./lineup";
+import {
+  applyTap,
+  BENCH_SLOT,
+  lineupStatusText,
+  type Move,
+  parseMove,
+  playerDragId,
+  slotDropId,
+  UNASSIGNED_DROP_ID,
+} from "./lineup";
 
 interface RowProps {
-  slot: RosterSlot;
-  canDrag: boolean;
+  label: string;
+  /** Null for the unassigned and eliminated sections, which are not slots. */
+  slotIndex: number | null;
+  player: LineupPlayer | null;
+  canEdit: boolean;
   selected: boolean;
-  /** A player is picked up, so this row is a place to put them. */
   isTarget: boolean;
   onTap: () => void;
 }
 
-const SlotRow = ({ slot, canDrag, selected, isTarget, onTap }: RowProps) => {
-  const player = slot.player;
-  const { setNodeRef: dropRef, isOver } = useDroppable({ id: slotDropId(slot.index) });
+const PlayerRow = ({ label, slotIndex, player, canEdit, selected, isTarget, onTap }: RowProps) => {
+  const eliminated = player?.status === "eliminated";
+  const locked = player?.locked ?? false;
+  const movable = canEdit && player !== null && !locked && !eliminated;
+  const { setNodeRef: dropRef, isOver } = useDroppable({
+    id: slotDropId(slotIndex ?? -1),
+    disabled: slotIndex === null || locked,
+  });
   const {
     attributes,
     listeners,
@@ -34,14 +51,15 @@ const SlotRow = ({ slot, canDrag, selected, isTarget, onTap }: RowProps) => {
     transform,
     isDragging,
   } = useDraggable({
-    id: player ? playerDragId(player.id) : `empty-${slot.index}`,
-    disabled: !canDrag || !player,
+    id: player ? playerDragId(player.id) : `empty-${slotIndex}`,
+    disabled: !movable,
   });
+  const interactive = canEdit && (movable || (isTarget && !locked && !eliminated));
 
   return (
     <Box
       ref={dropRef}
-      data-testid={`slot-${slot.index}`}
+      data-testid={slotIndex === null ? undefined : `slot-${slotIndex}`}
       sx={{
         borderRadius: 1,
         outline: isOver ? `2px solid ${tokens.gold}` : "2px solid transparent",
@@ -52,8 +70,9 @@ const SlotRow = ({ slot, canDrag, selected, isTarget, onTap }: RowProps) => {
         ref={dragRef}
         {...attributes}
         {...listeners}
-        aria-pressed={canDrag && player ? selected : undefined}
-        onClick={canDrag ? onTap : undefined}
+        aria-pressed={movable ? selected : undefined}
+        aria-disabled={player && !movable ? true : undefined}
+        onClick={canEdit ? onTap : undefined}
         sx={{
           display: "flex",
           alignItems: "center",
@@ -62,7 +81,8 @@ const SlotRow = ({ slot, canDrag, selected, isTarget, onTap }: RowProps) => {
           py: 0.75,
           minHeight: 52,
           touchAction: "pan-y",
-          cursor: canDrag && (player || isTarget) ? "pointer" : "default",
+          cursor: interactive ? "pointer" : "default",
+          opacity: eliminated ? 0.55 : 1,
           outline: selected ? `2px solid ${tokens.gold}` : "none",
           zIndex: isDragging ? 10 : "auto",
           position: "relative",
@@ -78,44 +98,30 @@ const SlotRow = ({ slot, canDrag, selected, isTarget, onTap }: RowProps) => {
       >
         <Chip
           size="small"
-          label={slot.slot === "SUPER_FLEX" ? "SFLX" : slot.slot === BENCH_SLOT ? "BN" : slot.slot}
-          sx={{ width: 58, color: slot.slot === BENCH_SLOT ? tokens.muted : tokens.gold }}
+          label={label}
+          sx={{ width: 58, color: label === "BN" ? tokens.muted : tokens.gold }}
         />
         {player ? (
           <>
             <Box sx={{ flexGrow: 1, minWidth: 0 }}>
               <Typography
                 noWrap
-                sx={{ fontWeight: 600, textDecoration: player.isActive ? "none" : "line-through" }}
+                sx={{ fontWeight: 600, textDecoration: eliminated ? "line-through" : "none" }}
               >
                 {player.name}
               </Typography>
-              <Typography noWrap variant="caption" color="text.secondary">
-                {player.position} · {player.teamAbv || "FA"}
-                <Box component="span" sx={{ display: { xs: "inline", sm: "none" } }}>
-                  {" · "}
-                  {nextGameText(player)}
-                </Box>
+              <Typography
+                variant="caption"
+                color={eliminated ? tokens.red : "text.secondary"}
+                sx={{ display: "block" }}
+              >
+                {player.position} · {player.teamAbv || "FA"} · {lineupStatusText(player)}
               </Typography>
             </Box>
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              sx={{ display: { xs: "none", sm: "block" }, minWidth: 190 }}
-            >
-              {nextGameText(player)}
-            </Typography>
-            <Box
-              aria-label={player.isActive ? "Alive" : "Eliminated"}
-              sx={{
-                width: 10,
-                height: 10,
-                borderRadius: "50%",
-                flexShrink: 0,
-                bgcolor: player.isActive ? tokens.green : tokens.red,
-              }}
-            />
-            {canDrag && <DragIndicatorIcon fontSize="small" sx={{ color: tokens.muted }} />}
+            {locked && !eliminated && (
+              <LockIcon aria-label="Locked" fontSize="small" sx={{ color: tokens.muted }} />
+            )}
+            {movable && <DragIndicatorIcon fontSize="small" sx={{ color: tokens.muted }} />}
           </>
         ) : (
           <Typography color="text.secondary" sx={{ flexGrow: 1 }}>
@@ -127,39 +133,68 @@ const SlotRow = ({ slot, canDrag, selected, isTarget, onTap }: RowProps) => {
   );
 };
 
+const slotLabel = (slot: LineupSlot) =>
+  slot.slot === "SUPER_FLEX" ? "SFLX" : slot.slot === BENCH_SLOT ? "BN" : slot.slot;
+
+const SectionTitle = ({ children }: { children: string }) => (
+  <Typography variant="overline" color="text.secondary" sx={{ px: 1, display: "block", mt: 1 }}>
+    {children}
+  </Typography>
+);
+
+const UnassignedDrop = ({ children }: { children: React.ReactNode }) => {
+  const { setNodeRef, isOver } = useDroppable({ id: UNASSIGNED_DROP_ID });
+  return (
+    <Box
+      ref={setNodeRef}
+      sx={{ borderRadius: 1, outline: isOver ? `2px solid ${tokens.gold}` : "none" }}
+    >
+      {children}
+    </Box>
+  );
+};
+
 interface Props {
-  slots: RosterSlot[];
-  canDrag: boolean;
-  onMove: (move: { playerId: number; slotIndex: number }) => void;
+  lineup: RoundLineup;
+  canEdit: boolean;
+  onMove: (move: Move) => void;
 }
 
-/** Starters then bench as dense rows; drag a player onto any slot to move or swap. */
-const LineupList = ({ slots, canDrag, onMove }: Props) => {
+/** One round: starters, bench, unplaced players, then the eliminated section. */
+const LineupList = ({ lineup, canEdit, onMove }: Props) => {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 6 } }),
     // A short press-and-hold, so a swipe still scrolls the page on phones.
     useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 8 } }),
   );
-  const starters = slots.filter((slot) => slot.slot !== BENCH_SLOT);
-  const bench = slots.filter((slot) => slot.slot === BENCH_SLOT);
+  const starters = lineup.slots.filter((slot) => slot.slot !== BENCH_SLOT);
+  const bench = lineup.slots.filter((slot) => slot.slot === BENCH_SLOT);
+  const selectedPlayer = [...lineup.slots.map((slot) => slot.player), ...lineup.unassigned].find(
+    (player) => player?.id === selectedId,
+  );
+  const selectedIsPlaced = lineup.slots.some((slot) => slot.player?.id === selectedId);
 
-  const selectedPlayer = slots.find((slot) => slot.player?.id === selectedId)?.player;
-
-  const handleTap = (slot: RosterSlot) => {
-    const result = applyTap(selectedId, { index: slot.index, playerId: slot.player?.id ?? null });
+  const tap = (index: number | null, player: LineupPlayer | null) => {
+    const result = applyTap(selectedId, {
+      index,
+      playerId: player?.id ?? null,
+      locked: player?.locked ?? false,
+    });
     setSelectedId(result.selectedPlayerId);
     if (result.move) onMove(result.move);
   };
 
-  const row = (slot: RosterSlot) => (
-    <SlotRow
+  const slotRow = (slot: LineupSlot) => (
+    <PlayerRow
       key={slot.index}
-      slot={slot}
-      canDrag={canDrag}
+      label={slotLabel(slot)}
+      slotIndex={slot.index}
+      player={slot.player}
+      canEdit={canEdit}
       selected={slot.player !== null && slot.player.id === selectedId}
       isTarget={selectedId !== null}
-      onTap={() => handleTap(slot)}
+      onTap={() => tap(slot.index, slot.player)}
     />
   );
 
@@ -171,24 +206,52 @@ const LineupList = ({ slots, canDrag, onMove }: Props) => {
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
       <Paper sx={{ p: 1, maxWidth: 760 }}>
-        <Typography variant="overline" color="text.secondary" sx={{ px: 1 }}>
-          Starters
-        </Typography>
-        {starters.map(row)}
+        <SectionTitle>Starters</SectionTitle>
+        {starters.map(slotRow)}
         {bench.length > 0 && (
           <>
-            <Typography
-              variant="overline"
-              color="text.secondary"
-              sx={{ px: 1, display: "block", mt: 1 }}
-            >
-              Bench
-            </Typography>
-            {bench.map(row)}
+            <SectionTitle>Bench</SectionTitle>
+            {bench.map(slotRow)}
           </>
         )}
+        {lineup.unassigned.length > 0 && (
+          <>
+            <SectionTitle>Not in this lineup</SectionTitle>
+            <UnassignedDrop>
+              {lineup.unassigned.map((player) => (
+                <PlayerRow
+                  key={player.id}
+                  label={player.position}
+                  slotIndex={null}
+                  player={player}
+                  canEdit={canEdit}
+                  selected={player.id === selectedId}
+                  isTarget={selectedId !== null}
+                  onTap={() => tap(null, player)}
+                />
+              ))}
+            </UnassignedDrop>
+          </>
+        )}
+        {lineup.eliminated.length > 0 && (
+          <Box data-testid="eliminated-section">
+            <SectionTitle>Eliminated</SectionTitle>
+            {lineup.eliminated.map((player) => (
+              <PlayerRow
+                key={player.id}
+                label={player.position}
+                slotIndex={null}
+                player={player}
+                canEdit={false}
+                selected={false}
+                isTarget={false}
+                onTap={() => {}}
+              />
+            ))}
+          </Box>
+        )}
       </Paper>
-      {canDrag && selectedPlayer && (
+      {canEdit && selectedPlayer && (
         <Box
           role="status"
           sx={{ display: "flex", alignItems: "center", gap: 1, mt: 1, flexWrap: "wrap" }}
@@ -196,13 +259,26 @@ const LineupList = ({ slots, canDrag, onMove }: Props) => {
           <Typography sx={{ flexGrow: 1 }}>
             Tap a slot to move {selectedPlayer.name} there.
           </Typography>
-          <Button onClick={() => setSelectedId(null)}>Cancel</Button>
+          {selectedIsPlaced && (
+            <Button
+              sx={{ minHeight: 44 }}
+              onClick={() => {
+                onMove({ playerId: selectedPlayer.id, slotIndex: null });
+                setSelectedId(null);
+              }}
+            >
+              Remove from lineup
+            </Button>
+          )}
+          <Button sx={{ minHeight: 44 }} onClick={() => setSelectedId(null)}>
+            Cancel
+          </Button>
         </Box>
       )}
-      {canDrag && !selectedPlayer && (
+      {canEdit && !selectedPlayer && (
         <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1 }}>
           Tap a player, then tap a slot to start, bench or swap. You can also touch and hold a
-          player and drag.
+          player and drag. Players lock at their game's kickoff and can't be moved after.
         </Typography>
       )}
     </DndContext>

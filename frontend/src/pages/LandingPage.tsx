@@ -23,16 +23,17 @@ const POSTSEASON_RULES = [
     blurb: "Make the Super Bowl count triple: set a scoring multiplier for every round.",
   },
   {
-    title: "Free agency",
-    blurb: "Allow pickups between rounds, or only swap out players whose teams are eliminated.",
+    title: "Lineups every round",
+    blurb: "Set a fresh lineup for each round from the players whose teams are still alive.",
   },
   {
-    title: "Roster locks",
-    blurb: "Lock lineups at the start of each round or at each player's kickoff.",
+    title: "Kickoff locks",
+    blurb:
+      "Each player locks at their own kickoff, so you can keep adjusting until their game starts.",
   },
   {
-    title: "Tiebreakers & byes",
-    blurb: "Decide ties by players alive or best round, and how bye-week teams are treated.",
+    title: "Tiebreakers",
+    blurb: "Decide ties by players alive or best round.",
   },
 ];
 

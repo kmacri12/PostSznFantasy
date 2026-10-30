@@ -55,27 +55,13 @@ class LeagueRole(StrEnum):
     MEMBER = "member"
 
 
-class FreeAgencyWindow(StrEnum):
-    BETWEEN_ROUNDS = "between_rounds"
-    ANYTIME = "anytime"
-
-
-class FreeAgencyClaimOrder(StrEnum):
-    FIRST_COME = "first_come"
-    WAIVER_PRIORITY = "waiver_priority"
-
-
-class RosterLock(StrEnum):
-    ROUND_START = "round_start"
-    GAME_START = "game_start"
-
-
 class Tiebreaker(StrEnum):
     MOST_PLAYERS_ALIVE = "most_players_alive"
     HIGHEST_SINGLE_ROUND = "highest_single_round"
     LATEST_ROUND_SCORE = "latest_round_score"
 
 
-class ByeWeekHandling(StrEnum):
-    ALIVE_NO_SCORE = "alive_no_score"
-    EXCLUDE_FROM_WILD_CARD = "exclude_from_wild_card"
+class PlayerRoundStatus(StrEnum):
+    ALIVE = "alive"
+    ELIMINATED = "eliminated"
+    BYE = "bye"

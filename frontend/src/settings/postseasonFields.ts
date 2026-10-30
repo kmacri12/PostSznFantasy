@@ -11,44 +11,6 @@ export interface PostseasonField {
 
 export const POSTSEASON_FIELDS: PostseasonField[] = [
   {
-    key: "free_agency_enabled",
-    label: "Free agency during the playoffs",
-    help: "Owners may add free agents. When off, only eliminated players can be swapped out (if allowed below).",
-    kind: "boolean",
-  },
-  {
-    key: "free_agency_window",
-    label: "Free agency window",
-    kind: "select",
-    options: [
-      { value: "between_rounds", label: "Between rounds only" },
-      { value: "anytime", label: "Any time" },
-    ],
-  },
-  {
-    key: "free_agency_claim_order",
-    label: "Claim order",
-    kind: "select",
-    options: [
-      { value: "first_come", label: "First come, first served" },
-      { value: "waiver_priority", label: "Waiver priority" },
-    ],
-  },
-  {
-    key: "allow_swap_eliminated",
-    label: "Allow swapping out eliminated players",
-    kind: "boolean",
-  },
-  {
-    key: "roster_lock",
-    label: "Roster lock",
-    kind: "select",
-    options: [
-      { value: "round_start", label: "At the start of each round" },
-      { value: "game_start", label: "At each player's kickoff" },
-    ],
-  },
-  {
     key: "tiebreaker",
     label: "Tiebreaker",
     kind: "select",
@@ -56,15 +18,6 @@ export const POSTSEASON_FIELDS: PostseasonField[] = [
       { value: "most_players_alive", label: "Most players still alive" },
       { value: "highest_single_round", label: "Highest single-round score" },
       { value: "latest_round_score", label: "Latest round score" },
-    ],
-  },
-  {
-    key: "bye_week_handling",
-    label: "Bye-week teams (Wild Card round)",
-    kind: "select",
-    options: [
-      { value: "alive_no_score", label: "Players stay alive and score zero" },
-      { value: "exclude_from_wild_card", label: "Can't be started in the Wild Card round" },
     ],
   },
   {

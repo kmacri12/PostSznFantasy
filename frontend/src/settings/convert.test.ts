@@ -19,12 +19,12 @@ describe("settings conversion", () => {
 
   it("keeps booleans and enum strings for postseason settings", () => {
     const values = postseasonFromApi(
-      { freeAgencyEnabled: true, rosterLock: "game_start", multiplierSuperBowl: 3 },
+      { allowJoinAfterDraftStart: false, tiebreaker: "latest_round_score", multiplierSuperBowl: 3 },
       POSTSEASON_KEYS,
     );
     expect(values).toEqual({
-      free_agency_enabled: true,
-      roster_lock: "game_start",
+      allow_join_after_draft_start: false,
+      tiebreaker: "latest_round_score",
       multiplier_super_bowl: 3,
     });
   });
