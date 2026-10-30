@@ -19,6 +19,8 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (!id.includes("node_modules")) return undefined;
+          // Before the react match: "@sentry/react" contains "/react/" and must stay lazy.
+          if (id.includes("@sentry")) return "sentry";
           if (id.includes("@mui") || id.includes("@emotion")) return "mui";
           if (id.includes("@tanstack")) return "tanstack";
           if (id.includes("@supabase")) return "supabase";

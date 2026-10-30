@@ -46,6 +46,7 @@ Set once with `fly secrets set` (the wizard does this without putting values in 
 | `ADMIN_SUPABASE_UIDS` | Comma-separated user ids; set after the first admin signs in (cutover step 6) |
 | `RAPIDAPI_APIKEY`, `RAPIDAPI_BASEURL`, `RAPIDAPI_APIHOST` | Tank01 on RapidAPI |
 | `CORS_ORIGINS` | `https://postsznfantasy.com` |
+| `SENTRY_DSN`, `SENTRY_RELEASE` | Optional error tracking, see [sentry.md](sentry.md); empty disables it |
 | `SCHEDULER_ENABLED` and `SCHEDULER_*` | Keep `SCHEDULER_ENABLED=false` until games are near |
 
 Non-secret settings (`ENVIRONMENT`, `SEASON_YEAR`, `PORT`, `FORWARDED_ALLOW_IPS`, pool sizes) live in `fly.toml`. GitHub repository secrets used by workflows: `FLY_API_TOKEN`, `PROD_DATABASE_URL`, `BACKUP_GPG_PUBLIC_KEY`.

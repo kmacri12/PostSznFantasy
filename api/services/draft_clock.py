@@ -2,6 +2,7 @@ import asyncio
 import logging
 from datetime import UTC, datetime
 
+import sentry_sdk
 from sqlalchemy import select
 
 from api.db.models.draft import Draft
@@ -50,7 +51,7 @@ async def expire_overdue_picks() -> int:
                 continue
             except DraftPickError as exc:
                 await db.rollback()
-                logger.warning(
+                logger.error(
                     "Auto-pick failed",
                     extra={"league_id": league_id, "error": str(exc)},
                 )
@@ -99,4 +100,5 @@ async def run_draft_clock() -> None:
             await expire_overdue_picks()
         except Exception:
             logger.exception("Draft clock tick failed")
+            sentry_sdk.capture_exception()
         await asyncio.sleep(TICK_SECONDS)

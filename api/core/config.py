@@ -84,6 +84,10 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     log_format: Literal["auto", "json", "console"] = "auto"
 
+    # Error reporting stays off (no SDK client, no network) while the DSN is empty.
+    sentry_dsn: str = ""
+    sentry_release: str = ""
+
     # E2E only: accept `e2e-user:<uid>` bearer tokens instead of Supabase JWTs. Off by
     # default and refused outright outside the environments in TEST_AUTH_ENVIRONMENTS.
     test_auth_stub: bool = False

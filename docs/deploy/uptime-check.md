@@ -1,6 +1,6 @@
 # Uptime check on the API (#108)
 
-A free external monitor that requests `https://api.postsznfantasy.com/api` and emails you when it fails. That endpoint runs `select 1` against the database, so a green check means the API is reachable **and** can talk to Supabase. It tells you nothing about errors inside requests (error tracking is Epic 7, #84) or about the draft room specifically.
+A free external monitor that requests `https://api.postsznfantasy.com/api` and emails you when it fails. That endpoint runs `select 1` against the database, so a green check means the API is reachable **and** can talk to Supabase. It tells you nothing about errors inside requests (error tracking: [sentry.md](sentry.md)) or about the draft room specifically.
 
 Do this after Stage 3 of the [cutover runbook](cutover-runbook.md); the API must already answer on its public address.
 

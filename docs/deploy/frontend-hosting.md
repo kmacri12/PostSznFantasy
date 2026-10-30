@@ -30,6 +30,7 @@ These are read by Vite at **build time** and baked into the JavaScript bundle, s
 | `VITE_API_URL` | `src/api/client.ts` (axios `baseURL`) | `https://api.postsznfantasy.com` | `""`, so requests go to the **page's own origin** (`/api/...` on Pages), which has no API: every call fails |
 | `VITE_WS_URL` | `src/hooks/useDraftRoom.ts` | `wss://api.postsznfantasy.com` | `ws(s)://` + the page's host, the same failure for the draft room |
 | `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` | `src/utils/supabase.ts` | from the Supabase production project | sign-in fails |
+| `VITE_SENTRY_DSN`, `VITE_SENTRY_ENVIRONMENT` | `src/utils/sentry.ts` | optional, see [sentry.md](sentry.md) | error tracking off |
 | `VITE_ADMIN_SUPABASE_UIDS` | `DataFreshness.tsx` | optional admin hint | the admin refresh button stays hidden |
 
 Locally the Vite dev server proxies `/api` (including the WebSocket) to `localhost:8000`, which is why these are optional in development but **required** in the Pages project. Pages cannot proxy `/api` to Fly (`_redirects` proxying only works for same-site paths, and does not carry WebSockets), so the cross-origin setup is the supported route.

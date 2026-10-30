@@ -12,6 +12,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from api.core.config import get_settings
 from api.core.logging import RequestLoggingMiddleware, setup_logging
+from api.core.observability import init_sentry
 from api.db.session import DbSession, close_db, init_db
 from api.routers import admin, auth, drafts, invites, leagues, players, teams
 from api.services.draft_clock import run_draft_clock
@@ -40,6 +41,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     await close_rapidapi_client()
     await close_db()
 
+
+# Before the app exists so the FastAPI/Starlette integrations can patch it.
+init_sentry(get_settings())
 
 app = FastAPI(
     title="PostSznFantasy API",

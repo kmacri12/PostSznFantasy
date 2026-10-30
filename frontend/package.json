@@ -19,6 +19,7 @@
     "@emotion/styled": "^11.11.5",
     "@mui/icons-material": "^9.5.0",
     "@mui/material": "^9.5.0",
+    "@sentry/react": "^11.10.0",
     "@supabase/supabase-js": "^2.118.0",
     "@tanstack/react-query": "^5.105.0",
     "@tanstack/react-table": "^8.21.3",
