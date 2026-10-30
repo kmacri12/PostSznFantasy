@@ -73,6 +73,25 @@ class NFLPlayer(Base):
     )
 
 
+class DepthChartStarter(Base):
+    """The first QB or K on an NFL team's depth chart (`position` is QB or K).
+
+    Replaced wholesale by each depth chart sync; teams it misses fall back to season
+    stats (services.team_starters).
+    """
+
+    __tablename__ = "depth_chart_starters"
+    __table_args__ = {"schema": "nfl"}
+
+    team_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("nfl.nfl_teams.id", ondelete="CASCADE"), primary_key=True
+    )
+    position: Mapped[str] = mapped_column(String(8), primary_key=True)
+    player_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("nfl.nfl_players.id", ondelete="CASCADE"), nullable=False
+    )
+
+
 class NFLPlayerSeasonStats(Base):
     __tablename__ = "nfl_player_season_stats"
     __table_args__ = {"schema": "nfl"}
