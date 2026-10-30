@@ -215,7 +215,7 @@ Authorization: `LeagueMember` (any member), `LeagueCommissioner` (`require_commi
 - **Visual verification is part of every UI change**: After each UI step, launch the app (the `run` skill / built-in browser), use `resize_window` with the `mobile` preset (375x812) and look at the actual rendering, then check desktop. Fix anything clipped, overlapping, cramped or oddly laid out before reporting the work done. Reset the viewport to `desktop` afterward.
 - **Environment Configuration**: Runtime variables use Vite conventions (`import.meta.env.VITE_*`).
   - `VITE_API_URL`: Backend HTTP origin; optional locally because the Vite dev server proxies `/api` to `http://localhost:8000`.
-  - `VITE_WS_URL`: WebSocket origin; optional for the same reason (defaults to the page origin).
+  - `VITE_WS_URL`: WebSocket origin; optional for the same reason (defaults to the page origin). Both are required in production builds (Cloudflare Pages build vars). Full contract: `api/.env.example`, `frontend/.env.example`.
   - `VITE_SUPABASE_URL`: Supabase project URL.
   - `VITE_SUPABASE_PUBLISHABLE_KEY`: Supabase project publishable API key (`sb_publishable_...`, with fallback to legacy `VITE_SUPABASE_ANON_KEY`).
 - **Component Styling**: Material-UI (MUI v5) styled components and `sx` prop.
