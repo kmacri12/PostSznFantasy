@@ -130,10 +130,11 @@ async def set_playoff_field_route(
 ) -> dict[str, int]:
     """Replace the playoff field (the draft pool); drafts need exactly 14 teams."""
     teams = set(body.team_ids)
-    if len(teams) != get_settings().playoff_field_size:
+    size = get_settings().playoff_field_size
+    if len(teams) != size:
         raise HTTPException(
             status_code=422,
-            detail=f"The playoff field has exactly {get_settings().playoff_field_size} teams",
+            detail=f"The playoff field has exactly {size} teams",
         )
     await set_playoff_field(db, sorted(teams))
     return {"teams": len(teams)}

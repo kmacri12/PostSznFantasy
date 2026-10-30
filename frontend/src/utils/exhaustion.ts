@@ -13,7 +13,7 @@ export function exhaustionWarnings(settings: {
   [key: string]: number;
 }): string[] {
   return CAPPED_UNITS.flatMap(({ key, position }) => {
-    const perTeam = settings[key] ?? 0;
+    const perTeam = Math.min(settings[key] ?? 0, settings.roster_total ?? Number.POSITIVE_INFINITY);
     const wanted = settings.number_teams * perTeam;
     if (wanted <= UNITS_AVAILABLE) return [];
     return [

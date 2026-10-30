@@ -217,3 +217,34 @@ async def test_caps_and_roster_lock_at_draft_start_but_scoring_stays_editable(
     assert resize.status_code == 409
     assert scoring.status_code == 200
     assert float(scoring.json()["scoringPassingTd"]) == 6
+
+
+async def test_team_defense_without_season_stats_is_in_the_pool_and_auto_pickable(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    league, _, _, _ = await make_league(db, roster_total=2, roster_max_dst=1)
+    kc = NFLTeam(id=1, team_abv="KC", in_playoffs=True)
+    db.add(kc)
+    await db.flush()
+    # Synthetic team defenses use the negative team id and have no season-stat rows.
+    db.add(NFLPlayer(id=-1, name="KC DST", position="DST", team_id=kc.id))
+    await db.flush()
+    async with client_as("uid-0") as user:
+        pool = (await user.get("/api/players/draft-pool")).json()
+    assert [p["position"] for p in pool] == ["DST"]
+    result = await draft_flow.auto_pick(db, league.id)
+    assert result.pick.player_id == -1
+
+
+async def test_naive_start_time_is_treated_as_utc_not_a_server_error(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    league, _, _, _ = await make_league(db, draft_status="scheduled")
+    db.add(wild_card_game(datetime.now(UTC) + timedelta(hours=2)))
+    await db.flush()
+    late = (datetime.now(UTC) + timedelta(hours=3)).replace(tzinfo=None)
+    async with client_as("uid-0") as commissioner:
+        response = await commissioner.patch(
+            f"/api/drafts/{league.id}", json={"startTime": late.isoformat()}
+        )
+    assert response.status_code == 409

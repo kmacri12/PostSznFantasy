@@ -74,7 +74,7 @@ class Draft(Base):
     )
     paused_remaining_seconds: Mapped[int | None] = mapped_column(Integer, nullable=True)
     time_per_pick_seconds: Mapped[int] = mapped_column(
-        Integer, nullable=False, default=60
+        Integer, nullable=False, default=90
     )
     slow_draft_auto_pause: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False

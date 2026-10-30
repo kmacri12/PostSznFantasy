@@ -14,7 +14,6 @@ from api.db.models.nfl import NFLGame, NFLTeam
 from api.services.draft_picks import DraftPickError
 from api.services.ingestion.schemas import POSTSEASON_WEEKS
 
-PLAYOFF_FIELD_SIZE = 14  # the real field; see Settings.playoff_field_size
 WILD_CARD_WEEK = POSTSEASON_WEEKS["Wild Card"]
 
 
@@ -43,14 +42,6 @@ async def set_playoff_field(db: AsyncSession, team_ids: list[int]) -> None:
     await db.execute(update(NFLTeam).values(in_playoffs=NFLTeam.id.in_(team_ids)))
 
 
-async def mark_teams_in_playoffs(db: AsyncSession, team_ids: set[int]) -> None:
-    """Add teams seen in a postseason game; never removes any."""
-    if team_ids:
-        await db.execute(
-            update(NFLTeam).where(NFLTeam.id.in_(team_ids)).values(in_playoffs=True)
-        )
-
-
 async def first_wild_card_kickoff(db: AsyncSession, season: int) -> datetime | None:
     epochs = (
         await db.execute(
@@ -77,6 +68,8 @@ async def require_draft_window_open(
     if kickoff is None:
         return
     when = scheduled_for or datetime.now(UTC)
+    if when.tzinfo is None:
+        when = when.replace(tzinfo=UTC)
     if datetime.now(UTC) >= kickoff or when > kickoff:
         raise DraftPickError(
             "Drafts must start before the first Wild Card kickoff "

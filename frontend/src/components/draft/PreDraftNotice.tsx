@@ -4,7 +4,6 @@ import DraftLockNotice from "../league/DraftLockNotice";
 
 const PRE_DRAFT = ["unscheduled", "scheduled", "lobby"];
 
-/** Rules that matter before the draft starts: what locks, the playoff field, the kickoff cutoff. */
 const PreDraftNotice = ({ state }: { state: DraftState }) => {
   if (!PRE_DRAFT.includes(state.status)) return null;
   return (

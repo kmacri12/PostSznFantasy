@@ -89,25 +89,21 @@ const AvailablePlayers = ({
       onPositionChange={setPosition}
       renderActions={(card) => {
         const player = byId.get(card.id) as PlayerSummary;
+        const capReason = cappedPositions[player.position];
         return (
           <>
             <Button
               sx={{ minHeight: 44, minWidth: 72 }}
-              disabled={queue.includes(player.id) || !!cappedPositions[player.position]}
+              disabled={queue.includes(player.id) || !!capReason}
               onClick={() => onQueue(player.id)}
             >
               Queue
             </Button>
             <Button
-              variant={cappedPositions[player.position] ? "outlined" : "contained"}
+              variant={capReason ? "outlined" : "contained"}
               color={armedId === player.id ? "warning" : "primary"}
               sx={{ minHeight: 44, flex: 1, lineHeight: 1.2 }}
-              disabled={
-                !canPick ||
-                !isConnected ||
-                pendingPlayerId !== null ||
-                !!cappedPositions[player.position]
-              }
+              disabled={!canPick || !isConnected || pendingPlayerId !== null || !!capReason}
               onClick={() => handleDraft(player)}
             >
               {draftLabel(player)}
