@@ -186,14 +186,14 @@ const CreateLeaguePage = ({
           <>
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <Typography color="text.secondary">
-                Defaults follow Sleeper's standard PPR.
+                Defaults are full PPR with 0.1 per kicker field-goal yard.
               </Typography>
               <Button
                 type="button"
                 size="small"
                 onClick={() => setScoringSettings(scoringDefaults)}
               >
-                Reset to Sleeper defaults
+                Reset to defaults
               </Button>
             </Box>
             <ScoringForm
@@ -227,8 +227,8 @@ const CreateLeaguePage = ({
                 </Typography>
                 <Typography color="text.secondary" sx={{ mt: 1 }}>
                   {changedCount === 0
-                    ? "Scoring matches Sleeper's standard PPR defaults."
-                    : `${changedCount} scoring setting${changedCount === 1 ? "" : "s"} changed from Sleeper defaults.`}
+                    ? "Scoring uses the default full PPR settings."
+                    : `${changedCount} scoring setting${changedCount === 1 ? "" : "s"} changed from the defaults.`}
                 </Typography>
               </>
             )}
