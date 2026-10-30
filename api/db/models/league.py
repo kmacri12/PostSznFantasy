@@ -16,7 +16,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from api.db.base import Base
-from api.models.enums import LeagueRole, Tiebreaker
+from api.models.enums import LeagueRole
 
 if TYPE_CHECKING:
     from api.db.models.draft import Draft, DraftPick
@@ -328,11 +328,6 @@ class LeagueSettings(Base):
     )
     multiplier_super_bowl: Mapped[Decimal] = mapped_column(
         Numeric(6, 2), nullable=False, default=1
-    )
-    # Unused since the tiebreaker chain became fixed (docs/product-rules.md section 6);
-    # drop with the next schema migration.
-    tiebreaker: Mapped[str] = mapped_column(
-        String(30), nullable=False, default=Tiebreaker.MOST_PLAYERS_ALIVE.value
     )
     # No defaults: the commissioner chooses both explicitly (services.team_units).
     team_qb: Mapped[bool] = mapped_column(Boolean, nullable=False)
