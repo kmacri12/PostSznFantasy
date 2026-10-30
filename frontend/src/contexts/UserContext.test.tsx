@@ -1,4 +1,5 @@
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { UserProvider, useUser } from "./UserContext";
@@ -7,11 +8,16 @@ const mocks = vi.hoisted(() => ({
   getSession: vi.fn(),
   onAuthStateChange: vi.fn(),
   post: vi.fn(),
+  signOut: vi.fn(),
 }));
 
 vi.mock("../utils/supabase", () => ({
   supabase: {
-    auth: { getSession: mocks.getSession, onAuthStateChange: mocks.onAuthStateChange },
+    auth: {
+      getSession: mocks.getSession,
+      onAuthStateChange: mocks.onAuthStateChange,
+      signOut: mocks.signOut,
+    },
   },
 }));
 vi.mock("../api/client", () => ({ api: { post: mocks.post } }));
@@ -22,9 +28,13 @@ const sessionFor = (id: string, token: string) => ({
 });
 
 const Probe = () => {
-  const { userId, loading, syncError } = useUser();
+  const { userId, loading, syncError, sessionExpired, signOutUser } = useUser();
   return (
     <div>
+      <span data-testid="expired">{sessionExpired ? "expired" : "no"}</span>
+      <button type="button" onClick={signOutUser}>
+        out
+      </button>
       <span data-testid="state">{loading ? "loading" : "ready"}</span>
       <span data-testid="user">{userId ?? "none"}</span>
       <span data-testid="error">{syncError ?? ""}</span>
@@ -32,9 +42,12 @@ const Probe = () => {
   );
 };
 
+let queryClient: QueryClient;
 let emitAuthChange: (session: unknown) => void;
 
 beforeEach(() => {
+  queryClient = new QueryClient();
+  mocks.signOut.mockReset().mockImplementation(async () => emitAuthChange(null));
   mocks.post.mockReset().mockResolvedValue({ data: { userId: 42 } });
   mocks.getSession.mockReset().mockResolvedValue({ data: { session: sessionFor("u1", "t1") } });
   mocks.onAuthStateChange.mockReset().mockImplementation((callback) => {
@@ -45,11 +58,13 @@ beforeEach(() => {
 
 const renderProbe = () =>
   render(
-    <MemoryRouter>
-      <UserProvider>
-        <Probe />
-      </UserProvider>
-    </MemoryRouter>,
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter>
+        <UserProvider>
+          <Probe />
+        </UserProvider>
+      </MemoryRouter>
+    </QueryClientProvider>,
   );
 
 describe("UserProvider auth flow", () => {
@@ -87,5 +102,35 @@ describe("UserProvider auth flow", () => {
       expect(screen.getByTestId("error").textContent).toMatch(/couldn.t reach the server/i),
     );
     expect(screen.getByTestId("user").textContent).toBe("none");
+  });
+
+  it("flags an unexpected sign-out as an expired session", async () => {
+    renderProbe();
+    await waitFor(() => expect(screen.getByTestId("user").textContent).toBe("42"));
+
+    act(() => emitAuthChange(null));
+    await waitFor(() => expect(screen.getByTestId("expired").textContent).toBe("expired"));
+  });
+
+  it("does not call a deliberate sign-out an expired session, and drops cached data", async () => {
+    queryClient.setQueryData(["leagues"], [{ id: 1 }]);
+    renderProbe();
+    await waitFor(() => expect(screen.getByTestId("user").textContent).toBe("42"));
+
+    fireEvent.click(screen.getByText("out"));
+    await waitFor(() => expect(screen.getByTestId("user").textContent).toBe("none"));
+
+    expect(screen.getByTestId("expired").textContent).toBe("no");
+    expect(queryClient.getQueryData(["leagues"])).toBeUndefined();
+  });
+
+  it("clears the expired flag once the user signs back in", async () => {
+    renderProbe();
+    await waitFor(() => expect(screen.getByTestId("user").textContent).toBe("42"));
+    act(() => emitAuthChange(null));
+    await waitFor(() => expect(screen.getByTestId("expired").textContent).toBe("expired"));
+
+    act(() => emitAuthChange(sessionFor("u1", "t9")));
+    await waitFor(() => expect(screen.getByTestId("expired").textContent).toBe("no"));
   });
 });

@@ -1,8 +1,9 @@
 import GoogleIcon from "@mui/icons-material/Google";
 import { Alert, Box, Button, Card, Container, Divider, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
-import { Navigate, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import MagicLinkForm from "../components/auth/MagicLinkForm";
+import PostSignInRedirect from "../components/auth/PostSignInRedirect";
 import LoadingState from "../components/common/LoadingState";
 import { useUser } from "../contexts/UserContext";
 import { safeNextPath } from "../utils/authRedirect";
@@ -32,7 +33,7 @@ const SignInPage = () => {
       </Container>
     );
   }
-  if (user) return <Navigate to={next} replace />;
+  if (user) return <PostSignInRedirect next={next} />;
 
   return (
     <Container maxWidth="xs" sx={{ py: { xs: 3, sm: 8 } }}>

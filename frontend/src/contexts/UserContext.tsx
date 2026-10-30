@@ -1,4 +1,5 @@
 import type { Session, User as SupabaseUser } from "@supabase/supabase-js";
+import { useQueryClient } from "@tanstack/react-query";
 import type React from "react";
 import {
   createContext,
@@ -7,6 +8,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -21,6 +23,8 @@ interface UserContextType {
   user: SupabaseUser | null;
   userId: number | null;
   loading: boolean;
+  /** True after Supabase ends the session without the user asking (refresh failed, other tab). */
+  sessionExpired: boolean;
   /** Set when the backend login sync fails, so the UI can say why nothing loads. */
   syncError: string | null;
   /** Opens the sign-in screen and returns here afterwards. */
@@ -50,6 +54,10 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [userId, setUserId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [syncError, setSyncError] = useState<string | null>(null);
+  const [sessionExpired, setSessionExpired] = useState(false);
+  const deliberateSignOut = useRef(false);
+  const hadUser = useRef(false);
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -80,8 +88,16 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (!user) {
       setUserId(null);
       setSyncError(null);
+      if (hadUser.current) {
+        hadUser.current = false;
+        queryClient.clear();
+        setSessionExpired(!deliberateSignOut.current);
+        deliberateSignOut.current = false;
+      }
       return;
     }
+    hadUser.current = true;
+    setSessionExpired(false);
     let cancelled = false;
     api
       .post<{ userId: number }>("/api/auth/login", {
@@ -127,12 +143,15 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const signOutUser = useCallback(async () => {
+    deliberateSignOut.current = true;
     try {
       await supabase.auth.signOut();
     } catch (error) {
+      deliberateSignOut.current = false;
       logger.error("Error signing out:", error);
     }
-  }, []);
+    navigate("/");
+  }, [navigate]);
 
   const getIdToken = useCallback(async () => {
     const {
@@ -146,6 +165,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       user,
       userId,
       loading,
+      sessionExpired,
       syncError,
       signIn,
       signInWithGoogle,
@@ -157,6 +177,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       user,
       userId,
       loading,
+      sessionExpired,
       syncError,
       signIn,
       signInWithGoogle,

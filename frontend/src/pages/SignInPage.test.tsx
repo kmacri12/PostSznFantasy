@@ -18,6 +18,9 @@ vi.mock("../contexts/UserContext", () => ({
     signInWithGoogle: mocks.signInWithGoogle,
   }),
 }));
+vi.mock("../components/auth/PostSignInRedirect", () => ({
+  default: ({ next }: { next: string }) => <div>redirecting to {next}</div>,
+}));
 vi.mock("../utils/supabase", () => ({
   get initialCallbackError() {
     return mocks.callbackError;
@@ -72,9 +75,9 @@ describe("SignInPage", () => {
     expect(screen.getByText(/expired or was already used/i)).toBeInTheDocument();
   });
 
-  it("sends a signed-in visitor on to their destination", () => {
+  it("hands a signed-in visitor to the post-sign-in redirect", () => {
     mocks.user = { id: "u1" };
     renderAt("/sign-in?next=%2Fjoin%2FABC");
-    expect(screen.getByText("join page")).toBeInTheDocument();
+    expect(screen.getByText("redirecting to /join/ABC")).toBeInTheDocument();
   });
 });
