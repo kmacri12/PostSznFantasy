@@ -11,12 +11,13 @@ from api.db.models.league import (
     League,
     LeagueSettings,
     LeagueStanding,
+    LineupSlot,
     Team,
     TeamPlayer,
 )
 from api.db.models.nfl import NFLGame, NFLPlayer, NFLPlayerGameStats
 from api.models.enums import DraftStatus, PlayerPosition
-from api.services.roster_slots import BENCH, assign_players, slot_layout
+from api.services.lineups import BENCH, slot_layout
 from api.utils.calculations.fantasy_points_utils import calculate_player_points
 from api.utils.calculations.standings_utils import (
     get_players_left,
@@ -109,42 +110,44 @@ async def _tally_league(
         .scalars()
         .all()
     )
-    roster: dict[int, list[NFLPlayer]] = defaultdict(list)
-    preferred: dict[int, int] = {}
-    # Same order as the team page, so scored starters are the ones the owner sees.
-    for team_id, slot_index, player in (
+    specs = slot_layout(settings)
+    starter_slots = {i for i, spec in enumerate(specs) if spec.slot != BENCH}
+    players = {
+        p.id: p
+        for p in (
+            await db.execute(
+                select(NFLPlayer)
+                .join(TeamPlayer, TeamPlayer.player_id == NFLPlayer.id)
+                .where(TeamPlayer.league_id == league_id)
+            )
+        ).scalars()
+    }
+    # Only players the owner placed in a starter slot that round score; no auto-fill.
+    starters: dict[tuple[int, int], list[int]] = defaultdict(list)
+    for team_id, round_, slot_index, player_id in (
         await db.execute(
-            select(TeamPlayer.team_id, TeamPlayer.slot_index, NFLPlayer)
-            .join(NFLPlayer, NFLPlayer.id == TeamPlayer.player_id)
-            .where(TeamPlayer.league_id == league_id)
-            .order_by(NFLPlayer.name)
+            select(
+                LineupSlot.team_id,
+                LineupSlot.round,
+                LineupSlot.slot_index,
+                LineupSlot.player_id,
+            ).where(LineupSlot.team_id.in_(team_ids))
         )
     ).all():
-        roster[team_id].append(player)
-        if slot_index is not None:
-            preferred[player.id] = slot_index
+        if slot_index in starter_slots and player_id in players:
+            starters[(team_id, round_)].append(player_id)
 
-    specs = slot_layout(settings)
     tallies = []
     for team_id in team_ids:
-        players = roster[team_id]
-        position_of = {p.id: PlayerPosition.from_str(p.position) for p in players}
-        placed = assign_players(
-            specs, [(pid, pos) for pid, pos in position_of.items()], preferred
-        )
-        starters = [
-            pid
-            for pid, spec in zip(placed, specs, strict=True)
-            if pid is not None and spec.slot != BENCH
-        ]
         points = [Decimal(0)] * 4
-        for pid in starters:
-            for game_stats, week in stats.get(pid, []):
-                index = postseason_round_index(week)
-                if index is not None:
-                    points[index] += calculate_player_points(
-                        game_stats, settings, position_of[pid]
-                    ) * round_multiplier(settings, week)
+        for round_ in range(1, 5):
+            for pid in starters[(team_id, round_)]:
+                position = PlayerPosition.from_str(players[pid].position)
+                for game_stats, week in stats.get(pid, []):
+                    if postseason_round_index(week) == round_ - 1:
+                        points[round_ - 1] += calculate_player_points(
+                            game_stats, settings, position
+                        ) * round_multiplier(settings, week)
         tallies.append(
             TeamTally(
                 team_id,

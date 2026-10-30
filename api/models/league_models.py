@@ -5,12 +5,9 @@ from pydantic import Field, create_model
 
 from api.models.base import BaseSchema
 from api.models.enums import (
-    ByeWeekHandling,
     DraftStatus,
-    FreeAgencyClaimOrder,
-    FreeAgencyWindow,
     LeagueRole,
-    RosterLock,
+    PlayerRoundStatus,
     Tiebreaker,
 )
 
@@ -96,17 +93,11 @@ class PostseasonSettings(BaseSchema):
     """What makes this different from a regular-season league."""
 
     allow_join_after_draft_start: bool = True
-    free_agency_enabled: bool = False
-    free_agency_window: FreeAgencyWindow = FreeAgencyWindow.BETWEEN_ROUNDS
-    free_agency_claim_order: FreeAgencyClaimOrder = FreeAgencyClaimOrder.FIRST_COME
     multiplier_wild_card: float = Field(default=1, ge=0, le=10)
     multiplier_divisional: float = Field(default=1, ge=0, le=10)
     multiplier_conference: float = Field(default=1, ge=0, le=10)
     multiplier_super_bowl: float = Field(default=1, ge=0, le=10)
-    roster_lock: RosterLock = RosterLock.ROUND_START
-    allow_swap_eliminated: bool = True
     tiebreaker: Tiebreaker = Tiebreaker.MOST_PLAYERS_ALIVE
-    bye_week_handling: ByeWeekHandling = ByeWeekHandling.ALIVE_NO_SCORE
 
 
 class LeagueCreate(BaseSchema):
@@ -180,8 +171,10 @@ class TeamOwnerUpdate(BaseSchema):
 
 
 class LineupMove(BaseSchema):
+    round: int = Field(ge=1, le=4)
     player_id: int
-    slot_index: int = Field(ge=0)
+    # None takes the player out of the lineup.
+    slot_index: int | None = Field(default=None, ge=0)
 
 
 class LeagueOverview(BaseSchema):
@@ -230,15 +223,35 @@ class RosterPlayer(BaseSchema):
     name: str
     position: str
     team_abv: str | None = None
-    slot: str
     is_active: bool
     next_game: NextGame | None = None
 
 
-class RosterSlot(BaseSchema):
+class LineupPlayer(RosterPlayer):
+    """A roster player as seen in one round's lineup."""
+
+    status: PlayerRoundStatus
+    # Scheduled kickoff of their game that round (None on a bye); the lock time.
+    kickoff: datetime | None = None
+    locked: bool
+
+
+class LineupSlotView(BaseSchema):
     index: int
     slot: str
-    player: RosterPlayer | None = None
+    player: LineupPlayer | None = None
+
+
+class RoundLineup(BaseSchema):
+    round: int
+    slots: list[LineupSlotView]
+    # Roster players alive or on a bye but not placed in any slot.
+    unassigned: list[LineupPlayer]
+    # Players whose NFL team lost in an earlier round; never movable.
+    eliminated: list[LineupPlayer]
+    empty_starter_slots: int
+    # Earliest kickoff of any game that round: when owners are warned about gaps.
+    first_kickoff: datetime | None = None
 
 
 class TeamDetails(BaseSchema):
@@ -247,18 +260,13 @@ class TeamDetails(BaseSchema):
     league_id: int
     owner_name: str | None = None
     can_edit: bool
-    can_manage_roster: bool
+    can_set_lineup: bool
     roster: list[RosterPlayer]
-    slots: list[RosterSlot]
+    lineups: list[RoundLineup]
 
 
 class TeamRename(BaseSchema):
     name: str = Field(min_length=1, max_length=40)
-
-
-class AddDropRequest(BaseSchema):
-    add_player_id: int | None = None
-    drop_player_id: int | None = None
 
 
 class InviteCreate(BaseSchema):

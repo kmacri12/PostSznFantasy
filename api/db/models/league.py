@@ -1,10 +1,9 @@
 from datetime import UTC, datetime
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from sqlalchemy import (
     DECIMAL,
-    JSON,
     Boolean,
     CheckConstraint,
     DateTime,
@@ -17,14 +16,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from api.db.base import Base
-from api.models.enums import (
-    ByeWeekHandling,
-    FreeAgencyClaimOrder,
-    FreeAgencyWindow,
-    LeagueRole,
-    RosterLock,
-    Tiebreaker,
-)
+from api.models.enums import LeagueRole, Tiebreaker
 
 if TYPE_CHECKING:
     from api.db.models.draft import Draft, DraftPick
@@ -153,8 +145,8 @@ class Team(Base):
     roster: Mapped[list["TeamPlayer"]] = relationship(
         "TeamPlayer", back_populates="team", cascade="all, delete-orphan"
     )
-    lineups: Mapped[list["Lineup"]] = relationship(
-        "Lineup", back_populates="team", cascade="all, delete-orphan"
+    lineup_slots: Mapped[list["LineupSlot"]] = relationship(
+        "LineupSlot", back_populates="team", cascade="all, delete-orphan"
     )
     standings: Mapped[list["LeagueStanding"]] = relationship(
         "LeagueStanding", back_populates="team", cascade="all, delete-orphan"
@@ -325,15 +317,6 @@ class LeagueSettings(Base):
     allow_join_after_draft_start: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=True
     )
-    free_agency_enabled: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, default=False
-    )
-    free_agency_window: Mapped[str] = mapped_column(
-        String(20), nullable=False, default=FreeAgencyWindow.BETWEEN_ROUNDS.value
-    )
-    free_agency_claim_order: Mapped[str] = mapped_column(
-        String(20), nullable=False, default=FreeAgencyClaimOrder.FIRST_COME.value
-    )
     multiplier_wild_card: Mapped[Decimal] = mapped_column(
         Numeric(6, 2), nullable=False, default=1
     )
@@ -346,17 +329,8 @@ class LeagueSettings(Base):
     multiplier_super_bowl: Mapped[Decimal] = mapped_column(
         Numeric(6, 2), nullable=False, default=1
     )
-    roster_lock: Mapped[str] = mapped_column(
-        String(20), nullable=False, default=RosterLock.ROUND_START.value
-    )
-    allow_swap_eliminated: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, default=True
-    )
     tiebreaker: Mapped[str] = mapped_column(
         String(30), nullable=False, default=Tiebreaker.MOST_PLAYERS_ALIVE.value
-    )
-    bye_week_handling: Mapped[str] = mapped_column(
-        String(30), nullable=False, default=ByeWeekHandling.ALIVE_NO_SCORE.value
     )
 
     league: Mapped["League"] = relationship("League", back_populates="settings")
@@ -386,64 +360,36 @@ class TeamPlayer(Base):
         primary_key=True,
         index=True,
     )
-    # Explicit lineup position (index into the league's slot layout); None = auto-placed.
-    slot_index: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     team: Mapped["Team"] = relationship("Team", back_populates="roster")
 
 
-class Week(Base):
-    __tablename__ = "weeks"
-    __table_args__ = {"schema": "fantasy"}
+class LineupSlot(Base):
+    """One player placed in a slot of a team's lineup for one round.
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    week_name: Mapped[str] = mapped_column(String(50), nullable=False)
+    Absence of rows is the empty lineup. Unplaced roster players have no row.
+    """
 
-    lineups: Mapped[list["Lineup"]] = relationship("Lineup", back_populates="week")
+    __tablename__ = "lineup_slots"
+    __table_args__ = (
+        UniqueConstraint("team_id", "round", "slot_index"),
+        CheckConstraint("round BETWEEN 1 AND 4", name="ck_lineup_slots_round"),
+        {"schema": "fantasy"},
+    )
 
-
-class Lineup(Base):
-    __tablename__ = "lineups"
-    __table_args__ = {"schema": "fantasy"}
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
     team_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("fantasy.teams.id", ondelete="CASCADE"), primary_key=True
+    )
+    round: Mapped[int] = mapped_column(Integer, primary_key=True)
+    player_id: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("fantasy.teams.id", ondelete="CASCADE"),
-        nullable=False,
-        index=True,
+        ForeignKey("nfl.nfl_players.id", ondelete="CASCADE"),
+        primary_key=True,
     )
-    week_id: Mapped[int] = mapped_column(
-        Integer,
-        ForeignKey("fantasy.weeks.id", ondelete="CASCADE"),
-        nullable=False,
-        index=True,
-    )
-    lineup: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
-    locked: Mapped[bool] = mapped_column(Boolean, default=False)
+    # Index into the league's slot layout (see services.lineups.slot_layout).
+    slot_index: Mapped[int] = mapped_column(Integer, nullable=False)
 
-    team: Mapped["Team"] = relationship("Team", back_populates="lineups")
-    week: Mapped["Week"] = relationship("Week", back_populates="lineups")
-    player_scores: Mapped[list["PlayerScore"]] = relationship(
-        "PlayerScore", back_populates="lineup", cascade="all, delete-orphan"
-    )
-
-
-class PlayerScore(Base):
-    __tablename__ = "player_scores"
-    __table_args__ = {"schema": "fantasy"}
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    lineup_id: Mapped[int] = mapped_column(
-        Integer,
-        ForeignKey("fantasy.lineups.id", ondelete="CASCADE"),
-        nullable=False,
-        index=True,
-    )
-    player_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    points: Mapped[Decimal] = mapped_column(DECIMAL(10, 2), nullable=False)
-
-    lineup: Mapped["Lineup"] = relationship("Lineup", back_populates="player_scores")
+    team: Mapped["Team"] = relationship("Team", back_populates="lineup_slots")
 
 
 class LeagueStanding(Base):

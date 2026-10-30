@@ -8,6 +8,7 @@ from api.core.config import get_settings
 from api.db.models import (
     LeagueSettings,
     LeagueStanding,
+    LineupSlot,
     NFLGame,
     NFLPlayerGameStats,
     NFLTeam,
@@ -58,6 +59,18 @@ async def test_starters_score_per_round_and_the_bench_does_not(
         [
             NFLGame(id="wc", season=2025, season_type="post", game_week=1),
             NFLGame(id="div", season=2025, season_type="post", game_week=20),
+        ]
+    )
+    db.add_all(
+        [
+            LineupSlot(
+                team_id=teams[0].id, round=1, player_id=starter.id, slot_index=0
+            ),
+            LineupSlot(
+                team_id=teams[0].id, round=2, player_id=starter.id, slot_index=0
+            ),
+            LineupSlot(team_id=teams[0].id, round=1, player_id=bench.id, slot_index=9),
+            LineupSlot(team_id=teams[1].id, round=1, player_id=rival.id, slot_index=0),
         ]
     )
     await db.flush()
