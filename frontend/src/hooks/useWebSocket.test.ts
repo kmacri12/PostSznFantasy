@@ -151,11 +151,68 @@ describe("useWebSocket hook", () => {
     const { result } = renderHook(() => useWebSocket(URL));
     const socket = socketAt(0);
 
-    act(() => result.current.sendMessage({ eventType: "SYNC_REQUEST" }));
+    let sent = true;
+    act(() => {
+      sent = result.current.sendMessage({ eventType: "SYNC_REQUEST" });
+    });
     expect(socket.send).not.toHaveBeenCalled();
+    expect(sent).toBe(false);
 
     act(() => socket.simulateOpen());
-    act(() => result.current.sendMessage({ eventType: "SYNC_REQUEST" }));
+    act(() => {
+      sent = result.current.sendMessage({ eventType: "SYNC_REQUEST" });
+    });
+    expect(sent).toBe(true);
     expect(socket.send).toHaveBeenCalledWith(JSON.stringify({ eventType: "SYNC_REQUEST" }));
+  });
+
+  describe("resync", () => {
+    const setVisibility = (state: "visible" | "hidden") => {
+      Object.defineProperty(document, "visibilityState", { value: state, configurable: true });
+      document.dispatchEvent(new Event("visibilitychange"));
+    };
+
+    it("opens a fresh connection when the tab becomes visible again", () => {
+      renderHook(() => useWebSocket(URL));
+      act(() => socketAt(0).simulateOpen());
+
+      act(() => setVisibility("hidden"));
+      expect(MockWebSocket.instances).toHaveLength(1);
+
+      act(() => setVisibility("visible"));
+      expect(MockWebSocket.instances).toHaveLength(2);
+      expect(socketAt(0).close).toHaveBeenCalled();
+    });
+
+    it("opens a fresh connection when the network comes back", () => {
+      renderHook(() => useWebSocket(URL));
+      act(() => socketAt(0).simulateOpen());
+      act(() => {
+        window.dispatchEvent(new Event("online"));
+      });
+      expect(MockWebSocket.instances).toHaveLength(2);
+    });
+
+    it("does not leave a stray backoff reconnect behind a forced one", () => {
+      renderHook(() => useWebSocket(URL));
+      act(() => socketAt(0).simulateDrop());
+      act(() => {
+        window.dispatchEvent(new Event("online"));
+      });
+      expect(MockWebSocket.instances).toHaveLength(2);
+      act(() => vi.advanceTimersByTime(60_000));
+      expect(MockWebSocket.instances).toHaveLength(2);
+    });
+
+    it("treats silence for two heartbeat intervals as a dead socket", () => {
+      renderHook(() => useWebSocket(URL));
+      act(() => socketAt(0).simulateOpen());
+      act(() => vi.advanceTimersByTime(20_000));
+      act(() => socketAt(0).simulateMessage({ eventType: "PONG" }));
+      act(() => vi.advanceTimersByTime(40_000));
+      expect(MockWebSocket.instances).toHaveLength(1);
+      act(() => vi.advanceTimersByTime(20_000));
+      expect(MockWebSocket.instances).toHaveLength(2);
+    });
   });
 });

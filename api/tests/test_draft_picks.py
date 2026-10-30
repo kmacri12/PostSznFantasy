@@ -46,13 +46,15 @@ def make_settings(**overrides: int | None) -> LeagueSettings:
 
 
 def test_roster_limits_reject_position_overflow() -> None:
-    with pytest.raises(DraftPickError, match="QB"):
+    with pytest.raises(DraftPickError, match="QB") as exc:
         check_roster_limits(make_settings(), [PlayerPosition.QB], PlayerPosition.QB)
+    assert exc.value.code == "roster_full"
 
 
 def test_roster_limits_reject_full_roster() -> None:
-    with pytest.raises(DraftPickError, match="full"):
+    with pytest.raises(DraftPickError, match="full") as exc:
         check_roster_limits(make_settings(), [PlayerPosition.RB] * 3, PlayerPosition.WR)
+    assert exc.value.code == "roster_full"
 
 
 def test_roster_limits_allow_unlimited_position() -> None:

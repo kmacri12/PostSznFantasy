@@ -7,8 +7,10 @@ export interface DraftMessage {
   eventType: string;
   leagueId?: number;
   message?: string;
-  // biome-ignore lint/suspicious/noExplicitAny: payload shape depends on eventType
-  data?: any;
+  /** Machine-readable reason on ERROR events (e.g. player_taken). */
+  code?: string | null;
+  /** Shape depends on eventType; consumers narrow it. */
+  data?: unknown;
   timestamp?: number | string;
   activeConnections?: number;
 }
@@ -19,6 +21,8 @@ interface Options {
 }
 
 const HEARTBEAT_MS = 20_000;
+// Mobile browsers freeze sockets in the background without closing them, so silence means dead.
+const DEAD_AFTER_MS = 2 * HEARTBEAT_MS;
 const BASE_BACKOFF_MS = 1_000;
 const MAX_BACKOFF_MS = 30_000;
 const NORMAL_CLOSURE = 1000;
@@ -45,8 +49,10 @@ export const useWebSocket = (url: string, options: Options = {}) => {
     let attempt = 0;
     let reconnectTimer: ReturnType<typeof setTimeout> | undefined;
     let heartbeatTimer: ReturnType<typeof setInterval> | undefined;
+    let lastHeardAt = Date.now();
 
     const connect = () => {
+      lastHeardAt = Date.now();
       const socket = new WebSocket(url);
       socketRef.current = socket;
 
@@ -63,6 +69,11 @@ export const useWebSocket = (url: string, options: Options = {}) => {
         });
 
         heartbeatTimer = setInterval(() => {
+          if (Date.now() - lastHeardAt > DEAD_AFTER_MS) {
+            logger.warn("No traffic from server; reconnecting");
+            reconnectNow();
+            return;
+          }
           if (socket.readyState === WebSocket.OPEN) {
             socket.send(JSON.stringify({ eventType: "PING", timestamp: Date.now() }));
           }
@@ -70,6 +81,7 @@ export const useWebSocket = (url: string, options: Options = {}) => {
       };
 
       socket.onmessage = (event) => {
+        lastHeardAt = Date.now();
         try {
           onMessageRef.current?.(JSON.parse(event.data) as DraftMessage);
         } catch {
@@ -95,9 +107,31 @@ export const useWebSocket = (url: string, options: Options = {}) => {
       };
     };
 
+    // Replaces the socket outright; the server's snapshot on connect is the resync.
+    const reconnectNow = () => {
+      clearTimeout(reconnectTimer);
+      clearInterval(heartbeatTimer);
+      const stale = socketRef.current;
+      if (stale) {
+        stale.onopen = stale.onmessage = stale.onclose = null;
+        stale.close(NORMAL_CLOSURE, "Resync");
+      }
+      attempt = 0;
+      setIsConnected(false);
+      connect();
+    };
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") reconnectNow();
+    };
+
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    window.addEventListener("online", reconnectNow);
     connect();
 
     return () => {
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      window.removeEventListener("online", reconnectNow);
       disposed = true;
       clearTimeout(reconnectTimer);
       clearInterval(heartbeatTimer);
@@ -105,12 +139,14 @@ export const useWebSocket = (url: string, options: Options = {}) => {
     };
   }, [url]);
 
-  const sendMessage = useCallback((message: object) => {
+  /** Returns false when the socket is down so callers can surface the dropped message. */
+  const sendMessage = useCallback((message: object): boolean => {
     if (socketRef.current?.readyState === WebSocket.OPEN) {
       socketRef.current.send(JSON.stringify(message));
-    } else {
-      logger.warn("Dropped outbound message: socket is not open");
+      return true;
     }
+    logger.warn("Dropped outbound message: socket is not open");
+    return false;
   }, []);
 
   return { isConnected, sendMessage };

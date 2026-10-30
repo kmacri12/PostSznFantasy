@@ -15,7 +15,14 @@ logger = logging.getLogger(__name__)
 
 
 class DraftPickError(Exception):
-    """A pick or draft action was rejected; the message is safe to show to the drafter."""
+    """A pick or draft action was rejected; the message is safe to show to the drafter.
+
+    `code` lets clients react (flag a taken player) without parsing the message.
+    """
+
+    def __init__(self, message: str, code: str | None = None) -> None:
+        super().__init__(message)
+        self.code = code
 
 
 class PickNotDue(DraftPickError):
@@ -55,14 +62,16 @@ def check_roster_limits(
     candidate_position: PlayerPosition | None,
 ) -> None:
     if len(drafted_positions) >= settings.roster_total:
-        raise DraftPickError("Your roster is full")
+        raise DraftPickError("Your roster is full", code="roster_full")
     if candidate_position is None:
         return
     limit: int | None = getattr(
         settings, f"roster_max_{candidate_position.value.lower()}"
     )
     if limit is not None and drafted_positions.count(candidate_position) >= limit:
-        raise DraftPickError(f"Roster limit reached for {candidate_position.value}")
+        raise DraftPickError(
+            f"Roster limit reached for {candidate_position.value}", code="roster_full"
+        )
 
 
 def next_deadline(draft: Draft, now: datetime) -> datetime:
@@ -130,10 +139,10 @@ async def record_pick(
     team_id = team_on_the_clock(order, pick_index, draft.draft_type)
     team = await db.get(Team, team_id)
     if team is None or (acting_user is not None and team.owner_id != acting_user.id):
-        raise DraftPickError("It is not your turn to pick")
+        raise DraftPickError("It is not your turn to pick", code="not_your_turn")
 
     if any(p.player_id == player_id for p in picks):
-        raise DraftPickError("Player has already been drafted")
+        raise DraftPickError("Player has already been drafted", code="player_taken")
 
     team_player_ids = [p.player_id for p in picks if p.team_id == team_id]
     players = {

@@ -50,6 +50,52 @@ const pick = (overall: number, playerId: number): DraftPick => ({
 const NOW = new Date("2030-01-01T00:00:00Z").getTime();
 
 describe("draft room reducer", () => {
+  it("tracks a submitted pick as pending until my team's pick lands", () => {
+    let room = applyDraftEvent(initialRoom, { eventType: "SNAPSHOT", data: snapshot() });
+    room = applyDraftEvent(room, { eventType: "PICK_PENDING", data: { playerId: 5 } });
+    expect(room.pendingPlayerId).toBe(5);
+    room = applyDraftEvent(room, { eventType: "PICK_MADE", data: { ...pick(1, 7), teamId: 99 } });
+    expect(room.pendingPlayerId).toBe(5);
+    room = applyDraftEvent(room, { eventType: "PICK_MADE", data: pick(1, 5) });
+    expect(room.pendingPlayerId).toBeNull();
+  });
+
+  it("toasts my team once when a pick is auto-made for me, not on replays or others' picks", () => {
+    let room = applyDraftEvent(initialRoom, { eventType: "SNAPSHOT", data: snapshot() });
+    const auto = { ...pick(1, 5), autopick: true };
+    room = applyDraftEvent(room, { eventType: "PICK_MADE", data: auto });
+    expect(room.toast?.message).toBe("Auto-pick: P5 was drafted for you");
+    expect(room.toast?.severity).toBe("info");
+
+    room = applyDraftEvent(room, { eventType: "DISMISS_TOAST" });
+    room = applyDraftEvent(room, { eventType: "PICK_MADE", data: auto });
+    expect(room.toast).toBeNull();
+
+    room = applyDraftEvent(room, {
+      eventType: "PICK_MADE",
+      data: { ...auto, numberPickOverall: 2, playerId: 6, teamId: 99 },
+    });
+    expect(room.toast).toBeNull();
+  });
+
+  it("clears a pending pick when someone else drafts that player", () => {
+    let room = applyDraftEvent(initialRoom, { eventType: "SNAPSHOT", data: snapshot() });
+    room = applyDraftEvent(room, { eventType: "PICK_PENDING", data: { playerId: 5 } });
+    room = applyDraftEvent(room, { eventType: "PICK_MADE", data: { ...pick(1, 5), teamId: 99 } });
+    expect(room.pendingPlayerId).toBeNull();
+  });
+
+  it("clears a pending pick on ERROR and on a fresh snapshot", () => {
+    let room = applyDraftEvent(initialRoom, { eventType: "SNAPSHOT", data: snapshot() });
+    room = applyDraftEvent(room, { eventType: "PICK_PENDING", data: { playerId: 5 } });
+    expect(
+      applyDraftEvent(room, { eventType: "ERROR", message: "nope" }).pendingPlayerId,
+    ).toBeNull();
+    expect(
+      applyDraftEvent(room, { eventType: "SNAPSHOT", data: snapshot() }).pendingPlayerId,
+    ).toBeNull();
+  });
+
   it("loads a snapshot and records the server clock offset", () => {
     const room = applyDraftEvent(
       initialRoom,
@@ -58,6 +104,16 @@ describe("draft room reducer", () => {
     );
     expect(room.state?.leagueId).toBe(7);
     expect(room.clockOffsetMs).toBe(5000);
+  });
+
+  it("re-syncs the clock offset on every snapshot", () => {
+    let room = applyDraftEvent(
+      initialRoom,
+      { eventType: "SNAPSHOT", data: snapshot() },
+      NOW - 5000,
+    );
+    room = applyDraftEvent(room, { eventType: "SNAPSHOT", data: snapshot() }, NOW - 800);
+    expect(room.clockOffsetMs).toBe(800);
   });
 
   it("ignores incremental events until a snapshot arrives", () => {
@@ -103,8 +159,32 @@ describe("draft room reducer", () => {
     room = applyDraftEvent(room, { eventType: "ERROR", message: "It is not your turn to pick" });
     room = applyDraftEvent(room, { eventType: "DRAFT_COMPLETE" });
     expect(room.state?.presence).toEqual([1, 2]);
-    expect(room.lastError).toBe("It is not your turn to pick");
+    expect(room.toast?.message).toBe("It is not your turn to pick");
     expect(room.complete).toBe(true);
+  });
+
+  it("gives each error its own toast id so a repeat re-shows, and dismisses on request", () => {
+    let room = applyDraftEvent(initialRoom, { eventType: "SNAPSHOT", data: snapshot() });
+    room = applyDraftEvent(room, { eventType: "ERROR", message: "Your roster is full" });
+    const first = room.toast?.id;
+    room = applyDraftEvent(room, { eventType: "ERROR", message: "Your roster is full" });
+    expect(room.toast?.id).not.toBe(first);
+    room = applyDraftEvent(room, { eventType: "DISMISS_TOAST" });
+    expect(room.toast).toBeNull();
+  });
+
+  it("removes a player from the list when the server says they were taken", () => {
+    let room = applyDraftEvent(initialRoom, { eventType: "SNAPSHOT", data: snapshot() });
+    room = applyDraftEvent(room, { eventType: "PICK_PENDING", data: { playerId: 5 } });
+    room = applyDraftEvent(room, {
+      eventType: "ERROR",
+      message: "Player has already been drafted",
+      code: "player_taken",
+    });
+    expect(room.takenPlayerIds).toEqual([5]);
+    expect(room.pendingPlayerId).toBeNull();
+    room = applyDraftEvent(room, { eventType: "SNAPSHOT", data: snapshot() });
+    expect(room.takenPlayerIds).toEqual([]);
   });
 });
 

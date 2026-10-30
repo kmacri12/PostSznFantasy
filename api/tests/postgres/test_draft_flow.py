@@ -45,12 +45,14 @@ async def test_out_of_turn_and_duplicate_picks_are_rejected(db: AsyncSession) ->
     _, users, _, draft = await make_league(db)
     players = await make_players(db, ["QB", "RB", "WR"])
 
-    with pytest.raises(DraftPickError, match="not your turn"):
+    with pytest.raises(DraftPickError, match="not your turn") as not_turn:
         await make_pick(db, draft.league_id, users[1], players[0].id)
+    assert not_turn.value.code == "not_your_turn"
 
     await make_pick(db, draft.league_id, users[0], players[0].id)
-    with pytest.raises(DraftPickError, match="already been drafted"):
+    with pytest.raises(DraftPickError, match="already been drafted") as taken:
         await make_pick(db, draft.league_id, users[1], players[0].id)
+    assert taken.value.code == "player_taken"
 
 
 async def test_position_limit_is_enforced(db: AsyncSession) -> None:

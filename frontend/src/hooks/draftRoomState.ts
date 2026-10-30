@@ -1,24 +1,43 @@
 import type { DraftPick, DraftSnapshot, DraftState } from "../api/types";
 import type { DraftMessage } from "./useWebSocket";
 
+export interface Toast {
+  /** Changes on every error so an identical repeat re-shows the toast. */
+  id: number;
+  message: string;
+  severity: "error" | "info";
+}
+
 export interface DraftRoom {
   state: DraftSnapshot | null;
   /** Server time minus local time when the last state arrived; corrects the countdown. */
   clockOffsetMs: number;
-  lastError: string | null;
+  toast: Toast | null;
+  /** Players the server rejected as already drafted, hidden until a snapshot confirms the picks. */
+  takenPlayerIds: number[];
+  /** Player whose MAKE_PICK is in flight; resolved by my team's PICK_MADE, ERROR or a new snapshot. */
+  pendingPlayerId: number | null;
   complete: boolean;
 }
 
 export const initialRoom: DraftRoom = {
   state: null,
   clockOffsetMs: 0,
-  lastError: null,
+  toast: null,
+  takenPlayerIds: [],
+  pendingPlayerId: null,
   complete: false,
 };
 
 const withOffset = (room: DraftRoom, serverTime: string, now: number) => ({
   ...room,
   clockOffsetMs: new Date(serverTime).getTime() - now,
+});
+
+const nextToast = (room: DraftRoom, message: string, severity: Toast["severity"]): Toast => ({
+  id: (room.toast?.id ?? 0) + 1,
+  message,
+  severity,
 });
 
 const mergePick = (picks: DraftPick[], pick: DraftPick): DraftPick[] =>
@@ -31,7 +50,12 @@ export function applyDraftEvent(room: DraftRoom, event: DraftMessage, now = Date
   switch (event.eventType) {
     case "SNAPSHOT": {
       const snapshot = event.data as DraftSnapshot;
-      return { ...withOffset(room, snapshot.serverTime, now), state: snapshot, lastError: null };
+      return {
+        ...withOffset(room, snapshot.serverTime, now),
+        state: snapshot,
+        takenPlayerIds: [],
+        pendingPlayerId: null,
+      };
     }
     case "DRAFT_STATE": {
       if (!room.state) return room;
@@ -45,9 +69,22 @@ export function applyDraftEvent(room: DraftRoom, event: DraftMessage, now = Date
       if (!room.state) return room;
       const pick = event.data as DraftPick;
       const picks = mergePick(room.state.picks, pick);
+      const autoPickedForMe =
+        pick.autopick && pick.teamId === room.state.myTeamId && picks !== room.state.picks;
       // A queued player that just got drafted (by anyone) leaves everyone's queue.
       return {
         ...room,
+        toast: autoPickedForMe
+          ? nextToast(
+              room,
+              `Auto-pick: ${pick.playerName ?? "a player"} was drafted for you`,
+              "info",
+            )
+          : room.toast,
+        pendingPlayerId:
+          pick.teamId === room.state.myTeamId || pick.playerId === room.pendingPlayerId
+            ? null
+            : room.pendingPlayerId,
         state: {
           ...room.state,
           picks,
@@ -65,8 +102,20 @@ export function applyDraftEvent(room: DraftRoom, event: DraftMessage, now = Date
         : room;
     case "DRAFT_COMPLETE":
       return { ...room, complete: true };
+    case "PICK_PENDING":
+      return { ...room, pendingPlayerId: (event.data as { playerId: number }).playerId };
     case "ERROR":
-      return { ...room, lastError: event.message ?? "Something went wrong" };
+      return {
+        ...room,
+        pendingPlayerId: null,
+        takenPlayerIds:
+          event.code === "player_taken" && room.pendingPlayerId !== null
+            ? [...room.takenPlayerIds, room.pendingPlayerId]
+            : room.takenPlayerIds,
+        toast: nextToast(room, event.message ?? "Something went wrong", "error"),
+      };
+    case "DISMISS_TOAST":
+      return { ...room, toast: null };
     default:
       return room;
   }

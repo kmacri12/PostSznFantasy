@@ -309,9 +309,11 @@ async def websocket_draft_endpoint(websocket: WebSocket, league_id: int) -> None
         )
 
 
-async def _send_error(websocket: WebSocket, message: str) -> None:
+async def _send_error(
+    websocket: WebSocket, message: str, code: str | None = None
+) -> None:
     await draft_manager.send_personal(
-        websocket, {"eventType": "ERROR", "message": message}
+        websocket, {"eventType": "ERROR", "message": message, "code": code}
     )
 
 
@@ -369,7 +371,7 @@ async def _handle_make_pick(
             await db.commit()
         except DraftPickError as exc:
             await db.rollback()
-            await _send_error(websocket, str(exc))
+            await _send_error(websocket, str(exc), exc.code)
             return
 
     for event in events:
