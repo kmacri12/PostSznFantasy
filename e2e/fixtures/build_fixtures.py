@@ -30,7 +30,11 @@ LAST = ["Archer", "Boone", "Cole", "Drake", "Easton", "Frost", "Grady", "Hale"]
 
 # Home, away, winner side, kickoff offset in hours from the first kickoff. The winner of
 # game 1 plays on; every team appears once, so each result eliminates exactly one team.
-GAMES = [(2, 1, "home", 0), (3, 4, "away", 5), (5, 6, "home", 10), (7, 8, "away", 15)]
+GAMES = [(2, 1, "home", 0), (3, 4, "away", 6), (5, 6, "home", 12), (7, 8, "away", 18)]
+# The replay clock starts 300s before its earliest kickoff. A placeholder game with no box
+# score and no known teams kicks off this long before the first real one, so a live run
+# has a quiet opening in which the unplayed state can be observed.
+LEAD_HOURS = 6
 FIRST_KICKOFF = 1798500000  # 2026-12-29, only the spacing matters
 
 
@@ -211,6 +215,20 @@ def replay(rng: random.Random, players: list[dict]) -> dict:
             "DST": dst,
             "playerStats": player_stats,
         }
+    games.insert(
+        1,  # index 0 sets the replay season; the placeholder only moves the clock
+        {
+            "gameID": "20261228_LEAD@IN",
+            "seasonType": "Postseason",
+            "gameDate": "20261229",
+            "gameStatus": "Scheduled",
+            "gameWeek": "Divisional Round",
+            "teamIDHome": "0",
+            "teamIDAway": "0",
+            "gameTime_epoch": f"{float(FIRST_KICKOFF - LEAD_HOURS * 3600)}",
+            "season": SEASON,
+        },
+    )
     return {"games": games, "boxes": boxes}
 
 
@@ -225,7 +243,9 @@ def main() -> None:
         ],
         "players": players,
         "seasonStats": season_stats(rng, players),
-        "games": replay(random.Random(SEED), players)["games"],
+        "games": [
+            g for g in replay(random.Random(SEED), players)["games"] if "_LEAD@" not in g["gameID"]
+        ],
     }
     (HERE / "nfl.json").write_text(json.dumps(nfl, indent=1) + "\n")
     (HERE / "replay.json").write_text(json.dumps(replay(random.Random(SEED), players)))

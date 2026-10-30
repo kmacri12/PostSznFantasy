@@ -2,3 +2,6 @@ node_modules/
 test-results/
 playwright-report/
 .web-dist/
+.web-dist-live/
+test-results-live/
+playwright-report-live/

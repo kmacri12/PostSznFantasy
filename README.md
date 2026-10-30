@@ -240,4 +240,4 @@ PostSznFantasy/
 
 ## End-to-end tests
 
-Playwright tests in `e2e/` drive the real app in a 375px iPhone viewport (primary) plus a small desktop smoke run. `make e2e-install` installs Chromium once; `make e2e` starts the API and Vite itself and runs the suite (`E2E_ARGS="--project=mobile -g draft"` to filter). CI runs it on every pull request.
+Playwright tests in `e2e/` drive the real app in a 375px iPhone viewport (primary) plus a small desktop smoke run. `make e2e-install` installs Chromium once; `make e2e` starts the API and Vite itself and runs the suite (`E2E_ARGS="--project=mobile -g draft"` to filter). A second suite (`e2e/live/`) replays a saved postseason through the real poll, scoring and elimination code and checks the app as games finish. CI runs both on every pull request.

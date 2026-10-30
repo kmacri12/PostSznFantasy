@@ -88,5 +88,6 @@ check: check-api check-web ## Everything CI runs
 e2e-install: ## Install the Playwright project and its Chromium
 	cd e2e && npm install && npx playwright install --with-deps chromium
 
-e2e: ## Playwright end-to-end tests (mobile first); needs Postgres (make db-up)
-	cd e2e && npx playwright test $(E2E_ARGS)
+e2e: ## Playwright end-to-end tests (mobile first) plus the replay suite; needs Postgres (make db-up)
+	cd e2e && npx playwright test --pass-with-no-tests $(E2E_ARGS)
+	cd e2e && npx playwright test -c playwright.live.config.ts --pass-with-no-tests $(E2E_ARGS)

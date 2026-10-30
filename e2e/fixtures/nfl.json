@@ -969,7 +969,7 @@
       "teamIDHome": "3",
       "teamIDAway": "4",
       "gameTime": "4:30p",
-      "gameTime_epoch": "1798518000.0",
+      "gameTime_epoch": "1798521600.0",
       "season": "2026",
       "espnLink": "https://example.test/20261229_HOU@BAL"
     },
@@ -984,7 +984,7 @@
       "teamIDHome": "5",
       "teamIDAway": "6",
       "gameTime": "4:30p",
-      "gameTime_epoch": "1798536000.0",
+      "gameTime_epoch": "1798543200.0",
       "season": "2026",
       "espnLink": "https://example.test/20261229_LAR@PHI"
     },
@@ -999,7 +999,7 @@
       "teamIDHome": "7",
       "teamIDAway": "8",
       "gameTime": "4:30p",
-      "gameTime_epoch": "1798554000.0",
+      "gameTime_epoch": "1798564800.0",
       "season": "2026",
       "espnLink": "https://example.test/20261229_SFO@DET"
     }
