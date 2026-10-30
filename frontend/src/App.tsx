@@ -2,6 +2,7 @@ import { Box, Container, useMediaQuery, useTheme } from "@mui/material";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
 import { useUserLeagues } from "./api/queries";
+import SessionExpiredBanner from "./components/auth/SessionExpiredBanner";
 import LoadingState from "./components/common/LoadingState";
 import BottomTabBar, { TAB_BAR_HEIGHT } from "./components/layout/BottomTabBar";
 import NavBar from "./components/layout/NavBar";
@@ -14,6 +15,8 @@ const JoinPage = lazy(() => import("./pages/JoinPage"));
 const LeaguePage = lazy(() => import("./pages/LeaguePage"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 const PlayersPage = lazy(() => import("./pages/PlayersPage"));
+const WelcomePage = lazy(() => import("./pages/WelcomePage"));
+const SignInPage = lazy(() => import("./pages/SignInPage"));
 const SettingsPage = lazy(() => import("./pages/SettingsPage"));
 const TeamPage = lazy(() => import("./pages/TeamPage"));
 
@@ -47,6 +50,7 @@ function App() {
         onSignIn={signIn}
         onSignOut={signOutUser}
       />
+      <SessionExpiredBanner />
       <Suspense
         fallback={
           <Container maxWidth="md" sx={{ py: 4 }}>
@@ -57,6 +61,8 @@ function App() {
         <Routes>
           <Route path="/" element={<LandingPage leagues={leagues} />} />
           <Route path="/league/:leagueId" element={<LeaguePage />} />
+          <Route path="/sign-in" element={<SignInPage />} />
+          <Route path="/welcome" element={<WelcomePage />} />
           <Route path="/join/:code" element={<JoinPage />} />
           <Route path="/team/:teamId" element={<TeamPage />} />
           <Route path="/players" element={<PlayersPage />} />

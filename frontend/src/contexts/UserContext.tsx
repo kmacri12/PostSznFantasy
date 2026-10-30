@@ -1,4 +1,5 @@
 import type { Session, User as SupabaseUser } from "@supabase/supabase-js";
+import { useQueryClient } from "@tanstack/react-query";
 import type React from "react";
 import {
   createContext,
@@ -7,9 +8,12 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { api } from "../api/client";
+import { authCallbackUrl, signInPath } from "../utils/authRedirect";
 import { createLogger } from "../utils/logger";
 import { supabase } from "../utils/supabase";
 
@@ -19,9 +23,15 @@ interface UserContextType {
   user: SupabaseUser | null;
   userId: number | null;
   loading: boolean;
+  /** True after Supabase ends the session without the user asking (refresh failed, other tab). */
+  sessionExpired: boolean;
   /** Set when the backend login sync fails, so the UI can say why nothing loads. */
   syncError: string | null;
-  signIn: () => Promise<void>;
+  /** Opens the sign-in screen and returns here afterwards. */
+  signIn: () => void;
+  signInWithGoogle: (next: string) => Promise<string | null>;
+  /** Sends a magic link; resolves to an error message, or null when the email went out. */
+  signInWithEmail: (email: string, next: string) => Promise<string | null>;
   signOutUser: () => Promise<void>;
   getIdToken: () => Promise<string | null>;
 }
@@ -34,11 +44,22 @@ const displayName = (user: SupabaseUser): string =>
   user.email?.split("@")[0] ||
   "User";
 
+const magicLinkErrorMessage = (error: { status?: number; code?: string }): string =>
+  error.status === 429 || error.code === "over_email_send_rate_limit"
+    ? "Too many emails sent. Wait a minute and try again."
+    : "Couldn't send the sign-in link. Check the address and try again.";
+
 export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [userId, setUserId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [syncError, setSyncError] = useState<string | null>(null);
+  const [sessionExpired, setSessionExpired] = useState(false);
+  const deliberateSignOut = useRef(false);
+  const hadUser = useRef(false);
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const user = session?.user ?? null;
   const supabaseUid = user?.id ?? null;
@@ -67,8 +88,16 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (!user) {
       setUserId(null);
       setSyncError(null);
+      if (hadUser.current) {
+        hadUser.current = false;
+        queryClient.clear();
+        setSessionExpired(!deliberateSignOut.current);
+        deliberateSignOut.current = false;
+      }
       return;
     }
+    hadUser.current = true;
+    setSessionExpired(false);
     let cancelled = false;
     api
       .post<{ userId: number }>("/api/auth/login", {
@@ -90,25 +119,39 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
   }, [supabaseUid]);
 
-  const signIn = useCallback(async () => {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: { redirectTo: window.location.href },
-      });
-      if (error) throw error;
-    } catch (error) {
-      logger.error("Error signing in with Google:", error);
-    }
+  const currentPath = `${location.pathname}${location.search}${location.hash}`;
+  const signIn = useCallback(() => {
+    if (!location.pathname.startsWith("/sign-in")) navigate(signInPath(currentPath));
+  }, [navigate, location.pathname, currentPath]);
+
+  const signInWithGoogle = useCallback(async (next: string) => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: authCallbackUrl(window.location.origin, next) },
+    });
+    if (error) logger.error("Error signing in with Google:", error);
+    return error ? "Couldn't start Google sign-in. Try again." : null;
+  }, []);
+
+  const signInWithEmail = useCallback(async (email: string, next: string) => {
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: authCallbackUrl(window.location.origin, next) },
+    });
+    if (error) logger.error("Error sending magic link:", error);
+    return error ? magicLinkErrorMessage(error) : null;
   }, []);
 
   const signOutUser = useCallback(async () => {
+    deliberateSignOut.current = true;
     try {
       await supabase.auth.signOut();
     } catch (error) {
+      deliberateSignOut.current = false;
       logger.error("Error signing out:", error);
     }
-  }, []);
+    navigate("/");
+  }, [navigate]);
 
   const getIdToken = useCallback(async () => {
     const {
@@ -118,8 +161,30 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const value = useMemo(
-    () => ({ user, userId, loading, syncError, signIn, signOutUser, getIdToken }),
-    [user, userId, loading, syncError, signIn, signOutUser, getIdToken],
+    () => ({
+      user,
+      userId,
+      loading,
+      sessionExpired,
+      syncError,
+      signIn,
+      signInWithGoogle,
+      signInWithEmail,
+      signOutUser,
+      getIdToken,
+    }),
+    [
+      user,
+      userId,
+      loading,
+      sessionExpired,
+      syncError,
+      signIn,
+      signInWithGoogle,
+      signInWithEmail,
+      signOutUser,
+      getIdToken,
+    ],
   );
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;

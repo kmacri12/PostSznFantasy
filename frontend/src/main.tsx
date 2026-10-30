@@ -21,11 +21,11 @@ if (rootElement) {
         <CssBaseline />
         <ErrorBoundary>
           <QueryClientProvider client={queryClient}>
-            <UserProvider>
-              <BrowserRouter>
+            <BrowserRouter>
+              <UserProvider>
                 <App />
-              </BrowserRouter>
-            </UserProvider>
+              </UserProvider>
+            </BrowserRouter>
           </QueryClientProvider>
         </ErrorBoundary>
       </ThemeProvider>
