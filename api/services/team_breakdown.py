@@ -101,11 +101,6 @@ async def team_breakdown(
     for round_ in ROUNDS:
         multiplier = float(getattr(settings, ROUND_MULTIPLIER_FIELDS[round_ - 1]))
 
-        def change_for(
-            player_id: int, round_: int = round_, m: float = multiplier
-        ) -> ScoreChange | None:
-            return _scaled(changes.get((player_id, round_)), m)
-
         in_round = [ln for ln in lines if ln.round == round_]
         starters_by_slot = {
             ln.slot_index: ln
@@ -125,7 +120,12 @@ async def team_breakdown(
                             players[starters_by_slot[index].player_id],
                             starters_by_slot[index],
                             slot_names,
-                            change_for(starters_by_slot[index].player_id),
+                            _scaled(
+                                changes.get(
+                                    (starters_by_slot[index].player_id, round_)
+                                ),
+                                multiplier,
+                            ),
                         )
                         if index in starters_by_slot
                         else None,
@@ -142,7 +142,7 @@ async def team_breakdown(
                         players[ln.player_id],
                         ln,
                         slot_names,
-                        change_for(ln.player_id),
+                        _scaled(changes.get((ln.player_id, round_)), multiplier),
                     )
                     for ln in sorted(
                         (
