@@ -187,6 +187,8 @@ export interface PlayerSummary {
   position: string;
   teamAbv?: string;
   team?: { teamAbv?: string };
+  /** Not served yet; the card lists hide these players once the API sets it. */
+  eliminated?: boolean;
 }
 
 export interface SyncResult {
