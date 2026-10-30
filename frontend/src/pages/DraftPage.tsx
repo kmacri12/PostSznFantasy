@@ -21,6 +21,7 @@ import DraftStatusBar from "../components/draft/DraftStatusBar";
 import DraftToast from "../components/draft/DraftToast";
 import MyRosterPanel from "../components/draft/MyRosterPanel";
 import OnTheClockBanner from "../components/draft/OnTheClockBanner";
+import PausedBanner from "../components/draft/PausedBanner";
 import PickFeed from "../components/draft/PickFeed";
 import QueuePanel from "../components/draft/QueuePanel";
 import { useDraftRoom } from "../hooks/useDraftRoom";
@@ -93,6 +94,7 @@ const DraftPage = () => {
         {isCommissioner && (
           <Chip clickable label="Draft setup" onClick={() => setShowSetup(true)} />
         )}
+        {isCommissioner && <CommissionerControls draft={state} />}
       </Box>
 
       <DraftStatusBar
@@ -102,17 +104,13 @@ const DraftPage = () => {
         isConnected={room.isConnected}
         myTeamId={myTeamId}
       />
+      <PausedBanner status={state.status} />
       <OnTheClockBanner
         active={myTurn}
         secondsLeft={room.secondsLeft}
         isConnected={room.isConnected}
       />
       <DraftToast toast={room.toast} onClose={room.dismissToast} />
-      {isCommissioner && (
-        <Box sx={{ mt: 2 }}>
-          <CommissionerControls draft={state} />
-        </Box>
-      )}
 
       <Paper sx={{ mt: 2 }}>
         <Tabs value={tab} onChange={(_, value: TabKey) => setTab(value)} variant="scrollable">
