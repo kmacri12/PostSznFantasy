@@ -2,8 +2,8 @@
 
 Marks the 14 playoff teams (the draft pool) and folds fullbacks into running backs.
 
-Revision ID: 0005
-Revises: 0004
+Revision ID: 0007
+Revises: 0006
 Create Date: 2026-10-30 13:00:00
 
 """
@@ -14,8 +14,8 @@ import sqlalchemy as sa
 
 from alembic import op
 
-revision: str = "0005"
-down_revision: str | Sequence[str] | None = "0004"
+revision: str = "0007"
+down_revision: str | Sequence[str] | None = "0006"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
