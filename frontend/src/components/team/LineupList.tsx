@@ -138,7 +138,7 @@ const PlayerRow = ({
                 <TeamUnitBadge position={player.position} teamAbv={player.teamAbv} />
               )}
             </Box>
-            <ChangedScore player={player} />
+            <ChangedScore points={player.points} change={player.scoreChange} />
             {locked && !eliminated && (
               <LockIcon aria-label="Locked" fontSize="small" sx={{ color: tokens.muted }} />
             )}

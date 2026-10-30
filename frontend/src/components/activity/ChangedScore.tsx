@@ -1,18 +1,30 @@
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import { Box, Tooltip, Typography } from "@mui/material";
-import type { LineupPlayer } from "../../api/types";
+import type { ScoreChange } from "../../api/types";
 import { formatWhen } from "./describe";
 
 const pts = (value: number) => `${Number(value.toFixed(2))} pts`;
 
+interface Props {
+  points: number | null;
+  change: ScoreChange | null;
+  /** Show the unit after the number; off where a column heading already gives it. */
+  unit?: boolean;
+  bold?: boolean;
+}
+
 /** A player's round score; one that changed after the fact explains itself on tap/hover. */
-const ChangedScore = ({ player }: { player: LineupPlayer }) => {
-  if (player.points === null) return null;
-  const change = player.scoreChange;
+const ChangedScore = ({ points, change, unit = true, bold = false }: Props) => {
+  if (points === null) return null;
+  const shown = unit ? pts(points) : String(Number(points.toFixed(2)));
   if (!change) {
     return (
-      <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: "nowrap" }}>
-        {pts(player.points)}
+      <Typography
+        variant="body2"
+        color={bold ? "text.primary" : "text.secondary"}
+        sx={{ whiteSpace: "nowrap", fontWeight: bold ? 700 : 400 }}
+      >
+        {shown}
       </Typography>
     );
   }
@@ -27,7 +39,7 @@ const ChangedScore = ({ player }: { player: LineupPlayer }) => {
       <Box
         component="button"
         type="button"
-        aria-label={`${pts(player.points)}, score changed. ${text}`}
+        aria-label={`${pts(points)}, score changed. ${text}`}
         onClick={(event: React.MouseEvent) => event.stopPropagation()}
         sx={{
           all: "unset",
@@ -41,11 +53,12 @@ const ChangedScore = ({ player }: { player: LineupPlayer }) => {
           cursor: "help",
           whiteSpace: "nowrap",
           fontSize: 14,
+          fontWeight: bold ? 700 : 400,
           textDecoration: "underline dotted",
           "&:focus-visible": { outline: "2px solid currentColor", outlineOffset: 2 },
         }}
       >
-        {pts(player.points)}
+        {shown}
         <InfoOutlinedIcon fontSize="inherit" />
       </Box>
     </Tooltip>

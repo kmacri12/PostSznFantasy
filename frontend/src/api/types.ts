@@ -124,6 +124,8 @@ export interface BreakdownPlayer {
   /** Lineup slot name; null when the owner never placed the player. */
   slot: string | null;
   points: number;
+  /** The latest stat correction, in the same (post-multiplier) points as `points`. */
+  scoreChange: ScoreChange | null;
 }
 
 export interface BreakdownSlot {
@@ -131,6 +133,7 @@ export interface BreakdownSlot {
   slot: string;
   player: BreakdownPlayer | null;
   points: number;
+  mark: SlotMark | null;
 }
 
 export interface BreakdownRound {

@@ -1,7 +1,9 @@
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { Accordion, AccordionDetails, AccordionSummary, Box, Typography } from "@mui/material";
-import type { BreakdownPlayer, BreakdownRound, TeamBreakdown } from "../../api/types";
+import type { BreakdownPlayer, BreakdownRound, SlotMark, TeamBreakdown } from "../../api/types";
 import { tokens } from "../../theme";
+import ChangedScore from "../activity/ChangedScore";
+import SlotMarker from "../activity/SlotMarker";
 import { ROUND_LABELS } from "./lineup";
 
 const points = (value: number): string => String(Math.round(value * 100) / 100);
@@ -14,49 +16,55 @@ const PlayerLine = ({
   label,
   player,
   value,
+  mark = null,
   muted = false,
 }: {
   label: string;
   player: BreakdownPlayer | null;
   value: number;
+  mark?: SlotMark | null;
   muted?: boolean;
 }) => (
-  <Box
-    component="li"
-    sx={{
-      display: "flex",
-      alignItems: "center",
-      gap: 1.5,
-      minHeight: 44,
-      py: 0.5,
-      borderTop: `1px solid ${tokens.border}`,
-      color: muted || !player ? "text.secondary" : "text.primary",
-    }}
-  >
-    <Typography
-      variant="caption"
-      sx={{ width: 64, flexShrink: 0, textTransform: "uppercase", letterSpacing: 0.4 }}
+  <Box component="li" sx={{ borderTop: `1px solid ${tokens.border}` }}>
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        gap: 1.5,
+        minHeight: 44,
+        py: 0.5,
+        color: muted || !player ? "text.secondary" : "text.primary",
+      }}
     >
-      {label}
-    </Typography>
-    <Box sx={{ flexGrow: 1, minWidth: 0 }}>
-      {player ? (
-        <>
-          <Typography noWrap sx={{ fontWeight: muted ? 400 : 600 }}>
-            {player.name}
-          </Typography>
-          <Typography variant="caption" color="text.secondary" noWrap component="div">
-            {player.position}
-            {player.teamAbv ? ` · ${player.teamAbv}` : ""}
-          </Typography>
-        </>
-      ) : (
-        <Typography sx={{ fontStyle: "italic" }}>Empty</Typography>
-      )}
+      <Typography
+        variant="caption"
+        sx={{ width: 64, flexShrink: 0, textTransform: "uppercase", letterSpacing: 0.4 }}
+      >
+        {label}
+      </Typography>
+      <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+        {player ? (
+          <>
+            <Typography noWrap sx={{ fontWeight: muted ? 400 : 600 }}>
+              {player.name}
+            </Typography>
+            <Typography variant="caption" color="text.secondary" noWrap component="div">
+              {player.position}
+              {player.teamAbv ? ` · ${player.teamAbv}` : ""}
+            </Typography>
+          </>
+        ) : (
+          <Typography sx={{ fontStyle: "italic" }}>Empty</Typography>
+        )}
+      </Box>
+      <ChangedScore
+        points={value}
+        change={player?.scoreChange ?? null}
+        unit={false}
+        bold={!muted}
+      />
     </Box>
-    <Typography sx={{ fontWeight: muted ? 400 : 700, fontVariantNumeric: "tabular-nums" }}>
-      {points(value)}
-    </Typography>
+    {mark && <SlotMarker mark={mark} empty={player === null} />}
   </Box>
 );
 
@@ -85,7 +93,13 @@ const RoundSection = ({ round, expanded }: { round: BreakdownRound; expanded: bo
       </Typography>
       <Box component="ul" sx={{ listStyle: "none", m: 0, p: 0 }}>
         {round.starters.map((slot) => (
-          <PlayerLine key={slot.index} label={slot.slot} player={slot.player} value={slot.points} />
+          <PlayerLine
+            key={slot.index}
+            label={slot.slot}
+            player={slot.player}
+            value={slot.points}
+            mark={slot.mark}
+          />
         ))}
       </Box>
       <Box sx={{ display: "flex", justifyContent: "space-between", mt: 1.5 }}>

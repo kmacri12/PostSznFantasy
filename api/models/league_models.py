@@ -272,6 +272,8 @@ class BreakdownPlayer(BaseSchema):
     # Lineup slot name (QB, FLEX, BENCH ...); None when never placed in a slot.
     slot: str | None = None
     points: float
+    # The latest stat correction, in the same (post-multiplier) points as `points`.
+    score_change: ScoreChange | None = None
 
 
 class BreakdownSlot(BaseSchema):
@@ -280,6 +282,7 @@ class BreakdownSlot(BaseSchema):
     player: BreakdownPlayer | None = None
     # Counted points; 0 for an empty slot.
     points: float
+    mark: SlotMark | None = None
 
 
 class BreakdownRound(BaseSchema):
