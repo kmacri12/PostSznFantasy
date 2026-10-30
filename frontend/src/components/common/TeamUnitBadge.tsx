@@ -15,7 +15,7 @@ interface Props {
 const TeamUnitBadge = ({ position, teamAbv, dense = false }: Props) => {
   const hint = teamUnitHint(position, teamAbv);
   return (
-    <Tooltip title={hint} arrow enterTouchDelay={0} leaveTouchDelay={4000}>
+    <Tooltip title={hint} arrow placement="top" enterTouchDelay={0} leaveTouchDelay={4000}>
       <Box
         component="span"
         tabIndex={0}

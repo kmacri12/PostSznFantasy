@@ -18,8 +18,8 @@ export interface TeamUnitValues {
 }
 
 const CHOICES = [
-  { key: "team_qb", label: "Team QB", help: TEAM_QB_HELP },
-  { key: "team_k", label: "Team K", help: TEAM_K_HELP },
+  { key: "team_qb", label: "Team QB", noun: "QB", help: TEAM_QB_HELP },
+  { key: "team_k", label: "Team K", noun: "K", help: TEAM_K_HELP },
 ] as const;
 
 interface Props {
@@ -30,7 +30,7 @@ interface Props {
 /** No option starts selected: each is the commissioner's explicit choice. */
 const TeamUnitChoice = ({ values, onChange }: Props) => (
   <Box sx={{ display: "grid", gap: 2, mb: 2 }}>
-    {CHOICES.map(({ key, label, help }) => {
+    {CHOICES.map(({ key, label, noun, help }) => {
       const id = `${key.replaceAll("_", "-")}-label`;
       const chosen = values[key];
       return (
@@ -51,7 +51,7 @@ const TeamUnitChoice = ({ values, onChange }: Props) => (
             <FormControlLabel
               value="true"
               control={<Radio />}
-              label="On: scores every one on his NFL team"
+              label={`On: scores every ${noun} on his NFL team`}
               sx={{ minHeight: 44 }}
             />
             <FormControlLabel

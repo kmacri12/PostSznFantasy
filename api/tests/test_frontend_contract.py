@@ -3,7 +3,12 @@
 import re
 from pathlib import Path
 
-from api.models.league_models import PostseasonSettings, RosterSettings, ScoringSettings
+from api.models.league_models import (
+    PostseasonSettings,
+    RosterSettings,
+    ScoringSettings,
+    TeamUnitSettings,
+)
 
 SETTINGS_DIR = Path(__file__).resolve().parents[2] / "frontend" / "src" / "settings"
 
@@ -23,6 +28,7 @@ def test_roster_groups_cover_roster_settings_except_totals() -> None:
     assert sorted(keys) == sorted(expected)
 
 
-def test_postseason_fields_cover_postseason_settings() -> None:
+def test_postseason_fields_cover_postseason_and_team_unit_settings() -> None:
     keys = declared_keys("postseasonFields.ts")
-    assert sorted(keys) == sorted(PostseasonSettings.model_fields)
+    expected = set(PostseasonSettings.model_fields) | set(TeamUnitSettings.model_fields)
+    assert sorted(keys) == sorted(expected)
