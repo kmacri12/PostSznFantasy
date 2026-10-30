@@ -14,6 +14,9 @@ from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 # Anchored to the package so uvicorn, Alembic and pytest agree regardless of cwd.
 ENV_FILE = Path(__file__).resolve().parents[1] / ".env"
 
+# The only environments in which the e2e auth stub may be switched on.
+TEST_AUTH_ENVIRONMENTS = frozenset({"development", "test"})
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
@@ -80,6 +83,19 @@ class Settings(BaseSettings):
     environment: str = "development"
     log_level: str = "INFO"
     log_format: Literal["auto", "json", "console"] = "auto"
+
+    # E2E only: accept `e2e-user:<uid>` bearer tokens instead of Supabase JWTs. Off by
+    # default and refused outright outside the environments in TEST_AUTH_ENVIRONMENTS.
+    test_auth_stub: bool = False
+
+    @model_validator(mode="after")
+    def _refuse_test_auth_stub_outside_test(self) -> "Settings":
+        if self.test_auth_stub and self.environment not in TEST_AUTH_ENVIRONMENTS:
+            raise ValueError(
+                "TEST_AUTH_STUB is only allowed when ENVIRONMENT is one of "
+                f"{sorted(TEST_AUTH_ENVIRONMENTS)}, got {self.environment!r}"
+            )
+        return self
 
     @model_validator(mode="after")
     def _require_db_config(self) -> "Settings":
