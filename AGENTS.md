@@ -226,6 +226,7 @@ Authorization: `LeagueMember` (any member), `LeagueCommissioner` (`require_commi
 - **Product rules**: [docs/product-rules.md](docs/product-rules.md) is the source of truth for how the game is played (per-round lineups, kickoff locks, team QB/K, scoring defaults, tiebreakers). Read it before changing lineup, scoring, standings or draft behaviour, and update it with the code. Work is tracked as Epics 11-18 in GitHub Issues.
 - **RapidAPI ingestion**: Tank01 nests stats by category with string values; all mapping lives in `api/services/ingestion/schemas.py`. Read [docs/rapidapi-tank01.md](docs/rapidapi-tank01.md) before touching ingest.
 - **CamelCase API Contract**: All API JSON responses are formatted in `camelCase` for TypeScript consumption, while internal Python uses `snake_case`. The base schema `api/models/base.py` enforces this using Pydantic's `alias_generator = to_camel` with `populate_by_name = True`.
+- **ERD**: [docs/erd.md](docs/erd.md) is the entity-relationship diagram. Any change to `api/db/models/` or an Alembic migration (table, column, foreign key) must update it in the same PR; `api/tests/test_erd.py` fails when the diagram drifts from the models.
 - **Dual Model Layer**: 
   - SQLAlchemy models (`api/db/models/`) represent relational database tables.
   - Pydantic models (`api/models/`) define external API payloads and schemas.

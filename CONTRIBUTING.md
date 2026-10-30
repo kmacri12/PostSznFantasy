@@ -78,6 +78,7 @@ A pull request is ready for merge only when all of the following criteria are me
    - New business logic, scoring formulas, or API routes include corresponding unit/integration tests.
 3. **Architectural Consistency**:
    - Database modifications include an Alembic migration (`make migration m="..."`).
+   - Database modifications also update `docs/erd.md` (checked by `api/tests/test_erd.py`).
    - Request/response contracts use typed Pydantic models with camelCase aliasing (`BaseSchema`).
    - Async database sessions are scoped via FastAPI dependency injection (`DbSession`).
 4. **Mobile Verification (every UI change)**:
