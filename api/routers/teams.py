@@ -13,6 +13,7 @@ from api.models.league_models import (
     LineupMove,
     NextGame,
     RosterPlayer,
+    TeamBreakdown,
     TeamDetails,
     TeamRename,
 )
@@ -25,6 +26,7 @@ from api.services.lineups import (
 )
 from api.services.round_status import GAME_COMPLETED
 from api.services.standings import refresh_standings_if_drafted
+from api.services.team_breakdown import team_breakdown
 
 router = APIRouter()
 
@@ -153,6 +155,17 @@ async def build_team_details(
 async def get_team(team_id: int, membership: TeamMember, db: DbSession) -> TeamDetails:
     """Roster in slot layout (empty slots included) with alive/eliminated and next game."""
     return await build_team_details(db, await _team_or_404(db, team_id), membership)
+
+
+@router.get("/{team_id}/breakdown", response_model=TeamBreakdown)
+async def get_team_breakdown(
+    team_id: int, membership: TeamMember, db: DbSession
+) -> TeamBreakdown:
+    """Each round's counted points per starter slot and the bench's points, all computed
+    on read; round scores equal the standings values."""
+    return await team_breakdown(
+        db, await _team_or_404(db, team_id), membership.league.season
+    )
 
 
 @router.patch("/{team_id}", response_model=TeamDetails)

@@ -244,6 +244,45 @@ class Standings(BaseSchema):
     teams: list[TeamStanding]
 
 
+class BreakdownPlayer(BaseSchema):
+    """What a rostered player earned in one round; counted if a starter, else bench."""
+
+    player_id: int
+    name: str
+    position: str
+    team_abv: str | None = None
+    # Lineup slot name (QB, FLEX, BENCH ...); None when never placed in a slot.
+    slot: str | None = None
+    points: float
+
+
+class BreakdownSlot(BaseSchema):
+    index: int
+    slot: str
+    player: BreakdownPlayer | None = None
+    # Counted points; 0 for an empty slot.
+    points: float
+
+
+class BreakdownRound(BaseSchema):
+    round: int
+    multiplier: float
+    # The round score: equals the sum of the starters' points and the standings value.
+    counted: float
+    starters: list[BreakdownSlot]
+    # Rostered non-starters who played that round, best first. Points shown dimmed.
+    bench: list[BreakdownPlayer]
+    bench_points: float
+
+
+class TeamBreakdown(BaseSchema):
+    team_id: int
+    team_name: str
+    total: float
+    points_left_on_bench: float
+    rounds: list[BreakdownRound]
+
+
 class TeamSimple(BaseSchema):
     id: int
     name: str
