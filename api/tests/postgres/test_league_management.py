@@ -281,3 +281,51 @@ async def test_public_config_exposes_the_season(client_as: ClientFactory) -> Non
     async with client_as("x") as client:
         body = (await client.get("/api/config")).json()
     assert isinstance(body["season"], int)
+
+
+async def test_commissioner_edits_notes_and_members_read_them(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    league, _, _, _ = await make_league(db, draft_status="scheduled")
+    async with client_as("uid-1") as member:
+        assert (await member.get(f"/api/leagues/{league.id}")).json()["notes"] == ""
+    async with client_as("uid-0") as commissioner:
+        saved = await commissioner.patch(
+            f"/api/leagues/{league.id}", json={"notes": "Buy-in $20\nWinner takes all"}
+        )
+        renamed = await commissioner.patch(
+            f"/api/leagues/{league.id}", json={"name": "Renamed"}
+        )
+    assert saved.status_code == 200
+    assert saved.json()["notes"] == "Buy-in $20\nWinner takes all"
+    assert renamed.json()["notes"] == "Buy-in $20\nWinner takes all"
+    async with client_as("uid-1") as member:
+        body = (await member.get(f"/api/leagues/{league.id}")).json()
+    assert body["notes"] == "Buy-in $20\nWinner takes all"
+
+
+async def test_members_cannot_edit_notes(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    league, _, _, _ = await make_league(db, draft_status="scheduled")
+    async with client_as("uid-1") as member:
+        response = await member.patch(
+            f"/api/leagues/{league.id}", json={"notes": "mine now"}
+        )
+    assert response.status_code == 403
+
+
+async def test_notes_can_be_cleared_and_are_length_limited(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    league, _, _, _ = await make_league(db, draft_status="scheduled")
+    async with client_as("uid-0") as commissioner:
+        await commissioner.patch(f"/api/leagues/{league.id}", json={"notes": "x"})
+        cleared = await commissioner.patch(
+            f"/api/leagues/{league.id}", json={"notes": ""}
+        )
+        too_long = await commissioner.patch(
+            f"/api/leagues/{league.id}", json={"notes": "x" * 5001}
+        )
+    assert cleared.json()["notes"] == ""
+    assert too_long.status_code == 422

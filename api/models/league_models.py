@@ -110,6 +110,9 @@ class TeamUnitSettings(BaseSchema):
     team_k: StrictBool
 
 
+NOTES_MAX_LENGTH = 5000
+
+
 class LeagueCreate(BaseSchema):
     league_name: str = Field(min_length=1, max_length=100)
     roster_settings: RosterSettings = Field(default_factory=RosterSettings)
@@ -164,6 +167,7 @@ LeagueSettingsPatch = _all_optional(
 class LeagueUpdate(BaseSchema):
     name: str | None = Field(default=None, min_length=1, max_length=100)
     number_teams: int | None = Field(default=None, ge=2, le=14)
+    notes: str | None = Field(default=None, max_length=NOTES_MAX_LENGTH)
 
 
 class MemberSummary(BaseSchema):
@@ -202,6 +206,7 @@ class LeagueOverview(BaseSchema):
     id: int
     name: str
     season: int
+    notes: str
     number_teams: int
     open_spots: int
     my_role: LeagueRole
