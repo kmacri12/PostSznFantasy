@@ -1,6 +1,6 @@
 import { Box, Typography } from "@mui/material";
 import type { Standings } from "../../api/types";
-import { ROUND_NAMES } from "./standingsView";
+import { ROUND_LABELS } from "../team/lineup";
 
 const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? "" : "s"}`;
 
@@ -16,7 +16,7 @@ const LiveSummary = ({ standings }: { standings: Standings }) => (
       mb: 1,
     }}
   >
-    <Typography sx={{ fontWeight: 700 }}>{ROUND_NAMES[standings.round - 1]}</Typography>
+    <Typography sx={{ fontWeight: 700 }}>{ROUND_LABELS[standings.round]}</Typography>
     <Typography variant="body2" color="text.secondary">
       {plural(standings.gamesInProgress, "game")} in progress
     </Typography>

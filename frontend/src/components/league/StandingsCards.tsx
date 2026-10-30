@@ -4,9 +4,10 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import type { StandingsRow } from "../../api/types";
 import { tokens } from "../../theme";
+import { ROUND_LABELS } from "../team/lineup";
 import ProgressCounts from "./ProgressCounts";
 import RankCell from "./RankCell";
-import { ROUND_NAMES, rankLabel, tieNote } from "./standingsView";
+import { rankLabel, tieNote } from "./standingsView";
 
 const ROUNDS = [
   { key: "wildCard", label: "Wild Card" },
@@ -101,7 +102,7 @@ const StandingsCard = ({ row, rank, note, round }: StandingsCardProps) => {
           </Typography>
           <Box>
             <Typography variant="overline" color="text.secondary" component="div">
-              Starters · {ROUND_NAMES[round - 1]}
+              Starters · {ROUND_LABELS[round]}
             </Typography>
             <ProgressCounts progress={row.progress} />
           </Box>

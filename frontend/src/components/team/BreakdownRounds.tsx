@@ -2,7 +2,7 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { Accordion, AccordionDetails, AccordionSummary, Box, Typography } from "@mui/material";
 import type { BreakdownPlayer, BreakdownRound, TeamBreakdown } from "../../api/types";
 import { tokens } from "../../theme";
-import { ROUND_NAMES } from "../league/standingsView";
+import { ROUND_LABELS } from "./lineup";
 
 const points = (value: number): string => String(Math.round(value * 100) / 100);
 
@@ -67,7 +67,7 @@ const RoundSection = ({ round, expanded }: { round: BreakdownRound; expanded: bo
       sx={{ minHeight: 56, "& .MuiAccordionSummary-content": { alignItems: "center", gap: 1.5 } }}
     >
       <Typography sx={{ fontWeight: 700, flexGrow: 1 }}>
-        {ROUND_NAMES[round.round - 1]}
+        {ROUND_LABELS[round.round]}
         {round.multiplier !== 1 && (
           <Typography component="span" variant="caption" color="text.secondary">
             {" "}

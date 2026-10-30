@@ -1,7 +1,5 @@
 import type { StandingsRow, StarterProgress } from "../../api/types";
 
-export const ROUND_NAMES = ["Wild Card", "Divisional", "Conference Championship", "Super Bowl"];
-
 /** "T2" when another team shares the rank, so a shared title is never read as a win. */
 export const rankLabel = (rows: StandingsRow[], index: number): string => {
   const rank = rows[index]?.rank;

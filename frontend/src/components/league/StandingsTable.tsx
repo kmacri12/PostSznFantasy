@@ -21,11 +21,12 @@ import { useStandings } from "../../api/queries";
 import type { Standings, StandingsRow } from "../../api/types";
 import { tokens } from "../../theme";
 import QueryBoundary from "../common/QueryBoundary";
+import { ROUND_LABELS } from "../team/lineup";
 import LiveSummary from "./LiveSummary";
 import ProgressCounts from "./ProgressCounts";
 import RankCell from "./RankCell";
 import StandingsCards from "./StandingsCards";
-import { PROGRESS_ITEMS, ROUND_NAMES, rankLabel, tieNote } from "./standingsView";
+import { PROGRESS_ITEMS, rankLabel, tieNote } from "./standingsView";
 
 interface StandingsTableProps {
   leagueId: string;
@@ -86,7 +87,7 @@ const TableRows = ({ rows, round }: { rows: StandingsRow[]; round: number }) => 
           <TableCell align="center">Divisional</TableCell>
           <TableCell align="center">Conf</TableCell>
           <TableCell align="center">Super Bowl</TableCell>
-          <TableCell>Starters · {ROUND_NAMES[round - 1]}</TableCell>
+          <TableCell>Starters · {ROUND_LABELS[round]}</TableCell>
           <TableCell align="right">Total</TableCell>
           <TableCell width={56} />
         </TableRow>
