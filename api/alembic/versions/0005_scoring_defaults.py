@@ -78,7 +78,7 @@ def upgrade() -> None:
     for column in DROPPED:
         op.drop_column("league_settings", column, schema="fantasy")
     assignments = ", ".join(f"{column} = {value}" for column, value in RESET.items())
-    op.execute(f"UPDATE fantasy.league_settings SET {assignments}")  # noqa: S608
+    op.execute(f"UPDATE fantasy.league_settings SET {assignments}")
 
 
 def downgrade() -> None:

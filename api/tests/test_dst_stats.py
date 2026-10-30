@@ -115,3 +115,11 @@ def test_a_box_score_without_team_stats_yields_no_rows() -> None:
     del box["teamStats"]
 
     assert parse_dst_stat_rows("G1", box, {dst_player_id(HOME)}) == []
+
+
+def test_a_game_without_scores_yet_yields_no_rows() -> None:
+    box = _box()
+    box["homePts"] = ""
+    box["awayPts"] = ""
+
+    assert _rows(box) == {}

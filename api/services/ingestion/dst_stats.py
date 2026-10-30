@@ -19,6 +19,7 @@ DST_STAT_COLUMNS = (
     "dst_two_point_returns",
 )
 
+# Real-game points, not the league's `scoring_dst_td`.
 POINTS_PER_TOUCHDOWN = 6
 
 
@@ -44,10 +45,16 @@ def _final_scores(box: dict[str, Any]) -> dict[int, int]:
     }
 
 
+def _has_scores(box: dict[str, Any]) -> bool:
+    # A game that has not kicked off reports blank scores and zeroed team stats, which
+    # would otherwise score as a shutout holding the opponent to 0 yards.
+    return all(str(box.get(key) or "").strip() for key in ("homePts", "awayPts"))
+
+
 def _safeties_by_team(scoring_plays: Any) -> dict[int, int]:
     counts: dict[int, int] = {}
     for play in scoring_plays or []:
-        if play.get("scoreType") == "SF":
+        if isinstance(play, dict) and play.get("scoreType") == "SF":
             team_id = safe_int(play.get("teamID"))
             counts[team_id] = counts.get(team_id, 0) + 1
     return counts
@@ -56,6 +63,8 @@ def _safeties_by_team(scoring_plays: Any) -> dict[int, int]:
 def parse_dst_stat_rows(
     game_id: str, box: dict[str, Any], valid_player_ids: set[int]
 ) -> list[dict[str, Any]]:
+    if not _has_scores(box):
+        return []
     team_stats = _by_team_id(box.get("teamStats"))
     dst = _by_team_id(box.get("DST"))
     scores = _final_scores(box)
@@ -66,6 +75,7 @@ def parse_dst_stat_rows(
         if opponent_id is None or dst_player_id(team_id) not in valid_player_ids:
             continue
         opponent = team_stats[opponent_id]
+        own_dst = dst.get(team_id, {})
         # Points the opponent's own defense or special teams scored were not given up
         # by this defense.
         points_allowed = scores.get(opponent_id, 0) - POINTS_PER_TOUCHDOWN * safe_int(
@@ -80,10 +90,8 @@ def parse_dst_stat_rows(
                 **empty_dst_columns(),
                 "dst_yards_allowed": safe_int(opponent.get("totalYards")),
                 "dst_points_allowed": max(points_allowed, 0),
-                "dst_sacks": safe_int(dst.get(team_id, {}).get("sacks")),
-                "dst_interceptions": safe_int(
-                    dst.get(team_id, {}).get("defensiveInterceptions")
-                ),
+                "dst_sacks": safe_int(own_dst.get("sacks")),
+                "dst_interceptions": safe_int(own_dst.get("defensiveInterceptions")),
                 "dst_fumbles_recovered": safe_int(opponent.get("fumblesLost")),
                 "dst_def_td": safe_int(own.get("defensiveOrSpecialTeamsTds")),
                 "dst_safeties": safeties.get(team_id, 0),
