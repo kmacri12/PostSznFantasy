@@ -100,7 +100,7 @@ psql '<production connection string>' -c 'select version_num from public.alembic
 - [ ] `https://postsznfantasy.com` loads, and a deep link such as `https://postsznfantasy.com/leagues/1` loads the app (not a 404).
 - [ ] In the browser developer tools (Network), page requests go to `api.postsznfantasy.com`, and there are no CORS errors in the console.
 - [ ] Preflight check: `curl -si -X OPTIONS https://api.postsznfantasy.com/api/config -H 'Origin: https://postsznfantasy.com' -H 'Access-Control-Request-Method: GET' | grep -i access-control-allow-origin` shows `https://postsznfantasy.com`.
-- [ ] WebSocket reachability: `curl -si https://api.postsznfantasy.com/api/drafts/ws/1 -H 'Connection: Upgrade' -H 'Upgrade: websocket' -H 'Sec-WebSocket-Version: 13' -H 'Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ=='` answers `101` or an application-level close, not a Cloudflare or proxy error page. The full WebSocket check is the mock draft in Stage 8.
+- [ ] WebSocket reachability: `curl -si --max-time 5 https://api.postsznfantasy.com/api/drafts/ws/1 -H 'Connection: Upgrade' -H 'Upgrade: websocket' -H 'Sec-WebSocket-Version: 13' -H 'Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ=='` shows `HTTP/1.1 101` (curl then waits for the socket until the timeout), not a Cloudflare or proxy error page. The full WebSocket check is the mock draft in Stage 8.
 
 **Rollback:** in Cloudflare Pages, Deployments, pick the last good deployment, "Rollback to this deployment" (instant, no rebuild). For DNS problems delete the `api.` record (`fly certs remove api.postsznfantasy.com --app postszn-api` if needed); the site keeps working at `*.pages.dev` apart from API calls. Nothing is public to users until you announce the URL.
 
@@ -147,7 +147,7 @@ fly ssh console --app postszn-api -C "python -m api.scripts.seed_nfl_data --seas
 
 **Do**
 - Backup: follow "One-time setup" in [backup.md](backup.md) (generate the key pair, add `BACKUP_GPG_PUBLIC_KEY` and `PROD_DATABASE_URL`), run the **Weekly backup** workflow by hand, download the artifact, and do one test restore into a scratch database.
-- Uptime: follow [uptime-check.md](uptime-check.md) (`scripts/wizards/` is not needed; it is a short web form) to watch `https://api.postsznfantasy.com/api` with an email alert.
+- Uptime: follow [uptime-check.md](uptime-check.md) (a short web form, no wizard) to watch `https://api.postsznfantasy.com/api` with an email alert.
 
 **Go / no-go**
 - [ ] A backup run is green and an artifact `postszn-backup-<run id>` exists.
