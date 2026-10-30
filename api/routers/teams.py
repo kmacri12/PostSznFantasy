@@ -164,7 +164,7 @@ async def get_team_breakdown(
     """Each round's counted points per starter slot and the bench's points, all computed
     on read; round scores equal the standings values."""
     return await team_breakdown(
-        db, await _team_or_404(db, team_id), membership.league.season
+        db, await _team_or_404(db, team_id), membership.league.season, datetime.now(UTC)
     )
 
 
