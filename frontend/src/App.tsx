@@ -1,8 +1,9 @@
-import { Container } from "@mui/material";
+import { Box, Container, useMediaQuery, useTheme } from "@mui/material";
 import { lazy, Suspense, useEffect, useState } from "react";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, useLocation } from "react-router-dom";
 import { useUserLeagues } from "./api/queries";
 import LoadingState from "./components/common/LoadingState";
+import BottomTabBar, { TAB_BAR_HEIGHT } from "./components/layout/BottomTabBar";
 import NavBar from "./components/layout/NavBar";
 import { useUser } from "./contexts/UserContext";
 
@@ -20,6 +21,8 @@ function App() {
   const { user, userId, signIn, signOutUser } = useUser();
   const { data: leagues = [] } = useUserLeagues(userId !== null);
   const [selectedLeague, setSelectedLeague] = useState<string>("");
+  const isMobile = useMediaQuery(useTheme().breakpoints.down("md"));
+  const { pathname } = useLocation();
 
   useEffect(() => {
     if (userId === null) setSelectedLeague("");
@@ -29,6 +32,10 @@ function App() {
   const handleLeagueCreated = async (leagueId: number) => {
     setSelectedLeague(String(leagueId));
   };
+
+  const inLeagueArea = /^\/(league|team|players|settings)/.test(pathname);
+  const tabLeague = leagues.find((league) => String(league.id) === selectedLeague);
+  const showTabBar = isMobile && inLeagueArea && userId !== null && tabLeague !== undefined;
 
   return (
     <>
@@ -62,6 +69,12 @@ function App() {
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Suspense>
+      {showTabBar && tabLeague && (
+        <>
+          <Box sx={{ height: TAB_BAR_HEIGHT }} />
+          <BottomTabBar league={tabLeague} />
+        </>
+      )}
     </>
   );
 }

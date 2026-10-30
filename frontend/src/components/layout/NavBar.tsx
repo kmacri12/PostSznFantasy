@@ -231,7 +231,7 @@ const NavBar = ({
               <Divider />
             </>
           )}
-          {links.map((link) => (
+          {(selected ? links.filter((link) => link.label === "Settings") : links).map((link) => (
             <ListItemButton
               key={link.to}
               component={Link}
