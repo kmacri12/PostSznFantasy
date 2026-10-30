@@ -14,6 +14,7 @@ const JoinPage = lazy(() => import("./pages/JoinPage"));
 const LeaguePage = lazy(() => import("./pages/LeaguePage"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 const PlayersPage = lazy(() => import("./pages/PlayersPage"));
+const SignInPage = lazy(() => import("./pages/SignInPage"));
 const SettingsPage = lazy(() => import("./pages/SettingsPage"));
 const TeamPage = lazy(() => import("./pages/TeamPage"));
 
@@ -57,6 +58,7 @@ function App() {
         <Routes>
           <Route path="/" element={<LandingPage leagues={leagues} />} />
           <Route path="/league/:leagueId" element={<LeaguePage />} />
+          <Route path="/sign-in" element={<SignInPage />} />
           <Route path="/join/:code" element={<JoinPage />} />
           <Route path="/team/:teamId" element={<TeamPage />} />
           <Route path="/players" element={<PlayersPage />} />

@@ -1,4 +1,5 @@
 import { act, render, screen, waitFor } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { UserProvider, useUser } from "./UserContext";
 
@@ -44,9 +45,11 @@ beforeEach(() => {
 
 const renderProbe = () =>
   render(
-    <UserProvider>
-      <Probe />
-    </UserProvider>,
+    <MemoryRouter>
+      <UserProvider>
+        <Probe />
+      </UserProvider>
+    </MemoryRouter>,
   );
 
 describe("UserProvider auth flow", () => {
