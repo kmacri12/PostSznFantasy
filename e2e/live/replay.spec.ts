@@ -114,8 +114,9 @@ const standingsOf = (api: Api, league: DraftLeague) =>
 test("standings follow the replay: players left drop and points accrue", async ({
   page,
   context,
+  request,
 }) => {
-  const host = main.host;
+  const host = new Api(request, main.host.uid);
   const hostRow = async () =>
     (await standingsOf(host, main)).find((row) => row.teamId === main.hostTeamId);
 
