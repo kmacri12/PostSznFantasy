@@ -17,8 +17,15 @@ import {
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { useMoveInLineup, useRenameTeam, useTeam } from "../api/queries";
+import {
+  type LineupMoveRequest,
+  needsOverrideConfirmation,
+  useMoveInLineup,
+  useRenameTeam,
+  useTeam,
+} from "../api/queries";
 import type { TeamDetails } from "../api/types";
+import ActivityFeed from "../components/activity/ActivityFeed";
 import DataFreshness from "../components/common/DataFreshness";
 import EmptyState from "../components/common/EmptyState";
 import { mutationError } from "../components/common/friendlyError";
@@ -31,6 +38,7 @@ import {
   ROUND_LABELS,
   ROUND_TAB_LABELS,
 } from "../components/team/lineup";
+import OverrideDialog from "../components/team/OverrideDialog";
 
 const RenameDialog = ({ team, onClose }: { team: TeamDetails; onClose: () => void }) => {
   const [name, setName] = useState(team.name);
@@ -81,7 +89,17 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
   const now = useNow();
   const [round, setRound] = useState(() => defaultRound(team.lineups, now));
   const moveInLineup = useMoveInLineup(teamId);
-  const moveError = mutationError(moveInLineup.error, "Couldn't move that player. Try again.");
+  // A locked move the server wants confirmed first; held until the commissioner answers.
+  const [pendingOverride, setPendingOverride] = useState<LineupMoveRequest | null>(null);
+  const move = (request: LineupMoveRequest) =>
+    moveInLineup.mutate(request, {
+      onError: (error) => {
+        if (needsOverrideConfirmation(error)) setPendingOverride(request);
+      },
+    });
+  const moveError = needsOverrideConfirmation(moveInLineup.error)
+    ? null
+    : mutationError(moveInLineup.error, "Couldn't move that player. Try again.");
 
   const lineup = team.lineups.find((entry) => entry.round === round);
   const warning = emptyLineupWarning(team.lineups, team.roster.length, now);
@@ -155,7 +173,8 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
             key={round}
             lineup={lineup}
             canEdit={team.canSetLineup}
-            onMove={(move) => moveInLineup.mutate({ round, ...move })}
+            canOverride={team.canOverride}
+            onMove={(request) => move({ round, ...request })}
           />
         </>
       )}
@@ -165,6 +184,18 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
         </Alert>
       )}
 
+      <ActivityFeed scope="teams" id={team.id} title="Team activity" />
+
+      {pendingOverride && (
+        <OverrideDialog
+          pending={moveInLineup.isPending}
+          onCancel={() => setPendingOverride(null)}
+          onConfirm={() => {
+            move({ ...pendingOverride, confirmOverride: true });
+            setPendingOverride(null);
+          }}
+        />
+      )}
       {renaming && <RenameDialog team={team} onClose={() => setRenaming(false)} />}
     </Container>
   );

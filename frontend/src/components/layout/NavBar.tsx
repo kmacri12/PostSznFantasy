@@ -6,6 +6,7 @@ import {
   AppBar,
   Avatar,
   alpha,
+  Badge,
   Box,
   Button,
   Chip,
@@ -56,7 +57,7 @@ const NavBar = ({
   const selected = leagues.find((league) => String(league.id) === selectedLeagueId);
   const links = selected
     ? [
-        { label: "League", to: `/league/${selected.id}` },
+        { label: "League", to: `/league/${selected.id}`, dot: selected.hasNewActivity },
         { label: "My Team", to: `/team/${selected.userTeamId}` },
         { label: "Draft", to: `/league/${selected.id}/draft` },
         { label: "Players", to: `/players?leagueId=${selected.id}` },
@@ -118,7 +119,14 @@ const NavBar = ({
                 "&.active": { color: tokens.text, backgroundColor: alpha(tokens.gold, 0.12) },
               }}
             >
-              {link.label}
+              <Badge
+                variant="dot"
+                color="primary"
+                invisible={!("dot" in link && link.dot)}
+                aria-label={"dot" in link && link.dot ? "New activity" : undefined}
+              >
+                {link.label}
+              </Badge>
             </Button>
           ))}
 

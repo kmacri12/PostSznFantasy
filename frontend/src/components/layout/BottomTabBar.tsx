@@ -2,7 +2,7 @@ import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import GroupsIcon from "@mui/icons-material/Groups";
 import PersonSearchIcon from "@mui/icons-material/PersonSearch";
 import SportsFootballIcon from "@mui/icons-material/SportsFootball";
-import { BottomNavigation, BottomNavigationAction, Paper } from "@mui/material";
+import { Badge, BottomNavigation, BottomNavigationAction, Paper } from "@mui/material";
 import { Link, useLocation } from "react-router-dom";
 import type { LeagueByUser } from "../../api/types";
 import { activeTabIndex, leagueTabs } from "./leagueTabs";
@@ -43,7 +43,12 @@ const BottomTabBar = ({ league }: { league: LeagueByUser }) => {
             component={Link}
             to={tab.to}
             label={tab.label}
-            icon={ICONS[tab.label]}
+            aria-label={tab.dot ? `${tab.label}, new activity` : undefined}
+            icon={
+              <Badge variant="dot" color="primary" invisible={!tab.dot}>
+                {ICONS[tab.label]}
+              </Badge>
+            }
             sx={{ minWidth: 0, minHeight: 44 }}
           />
         ))}
