@@ -27,6 +27,13 @@ from api.models.activity_models import (
 )
 from api.models.enums import ActivityKind
 
+# What lights the dot on the league nav and the league feed. Ordinary lineup moves are
+# in the feed but happen too often to count as news; a team's own feed counts them.
+LEAGUE_DOT_KINDS = [
+    ActivityKind.COMMISSIONER_OVERRIDE.value,
+    ActivityKind.STAT_CORRECTION.value,
+    ActivityKind.SETTINGS_CHANGE.value,
+]
 DEFAULT_PAGE_SIZE = 20
 MAX_PAGE_SIZE = 100
 
@@ -143,10 +150,11 @@ async def feed(
         query = query.where(ActivityEvent.id < before)
     rows = (await db.execute(query)).all()
     page = rows[:limit]
+    lights_dot = baseline.is_new_clause
+    if team_id is None:
+        lights_dot = and_(lights_dot, ActivityEvent.kind.in_(LEAGUE_DOT_KINDS))
     has_new = await db.scalar(
-        select(ActivityEvent.id)
-        .where(_scope(league_id, team_id), baseline.is_new_clause)
-        .limit(1)
+        select(ActivityEvent.id).where(_scope(league_id, team_id), lights_dot).limit(1)
     )
     return ActivityFeed(
         events=[
@@ -225,6 +233,7 @@ async def leagues_with_new_activity(db: AsyncSession, viewer_id: int) -> set[int
             ),
         )
         .where(
+            ActivityEvent.kind.in_(LEAGUE_DOT_KINDS),
             ActivityEvent.id > func.coalesce(ActivityView.last_event_id, 0),
             ActivityEvent.created_at > LeagueMember.joined_at,
             or_(
