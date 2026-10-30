@@ -123,3 +123,35 @@ async def test_the_first_stats_of_a_final_game_are_not_corrections(
     s = await activity_league(db, [game("g1", 19, 1, 3, PAST, score=(24, 17))])
     await _poll(db, s, "Completed", "300")
     assert await _events(client_as, s) == []
+
+
+async def _lineup_player(
+    client_as: ClientFactory, s: ActivityLeague, player_index: int
+) -> dict[str, Any]:
+    async with client_as("uid-1") as owner:
+        body = (await owner.get(f"/api/teams/{s.team.id}")).json()
+    lineup = next(r for r in body["lineups"] if r["round"] == 1)
+    wanted = s.players[player_index].id
+    return next(p for p in lineup["unassigned"] if p["id"] == wanted)
+
+
+async def test_the_lineup_shows_the_round_score_and_the_latest_correction(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    s = await _final_game(db, yards=250)
+    await _poll(db, s, "Completed", "300")
+    player = await _lineup_player(client_as, s, 0)
+    assert player["points"] == 12
+    change = player["scoreChange"]
+    assert (change["previousPoints"], change["newPoints"]) == (10, 12)
+    assert change["changedAt"]
+    other = await _lineup_player(client_as, s, 1)
+    assert (other["points"], other["scoreChange"]) == (None, None)
+
+
+async def test_an_uncorrected_score_has_no_change(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    s = await _final_game(db, yards=250)
+    player = await _lineup_player(client_as, s, 0)
+    assert (player["points"], player["scoreChange"]) == (10, None)

@@ -3,7 +3,7 @@ from typing import Any
 
 from pydantic import Field, create_model
 
-from api.models.activity_models import SlotMark
+from api.models.activity_models import ScoreChange, SlotMark
 from api.models.base import BaseSchema
 from api.models.enums import (
     DraftStatus,
@@ -239,6 +239,9 @@ class LineupPlayer(RosterPlayer):
     # Scheduled kickoff of their game that round (None on a bye); the lock time.
     kickoff: datetime | None = None
     locked: bool
+    # Points in that round under the league's scoring; None before any stats exist.
+    points: float | None = None
+    score_change: ScoreChange | None = None
 
 
 class LineupSlotView(BaseSchema):

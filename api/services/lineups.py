@@ -6,23 +6,27 @@ players; nothing is copied between rounds or filled in automatically.
 
 from dataclasses import dataclass
 from datetime import datetime
+from decimal import Decimal
 
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.db.models.league import LeagueSettings, LineupSlot, Team
-from api.db.models.nfl import NFLPlayer
+from api.db.models.nfl import NFLGame, NFLPlayer, NFLPlayerGameStats
 from api.db.models.user import User
 from api.models.activity_models import (
     CommissionerOverridePayload,
     DisplacedPlayer,
     LineupMovePayload,
+    ScoreChange,
     SlotMark,
 )
 from api.models.enums import PlayerPosition, PlayerRoundStatus
 from api.models.league_models import LineupPlayer, LineupSlotView, RoundLineup
 from api.services import activity
 from api.services.round_status import ROUNDS, GameFacts, load_games, round_status
+from api.utils.calculations.fantasy_points_utils import calculate_player_points
+from api.utils.calculations.standings_utils import postseason_round_index
 
 FLEX_SLOTS: dict[str, tuple[PlayerPosition, ...]] = {
     "FLEX": (PlayerPosition.WR, PlayerPosition.RB, PlayerPosition.TE),
@@ -197,8 +201,13 @@ def _round_lineup(
     round_: int,
     now: datetime,
     marks: dict[int, SlotMark],
+    points: dict[int, Decimal],
+    changes: dict[int, ScoreChange],
 ) -> RoundLineup:
     views = {p.id: _view(p, games, round_, now) for p in players}
+    for pid, view in views.items():
+        view.points = float(points[pid]) if pid in points else None
+        view.score_change = changes.get(pid)
     # Eliminated players drop out of any slot they were placed in early.
     placed = {
         index: pid
@@ -250,6 +259,8 @@ async def team_lineups(
     specs = slot_layout(settings)
     placements = await _placements(db, team.id)
     marks = await activity.slot_marks(db, team.id)
+    points = await _round_points(db, settings, players, season)
+    changes = await activity.score_changes(db, team.id)
     return [
         _round_lineup(
             specs,
@@ -259,9 +270,42 @@ async def team_lineups(
             r,
             now,
             {index: mark for (round_, index), mark in marks.items() if round_ == r},
+            {pid: pts for (pid, round_), pts in points.items() if round_ == r},
+            {pid: change for (pid, round_), change in changes.items() if round_ == r},
         )
         for r in ROUNDS
     ]
+
+
+async def _round_points(
+    db: AsyncSession,
+    settings: LeagueSettings,
+    players: list[NFLPlayer],
+    season: int,
+) -> dict[tuple[int, int], Decimal]:
+    """Each rostered player's points per round under the league's scoring."""
+    by_id = {p.id: p for p in players}
+    rows = await db.execute(
+        select(NFLPlayerGameStats, NFLGame.game_week)
+        .join(NFLGame, NFLPlayerGameStats.game_id == NFLGame.id)
+        .where(
+            NFLPlayerGameStats.player_id.in_(by_id),
+            NFLGame.season == season,
+            NFLGame.season_type == "post",
+            NFLGame.game_week.is_not(None),
+        )
+        .execution_options(populate_existing=True)
+    )
+    points: dict[tuple[int, int], Decimal] = {}
+    for stats, week in rows.all():
+        index = postseason_round_index(week or 0)
+        if index is None:
+            continue
+        key = (stats.player_id, index + 1)
+        points[key] = points.get(key, Decimal(0)) + calculate_player_points(
+            stats, settings, PlayerPosition.from_str(by_id[stats.player_id].position)
+        )
+    return {key: value.quantize(Decimal("0.01")) for key, value in points.items()}
 
 
 async def move_in_lineup(

@@ -22,6 +22,7 @@ from api.models.activity_models import (
     ActivityEventOut,
     ActivityFeed,
     ActivityPayload,
+    ScoreChange,
     SlotMark,
 )
 from api.models.enums import ActivityKind
@@ -278,3 +279,25 @@ async def slot_marks(db: AsyncSession, team_id: int) -> dict[tuple[int, int], Sl
         .order_by(ActivityEvent.id)
     )
     return derive_slot_marks(events)
+
+
+async def score_changes(
+    db: AsyncSession, team_id: int
+) -> dict[tuple[int, int], ScoreChange]:
+    """Per (player id, round), the latest stat correction to that player's score."""
+    events = await db.scalars(
+        select(ActivityEvent)
+        .where(
+            ActivityEvent.team_id == team_id,
+            ActivityEvent.kind == ActivityKind.STAT_CORRECTION.value,
+        )
+        .order_by(ActivityEvent.id)
+    )
+    return {
+        (event.payload["playerId"], event.payload["round"]): ScoreChange(
+            previous_points=event.payload["previousPoints"],
+            new_points=event.payload["newPoints"],
+            changed_at=event.created_at,
+        )
+        for event in events
+    }

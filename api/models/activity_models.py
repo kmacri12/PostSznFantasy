@@ -102,3 +102,11 @@ class SlotMark(BaseSchema):
     kind: Literal["override", "commissioner_set"]
     actor_name: str | None
     at: datetime
+
+
+class ScoreChange(BaseSchema):
+    """The latest stat correction to a player's score in a round."""
+
+    previous_points: float
+    new_points: float
+    changed_at: datetime
