@@ -91,9 +91,11 @@ def completed_rounds(games: list[GameFacts]) -> frozenset[int]:
 
 
 def current_round(games: list[GameFacts]) -> int:
-    """The first round not yet complete; the Super Bowl once everything is final."""
+    """The first round not yet complete, counting from the first round with any game;
+    the Super Bowl once everything is final."""
     done = completed_rounds(games)
-    return next((r for r in ROUNDS if r not in done), SUPER_BOWL)
+    first = min((g.round for g in games), default=ROUNDS[0])
+    return next((r for r in ROUNDS if r >= first and r not in done), SUPER_BOWL)
 
 
 def super_bowl_winner(games: list[GameFacts]) -> int | None:

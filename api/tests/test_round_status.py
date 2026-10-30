@@ -130,3 +130,9 @@ def test_games_in_progress_counts_live_games_only() -> None:
     ]
     assert games_in_progress(games) == 2
     assert games_in_progress([]) == 0
+
+
+def test_current_round_ignores_rounds_before_the_first_one_with_games() -> None:
+    # A schedule that only has the Divisional so far: that is the round to show.
+    assert current_round([game(2, KC, BUF)]) == 2
+    assert current_round([game(3, KC, BUF)]) == 3

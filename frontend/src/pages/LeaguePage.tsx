@@ -3,7 +3,6 @@ import {
   Alert,
   Box,
   Button,
-  Card,
   Chip,
   Container,
   Dialog,
@@ -127,9 +126,7 @@ const LeagueContent = ({ league }: { league: LeagueOverview }) => {
           <Box sx={{ mb: 1 }}>
             <DataFreshness />
           </Box>
-          <Card sx={{ p: 0, bgcolor: "transparent", boxShadow: "none" }}>
-            <StandingsTable leagueId={String(league.id)} />
-          </Card>
+          <StandingsTable leagueId={String(league.id)} />
         </Grid>
         <Grid size={{ xs: 12 }} sx={{ minWidth: 0 }}>
           <ActivityFeed scope="leagues" id={league.id} title="League activity" />

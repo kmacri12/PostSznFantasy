@@ -91,8 +91,8 @@ interface StandingsRow {
   total: number;
 }
 
-const standingsOf = (api: Api, league: DraftLeague) =>
-  api.get<StandingsRow[]>(`/api/leagues/${league.leagueId}/standings`);
+const standingsOf = async (api: Api, league: DraftLeague) =>
+  (await api.get<{ teams: StandingsRow[] }>(`/api/leagues/${league.leagueId}/standings`)).teams;
 
 test("standings follow the replay: players left drop and points accrue", async ({
   page,

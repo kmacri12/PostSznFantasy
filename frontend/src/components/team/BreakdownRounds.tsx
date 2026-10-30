@@ -75,7 +75,7 @@ const RoundSection = ({ round, expanded }: { round: BreakdownRound; expanded: bo
           </Typography>
         )}
       </Typography>
-      <Typography sx={{ color: tokens.gold, fontWeight: 800 }}>
+      <Typography sx={{ color: tokens.gold, fontWeight: 800, whiteSpace: "nowrap" }}>
         {points(round.counted)} pts
       </Typography>
     </AccordionSummary>
