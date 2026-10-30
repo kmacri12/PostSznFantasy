@@ -1,11 +1,12 @@
 .DEFAULT_GOAL := help
 .PHONY: help setup db-up db-down db-reset migrate migration api web dev seed \
 	lint lint-api lint-web format typecheck typecheck-api typecheck-web \
-	test test-api test-web build-web check check-api check-web
+	test test-api test-web build-web check check-api check-web e2e e2e-install
 
 UV := uv run --project api
 API_RUN := cd api && uv run
 SEED_ARGS ?=
+E2E_ARGS ?=
 
 help: ## List available targets
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
@@ -83,3 +84,9 @@ check-api: lint-api typecheck-api test-api
 check-web: lint-web typecheck-web test-web build-web
 
 check: check-api check-web ## Everything CI runs
+
+e2e-install: ## Install the Playwright project and its Chromium
+	cd e2e && npm install && npx playwright install --with-deps chromium
+
+e2e: ## Playwright end-to-end tests (mobile first); needs Postgres (make db-up)
+	cd e2e && npx playwright test $(E2E_ARGS)

@@ -237,3 +237,7 @@ PostSznFantasy/
         ├── hooks/              # Custom hooks (e.g., useWebSocket)
         └── pages/              # Application views and routing
 ```
+
+## End-to-end tests
+
+Playwright tests in `e2e/` drive the real app in a 375px iPhone viewport (primary) plus a small desktop smoke run. `make e2e-install` installs Chromium once; `make e2e` starts the API and Vite itself and runs the suite (`E2E_ARGS="--project=mobile -g draft"` to filter). CI runs it on every pull request.
