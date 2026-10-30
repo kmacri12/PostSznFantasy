@@ -81,6 +81,12 @@ def safe_str(val: Any) -> str | None:
     return s if s else None
 
 
+def normalise_position(raw: Any) -> str | None:
+    """Fullbacks are running backs everywhere in the app."""
+    position = safe_str(raw)
+    return "RB" if position == "FB" else position
+
+
 def empty_stat_line() -> dict[str, int]:
     return dict.fromkeys(STAT_COLUMNS, 0)
 

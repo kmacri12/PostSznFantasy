@@ -49,6 +49,11 @@ class DraftStateResponse(BaseSchema):
     current_pick_overall: int | None = None
     on_the_clock_team_id: int | None = None
     on_deck_team_id: int | None = None
+    # Only the positions a team may not exceed; the room greys those players out.
+    position_caps: dict[str, int] = Field(default_factory=dict)
+    # First Wild Card kickoff: no draft can be scheduled or started after it.
+    draft_cutoff: datetime | None = None
+    playoff_field_set: bool = False
 
 
 class DraftSetup(BaseSchema):

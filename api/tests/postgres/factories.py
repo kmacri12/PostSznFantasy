@@ -78,15 +78,30 @@ async def make_players(
     nfl_team: NFLTeam | None = None,
     first_id: int = 1000,
 ) -> list[NFLPlayer]:
+    if nfl_team is None:
+        nfl_team = NFLTeam(
+            id=first_id, team_abv=f"T{first_id}", is_active=True, in_playoffs=True
+        )
+        db.add(nfl_team)
+        await db.flush()
     players = [
         NFLPlayer(
             id=first_id + i,
             name=f"Player {i}",
             position=pos,
-            team_id=nfl_team.id if nfl_team else None,
+            team_id=nfl_team.id,
         )
         for i, pos in enumerate(positions)
     ]
     db.add_all(players)
     await db.flush()
     return players
+
+
+async def make_playoff_field(db: AsyncSession, *, first_id: int = 9000) -> None:
+    """The 14 playoff teams; a draft can't start without them."""
+    db.add_all(
+        NFLTeam(id=first_id + i, team_abv=f"P{i}", is_active=True, in_playoffs=True)
+        for i in range(14)
+    )
+    await db.flush()

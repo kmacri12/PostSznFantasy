@@ -84,7 +84,7 @@ async def test_removing_a_drafter_mid_draft_keeps_picks_and_autopicks_for_the_te
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
     league, users, teams, draft = await make_league(db, roster_total=3)
-    kc = NFLTeam(id=1, team_abv="KC", is_active=True)
+    kc = NFLTeam(id=1, team_abv="KC", is_active=True, in_playoffs=True)
     db.add(kc)
     await db.flush()
     players = await make_players(db, ["QB", "RB", "WR", "TE"], nfl_team=kc)

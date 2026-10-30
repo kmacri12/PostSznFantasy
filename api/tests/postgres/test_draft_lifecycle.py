@@ -8,7 +8,7 @@ from api.db.models import Draft, DraftPick, NFLTeam, TeamPlayer
 from api.services import draft_clock, draft_flow
 from api.services.draft_picks import DraftPickError, PickNotDue
 from api.tests.postgres.conftest import ClientFactory
-from api.tests.postgres.factories import make_league, make_players
+from api.tests.postgres.factories import make_league, make_players, make_playoff_field
 
 
 async def _league(db: AsyncSession, **kwargs: object):  # type: ignore[no-untyped-def]
@@ -32,6 +32,7 @@ async def test_start_requires_every_team_in_a_slot_and_is_commissioner_only(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
     league, _, teams, _ = await _league(db)
+    await make_playoff_field(db)
     url = f"/api/drafts/{league.id}"
     async with client_as("uid-1") as member:
         assert (await member.post(f"{url}/control/start")).status_code == 403
@@ -61,6 +62,7 @@ async def test_order_and_setup_lock_once_started_but_clock_length_can_change(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
     league, _, teams, _ = await _league(db)
+    await make_playoff_field(db)
     url = f"/api/drafts/{league.id}"
     async with client_as("uid-0") as commissioner:
         await commissioner.post(f"{url}/order/randomize")
@@ -198,7 +200,7 @@ async def test_queue_is_per_team_and_drives_autopick(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
     league, _, teams, _ = await make_league(db, roster_total=2)
-    kc = NFLTeam(id=1, team_abv="KC", is_active=True)
+    kc = NFLTeam(id=1, team_abv="KC", is_active=True, in_playoffs=True)
     db.add(kc)
     await db.flush()
     players = await make_players(db, ["QB", "RB", "WR"], nfl_team=kc)
@@ -224,7 +226,7 @@ async def test_autopick_falls_back_to_best_available_and_skips_full_positions(
     db: AsyncSession,
 ) -> None:
     league, _, _, draft = await make_league(db, roster_total=3, roster_max_qb=1)
-    kc = NFLTeam(id=1, team_abv="KC", is_active=True)
+    kc = NFLTeam(id=1, team_abv="KC", is_active=True, in_playoffs=True)
     out = NFLTeam(id=2, team_abv="OUT", is_active=False)
     db.add_all([kc, out])
     await db.flush()
@@ -248,7 +250,7 @@ async def test_expired_deadline_triggers_an_autopick_via_the_clock(
     db: AsyncSession, monkeypatch: object
 ) -> None:
     league, _, _, draft = await make_league(db, roster_total=2)
-    kc = NFLTeam(id=1, team_abv="KC", is_active=True)
+    kc = NFLTeam(id=1, team_abv="KC", is_active=True, in_playoffs=True)
     db.add(kc)
     await db.flush()
     await make_players(db, ["QB", "RB"], nfl_team=kc)
@@ -275,7 +277,7 @@ async def test_clock_skips_a_pick_whose_deadline_was_reset_after_it_looked(
     db: AsyncSession,
 ) -> None:
     league, _, _, draft = await make_league(db, roster_total=2)
-    kc = NFLTeam(id=1, team_abv="KC", is_active=True)
+    kc = NFLTeam(id=1, team_abv="KC", is_active=True, in_playoffs=True)
     db.add(kc)
     await db.flush()
     await make_players(db, ["QB", "RB"], nfl_team=kc)
@@ -294,7 +296,7 @@ async def test_clock_skips_a_pick_whose_deadline_was_reset_after_it_looked(
 
 async def _overdue_draft_with_pool(db: AsyncSession):  # type: ignore[no-untyped-def]
     league, users, _, draft = await make_league(db, roster_total=3)
-    kc = NFLTeam(id=1, team_abv="KC", is_active=True)
+    kc = NFLTeam(id=1, team_abv="KC", is_active=True, in_playoffs=True)
     db.add(kc)
     await db.flush()
     await make_players(db, ["QB", "RB", "WR", "TE"], nfl_team=kc)
@@ -349,7 +351,7 @@ async def test_restart_extends_lapsed_deadlines_instead_of_autopicking(
 
 async def test_draft_completes_after_the_last_round(db: AsyncSession) -> None:
     league, _, _, draft = await make_league(db, roster_total=1)
-    kc = NFLTeam(id=1, team_abv="KC", is_active=True)
+    kc = NFLTeam(id=1, team_abv="KC", is_active=True, in_playoffs=True)
     db.add(kc)
     await db.flush()
     await make_players(db, ["QB", "RB"], nfl_team=kc)
