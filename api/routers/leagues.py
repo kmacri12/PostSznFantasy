@@ -38,7 +38,7 @@ from api.models.league_models import (
     TeamOwnerUpdate,
     TeamSimple,
 )
-from api.services.activity import leagues_with_new_activity
+from api.services.activity import Actor, leagues_with_new_activity
 from api.services.draft_picks import DraftPickError
 from api.services.league_admin import (
     ROSTER_LOCKED_FIELDS,
@@ -47,7 +47,10 @@ from api.services.league_admin import (
 )
 from api.services.league_members import LeagueRuleError, remove_member, set_role
 from api.services.playoff_field import require_draft_window_open
-from api.services.settings_changes import on_editable_settings_changed
+from api.services.settings_changes import (
+    on_editable_settings_changed,
+    record_settings_change,
+)
 
 router = APIRouter()
 
@@ -282,10 +285,22 @@ async def update_league(
     if payload.name is not None:
         membership.league.name = payload.name
     if payload.number_teams is not None:
+        old_count = await db.scalar(
+            select(LeagueSettings.number_teams).where(
+                LeagueSettings.league_id == league_id
+            )
+        )
         try:
             await set_team_count(db, league_id, payload.number_teams)
         except LeagueRuleError as exc:
             raise _rule_error(exc) from exc
+        await record_settings_change(
+            db,
+            league_id,
+            Actor.of(membership.user),
+            {"number_teams": old_count},
+            {"number_teams": payload.number_teams},
+        )
     await db.flush()
     return await get_league(league_id, membership, db)
 
@@ -380,17 +395,18 @@ async def get_league_settings(
 async def update_league_settings(
     league_id: int,
     body: dict[str, Any],
-    _: LeagueCommissioner,
+    membership: LeagueCommissioner,
     db: DbSession,
 ) -> LeagueSettings:
     """Partially update roster, scoring and postseason settings; commissioner only."""
-    settings = await get_league_settings(league_id, _, db)
+    settings = await get_league_settings(league_id, membership, db)
     try:
         patch = LeagueSettingsPatch.model_validate(body)
     except ValidationError as exc:
         raise RequestValidationError(exc.errors()) from exc
     updates = patch.model_dump(exclude_unset=True, by_alias=False, mode="json")
     updates = {key: value for key, value in updates.items() if value is not None}
+    patch_values = dict(updates)
 
     started = await draft_has_started(db, league_id)
     if started:
@@ -409,6 +425,7 @@ async def update_league_settings(
                 ),
             )
 
+    before = {key: getattr(settings, key) for key in updates}
     team_count = updates.pop("number_teams", None)
     if team_count is not None and team_count != settings.number_teams:
         try:
@@ -424,7 +441,13 @@ async def update_league_settings(
             .values(rounds=settings.roster_total)
         )
     await db.flush()
-    await on_editable_settings_changed(db, league_id)
+    await on_editable_settings_changed(
+        db,
+        league_id,
+        actor=Actor.of(membership.user),
+        before=before,
+        after=patch_values,
+    )
     return settings
 
 
