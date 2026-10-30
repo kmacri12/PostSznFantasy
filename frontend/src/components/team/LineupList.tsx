@@ -74,8 +74,7 @@ const SlotRow = ({ slot, canDrag }: RowProps) => {
             <Box sx={{ flexGrow: 1, minWidth: 0 }}>
               <Typography
                 noWrap
-                fontWeight={600}
-                sx={{ textDecoration: player.isActive ? "none" : "line-through" }}
+                sx={{ fontWeight: 600, textDecoration: player.isActive ? "none" : "line-through" }}
               >
                 {player.name}
               </Typography>

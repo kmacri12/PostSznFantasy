@@ -152,7 +152,7 @@ const LandingPage = ({ leagues }: { leagues: LeagueByUser[] }) => {
           </Typography>
           <Grid container spacing={2}>
             {leagues.map((league) => (
-              <Grid item xs={12} sm={6} md={4} key={league.id}>
+              <Grid size={{ xs: 12, sm: 6, md: 4 }} key={league.id}>
                 <LeagueWidget league={league} />
               </Grid>
             ))}
@@ -166,7 +166,7 @@ const LandingPage = ({ leagues }: { leagues: LeagueByUser[] }) => {
         </Typography>
         <Grid container spacing={2}>
           {ROUNDS.map((round, index) => (
-            <Grid item xs={12} sm={6} md={3} key={round.name}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }} key={round.name}>
               <Card sx={{ p: 2.5, height: "100%", position: "relative" }}>
                 <Typography
                   sx={{
@@ -207,9 +207,9 @@ const LandingPage = ({ leagues }: { leagues: LeagueByUser[] }) => {
         </Typography>
         <Grid container spacing={2}>
           {POSTSEASON_RULES.map((rule) => (
-            <Grid item xs={12} sm={6} md={3} key={rule.title}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }} key={rule.title}>
               <Card sx={{ p: 2.5, height: "100%" }}>
-                <Typography variant="subtitle1" fontWeight={700}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
                   {rule.title}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>

@@ -132,7 +132,7 @@ const CreateLeaguePage = ({
         {step === 0 && (
           <Card sx={{ p: 3 }}>
             <Grid container spacing={2}>
-              <Grid item xs={12} sm={8}>
+              <Grid size={{ xs: 12, sm: 8 }}>
                 <FormControl fullWidth>
                   <InputLabel htmlFor="league-name">League name</InputLabel>
                   <OutlinedInput
@@ -144,7 +144,7 @@ const CreateLeaguePage = ({
                   />
                 </FormControl>
               </Grid>
-              <Grid item xs={12} sm={4}>
+              <Grid size={{ xs: 12, sm: 4 }}>
                 <FormControl fullWidth>
                   <InputLabel htmlFor="number-teams">Teams</InputLabel>
                   <OutlinedInput

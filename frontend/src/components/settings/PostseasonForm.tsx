@@ -28,7 +28,7 @@ const PostseasonForm = ({ values, onChange, disabled }: PostseasonFormProps) => 
       {POSTSEASON_FIELDS.map((field) => {
         const id = field.key.replaceAll("_", "-");
         return (
-          <Grid item xs={12} sm={6} key={field.key}>
+          <Grid size={{ xs: 12, sm: 6 }} key={field.key}>
             {field.kind === "boolean" && (
               <FormControl fullWidth>
                 <FormControlLabel
@@ -37,7 +37,7 @@ const PostseasonForm = ({ values, onChange, disabled }: PostseasonFormProps) => 
                       checked={values[field.key] === true}
                       disabled={disabled}
                       onChange={(event) => onChange(field.key, event.target.checked)}
-                      inputProps={{ "aria-label": field.label }}
+                      slotProps={{ input: { "aria-label": field.label } }}
                     />
                   }
                   label={field.label}

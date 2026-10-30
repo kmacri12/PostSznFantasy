@@ -62,7 +62,9 @@ function SettingsPage() {
   if (!leagueId) return <Alert severity="info">Pick a league to view its settings.</Alert>;
   if (league.isLoading || settingsQuery.isLoading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
+      <Box
+        sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "50vh" }}
+      >
         <CircularProgress />
       </Box>
     );

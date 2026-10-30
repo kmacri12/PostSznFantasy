@@ -81,7 +81,7 @@ const DraftBoard: React.FC<Props> = ({ state, myTeamId }) => {
                 >
                   {pick ? (
                     <>
-                      <Typography variant="body2" noWrap fontWeight={600}>
+                      <Typography variant="body2" noWrap sx={{ fontWeight: 600 }}>
                         {pick.playerName}
                       </Typography>
                       <Typography variant="caption" color="text.secondary">

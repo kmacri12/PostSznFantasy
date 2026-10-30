@@ -37,7 +37,7 @@ const RenameDialog = ({ team, onClose }: { team: TeamDetails; onClose: () => voi
           margin="dense"
           label="Team name"
           value={name}
-          inputProps={{ maxLength: 40 }}
+          slotProps={{ htmlInput: { maxLength: 40 } }}
           onChange={(event) => setName(event.target.value)}
         />
         {detail(rename.error) && <Alert severity="error">{detail(rename.error)}</Alert>}
@@ -108,7 +108,7 @@ function TeamPage() {
 
   if (isLoading) {
     return (
-      <Box display="flex" justifyContent="center" py={8}>
+      <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
         <CircularProgress />
       </Box>
     );

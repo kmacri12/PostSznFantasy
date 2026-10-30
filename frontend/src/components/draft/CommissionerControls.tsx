@@ -14,7 +14,7 @@ const CommissionerControls = ({ draft }: { draft: DraftState }) => {
 
   return (
     <Paper sx={{ p: 2 }}>
-      <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 1 }}>
+      <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
         Commissioner controls
       </Typography>
       <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>

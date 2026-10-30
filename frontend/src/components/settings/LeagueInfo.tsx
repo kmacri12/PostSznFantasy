@@ -21,7 +21,7 @@ const LeagueInfo: React.FC<LeagueInfoProps> = ({
   return (
     <Card variant="outlined" sx={{ mb: 3 }}>
       <CardContent>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+        <Box sx={{ mb: 1, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <Typography variant="h5" component="h2">
             {leagueName}
           </Typography>
@@ -29,25 +29,25 @@ const LeagueInfo: React.FC<LeagueInfoProps> = ({
         </Box>
         <Divider sx={{ my: 1.5 }} />
         <Grid container spacing={2}>
-          <Grid item xs={6} sm={3}>
+          <Grid size={{ xs: 6, sm: 3 }}>
             <Typography variant="caption" color="textSecondary">
               Season
             </Typography>
             <Typography variant="body1">{season}</Typography>
           </Grid>
-          <Grid item xs={6} sm={3}>
+          <Grid size={{ xs: 6, sm: 3 }}>
             <Typography variant="caption" color="textSecondary">
               Total Teams
             </Typography>
             <Typography variant="body1">{totalTeams}</Typography>
           </Grid>
-          <Grid item xs={6} sm={3}>
+          <Grid size={{ xs: 6, sm: 3 }}>
             <Typography variant="caption" color="textSecondary">
               Commissioner
             </Typography>
             <Typography variant="body1">{commissionerName}</Typography>
           </Grid>
-          <Grid item xs={6} sm={3}>
+          <Grid size={{ xs: 6, sm: 3 }}>
             <Typography variant="caption" color="textSecondary">
               Draft Type
             </Typography>

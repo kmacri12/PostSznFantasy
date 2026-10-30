@@ -20,7 +20,7 @@ const JoinCodeBox = () => {
         label="Join code"
         value={code}
         onChange={(event) => setCode(event.target.value)}
-        inputProps={{ maxLength: 16, "aria-label": "Join code" }}
+        slotProps={{ htmlInput: { maxLength: 16, "aria-label": "Join code" } }}
       />
       <Button type="submit" variant="outlined" color="inherit" disabled={!code.trim()}>
         Join with code
