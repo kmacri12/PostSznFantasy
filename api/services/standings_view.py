@@ -60,6 +60,7 @@ def _tie_reason(reason: TieReason, over_team_name: str) -> StandingTieReason:
         over_team_name=over_team_name,
         ahead_value=float(ahead),
         behind_value=float(behind),
+        detail=why,
         message=f"Ahead of {over_team_name} on the tiebreaker: {why}",
     )
 

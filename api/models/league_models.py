@@ -214,6 +214,9 @@ class StandingTieReason(BaseSchema):
     over_team_name: str
     ahead_value: float
     behind_value: float
+    # The deciding step in words, e.g. "higher Divisional score (20 to 10)".
+    detail: str
+    # `detail` worded for the team ranked above.
     message: str
 
 
@@ -275,6 +278,7 @@ class BreakdownRound(BaseSchema):
 
 class TeamBreakdown(BaseSchema):
     team_id: int
+    league_id: int
     team_name: str
     total: float
     points_left_on_bench: float

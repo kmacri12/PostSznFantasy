@@ -10,9 +10,10 @@ import type {
   LeagueOverview,
   LeagueSettings,
   PlayerSummary,
-  StandingsRow,
+  Standings,
   SyncResult,
   SyncStatus,
+  TeamBreakdown,
   TeamDetails,
   TeamSummary,
 } from "./types";
@@ -26,6 +27,7 @@ export const keys = {
   standings: (leagueId: Id) => ["standings", String(leagueId)] as const,
   teams: (leagueId: Id) => ["teams", String(leagueId)] as const,
   team: (teamId: Id) => ["team", String(teamId)] as const,
+  breakdown: (teamId: Id) => ["breakdown", String(teamId)] as const,
   settings: (leagueId: Id) => ["settings", String(leagueId)] as const,
   draft: (leagueId: Id) => ["draft", String(leagueId)] as const,
   invite: (leagueId: Id) => ["invite", String(leagueId)] as const,
@@ -63,11 +65,23 @@ export const useLeague = (leagueId: Id | undefined) =>
     enabled: leagueId !== undefined,
   });
 
+/** Seconds between standings refetches while the page is visible; scores land every poll cycle. */
+export const STANDINGS_REFRESH_MS = 20_000;
+
 export const useStandings = (leagueId: Id | undefined) =>
   useQuery({
     queryKey: keys.standings(leagueId ?? ""),
-    queryFn: ({ signal }) => get<StandingsRow[]>(`/api/leagues/${leagueId}/standings`, signal),
+    queryFn: ({ signal }) => get<Standings>(`/api/leagues/${leagueId}/standings`, signal),
     enabled: leagueId !== undefined,
+    refetchInterval: STANDINGS_REFRESH_MS,
+  });
+
+export const useTeamBreakdown = (teamId: Id | undefined) =>
+  useQuery({
+    queryKey: keys.breakdown(teamId ?? ""),
+    queryFn: ({ signal }) => get<TeamBreakdown>(`/api/teams/${teamId}/breakdown`, signal),
+    enabled: teamId !== undefined,
+    refetchInterval: STANDINGS_REFRESH_MS,
   });
 
 export const useLeagueTeams = (leagueId: Id | undefined) =>
@@ -275,6 +289,10 @@ export const useMoveInLineup = (teamId: Id | undefined) => {
     onSuccess: (data) => {
       queryClient.setQueryData(keys.team(teamId ?? ""), data);
       queryClient.invalidateQueries({ queryKey: ["activity"] });
+      // Only starters score, so a move changes the standings and the breakdown.
+      for (const key of ["standings", "breakdown"]) {
+        queryClient.invalidateQueries({ queryKey: [key] });
+      }
     },
   });
 };
@@ -367,7 +385,7 @@ export const useRefreshLive = () => {
   return useMutation({
     mutationFn: async () => (await api.post<{ polled: number }>("/api/admin/refresh/live")).data,
     onSuccess: () => {
-      for (const key of ["sync-status", "standings", "team", "player-season-stats"]) {
+      for (const key of ["sync-status", "standings", "team", "breakdown", "player-season-stats"]) {
         queryClient.invalidateQueries({ queryKey: [key] });
       }
     },

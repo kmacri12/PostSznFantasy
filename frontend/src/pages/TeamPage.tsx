@@ -117,6 +117,9 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
       </Box>
       <Box sx={{ display: "flex", gap: 1, alignItems: "center", mt: 0.5, mb: 2, flexWrap: "wrap" }}>
         <Typography color="text.secondary">Owner: {team.ownerName || "Unclaimed"}</Typography>
+        <Button component={Link} to={`/team/${team.id}/points`} size="small">
+          Points by round
+        </Button>
         {team.roster.length > 0 && (
           <Chip
             size="small"

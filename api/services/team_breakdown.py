@@ -115,6 +115,7 @@ async def team_breakdown(db: AsyncSession, team: Team, season: int) -> TeamBreak
         )
     return TeamBreakdown(
         team_id=team.id,
+        league_id=team.league_id,
         team_name=team.name or f"Team {team.id}",
         total=float(sum(counted.values(), Decimal(0))),
         points_left_on_bench=float(sum(bench.values(), Decimal(0))),

@@ -254,6 +254,8 @@ async def test_equal_totals_are_ordered_by_the_latest_completed_round_with_a_rea
         20,
         10,
     )
+    assert reason["detail"] == "higher Divisional score (20 to 10)"
+    assert reason["message"].endswith(reason["detail"])
     assert "Divisional" in reason["message"]
     assert bottom["teamName"] in reason["message"]
 

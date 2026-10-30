@@ -49,7 +49,7 @@ const LeagueWidget = ({ league }: { league: LeagueByUser }) => {
   const standings = useStandings(league.id);
   const draft = useDraft(league.id);
   const loaded = !standings.isLoading && !draft.isLoading && !standings.isError;
-  const rows = standings.data ?? [];
+  const rows = standings.data?.teams ?? [];
   const snapshot = loaded
     ? {
         rank: rows.find((row) => row.teamId === league.userTeamId)?.rank ?? null,
