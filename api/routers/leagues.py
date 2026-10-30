@@ -37,6 +37,7 @@ from api.models.league_models import (
     TeamOwnerUpdate,
     TeamSimple,
 )
+from api.models.recap_models import SeasonRecap
 from api.services.activity import Actor, leagues_with_new_activity
 from api.services.draft_picks import DraftPickError
 from api.services.league_admin import (
@@ -46,6 +47,7 @@ from api.services.league_admin import (
 )
 from api.services.league_members import LeagueRuleError, remove_member, set_role
 from api.services.playoff_field import require_draft_window_open
+from api.services.season_recap import build_recap
 from api.services.settings_changes import (
     on_editable_settings_changed,
     record_settings_change,
@@ -515,3 +517,11 @@ async def get_standings(
     whenever scores or eliminations change; the rest is derived on every read.
     """
     return await league_standings(db, league_id)
+
+
+@router.get("/{league_id}/recap", response_model=SeasonRecap)
+async def get_recap(
+    league_id: int, membership: LeagueMember, db: DbSession
+) -> SeasonRecap:
+    """Champion(s) and final standings once the Super Bowl is final."""
+    return await build_recap(db, membership.league)
