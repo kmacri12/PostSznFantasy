@@ -1,6 +1,7 @@
 import {
   Avatar,
   Box,
+  Button,
   Chip,
   Paper,
   Table,
@@ -14,7 +15,9 @@ import {
 import type React from "react";
 import { Link } from "react-router-dom";
 import { useStandings } from "../../api/queries";
+import type { StandingsRow } from "../../api/types";
 import { tokens } from "../../theme";
+import QueryBoundary from "../common/QueryBoundary";
 
 interface StandingsTableProps {
   leagueId: string;
@@ -36,23 +39,29 @@ const RoundBadge = ({ points }: { points: number }) => (
 );
 
 const StandingsTable: React.FC<StandingsTableProps> = ({ leagueId }) => {
-  const { data, isLoading } = useStandings(leagueId);
-  const standings = [...(data ?? [])].sort((a, b) => a.rank - b.rank);
+  const query = useStandings(leagueId);
+  return (
+    <QueryBoundary
+      query={query}
+      what="standings"
+      isEmpty={(rows) => rows.length === 0}
+      empty={{
+        title: "No standings yet",
+        description: "Standings appear once the playoffs begin and scores are in.",
+        action: (
+          <Button component={Link} to={`/league/${leagueId}/draft`} variant="outlined">
+            Open the draft room
+          </Button>
+        ),
+      }}
+    >
+      {(rows) => <StandingsRows rows={rows} />}
+    </QueryBoundary>
+  );
+};
 
-  if (isLoading) {
-    return <Typography color="text.secondary">Loading standings...</Typography>;
-  }
-
-  if (standings.length === 0) {
-    return (
-      <Paper sx={{ p: 4, textAlign: "center" }}>
-        <Typography color="text.secondary">
-          Standings appear once the playoffs begin and scores are in.
-        </Typography>
-      </Paper>
-    );
-  }
-
+const StandingsRows = ({ rows }: { rows: StandingsRow[] }) => {
+  const standings = [...rows].sort((a, b) => a.rank - b.rank);
   return (
     <TableContainer component={Paper}>
       <Table>

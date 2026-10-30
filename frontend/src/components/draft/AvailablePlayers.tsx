@@ -91,6 +91,7 @@ const AvailablePlayers = ({
             label={pos}
             size="small"
             color={position === pos ? "primary" : "default"}
+            aria-pressed={position === pos}
             onClick={() => setPosition(pos)}
           />
         ))}

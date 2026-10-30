@@ -1,9 +1,9 @@
 import { Alert, Box, Button, Paper, Typography } from "@mui/material";
 import { useDraftControl } from "../../api/queries";
 import type { DraftState } from "../../api/types";
+import { mutationError } from "../common/friendlyError";
 
-const detail = (error: unknown): string | null =>
-  (error as { response?: { data?: { detail?: string } } } | null)?.response?.data?.detail ?? null;
+const DRAFT_FAILURE = "Couldn't update the draft. Try again.";
 
 /** Lobby / start / pause / resume plus undo and force-pick; shown to commissioners only. */
 const CommissionerControls = ({ draft }: { draft: DraftState }) => {
@@ -49,9 +49,9 @@ const CommissionerControls = ({ draft }: { draft: DraftState }) => {
           </Button>
         )}
       </Box>
-      {detail(control.error) && (
+      {mutationError(control.error, DRAFT_FAILURE) && (
         <Alert severity="error" sx={{ mt: 1 }}>
-          {detail(control.error)}
+          {mutationError(control.error, DRAFT_FAILURE)}
         </Alert>
       )}
     </Paper>

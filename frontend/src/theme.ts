@@ -7,11 +7,16 @@ export const tokens = {
   borderStrong: "#334155",
   text: "#e2e8f0",
   muted: "#94a3b8",
+  /** 3.7:1 on bg, the WCAG 1.4.11 minimum for form control boundaries. */
+  inputBorder: "#64748b",
   gold: "#fbbf24",
   green: "#22c55e",
   red: "#ef4444",
   cyan: "#22d3ee",
 };
+
+/** Minimum touch target in px (WCAG 2.5.5 / mobile-first rule in AGENTS.md). */
+const TOUCH_TARGET = 44;
 
 export const glassCard = {
   backgroundColor: alpha(tokens.surface, 0.7),
@@ -52,10 +57,24 @@ const theme = createTheme({
     MuiCard: {
       styleOverrides: { root: { ...glassCard } },
     },
+    MuiButtonBase: {
+      styleOverrides: {
+        root: {
+          "&.Mui-focusVisible": { outline: `2px solid ${tokens.gold}`, outlineOffset: 2 },
+        },
+      },
+    },
+    MuiIconButton: {
+      styleOverrides: { root: { minWidth: TOUCH_TARGET, minHeight: TOUCH_TARGET } },
+    },
     MuiButton: {
       defaultProps: { disableElevation: true },
       styleOverrides: {
-        root: { borderRadius: 8, transition: "transform .15s, box-shadow .15s" },
+        root: {
+          minHeight: TOUCH_TARGET,
+          borderRadius: 8,
+          transition: "transform .15s, box-shadow .15s",
+        },
       },
       variants: [
         {
@@ -70,7 +89,12 @@ const theme = createTheme({
         },
       ],
     },
-    MuiChip: { styleOverrides: { root: { fontWeight: 600 } } },
+    MuiChip: {
+      styleOverrides: {
+        root: { fontWeight: 600 },
+        clickable: { minHeight: TOUCH_TARGET },
+      },
+    },
     MuiTableCell: {
       styleOverrides: {
         root: { borderBottom: `1px solid ${tokens.border}` },
@@ -86,7 +110,8 @@ const theme = createTheme({
     MuiOutlinedInput: {
       styleOverrides: {
         root: {
-          "& .MuiOutlinedInput-notchedOutline": { borderColor: tokens.borderStrong },
+          minHeight: TOUCH_TARGET,
+          "& .MuiOutlinedInput-notchedOutline": { borderColor: tokens.inputBorder },
         },
       },
     },

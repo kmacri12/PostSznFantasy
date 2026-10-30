@@ -1,16 +1,6 @@
-import {
-  Alert,
-  Box,
-  Button,
-  Chip,
-  CircularProgress,
-  Container,
-  Divider,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Alert, Box, Button, Chip, Container, Divider, TextField, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import {
   useDraft,
   useLeague,
@@ -18,6 +8,10 @@ import {
   useUpdateLeague,
   useUpdateSettings,
 } from "../api/queries";
+import EmptyState from "../components/common/EmptyState";
+import ErrorState from "../components/common/ErrorState";
+import { mutationError } from "../components/common/friendlyError";
+import LoadingState from "../components/common/LoadingState";
 import DraftSetupPanel from "../components/draft/DraftSetupPanel";
 import MembersSection from "../components/settings/MembersSection";
 import PostseasonForm from "../components/settings/PostseasonForm";
@@ -26,9 +20,6 @@ import ScoringForm from "../components/settings/ScoringForm";
 import { fromApi, postseasonFromApi, ROSTER_KEYS, SCORING_KEYS } from "../settings/convert";
 import { POSTSEASON_KEYS, type PostseasonValues } from "../settings/postseasonFields";
 import type { SettingsValues } from "../settings/types";
-
-const detail = (error: unknown): string | null =>
-  (error as { response?: { data?: { detail?: string } } } | null)?.response?.data?.detail ?? null;
 
 /** One page, grouped sections: League, Roster, Scoring, Draft, Postseason. */
 function SettingsPage() {
@@ -59,18 +50,40 @@ function SettingsPage() {
     setTeamCount(String(league.data.numberTeams));
   }, [league.data]);
 
-  if (!leagueId) return <Alert severity="info">Pick a league to view its settings.</Alert>;
+  if (!leagueId) {
+    return (
+      <Container maxWidth="sm" sx={{ py: 4 }}>
+        <EmptyState
+          title="No league selected"
+          description="Open a league to see its settings."
+          action={
+            <Button component={Link} to="/" variant="outlined">
+              Go to your leagues
+            </Button>
+          }
+        />
+      </Container>
+    );
+  }
   if (league.isLoading || settingsQuery.isLoading) {
     return (
-      <Box
-        sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "50vh" }}
-      >
-        <CircularProgress />
-      </Box>
+      <Container maxWidth="md" sx={{ py: 3 }}>
+        <LoadingState what="settings" />
+      </Container>
     );
   }
   if (league.isError || settingsQuery.isError || !league.data) {
-    return <Alert severity="error">Could not load this league's settings.</Alert>;
+    return (
+      <Container maxWidth="md" sx={{ py: 3 }}>
+        <ErrorState
+          message="Couldn't load this league's settings. Check your connection and try again."
+          onRetry={() => {
+            league.refetch();
+            settingsQuery.refetch();
+          }}
+        />
+      </Container>
+    );
   }
 
   const canEdit = league.data.myRole === "commissioner";
@@ -94,7 +107,9 @@ function SettingsPage() {
     }
   };
 
-  const failure = detail(updateSettings.error) ?? detail(updateLeague.error);
+  const failure =
+    mutationError(updateSettings.error, "Couldn't save the settings. Try again.") ??
+    mutationError(updateLeague.error, "Couldn't save the league details. Try again.");
 
   return (
     <Container maxWidth="md" sx={{ py: 3 }}>

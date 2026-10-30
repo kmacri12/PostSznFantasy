@@ -5,7 +5,6 @@ import {
   Button,
   Card,
   Chip,
-  CircularProgress,
   Container,
   Dialog,
   DialogActions,
@@ -21,6 +20,9 @@ import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useLeague, useUpdateLeague } from "../api/queries";
 import type { LeagueOverview } from "../api/types";
+import DataFreshness from "../components/common/DataFreshness";
+import { mutationError } from "../components/common/friendlyError";
+import QueryBoundary from "../components/common/QueryBoundary";
 import InvitePanel from "../components/league/InvitePanel";
 import StandingsTable from "../components/league/StandingsTable";
 
@@ -36,6 +38,7 @@ const DRAFT_LABELS: Record<LeagueOverview["draftStatus"], string> = {
 const RenameDialog = ({ league, onClose }: { league: LeagueOverview; onClose: () => void }) => {
   const [name, setName] = useState(league.name);
   const update = useUpdateLeague(league.id);
+  const updateError = mutationError(update.error, "Couldn't rename the league. Try again.");
   return (
     <Dialog open onClose={onClose} fullWidth maxWidth="xs">
       <DialogTitle>Rename league</DialogTitle>
@@ -48,6 +51,7 @@ const RenameDialog = ({ league, onClose }: { league: LeagueOverview; onClose: ()
           value={name}
           onChange={(event) => setName(event.target.value)}
         />
+        {updateError && <Alert severity="error">{updateError}</Alert>}
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
@@ -64,26 +68,8 @@ const RenameDialog = ({ league, onClose }: { league: LeagueOverview; onClose: ()
 };
 
 /** The league home: info, members, commissioner tools, draft status and standings. */
-const LeaguePage: React.FC = () => {
-  const { leagueId } = useParams<{ leagueId: string }>();
-  const { data: league, isLoading, isError } = useLeague(leagueId);
+const LeagueContent = ({ league }: { league: LeagueOverview }) => {
   const [renaming, setRenaming] = useState(false);
-
-  if (isLoading) {
-    return (
-      <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-  if (isError || !league) {
-    return (
-      <Container maxWidth="md" sx={{ py: 4 }}>
-        <Alert severity="error">You don't have access to this league.</Alert>
-      </Container>
-    );
-  }
-
   const isCommissioner = league.myRole === "commissioner";
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -134,9 +120,12 @@ const LeaguePage: React.FC = () => {
           </Grid>
         )}
         <Grid size={{ xs: 12 }} sx={{ minWidth: 0 }}>
-          <Typography variant="h6" sx={{ mb: 1 }}>
+          <Typography variant="h6" sx={{ mb: 0.5 }}>
             Standings
           </Typography>
+          <Box sx={{ mb: 1 }}>
+            <DataFreshness />
+          </Box>
           <Card sx={{ p: 0, bgcolor: "transparent", boxShadow: "none" }}>
             <StandingsTable leagueId={String(league.id)} />
           </Card>
@@ -145,6 +134,16 @@ const LeaguePage: React.FC = () => {
 
       {renaming && <RenameDialog league={league} onClose={() => setRenaming(false)} />}
     </Container>
+  );
+};
+
+const LeaguePage: React.FC = () => {
+  const { leagueId } = useParams<{ leagueId: string }>();
+  const query = useLeague(leagueId);
+  return (
+    <QueryBoundary query={query} what="this league" page>
+      {(league) => <LeagueContent league={league} />}
+    </QueryBoundary>
   );
 };
 

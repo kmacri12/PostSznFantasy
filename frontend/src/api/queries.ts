@@ -11,6 +11,7 @@ import type {
   PlayerSummary,
   StandingsRow,
   SyncResult,
+  SyncStatus,
   TeamDetails,
   TeamSummary,
 } from "./types";
@@ -31,6 +32,7 @@ export const keys = {
   players: ["players"] as const,
   seasonStats: ["player-season-stats"] as const,
   scoringDefaults: ["scoring-defaults"] as const,
+  syncStatus: ["sync-status"] as const,
 };
 
 const get = async <T>(url: string, signal?: AbortSignal): Promise<T> =>
@@ -110,6 +112,13 @@ export const usePlayerSeasonStats = <T>(season: string | undefined, leagueId: Id
     },
     enabled: !!season,
     staleTime: 5 * 60_000,
+  });
+
+export const useSyncStatus = () =>
+  useQuery({
+    queryKey: keys.syncStatus,
+    queryFn: ({ signal }) => get<SyncStatus[]>("/api/players/sync-status", signal),
+    refetchInterval: 60_000,
   });
 
 export const useScoringDefaults = () =>
@@ -304,6 +313,19 @@ export const useAdminSync = () =>
         })
       ).data,
   });
+
+/** Admin-only: poll live games now. Stats shown on standings and team pages reload afterwards. */
+export const useRefreshLive = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => (await api.post<{ polled: number }>("/api/admin/refresh/live")).data,
+    onSuccess: () => {
+      for (const key of ["sync-status", "standings", "team", "player-season-stats"]) {
+        queryClient.invalidateQueries({ queryKey: [key] });
+      }
+    },
+  });
+};
 
 export const useSaveQueue = (leagueId: Id | undefined) =>
   useMutation({

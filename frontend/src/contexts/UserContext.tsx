@@ -83,7 +83,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       .catch((error) => {
         if (cancelled) return;
         logger.error("Error syncing user with backend:", error);
-        setSyncError("Could not reach the server to finish signing you in.");
+        setSyncError("Couldn't reach the server to finish signing you in. Reload to try again.");
       });
     return () => {
       cancelled = true;

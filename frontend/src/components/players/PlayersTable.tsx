@@ -1,9 +1,9 @@
 import {
   Alert,
   Box,
+  Button,
   Card,
   Chip,
-  CircularProgress,
   FormControl,
   InputLabel,
   MenuItem,
@@ -27,6 +27,9 @@ import { useSearchParams } from "react-router-dom";
 import { useConfig, usePlayerSeasonStats, useUserLeagues } from "../../api/queries";
 import { useUser } from "../../contexts/UserContext";
 import { tokens } from "../../theme";
+import EmptyState from "../common/EmptyState";
+import ErrorState from "../common/ErrorState";
+import LoadingState from "../common/LoadingState";
 import {
   filterPlayers,
   formatPoints,
@@ -150,15 +153,29 @@ const PlayersTable = () => {
         </Alert>
       )}
 
-      {stats.isLoading && (
-        <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-          <CircularProgress />
-        </Box>
+      {stats.isLoading && <LoadingState what="player stats" />}
+      {stats.isError && (
+        <ErrorState
+          message="Couldn't load player stats. Check your connection and try again."
+          onRetry={() => stats.refetch()}
+        />
       )}
-      {!stats.isLoading && rows.length === 0 && (
-        <Typography color="text.secondary" align="center" sx={{ py: 4 }}>
-          No player statistics found.
-        </Typography>
+      {stats.isSuccess && rows.length === 0 && (
+        <EmptyState
+          title="No players found"
+          description={
+            search
+              ? "Clear the search or pick another position."
+              : "Try another season or position."
+          }
+          action={
+            search ? (
+              <Button variant="outlined" onClick={() => setSearch("")}>
+                Clear search
+              </Button>
+            ) : undefined
+          }
+        />
       )}
 
       {rows.length > 0 && isPhone && (

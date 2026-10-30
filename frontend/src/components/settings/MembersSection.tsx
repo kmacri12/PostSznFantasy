@@ -16,11 +16,9 @@ import {
 } from "@mui/material";
 import { useAssignTeamOwner, useRemoveMember, useSetMemberRole } from "../../api/queries";
 import type { LeagueOverview } from "../../api/types";
+import { mutationError } from "../common/friendlyError";
 
 const NO_TEAM = "none";
-
-const detail = (error: unknown): string | null =>
-  (error as { response?: { data?: { detail?: string } } } | null)?.response?.data?.detail ?? null;
 
 /** Roles, team assignment and removal. Commissioners can edit; members see the roster. */
 const MembersSection = ({ league }: { league: LeagueOverview }) => {
@@ -28,7 +26,10 @@ const MembersSection = ({ league }: { league: LeagueOverview }) => {
   const setRole = useSetMemberRole(league.id);
   const remove = useRemoveMember(league.id);
   const assign = useAssignTeamOwner(league.id);
-  const failure = detail(setRole.error) ?? detail(remove.error) ?? detail(assign.error);
+  const failure =
+    mutationError(setRole.error, "Couldn't change that role. Try again.") ??
+    mutationError(remove.error, "Couldn't remove that member. Try again.") ??
+    mutationError(assign.error, "Couldn't assign that team. Try again.");
 
   const teamOf = (userId: number) => league.teams.find((team) => team.ownerUserId === userId);
 

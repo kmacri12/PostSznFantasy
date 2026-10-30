@@ -1,5 +1,4 @@
 import {
-  Alert,
   Box,
   Chip,
   Container,
@@ -13,6 +12,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useLeague, usePlayerList, useSaveQueue } from "../api/queries";
+import LoadingState from "../components/common/LoadingState";
 import AvailablePlayers from "../components/draft/AvailablePlayers";
 import CommissionerControls from "../components/draft/CommissionerControls";
 import DraftBoard from "../components/draft/DraftBoard";
@@ -65,9 +65,10 @@ const DraftPage = () => {
   if (!state) {
     return (
       <Container maxWidth="md" sx={{ py: 4 }}>
-        <Alert severity={room.isConnected ? "info" : "warning"}>
+        <Typography color="text.secondary" sx={{ mb: 2 }}>
           {room.isConnected ? "Loading the draft room…" : "Connecting to the draft room…"}
-        </Alert>
+        </Typography>
+        <LoadingState what="the draft room" rows={3} />
       </Container>
     );
   }

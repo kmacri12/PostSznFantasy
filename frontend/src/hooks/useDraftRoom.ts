@@ -36,7 +36,10 @@ export function useDraftRoom(leagueId: string | undefined) {
   const makePick = useCallback(
     (playerId: number) => {
       if (!sendMessage({ eventType: "MAKE_PICK", data: { playerId } })) {
-        dispatch({ eventType: "ERROR", message: "Not connected — your pick was not sent." });
+        dispatch({
+          eventType: "ERROR",
+          message: "Reconnect to the draft room, then pick again. Your pick was not sent.",
+        });
         return;
       }
       dispatch({ eventType: "PICK_PENDING", data: { playerId } });

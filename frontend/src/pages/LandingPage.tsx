@@ -36,7 +36,7 @@ const ROUNDS = [
 const LeagueWidget = ({ league }: { league: LeagueByUser }) => {
   const standings = useStandings(league.id);
   const draft = useDraft(league.id);
-  const loaded = !standings.isLoading && !draft.isLoading;
+  const loaded = !standings.isLoading && !draft.isLoading && !standings.isError;
   const rows = standings.data ?? [];
   const snapshot = loaded
     ? {
@@ -69,6 +69,10 @@ const LeagueWidget = ({ league }: { league: LeagueByUser }) => {
             }
           />
         </Box>
+      ) : standings.isError ? (
+        <Typography variant="body2" color="text.secondary" sx={{ my: 1.5 }}>
+          Couldn't load this league's standings.
+        </Typography>
       ) : (
         <Skeleton width="70%" sx={{ my: 1.5 }} />
       )}

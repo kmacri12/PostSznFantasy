@@ -81,7 +81,7 @@ describe("UserProvider auth flow", () => {
     mocks.post.mockRejectedValue(new Error("down"));
     renderProbe();
     await waitFor(() =>
-      expect(screen.getByTestId("error").textContent).toMatch(/could not reach/i),
+      expect(screen.getByTestId("error").textContent).toMatch(/couldn.t reach the server/i),
     );
     expect(screen.getByTestId("user").textContent).toBe("none");
   });

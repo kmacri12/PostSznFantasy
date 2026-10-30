@@ -112,7 +112,11 @@ export function applyDraftEvent(room: DraftRoom, event: DraftMessage, now = Date
           event.code === "player_taken" && room.pendingPlayerId !== null
             ? [...room.takenPlayerIds, room.pendingPlayerId]
             : room.takenPlayerIds,
-        toast: nextToast(room, event.message ?? "Something went wrong", "error"),
+        toast: nextToast(
+          room,
+          event.message ?? "Couldn't complete that action. Try again.",
+          "error",
+        ),
       };
     case "DISMISS_TOAST":
       return { ...room, toast: null };

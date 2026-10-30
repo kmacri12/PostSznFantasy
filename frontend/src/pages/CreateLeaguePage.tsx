@@ -17,6 +17,7 @@ import type React from "react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCreateLeague, useScoringDefaults } from "../api/queries";
+import ErrorState from "../components/common/ErrorState";
 import RosterForm from "../components/settings/RosterForm";
 import ScoringForm from "../components/settings/ScoringForm";
 import { createLogger } from "../utils/logger";
@@ -86,14 +87,16 @@ const CreateLeaguePage = ({
 
       const createdLeagueId = response.leagueId;
       if (!createdLeagueId) {
-        setSubmitError("League was created but the server returned no league id.");
+        setSubmitError(
+          "Your league was created, but we couldn't open it. Find it on the home page.",
+        );
         return;
       }
       await onLeagueCreated(createdLeagueId);
       navigate(`/league/${createdLeagueId}`);
     } catch (error) {
       logger.error("Error creating league:", error);
-      setSubmitError("Could not create the league. Please try again.");
+      setSubmitError("Couldn't create the league. Try again.");
     }
   };
 
@@ -173,9 +176,10 @@ const CreateLeaguePage = ({
         )}
 
         {step === 2 && defaultsFailed && (
-          <Alert severity="error">
-            Couldn't load the default scoring settings. Check that the API is running and reload.
-          </Alert>
+          <ErrorState
+            message="Couldn't load the default scoring settings. Check your connection and try again."
+            onRetry={() => defaultsQuery.refetch()}
+          />
         )}
 
         {step === 2 && scoringDefaults && (

@@ -5,7 +5,6 @@ import {
   Box,
   Button,
   Chip,
-  CircularProgress,
   Container,
   Dialog,
   DialogActions,
@@ -16,17 +15,19 @@ import {
   Typography,
 } from "@mui/material";
 import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useAddDrop, useMoveInLineup, usePlayerList, useRenameTeam, useTeam } from "../api/queries";
 import type { RosterPlayer, TeamDetails } from "../api/types";
+import DataFreshness from "../components/common/DataFreshness";
+import EmptyState from "../components/common/EmptyState";
+import { mutationError } from "../components/common/friendlyError";
+import QueryBoundary from "../components/common/QueryBoundary";
 import LineupList from "../components/team/LineupList";
-
-const detail = (error: unknown): string | null =>
-  (error as { response?: { data?: { detail?: string } } } | null)?.response?.data?.detail ?? null;
 
 const RenameDialog = ({ team, onClose }: { team: TeamDetails; onClose: () => void }) => {
   const [name, setName] = useState(team.name);
   const rename = useRenameTeam(team.id);
+  const renameError = mutationError(rename.error, "Couldn't rename the team. Try again.");
   return (
     <Dialog open onClose={onClose} fullWidth maxWidth="xs">
       <DialogTitle>Rename team</DialogTitle>
@@ -40,7 +41,7 @@ const RenameDialog = ({ team, onClose }: { team: TeamDetails; onClose: () => voi
           slotProps={{ htmlInput: { maxLength: 40 } }}
           onChange={(event) => setName(event.target.value)}
         />
-        {detail(rename.error) && <Alert severity="error">{detail(rename.error)}</Alert>}
+        {renameError && <Alert severity="error">{renameError}</Alert>}
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
@@ -59,6 +60,7 @@ const RenameDialog = ({ team, onClose }: { team: TeamDetails; onClose: () => voi
 const AddDropDialog = ({ team, onClose }: { team: TeamDetails; onClose: () => void }) => {
   const players = usePlayerList();
   const addDrop = useAddDrop(team.id);
+  const addDropError = mutationError(addDrop.error, "Couldn't complete the add/drop. Try again.");
   const [drop, setDrop] = useState<RosterPlayer | null>(null);
   const [add, setAdd] = useState<{ id: number; name: string } | null>(null);
   const rostered = new Set(team.roster.map((player) => player.id));
@@ -81,7 +83,7 @@ const AddDropDialog = ({ team, onClose }: { team: TeamDetails; onClose: () => vo
           onChange={(_, value) => setAdd(value)}
           renderInput={(params) => <TextField {...params} label="Add free agent" />}
         />
-        {detail(addDrop.error) && <Alert severity="error">{detail(addDrop.error)}</Alert>}
+        {addDropError && <Alert severity="error">{addDropError}</Alert>}
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
@@ -99,27 +101,12 @@ const AddDropDialog = ({ team, onClose }: { team: TeamDetails; onClose: () => vo
   );
 };
 
-function TeamPage() {
-  const { teamId } = useParams<{ teamId: string }>();
-  const { data: team, isLoading, isError } = useTeam(teamId);
+const TeamContent = ({ team }: { team: TeamDetails }) => {
+  const teamId = team.id;
   const [renaming, setRenaming] = useState(false);
   const [managing, setManaging] = useState(false);
   const moveInLineup = useMoveInLineup(teamId);
-
-  if (isLoading) {
-    return (
-      <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-  if (isError || !team) {
-    return (
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Alert severity="error">This team isn't available to you.</Alert>
-      </Container>
-    );
-  }
+  const moveError = mutationError(moveInLineup.error, "Couldn't move that player. Try again.");
 
   const aliveCount = team.roster.filter((player) => player.isActive).length;
 
@@ -151,25 +138,46 @@ function TeamPage() {
         )}
       </Box>
 
+      <Box sx={{ mb: 2 }}>
+        <DataFreshness />
+      </Box>
       {team.roster.length === 0 && (
-        <Alert severity="info" sx={{ mb: 2 }}>
-          No players yet. Your lineup fills in as the draft happens.
-        </Alert>
+        <Box sx={{ mb: 2 }}>
+          <EmptyState
+            title="No players yet"
+            description="This lineup fills in as the draft happens."
+            action={
+              <Button component={Link} to={`/league/${team.leagueId}/draft`} variant="outlined">
+                Open the draft room
+              </Button>
+            }
+          />
+        </Box>
       )}
       <LineupList
         slots={team.slots}
         canDrag={team.canManageRoster}
         onMove={(move) => moveInLineup.mutate(move)}
       />
-      {detail(moveInLineup.error) && (
+      {moveError && (
         <Alert severity="error" sx={{ mt: 1 }}>
-          {detail(moveInLineup.error)}
+          {moveError}
         </Alert>
       )}
 
       {renaming && <RenameDialog team={team} onClose={() => setRenaming(false)} />}
       {managing && <AddDropDialog team={team} onClose={() => setManaging(false)} />}
     </Container>
+  );
+};
+
+function TeamPage() {
+  const { teamId } = useParams<{ teamId: string }>();
+  const query = useTeam(teamId);
+  return (
+    <QueryBoundary query={query} what="this team" page>
+      {(team) => <TeamContent key={team.id} team={team} />}
+    </QueryBoundary>
   );
 }
 
