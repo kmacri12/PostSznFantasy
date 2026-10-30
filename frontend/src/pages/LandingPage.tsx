@@ -1,5 +1,15 @@
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-import { Box, Button, Card, Chip, Container, Grid, Skeleton, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  Card,
+  Chip,
+  Container,
+  Grid,
+  Link as MuiLink,
+  Skeleton,
+  Typography,
+} from "@mui/material";
 import { Link } from "react-router-dom";
 import { useDraft, useStandings } from "../api/queries";
 import type { LeagueByUser } from "../api/types";
@@ -223,6 +233,17 @@ const LandingPage = ({ leagues }: { leagues: LeagueByUser[] }) => {
             </Grid>
           ))}
         </Grid>
+      </Box>
+      <Box
+        component="footer"
+        sx={{ mt: 8, display: "flex", gap: 3, justifyContent: "center", flexWrap: "wrap" }}
+      >
+        <MuiLink component={Link} to="/privacy" color="text.secondary" sx={{ py: 1.5 }}>
+          Privacy
+        </MuiLink>
+        <MuiLink component={Link} to="/terms" color="text.secondary" sx={{ py: 1.5 }}>
+          Terms
+        </MuiLink>
       </Box>
     </Container>
   );
