@@ -396,13 +396,18 @@ def test_dst_blocked_kick_and_two_point_return(
 
 
 def test_orm_settings_columns_match_pydantic_schemas() -> None:
-    from api.models.league_models import PostseasonSettings, RosterSettings
+    from api.models.league_models import (
+        PostseasonSettings,
+        RosterSettings,
+        TeamUnitSettings,
+    )
 
     columns = {c.key for c in LeagueSettings.__table__.columns}
     declared = (
         set(RosterSettings.model_fields)
         | set(ScoringSettings.model_fields)
         | set(PostseasonSettings.model_fields)
+        | set(TeamUnitSettings.model_fields)
     )
     assert declared <= columns
     # `tiebreaker` is retired (the chain is fixed) and stays until a migration drops it.

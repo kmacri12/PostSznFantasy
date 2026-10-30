@@ -12,6 +12,7 @@ from api.db.models.league import (
     TeamPlayer,
 )
 from api.db.models.nfl import (
+    DepthChartStarter,
     IngestionStatus,
     NFLGame,
     NFLPlayer,
@@ -25,6 +26,7 @@ __all__ = [
     "ActivityEvent",
     "ActivityView",
     "Base",
+    "DepthChartStarter",
     "Draft",
     "DraftPick",
     "DraftQueueItem",

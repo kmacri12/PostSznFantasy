@@ -20,6 +20,7 @@ class IngestionKind(IntEnum):
     SEASON_STATS = 3
     BOX_SCORES = 4
     GAMES = 5
+    DEPTH_CHARTS = 6
 
 
 class IngestionBusy(Exception):

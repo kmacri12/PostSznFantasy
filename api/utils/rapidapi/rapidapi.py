@@ -204,6 +204,10 @@ class RapidApiClient:
         data = await self._get("/getNFLPlayerList", use_cache=True)
         return list(data.get("body", []))
 
+    async def get_nfl_depth_charts(self) -> list[dict[str, Any]]:
+        data = await self._get("/getNFLDepthCharts")
+        return list(data.get("body", []))
+
     async def get_nfl_games_list(
         self, season: str, season_type: str, week: str = "all"
     ) -> list[dict[str, Any]]:

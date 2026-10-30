@@ -35,7 +35,9 @@ Each league drafts once, before the Wild Card round, from players on the 14 play
 Two independent league settings, each a required explicit commissioner choice with no default and a tooltip.
 
 - When on, the owner drafts a QB (or K) by name, but the slot scores every player whose official roster position is QB (or K) on that NFL team in that game. A WR who throws a touchdown pass scores as a WR.
-- The draft pool lists one QB (or K) per NFL team, the starter; the whole team's QBs (or Ks) leave the pool when one is drafted. The roster shows the drafted name with a tooltip such as "scores all Eagles QBs".
+- The draft pool lists one QB (or K) per NFL team, the starter; the whole team's QBs (or Ks) leave the pool when one is drafted. The starter is the first name on the NFL team's depth chart (QB1, PK1 from Tank01's `getNFLDepthCharts`); if a team has no usable entry the player with the most pass attempts (or kicks) in the latest season stats starts, and a warning is logged. The roster, lineup and draft board show the drafted name with a tooltip such as "scores all PHI QBs".
+- Who counts as a QB or K is the player's official roster position on that NFL team (Tank01 calls kickers `PK`). A position cap then means different NFL teams: with the setting on, a team can never draft two QBs from one NFL team.
+- The settings are changed on the league settings page by a commissioner at any time, including after the draft; every change goes to the activity feed.
 - DST is always a team unit.
 - Switching on after the draft is blocked while any team holds two QBs (or Ks) from the same NFL team, and the conflicts are listed. Switching off is always allowed.
 - Positions other than QB and K never combine (a backup RB is an ordinary player).

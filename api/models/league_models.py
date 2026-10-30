@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any
 
-from pydantic import Field, create_model
+from pydantic import Field, StrictBool, create_model
 
 from api.models.activity_models import ScoreChange, SlotMark
 from api.models.base import BaseSchema
@@ -100,11 +100,22 @@ class PostseasonSettings(BaseSchema):
     multiplier_super_bowl: float = Field(default=1, ge=0, le=10)
 
 
+class TeamUnitSettings(BaseSchema):
+    """Whether a drafted QB (or K) scores his whole NFL team's QBs (or Ks).
+
+    No defaults: the commissioner must choose each explicitly.
+    """
+
+    team_qb: StrictBool
+    team_k: StrictBool
+
+
 class LeagueCreate(BaseSchema):
     league_name: str = Field(min_length=1, max_length=100)
     roster_settings: RosterSettings = Field(default_factory=RosterSettings)
     scoring_settings: ScoringSettings = Field(default_factory=ScoringSettings)
     postseason_settings: PostseasonSettings = Field(default_factory=PostseasonSettings)
+    team_unit_settings: TeamUnitSettings
     draft_start_time: datetime | None = None
     time_per_pick_seconds: int = Field(default=90, ge=10, le=86400)
 
@@ -114,7 +125,9 @@ class LeagueCreateResponse(BaseSchema):
     league_id: int | None = None
 
 
-class LeagueSettingsResponse(RosterSettings, ScoringSettings, PostseasonSettings):
+class LeagueSettingsResponse(
+    RosterSettings, ScoringSettings, PostseasonSettings, TeamUnitSettings
+):
     id: int
     league_id: int
 
@@ -138,9 +151,13 @@ def _all_optional(name: str, *models: type[BaseSchema]) -> type[BaseSchema]:
     return create_model(name, __base__=BaseSchema, **fields)
 
 
-# Partial update body: any subset of the roster, scoring and postseason fields.
+# Partial update body: any subset of the roster, scoring, postseason and team unit fields.
 LeagueSettingsPatch = _all_optional(
-    "LeagueSettingsPatch", RosterSettings, ScoringSettings, PostseasonSettings
+    "LeagueSettingsPatch",
+    RosterSettings,
+    ScoringSettings,
+    PostseasonSettings,
+    TeamUnitSettings,
 )
 
 
@@ -306,6 +323,8 @@ class RosterPlayer(BaseSchema):
     team_abv: str | None = None
     is_active: bool
     next_game: NextGame | None = None
+    # Team QB / team K: his slot scores every QB (K) on his NFL team.
+    scores_whole_team: bool = False
 
 
 class LineupPlayer(RosterPlayer):

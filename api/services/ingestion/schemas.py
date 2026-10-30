@@ -139,3 +139,37 @@ def field_goal_yards_by_kicker(scoring_plays: Any) -> dict[int, list[int]]:
         if match and kicker_id:
             yards_by_kicker.setdefault(kicker_id, []).append(int(match.group(1)))
     return yards_by_kicker
+
+
+# The depth-chart list that names each unit's starter: QB1 and PK1 (kickers are PK).
+DEPTH_CHART_STARTERS = {"QB": ("QB1", "QB"), "PK": ("PK1", "K")}
+
+
+def parse_depth_chart_starters(body: Any) -> list[dict[str, Any]]:
+    """The QB1 and PK1 of each team in a `getNFLDepthCharts` body, as starter rows.
+
+    Teams or positions without a usable first entry are skipped; the starter
+    resolver falls back to season stats for them.
+    """
+    rows: list[dict[str, Any]] = []
+    for team in body if isinstance(body, list) else []:
+        team_id = safe_int(team.get("teamID")) if isinstance(team, dict) else 0
+        depth_chart = team.get("depthChart") if team_id else None
+        if not isinstance(depth_chart, dict):
+            continue
+        for list_name, (depth_position, position) in DEPTH_CHART_STARTERS.items():
+            entries = depth_chart.get(list_name)
+            for entry in entries if isinstance(entries, list) else []:
+                player_id = (
+                    safe_int(entry.get("playerID")) if isinstance(entry, dict) else 0
+                )
+                if player_id and entry.get("depthPosition") == depth_position:
+                    rows.append(
+                        {
+                            "team_id": team_id,
+                            "position": position,
+                            "player_id": player_id,
+                        }
+                    )
+                    break
+    return rows

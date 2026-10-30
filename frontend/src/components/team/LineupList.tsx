@@ -16,6 +16,7 @@ import type { LineupPlayer, LineupSlot, RoundLineup, SlotMark } from "../../api/
 import { tokens } from "../../theme";
 import ChangedScore from "../activity/ChangedScore";
 import SlotMarker from "../activity/SlotMarker";
+import TeamUnitBadge from "../common/TeamUnitBadge";
 import {
   applyTap,
   BENCH_SLOT,
@@ -133,6 +134,9 @@ const PlayerRow = ({
               >
                 {player.position} · {player.teamAbv || "FA"} · {lineupStatusText(player)}
               </Typography>
+              {player.scoresWholeTeam && (
+                <TeamUnitBadge position={player.position} teamAbv={player.teamAbv} />
+              )}
             </Box>
             <ChangedScore player={player} />
             {locked && !eliminated && (

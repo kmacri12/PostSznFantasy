@@ -2,11 +2,28 @@ import pytest
 from pydantic import ValidationError
 
 from api.models.enums import PlayerPosition
-from api.models.league_models import LeagueCreate, LeagueUpdate, RosterSettings
+from api.models.league_models import (
+    LeagueCreate,
+    LeagueUpdate,
+    RosterSettings,
+    TeamUnitSettings,
+)
+
+
+def test_team_qb_and_k_have_no_default() -> None:
+    with pytest.raises(ValidationError):
+        LeagueCreate(league_name="x")
+    with pytest.raises(ValidationError):
+        TeamUnitSettings(team_qb=True)
+    with pytest.raises(ValidationError):
+        TeamUnitSettings(team_qb=True, team_k="yes")
 
 
 def test_new_league_defaults() -> None:
-    create = LeagueCreate(league_name="x")
+    create = LeagueCreate(
+        league_name="x",
+        team_unit_settings=TeamUnitSettings(team_qb=False, team_k=False),
+    )
     roster = create.roster_settings
     assert create.time_per_pick_seconds == 90
     assert roster.number_teams == 6

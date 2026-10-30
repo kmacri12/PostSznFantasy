@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from api.core.config import get_settings
 from api.db.models.draft import Draft, DraftPick, DraftQueueItem
 from api.db.models.league import League, LeagueSettings, Team, TeamPlayer
-from api.db.models.nfl import NFLPlayer, NFLPlayerSeasonStats
+from api.db.models.nfl import NFLPlayer, NFLPlayerSeasonStats, NFLTeam
 from api.models.draft_models import (
     DraftPickResponse,
     DraftSetup,
@@ -40,6 +40,11 @@ from api.services.playoff_field import (
     require_field_set,
 )
 from api.services.standings import clear_league_standings
+from api.services.team_units import (
+    combined_positions,
+    scores_whole_team,
+    unavailable_in_pool,
+)
 from api.utils.calculations.fantasy_points_utils import season_points
 
 STARTED = {
@@ -78,12 +83,15 @@ async def build_state(db: AsyncSession, draft: Draft) -> DraftStateResponse:
     ]
     pick_rows = (
         await db.execute(
-            select(DraftPick, NFLPlayer.name, NFLPlayer.position)
+            select(DraftPick, NFLPlayer.name, NFLPlayer.position, NFLTeam.team_abv)
             .join(NFLPlayer, NFLPlayer.id == DraftPick.player_id)
+            .outerjoin(NFLTeam, NFLTeam.id == NFLPlayer.team_id)
             .where(DraftPick.draft_id == draft.id)
             .order_by(DraftPick.number_pick_overall)
         )
     ).all()
+    settings = await load_settings(db, draft.league_id)
+    combined = combined_positions(settings)
     picks = [
         DraftPickResponse(
             id=p.id,
@@ -92,12 +100,14 @@ async def build_state(db: AsyncSession, draft: Draft) -> DraftStateResponse:
             player_id=p.player_id,
             player_name=name,
             position=position,
+            team_abv=team_abv,
+            scores_whole_team=scores_whole_team(combined, position),
             number_round=p.number_round,
             number_pick_overall=p.number_pick_overall,
             number_pick_in_round=p.number_pick_in_round,
             autopick=p.autopick,
         )
-        for p, name, position in pick_rows
+        for p, name, position, team_abv in pick_rows
     ]
 
     ids = placed_order(draft)
@@ -111,7 +121,6 @@ async def build_state(db: AsyncSession, draft: Draft) -> DraftStateResponse:
         if current + 1 < total:
             deck = team_on_the_clock(ids, current + 1, draft.draft_type)
 
-    settings = await load_settings(db, draft.league_id)
     caps = {
         position.value: cap
         for position in PlayerPosition
@@ -386,9 +395,10 @@ async def _best_available_ids(
     db: AsyncSession, draft: Draft, settings: LeagueSettings
 ) -> list[int]:
     """Undrafted draft-pool players, best last-season fantasy output first."""
-    from api.db.models.nfl import NFLTeam
-
     drafted = select(DraftPick.player_id).where(DraftPick.draft_id == draft.id)
+    blocked = await unavailable_in_pool(
+        db, settings, list((await db.execute(drafted)).scalars())
+    )
     players = (
         (
             await db.execute(
@@ -398,6 +408,7 @@ async def _best_available_ids(
                     NFLTeam.in_playoffs,
                     NFLPlayer.position.in_(DRAFTABLE_POSITION_VALUES),
                     NFLPlayer.id.not_in(drafted),
+                    NFLPlayer.id.not_in(blocked),
                 )
             )
         )

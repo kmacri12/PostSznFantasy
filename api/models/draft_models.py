@@ -13,6 +13,9 @@ class DraftPickResponse(BaseSchema):
     player_id: int
     player_name: str | None = None
     position: str | None = None
+    team_abv: str | None = None
+    # Team QB / team K: this pick's slot scores every QB (K) on his NFL team.
+    scores_whole_team: bool = False
     number_round: int
     number_pick_overall: int
     number_pick_in_round: int

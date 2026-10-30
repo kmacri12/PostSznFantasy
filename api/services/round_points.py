@@ -19,6 +19,7 @@ from api.db.models.nfl import NFLGame, NFLPlayer, NFLPlayerGameStats
 from api.models.enums import PlayerPosition
 from api.services.lineups import BENCH, slot_layout
 from api.services.round_status import ROUNDS
+from api.services.team_units import scoring_members
 from api.utils.calculations.fantasy_points_utils import calculate_player_points
 from api.utils.calculations.standings_utils import (
     ROUND_MULTIPLIER_FIELDS,
@@ -58,13 +59,17 @@ def point_lines(
     placements: Mapping[tuple[int, int], Mapping[int, int]],
     players: Mapping[int, NFLPlayer],
     stats: StatsByPlayer,
+    unit_members: Mapping[int, Collection[int]] | None = None,
 ) -> list[PointsLine]:
     """A line for every starter slot player, and for every other rostered player who
     played, in each round.
 
     `placements` maps (team id, round) to slot index -> player id, straight from the
     lineup rows: an owner who set nothing has starters nowhere, so everyone is bench.
+    `unit_members` names whose stats feed a team QB / team K (team_units.scoring_members);
+    anyone absent scores only for themselves.
     """
+    unit_members = unit_members or {}
     lines: list[PointsLine] = []
     for team_id, roster in rosters.items():
         for round_ in ROUNDS:
@@ -80,7 +85,8 @@ def point_lines(
                 starter = slot is not None and slot in starter_slots
                 games = [
                     row
-                    for row, week in stats.get(player_id, [])
+                    for scorer_id in unit_members.get(player_id, [player_id])
+                    for row, week in stats.get(scorer_id, [])
                     if postseason_round_index(week) == round_ - 1
                 ]
                 if not starter and not games:
@@ -183,4 +189,7 @@ async def league_point_lines(
         )
     ).all():
         placements[(team_id, round_)][slot_index] = player_id
-    return point_lines(settings, starter_slots, rosters, placements, players, stats)
+    unit_members = await scoring_members(db, settings, players.values())
+    return point_lines(
+        settings, starter_slots, rosters, placements, players, stats, unit_members
+    )

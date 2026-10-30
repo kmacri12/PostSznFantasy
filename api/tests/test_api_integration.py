@@ -9,6 +9,8 @@ from api.db.models.league import LeagueSettings
 from api.db.models.nfl import NFLPlayer, NFLPlayerSeasonStats, NFLTeam
 from api.db.models.user import User
 
+TEAM_UNITS_OFF = {"teamQb": False, "teamK": False}
+
 
 @pytest.mark.asyncio
 async def test_auth_login_create_and_sync(
@@ -89,6 +91,7 @@ async def test_create_league_success(
         "scoringSettings": {
             "scoring_passing_td": 6,
         },
+        "teamUnitSettings": TEAM_UNITS_OFF,
     }
 
     response = await async_client.post(
@@ -178,7 +181,11 @@ async def test_create_league_without_scoring_persists_defaults(
 
     res = await async_client.post(
         "/api/leagues/create-league",
-        json={"leagueName": "Defaults", "rosterSettings": {"numberTeams": 4}},
+        json={
+            "leagueName": "Defaults",
+            "rosterSettings": {"numberTeams": 4},
+            "teamUnitSettings": TEAM_UNITS_OFF,
+        },
     )
     assert res.status_code == 201
     added = [call.args[0] for call in mock_db_session.add.call_args_list]
@@ -211,6 +218,7 @@ async def test_create_league_uses_requested_draft_timing(
         json={
             "leagueName": "Timed",
             "rosterSettings": {"numberTeams": 4},
+            "teamUnitSettings": TEAM_UNITS_OFF,
             "draftStartTime": "2030-01-05T18:00:00Z",
             "timePerPickSeconds": 30,
         },

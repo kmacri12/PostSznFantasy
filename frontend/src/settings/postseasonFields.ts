@@ -9,11 +9,28 @@ export interface PostseasonField {
   options?: { value: string; label: string }[];
 }
 
+export const TEAM_QB_HELP =
+  "Draft a QB by name, but he scores every QB on his NFL team in each game, so a backup who steps in still counts.";
+export const TEAM_K_HELP =
+  "Draft a kicker by name, but he scores every kicker on his NFL team in each game. A player who is not a kicker never counts.";
+
 export const POSTSEASON_FIELDS: PostseasonField[] = [
   {
     key: "allow_join_after_draft_start",
     label: "Allow joining after the draft starts",
     kind: "boolean",
+  },
+  {
+    key: "team_qb",
+    label: "Team QB",
+    kind: "boolean",
+    help: TEAM_QB_HELP,
+  },
+  {
+    key: "team_k",
+    label: "Team K",
+    kind: "boolean",
+    help: TEAM_K_HELP,
   },
   { key: "multiplier_wild_card", label: "Wild Card multiplier", kind: "multiplier" },
   { key: "multiplier_divisional", label: "Divisional multiplier", kind: "multiplier" },

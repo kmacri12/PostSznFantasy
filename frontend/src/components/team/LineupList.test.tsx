@@ -176,3 +176,22 @@ describe("LineupList", () => {
     expect(screen.queryByText(/Tap a slot to move/)).toBeNull();
   });
 });
+
+describe("LineupList team QB / team K", () => {
+  it("badges a team QB in his starter slot", () => {
+    const flagged: RoundLineup = {
+      ...lineup,
+      slots: [
+        {
+          index: 0,
+          slot: "QB",
+          player: player(1, "Josh Allen", { position: "QB", scoresWholeTeam: true }),
+          mark: null,
+        },
+        ...lineup.slots.slice(1),
+      ],
+    };
+    render(<LineupList lineup={flagged} canEdit onMove={() => {}} />);
+    expect(screen.getByRole("note", { name: /Scores all KC QBs/ })).toBeTruthy();
+  });
+});

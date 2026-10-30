@@ -64,6 +64,7 @@ export class Api {
     const { leagueId } = await this.post<{ leagueId: number }>("/api/leagues/create-league", {
       leagueName: name,
       rosterSettings: { ...TINY_ROSTER, ...roster },
+      teamUnitSettings: { teamQb: false, teamK: false },
     });
     return leagueId;
   }

@@ -73,3 +73,16 @@ describe("AvailablePlayers position caps", () => {
     }
   });
 });
+
+describe("AvailablePlayers team QB / team K", () => {
+  it("badges only the players the API flags as scoring the whole team", () => {
+    renderList({
+      players: [
+        { ...player(1, "Pat Mahomes"), scoresWholeTeam: true },
+        { ...player(2, "Josh Allen"), position: "QB" },
+      ],
+    });
+    expect(screen.getAllByRole("note")).toHaveLength(1);
+    expect(screen.getByRole("note", { name: /Scores all KC QBs/ })).toBeTruthy();
+  });
+});

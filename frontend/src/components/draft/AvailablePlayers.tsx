@@ -68,6 +68,7 @@ const AvailablePlayers = ({
           position: p.position,
           team: p.team?.teamAbv ?? p.teamAbv ?? "FA",
           eliminated: p.eliminated,
+          scoresWholeTeam: p.scoresWholeTeam,
         }),
       ),
     [players],

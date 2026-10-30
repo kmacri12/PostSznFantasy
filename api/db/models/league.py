@@ -334,6 +334,9 @@ class LeagueSettings(Base):
     tiebreaker: Mapped[str] = mapped_column(
         String(30), nullable=False, default=Tiebreaker.MOST_PLAYERS_ALIVE.value
     )
+    # No defaults: the commissioner chooses both explicitly (services.team_units).
+    team_qb: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    team_k: Mapped[bool] = mapped_column(Boolean, nullable=False)
 
     league: Mapped["League"] = relationship("League", back_populates="settings")
 

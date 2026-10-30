@@ -1,0 +1,855 @@
+{
+ "statusCode": 200,
+ "body": [
+  {
+   "teamAbv": "ARI",
+   "teamID": "1",
+   "depthChart": {
+    "QB": [
+     {
+      "depthPosition": "QB1",
+      "longName": "Jacoby Brissett",
+      "playerID": "2578570"
+     },
+     {
+      "depthPosition": "QB2",
+      "longName": "Carson Beck",
+      "playerID": "4430841"
+     },
+     {
+      "depthPosition": "QB3",
+      "longName": "Gardner Minshew II",
+      "playerID": "4038524"
+     }
+    ],
+    "PK": [
+     {
+      "depthPosition": "PK1",
+      "longName": "Chad Ryland",
+      "playerID": "4363538"
+     }
+    ]
+   }
+  },
+  {
+   "teamAbv": "ATL",
+   "teamID": "2",
+   "depthChart": {
+    "QB": [
+     {
+      "depthPosition": "QB1",
+      "longName": "Michael Penix Jr.",
+      "playerID": "4360423"
+     },
+     {
+      "depthPosition": "QB2",
+      "longName": "Tua Tagovailoa",
+      "playerID": "4241479"
+     }
+    ],
+    "PK": [
+     {
+      "depthPosition": "PK1",
+      "longName": "Nick Folk",
+      "playerID": "10621"
+     }
+    ]
+   }
+  },
+  {
+   "teamAbv": "BAL",
+   "teamID": "3",
+   "depthChart": {
+    "QB": [
+     {
+      "depthPosition": "QB1",
+      "longName": "Lamar Jackson",
+      "playerID": "3916387"
+     },
+     {
+      "depthPosition": "QB2",
+      "longName": "Tyler Huntley",
+      "playerID": "4035671"
+     }
+    ],
+    "PK": [
+     {
+      "depthPosition": "PK1",
+      "longName": "Tyler Loop",
+      "playerID": "4697745"
+     }
+    ]
+   }
+  },
+  {
+   "teamAbv": "BUF",
+   "teamID": "4",
+   "depthChart": {
+    "QB": [
+     {
+      "depthPosition": "QB1",
+      "longName": "Josh Allen",
+      "playerID": "3918298"
+     }
+    ],
+    "PK": [
+     {
+      "depthPosition": "PK1",
+      "longName": "Tyler Bass",
+      "playerID": "3917232"
+     }
+    ]
+   }
+  },
+  {
+   "teamAbv": "CAR",
+   "teamID": "5",
+   "depthChart": {
+    "QB": [
+     {
+      "depthPosition": "QB1",
+      "longName": "Bryce Young",
+      "playerID": "4685720"
+     },
+     {
+      "depthPosition": "QB2",
+      "longName": "Kenny Pickett",
+      "playerID": "4240703"
+     }
+    ],
+    "PK": [
+     {
+      "depthPosition": "PK1",
+      "longName": "Ryan Fitzgerald",
+      "playerID": "4568263"
+     }
+    ]
+   }
+  },
+  {
+   "teamAbv": "CHI",
+   "teamID": "6",
+   "depthChart": {
+    "QB": [
+     {
+      "depthPosition": "QB1",
+      "longName": "Caleb Williams",
+      "playerID": "4431611"
+     },
+     {
+      "depthPosition": "QB2",
+      "longName": "Tyson Bagent",
+      "playerID": "4434153"
+     },
+     {
+      "depthPosition": "QB3",
+      "longName": "Case Keenum",
+      "playerID": "15168"
+     }
+    ],
+    "PK": [
+     {
+      "depthPosition": "PK1",
+      "longName": "Cairo Santos",
+      "playerID": "17427"
+     }
+    ]
+   }
+  },
+  {
+   "teamAbv": "CIN",
+   "teamID": "7",
+   "depthChart": {
+    "QB": [
+     {
+      "depthPosition": "QB1",
+      "longName": "Joe Burrow",
+      "playerID": "3915511"
+     },
+     {
+      "depthPosition": "QB2",
+      "longName": "Joe Flacco",
+      "playerID": "11252"
+     }
+    ],
+    "PK": [
+     {
+      "depthPosition": "PK1",
+      "longName": "Evan McPherson",
+      "playerID": "4360234"
+     }
+    ]
+   }
+  },
+  {
+   "teamAbv": "CLE",
+   "teamID": "8",
+   "depthChart": {
+    "QB": [
+     {
+      "depthPosition": "QB1",
+      "longName": "Deshaun Watson",
+      "playerID": "3122840"
+     },
+     {
+      "depthPosition": "QB2",
+      "longName": "Shedeur Sanders",
+      "playerID": "4432762"
+     },
+     {
+      "depthPosition": "QB3",
+      "longName": "Taylen Green",
+      "playerID": "4431325"
+     }
+    ],
+    "PK": [
+     {
+      "depthPosition": "PK1",
+      "longName": "Andre Szmyt",
+      "playerID": "4258620"
+     }
+    ]
+   }
+  },
+  {
+   "teamAbv": "DAL",
+   "teamID": "9",
+   "depthChart": {
+    "QB": [
+     {
+      "depthPosition": "QB1",
+      "longName": "Dak Prescott",
+      "playerID": "2577417"
+     },
+     {
+      "depthPosition": "QB2",
+      "longName": "Sam Howell",
+      "playerID": "4426875"
+     }
+    ],
+    "PK": [
+     {
+      "depthPosition": "PK1",
+      "longName": "Brandon Aubrey",
+      "playerID": "3953687"
+     }
+    ]
+   }
+  },
+  {
+   "teamAbv": "DEN",
+   "teamID": "10",
+   "depthChart": {
+    "QB": [
+     {
+      "depthPosition": "QB1",
+      "longName": "Bo Nix",
+      "playerID": "4426338"
+     },
+     {
+      "depthPosition": "QB2",
+      "longName": "Jarrett Stidham",
+      "playerID": "3892775"
+     }
+    ],
+    "PK": [
+     {
+      "depthPosition": "PK1",
+      "longName": "Wil Lutz",
+      "playerID": "2985659"
+     }
+    ]
+   }
+  },
+  {
+   "teamAbv": "DET",
+   "teamID": "11",
+   "depthChart": {
+    "QB": [
+     {
+      "depthPosition": "QB1",
+      "longName": "Jared Goff",
+      "playerID": "3046779"
+     },
+     {
+      "depthPosition": "QB2",
+      "longName": "Joshua Dobbs",
+      "playerID": "3044720"
+     }
+    ],
+    "PK": [
+     {
+      "depthPosition": "PK1",
+      "longName": "Jake Bates",
+      "playerID": "4689936"
+     }
+    ]
+   }
+  },
+  {
+   "teamAbv": "GB",
+   "teamID": "12",
+   "depthChart": {
+    "QB": [
+     {
+      "depthPosition": "QB1",
+      "longName": "Jordan Love",
+      "playerID": "4036378"
+     },
+     {
+      "depthPosition": "QB2",
+      "longName": "Tyrod Taylor",
+      "playerID": "14163"
+     }
+    ],
+    "PK": [
+     {
+      "depthPosition": "PK1",
+      "longName": "Trey Smack",
+      "playerID": "4869461"
+     }
+    ]
+   }
+  },
+  {
+   "teamAbv": "HOU",
+   "teamID": "13",
+   "depthChart": {
+    "QB": [
+     {
+      "depthPosition": "QB1",
+      "longName": "C.J. Stroud",
+      "playerID": "4432577"
+     },
+     {
+      "depthPosition": "QB2",
+      "longName": "Davis Mills",
+      "playerID": "4242546"
+     }
+    ],
+    "PK": [
+     {
+      "depthPosition": "PK1",
+      "longName": "Ka'imi Fairbairn",
+      "playerID": "2971573"
+     }
+    ]
+   }
+  },
+  {
+   "teamAbv": "IND",
+   "teamID": "14",
+   "depthChart": {
+    "QB": [
+     {
+      "depthPosition": "QB1",
+      "longName": "Daniel Jones",
+      "playerID": "3917792"
+     },
+     {
+      "depthPosition": "QB2",
+      "longName": "Anthony Richardson Sr.",
+      "playerID": "4429084"
+     },
+     {
+      "depthPosition": "QB3",
+      "longName": "Riley Leonard",
+      "playerID": "4683423"
+     }
+    ],
+    "PK": [
+     {
+      "depthPosition": "PK1",
+      "longName": "Spencer Shrader",
+      "playerID": "4571557"
+     }
+    ]
+   }
+  },
+  {
+   "teamAbv": "JAX",
+   "teamID": "15",
+   "depthChart": {
+    "QB": [
+     {
+      "depthPosition": "QB1",
+      "longName": "Trevor Lawrence",
+      "playerID": "4360310"
+     },
+     {
+      "depthPosition": "QB2",
+      "longName": "Quinn Ewers",
+      "playerID": "4889929"
+     }
+    ],
+    "PK": [
+     {
+      "depthPosition": "PK1",
+      "longName": "Cam Little",
+      "playerID": "4686361"
+     }
+    ]
+   }
+  },
+  {
+   "teamAbv": "KC",
+   "teamID": "16",
+   "depthChart": {
+    "QB": [
+     {
+      "depthPosition": "QB1",
+      "longName": "Patrick Mahomes",
+      "playerID": "3139477"
+     },
+     {
+      "depthPosition": "QB2",
+      "longName": "Garrett Nussmeier",
+      "playerID": "4567747"
+     },
+     {
+      "depthPosition": "QB3",
+      "longName": "Justin Fields",
+      "playerID": "4362887"
+     }
+    ],
+    "PK": [
+     {
+      "depthPosition": "PK1",
+      "longName": "Harrison Butker",
+      "playerID": "3055899"
+     }
+    ]
+   }
+  },
+  {
+   "teamAbv": "LV",
+   "teamID": "17",
+   "depthChart": {
+    "QB": [
+     {
+      "depthPosition": "QB1",
+      "longName": "Kirk Cousins",
+      "playerID": "14880"
+     },
+     {
+      "depthPosition": "QB2",
+      "longName": "Fernando Mendoza",
+      "playerID": "4837248"
+     }
+    ],
+    "PK": [
+     {
+      "depthPosition": "PK1",
+      "longName": "Matt Gay",
+      "playerID": "4249087"
+     }
+    ]
+   }
+  },
+  {
+   "teamAbv": "LAC",
+   "teamID": "18",
+   "depthChart": {
+    "QB": [
+     {
+      "depthPosition": "QB1",
+      "longName": "Justin Herbert",
+      "playerID": "4038941"
+     },
+     {
+      "depthPosition": "QB2",
+      "longName": "Trey Lance",
+      "playerID": "4383351"
+     }
+    ],
+    "PK": [
+     {
+      "depthPosition": "PK1",
+      "longName": "Cameron Dicker",
+      "playerID": "4362081"
+     }
+    ]
+   }
+  },
+  {
+   "teamAbv": "LAR",
+   "teamID": "19",
+   "depthChart": {
+    "QB": [
+     {
+      "depthPosition": "QB1",
+      "longName": "Matthew Stafford",
+      "playerID": "12483"
+     },
+     {
+      "depthPosition": "QB2",
+      "longName": "Ty Simpson",
+      "playerID": "4685522"
+     },
+     {
+      "depthPosition": "QB3",
+      "longName": "Jimmy Garoppolo",
+      "playerID": "16760"
+     }
+    ],
+    "PK": [
+     {
+      "depthPosition": "PK1",
+      "longName": "Brandon McManus",
+      "playerID": "16339"
+     },
+     {
+      "depthPosition": "PK2",
+      "longName": "Blake Grupe",
+      "playerID": "4259619"
+     }
+    ]
+   }
+  },
+  {
+   "teamAbv": "MIA",
+   "teamID": "20",
+   "depthChart": {
+    "QB": [
+     {
+      "depthPosition": "QB1",
+      "longName": "Malik Willis",
+      "playerID": "4242512"
+     },
+     {
+      "depthPosition": "QB2",
+      "longName": "Kyle McCord",
+      "playerID": "4433971"
+     }
+    ],
+    "PK": [
+     {
+      "depthPosition": "PK1",
+      "longName": "Zane Gonzalez",
+      "playerID": "3043234"
+     }
+    ]
+   }
+  },
+  {
+   "teamAbv": "MIN",
+   "teamID": "21",
+   "depthChart": {
+    "QB": [
+     {
+      "depthPosition": "QB1",
+      "longName": "Kyler Murray",
+      "playerID": "3917315"
+     },
+     {
+      "depthPosition": "QB2",
+      "longName": "Carson Wentz",
+      "playerID": "2573079"
+     }
+    ],
+    "PK": [
+     {
+      "depthPosition": "PK1",
+      "longName": "Will Reichard",
+      "playerID": "4567104"
+     }
+    ]
+   }
+  },
+  {
+   "teamAbv": "NE",
+   "teamID": "22",
+   "depthChart": {
+    "QB": [
+     {
+      "depthPosition": "QB1",
+      "longName": "Drake Maye",
+      "playerID": "4431452"
+     }
+    ],
+    "PK": [
+     {
+      "depthPosition": "PK1",
+      "longName": "Andy Borregales",
+      "playerID": "4569923"
+     }
+    ]
+   }
+  },
+  {
+   "teamAbv": "NO",
+   "teamID": "23",
+   "depthChart": {
+    "QB": [
+     {
+      "depthPosition": "QB1",
+      "longName": "Tyler Shough",
+      "playerID": "4360689"
+     },
+     {
+      "depthPosition": "QB2",
+      "longName": "Spencer Rattler",
+      "playerID": "4426339"
+     }
+    ],
+    "PK": [
+     {
+      "depthPosition": "PK1",
+      "longName": "Daniel Carlson",
+      "playerID": "3051909"
+     }
+    ]
+   }
+  },
+  {
+   "teamAbv": "NYG",
+   "teamID": "24",
+   "depthChart": {
+    "QB": [
+     {
+      "depthPosition": "QB1",
+      "longName": "J.J. McCarthy",
+      "playerID": "4433970"
+     },
+     {
+      "depthPosition": "QB2",
+      "longName": "Jameis Winston",
+      "playerID": "2969939"
+     }
+    ],
+    "PK": [
+     {
+      "depthPosition": "PK1",
+      "longName": "Dominic Zvada",
+      "playerID": "5082424"
+     }
+    ]
+   }
+  },
+  {
+   "teamAbv": "NYJ",
+   "teamID": "25",
+   "depthChart": {
+    "QB": [
+     {
+      "depthPosition": "QB1",
+      "longName": "Geno Smith",
+      "playerID": "15864"
+     },
+     {
+      "depthPosition": "QB2",
+      "longName": "Cade Klubnik",
+      "playerID": "4685413"
+     }
+    ],
+    "PK": [
+     {
+      "depthPosition": "PK1",
+      "longName": "Jason Sanders",
+      "playerID": "3124679"
+     }
+    ]
+   }
+  },
+  {
+   "teamAbv": "PIT",
+   "teamID": "26",
+   "depthChart": {
+    "QB": [
+     {
+      "depthPosition": "QB1",
+      "longName": "Aaron Rodgers",
+      "playerID": "8439"
+     },
+     {
+      "depthPosition": "QB2",
+      "longName": "Mason Rudolph",
+      "playerID": "3116407"
+     },
+     {
+      "depthPosition": "QB3",
+      "longName": "Will Howard",
+      "playerID": "4429955"
+     },
+     {
+      "depthPosition": "QB4",
+      "longName": "Drew Allar",
+      "playerID": "4714771"
+     }
+    ],
+    "PK": [
+     {
+      "depthPosition": "PK1",
+      "longName": "Chris Boswell",
+      "playerID": "17372"
+     }
+    ]
+   }
+  },
+  {
+   "teamAbv": "PHI",
+   "teamID": "27",
+   "depthChart": {
+    "QB": [
+     {
+      "depthPosition": "QB1",
+      "longName": "Tanner McKee",
+      "playerID": "4685201"
+     },
+     {
+      "depthPosition": "QB2",
+      "longName": "Joe Milton",
+      "playerID": "4360698"
+     },
+     {
+      "depthPosition": "QB3",
+      "longName": "Cole Payton",
+      "playerID": "4879250"
+     }
+    ],
+    "PK": [
+     {
+      "depthPosition": "PK1",
+      "longName": "Jake Elliott",
+      "playerID": "3050478"
+     }
+    ]
+   }
+  },
+  {
+   "teamAbv": "SF",
+   "teamID": "28",
+   "depthChart": {
+    "QB": [
+     {
+      "depthPosition": "QB1",
+      "longName": "Brock Purdy",
+      "playerID": "4361741"
+     },
+     {
+      "depthPosition": "QB2",
+      "longName": "Mac Jones",
+      "playerID": "4241464"
+     }
+    ],
+    "PK": [
+     {
+      "depthPosition": "PK1",
+      "longName": "Eddy Pineiro",
+      "playerID": "4034949"
+     }
+    ]
+   }
+  },
+  {
+   "teamAbv": "SEA",
+   "teamID": "29",
+   "depthChart": {
+    "QB": [
+     {
+      "depthPosition": "QB1",
+      "longName": "Sam Darnold",
+      "playerID": "3912547"
+     },
+     {
+      "depthPosition": "QB2",
+      "longName": "Drew Lock",
+      "playerID": "3924327"
+     },
+     {
+      "depthPosition": "QB3",
+      "longName": "Jalen Milroe",
+      "playerID": "4432734"
+     }
+    ],
+    "PK": [
+     {
+      "depthPosition": "PK1",
+      "longName": "Jason Myers",
+      "playerID": "2473037"
+     }
+    ]
+   }
+  },
+  {
+   "teamAbv": "TB",
+   "teamID": "30",
+   "depthChart": {
+    "QB": [
+     {
+      "depthPosition": "QB1",
+      "longName": "Baker Mayfield",
+      "playerID": "3052587"
+     },
+     {
+      "depthPosition": "QB2",
+      "longName": "Jalon Daniels",
+      "playerID": "4596472"
+     }
+    ],
+    "PK": [
+     {
+      "depthPosition": "PK1",
+      "longName": "Chase McLaughlin",
+      "playerID": "3150744"
+     }
+    ]
+   }
+  },
+  {
+   "teamAbv": "TEN",
+   "teamID": "31",
+   "depthChart": {
+    "QB": [
+     {
+      "depthPosition": "QB1",
+      "longName": "Cam Ward",
+      "playerID": "4688380"
+     },
+     {
+      "depthPosition": "QB2",
+      "longName": "Mitchell Trubisky",
+      "playerID": "3039707"
+     }
+    ],
+    "PK": [
+     {
+      "depthPosition": "PK1",
+      "longName": "Joey Slye",
+      "playerID": "3124084"
+     }
+    ]
+   }
+  },
+  {
+   "teamAbv": "WSH",
+   "teamID": "32",
+   "depthChart": {
+    "QB": [
+     {
+      "depthPosition": "QB1",
+      "longName": "Jayden Daniels",
+      "playerID": "4426348"
+     },
+     {
+      "depthPosition": "QB2",
+      "longName": "Athan Kaliakmanis",
+      "playerID": "4432722"
+     },
+     {
+      "depthPosition": "QB3",
+      "longName": "Marcus Mariota",
+      "playerID": "2576980"
+     }
+    ],
+    "PK": [
+     {
+      "depthPosition": "PK1",
+      "longName": "Drew Stevens",
+      "playerID": "5081335"
+     }
+    ]
+   }
+  }
+ ]
+}

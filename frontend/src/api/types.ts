@@ -172,6 +172,8 @@ export interface RosterPlayer {
   teamAbv?: string | null;
   isActive: boolean;
   nextGame: NextGame | null;
+  /** Team QB / team K: his slot scores every QB (K) on his NFL team. */
+  scoresWholeTeam?: boolean;
 }
 
 export type PlayerRoundStatus = "alive" | "eliminated" | "bye";
@@ -236,6 +238,8 @@ export interface DraftPick {
   playerId: number;
   playerName: string | null;
   position: string | null;
+  teamAbv?: string | null;
+  scoresWholeTeam?: boolean;
   numberRound: number;
   numberPickOverall: number;
   numberPickInRound: number;
@@ -300,6 +304,7 @@ export interface PlayerSummary {
   team?: { teamAbv?: string };
   /** Not served yet; the card lists hide these players once the API sets it. */
   eliminated?: boolean;
+  scoresWholeTeam?: boolean;
 }
 
 export interface SyncResult {

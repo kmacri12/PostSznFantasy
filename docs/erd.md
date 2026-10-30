@@ -38,6 +38,8 @@ erDiagram
     nfl_players ||--o{ nfl_player_game_stats : "has"
     nfl_players ||--o{ nfl_player_season_stats : "has"
     nfl_games ||--o{ nfl_player_game_stats : "produces"
+    nfl_teams ||--o{ depth_chart_starters : "lists"
+    nfl_players ||--o{ depth_chart_starters : "starts as"
 
     users {
         int id PK
@@ -63,6 +65,8 @@ erDiagram
         int roster_total
         decimal multiplier_wild_card
         string tiebreaker
+        bool team_qb
+        bool team_k
     }
     league_invites {
         int id PK
@@ -204,6 +208,11 @@ erDiagram
     nfl_player_season_stats {
         string season PK
         int player_id PK,FK
+    }
+    depth_chart_starters {
+        int team_id PK,FK
+        string position PK
+        int player_id FK
     }
     ingestion_status {
         string kind PK

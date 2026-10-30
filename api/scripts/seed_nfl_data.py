@@ -7,6 +7,7 @@ from api.core.config import get_settings
 from api.core.logging import setup_logging
 from api.db.session import close_db, get_session_factory
 from api.services.ingestion.box_scores_ingest import ingest_box_scores
+from api.services.ingestion.depth_chart_ingest import ingest_depth_charts
 from api.services.ingestion.players_ingest import ingest_nfl_players
 from api.services.ingestion.season_stats_ingest import ingest_season_stats
 from api.services.ingestion.teams_ingest import ingest_nfl_teams
@@ -100,6 +101,16 @@ async def main() -> None:
                 require_rows("players", players_count)
                 await session.commit()
                 logger.info(f"{players_count} players synced.")
+
+                try:
+                    starters = await ingest_depth_charts(session)
+                    await session.commit()
+                    logger.info(f"{starters} depth chart starters synced.")
+                except Exception:
+                    await session.rollback()
+                    logger.exception(
+                        "Depth chart sync failed; team QB/K falls back to season stats"
+                    )
 
                 if not args.no_stats:
                     logger.info(f"[3/4] Syncing season stats for {args.season}...")
