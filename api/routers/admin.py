@@ -20,6 +20,7 @@ from api.services.scheduler import (
     eliminate_losing_teams,
     run_poll_cycle,
 )
+from api.services.standings import recompute_standings
 
 router = APIRouter(dependencies=[Depends(require_admin)])
 
@@ -69,6 +70,8 @@ async def update_all(
         with_stats=with_stats,
         with_box_scores=with_box_scores,
     )
+    if with_box_scores:
+        await recompute_standings(db, get_settings().season_year)
     return result
 
 
@@ -102,6 +105,7 @@ async def update_box_scores(
     db: DbSession,
 ) -> dict[str, str]:
     await ingest_box_scores(db, body.season, body.season_type, body.week)
+    await recompute_standings(db, get_settings().season_year)
     return {"status": "ok"}
 
 
@@ -111,6 +115,7 @@ async def eliminate_teams(
     db: DbSession,
 ) -> dict[str, str]:
     await mark_eliminated_teams(db, body.team_ids)
+    await recompute_standings(db, get_settings().season_year)
     return {"status": "ok"}
 
 
@@ -137,7 +142,7 @@ async def set_game_result(
     game_id: str, body: GameResultRequest, db: DbSession
 ) -> dict[str, str]:
     """Enter or correct a final score by hand when the API fails, then recompute
-    eliminations (a corrected result reinstates a team it wrongly cut). A later
+    eliminations and standings (a corrected result reinstates a team it wrongly cut). A later
     reconcile fetch overwrites this with upstream data once the API recovers."""
     game = await db.get(NFLGame, game_id)
     if game is None:
@@ -151,5 +156,6 @@ async def set_game_result(
     game.game_status = GAME_COMPLETED
     await db.flush()
     await eliminate_losing_teams(db, body.season, reinstate_winners=True)
+    await recompute_standings(db, body.season)
     await db.commit()
     return {"status": "ok"}
