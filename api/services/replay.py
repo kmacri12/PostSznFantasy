@@ -33,6 +33,7 @@ class ReplayClient:
 
     requests_remaining: int | None = None
     budget_exhausted = False
+    requests_today = 0
 
     def __init__(
         self,

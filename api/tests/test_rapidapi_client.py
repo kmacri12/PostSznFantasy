@@ -219,3 +219,22 @@ async def test_retries_count_against_the_budget(
     with pytest.raises(rapidapi.RapidApiBudgetExceeded):
         await client.get_nfl_box_score("a")
     assert client.budget_exhausted
+
+
+@pytest.mark.asyncio
+async def test_each_call_logs_how_many_have_been_made_today(
+    make_client: type[RapidApiClient],
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    monkeypatch.setenv("RAPIDAPI_DAILY_REQUEST_LIMIT", "5")
+    caplog.set_level("INFO")
+    client = make_client(requests_per_second=0)
+    with_transport(
+        client, httpx.MockTransport(lambda r: httpx.Response(200, json={"body": {}}))
+    )
+    await client.get_nfl_box_score("a")
+    await client.get_nfl_box_score("b")
+    assert "RapidAPI call 1/5 today: /getNFLBoxScore" in caplog.text
+    assert "RapidAPI call 2/5 today: /getNFLBoxScore" in caplog.text
+    assert client.requests_today == 2

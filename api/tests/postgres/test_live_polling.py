@@ -33,6 +33,7 @@ class FakeClient:
         self.box_calls: list[str] = []
         self.requests_remaining: int | None = 900
         self.budget_exhausted = False
+        self.requests_today = 7
 
     async def get_nfl_games_list(self, *_: Any, **__: Any) -> list[dict[str, Any]]:
         self.list_calls += 1
@@ -112,8 +113,9 @@ async def teams(db: AsyncSession) -> None:
 
 
 async def test_a_cycle_polls_one_box_score_per_live_game(
-    db: AsyncSession, teams: None
+    db: AsyncSession, teams: None, caplog: pytest.LogCaptureFixture
 ) -> None:
+    caplog.set_level("INFO")
     client = FakeClient(
         games=[
             summary("live", NOW - 3600, "Live - In Progress"),
@@ -128,6 +130,7 @@ async def test_a_cycle_polls_one_box_score_per_live_game(
     await run_poll_cycle(db, 2025, client=client, now=NOW)  # type: ignore[arg-type]
 
     assert client.list_calls == 1
+    assert "RapidAPI calls today: 7" in caplog.text
     assert client.box_calls == ["live", "done"]  # the Final one: its last fetch
     assert (await db.get(NFLGame, "live")).home_pts == 10  # type: ignore[union-attr]
 

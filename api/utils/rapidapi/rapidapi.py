@@ -130,12 +130,23 @@ class RapidApiClient:
         self._roll_budget_day()
         return self._daily_limit > 0 and self._requests_today >= self._daily_limit
 
-    def _spend_budget(self) -> None:
+    @property
+    def requests_today(self) -> int:
+        self._roll_budget_day()
+        return self._requests_today
+
+    def _spend_budget(self, route: str) -> None:
         if self.budget_exhausted:
             raise RapidApiBudgetExceeded(
                 f"Daily RapidAPI budget of {self._daily_limit} requests is spent"
             )
         self._requests_today += 1
+        logger.info(
+            "RapidAPI call %d/%d today: %s",
+            self._requests_today,
+            self._daily_limit,
+            route,
+        )
 
     def _record_quota(self, response: httpx.Response) -> None:
         try:
@@ -171,7 +182,7 @@ class RapidApiClient:
             reraise=True,
         ):
             with attempt:
-                self._spend_budget()
+                self._spend_budget(route)
                 response = await self._client().get(
                     self._base_url + route, params=params
                 )

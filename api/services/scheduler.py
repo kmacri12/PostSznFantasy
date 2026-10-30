@@ -268,6 +268,7 @@ async def run_poll_cycle(
         logger.info("Polled %d live games; %d eliminations applied", polled, eliminated)
     if client.requests_remaining is not None:
         logger.info("RapidAPI requests remaining: %d", client.requests_remaining)
+    logger.info("RapidAPI calls today: %d", client.requests_today)
     return polled
 
 
