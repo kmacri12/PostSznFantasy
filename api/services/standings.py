@@ -3,9 +3,10 @@ from collections import defaultdict
 from dataclasses import dataclass
 from decimal import Decimal
 
-from sqlalchemy import delete, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from api.db.models.draft import Draft
 from api.db.models.league import (
     League,
     LeagueSettings,
@@ -14,7 +15,7 @@ from api.db.models.league import (
     TeamPlayer,
 )
 from api.db.models.nfl import NFLGame, NFLPlayer, NFLPlayerGameStats
-from api.models.enums import PlayerPosition
+from api.models.enums import DraftStatus, PlayerPosition
 from api.services.roster_slots import BENCH, assign_players, slot_layout
 from api.utils.calculations.fantasy_points_utils import calculate_player_points
 from api.utils.calculations.standings_utils import (
@@ -27,6 +28,8 @@ logger = logging.getLogger(__name__)
 
 RoundPoints = tuple[Decimal, Decimal, Decimal, Decimal]
 CENTS = Decimal("0.01")
+# Namespace for the per-league advisory lock below.
+STANDINGS_LOCK = 0x57A2
 
 
 @dataclass(frozen=True)
@@ -153,6 +156,9 @@ async def _tally_league(
 
 
 async def _store_league(db: AsyncSession, league_id: int, stats: StatsByPlayer) -> None:
+    # Serializes writers (poll cycle vs. draft completion) so neither inserts rows
+    # the other's delete missed; held until the caller's transaction ends.
+    await db.execute(select(func.pg_advisory_xact_lock(STANDINGS_LOCK, league_id)))
     ranked = rank_teams(await _tally_league(db, league_id, stats))
     await db.execute(
         delete(LeagueStanding).where(LeagueStanding.league_id == league_id)
@@ -198,9 +204,22 @@ async def _recompute_leagues(
 
 
 async def recompute_standings(db: AsyncSession, season: int) -> int:
-    """Rewrite standings for every league of the season; returns how many succeeded."""
+    """Rewrite standings for every drafted league of the season; returns successes.
+
+    Leagues still drafting have no table, and writing one would lock their team rows
+    (foreign keys) against people joining.
+    """
     league_ids = list(
-        (await db.execute(select(League.id).where(League.season == season)))
+        (
+            await db.execute(
+                select(League.id)
+                .join(Draft, Draft.league_id == League.id)
+                .where(
+                    League.season == season,
+                    Draft.status == DraftStatus.COMPLETED.value,
+                )
+            )
+        )
         .scalars()
         .all()
     )
@@ -212,3 +231,10 @@ async def recompute_league_standings(db: AsyncSession, league_id: int) -> None:
     season = await db.scalar(select(League.season).where(League.id == league_id))
     if season is not None:
         await _recompute_leagues(db, [league_id], season)
+
+
+async def clear_league_standings(db: AsyncSession, league_id: int) -> None:
+    """A draft reopened by an undo is no longer complete, so it has no table."""
+    await db.execute(
+        delete(LeagueStanding).where(LeagueStanding.league_id == league_id)
+    )

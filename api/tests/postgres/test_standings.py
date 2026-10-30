@@ -40,7 +40,7 @@ async def _stored(db: AsyncSession, league_id: int) -> dict[int, LeagueStanding]
 async def test_starters_score_per_round_and_the_bench_does_not(
     db: AsyncSession,
 ) -> None:
-    league, _, teams, _ = await make_league(db)
+    league, _, teams, _ = await make_league(db, draft_status="completed")
     kc = NFLTeam(id=1, team_abv="KC", is_active=True)
     buf = NFLTeam(id=2, team_abv="BUF", is_active=True)
     db.add_all([kc, buf])
@@ -91,7 +91,7 @@ async def test_starters_score_per_round_and_the_bench_does_not(
 
 
 async def _two_team_league(db: AsyncSession) -> tuple[int, list[int]]:
-    league, _, teams, _ = await make_league(db)
+    league, _, teams, _ = await make_league(db, draft_status="completed")
     db.add_all([NFLTeam(id=1, team_abv="KC", is_active=True)])
     db.add(NFLTeam(id=2, team_abv="BUF", is_active=True))
     await db.flush()
@@ -208,7 +208,7 @@ async def test_finishing_the_draft_creates_a_zero_point_table(
     }
 
 
-async def test_undoing_the_final_pick_updates_the_table(db: AsyncSession) -> None:
+async def test_undoing_the_final_pick_removes_the_table(db: AsyncSession) -> None:
     league, _, teams, draft = await make_league(db, roster_total=1)
     kc = NFLTeam(id=1, team_abv="KC", is_active=True)
     db.add(kc)
@@ -221,7 +221,16 @@ async def test_undoing_the_final_pick_updates_the_table(db: AsyncSession) -> Non
     for player in players:
         await record_pick(db, draft, settings, player.id, acting_user=None)
 
+    assert len(await _stored(db, league.id)) == 2
     await undo_last_pick(db, league.id)
 
     rows = await _stored(db, league.id)
-    assert sorted(r.players_left or 0 for r in rows.values()) == [0, 1]
+    assert rows == {}
+
+
+async def test_leagues_still_drafting_get_no_table(db: AsyncSession) -> None:
+    league, _, _, _ = await make_league(db, draft_status="in_progress")
+
+    assert await recompute_standings(db, 2025) == 0
+
+    assert await _stored(db, league.id) == {}

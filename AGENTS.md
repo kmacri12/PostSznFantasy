@@ -79,7 +79,7 @@ PostSznFantasy/
 │   │   └── seed_nfl_data.py    # Unified on-demand NFL data seeder
 │   ├── services/               # Decoupled ingestion & domain services
 │   │   ├── eliminations.py     # mark_eliminated_teams
-│   │   ├── standings.py        # Recomputes fantasy.standings (starters' round points, players left, ranks) after polls, reconciles, admin score changes and draft completion; a failing league keeps its old rows
+│   │   ├── standings.py        # Recomputes fantasy.standings (starters' round points, players left, ranks) for drafted leagues after polls, reconciles, admin score changes and draft completion; a failing league keeps its old rows
 │   │   ├── draft_flow.py       # Draft state machine, order, pause/resume/undo, queue, auto-pick
 │   │   ├── draft_clock.py      # 1s loop auto-picking expired server-side deadlines
 │   │   ├── draft_events.py     # PICK_MADE / DRAFT_STATE broadcast payloads

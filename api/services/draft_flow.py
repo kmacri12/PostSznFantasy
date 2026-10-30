@@ -31,7 +31,7 @@ from api.services.draft_picks import (
     record_pick,
     team_on_the_clock,
 )
-from api.services.standings import recompute_league_standings
+from api.services.standings import clear_league_standings
 from api.utils.calculations.fantasy_points_utils import season_points
 
 STARTED = {
@@ -303,7 +303,7 @@ async def undo_last_pick(db: AsyncSession, league_id: int) -> Draft:
         draft.current_pick_deadline = next_deadline(draft, now)
     await db.flush()
     if was_completed:
-        await recompute_league_standings(db, league_id)
+        await clear_league_standings(db, league_id)
     return draft
 
 
