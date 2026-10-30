@@ -83,6 +83,7 @@ async def _load_fixtures() -> None:
                 team_abv=t["teamAbv"],
                 team_city=t["teamCity"],
                 team_name=t["teamName"],
+                in_playoffs=True,
             )
             for t in data["teams"]
         )

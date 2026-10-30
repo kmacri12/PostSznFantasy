@@ -42,8 +42,8 @@ async def test_starters_score_per_round_and_the_bench_does_not(
     db: AsyncSession,
 ) -> None:
     league, _, teams, _ = await make_league(db, draft_status="completed")
-    kc = NFLTeam(id=1, team_abv="KC", is_active=True)
-    buf = NFLTeam(id=2, team_abv="BUF", is_active=True)
+    kc = NFLTeam(id=1, team_abv="KC", is_active=True, in_playoffs=True)
+    buf = NFLTeam(id=2, team_abv="BUF", is_active=True, in_playoffs=True)
     db.add_all([kc, buf])
     await db.flush()
     starter, bench = await make_players(db, ["QB", "QB"], nfl_team=kc)
@@ -105,8 +105,8 @@ async def test_starters_score_per_round_and_the_bench_does_not(
 
 async def _two_team_league(db: AsyncSession) -> tuple[int, list[int]]:
     league, _, teams, _ = await make_league(db, draft_status="completed")
-    db.add_all([NFLTeam(id=1, team_abv="KC", is_active=True)])
-    db.add(NFLTeam(id=2, team_abv="BUF", is_active=True))
+    db.add_all([NFLTeam(id=1, team_abv="KC", is_active=True, in_playoffs=True)])
+    db.add(NFLTeam(id=2, team_abv="BUF", is_active=True, in_playoffs=True))
     await db.flush()
     (kc_qb,) = await make_players(db, ["QB"], nfl_team=await db.get(NFLTeam, 1))
     (buf_qb,) = await make_players(
@@ -201,7 +201,7 @@ async def test_finishing_the_draft_creates_a_zero_point_table(
     db: AsyncSession,
 ) -> None:
     league, _, teams, draft = await make_league(db, roster_total=1)
-    kc = NFLTeam(id=1, team_abv="KC", is_active=True)
+    kc = NFLTeam(id=1, team_abv="KC", is_active=True, in_playoffs=True)
     db.add(kc)
     await db.flush()
     qb, rb = await make_players(db, ["QB", "RB"], nfl_team=kc)
@@ -223,7 +223,7 @@ async def test_finishing_the_draft_creates_a_zero_point_table(
 
 async def test_undoing_the_final_pick_removes_the_table(db: AsyncSession) -> None:
     league, _, teams, draft = await make_league(db, roster_total=1)
-    kc = NFLTeam(id=1, team_abv="KC", is_active=True)
+    kc = NFLTeam(id=1, team_abv="KC", is_active=True, in_playoffs=True)
     db.add(kc)
     await db.flush()
     players = await make_players(db, ["QB", "RB"], nfl_team=kc)

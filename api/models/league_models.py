@@ -13,7 +13,7 @@ from api.models.enums import (
 
 
 class RosterSettings(BaseSchema):
-    number_teams: int = Field(default=12, ge=2, le=32)
+    number_teams: int = Field(default=6, ge=2, le=14)
     roster_total: int = 18
     roster_num_qb: int = 1
     roster_num_rb: int = 2
@@ -106,7 +106,7 @@ class LeagueCreate(BaseSchema):
     scoring_settings: ScoringSettings = Field(default_factory=ScoringSettings)
     postseason_settings: PostseasonSettings = Field(default_factory=PostseasonSettings)
     draft_start_time: datetime | None = None
-    time_per_pick_seconds: int = Field(default=60, ge=10, le=86400)
+    time_per_pick_seconds: int = Field(default=90, ge=10, le=86400)
 
 
 class LeagueCreateResponse(BaseSchema):
@@ -144,7 +144,7 @@ LeagueSettingsPatch = _all_optional(
 
 class LeagueUpdate(BaseSchema):
     name: str | None = Field(default=None, min_length=1, max_length=100)
-    number_teams: int | None = Field(default=None, ge=2, le=32)
+    number_teams: int | None = Field(default=None, ge=2, le=14)
 
 
 class MemberSummary(BaseSchema):

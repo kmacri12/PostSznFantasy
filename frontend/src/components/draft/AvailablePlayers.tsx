@@ -10,6 +10,8 @@ const CONFIRM_WINDOW_MS = 3000;
 interface Props {
   players: PlayerSummary[];
   draftedIds: Set<number>;
+  /** Position to the reason this team can't draft it (it reached the cap). */
+  cappedPositions: Record<string, string>;
   queue: number[];
   canPick: boolean;
   isConnected: boolean;
@@ -22,6 +24,7 @@ interface Props {
 const AvailablePlayers = ({
   players,
   draftedIds,
+  cappedPositions,
   queue,
   canPick,
   isConnected,
@@ -40,6 +43,7 @@ const AvailablePlayers = ({
   }, [armedId]);
 
   const draftLabel = (player: PlayerSummary) => {
+    if (cappedPositions[player.position]) return "Position full";
     if (!isConnected) return "Reconnecting…";
     if (pendingPlayerId === player.id) return "Drafting…";
     return armedId === player.id ? `Confirm ${player.name}` : "Draft";
@@ -79,25 +83,27 @@ const AvailablePlayers = ({
       players={visible}
       search={search}
       onSearchChange={setSearch}
+      unavailableReason={(card) => cappedPositions[card.position]}
       positions={CARD_POSITIONS}
       position={position}
       onPositionChange={setPosition}
       renderActions={(card) => {
         const player = byId.get(card.id) as PlayerSummary;
+        const capReason = cappedPositions[player.position];
         return (
           <>
             <Button
               sx={{ minHeight: 44, minWidth: 72 }}
-              disabled={queue.includes(player.id)}
+              disabled={queue.includes(player.id) || !!capReason}
               onClick={() => onQueue(player.id)}
             >
               Queue
             </Button>
             <Button
-              variant="contained"
+              variant={capReason ? "outlined" : "contained"}
               color={armedId === player.id ? "warning" : "primary"}
               sx={{ minHeight: 44, flex: 1, lineHeight: 1.2 }}
-              disabled={!canPick || !isConnected || pendingPlayerId !== null}
+              disabled={!canPick || !isConnected || pendingPlayerId !== null || !!capReason}
               onClick={() => handleDraft(player)}
             >
               {draftLabel(player)}

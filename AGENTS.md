@@ -81,6 +81,8 @@ PostSznFantasy/
 │   │   ├── eliminations.py     # mark_eliminated_teams
 │   │   ├── standings.py        # Recomputes fantasy.standings (starters' round points, players left, ranks) for drafted leagues after polls, reconciles, admin score changes and draft completion; a failing league keeps its old rows
 │   │   ├── draft_flow.py       # Draft state machine, order, pause/resume/undo, queue, auto-pick
+│   │   ├── playoff_field.py    # Playoff field (draft pool), first Wild Card kickoff cutoff
+│   │   ├── settings_changes.py # Hook for settings edited after draft start (recompute; Epic 14 feed)
 │   │   ├── draft_clock.py      # 1s loop auto-picking expired server-side deadlines
 │   │   ├── draft_events.py     # PICK_MADE / DRAFT_STATE broadcast payloads
 │   │   ├── invites.py          # Invite codes and joining
@@ -191,8 +193,11 @@ make format     # auto-fix Ruff and Biome
 | Leagues | `POST /api/leagues/create-league`, `GET /api/leagues/user-leagues`, `GET/PATCH /api/leagues/{id}`, `GET/PATCH /api/leagues/{id}/settings` (roster/scoring/postseason; roster shape locks once the draft starts), `PATCH/DELETE /api/leagues/{id}/members/{userId}` |
 | Invites | `GET/POST/DELETE /api/leagues/{id}/invite` (commissioner), `GET /api/invites/{code}` (public preview), `POST /api/invites/{code}/join` |
 | Teams | `GET/PATCH /api/teams/{id}` (the GET carries all four rounds' lineups: slots, unassigned and eliminated players, lock times, empty-starter count), `POST /api/teams/{id}/lineup` (`{round, playerId, slotIndex}`; `slotIndex: null` takes a player out; 409 when any player involved is locked or eliminated; owner only; there is no add/drop in v1), `PUT /api/leagues/{id}/teams/{teamId}/owner` (commissioner assigns/unassigns a team) |
-| Players | `GET /api/players/player-list`, `GET /api/players/player-season-stats?season=&leagueId=` (`fantasyPoints` scored under that league's settings; draftable positions only unless `position` is given), `GET /api/players/sync-status` (last successful sync per ingestion type, plus `budgetExhausted` when the daily Tank01 cap has stopped polling); players carry `eliminated` (their NFL team is out) |
+| Admin | `PUT /api/admin/playoff-field` (exactly 14 NFL team ids; drafts need the field set), other ingest triggers |
+| Players | `GET /api/players/draft-pool` (draftable positions on playoff teams), `GET /api/players/player-list`, `GET /api/players/player-season-stats?season=&leagueId=` (`fantasyPoints` scored under that league's settings; draftable positions only unless `position` is given), `GET /api/players/sync-status` (last successful sync per ingestion type, plus `budgetExhausted` when the daily Tank01 cap has stopped polling); players carry `eliminated` (their NFL team is out) |
 | Draft | `GET /api/drafts/draft-info/{leagueId}`, `PATCH /api/drafts/{leagueId}` (setup), `PUT .../order` (`teamIds` may contain `null` for unfilled slots; starting requires a full order), `POST .../order/randomize`, `POST .../control/{lobby,start,pause,resume,undo}`, `POST .../force-pick`, `POST .../picks`, `GET/PUT .../queue`, `WS /api/drafts/ws/{leagueId}` |
+
+Draft rules (Epic 16): the pool is players on `nfl_teams.in_playoffs` (set by ingesting postseason games, which adds teams, or by the admin endpoint); `start_draft` needs `Settings.playoff_field_size` (14; the e2e stack uses 8) teams in it, and scheduling or starting after the first Wild Card kickoff (`nfl_games.game_week` 19) is refused with 409. Tank01 `FB` is stored as `RB`. `record_pick` rejects non-pool players and positions at their cap (`position_capped`); auto-pick skips both. Roster slots, position caps and team count lock at draft start; scoring, multipliers and team QB/K stay editable and go through `settings_changes.on_editable_settings_changed`.
 
 Authorization: `LeagueMember` (any member), `LeagueCommissioner` (`require_commissioner`) and `TeamMember`/`DraftMember` dependencies in `api/dependencies/league.py`. A league always keeps at least one commissioner. Draft states: `unscheduled -> scheduled -> lobby -> in_progress <-> paused -> completed`; only an explicit commissioner action starts a draft, and the pick deadline is persisted server-side (clients render countdowns from `currentPickDeadline` + `serverTime`).
 

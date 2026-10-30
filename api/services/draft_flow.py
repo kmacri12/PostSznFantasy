@@ -4,8 +4,9 @@ from datetime import UTC, datetime, timedelta
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from api.core.config import get_settings
 from api.db.models.draft import Draft, DraftPick, DraftQueueItem
-from api.db.models.league import LeagueSettings, Team, TeamPlayer
+from api.db.models.league import League, LeagueSettings, Team, TeamPlayer
 from api.db.models.nfl import NFLPlayer, NFLPlayerSeasonStats
 from api.models.draft_models import (
     DraftPickResponse,
@@ -14,6 +15,7 @@ from api.models.draft_models import (
     DraftStateResponse,
 )
 from api.models.enums import (
+    DRAFTABLE_POSITION_VALUES,
     DraftStatus,
     DraftType,
     PickTimeoutAction,
@@ -30,6 +32,12 @@ from api.services.draft_picks import (
     placed_order,
     record_pick,
     team_on_the_clock,
+)
+from api.services.playoff_field import (
+    first_wild_card_kickoff,
+    playoff_team_count,
+    require_draft_window_open,
+    require_field_set,
 )
 from api.services.standings import clear_league_standings
 from api.utils.calculations.fantasy_points_utils import season_points
@@ -103,6 +111,14 @@ async def build_state(db: AsyncSession, draft: Draft) -> DraftStateResponse:
         if current + 1 < total:
             deck = team_on_the_clock(ids, current + 1, draft.draft_type)
 
+    settings = await load_settings(db, draft.league_id)
+    caps = {
+        position.value: cap
+        for position in PlayerPosition
+        if (cap := getattr(settings, f"roster_max_{position.value.lower()}"))
+        is not None
+        and cap < settings.roster_total
+    }
     return DraftStateResponse(
         draft_id=draft.id,
         league_id=draft.league_id,
@@ -124,6 +140,12 @@ async def build_state(db: AsyncSession, draft: Draft) -> DraftStateResponse:
         current_pick_overall=overall,
         on_the_clock_team_id=clock,
         on_deck_team_id=deck,
+        position_caps=caps,
+        draft_cutoff=await first_wild_card_kickoff(
+            db, await _league_season(db, draft.league_id)
+        ),
+        playoff_field_set=await playoff_team_count(db)
+        == get_settings().playoff_field_size,
     )
 
 
@@ -143,6 +165,10 @@ def _require_pre_draft(draft: Draft) -> None:
         raise DraftPickError("This can't be changed once the draft has started")
 
 
+async def _league_season(db: AsyncSession, league_id: int) -> int:
+    return await db.scalar(select(League.season).where(League.id == league_id)) or 0
+
+
 async def apply_setup(db: AsyncSession, league_id: int, setup: DraftSetup) -> Draft:
     draft = await load_draft_for_update(db, league_id)
     if draft.status == DraftStatus.COMPLETED.value:
@@ -158,6 +184,10 @@ async def apply_setup(db: AsyncSession, league_id: int, setup: DraftSetup) -> Dr
     if setup.time_per_pick_seconds is not None:
         # Applies from the next pick; the running pick keeps its deadline.
         draft.time_per_pick_seconds = setup.time_per_pick_seconds
+    if setup.start_time is not None:
+        await require_draft_window_open(
+            db, await _league_season(db, league_id), scheduled_for=setup.start_time
+        )
     if setup.clear_start_time:
         draft.start_time = None
         draft.status = DraftStatus.UNSCHEDULED.value
@@ -219,6 +249,8 @@ async def start_draft(db: AsyncSession, league_id: int) -> Draft:
     """The only way a draft starts: an explicit commissioner action, never a page visit."""
     draft = await load_draft_for_update(db, league_id)
     _require_pre_draft(draft)
+    await require_field_set(db)
+    await require_draft_window_open(db, await _league_season(db, league_id))
     team_count = await db.scalar(
         select(func.count()).select_from(Team).where(Team.league_id == league_id)
     )
@@ -353,7 +385,7 @@ async def set_queue(
 async def _best_available_ids(
     db: AsyncSession, draft: Draft, settings: LeagueSettings
 ) -> list[int]:
-    """Undrafted players on live NFL teams, best last-season fantasy output first."""
+    """Undrafted draft-pool players, best last-season fantasy output first."""
     from api.db.models.nfl import NFLTeam
 
     drafted = select(DraftPick.player_id).where(DraftPick.draft_id == draft.id)
@@ -362,7 +394,11 @@ async def _best_available_ids(
             await db.execute(
                 select(NFLPlayer)
                 .join(NFLTeam, NFLTeam.id == NFLPlayer.team_id)
-                .where(NFLTeam.is_active.is_(True), NFLPlayer.id.not_in(drafted))
+                .where(
+                    NFLTeam.in_playoffs,
+                    NFLPlayer.position.in_(DRAFTABLE_POSITION_VALUES),
+                    NFLPlayer.id.not_in(drafted),
+                )
             )
         )
         .scalars()
@@ -420,10 +456,14 @@ async def auto_pick(
     )
     team_id = team_on_the_clock(placed_order(draft), picks_made or 0, draft.draft_type)
 
+    best_available = await _best_available_ids(db, draft, settings)
+    pool = set(best_available)
     candidates: list[int] = []
     if draft.pick_timeout_action == PickTimeoutAction.QUEUE_THEN_BEST.value:
-        candidates.extend(await get_queue(db, draft.id, team_id))
-    candidates.extend(await _best_available_ids(db, draft, settings))
+        candidates.extend(
+            pid for pid in await get_queue(db, draft.id, team_id) if pid in pool
+        )
+    candidates.extend(best_available)
 
     drafted = set(
         (

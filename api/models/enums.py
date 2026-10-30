@@ -20,6 +20,8 @@ class PlayerPosition(StrEnum):
             cleaned = "DST"
         elif cleaned == "PK":
             cleaned = "K"
+        elif cleaned == "FB":
+            cleaned = "RB"
         try:
             return cls(cleaned)
         except ValueError:

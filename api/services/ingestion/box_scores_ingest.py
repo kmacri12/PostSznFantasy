@@ -1,7 +1,7 @@
 import logging
 from typing import Any
 
-from sqlalchemy import case, select
+from sqlalchemy import case, select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -119,6 +119,20 @@ async def _upsert_games_and_stats(
     *,
     keep_completed: bool = False,
 ) -> None:
+    # Any team in a postseason game is in the playoff field (the draft pool).
+    playoff_team_ids = {
+        team_id
+        for row in game_rows
+        if row.get("season_type") == "post"
+        for team_id in (row.get("team_id_home"), row.get("team_id_away"))
+        if team_id is not None
+    }
+    if playoff_team_ids:
+        await db.execute(
+            update(NFLTeam)
+            .where(NFLTeam.id.in_(playoff_team_ids))
+            .values(in_playoffs=True)
+        )
     for i in range(0, len(game_rows), CHUNK_SIZE):
         chunk = game_rows[i : i + CHUNK_SIZE]
         stmt = insert(NFLGame).values(chunk)

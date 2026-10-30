@@ -91,6 +91,28 @@ async def get_player_list(
     return [_to_player(p) for p in players]
 
 
+@router.get("/draft-pool", response_model=list[Player])
+async def get_draft_pool(db: DbSession) -> list[Player]:
+    """Everyone who can be drafted: draftable positions on the 14 playoff teams."""
+    players = (
+        (
+            await db.execute(
+                select(NFLPlayer)
+                .join(NFLTeam, NFLPlayer.team_id == NFLTeam.id)
+                .options(selectinload(NFLPlayer.team))
+                .where(
+                    NFLTeam.in_playoffs,
+                    NFLPlayer.position.in_(DRAFTABLE_POSITION_VALUES),
+                )
+                .order_by(NFLPlayer.name)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    return [_to_player(p) for p in players]
+
+
 @router.get("/player-season-stats", response_model=list[PlayerSeasonStatsResponse])
 async def get_player_season_stats(
     db: DbSession,

@@ -22,6 +22,12 @@ ROSTER_LOCKED_FIELDS = frozenset(
         "roster_num_k",
         "roster_num_dst",
         "roster_num_bench",
+        "roster_max_qb",
+        "roster_max_rb",
+        "roster_max_wr",
+        "roster_max_te",
+        "roster_max_k",
+        "roster_max_dst",
     }
 )
 STARTED_STATUSES = frozenset(

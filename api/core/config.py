@@ -48,6 +48,10 @@ class Settings(BaseSettings):
     db_pool_size: int = 20
     db_max_overflow: int = 10
 
+    # Teams that must be marked in the playoffs before a draft can start. Only the
+    # e2e fixtures (8 teams) change it.
+    playoff_field_size: int = 14
+
     # Comma-separated Supabase user ids allowed to call /api/admin/*; empty means nobody.
     admin_supabase_uids: Annotated[list[str], NoDecode] = []
 

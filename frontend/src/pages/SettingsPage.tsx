@@ -156,7 +156,8 @@ function SettingsPage() {
       )}
       {started && (
         <Alert severity="warning" sx={{ mb: 2 }}>
-          The draft has started, so team count, roster size and draft order are locked.
+          The draft has started, so team count, roster slots, position caps and draft order are
+          locked. Scoring and round multipliers can still change.
         </Alert>
       )}
 

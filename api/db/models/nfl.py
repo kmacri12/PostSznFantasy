@@ -32,6 +32,10 @@ class NFLTeam(Base):
         Boolean, nullable=False, default=True, server_default="true"
     )
 
+    in_playoffs: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="false"
+    )
+
     players: Mapped[list["NFLPlayer"]] = relationship(
         "NFLPlayer", back_populates="team"
     )

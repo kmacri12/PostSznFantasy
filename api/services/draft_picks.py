@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.db.models.draft import Draft, DraftPick
 from api.db.models.league import LeagueSettings, Team, TeamPlayer
-from api.db.models.nfl import NFLPlayer
+from api.db.models.nfl import NFLPlayer, NFLTeam
 from api.db.models.user import User
 from api.models.enums import DraftStatus, DraftType, PlayerPosition
 from api.services.standings import recompute_league_standings
@@ -57,6 +57,21 @@ def team_on_the_clock(order: list[int], pick_index: int, draft_type: str | None)
     return order[len(order) - 1 - slot if reverse else slot]
 
 
+def position_cap_reason(
+    settings: LeagueSettings,
+    drafted_positions: list[PlayerPosition | None],
+    position: PlayerPosition | None,
+) -> str | None:
+    """Plain-language reason a team can't draft this position anymore, if it can't."""
+    if position is None:
+        return None
+    cap: int | None = getattr(settings, f"roster_max_{position.value.lower()}")
+    if cap is None or drafted_positions.count(position) < cap:
+        return None
+    noun = position.value if cap == 1 else f"{position.value}s"
+    return f"You already have {cap} {noun}, the most your league allows"
+
+
 def check_roster_limits(
     settings: LeagueSettings,
     drafted_positions: list[PlayerPosition | None],
@@ -64,15 +79,17 @@ def check_roster_limits(
 ) -> None:
     if len(drafted_positions) >= settings.roster_total:
         raise DraftPickError("Your roster is full", code="roster_full")
-    if candidate_position is None:
-        return
-    limit: int | None = getattr(
-        settings, f"roster_max_{candidate_position.value.lower()}"
+    reason = position_cap_reason(settings, drafted_positions, candidate_position)
+    if reason:
+        raise DraftPickError(reason, code="position_capped")
+
+
+async def _in_draft_pool(db: AsyncSession, player: NFLPlayer) -> bool:
+    if player.team_id is None or PlayerPosition.from_str(player.position) is None:
+        return False
+    return bool(
+        await db.scalar(select(NFLTeam.in_playoffs).where(NFLTeam.id == player.team_id))
     )
-    if limit is not None and drafted_positions.count(candidate_position) >= limit:
-        raise DraftPickError(
-            f"Roster limit reached for {candidate_position.value}", code="roster_full"
-        )
 
 
 def next_deadline(draft: Draft, now: datetime) -> datetime:
@@ -159,6 +176,10 @@ async def record_pick(
     candidate = players.get(player_id)
     if candidate is None:
         raise DraftPickError("Player not found")
+    if not await _in_draft_pool(db, candidate):
+        raise DraftPickError(
+            f"{candidate.name} is not on a playoff team", code="not_in_pool"
+        )
     check_roster_limits(
         settings,
         [

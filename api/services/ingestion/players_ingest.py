@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.db.models.nfl import NFLPlayer, NFLTeam
 from api.services.ingestion.guard import IngestionKind, guarded
-from api.services.ingestion.schemas import safe_int, safe_str
+from api.services.ingestion.schemas import normalise_position, safe_int, safe_str
 from api.utils.rapidapi.rapidapi import RapidApiClient, get_rapidapi_client
 
 logger = logging.getLogger(__name__)
@@ -43,7 +43,7 @@ async def ingest_nfl_players(
             {
                 "id": player_id,
                 "name": safe_str(raw.get("longName")),
-                "position": safe_str(raw.get("pos")),
+                "position": normalise_position(raw.get("pos")),
                 "espn_headshot_url": safe_str(raw.get("espnHeadshot")),
                 "jersey_num": safe_str(raw.get("jerseyNum")),
                 "birthday": safe_str(raw.get("bDay")),

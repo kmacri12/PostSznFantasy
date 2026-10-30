@@ -98,3 +98,20 @@ describe("CreateLeaguePage submit", () => {
     expect(onLeagueCreated).not.toHaveBeenCalled();
   });
 });
+
+describe("CreateLeaguePage exhaustion warning", () => {
+  beforeEach(() => {
+    mockGet.mockReset();
+    mockGet.mockResolvedValue({ data: defaults });
+  });
+
+  it("starts at 6 teams with no warning, and warns at 8 teams with a cap of 2 kickers", async () => {
+    await renderWizard();
+    const teams = screen.getByLabelText("Teams") as HTMLInputElement;
+    expect(teams.value).toBe("6");
+    expect(screen.queryByText(/can run out/)).toBeNull();
+
+    fireEvent.change(teams, { target: { value: "8" } });
+    expect(screen.getAllByText(/8 teams × up to 2 K is 16/).length).toBeGreaterThan(0);
+  });
+});

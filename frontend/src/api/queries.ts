@@ -30,6 +30,7 @@ export const keys = {
   invite: (leagueId: Id) => ["invite", String(leagueId)] as const,
   invitePreview: (code: string) => ["invite-preview", code] as const,
   players: ["players"] as const,
+  draftPool: ["draft-pool"] as const,
   seasonStats: ["player-season-stats"] as const,
   scoringDefaults: ["scoring-defaults"] as const,
   syncStatus: ["sync-status"] as const,
@@ -99,6 +100,14 @@ export const usePlayerList = () =>
   useQuery({
     queryKey: keys.players,
     queryFn: ({ signal }) => get<PlayerSummary[]>("/api/players/player-list", signal),
+    staleTime: 5 * 60_000,
+  });
+
+/** Draftable players on the playoff teams. */
+export const useDraftPool = () =>
+  useQuery({
+    queryKey: keys.draftPool,
+    queryFn: ({ signal }) => get<PlayerSummary[]>("/api/players/draft-pool", signal),
     staleTime: 5 * 60_000,
   });
 

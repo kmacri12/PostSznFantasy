@@ -70,6 +70,7 @@ export default defineConfig({
         CORS_ORIGINS: LIVE_WEB_URL,
         ENVIRONMENT: "test",
         TEST_AUTH_STUB: "true",
+        PLAYOFF_FIELD_SIZE: "8",
         LOG_FORMAT: "console",
         SCHEDULER_ENABLED: "true",
         SCHEDULER_REPLAY_FILE: REPLAY_FILE,

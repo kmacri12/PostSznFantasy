@@ -40,6 +40,9 @@ const base: DraftState = {
   currentPickOverall: 2,
   onTheClockTeamId: 20,
   onDeckTeamId: 20,
+  positionCaps: {},
+  draftCutoff: null,
+  playoffFieldSet: true,
 };
 
 describe("DraftBoard", () => {

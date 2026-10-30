@@ -48,6 +48,7 @@ export default defineConfig({
         CORS_ORIGINS: WEB_URL,
         ENVIRONMENT: "test",
         TEST_AUTH_STUB: "true",
+        PLAYOFF_FIELD_SIZE: "8",
         ADMIN_SUPABASE_UIDS: ADMIN_UID,
         LOG_FORMAT: "console",
       },

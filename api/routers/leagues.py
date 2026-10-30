@@ -38,13 +38,15 @@ from api.models.league_models import (
     TeamOwnerUpdate,
     TeamSimple,
 )
+from api.services.draft_picks import DraftPickError
 from api.services.league_admin import (
     ROSTER_LOCKED_FIELDS,
     draft_has_started,
     set_team_count,
 )
 from api.services.league_members import LeagueRuleError, remove_member, set_role
-from api.services.standings import refresh_standings_if_drafted
+from api.services.playoff_field import require_draft_window_open
+from api.services.settings_changes import on_editable_settings_changed
 
 router = APIRouter()
 
@@ -91,6 +93,16 @@ async def create_league(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Valid league name and at least 2 teams required",
         )
+
+    if payload.draft_start_time:
+        try:
+            await require_draft_window_open(
+                db, get_settings().season_year, scheduled_for=payload.draft_start_time
+            )
+        except DraftPickError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT, detail=str(exc)
+            ) from exc
 
     new_league = League(name=payload.league_name, season=get_settings().season_year)
     db.add(new_league)
@@ -377,7 +389,8 @@ async def update_league_settings(
     updates = patch.model_dump(exclude_unset=True, by_alias=False, mode="json")
     updates = {key: value for key, value in updates.items() if value is not None}
 
-    if await draft_has_started(db, league_id):
+    started = await draft_has_started(db, league_id)
+    if started:
         locked = [
             key
             for key in updates
@@ -387,7 +400,10 @@ async def update_league_settings(
         if locked:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail=f"Locked once the draft starts: {', '.join(sorted(locked))}",
+                detail=(
+                    "Roster slots, position caps and team count are locked once "
+                    f"the draft starts ({', '.join(sorted(locked))})"
+                ),
             )
 
     team_count = updates.pop("number_teams", None)
@@ -405,7 +421,7 @@ async def update_league_settings(
             .values(rounds=settings.roster_total)
         )
     await db.flush()
-    await refresh_standings_if_drafted(db, league_id)
+    await on_editable_settings_changed(db, league_id)
     return settings
 
 
