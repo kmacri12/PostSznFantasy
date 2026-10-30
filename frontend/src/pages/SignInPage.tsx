@@ -1,7 +1,16 @@
 import GoogleIcon from "@mui/icons-material/Google";
-import { Alert, Box, Button, Card, Container, Divider, Typography } from "@mui/material";
+import {
+  Alert,
+  Box,
+  Button,
+  Card,
+  Container,
+  Divider,
+  Link as MuiLink,
+  Typography,
+} from "@mui/material";
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import MagicLinkForm from "../components/auth/MagicLinkForm";
 import PostSignInRedirect from "../components/auth/PostSignInRedirect";
 import LoadingState from "../components/common/LoadingState";
@@ -70,6 +79,18 @@ const SignInPage = () => {
           </Button>
           {googleError && <Alert severity="error">{googleError}</Alert>}
         </Box>
+
+        <Typography variant="body2" color="text.secondary">
+          By continuing you agree to the{" "}
+          <MuiLink component={Link} to="/terms">
+            Terms
+          </MuiLink>{" "}
+          and{" "}
+          <MuiLink component={Link} to="/privacy">
+            Privacy Policy
+          </MuiLink>
+          .
+        </Typography>
       </Card>
     </Container>
   );

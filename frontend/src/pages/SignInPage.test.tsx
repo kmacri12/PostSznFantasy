@@ -81,3 +81,14 @@ describe("SignInPage", () => {
     expect(screen.getByText("redirecting to /join/ABC")).toBeInTheDocument();
   });
 });
+
+describe("SignInPage legal links", () => {
+  it("links to the terms and privacy pages", () => {
+    renderAt("/sign-in");
+    expect(screen.getByRole("link", { name: "Terms" })).toHaveAttribute("href", "/terms");
+    expect(screen.getByRole("link", { name: "Privacy Policy" })).toHaveAttribute(
+      "href",
+      "/privacy",
+    );
+  });
+});
