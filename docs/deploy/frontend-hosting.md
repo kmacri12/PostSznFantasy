@@ -21,6 +21,8 @@ Vite copies `public/` into `dist/`, where Pages reads them:
 - `_redirects`: `/*  /index.html  200` is the SPA fallback, so deep links such as `/leagues/123/draft` and page refreshes serve the app instead of a 404. Real files (assets, `vite.svg`) are served first.
 - `_headers`: `index.html` is `no-cache` so a deploy is picked up on the next load; `/assets/*` is `immutable` for a year because Vite fingerprints those filenames; plus `nosniff`, `X-Frame-Options: DENY`, a strict referrer policy and a disabled-by-default permissions policy. There is deliberately no `Content-Security-Policy` yet: it would have to allow the Supabase, Google OAuth and API/WebSocket origins and needs testing against the real sign-in flow before it is enforced.
 
+Bundle sizes, chunking rules and the Lighthouse mobile baseline: [performance.md](performance.md).
+
 ## How the production build finds the API
 
 These are read by Vite at **build time** and baked into the JavaScript bundle, so changing one means a new Pages build (Deployments, then Retry deployment, or push a commit):
