@@ -16,6 +16,7 @@ from api.models.players_models import (
     Player,
     PlayerSeasonStatsResponse,
 )
+from api.services.scheduler import RECONCILE_KIND_PREFIX
 from api.utils.calculations.fantasy_points_utils import season_points
 
 # Every player route requires a login: the directory is cheap to scrape and not meant to be public.
@@ -44,7 +45,13 @@ def _to_player(player: NFLPlayer) -> Player:
 async def get_sync_status(db: DbSession) -> list[IngestionStatus]:
     """When each kind of NFL data last synced, so the UI can show how fresh it is."""
     return list(
-        (await db.execute(select(IngestionStatus).order_by(IngestionStatus.kind)))
+        (
+            await db.execute(
+                select(IngestionStatus)
+                .where(~IngestionStatus.kind.startswith(RECONCILE_KIND_PREFIX))
+                .order_by(IngestionStatus.kind)
+            )
+        )
         .scalars()
         .all()
     )

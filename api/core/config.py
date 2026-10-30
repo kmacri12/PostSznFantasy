@@ -68,7 +68,11 @@ class Settings(BaseSettings):
     # Background scheduler (off by default; every tick can spend RapidAPI quota)
     scheduler_enabled: bool = False
     scheduler_roster_sync_hours: int = 24
-    scheduler_live_poll_seconds: int = 90
+    scheduler_live_poll_seconds: int = 180
+    # Rehearsal: replay a saved postseason (api.scripts.export_replay) instead of
+    # calling RapidAPI. The speed multiplies the virtual clock.
+    scheduler_replay_file: str = ""
+    scheduler_replay_speed: float = 60.0
 
     # Logging
     environment: str = "development"

@@ -57,3 +57,25 @@ async def test_listed_admin_is_allowed(
     with patch("api.routers.admin.ingest_nfl_teams", new=AsyncMock()):
         response = await async_client.post("/api/admin/update/nfl_teams")
     assert response.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_non_admin_cannot_refresh_live_data(
+    async_client: AsyncClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("ADMIN_SUPABASE_UIDS", "someone-else")
+    with patch("api.routers.admin.run_poll_cycle", new=AsyncMock()) as poll:
+        response = await async_client.post("/api/admin/refresh/live")
+    assert response.status_code == 403
+    poll.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_admin_can_refresh_live_data(
+    async_client: AsyncClient, monkeypatch: pytest.MonkeyPatch, mock_user_id: str
+) -> None:
+    monkeypatch.setenv("ADMIN_SUPABASE_UIDS", mock_user_id)
+    with patch("api.routers.admin.run_poll_cycle", new=AsyncMock(return_value=2)):
+        response = await async_client.post("/api/admin/refresh/live")
+    assert response.status_code == 200
+    assert response.json() == {"polled": 2}

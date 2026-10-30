@@ -29,6 +29,33 @@ real response. Parsers live in `api/services/ingestion/schemas.py`, the client i
 | `getNFLPlayerInfo` | not recorded | Not used |
 | `getNFLTeamRoster` + `archiveDate=YYYYMMDD` | | Player id lists only, no stats |
 
+## Quota budget (live polling)
+
+The scheduler spends calls only on games that are in progress: one `getNFLBoxScore` per
+live game every `SCHEDULER_LIVE_POLL_SECONDS` (default 180). The poll that returns
+`Completed` is the final fetch; that game is never polled again. The games list
+(`getNFLGamesForWeek`) is refreshed once a day plus once after each kickoff, and teams and
+players once a day (season stats are not part of the loop). 13 playoff games at about 3.25
+hours each is roughly 800 box score calls for the whole postseason. A failed call rolls
+back that game only and leaves its stored data and the "box_scores" freshness stamp as they
+were. `POST /api/admin/refresh/live` runs one cycle on demand.
+
+## Replay mode (rehearsal, no API calls)
+
+Save a finished postseason once (about 14 calls, free with `RAPIDAPI_CACHE_DIR`):
+
+```bash
+uv run python -m api.scripts.export_replay --season 2025 --out replay-2025.json
+```
+
+Then set `SCHEDULER_ENABLED=true` and `SCHEDULER_REPLAY_FILE=replay-2025.json`
+(`SCHEDULER_REPLAY_SPEED`, default 60, scales the virtual clock). The scheduler serves the
+saved games through `api.services.replay.ReplayClient` into the same
+`run_poll_cycle` / ingest / elimination code: games go Scheduled, Live, then Final over
+3.5 virtual hours, with scores ramping linearly (player stats are served final from
+kickoff). Teams and players must already be seeded, and replay writes into the database
+like a real run, so use a throwaway one.
+
 ## Season semantics
 
 - **`getNFLTeamRoster` has no season parameter.** It always returns the current in-progress

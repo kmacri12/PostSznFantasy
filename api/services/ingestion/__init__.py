@@ -5,7 +5,11 @@ from typing import Any
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.core.config import get_settings
-from api.services.ingestion.box_scores_ingest import ingest_box_scores
+from api.services.ingestion.box_scores_ingest import (
+    ingest_box_scores,
+    ingest_games_list,
+    poll_game_box_score,
+)
 from api.services.ingestion.players_ingest import ingest_nfl_players
 from api.services.ingestion.season_stats_ingest import ingest_season_stats
 from api.services.ingestion.teams_ingest import ingest_nfl_teams
@@ -58,5 +62,7 @@ __all__ = [
     "ingest_nfl_players",
     "ingest_season_stats",
     "ingest_box_scores",
+    "ingest_games_list",
+    "poll_game_box_score",
     "run_full_ingestion_pipeline",
 ]

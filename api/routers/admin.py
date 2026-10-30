@@ -2,6 +2,8 @@ from typing import Any
 
 from fastapi import APIRouter, Depends
 
+from api.core.config import get_settings
+from api.db.models.nfl import NFLGame
 from api.db.session import DbSession
 from api.dependencies.auth import require_admin
 from api.models.base import BaseSchema
@@ -12,6 +14,11 @@ from api.services.ingestion import (
     ingest_nfl_teams,
     ingest_season_stats,
     run_full_ingestion_pipeline,
+)
+from api.services.scheduler import (
+    GAME_COMPLETED,
+    eliminate_losing_teams,
+    run_poll_cycle,
 )
 
 router = APIRouter(dependencies=[Depends(require_admin)])
@@ -104,4 +111,45 @@ async def eliminate_teams(
     db: DbSession,
 ) -> dict[str, str]:
     await mark_eliminated_teams(db, body.team_ids)
+    return {"status": "ok"}
+
+
+class RefreshResponse(BaseSchema):
+    polled: int
+
+
+@router.post("/refresh/live", response_model=RefreshResponse)
+async def refresh_live(db: DbSession) -> dict[str, int]:
+    """Run one live-poll cycle now ("Refresh now"); spends one call per live game."""
+    return {"polled": await run_poll_cycle(db, get_settings().season_year)}
+
+
+class GameResultRequest(BaseSchema):
+    season: int
+    team_id_home: int
+    team_id_away: int
+    home_pts: int
+    away_pts: int
+
+
+@router.put("/games/{game_id}/result")
+async def set_game_result(
+    game_id: str, body: GameResultRequest, db: DbSession
+) -> dict[str, str]:
+    """Enter or correct a final score by hand when the API fails, then recompute
+    eliminations (a corrected result reinstates a team it wrongly cut). A later
+    reconcile fetch overwrites this with upstream data once the API recovers."""
+    game = await db.get(NFLGame, game_id)
+    if game is None:
+        game = NFLGame(id=game_id, season_type="post")
+        db.add(game)
+    game.season = body.season
+    game.team_id_home = body.team_id_home
+    game.team_id_away = body.team_id_away
+    game.home_pts = body.home_pts
+    game.away_pts = body.away_pts
+    game.game_status = GAME_COMPLETED
+    await db.flush()
+    await eliminate_losing_teams(db, body.season, reinstate_winners=True)
+    await db.commit()
     return {"status": "ok"}
