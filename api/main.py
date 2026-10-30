@@ -26,6 +26,8 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     settings = get_settings()
     setup_logging()
+    if settings.test_auth_stub:
+        logger.warning("TEST_AUTH_STUB is on: e2e bearer tokens bypass Supabase")
     init_db()
     clock_task = asyncio.create_task(run_draft_clock())
     scheduler_task = (

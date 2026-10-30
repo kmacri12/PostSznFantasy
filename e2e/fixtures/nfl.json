@@ -1,0 +1,1007 @@
+{
+  "season": "2026",
+  "teams": [
+    {
+      "id": 1,
+      "teamAbv": "KCC",
+      "teamCity": "Kansas City",
+      "teamName": "Comets"
+    },
+    {
+      "id": 2,
+      "teamAbv": "BUF",
+      "teamCity": "Buffalo",
+      "teamName": "Bisons"
+    },
+    {
+      "id": 3,
+      "teamAbv": "BAL",
+      "teamCity": "Baltimore",
+      "teamName": "Ravines"
+    },
+    {
+      "id": 4,
+      "teamAbv": "HOU",
+      "teamCity": "Houston",
+      "teamName": "Rustlers"
+    },
+    {
+      "id": 5,
+      "teamAbv": "PHI",
+      "teamCity": "Philadelphia",
+      "teamName": "Founders"
+    },
+    {
+      "id": 6,
+      "teamAbv": "LAR",
+      "teamCity": "Los Angeles",
+      "teamName": "Rams"
+    },
+    {
+      "id": 7,
+      "teamAbv": "DET",
+      "teamCity": "Detroit",
+      "teamName": "Mechanics"
+    },
+    {
+      "id": 8,
+      "teamAbv": "SFO",
+      "teamCity": "San Francisco",
+      "teamName": "Prospectors"
+    }
+  ],
+  "players": [
+    {
+      "id": 101,
+      "name": "Aiden Archer",
+      "position": "QB",
+      "teamId": 1,
+      "jerseyNum": "1"
+    },
+    {
+      "id": 102,
+      "name": "Bryce Archer",
+      "position": "RB",
+      "teamId": 1,
+      "jerseyNum": "2"
+    },
+    {
+      "id": 103,
+      "name": "Caleb Archer",
+      "position": "RB",
+      "teamId": 1,
+      "jerseyNum": "3"
+    },
+    {
+      "id": 104,
+      "name": "Dante Archer",
+      "position": "WR",
+      "teamId": 1,
+      "jerseyNum": "4"
+    },
+    {
+      "id": 105,
+      "name": "Eli Archer",
+      "position": "WR",
+      "teamId": 1,
+      "jerseyNum": "5"
+    },
+    {
+      "id": 106,
+      "name": "Felix Archer",
+      "position": "TE",
+      "teamId": 1,
+      "jerseyNum": "6"
+    },
+    {
+      "id": 107,
+      "name": "Gavin Archer",
+      "position": "K",
+      "teamId": 1,
+      "jerseyNum": "7"
+    },
+    {
+      "id": 108,
+      "name": "KCC Defense",
+      "position": "DST",
+      "teamId": 1,
+      "jerseyNum": "8"
+    },
+    {
+      "id": 201,
+      "name": "Aiden Boone",
+      "position": "QB",
+      "teamId": 2,
+      "jerseyNum": "1"
+    },
+    {
+      "id": 202,
+      "name": "Bryce Boone",
+      "position": "RB",
+      "teamId": 2,
+      "jerseyNum": "2"
+    },
+    {
+      "id": 203,
+      "name": "Caleb Boone",
+      "position": "RB",
+      "teamId": 2,
+      "jerseyNum": "3"
+    },
+    {
+      "id": 204,
+      "name": "Dante Boone",
+      "position": "WR",
+      "teamId": 2,
+      "jerseyNum": "4"
+    },
+    {
+      "id": 205,
+      "name": "Eli Boone",
+      "position": "WR",
+      "teamId": 2,
+      "jerseyNum": "5"
+    },
+    {
+      "id": 206,
+      "name": "Felix Boone",
+      "position": "TE",
+      "teamId": 2,
+      "jerseyNum": "6"
+    },
+    {
+      "id": 207,
+      "name": "Gavin Boone",
+      "position": "K",
+      "teamId": 2,
+      "jerseyNum": "7"
+    },
+    {
+      "id": 208,
+      "name": "BUF Defense",
+      "position": "DST",
+      "teamId": 2,
+      "jerseyNum": "8"
+    },
+    {
+      "id": 301,
+      "name": "Aiden Cole",
+      "position": "QB",
+      "teamId": 3,
+      "jerseyNum": "1"
+    },
+    {
+      "id": 302,
+      "name": "Bryce Cole",
+      "position": "RB",
+      "teamId": 3,
+      "jerseyNum": "2"
+    },
+    {
+      "id": 303,
+      "name": "Caleb Cole",
+      "position": "RB",
+      "teamId": 3,
+      "jerseyNum": "3"
+    },
+    {
+      "id": 304,
+      "name": "Dante Cole",
+      "position": "WR",
+      "teamId": 3,
+      "jerseyNum": "4"
+    },
+    {
+      "id": 305,
+      "name": "Eli Cole",
+      "position": "WR",
+      "teamId": 3,
+      "jerseyNum": "5"
+    },
+    {
+      "id": 306,
+      "name": "Felix Cole",
+      "position": "TE",
+      "teamId": 3,
+      "jerseyNum": "6"
+    },
+    {
+      "id": 307,
+      "name": "Gavin Cole",
+      "position": "K",
+      "teamId": 3,
+      "jerseyNum": "7"
+    },
+    {
+      "id": 308,
+      "name": "BAL Defense",
+      "position": "DST",
+      "teamId": 3,
+      "jerseyNum": "8"
+    },
+    {
+      "id": 401,
+      "name": "Aiden Drake",
+      "position": "QB",
+      "teamId": 4,
+      "jerseyNum": "1"
+    },
+    {
+      "id": 402,
+      "name": "Bryce Drake",
+      "position": "RB",
+      "teamId": 4,
+      "jerseyNum": "2"
+    },
+    {
+      "id": 403,
+      "name": "Caleb Drake",
+      "position": "RB",
+      "teamId": 4,
+      "jerseyNum": "3"
+    },
+    {
+      "id": 404,
+      "name": "Dante Drake",
+      "position": "WR",
+      "teamId": 4,
+      "jerseyNum": "4"
+    },
+    {
+      "id": 405,
+      "name": "Eli Drake",
+      "position": "WR",
+      "teamId": 4,
+      "jerseyNum": "5"
+    },
+    {
+      "id": 406,
+      "name": "Felix Drake",
+      "position": "TE",
+      "teamId": 4,
+      "jerseyNum": "6"
+    },
+    {
+      "id": 407,
+      "name": "Gavin Drake",
+      "position": "K",
+      "teamId": 4,
+      "jerseyNum": "7"
+    },
+    {
+      "id": 408,
+      "name": "HOU Defense",
+      "position": "DST",
+      "teamId": 4,
+      "jerseyNum": "8"
+    },
+    {
+      "id": 501,
+      "name": "Aiden Easton",
+      "position": "QB",
+      "teamId": 5,
+      "jerseyNum": "1"
+    },
+    {
+      "id": 502,
+      "name": "Bryce Easton",
+      "position": "RB",
+      "teamId": 5,
+      "jerseyNum": "2"
+    },
+    {
+      "id": 503,
+      "name": "Caleb Easton",
+      "position": "RB",
+      "teamId": 5,
+      "jerseyNum": "3"
+    },
+    {
+      "id": 504,
+      "name": "Dante Easton",
+      "position": "WR",
+      "teamId": 5,
+      "jerseyNum": "4"
+    },
+    {
+      "id": 505,
+      "name": "Eli Easton",
+      "position": "WR",
+      "teamId": 5,
+      "jerseyNum": "5"
+    },
+    {
+      "id": 506,
+      "name": "Felix Easton",
+      "position": "TE",
+      "teamId": 5,
+      "jerseyNum": "6"
+    },
+    {
+      "id": 507,
+      "name": "Gavin Easton",
+      "position": "K",
+      "teamId": 5,
+      "jerseyNum": "7"
+    },
+    {
+      "id": 508,
+      "name": "PHI Defense",
+      "position": "DST",
+      "teamId": 5,
+      "jerseyNum": "8"
+    },
+    {
+      "id": 601,
+      "name": "Aiden Frost",
+      "position": "QB",
+      "teamId": 6,
+      "jerseyNum": "1"
+    },
+    {
+      "id": 602,
+      "name": "Bryce Frost",
+      "position": "RB",
+      "teamId": 6,
+      "jerseyNum": "2"
+    },
+    {
+      "id": 603,
+      "name": "Caleb Frost",
+      "position": "RB",
+      "teamId": 6,
+      "jerseyNum": "3"
+    },
+    {
+      "id": 604,
+      "name": "Dante Frost",
+      "position": "WR",
+      "teamId": 6,
+      "jerseyNum": "4"
+    },
+    {
+      "id": 605,
+      "name": "Eli Frost",
+      "position": "WR",
+      "teamId": 6,
+      "jerseyNum": "5"
+    },
+    {
+      "id": 606,
+      "name": "Felix Frost",
+      "position": "TE",
+      "teamId": 6,
+      "jerseyNum": "6"
+    },
+    {
+      "id": 607,
+      "name": "Gavin Frost",
+      "position": "K",
+      "teamId": 6,
+      "jerseyNum": "7"
+    },
+    {
+      "id": 608,
+      "name": "LAR Defense",
+      "position": "DST",
+      "teamId": 6,
+      "jerseyNum": "8"
+    },
+    {
+      "id": 701,
+      "name": "Aiden Grady",
+      "position": "QB",
+      "teamId": 7,
+      "jerseyNum": "1"
+    },
+    {
+      "id": 702,
+      "name": "Bryce Grady",
+      "position": "RB",
+      "teamId": 7,
+      "jerseyNum": "2"
+    },
+    {
+      "id": 703,
+      "name": "Caleb Grady",
+      "position": "RB",
+      "teamId": 7,
+      "jerseyNum": "3"
+    },
+    {
+      "id": 704,
+      "name": "Dante Grady",
+      "position": "WR",
+      "teamId": 7,
+      "jerseyNum": "4"
+    },
+    {
+      "id": 705,
+      "name": "Eli Grady",
+      "position": "WR",
+      "teamId": 7,
+      "jerseyNum": "5"
+    },
+    {
+      "id": 706,
+      "name": "Felix Grady",
+      "position": "TE",
+      "teamId": 7,
+      "jerseyNum": "6"
+    },
+    {
+      "id": 707,
+      "name": "Gavin Grady",
+      "position": "K",
+      "teamId": 7,
+      "jerseyNum": "7"
+    },
+    {
+      "id": 708,
+      "name": "DET Defense",
+      "position": "DST",
+      "teamId": 7,
+      "jerseyNum": "8"
+    },
+    {
+      "id": 801,
+      "name": "Aiden Hale",
+      "position": "QB",
+      "teamId": 8,
+      "jerseyNum": "1"
+    },
+    {
+      "id": 802,
+      "name": "Bryce Hale",
+      "position": "RB",
+      "teamId": 8,
+      "jerseyNum": "2"
+    },
+    {
+      "id": 803,
+      "name": "Caleb Hale",
+      "position": "RB",
+      "teamId": 8,
+      "jerseyNum": "3"
+    },
+    {
+      "id": 804,
+      "name": "Dante Hale",
+      "position": "WR",
+      "teamId": 8,
+      "jerseyNum": "4"
+    },
+    {
+      "id": 805,
+      "name": "Eli Hale",
+      "position": "WR",
+      "teamId": 8,
+      "jerseyNum": "5"
+    },
+    {
+      "id": 806,
+      "name": "Felix Hale",
+      "position": "TE",
+      "teamId": 8,
+      "jerseyNum": "6"
+    },
+    {
+      "id": 807,
+      "name": "Gavin Hale",
+      "position": "K",
+      "teamId": 8,
+      "jerseyNum": "7"
+    },
+    {
+      "id": 808,
+      "name": "SFO Defense",
+      "position": "DST",
+      "teamId": 8,
+      "jerseyNum": "8"
+    }
+  ],
+  "seasonStats": [
+    {
+      "playerId": 101,
+      "season": "2026",
+      "passing_yards": 3297,
+      "passing_touchdowns": 34,
+      "passing_interceptions": 10
+    },
+    {
+      "playerId": 102,
+      "season": "2026",
+      "rushing_yards": 733,
+      "rushing_touchdowns": 5,
+      "receiving_receptions": 30,
+      "receiving_yards": 470
+    },
+    {
+      "playerId": 103,
+      "season": "2026",
+      "rushing_yards": 1412,
+      "rushing_touchdowns": 4,
+      "receiving_receptions": 19,
+      "receiving_yards": 279
+    },
+    {
+      "playerId": 104,
+      "season": "2026",
+      "receiving_receptions": 33,
+      "receiving_yards": 710,
+      "receiving_touchdowns": 2
+    },
+    {
+      "playerId": 105,
+      "season": "2026",
+      "receiving_receptions": 92,
+      "receiving_yards": 932,
+      "receiving_touchdowns": 3
+    },
+    {
+      "playerId": 106,
+      "season": "2026",
+      "receiving_receptions": 82,
+      "receiving_yards": 1285,
+      "receiving_touchdowns": 12
+    },
+    {
+      "playerId": 107,
+      "season": "2026",
+      "kicking_fg_made": 29,
+      "kicking_xp_made": 44
+    },
+    {
+      "playerId": 108,
+      "season": "2026",
+      "dst_sacks": 51
+    },
+    {
+      "playerId": 201,
+      "season": "2026",
+      "passing_yards": 3188,
+      "passing_touchdowns": 32,
+      "passing_interceptions": 6
+    },
+    {
+      "playerId": 202,
+      "season": "2026",
+      "rushing_yards": 931,
+      "rushing_touchdowns": 14,
+      "receiving_receptions": 46,
+      "receiving_yards": 121
+    },
+    {
+      "playerId": 203,
+      "season": "2026",
+      "rushing_yards": 1079,
+      "rushing_touchdowns": 13,
+      "receiving_receptions": 62,
+      "receiving_yards": 333
+    },
+    {
+      "playerId": 204,
+      "season": "2026",
+      "receiving_receptions": 40,
+      "receiving_yards": 425,
+      "receiving_touchdowns": 8
+    },
+    {
+      "playerId": 205,
+      "season": "2026",
+      "receiving_receptions": 42,
+      "receiving_yards": 534,
+      "receiving_touchdowns": 4
+    },
+    {
+      "playerId": 206,
+      "season": "2026",
+      "receiving_receptions": 53,
+      "receiving_yards": 1123,
+      "receiving_touchdowns": 5
+    },
+    {
+      "playerId": 207,
+      "season": "2026",
+      "kicking_fg_made": 29,
+      "kicking_xp_made": 32
+    },
+    {
+      "playerId": 208,
+      "season": "2026",
+      "dst_sacks": 47
+    },
+    {
+      "playerId": 301,
+      "season": "2026",
+      "passing_yards": 3654,
+      "passing_touchdowns": 34,
+      "passing_interceptions": 9
+    },
+    {
+      "playerId": 302,
+      "season": "2026",
+      "rushing_yards": 760,
+      "rushing_touchdowns": 3,
+      "receiving_receptions": 17,
+      "receiving_yards": 399
+    },
+    {
+      "playerId": 303,
+      "season": "2026",
+      "rushing_yards": 1146,
+      "rushing_touchdowns": 2,
+      "receiving_receptions": 24,
+      "receiving_yards": 261
+    },
+    {
+      "playerId": 304,
+      "season": "2026",
+      "receiving_receptions": 56,
+      "receiving_yards": 858,
+      "receiving_touchdowns": 6
+    },
+    {
+      "playerId": 305,
+      "season": "2026",
+      "receiving_receptions": 32,
+      "receiving_yards": 1386,
+      "receiving_touchdowns": 12
+    },
+    {
+      "playerId": 306,
+      "season": "2026",
+      "receiving_receptions": 50,
+      "receiving_yards": 1326,
+      "receiving_touchdowns": 10
+    },
+    {
+      "playerId": 307,
+      "season": "2026",
+      "kicking_fg_made": 34,
+      "kicking_xp_made": 45
+    },
+    {
+      "playerId": 308,
+      "season": "2026",
+      "dst_sacks": 25
+    },
+    {
+      "playerId": 401,
+      "season": "2026",
+      "passing_yards": 4251,
+      "passing_touchdowns": 37,
+      "passing_interceptions": 10
+    },
+    {
+      "playerId": 402,
+      "season": "2026",
+      "rushing_yards": 434,
+      "rushing_touchdowns": 14,
+      "receiving_receptions": 42,
+      "receiving_yards": 162
+    },
+    {
+      "playerId": 403,
+      "season": "2026",
+      "rushing_yards": 424,
+      "rushing_touchdowns": 2,
+      "receiving_receptions": 60,
+      "receiving_yards": 476
+    },
+    {
+      "playerId": 404,
+      "season": "2026",
+      "receiving_receptions": 59,
+      "receiving_yards": 1123,
+      "receiving_touchdowns": 11
+    },
+    {
+      "playerId": 405,
+      "season": "2026",
+      "receiving_receptions": 86,
+      "receiving_yards": 1307,
+      "receiving_touchdowns": 4
+    },
+    {
+      "playerId": 406,
+      "season": "2026",
+      "receiving_receptions": 56,
+      "receiving_yards": 1052,
+      "receiving_touchdowns": 4
+    },
+    {
+      "playerId": 407,
+      "season": "2026",
+      "kicking_fg_made": 35,
+      "kicking_xp_made": 42
+    },
+    {
+      "playerId": 408,
+      "season": "2026",
+      "dst_sacks": 31
+    },
+    {
+      "playerId": 501,
+      "season": "2026",
+      "passing_yards": 4533,
+      "passing_touchdowns": 24,
+      "passing_interceptions": 12
+    },
+    {
+      "playerId": 502,
+      "season": "2026",
+      "rushing_yards": 580,
+      "rushing_touchdowns": 10,
+      "receiving_receptions": 68,
+      "receiving_yards": 126
+    },
+    {
+      "playerId": 503,
+      "season": "2026",
+      "rushing_yards": 1138,
+      "rushing_touchdowns": 14,
+      "receiving_receptions": 50,
+      "receiving_yards": 175
+    },
+    {
+      "playerId": 504,
+      "season": "2026",
+      "receiving_receptions": 92,
+      "receiving_yards": 1489,
+      "receiving_touchdowns": 2
+    },
+    {
+      "playerId": 505,
+      "season": "2026",
+      "receiving_receptions": 52,
+      "receiving_yards": 1453,
+      "receiving_touchdowns": 11
+    },
+    {
+      "playerId": 506,
+      "season": "2026",
+      "receiving_receptions": 90,
+      "receiving_yards": 703,
+      "receiving_touchdowns": 2
+    },
+    {
+      "playerId": 507,
+      "season": "2026",
+      "kicking_fg_made": 22,
+      "kicking_xp_made": 34
+    },
+    {
+      "playerId": 508,
+      "season": "2026",
+      "dst_sacks": 38
+    },
+    {
+      "playerId": 601,
+      "season": "2026",
+      "passing_yards": 3538,
+      "passing_touchdowns": 34,
+      "passing_interceptions": 8
+    },
+    {
+      "playerId": 602,
+      "season": "2026",
+      "rushing_yards": 785,
+      "rushing_touchdowns": 12,
+      "receiving_receptions": 31,
+      "receiving_yards": 228
+    },
+    {
+      "playerId": 603,
+      "season": "2026",
+      "rushing_yards": 883,
+      "rushing_touchdowns": 4,
+      "receiving_receptions": 21,
+      "receiving_yards": 123
+    },
+    {
+      "playerId": 604,
+      "season": "2026",
+      "receiving_receptions": 105,
+      "receiving_yards": 842,
+      "receiving_touchdowns": 8
+    },
+    {
+      "playerId": 605,
+      "season": "2026",
+      "receiving_receptions": 30,
+      "receiving_yards": 536,
+      "receiving_touchdowns": 12
+    },
+    {
+      "playerId": 606,
+      "season": "2026",
+      "receiving_receptions": 30,
+      "receiving_yards": 1101,
+      "receiving_touchdowns": 11
+    },
+    {
+      "playerId": 607,
+      "season": "2026",
+      "kicking_fg_made": 27,
+      "kicking_xp_made": 47
+    },
+    {
+      "playerId": 608,
+      "season": "2026",
+      "dst_sacks": 53
+    },
+    {
+      "playerId": 701,
+      "season": "2026",
+      "passing_yards": 4419,
+      "passing_touchdowns": 31,
+      "passing_interceptions": 10
+    },
+    {
+      "playerId": 702,
+      "season": "2026",
+      "rushing_yards": 1170,
+      "rushing_touchdowns": 10,
+      "receiving_receptions": 32,
+      "receiving_yards": 258
+    },
+    {
+      "playerId": 703,
+      "season": "2026",
+      "rushing_yards": 1433,
+      "rushing_touchdowns": 14,
+      "receiving_receptions": 33,
+      "receiving_yards": 254
+    },
+    {
+      "playerId": 704,
+      "season": "2026",
+      "receiving_receptions": 46,
+      "receiving_yards": 975,
+      "receiving_touchdowns": 12
+    },
+    {
+      "playerId": 705,
+      "season": "2026",
+      "receiving_receptions": 64,
+      "receiving_yards": 610,
+      "receiving_touchdowns": 3
+    },
+    {
+      "playerId": 706,
+      "season": "2026",
+      "receiving_receptions": 58,
+      "receiving_yards": 1382,
+      "receiving_touchdowns": 2
+    },
+    {
+      "playerId": 707,
+      "season": "2026",
+      "kicking_fg_made": 30,
+      "kicking_xp_made": 50
+    },
+    {
+      "playerId": 708,
+      "season": "2026",
+      "dst_sacks": 44
+    },
+    {
+      "playerId": 801,
+      "season": "2026",
+      "passing_yards": 4567,
+      "passing_touchdowns": 36,
+      "passing_interceptions": 10
+    },
+    {
+      "playerId": 802,
+      "season": "2026",
+      "rushing_yards": 1498,
+      "rushing_touchdowns": 4,
+      "receiving_receptions": 51,
+      "receiving_yards": 344
+    },
+    {
+      "playerId": 803,
+      "season": "2026",
+      "rushing_yards": 1328,
+      "rushing_touchdowns": 12,
+      "receiving_receptions": 49,
+      "receiving_yards": 484
+    },
+    {
+      "playerId": 804,
+      "season": "2026",
+      "receiving_receptions": 38,
+      "receiving_yards": 1289,
+      "receiving_touchdowns": 12
+    },
+    {
+      "playerId": 805,
+      "season": "2026",
+      "receiving_receptions": 89,
+      "receiving_yards": 609,
+      "receiving_touchdowns": 12
+    },
+    {
+      "playerId": 806,
+      "season": "2026",
+      "receiving_receptions": 92,
+      "receiving_yards": 1196,
+      "receiving_touchdowns": 7
+    },
+    {
+      "playerId": 807,
+      "season": "2026",
+      "kicking_fg_made": 35,
+      "kicking_xp_made": 34
+    },
+    {
+      "playerId": 808,
+      "season": "2026",
+      "dst_sacks": 44
+    }
+  ],
+  "games": [
+    {
+      "gameID": "20261229_KCC@BUF",
+      "seasonType": "Postseason",
+      "away": "KCC",
+      "home": "BUF",
+      "gameDate": "20261229",
+      "gameStatus": "Scheduled",
+      "gameWeek": "Divisional Round",
+      "teamIDHome": "2",
+      "teamIDAway": "1",
+      "gameTime": "4:30p",
+      "gameTime_epoch": "1798500000.0",
+      "season": "2026",
+      "espnLink": "https://example.test/20261229_KCC@BUF"
+    },
+    {
+      "gameID": "20261229_HOU@BAL",
+      "seasonType": "Postseason",
+      "away": "HOU",
+      "home": "BAL",
+      "gameDate": "20261229",
+      "gameStatus": "Scheduled",
+      "gameWeek": "Divisional Round",
+      "teamIDHome": "3",
+      "teamIDAway": "4",
+      "gameTime": "4:30p",
+      "gameTime_epoch": "1798518000.0",
+      "season": "2026",
+      "espnLink": "https://example.test/20261229_HOU@BAL"
+    },
+    {
+      "gameID": "20261229_LAR@PHI",
+      "seasonType": "Postseason",
+      "away": "LAR",
+      "home": "PHI",
+      "gameDate": "20261229",
+      "gameStatus": "Scheduled",
+      "gameWeek": "Divisional Round",
+      "teamIDHome": "5",
+      "teamIDAway": "6",
+      "gameTime": "4:30p",
+      "gameTime_epoch": "1798536000.0",
+      "season": "2026",
+      "espnLink": "https://example.test/20261229_LAR@PHI"
+    },
+    {
+      "gameID": "20261229_SFO@DET",
+      "seasonType": "Postseason",
+      "away": "SFO",
+      "home": "DET",
+      "gameDate": "20261229",
+      "gameStatus": "Scheduled",
+      "gameWeek": "Divisional Round",
+      "teamIDHome": "7",
+      "teamIDAway": "8",
+      "gameTime": "4:30p",
+      "gameTime_epoch": "1798554000.0",
+      "season": "2026",
+      "espnLink": "https://example.test/20261229_SFO@DET"
+    }
+  ]
+}

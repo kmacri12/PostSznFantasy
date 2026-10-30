@@ -9,6 +9,7 @@ from jwt import PyJWKClient
 from jwt.exceptions import PyJWKClientError, PyJWTError
 
 from api.core.config import get_settings
+from api.dependencies.test_auth import stub_user_id
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +32,9 @@ def verify_token(token: str) -> str:
 
     Raises 401 if the token is malformed, expired, or its signature is invalid.
     """
+    if (stub_uid := stub_user_id(token)) is not None:
+        return stub_uid
+
     settings = get_settings()
 
     try:

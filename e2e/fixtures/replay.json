@@ -1,0 +1,866 @@
+{
+  "games": [
+    {
+      "gameID": "20261229_KCC@BUF",
+      "seasonType": "Postseason",
+      "away": "KCC",
+      "home": "BUF",
+      "gameDate": "20261229",
+      "gameStatus": "Scheduled",
+      "gameWeek": "Divisional Round",
+      "teamIDHome": "2",
+      "teamIDAway": "1",
+      "gameTime": "4:30p",
+      "gameTime_epoch": "1798500000.0",
+      "season": "2026",
+      "espnLink": "https://example.test/20261229_KCC@BUF"
+    },
+    {
+      "gameID": "20261229_HOU@BAL",
+      "seasonType": "Postseason",
+      "away": "HOU",
+      "home": "BAL",
+      "gameDate": "20261229",
+      "gameStatus": "Scheduled",
+      "gameWeek": "Divisional Round",
+      "teamIDHome": "3",
+      "teamIDAway": "4",
+      "gameTime": "4:30p",
+      "gameTime_epoch": "1798518000.0",
+      "season": "2026",
+      "espnLink": "https://example.test/20261229_HOU@BAL"
+    },
+    {
+      "gameID": "20261229_LAR@PHI",
+      "seasonType": "Postseason",
+      "away": "LAR",
+      "home": "PHI",
+      "gameDate": "20261229",
+      "gameStatus": "Scheduled",
+      "gameWeek": "Divisional Round",
+      "teamIDHome": "5",
+      "teamIDAway": "6",
+      "gameTime": "4:30p",
+      "gameTime_epoch": "1798536000.0",
+      "season": "2026",
+      "espnLink": "https://example.test/20261229_LAR@PHI"
+    },
+    {
+      "gameID": "20261229_SFO@DET",
+      "seasonType": "Postseason",
+      "away": "SFO",
+      "home": "DET",
+      "gameDate": "20261229",
+      "gameStatus": "Scheduled",
+      "gameWeek": "Divisional Round",
+      "teamIDHome": "7",
+      "teamIDAway": "8",
+      "gameTime": "4:30p",
+      "gameTime_epoch": "1798554000.0",
+      "season": "2026",
+      "espnLink": "https://example.test/20261229_SFO@DET"
+    }
+  ],
+  "boxes": {
+    "20261229_KCC@BUF": {
+      "gameID": "20261229_KCC@BUF",
+      "seasonType": "Postseason",
+      "away": "KCC",
+      "home": "BUF",
+      "gameDate": "20261229",
+      "gameStatus": "Completed",
+      "gameWeek": "Divisional Round",
+      "teamIDHome": "2",
+      "teamIDAway": "1",
+      "gameTime": "4:30p",
+      "gameTime_epoch": "1798500000.0",
+      "season": "2026",
+      "espnLink": "https://example.test/20261229_KCC@BUF",
+      "homePts": "34",
+      "awayPts": "12",
+      "scoringPlays": [],
+      "DST": {
+        "home": {
+          "teamAbv": "BUF",
+          "teamID": "2",
+          "defTD": "0",
+          "defensiveInterceptions": "2",
+          "sacks": "3",
+          "ydsAllowed": "325"
+        },
+        "away": {
+          "teamAbv": "KCC",
+          "teamID": "1",
+          "defTD": "0",
+          "defensiveInterceptions": "0",
+          "sacks": "1",
+          "ydsAllowed": "294"
+        }
+      },
+      "playerStats": {
+        "201": {
+          "Passing": {
+            "passCompletions": "22",
+            "passAttempts": "35",
+            "passYds": "332",
+            "passTD": "1",
+            "int": "0",
+            "sacked": "1-15"
+          },
+          "gameID": "20261229_KCC@BUF",
+          "teamID": "2",
+          "team": "BUF"
+        },
+        "202": {
+          "Rushing": { "carries": "12", "rushYds": "28", "rushTD": "1", "longRush": "6" },
+          "Receiving": {
+            "receptions": "1",
+            "targets": "1",
+            "recYds": "46",
+            "recTD": "0",
+            "longRec": "15"
+          },
+          "gameID": "20261229_KCC@BUF",
+          "teamID": "2",
+          "team": "BUF"
+        },
+        "203": {
+          "Rushing": { "carries": "17", "rushYds": "42", "rushTD": "1", "longRush": "35" },
+          "Receiving": {
+            "receptions": "6",
+            "targets": "5",
+            "recYds": "39",
+            "recTD": "0",
+            "longRec": "2"
+          },
+          "gameID": "20261229_KCC@BUF",
+          "teamID": "2",
+          "team": "BUF"
+        },
+        "204": {
+          "Receiving": {
+            "receptions": "8",
+            "targets": "4",
+            "recYds": "53",
+            "recTD": "1",
+            "longRec": "12"
+          },
+          "gameID": "20261229_KCC@BUF",
+          "teamID": "2",
+          "team": "BUF"
+        },
+        "205": {
+          "Receiving": {
+            "receptions": "7",
+            "targets": "10",
+            "recYds": "115",
+            "recTD": "0",
+            "longRec": "13"
+          },
+          "gameID": "20261229_KCC@BUF",
+          "teamID": "2",
+          "team": "BUF"
+        },
+        "206": {
+          "Receiving": {
+            "receptions": "9",
+            "targets": "4",
+            "recYds": "100",
+            "recTD": "0",
+            "longRec": "25"
+          },
+          "gameID": "20261229_KCC@BUF",
+          "teamID": "2",
+          "team": "BUF"
+        },
+        "207": {
+          "Kicking": { "fgMade": "1", "fgAttempts": "2", "xpMade": "3", "xpAttempts": "4" },
+          "gameID": "20261229_KCC@BUF",
+          "teamID": "2",
+          "team": "BUF"
+        },
+        "101": {
+          "Passing": {
+            "passCompletions": "22",
+            "passAttempts": "35",
+            "passYds": "236",
+            "passTD": "2",
+            "int": "1",
+            "sacked": "2-5"
+          },
+          "gameID": "20261229_KCC@BUF",
+          "teamID": "1",
+          "team": "KCC"
+        },
+        "102": {
+          "Rushing": { "carries": "10", "rushYds": "24", "rushTD": "2", "longRush": "40" },
+          "Receiving": {
+            "receptions": "2",
+            "targets": "0",
+            "recYds": "9",
+            "recTD": "0",
+            "longRec": "10"
+          },
+          "gameID": "20261229_KCC@BUF",
+          "teamID": "1",
+          "team": "KCC"
+        },
+        "103": {
+          "Rushing": { "carries": "14", "rushYds": "108", "rushTD": "1", "longRush": "26" },
+          "Receiving": {
+            "receptions": "6",
+            "targets": "0",
+            "recYds": "33",
+            "recTD": "0",
+            "longRec": "25"
+          },
+          "gameID": "20261229_KCC@BUF",
+          "teamID": "1",
+          "team": "KCC"
+        },
+        "104": {
+          "Receiving": {
+            "receptions": "4",
+            "targets": "11",
+            "recYds": "99",
+            "recTD": "2",
+            "longRec": "50"
+          },
+          "gameID": "20261229_KCC@BUF",
+          "teamID": "1",
+          "team": "KCC"
+        },
+        "105": {
+          "Receiving": {
+            "receptions": "2",
+            "targets": "12",
+            "recYds": "107",
+            "recTD": "2",
+            "longRec": "33"
+          },
+          "gameID": "20261229_KCC@BUF",
+          "teamID": "1",
+          "team": "KCC"
+        },
+        "106": {
+          "Receiving": {
+            "receptions": "2",
+            "targets": "9",
+            "recYds": "35",
+            "recTD": "2",
+            "longRec": "10"
+          },
+          "gameID": "20261229_KCC@BUF",
+          "teamID": "1",
+          "team": "KCC"
+        },
+        "107": {
+          "Kicking": { "fgMade": "0", "fgAttempts": "0", "xpMade": "4", "xpAttempts": "4" },
+          "gameID": "20261229_KCC@BUF",
+          "teamID": "1",
+          "team": "KCC"
+        }
+      }
+    },
+    "20261229_HOU@BAL": {
+      "gameID": "20261229_HOU@BAL",
+      "seasonType": "Postseason",
+      "away": "HOU",
+      "home": "BAL",
+      "gameDate": "20261229",
+      "gameStatus": "Completed",
+      "gameWeek": "Divisional Round",
+      "teamIDHome": "3",
+      "teamIDAway": "4",
+      "gameTime": "4:30p",
+      "gameTime_epoch": "1798518000.0",
+      "season": "2026",
+      "espnLink": "https://example.test/20261229_HOU@BAL",
+      "homePts": "22",
+      "awayPts": "30",
+      "scoringPlays": [],
+      "DST": {
+        "home": {
+          "teamAbv": "BAL",
+          "teamID": "3",
+          "defTD": "0",
+          "defensiveInterceptions": "2",
+          "sacks": "3",
+          "ydsAllowed": "364"
+        },
+        "away": {
+          "teamAbv": "HOU",
+          "teamID": "4",
+          "defTD": "0",
+          "defensiveInterceptions": "1",
+          "sacks": "3",
+          "ydsAllowed": "340"
+        }
+      },
+      "playerStats": {
+        "301": {
+          "Passing": {
+            "passCompletions": "26",
+            "passAttempts": "41",
+            "passYds": "323",
+            "passTD": "1",
+            "int": "2",
+            "sacked": "1-15"
+          },
+          "gameID": "20261229_HOU@BAL",
+          "teamID": "3",
+          "team": "BAL"
+        },
+        "302": {
+          "Rushing": { "carries": "10", "rushYds": "88", "rushTD": "0", "longRush": "28" },
+          "Receiving": {
+            "receptions": "6",
+            "targets": "8",
+            "recYds": "9",
+            "recTD": "0",
+            "longRec": "15"
+          },
+          "gameID": "20261229_HOU@BAL",
+          "teamID": "3",
+          "team": "BAL"
+        },
+        "303": {
+          "Rushing": { "carries": "10", "rushYds": "42", "rushTD": "2", "longRush": "35" },
+          "Receiving": {
+            "receptions": "5",
+            "targets": "3",
+            "recYds": "7",
+            "recTD": "0",
+            "longRec": "4"
+          },
+          "gameID": "20261229_HOU@BAL",
+          "teamID": "3",
+          "team": "BAL"
+        },
+        "304": {
+          "Receiving": {
+            "receptions": "6",
+            "targets": "9",
+            "recYds": "53",
+            "recTD": "1",
+            "longRec": "25"
+          },
+          "gameID": "20261229_HOU@BAL",
+          "teamID": "3",
+          "team": "BAL"
+        },
+        "305": {
+          "Receiving": {
+            "receptions": "5",
+            "targets": "7",
+            "recYds": "52",
+            "recTD": "0",
+            "longRec": "21"
+          },
+          "gameID": "20261229_HOU@BAL",
+          "teamID": "3",
+          "team": "BAL"
+        },
+        "306": {
+          "Receiving": {
+            "receptions": "3",
+            "targets": "3",
+            "recYds": "95",
+            "recTD": "1",
+            "longRec": "41"
+          },
+          "gameID": "20261229_HOU@BAL",
+          "teamID": "3",
+          "team": "BAL"
+        },
+        "307": {
+          "Kicking": { "fgMade": "0", "fgAttempts": "0", "xpMade": "1", "xpAttempts": "4" },
+          "gameID": "20261229_HOU@BAL",
+          "teamID": "3",
+          "team": "BAL"
+        },
+        "401": {
+          "Passing": {
+            "passCompletions": "23",
+            "passAttempts": "36",
+            "passYds": "259",
+            "passTD": "2",
+            "int": "1",
+            "sacked": "3-17"
+          },
+          "gameID": "20261229_HOU@BAL",
+          "teamID": "4",
+          "team": "HOU"
+        },
+        "402": {
+          "Rushing": { "carries": "16", "rushYds": "123", "rushTD": "1", "longRush": "37" },
+          "Receiving": {
+            "receptions": "6",
+            "targets": "4",
+            "recYds": "19",
+            "recTD": "0",
+            "longRec": "25"
+          },
+          "gameID": "20261229_HOU@BAL",
+          "teamID": "4",
+          "team": "HOU"
+        },
+        "403": {
+          "Rushing": { "carries": "12", "rushYds": "62", "rushTD": "2", "longRush": "22" },
+          "Receiving": {
+            "receptions": "5",
+            "targets": "2",
+            "recYds": "9",
+            "recTD": "0",
+            "longRec": "22"
+          },
+          "gameID": "20261229_HOU@BAL",
+          "teamID": "4",
+          "team": "HOU"
+        },
+        "404": {
+          "Receiving": {
+            "receptions": "5",
+            "targets": "11",
+            "recYds": "32",
+            "recTD": "2",
+            "longRec": "34"
+          },
+          "gameID": "20261229_HOU@BAL",
+          "teamID": "4",
+          "team": "HOU"
+        },
+        "405": {
+          "Receiving": {
+            "receptions": "7",
+            "targets": "11",
+            "recYds": "132",
+            "recTD": "0",
+            "longRec": "46"
+          },
+          "gameID": "20261229_HOU@BAL",
+          "teamID": "4",
+          "team": "HOU"
+        },
+        "406": {
+          "Receiving": {
+            "receptions": "9",
+            "targets": "10",
+            "recYds": "104",
+            "recTD": "2",
+            "longRec": "14"
+          },
+          "gameID": "20261229_HOU@BAL",
+          "teamID": "4",
+          "team": "HOU"
+        },
+        "407": {
+          "Kicking": { "fgMade": "3", "fgAttempts": "4", "xpMade": "2", "xpAttempts": "4" },
+          "gameID": "20261229_HOU@BAL",
+          "teamID": "4",
+          "team": "HOU"
+        }
+      }
+    },
+    "20261229_LAR@PHI": {
+      "gameID": "20261229_LAR@PHI",
+      "seasonType": "Postseason",
+      "away": "LAR",
+      "home": "PHI",
+      "gameDate": "20261229",
+      "gameStatus": "Completed",
+      "gameWeek": "Divisional Round",
+      "teamIDHome": "5",
+      "teamIDAway": "6",
+      "gameTime": "4:30p",
+      "gameTime_epoch": "1798536000.0",
+      "season": "2026",
+      "espnLink": "https://example.test/20261229_LAR@PHI",
+      "homePts": "36",
+      "awayPts": "14",
+      "scoringPlays": [],
+      "DST": {
+        "home": {
+          "teamAbv": "PHI",
+          "teamID": "5",
+          "defTD": "0",
+          "defensiveInterceptions": "1",
+          "sacks": "4",
+          "ydsAllowed": "263"
+        },
+        "away": {
+          "teamAbv": "LAR",
+          "teamID": "6",
+          "defTD": "0",
+          "defensiveInterceptions": "0",
+          "sacks": "3",
+          "ydsAllowed": "388"
+        }
+      },
+      "playerStats": {
+        "501": {
+          "Passing": {
+            "passCompletions": "16",
+            "passAttempts": "26",
+            "passYds": "215",
+            "passTD": "0",
+            "int": "1",
+            "sacked": "1-11"
+          },
+          "gameID": "20261229_LAR@PHI",
+          "teamID": "5",
+          "team": "PHI"
+        },
+        "502": {
+          "Rushing": { "carries": "14", "rushYds": "51", "rushTD": "1", "longRush": "34" },
+          "Receiving": {
+            "receptions": "4",
+            "targets": "1",
+            "recYds": "19",
+            "recTD": "0",
+            "longRec": "15"
+          },
+          "gameID": "20261229_LAR@PHI",
+          "teamID": "5",
+          "team": "PHI"
+        },
+        "503": {
+          "Rushing": { "carries": "14", "rushYds": "27", "rushTD": "1", "longRush": "30" },
+          "Receiving": {
+            "receptions": "2",
+            "targets": "5",
+            "recYds": "34",
+            "recTD": "0",
+            "longRec": "2"
+          },
+          "gameID": "20261229_LAR@PHI",
+          "teamID": "5",
+          "team": "PHI"
+        },
+        "504": {
+          "Receiving": {
+            "receptions": "5",
+            "targets": "6",
+            "recYds": "137",
+            "recTD": "1",
+            "longRec": "22"
+          },
+          "gameID": "20261229_LAR@PHI",
+          "teamID": "5",
+          "team": "PHI"
+        },
+        "505": {
+          "Receiving": {
+            "receptions": "7",
+            "targets": "8",
+            "recYds": "84",
+            "recTD": "2",
+            "longRec": "39"
+          },
+          "gameID": "20261229_LAR@PHI",
+          "teamID": "5",
+          "team": "PHI"
+        },
+        "506": {
+          "Receiving": {
+            "receptions": "9",
+            "targets": "8",
+            "recYds": "102",
+            "recTD": "2",
+            "longRec": "16"
+          },
+          "gameID": "20261229_LAR@PHI",
+          "teamID": "5",
+          "team": "PHI"
+        },
+        "507": {
+          "Kicking": { "fgMade": "3", "fgAttempts": "3", "xpMade": "4", "xpAttempts": "4" },
+          "gameID": "20261229_LAR@PHI",
+          "teamID": "5",
+          "team": "PHI"
+        },
+        "601": {
+          "Passing": {
+            "passCompletions": "18",
+            "passAttempts": "29",
+            "passYds": "206",
+            "passTD": "2",
+            "int": "2",
+            "sacked": "1-20"
+          },
+          "gameID": "20261229_LAR@PHI",
+          "teamID": "6",
+          "team": "LAR"
+        },
+        "602": {
+          "Rushing": { "carries": "19", "rushYds": "51", "rushTD": "1", "longRush": "13" },
+          "Receiving": {
+            "receptions": "4",
+            "targets": "0",
+            "recYds": "36",
+            "recTD": "0",
+            "longRec": "1"
+          },
+          "gameID": "20261229_LAR@PHI",
+          "teamID": "6",
+          "team": "LAR"
+        },
+        "603": {
+          "Rushing": { "carries": "18", "rushYds": "56", "rushTD": "0", "longRush": "11" },
+          "Receiving": {
+            "receptions": "2",
+            "targets": "7",
+            "recYds": "49",
+            "recTD": "0",
+            "longRec": "18"
+          },
+          "gameID": "20261229_LAR@PHI",
+          "teamID": "6",
+          "team": "LAR"
+        },
+        "604": {
+          "Receiving": {
+            "receptions": "6",
+            "targets": "6",
+            "recYds": "87",
+            "recTD": "1",
+            "longRec": "54"
+          },
+          "gameID": "20261229_LAR@PHI",
+          "teamID": "6",
+          "team": "LAR"
+        },
+        "605": {
+          "Receiving": {
+            "receptions": "5",
+            "targets": "8",
+            "recYds": "41",
+            "recTD": "2",
+            "longRec": "30"
+          },
+          "gameID": "20261229_LAR@PHI",
+          "teamID": "6",
+          "team": "LAR"
+        },
+        "606": {
+          "Receiving": {
+            "receptions": "8",
+            "targets": "11",
+            "recYds": "99",
+            "recTD": "1",
+            "longRec": "51"
+          },
+          "gameID": "20261229_LAR@PHI",
+          "teamID": "6",
+          "team": "LAR"
+        },
+        "607": {
+          "Kicking": { "fgMade": "3", "fgAttempts": "4", "xpMade": "3", "xpAttempts": "4" },
+          "gameID": "20261229_LAR@PHI",
+          "teamID": "6",
+          "team": "LAR"
+        }
+      }
+    },
+    "20261229_SFO@DET": {
+      "gameID": "20261229_SFO@DET",
+      "seasonType": "Postseason",
+      "away": "SFO",
+      "home": "DET",
+      "gameDate": "20261229",
+      "gameStatus": "Completed",
+      "gameWeek": "Divisional Round",
+      "teamIDHome": "7",
+      "teamIDAway": "8",
+      "gameTime": "4:30p",
+      "gameTime_epoch": "1798554000.0",
+      "season": "2026",
+      "espnLink": "https://example.test/20261229_SFO@DET",
+      "homePts": "12",
+      "awayPts": "36",
+      "scoringPlays": [],
+      "DST": {
+        "home": {
+          "teamAbv": "DET",
+          "teamID": "7",
+          "defTD": "0",
+          "defensiveInterceptions": "2",
+          "sacks": "2",
+          "ydsAllowed": "357"
+        },
+        "away": {
+          "teamAbv": "SFO",
+          "teamID": "8",
+          "defTD": "0",
+          "defensiveInterceptions": "2",
+          "sacks": "5",
+          "ydsAllowed": "382"
+        }
+      },
+      "playerStats": {
+        "701": {
+          "Passing": {
+            "passCompletions": "22",
+            "passAttempts": "34",
+            "passYds": "186",
+            "passTD": "3",
+            "int": "0",
+            "sacked": "1-18"
+          },
+          "gameID": "20261229_SFO@DET",
+          "teamID": "7",
+          "team": "DET"
+        },
+        "702": {
+          "Rushing": { "carries": "12", "rushYds": "130", "rushTD": "1", "longRush": "10" },
+          "Receiving": {
+            "receptions": "1",
+            "targets": "8",
+            "recYds": "39",
+            "recTD": "0",
+            "longRec": "14"
+          },
+          "gameID": "20261229_SFO@DET",
+          "teamID": "7",
+          "team": "DET"
+        },
+        "703": {
+          "Rushing": { "carries": "24", "rushYds": "27", "rushTD": "0", "longRush": "22" },
+          "Receiving": {
+            "receptions": "5",
+            "targets": "3",
+            "recYds": "17",
+            "recTD": "0",
+            "longRec": "12"
+          },
+          "gameID": "20261229_SFO@DET",
+          "teamID": "7",
+          "team": "DET"
+        },
+        "704": {
+          "Receiving": {
+            "receptions": "4",
+            "targets": "6",
+            "recYds": "106",
+            "recTD": "0",
+            "longRec": "54"
+          },
+          "gameID": "20261229_SFO@DET",
+          "teamID": "7",
+          "team": "DET"
+        },
+        "705": {
+          "Receiving": {
+            "receptions": "3",
+            "targets": "8",
+            "recYds": "34",
+            "recTD": "2",
+            "longRec": "28"
+          },
+          "gameID": "20261229_SFO@DET",
+          "teamID": "7",
+          "team": "DET"
+        },
+        "706": {
+          "Receiving": {
+            "receptions": "8",
+            "targets": "11",
+            "recYds": "65",
+            "recTD": "1",
+            "longRec": "52"
+          },
+          "gameID": "20261229_SFO@DET",
+          "teamID": "7",
+          "team": "DET"
+        },
+        "707": {
+          "Kicking": { "fgMade": "3", "fgAttempts": "4", "xpMade": "4", "xpAttempts": "4" },
+          "gameID": "20261229_SFO@DET",
+          "teamID": "7",
+          "team": "DET"
+        },
+        "801": {
+          "Passing": {
+            "passCompletions": "17",
+            "passAttempts": "27",
+            "passYds": "247",
+            "passTD": "2",
+            "int": "2",
+            "sacked": "2-5"
+          },
+          "gameID": "20261229_SFO@DET",
+          "teamID": "8",
+          "team": "SFO"
+        },
+        "802": {
+          "Rushing": { "carries": "22", "rushYds": "35", "rushTD": "0", "longRush": "14" },
+          "Receiving": {
+            "receptions": "4",
+            "targets": "1",
+            "recYds": "43",
+            "recTD": "0",
+            "longRec": "17"
+          },
+          "gameID": "20261229_SFO@DET",
+          "teamID": "8",
+          "team": "SFO"
+        },
+        "803": {
+          "Rushing": { "carries": "21", "rushYds": "130", "rushTD": "2", "longRush": "33" },
+          "Receiving": {
+            "receptions": "3",
+            "targets": "7",
+            "recYds": "21",
+            "recTD": "0",
+            "longRec": "14"
+          },
+          "gameID": "20261229_SFO@DET",
+          "teamID": "8",
+          "team": "SFO"
+        },
+        "804": {
+          "Receiving": {
+            "receptions": "7",
+            "targets": "7",
+            "recYds": "130",
+            "recTD": "2",
+            "longRec": "46"
+          },
+          "gameID": "20261229_SFO@DET",
+          "teamID": "8",
+          "team": "SFO"
+        },
+        "805": {
+          "Receiving": {
+            "receptions": "3",
+            "targets": "6",
+            "recYds": "114",
+            "recTD": "2",
+            "longRec": "34"
+          },
+          "gameID": "20261229_SFO@DET",
+          "teamID": "8",
+          "team": "SFO"
+        },
+        "806": {
+          "Receiving": {
+            "receptions": "3",
+            "targets": "7",
+            "recYds": "94",
+            "recTD": "2",
+            "longRec": "29"
+          },
+          "gameID": "20261229_SFO@DET",
+          "teamID": "8",
+          "team": "SFO"
+        },
+        "807": {
+          "Kicking": { "fgMade": "3", "fgAttempts": "3", "xpMade": "2", "xpAttempts": "4" },
+          "gameID": "20261229_SFO@DET",
+          "teamID": "8",
+          "team": "SFO"
+        }
+      }
+    }
+  }
+}

@@ -173,6 +173,10 @@ make format     # auto-fix Ruff and Biome
 
 ---
 
+### End-to-end tests (`e2e/`)
+
+`make e2e-install` (once), then `make e2e` (needs `make db-up`; `E2E_ARGS="--project=mobile -g draft"` filters). Playwright starts its own API (:8100) and Vite (:5273) against a throwaway `postszn_e2e` database that `python -m api.scripts.seed_e2e` rebuilds from the committed fixtures in `e2e/fixtures/` (regenerate with `python3 e2e/fixtures/build_fixtures.py`). Tests sign in through the **test-auth stub**: `Bearer e2e-user:<uid>` is accepted only when `TEST_AUTH_STUB=true` *and* `ENVIRONMENT` is `development` or `test` (Settings refuses to start otherwise; proven in `api/tests/test_test_auth_stub.py`). Never set it outside local/CI runs.
+
 ## 3b. Route Map (Phase 20)
 
 | Area | Endpoints |

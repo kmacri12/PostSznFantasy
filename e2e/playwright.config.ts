@@ -1,11 +1,12 @@
 import { defineConfig } from "@playwright/test";
-
-const API_PORT = 8100;
-const WEB_PORT = 5273;
-const E2E_DATABASE_URL =
-  process.env.E2E_DATABASE_URL ?? "postgresql://postgres:postgres@localhost:5433/postszn_e2e";
-
-export const WEB_URL = `http://localhost:${WEB_PORT}`;
+import {
+  API_PORT,
+  API_URL,
+  E2E_DATABASE_URL,
+  SUPABASE_URL,
+  WEB_PORT,
+  WEB_URL,
+} from "./support/env";
 
 // iPhone-sized touch viewport on Chromium: the app is used mostly on phones, and WebKit
 // adds an install step without covering anything Chromium does not at this size.
@@ -40,26 +41,33 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: `uv run --project ../api uvicorn api.main:app --app-dir .. --port ${API_PORT}`,
-      url: `http://localhost:${API_PORT}/api/config`,
-      reuseExistingServer: !process.env.CI,
-      timeout: 60_000,
+      // Rebuilds the throwaway database on every start, so reuse would hide stale data.
+      command:
+        "uv run --project api python -m api.scripts.seed_e2e" +
+        ` && uv run --project api uvicorn api.main:app --port ${API_PORT}`,
+      cwd: "..",
+      url: `${API_URL}/api`,
+      reuseExistingServer: false,
+      timeout: 90_000,
       env: {
         PG_URI: E2E_DATABASE_URL,
-        SUPABASE_URL: "http://localhost:54321",
+        SUPABASE_URL,
         CORS_ORIGINS: WEB_URL,
+        ENVIRONMENT: "test",
+        TEST_AUTH_STUB: "true",
         LOG_FORMAT: "console",
       },
     },
     {
-      command: `npm run dev --prefix ../frontend -- --port ${WEB_PORT} --strictPort`,
+      command: `npm run dev --prefix frontend -- --port ${WEB_PORT} --strictPort`,
+      cwd: "..",
       url: WEB_URL,
       reuseExistingServer: !process.env.CI,
       timeout: 60_000,
       env: {
-        VITE_API_URL: `http://localhost:${API_PORT}`,
+        VITE_API_URL: API_URL,
         VITE_WS_URL: `ws://localhost:${API_PORT}`,
-        VITE_SUPABASE_URL: "http://localhost:54321",
+        VITE_SUPABASE_URL: SUPABASE_URL,
         VITE_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_e2e",
       },
     },
