@@ -1,5 +1,5 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 import type { RosterSlot } from "../../api/types";
 import LineupList from "./LineupList";
 
@@ -49,5 +49,24 @@ describe("LineupList", () => {
     expect(screen.getByText(/touch and hold/i)).toBeTruthy();
     rerender(<LineupList slots={slots} canDrag={false} onMove={() => {}} />);
     expect(screen.queryByText(/touch and hold/i)).toBeNull();
+  });
+
+  it("moves a player by tapping them and then a slot", () => {
+    const onMove = vi.fn();
+    render(<LineupList slots={slots} canDrag onMove={onMove} />);
+    fireEvent.click(screen.getByRole("button", { name: /Josh Allen/ }));
+    expect(screen.getByText(/Tap a slot to move Josh Allen/)).toBeTruthy();
+    fireEvent.click(
+      screen.getByTestId("slot-1").querySelector("[aria-roledescription]") as Element,
+    );
+    expect(onMove).toHaveBeenCalledWith({ playerId: 1, slotIndex: 1 });
+    expect(screen.queryByText(/Tap a slot to move/)).toBeNull();
+  });
+
+  it("does nothing on tap for a read-only lineup", () => {
+    const onMove = vi.fn();
+    render(<LineupList slots={slots} canDrag={false} onMove={onMove} />);
+    fireEvent.click(screen.getByTestId("slot-0").firstElementChild as Element);
+    expect(screen.queryByText(/Tap a slot to move/)).toBeNull();
   });
 });
