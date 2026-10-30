@@ -34,7 +34,13 @@ export function useDraftRoom(leagueId: string | undefined) {
   }, []);
 
   const makePick = useCallback(
-    (playerId: number) => sendMessage({ eventType: "MAKE_PICK", data: { playerId } }),
+    (playerId: number) => {
+      if (!sendMessage({ eventType: "MAKE_PICK", data: { playerId } })) {
+        dispatch({ eventType: "ERROR", message: "Not connected — your pick was not sent." });
+        return;
+      }
+      dispatch({ eventType: "PICK_PENDING", data: { playerId } });
+    },
     [sendMessage],
   );
 

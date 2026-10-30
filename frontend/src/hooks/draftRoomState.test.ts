@@ -50,6 +50,34 @@ const pick = (overall: number, playerId: number): DraftPick => ({
 const NOW = new Date("2030-01-01T00:00:00Z").getTime();
 
 describe("draft room reducer", () => {
+  it("tracks a submitted pick as pending until my team's pick lands", () => {
+    let room = applyDraftEvent(initialRoom, { eventType: "SNAPSHOT", data: snapshot() });
+    room = applyDraftEvent(room, { eventType: "PICK_PENDING", data: { playerId: 5 } });
+    expect(room.pendingPlayerId).toBe(5);
+    room = applyDraftEvent(room, { eventType: "PICK_MADE", data: { ...pick(1, 7), teamId: 99 } });
+    expect(room.pendingPlayerId).toBe(5);
+    room = applyDraftEvent(room, { eventType: "PICK_MADE", data: pick(1, 5) });
+    expect(room.pendingPlayerId).toBeNull();
+  });
+
+  it("clears a pending pick when someone else drafts that player", () => {
+    let room = applyDraftEvent(initialRoom, { eventType: "SNAPSHOT", data: snapshot() });
+    room = applyDraftEvent(room, { eventType: "PICK_PENDING", data: { playerId: 5 } });
+    room = applyDraftEvent(room, { eventType: "PICK_MADE", data: { ...pick(1, 5), teamId: 99 } });
+    expect(room.pendingPlayerId).toBeNull();
+  });
+
+  it("clears a pending pick on ERROR and on a fresh snapshot", () => {
+    let room = applyDraftEvent(initialRoom, { eventType: "SNAPSHOT", data: snapshot() });
+    room = applyDraftEvent(room, { eventType: "PICK_PENDING", data: { playerId: 5 } });
+    expect(
+      applyDraftEvent(room, { eventType: "ERROR", message: "nope" }).pendingPlayerId,
+    ).toBeNull();
+    expect(
+      applyDraftEvent(room, { eventType: "SNAPSHOT", data: snapshot() }).pendingPlayerId,
+    ).toBeNull();
+  });
+
   it("loads a snapshot and records the server clock offset", () => {
     const room = applyDraftEvent(
       initialRoom,

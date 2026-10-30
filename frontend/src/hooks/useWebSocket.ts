@@ -105,12 +105,14 @@ export const useWebSocket = (url: string, options: Options = {}) => {
     };
   }, [url]);
 
-  const sendMessage = useCallback((message: object) => {
+  /** Returns false when the socket is down so callers can surface the dropped message. */
+  const sendMessage = useCallback((message: object): boolean => {
     if (socketRef.current?.readyState === WebSocket.OPEN) {
       socketRef.current.send(JSON.stringify(message));
-    } else {
-      logger.warn("Dropped outbound message: socket is not open");
+      return true;
     }
+    logger.warn("Dropped outbound message: socket is not open");
+    return false;
   }, []);
 
   return { isConnected, sendMessage };

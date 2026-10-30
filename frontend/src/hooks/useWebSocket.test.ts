@@ -151,11 +151,18 @@ describe("useWebSocket hook", () => {
     const { result } = renderHook(() => useWebSocket(URL));
     const socket = socketAt(0);
 
-    act(() => result.current.sendMessage({ eventType: "SYNC_REQUEST" }));
+    let sent = true;
+    act(() => {
+      sent = result.current.sendMessage({ eventType: "SYNC_REQUEST" });
+    });
     expect(socket.send).not.toHaveBeenCalled();
+    expect(sent).toBe(false);
 
     act(() => socket.simulateOpen());
-    act(() => result.current.sendMessage({ eventType: "SYNC_REQUEST" }));
+    act(() => {
+      sent = result.current.sendMessage({ eventType: "SYNC_REQUEST" });
+    });
+    expect(sent).toBe(true);
     expect(socket.send).toHaveBeenCalledWith(JSON.stringify({ eventType: "SYNC_REQUEST" }));
   });
 });

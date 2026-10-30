@@ -121,6 +121,8 @@ const DraftPage = () => {
               draftedIds={draftedIds}
               queue={state.queue}
               canPick={myTurn}
+              isConnected={room.isConnected}
+              pendingPlayerId={room.pendingPlayerId}
               onPick={(player) => room.makePick(player.id)}
               onQueue={(id) => updateQueue([...state.queue, id])}
             />

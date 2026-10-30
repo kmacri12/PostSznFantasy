@@ -6,6 +6,8 @@ export interface DraftRoom {
   /** Server time minus local time when the last state arrived; corrects the countdown. */
   clockOffsetMs: number;
   lastError: string | null;
+  /** Player whose MAKE_PICK is in flight; resolved by my team's PICK_MADE, ERROR or a new snapshot. */
+  pendingPlayerId: number | null;
   complete: boolean;
 }
 
@@ -13,6 +15,7 @@ export const initialRoom: DraftRoom = {
   state: null,
   clockOffsetMs: 0,
   lastError: null,
+  pendingPlayerId: null,
   complete: false,
 };
 
@@ -31,7 +34,12 @@ export function applyDraftEvent(room: DraftRoom, event: DraftMessage, now = Date
   switch (event.eventType) {
     case "SNAPSHOT": {
       const snapshot = event.data as DraftSnapshot;
-      return { ...withOffset(room, snapshot.serverTime, now), state: snapshot, lastError: null };
+      return {
+        ...withOffset(room, snapshot.serverTime, now),
+        state: snapshot,
+        lastError: null,
+        pendingPlayerId: null,
+      };
     }
     case "DRAFT_STATE": {
       if (!room.state) return room;
@@ -48,6 +56,10 @@ export function applyDraftEvent(room: DraftRoom, event: DraftMessage, now = Date
       // A queued player that just got drafted (by anyone) leaves everyone's queue.
       return {
         ...room,
+        pendingPlayerId:
+          pick.teamId === room.state.myTeamId || pick.playerId === room.pendingPlayerId
+            ? null
+            : room.pendingPlayerId,
         state: {
           ...room.state,
           picks,
@@ -65,8 +77,14 @@ export function applyDraftEvent(room: DraftRoom, event: DraftMessage, now = Date
         : room;
     case "DRAFT_COMPLETE":
       return { ...room, complete: true };
+    case "PICK_PENDING":
+      return { ...room, pendingPlayerId: (event.data as { playerId: number }).playerId };
     case "ERROR":
-      return { ...room, lastError: event.message ?? "Something went wrong" };
+      return {
+        ...room,
+        pendingPlayerId: null,
+        lastError: event.message ?? "Something went wrong",
+      };
     default:
       return room;
   }
