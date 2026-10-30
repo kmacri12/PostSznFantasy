@@ -200,3 +200,40 @@ test.describe("draft room", () => {
     await guestContext.close();
   });
 });
+
+test.describe("position caps", () => {
+  test("a team at its cap sees that position greyed out with the reason", async ({
+    page,
+    context,
+    request,
+  }) => {
+    const league = await createDraftLeague(request, {
+      seconds: 60,
+      status: "in_progress",
+    });
+    await signInAs(context, league.host.uid);
+    await page.goto(`/league/${league.leagueId}/draft`);
+
+    await draftFirst(page, "QB");
+    const players =
+      await league.guest.get<{ id: number; position: string }[]>("/api/players/draft-pool");
+    const rbs = players.filter((p) => p.position === "RB");
+    for (const rb of rbs.slice(0, 2)) {
+      await league.guest.post(`/api/drafts/${league.leagueId}/picks`, { playerId: rb.id });
+    }
+    await draftFirst(page, "QB");
+    await expect(page.getByText("Pick 5 of 8")).toBeVisible();
+
+    await page.getByRole("tab", { name: "Players" }).click();
+    await page.getByRole("button", { name: "QB", exact: true }).click();
+    const first = page
+      .getByRole("list", { name: "Available players" })
+      .getByRole("listitem")
+      .first();
+    await expect(
+      first.getByText("You already have 2 QBs, the most your league allows"),
+    ).toBeVisible();
+    await expect(first.getByRole("button", { name: "Position full" })).toBeDisabled();
+    if (process.env.SHOT_DIR) await page.screenshot({ path: `${process.env.SHOT_DIR}/capped.png` });
+  });
+});

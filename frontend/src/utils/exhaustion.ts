@@ -17,7 +17,7 @@ export function exhaustionWarnings(settings: {
     const wanted = settings.number_teams * perTeam;
     if (wanted <= UNITS_AVAILABLE) return [];
     return [
-      `${settings.number_teams} teams × up to ${perTeam} ${position} is ${wanted}, but only ${UNITS_AVAILABLE} ${position}s are in the playoffs. The ${position}s can run out before everyone gets their max.`,
+      `${settings.number_teams} teams × up to ${perTeam} ${position} is ${wanted}, but only ${UNITS_AVAILABLE} ${position}s are in the playoffs, so they can run out.`,
     ];
   });
 }

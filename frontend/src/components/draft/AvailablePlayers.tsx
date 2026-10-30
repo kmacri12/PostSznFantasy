@@ -99,7 +99,7 @@ const AvailablePlayers = ({
               Queue
             </Button>
             <Button
-              variant="contained"
+              variant={cappedPositions[player.position] ? "outlined" : "contained"}
               color={armedId === player.id ? "warning" : "primary"}
               sx={{ minHeight: 44, flex: 1, lineHeight: 1.2 }}
               disabled={
