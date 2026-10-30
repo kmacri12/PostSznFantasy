@@ -5,7 +5,7 @@ and the depth chart starters that pick the one QB / K per NFL team in the draft 
 Pre-dev: existing leagues are backfilled to off; new leagues must choose explicitly.
 
 Revision ID: 0009_team_unit_settings
-Revises: 0007
+Revises: 0008_activity_events
 Create Date: 2026-10-30 16:00:00
 
 """
@@ -17,7 +17,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "0009_team_unit_settings"
-down_revision: str | Sequence[str] | None = "0007"
+down_revision: str | Sequence[str] | None = "0008_activity_events"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
