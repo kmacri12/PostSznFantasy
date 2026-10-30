@@ -20,6 +20,7 @@ import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useLeague, useUpdateLeague } from "../api/queries";
 import type { LeagueOverview } from "../api/types";
+import DataFreshness from "../components/common/DataFreshness";
 import { mutationError } from "../components/common/friendlyError";
 import QueryBoundary from "../components/common/QueryBoundary";
 import InvitePanel from "../components/league/InvitePanel";
@@ -119,9 +120,12 @@ const LeagueContent = ({ league }: { league: LeagueOverview }) => {
           </Grid>
         )}
         <Grid size={{ xs: 12 }} sx={{ minWidth: 0 }}>
-          <Typography variant="h6" sx={{ mb: 1 }}>
+          <Typography variant="h6" sx={{ mb: 0.5 }}>
             Standings
           </Typography>
+          <Box sx={{ mb: 1 }}>
+            <DataFreshness />
+          </Box>
           <Card sx={{ p: 0, bgcolor: "transparent", boxShadow: "none" }}>
             <StandingsTable leagueId={String(league.id)} />
           </Card>

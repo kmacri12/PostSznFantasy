@@ -194,3 +194,8 @@ export interface SyncResult {
   durationMs: number;
   synced: { teams: number; players: number; stats: number; games: number };
 }
+
+export interface SyncStatus {
+  kind: string;
+  lastSyncedAt: string;
+}

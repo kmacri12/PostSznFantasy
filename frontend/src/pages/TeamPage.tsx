@@ -18,6 +18,7 @@ import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useAddDrop, useMoveInLineup, usePlayerList, useRenameTeam, useTeam } from "../api/queries";
 import type { RosterPlayer, TeamDetails } from "../api/types";
+import DataFreshness from "../components/common/DataFreshness";
 import EmptyState from "../components/common/EmptyState";
 import { mutationError } from "../components/common/friendlyError";
 import QueryBoundary from "../components/common/QueryBoundary";
@@ -137,6 +138,9 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
         )}
       </Box>
 
+      <Box sx={{ mb: 2 }}>
+        <DataFreshness />
+      </Box>
       {team.roster.length === 0 && (
         <Box sx={{ mb: 2 }}>
           <EmptyState
