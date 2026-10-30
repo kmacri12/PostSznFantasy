@@ -51,6 +51,7 @@ from api.services.settings_changes import (
     record_settings_change,
 )
 from api.services.standings_view import league_standings
+from api.services.team_units import newly_enabled, require_no_same_team_conflicts
 
 router = APIRouter()
 
@@ -123,6 +124,7 @@ async def create_league(
             **payload.roster_settings.model_dump(by_alias=False),
             **payload.scoring_settings.model_dump(by_alias=False),
             **payload.postseason_settings.model_dump(by_alias=False, mode="json"),
+            **payload.team_unit_settings.model_dump(by_alias=False),
         )
     )
     for i in range(number_of_teams):
@@ -426,6 +428,13 @@ async def update_league_settings(
             )
 
     before = {key: getattr(settings, key) for key in updates}
+    try:
+        await require_no_same_team_conflicts(
+            db, league_id, newly_enabled(settings, updates)
+        )
+    except LeagueRuleError as exc:
+        raise _rule_error(exc) from exc
+
     team_count = updates.pop("number_teams", None)
     if team_count is not None and team_count != settings.number_teams:
         try:

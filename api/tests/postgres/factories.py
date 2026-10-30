@@ -10,7 +10,12 @@ from api.db.models import (
     Team,
     User,
 )
-from api.models.league_models import PostseasonSettings, RosterSettings, ScoringSettings
+from api.models.league_models import (
+    PostseasonSettings,
+    RosterSettings,
+    ScoringSettings,
+    TeamUnitSettings,
+)
 
 
 async def make_league(
@@ -20,6 +25,8 @@ async def make_league(
     roster_total: int = 2,
     draft_status: str = "in_progress",
     ordered: bool = True,
+    team_qb: bool = False,
+    team_k: bool = False,
     **roster: int,
 ) -> tuple[League, list[User], list[Team], Draft]:
     """A league with one user per team; user 0 is the commissioner."""
@@ -51,6 +58,9 @@ async def make_league(
             **roster_settings.model_dump(by_alias=False),
             **ScoringSettings().model_dump(by_alias=False),
             **PostseasonSettings().model_dump(by_alias=False, mode="json"),
+            **TeamUnitSettings(team_qb=team_qb, team_k=team_k).model_dump(
+                by_alias=False
+            ),
         )
     )
     fantasy_teams = [

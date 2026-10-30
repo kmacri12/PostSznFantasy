@@ -113,8 +113,20 @@ A position scored by an NFL team rather than a person: always DST, and QB or K w
 _Avoid_: Combined position
 
 **Team QB / Team K**:
-A league setting under which a drafted QB (or K) scores every player whose official roster position is QB (or K) on that NFL team in that game. The owner drafts by name, and the whole team's QBs (or Ks) leave the draft pool.
+A league setting under which a drafted QB (or K) scores every player whose official roster position is QB (or K) on that NFL team in that game. The owner drafts by name, and the whole team's QBs (or Ks) leave the draft pool. Each is its own required commissioner choice, and a league can have one on and the other off.
 _Avoid_: Combine QB, backup coverage
+
+**Official roster position**:
+The position the league data lists for a player on his NFL team's roster. It alone decides who counts as a QB or K for a team unit: a WR who throws a touchdown pass scores as a WR, and a kicker is a K.
+_Avoid_: Stat position, listed role
+
+**Depth-chart starter**:
+The one QB (or K) per NFL team that the draft pool lists while team QB (or team K) is on. It is the first name on the NFL team's depth chart, or the player with the most pass attempts (or kicks) when the depth chart has no usable entry.
+_Avoid_: Starter (a lineup term), QB1
+
+**Same-team conflict**:
+A fantasy team holding two QBs (or two Ks) from the same NFL team. It blocks turning team QB (or team K) on, because the unit would be drafted twice.
+_Avoid_: Duplicate, overlap
 
 **DST**:
 A team defense and special teams, drafted and scored as a unit. Kick and punt return touchdowns score for the DST, never for the returner.
