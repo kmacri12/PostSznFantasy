@@ -22,7 +22,7 @@ depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
-    op.drop_column("league_settings", "tiebreaker")
+    op.drop_column("league_settings", "tiebreaker", schema="fantasy")
 
 
 def downgrade() -> None:
@@ -34,5 +34,8 @@ def downgrade() -> None:
             nullable=False,
             server_default="most_players_alive",
         ),
+        schema="fantasy",
     )
-    op.alter_column("league_settings", "tiebreaker", server_default=None)
+    op.alter_column(
+        "league_settings", "tiebreaker", server_default=None, schema="fantasy"
+    )
