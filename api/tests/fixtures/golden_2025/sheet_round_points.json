@@ -1,0 +1,4670 @@
+[
+ {
+  "name": "Jaxon Smith-Njigba",
+  "pos": "WR",
+  "team": "SEA",
+  "playerId": 4430878,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": 9.4,
+   "Conference Championship": 26.3,
+   "Super Bowl": 4.7
+  }
+ },
+ {
+  "name": "Jaden Shirden",
+  "pos": "RB",
+  "team": "CAR",
+  "playerId": 4775270,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Kenneth Walker III",
+  "pos": "RB",
+  "team": "SEA",
+  "playerId": 4567048,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": 34.0,
+   "Conference Championship": 19.1,
+   "Super Bowl": 17.1
+  }
+ },
+ {
+  "name": "Nick Vannett",
+  "pos": "TE",
+  "team": "LAR",
+  "playerId": 2576399,
+  "rounds": {
+   "Wild Card": 0.0,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Roschon Johnson",
+  "pos": "RB",
+  "team": "CHI",
+  "playerId": 4426386,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Jashaun Corbin",
+  "pos": "RB",
+  "team": "NE",
+  "playerId": 4372519,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Cam Sims",
+  "pos": "WR",
+  "team": "CAR",
+  "playerId": 3115314,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Tyrone Broden",
+  "pos": "WR",
+  "team": "SEA",
+  "playerId": 4429313,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "John Brown",
+  "pos": "WR",
+  "team": "BUF",
+  "playerId": 16804,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "JJ Laap",
+  "pos": "WR",
+  "team": "LAR",
+  "playerId": 5192438,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "David White Jr.",
+  "pos": "WR",
+  "team": "BUF",
+  "playerId": 5089537,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Ian Wheeler",
+  "pos": "RB",
+  "team": "CHI",
+  "playerId": 4579554,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Jarrett Guarantano",
+  "pos": "QB",
+  "team": "DEN",
+  "playerId": 4035167,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": 24.06,
+   "Conference Championship": 7.62,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Ricky White III",
+  "pos": "WR",
+  "team": "SEA",
+  "playerId": 4431479,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Mack Hollins",
+  "pos": "WR",
+  "team": "NE",
+  "playerId": 2991662,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": 6.1,
+   "Super Bowl": 15.8
+  }
+ },
+ {
+  "name": "Adam Prentice",
+  "pos": "FB",
+  "team": "DEN",
+  "playerId": 3929914,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": 0.0,
+   "Conference Championship": 0.3,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Ronnie Rivers",
+  "pos": "RB",
+  "team": "LAR",
+  "playerId": 4243003,
+  "rounds": {
+   "Wild Card": 0.0,
+   "Divisional Round": 0.0,
+   "Conference Championship": 0.0,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Mac Dalena",
+  "pos": "WR",
+  "team": "SEA",
+  "playerId": 4431053,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Jackson Hawes",
+  "pos": "TE",
+  "team": "BUF",
+  "playerId": 4573699,
+  "rounds": {
+   "Wild Card": 0.0,
+   "Divisional Round": 0.0,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Jonathan Kim",
+  "pos": "PK",
+  "team": "CHI",
+  "playerId": 4568671,
+  "rounds": {
+   "Wild Card": 13.2,
+   "Divisional Round": 6.8,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "J.K. Dobbins",
+  "pos": "RB",
+  "team": "DEN",
+  "playerId": 4241985,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Bryan Thompson",
+  "pos": "WR",
+  "team": "BUF",
+  "playerId": 4243261,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Ja'Tavion Sanders",
+  "pos": "TE",
+  "team": "CAR",
+  "playerId": 4431588,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Dax Milne",
+  "pos": "WR",
+  "team": "CAR",
+  "playerId": 4373642,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Lan Larison",
+  "pos": "RB",
+  "team": "NE",
+  "playerId": 4698253,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Mark Redman",
+  "pos": "TE",
+  "team": "LAR",
+  "playerId": 4431346,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Stephen Sullivan",
+  "pos": "TE",
+  "team": "CAR",
+  "playerId": 4035426,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Mike White",
+  "pos": "QB",
+  "team": "CAR",
+  "playerId": 3051381,
+  "rounds": {
+   "Wild Card": 20.96,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Evan Engram",
+  "pos": "TE",
+  "team": "DEN",
+  "playerId": 3051876,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": 1.2,
+   "Conference Championship": 2.9,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Dalton Kincaid",
+  "pos": "TE",
+  "team": "BUF",
+  "playerId": 4385690,
+  "rounds": {
+   "Wild Card": 10.3,
+   "Divisional Round": 17.3,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Chuba Hubbard",
+  "pos": "RB",
+  "team": "CAR",
+  "playerId": 4241416,
+  "rounds": {
+   "Wild Card": 18.9,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Hunter Henry",
+  "pos": "TE",
+  "team": "NE",
+  "playerId": 3046439,
+  "rounds": {
+   "Wild Card": 13.9,
+   "Divisional Round": 1.0,
+   "Conference Championship": 2.2,
+   "Super Bowl": 4.6
+  }
+ },
+ {
+  "name": "Drake Maye",
+  "pos": "QB",
+  "team": "NE",
+  "playerId": 4431452,
+  "rounds": {
+   "Wild Card": 17.32,
+   "Divisional Round": 14.16,
+   "Conference Championship": 15.94,
+   "Super Bowl": 17.5
+  }
+ },
+ {
+  "name": "Cade Johnson",
+  "pos": "WR",
+  "team": "SEA",
+  "playerId": 4031033,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Cairo Santos",
+  "pos": "PK",
+  "team": "CHI",
+  "playerId": 17427,
+  "rounds": {
+   "Wild Card": 13.2,
+   "Divisional Round": 6.8,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Jarquez Hunter",
+  "pos": "RB",
+  "team": "LAR",
+  "playerId": 4710341,
+  "rounds": {
+   "Wild Card": 0.0,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Thomas Gordon",
+  "pos": "TE",
+  "team": "CHI",
+  "playerId": 4569615,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Jacob Hollister",
+  "pos": "TE",
+  "team": "CAR",
+  "playerId": 3125404,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Jesper Horsted",
+  "pos": "TE",
+  "team": "CAR",
+  "playerId": 3940587,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Tyrell Shavers",
+  "pos": "WR",
+  "team": "BUF",
+  "playerId": 4241476,
+  "rounds": {
+   "Wild Card": 1.9,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Malcolm Brown",
+  "pos": "RB",
+  "team": "LAR",
+  "playerId": 2570986,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Laviska Shenault Jr.",
+  "pos": "WR",
+  "team": "BUF",
+  "playerId": 4243160,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Sony Michel",
+  "pos": "RB",
+  "team": "LAR",
+  "playerId": 3128721,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Jacolby George",
+  "pos": "WR",
+  "team": "CAR",
+  "playerId": 4567784,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Troy Franklin",
+  "pos": "WR",
+  "team": "DEN",
+  "playerId": 4431280,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": 0.0,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Isaiah Bowser",
+  "pos": "RB",
+  "team": "BUF",
+  "playerId": 4361264,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Colin Granger",
+  "pos": "TE",
+  "team": "CAR",
+  "playerId": 4585598,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Jalen Milroe",
+  "pos": "QB",
+  "team": "SEA",
+  "playerId": 4432734,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": 8.96,
+   "Conference Championship": 26.74,
+   "Super Bowl": 12.58
+  }
+ },
+ {
+  "name": "Bryce Perkins",
+  "pos": "QB",
+  "team": "CAR",
+  "playerId": 3675812,
+  "rounds": {
+   "Wild Card": 20.96,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Tyler Mabry",
+  "pos": "TE",
+  "team": "CAR",
+  "playerId": 3916587,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Bo Nix",
+  "pos": "QB",
+  "team": "DEN",
+  "playerId": 4426338,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": 24.06,
+   "Conference Championship": 7.62,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Sam Pinckney",
+  "pos": "WR",
+  "team": "CAR",
+  "playerId": 4361915,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Michael Burton",
+  "pos": "FB",
+  "team": "DEN",
+  "playerId": 2515270,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "DeMario Douglas",
+  "pos": "WR",
+  "team": "NE",
+  "playerId": 4427095,
+  "rounds": {
+   "Wild Card": 0.8,
+   "Divisional Round": 10.6,
+   "Conference Championship": 0.0,
+   "Super Bowl": 7.0
+  }
+ },
+ {
+  "name": "Jordan Whittington",
+  "pos": "WR",
+  "team": "LAR",
+  "playerId": 4569382,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": 4.5,
+   "Conference Championship": 0.0,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Tanner Gentry",
+  "pos": "WR",
+  "team": "BUF",
+  "playerId": 3043841,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Craig Reynolds",
+  "pos": "RB",
+  "team": "NE",
+  "playerId": 4421446,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Devin Carter",
+  "pos": "WR",
+  "team": "CAR",
+  "playerId": 4361679,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Durham Smythe",
+  "pos": "TE",
+  "team": "CHI",
+  "playerId": 3052897,
+  "rounds": {
+   "Wild Card": 1.1,
+   "Divisional Round": 1.0,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Tre Nixon",
+  "pos": "WR",
+  "team": "NE",
+  "playerId": 4047648,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Lance Lenoir",
+  "pos": "WR",
+  "team": "LAR",
+  "playerId": 3049249,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Colby Parkinson",
+  "pos": "TE",
+  "team": "LAR",
+  "playerId": 4242557,
+  "rounds": {
+   "Wild Card": 10.4,
+   "Divisional Round": 7.1,
+   "Conference Championship": 7.7,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Jordan Matthews",
+  "pos": "TE",
+  "team": "CAR",
+  "playerId": 16763,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Devon Garrison",
+  "pos": "TE",
+  "team": "SEA",
+  "playerId": 4703367,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Kyrese Rowan",
+  "pos": "WR",
+  "team": "DEN",
+  "playerId": 4574860,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Adam Trautman",
+  "pos": "TE",
+  "team": "DEN",
+  "playerId": 3911853,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": 0.0,
+   "Conference Championship": 0.0,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "David Ralli",
+  "pos": "WR",
+  "team": "NE",
+  "playerId": 2221890,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Devin Duvernay",
+  "pos": "WR",
+  "team": "CHI",
+  "playerId": 4039050,
+  "rounds": {
+   "Wild Card": 0.0,
+   "Divisional Round": 0.0,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Curtis Hodges",
+  "pos": "TE",
+  "team": "CAR",
+  "playerId": 4242896,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Qadir Ismail",
+  "pos": "TE",
+  "team": "CHI",
+  "playerId": 4379769,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Garrett Gilbert",
+  "pos": "QB",
+  "team": "NE",
+  "playerId": 16809,
+  "rounds": {
+   "Wild Card": 17.32,
+   "Divisional Round": 14.16,
+   "Conference Championship": 15.94,
+   "Super Bowl": 17.5
+  }
+ },
+ {
+  "name": "Olamide Zaccheaus",
+  "pos": "WR",
+  "team": "CHI",
+  "playerId": 3917914,
+  "rounds": {
+   "Wild Card": 7.3,
+   "Divisional Round": 1.4,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "D'Ernest Johnson",
+  "pos": "RB",
+  "team": "NE",
+  "playerId": 3139602,
+  "rounds": {
+   "Wild Card": 0.0,
+   "Divisional Round": 0.0,
+   "Conference Championship": 0.0,
+   "Super Bowl": 0.0
+  }
+ },
+ {
+  "name": "Michael Badgley",
+  "pos": "PK",
+  "team": "BUF",
+  "playerId": 3123052,
+  "rounds": {
+   "Wild Card": 12.7,
+   "Divisional Round": 14.4,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Sean Mannion",
+  "pos": "QB",
+  "team": "SEA",
+  "playerId": 2517017,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": 8.96,
+   "Conference Championship": 26.74,
+   "Super Bowl": 12.58
+  }
+ },
+ {
+  "name": "Sam Ehlinger",
+  "pos": "QB",
+  "team": "DEN",
+  "playerId": 4241820,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": 24.06,
+   "Conference Championship": 7.62,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Jack Westover",
+  "pos": "TE",
+  "team": "NE",
+  "playerId": 4361100,
+  "rounds": {
+   "Wild Card": 1.3,
+   "Divisional Round": 0.0,
+   "Conference Championship": 0.0,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Maurice Alexander",
+  "pos": "WR",
+  "team": "CHI",
+  "playerId": 3914307,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Cody Schrader",
+  "pos": "RB",
+  "team": "DEN",
+  "playerId": 4391845,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Leonard Fournette",
+  "pos": "RB",
+  "team": "BUF",
+  "playerId": 3115364,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Gary Jennings",
+  "pos": "WR",
+  "team": "CAR",
+  "playerId": 3916071,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Stephen Gosnell",
+  "pos": "WR",
+  "team": "BUF",
+  "playerId": 4432215,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Colston Loveland",
+  "pos": "TE",
+  "team": "CHI",
+  "playerId": 4723086,
+  "rounds": {
+   "Wild Card": 19.7,
+   "Divisional Round": 7.6,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Konata Mumpfield",
+  "pos": "WR",
+  "team": "LAR",
+  "playerId": 4710855,
+  "rounds": {
+   "Wild Card": 1.6,
+   "Divisional Round": 2.1,
+   "Conference Championship": 0.0,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Dominique Dafney",
+  "pos": "TE",
+  "team": "CAR",
+  "playerId": 4036129,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Tyler Scott",
+  "pos": "WR",
+  "team": "LAR",
+  "playerId": 4565908,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Phil Lutz",
+  "pos": "WR",
+  "team": "NE",
+  "playerId": 5153868,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Javon Wims",
+  "pos": "WR",
+  "team": "CAR",
+  "playerId": 4035019,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "David Wallis",
+  "pos": "WR",
+  "team": "NE",
+  "playerId": 5215032,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Matt Prater",
+  "pos": "PK",
+  "team": "BUF",
+  "playerId": 11122,
+  "rounds": {
+   "Wild Card": 12.7,
+   "Divisional Round": 14.4,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Brycen Hopkins",
+  "pos": "TE",
+  "team": "LAR",
+  "playerId": 3918003,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Warren Jackson",
+  "pos": "WR",
+  "team": "LAR",
+  "playerId": 4256040,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Kevin Kassis",
+  "pos": "WR",
+  "team": "SEA",
+  "playerId": 4047518,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Chase Allen",
+  "pos": "TE",
+  "team": "CHI",
+  "playerId": 4035526,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Puka Nacua",
+  "pos": "WR",
+  "team": "LAR",
+  "playerId": 4426515,
+  "rounds": {
+   "Wild Card": 29.5,
+   "Divisional Round": 8.7,
+   "Conference Championship": 27.4,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Lachlan Pitts",
+  "pos": "TE",
+  "team": "CHI",
+  "playerId": 4249623,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "John Jackson",
+  "pos": "WR",
+  "team": "CHI",
+  "playerId": 4569510,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "A.T. Perry",
+  "pos": "WR",
+  "team": "DEN",
+  "playerId": 4362019,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Jacob Warren",
+  "pos": "TE",
+  "team": "NE",
+  "playerId": 4369864,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Eric Saubert",
+  "pos": "TE",
+  "team": "SEA",
+  "playerId": 2975863,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": 0.0,
+   "Conference Championship": 0.0,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Jordan Murray",
+  "pos": "TE",
+  "team": "CHI",
+  "playerId": 4368172,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Case Keenum",
+  "pos": "QB",
+  "team": "CHI",
+  "playerId": 15168,
+  "rounds": {
+   "Wild Card": 22.44,
+   "Divisional Round": 16.28,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Jared Pinkney",
+  "pos": "TE",
+  "team": "CHI",
+  "playerId": 3915772,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Marcus Simms",
+  "pos": "WR",
+  "team": "SEA",
+  "playerId": 4039244,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Tetairoa McMillan",
+  "pos": "WR",
+  "team": "CAR",
+  "playerId": 4685472,
+  "rounds": {
+   "Wild Card": 10.6,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Pat Bryant",
+  "pos": "WR",
+  "team": "DEN",
+  "playerId": 4600981,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": 4.7,
+   "Conference Championship": 0.8,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Mario Williams",
+  "pos": "WR",
+  "team": "LAR",
+  "playerId": 4431618,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Wayne Taulapapa",
+  "pos": "RB",
+  "team": "SEA",
+  "playerId": 4370813,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Tyler Bass",
+  "pos": "PK",
+  "team": "BUF",
+  "playerId": 3917232,
+  "rounds": {
+   "Wild Card": 12.7,
+   "Divisional Round": 14.4,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "N'Keal Harry",
+  "pos": "TE",
+  "team": "SEA",
+  "playerId": 4047839,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Courtney Jackson",
+  "pos": "WR",
+  "team": "SEA",
+  "playerId": 4565172,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "De'Montre Tuggle",
+  "pos": "RB",
+  "team": "CHI",
+  "playerId": 4570276,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Jake Bobo",
+  "pos": "WR",
+  "team": "SEA",
+  "playerId": 4360405,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": 2.1,
+   "Conference Championship": 8.2,
+   "Super Bowl": 0.0
+  }
+ },
+ {
+  "name": "Latavius Murray",
+  "pos": "RB",
+  "team": "BUF",
+  "playerId": 15920,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Jaelon Darden",
+  "pos": "WR",
+  "team": "SEA",
+  "playerId": 4243830,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Lucas Krull",
+  "pos": "TE",
+  "team": "DEN",
+  "playerId": 4360231,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "RJ Harvey",
+  "pos": "RB",
+  "team": "DEN",
+  "playerId": 4568490,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": 9.1,
+   "Conference Championship": 7.9,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Darius Bradwell",
+  "pos": "RB",
+  "team": "CAR",
+  "playerId": 4040640,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Joshua Dobbs",
+  "pos": "QB",
+  "team": "NE",
+  "playerId": 3044720,
+  "rounds": {
+   "Wild Card": 17.32,
+   "Divisional Round": 14.16,
+   "Conference Championship": 15.94,
+   "Super Bowl": 17.5
+  }
+ },
+ {
+  "name": "JP Richardson",
+  "pos": "WR",
+  "team": "CHI",
+  "playerId": 4685183,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Brett Maher",
+  "pos": "PK",
+  "team": "LAR",
+  "playerId": 16486,
+  "rounds": {
+   "Wild Card": 12.8,
+   "Divisional Round": 9.4,
+   "Conference Championship": 12.4,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Raymond Calais",
+  "pos": "RB",
+  "team": "LAR",
+  "playerId": 4040732,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Caleb Williams",
+  "pos": "QB",
+  "team": "CHI",
+  "playerId": 4431611,
+  "rounds": {
+   "Wild Card": 22.44,
+   "Divisional Round": 16.28,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "David Moore",
+  "pos": "WR",
+  "team": "CAR",
+  "playerId": 4212909,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Chris Finke",
+  "pos": "WR",
+  "team": "CHI",
+  "playerId": 3932429,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Travis Homer",
+  "pos": "RB",
+  "team": "CHI",
+  "playerId": 4037457,
+  "rounds": {
+   "Wild Card": 0.0,
+   "Divisional Round": 0.0,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Deon Cain",
+  "pos": "WR",
+  "team": "BUF",
+  "playerId": 3728254,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Jimmy Garoppolo",
+  "pos": "QB",
+  "team": "LAR",
+  "playerId": 16760,
+  "rounds": {
+   "Wild Card": 22.16,
+   "Divisional Round": 10.22,
+   "Conference Championship": 28.56,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Duke Johnson",
+  "pos": "RB",
+  "team": "BUF",
+  "playerId": 2969962,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Gabe Davis",
+  "pos": "WR",
+  "team": "BUF",
+  "playerId": 4243537,
+  "rounds": {
+   "Wild Card": 2.4,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "D'Andre Swift",
+  "pos": "RB",
+  "team": "CHI",
+  "playerId": 4259545,
+  "rounds": {
+   "Wild Card": 16.2,
+   "Divisional Round": 7.6,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Anthony Tyus III",
+  "pos": "RB",
+  "team": "CAR",
+  "playerId": 4709392,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Lawrence Keys III",
+  "pos": "WR",
+  "team": "BUF",
+  "playerId": 4372769,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Andre Roberts",
+  "pos": "WR",
+  "team": "CAR",
+  "playerId": 13226,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Lincoln Victor",
+  "pos": "WR",
+  "team": "DEN",
+  "playerId": 4428753,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Mitchell Wilcox",
+  "pos": "TE",
+  "team": "NE",
+  "playerId": 3923392,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Rushawn Baker",
+  "pos": "RB",
+  "team": "NE",
+  "playerId": 4876613,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Stefon Diggs",
+  "pos": "WR",
+  "team": "NE",
+  "playerId": 2976212,
+  "rounds": {
+   "Wild Card": 2.6,
+   "Divisional Round": 12.0,
+   "Conference Championship": 4.2,
+   "Super Bowl": 5.2
+  }
+ },
+ {
+  "name": "Kyle Monangai",
+  "pos": "RB",
+  "team": "CHI",
+  "playerId": 4608686,
+  "rounds": {
+   "Wild Card": 5.4,
+   "Divisional Round": 9.2,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Dareke Young",
+  "pos": "WR",
+  "team": "SEA",
+  "playerId": 4401805,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": 0.0,
+   "Conference Championship": 0.0,
+   "Super Bowl": 0.0
+  }
+ },
+ {
+  "name": "Shane Watts",
+  "pos": "RB",
+  "team": "NE",
+  "playerId": 5299008,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Mecole Hardman Jr.",
+  "pos": "WR",
+  "team": "BUF",
+  "playerId": 4035004,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": 6.9,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Joshua Palmer",
+  "pos": "WR",
+  "team": "BUF",
+  "playerId": 4242433,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Jason Myers",
+  "pos": "PK",
+  "team": "SEA",
+  "playerId": 2473037,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": 10.5,
+   "Conference Championship": 6.7,
+   "Super Bowl": 20.0
+  }
+ },
+ {
+  "name": "Daewood Davis",
+  "pos": "WR",
+  "team": "CAR",
+  "playerId": 4242505,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Davis Cheek",
+  "pos": "QB",
+  "team": "CAR",
+  "playerId": 4248286,
+  "rounds": {
+   "Wild Card": 20.96,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Emani Bailey",
+  "pos": "RB",
+  "team": "CAR",
+  "playerId": 4565761,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Austin Reed",
+  "pos": "QB",
+  "team": "CHI",
+  "playerId": 4368343,
+  "rounds": {
+   "Wild Card": 22.44,
+   "Divisional Round": 16.28,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Trey Ragas",
+  "pos": "RB",
+  "team": "LAR",
+  "playerId": 4040728,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Taylor Grimes",
+  "pos": "WR",
+  "team": "DEN",
+  "playerId": 4383163,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Ra'Shaun Henry",
+  "pos": "WR",
+  "team": "SEA",
+  "playerId": 4032625,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Jonathon Brooks",
+  "pos": "RB",
+  "team": "CAR",
+  "playerId": 4678008,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "George Holani",
+  "pos": "RB",
+  "team": "SEA",
+  "playerId": 4429835,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": 4.6,
+   "Super Bowl": 1.8
+  }
+ },
+ {
+  "name": "Case Cookus",
+  "pos": "QB",
+  "team": "LAR",
+  "playerId": 3913822,
+  "rounds": {
+   "Wild Card": 22.16,
+   "Divisional Round": 10.22,
+   "Conference Championship": 28.56,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Jaren Hall",
+  "pos": "QB",
+  "team": "SEA",
+  "playerId": 4373632,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": 8.96,
+   "Conference Championship": 26.74,
+   "Super Bowl": 12.58
+  }
+ },
+ {
+  "name": "Blake Corum",
+  "pos": "RB",
+  "team": "LAR",
+  "playerId": 4429096,
+  "rounds": {
+   "Wild Card": 6.8,
+   "Divisional Round": 1.9,
+   "Conference Championship": 9.4,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Elijah Arroyo",
+  "pos": "TE",
+  "team": "SEA",
+  "playerId": 4678006,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Efton Chism III",
+  "pos": "WR",
+  "team": "NE",
+  "playerId": 4695193,
+  "rounds": {
+   "Wild Card": 2.5,
+   "Divisional Round": 0.0,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Tayvion Robinson",
+  "pos": "WR",
+  "team": "CAR",
+  "playerId": 4428367,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Robbie Ouzts",
+  "pos": "FB",
+  "team": "SEA",
+  "playerId": 4691688,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": 0.0,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Elijah Moore",
+  "pos": "WR",
+  "team": "DEN",
+  "playerId": 4372414,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": 0.9,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Tyler Davis",
+  "pos": "TE",
+  "team": "NE",
+  "playerId": 3914240,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Freddie Swain",
+  "pos": "WR",
+  "team": "CHI",
+  "playerId": 4034950,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Trestan Ebner",
+  "pos": "RB",
+  "team": "CHI",
+  "playerId": 4259169,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Roger Carter Jr.",
+  "pos": "TE",
+  "team": "LAR",
+  "playerId": 4241273,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Kyle Williams",
+  "pos": "WR",
+  "team": "NE",
+  "playerId": 4613202,
+  "rounds": {
+   "Wild Card": 1.2,
+   "Divisional Round": 0.0,
+   "Conference Championship": 0.0,
+   "Super Bowl": 1.2
+  }
+ },
+ {
+  "name": "Frank Gore Jr.",
+  "pos": "RB",
+  "team": "BUF",
+  "playerId": 4429805,
+  "rounds": {
+   "Wild Card": 1.1,
+   "Divisional Round": 0.0,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Courtland Sutton",
+  "pos": "WR",
+  "team": "DEN",
+  "playerId": 3128429,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": 7.3,
+   "Conference Championship": 9.2,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "A.J. Rose",
+  "pos": "RB",
+  "team": "LAR",
+  "playerId": 4035068,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Tory Horton",
+  "pos": "WR",
+  "team": "SEA",
+  "playerId": 4597703,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Kyren Williams",
+  "pos": "RB",
+  "team": "LAR",
+  "playerId": 4430737,
+  "rounds": {
+   "Wild Card": 14.5,
+   "Divisional Round": 25.7,
+   "Conference Championship": 13.1,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Thayer Thomas",
+  "pos": "WR",
+  "team": "DEN",
+  "playerId": 4240121,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Tommy Sweeney",
+  "pos": "TE",
+  "team": "CHI",
+  "playerId": 3122818,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Rashard Higgins",
+  "pos": "WR",
+  "team": "CAR",
+  "playerId": 3042910,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Ahmarean Brown",
+  "pos": "WR",
+  "team": "BUF",
+  "playerId": 4426800,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Christian Sims",
+  "pos": "TE",
+  "team": "LAR",
+  "playerId": 4428501,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Lil'Jordan Humphrey",
+  "pos": "WR",
+  "team": "DEN",
+  "playerId": 4039057,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": 10.3,
+   "Conference Championship": 1.0,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Dan Chisena",
+  "pos": "WR",
+  "team": "CAR",
+  "playerId": 3929637,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Camren McDonald",
+  "pos": "TE",
+  "team": "LAR",
+  "playerId": 4363045,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Hayden Hatten",
+  "pos": "WR",
+  "team": "SEA",
+  "playerId": 4571762,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Ryan Fitzgerald",
+  "pos": "PK",
+  "team": "CAR",
+  "playerId": 4568263,
+  "rounds": {
+   "Wild Card": 8.6,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Rome Odunze",
+  "pos": "WR",
+  "team": "CHI",
+  "playerId": 4431299,
+  "rounds": {
+   "Wild Card": 5.4,
+   "Divisional Round": 5.4,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "PJ Walker",
+  "pos": "QB",
+  "team": "SEA",
+  "playerId": 3051308,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": 8.96,
+   "Conference Championship": 26.74,
+   "Super Bowl": 12.58
+  }
+ },
+ {
+  "name": "Brandin Cooks",
+  "pos": "WR",
+  "team": "BUF",
+  "playerId": 16731,
+  "rounds": {
+   "Wild Card": 7.3,
+   "Divisional Round": 3.0,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Caden Davis",
+  "pos": "PK",
+  "team": "BUF",
+  "playerId": 4570688,
+  "rounds": {
+   "Wild Card": 12.7,
+   "Divisional Round": 14.4,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Jarrett Stidham",
+  "pos": "QB",
+  "team": "DEN",
+  "playerId": 3892775,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": 24.06,
+   "Conference Championship": 7.62,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Grant DuBose",
+  "pos": "WR",
+  "team": "BUF",
+  "playerId": 4879650,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Cam Johnson",
+  "pos": "WR",
+  "team": "CAR",
+  "playerId": 4362794,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Cade Brewer",
+  "pos": "TE",
+  "team": "SEA",
+  "playerId": 4262205,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Sam James",
+  "pos": "WR",
+  "team": "LAR",
+  "playerId": 4362208,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Tommy DeVito",
+  "pos": "QB",
+  "team": "NE",
+  "playerId": 4240391,
+  "rounds": {
+   "Wild Card": 17.32,
+   "Divisional Round": 14.16,
+   "Conference Championship": 15.94,
+   "Super Bowl": 17.5
+  }
+ },
+ {
+  "name": "TreVeyon Henderson",
+  "pos": "RB",
+  "team": "NE",
+  "playerId": 4432710,
+  "rounds": {
+   "Wild Card": 4.1,
+   "Divisional Round": 2.8,
+   "Conference Championship": 0.5,
+   "Super Bowl": 6.0
+  }
+ },
+ {
+  "name": "Terrance Ferguson",
+  "pos": "TE",
+  "team": "LAR",
+  "playerId": 4570037,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": 2.4,
+   "Conference Championship": 0.0,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Stetson Bennett IV",
+  "pos": "QB",
+  "team": "LAR",
+  "playerId": 4259553,
+  "rounds": {
+   "Wild Card": 22.16,
+   "Divisional Round": 10.22,
+   "Conference Championship": 28.56,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Kevin Shaa",
+  "pos": "WR",
+  "team": "CHI",
+  "playerId": 4365503,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Tyler Higbee",
+  "pos": "TE",
+  "team": "LAR",
+  "playerId": 2573401,
+  "rounds": {
+   "Wild Card": 5.5,
+   "Divisional Round": 3.2,
+   "Conference Championship": 1.7,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Brittain Brown",
+  "pos": "RB",
+  "team": "CHI",
+  "playerId": 4036032,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "TaMerik Williams",
+  "pos": "RB",
+  "team": "SEA",
+  "playerId": 4360564,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Dezmon Patmon",
+  "pos": "WR",
+  "team": "CAR",
+  "playerId": 4054085,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Jalen Coker",
+  "pos": "WR",
+  "team": "CAR",
+  "playerId": 4695883,
+  "rounds": {
+   "Wild Card": 23.9,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Jaleel McLaughlin",
+  "pos": "RB",
+  "team": "DEN",
+  "playerId": 4722893,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": 2.1,
+   "Conference Championship": 1.8,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Michael Bandy",
+  "pos": "WR",
+  "team": "DEN",
+  "playerId": 4034704,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Derek Wright",
+  "pos": "WR",
+  "team": "CAR",
+  "playerId": 4569995,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Montrell Johnson Jr.",
+  "pos": "RB",
+  "team": "CAR",
+  "playerId": 4684625,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Dresser Winn",
+  "pos": "QB",
+  "team": "LAR",
+  "playerId": 4250970,
+  "rounds": {
+   "Wild Card": 22.16,
+   "Divisional Round": 10.22,
+   "Conference Championship": 28.56,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "T.J. Luther",
+  "pos": "WR",
+  "team": "CAR",
+  "playerId": 4370162,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "C.J. Johnson",
+  "pos": "WR",
+  "team": "SEA",
+  "playerId": 4567458,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Luther Burden III",
+  "pos": "WR",
+  "team": "CHI",
+  "playerId": 4685278,
+  "rounds": {
+   "Wild Card": 5.3,
+   "Divisional Round": 3.9,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Dillon Johnson",
+  "pos": "RB",
+  "team": "CAR",
+  "playerId": 4689338,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Ray Davis",
+  "pos": "RB",
+  "team": "BUF",
+  "playerId": 4429501,
+  "rounds": {
+   "Wild Card": -2.0,
+   "Divisional Round": 4.3,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Josh Hammond",
+  "pos": "WR",
+  "team": "DEN",
+  "playerId": 4034944,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Camerun Peoples",
+  "pos": "RB",
+  "team": "CAR",
+  "playerId": 4360765,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Jordan Waters",
+  "pos": "RB",
+  "team": "LAR",
+  "playerId": 4428803,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Marcell Ateman",
+  "pos": "WR",
+  "team": "BUF",
+  "playerId": 3046320,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Andy Borregales",
+  "pos": "PK",
+  "team": "NE",
+  "playerId": 4569923,
+  "rounds": {
+   "Wild Card": 10.7,
+   "Divisional Round": 4.0,
+   "Conference Championship": 1.3,
+   "Super Bowl": 1.0
+  }
+ },
+ {
+  "name": "Ross Dwelley",
+  "pos": "TE",
+  "team": "CAR",
+  "playerId": 3120303,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Cody White",
+  "pos": "WR",
+  "team": "SEA",
+  "playerId": 4241983,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "DK Kaufman",
+  "pos": "RB",
+  "team": "SEA",
+  "playerId": 4565535,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Velus Jones Jr.",
+  "pos": "RB",
+  "team": "SEA",
+  "playerId": 4035693,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": 1.0,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Andy Dalton",
+  "pos": "QB",
+  "team": "CAR",
+  "playerId": 14012,
+  "rounds": {
+   "Wild Card": 20.96,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Jeremiah Webb",
+  "pos": "WR",
+  "team": "NE",
+  "playerId": 4572655,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Trevor Etienne",
+  "pos": "RB",
+  "team": "CAR",
+  "playerId": 4685350,
+  "rounds": {
+   "Wild Card": -1.6,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Josh Vann",
+  "pos": "WR",
+  "team": "CAR",
+  "playerId": 4362862,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Tyler Hudson",
+  "pos": "WR",
+  "team": "LAR",
+  "playerId": 4429867,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Cole Kmet",
+  "pos": "TE",
+  "team": "CHI",
+  "playerId": 4258595,
+  "rounds": {
+   "Wild Card": 0.1,
+   "Divisional Round": 10.6,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Marcedes Lewis",
+  "pos": "TE",
+  "team": "DEN",
+  "playerId": 9614,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Christopher Dunn",
+  "pos": "PK",
+  "team": "LAR",
+  "playerId": 4361665,
+  "rounds": {
+   "Wild Card": 12.8,
+   "Divisional Round": 9.4,
+   "Conference Championship": 12.4,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Preston Williams",
+  "pos": "WR",
+  "team": "CAR",
+  "playerId": 3915399,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Wayne Gallman",
+  "pos": "RB",
+  "team": "SEA",
+  "playerId": 3045127,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Holton Ahlers",
+  "pos": "QB",
+  "team": "SEA",
+  "playerId": 4360131,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": 8.96,
+   "Conference Championship": 26.74,
+   "Super Bowl": 12.58
+  }
+ },
+ {
+  "name": "Jaylen Smith",
+  "pos": "WR",
+  "team": "SEA",
+  "playerId": 3916418,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Keleki Latu",
+  "pos": "TE",
+  "team": "BUF",
+  "playerId": 4688552,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "James Mitchell",
+  "pos": "TE",
+  "team": "CAR",
+  "playerId": 4361988,
+  "rounds": {
+   "Wild Card": 0.0,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Joe Reed",
+  "pos": "WR",
+  "team": "CHI",
+  "playerId": 4037591,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Jacardia Wright",
+  "pos": "RB",
+  "team": "SEA",
+  "playerId": 4428943,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Jalen Hurd",
+  "pos": "WR",
+  "team": "NE",
+  "playerId": 3115328,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Myles Gaskin",
+  "pos": "RB",
+  "team": "SEA",
+  "playerId": 3886818,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Tru Edwards",
+  "pos": "WR",
+  "team": "LAR",
+  "playerId": 4875786,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Isaiah Coulter",
+  "pos": "WR",
+  "team": "BUF",
+  "playerId": 4248504,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Darrynton Evans",
+  "pos": "RB",
+  "team": "BUF",
+  "playerId": 4036431,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Dylan Leonard",
+  "pos": "TE",
+  "team": "DEN",
+  "playerId": 4574777,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Kendall Hinton",
+  "pos": "WR",
+  "team": "DEN",
+  "playerId": 3700815,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Tutu Atwell",
+  "pos": "WR",
+  "team": "LAR",
+  "playerId": 4360797,
+  "rounds": {
+   "Wild Card": 0.0,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Ainias Smith",
+  "pos": "WR",
+  "team": "CAR",
+  "playerId": 4428532,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Deuce Vaughn",
+  "pos": "RB",
+  "team": "DEN",
+  "playerId": 4431453,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Bryant Koback",
+  "pos": "RB",
+  "team": "SEA",
+  "playerId": 4240781,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Sam Wiglusz",
+  "pos": "WR",
+  "team": "LAR",
+  "playerId": 4385438,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Nick Kallerup",
+  "pos": "TE",
+  "team": "SEA",
+  "playerId": 4569547,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": 0.0,
+   "Conference Championship": 0.0,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Drew Lock",
+  "pos": "QB",
+  "team": "SEA",
+  "playerId": 3924327,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": 8.96,
+   "Conference Championship": 26.74,
+   "Super Bowl": 12.58
+  }
+ },
+ {
+  "name": "Wil Lutz",
+  "pos": "PK",
+  "team": "DEN",
+  "playerId": 2985659,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": 16.4,
+   "Conference Championship": -1.0,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Kobe Lewis",
+  "pos": "RB",
+  "team": "SEA",
+  "playerId": 4362569,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Praise Olatoke",
+  "pos": "WR",
+  "team": "CAR",
+  "playerId": 5215426,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Braxton Burmeister",
+  "pos": "WR",
+  "team": "LAR",
+  "playerId": 4242490,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Rico Dowdle",
+  "pos": "RB",
+  "team": "CAR",
+  "playerId": 4038815,
+  "rounds": {
+   "Wild Card": 2.0,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Drake Stoops",
+  "pos": "WR",
+  "team": "LAR",
+  "playerId": 4360282,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Cooper Kupp",
+  "pos": "WR",
+  "team": "SEA",
+  "playerId": 2977187,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": 8.5,
+   "Conference Championship": 11.6,
+   "Super Bowl": 9.1
+  }
+ },
+ {
+  "name": "Nick Williams",
+  "pos": "WR",
+  "team": "DEN",
+  "playerId": 4832070,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Nsimba Webster",
+  "pos": "WR",
+  "team": "CHI",
+  "playerId": 3119317,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Matthew Stafford",
+  "pos": "QB",
+  "team": "LAR",
+  "playerId": 12483,
+  "rounds": {
+   "Wild Card": 22.16,
+   "Divisional Round": 10.22,
+   "Conference Championship": 28.56,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Hunter Kampmoyer",
+  "pos": "TE",
+  "team": "DEN",
+  "playerId": 4038952,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "SaRodorick Thompson Jr.",
+  "pos": "RB",
+  "team": "LAR",
+  "playerId": 4362162,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Marquez Stevenson",
+  "pos": "WR",
+  "team": "CAR",
+  "playerId": 4039307,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Mitchell Trubisky",
+  "pos": "QB",
+  "team": "BUF",
+  "playerId": 3039707,
+  "rounds": {
+   "Wild Card": 30.22,
+   "Divisional Round": 21.92,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Rashid Shaheed",
+  "pos": "WR",
+  "team": "SEA",
+  "playerId": 4032473,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": 2.7,
+   "Conference Championship": 5.6,
+   "Super Bowl": 3.2
+  }
+ },
+ {
+  "name": "Damiere Byrd",
+  "pos": "WR",
+  "team": "BUF",
+  "playerId": 2577667,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Brady Russell",
+  "pos": "FB",
+  "team": "SEA",
+  "playerId": 4243176,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": 0.0,
+   "Conference Championship": 0.0,
+   "Super Bowl": 0.0
+  }
+ },
+ {
+  "name": "Gerald Everett",
+  "pos": "TE",
+  "team": "CHI",
+  "playerId": 3918639,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Wesley Steiner",
+  "pos": "FB",
+  "team": "SEA",
+  "playerId": 4429008,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Deneric Prince",
+  "pos": "RB",
+  "team": "NE",
+  "playerId": 4372526,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Ethan Garbers",
+  "pos": "QB",
+  "team": "CAR",
+  "playerId": 4429068,
+  "rounds": {
+   "Wild Card": 20.96,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Chris Pierce Jr.",
+  "pos": "TE",
+  "team": "CAR",
+  "playerId": 4242661,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Michael Ezeike",
+  "pos": "TE",
+  "team": "SEA",
+  "playerId": 4367182,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Deion Hankins",
+  "pos": "RB",
+  "team": "CHI",
+  "playerId": 4575667,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "DJ Moore",
+  "pos": "WR",
+  "team": "CHI",
+  "playerId": 3915416,
+  "rounds": {
+   "Wild Card": 14.9,
+   "Divisional Round": 14.5,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Chevan Cordeiro",
+  "pos": "QB",
+  "team": "SEA",
+  "playerId": 4373934,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": 8.96,
+   "Conference Championship": 26.74,
+   "Super Bowl": 12.58
+  }
+ },
+ {
+  "name": "Elijah Young",
+  "pos": "RB",
+  "team": "BUF",
+  "playerId": 4433945,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Josh Allen",
+  "pos": "QB",
+  "team": "BUF",
+  "playerId": 3918298,
+  "rounds": {
+   "Wild Card": 30.22,
+   "Divisional Round": 21.92,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Demeer Blankumsee",
+  "pos": "WR",
+  "team": "NE",
+  "playerId": 4429284,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "James Cook III",
+  "pos": "RB",
+  "team": "BUF",
+  "playerId": 4379399,
+  "rounds": {
+   "Wild Card": 6.1,
+   "Divisional Round": 13.1,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Anthony Torres",
+  "pos": "TE",
+  "team": "LAR",
+  "playerId": 4362248,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "CJ Dippre",
+  "pos": "TE",
+  "team": "NE",
+  "playerId": 4596545,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Moose Muhammad III",
+  "pos": "WR",
+  "team": "CAR",
+  "playerId": 4685144,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Jack Plummer",
+  "pos": "QB",
+  "team": "CAR",
+  "playerId": 4361493,
+  "rounds": {
+   "Wild Card": 20.96,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Tyler Badie",
+  "pos": "RB",
+  "team": "DEN",
+  "playerId": 4362748,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": 1.2,
+   "Conference Championship": 0.4,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Ricky Person Jr.",
+  "pos": "RB",
+  "team": "SEA",
+  "playerId": 4361655,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Matthew Slater",
+  "pos": "WR",
+  "team": "NE",
+  "playerId": 11387,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Xavier Smith",
+  "pos": "WR",
+  "team": "LAR",
+  "playerId": 4386544,
+  "rounds": {
+   "Wild Card": 0.0,
+   "Divisional Round": 0.0,
+   "Conference Championship": -2.0,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Terrell Jennings",
+  "pos": "RB",
+  "team": "NE",
+  "playerId": 4427600,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Jahdae Walker",
+  "pos": "WR",
+  "team": "CHI",
+  "playerId": 5160110,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Davante Adams",
+  "pos": "WR",
+  "team": "LAR",
+  "playerId": 16800,
+  "rounds": {
+   "Wild Card": 9.7,
+   "Divisional Round": 3.4,
+   "Conference Championship": 16.9,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Jimmy Horn Jr.",
+  "pos": "WR",
+  "team": "CAR",
+  "playerId": 4708486,
+  "rounds": {
+   "Wild Card": 0.0,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Tyson Bagent",
+  "pos": "QB",
+  "team": "CHI",
+  "playerId": 4434153,
+  "rounds": {
+   "Wild Card": 22.44,
+   "Divisional Round": 16.28,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Marshall Lang",
+  "pos": "TE",
+  "team": "NE",
+  "playerId": 4566195,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Anthony Brown Jr.",
+  "pos": "QB",
+  "team": "BUF",
+  "playerId": 4035312,
+  "rounds": {
+   "Wild Card": 30.22,
+   "Divisional Round": 21.92,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Harrison Mevis",
+  "pos": "PK",
+  "team": "LAR",
+  "playerId": 4574716,
+  "rounds": {
+   "Wild Card": 12.8,
+   "Divisional Round": 9.4,
+   "Conference Championship": 12.4,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Kaden Prather",
+  "pos": "WR",
+  "team": "BUF",
+  "playerId": 4431509,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Zach Charbonnet",
+  "pos": "RB",
+  "team": "SEA",
+  "playerId": 4426385,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": 2.0,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Miller Forristall",
+  "pos": "TE",
+  "team": "LAR",
+  "playerId": 4040714,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Elijah Mitchell",
+  "pos": "RB",
+  "team": "NE",
+  "playerId": 4241555,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Tommy Tremble",
+  "pos": "TE",
+  "team": "CAR",
+  "playerId": 4372780,
+  "rounds": {
+   "Wild Card": 3.7,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "KeeSean Johnson",
+  "pos": "WR",
+  "team": "BUF",
+  "playerId": 3124537,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Jaquarii Roberson",
+  "pos": "WR",
+  "team": "LAR",
+  "playerId": 4240429,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "JaQuan Hardy",
+  "pos": "RB",
+  "team": "DEN",
+  "playerId": 4069817,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Bryce Young",
+  "pos": "QB",
+  "team": "CAR",
+  "playerId": 4685720,
+  "rounds": {
+   "Wild Card": 20.96,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Chris Smith",
+  "pos": "RB",
+  "team": "SEA",
+  "playerId": 4363104,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Dallas Daniels",
+  "pos": "WR",
+  "team": "DEN",
+  "playerId": 4694694,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "La'Michael Pettway",
+  "pos": "TE",
+  "team": "NE",
+  "playerId": 3916911,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Rhamondre Stevenson",
+  "pos": "RB",
+  "team": "NE",
+  "playerId": 4569173,
+  "rounds": {
+   "Wild Card": 14.3,
+   "Divisional Round": 10.1,
+   "Conference Championship": 7.1,
+   "Super Bowl": 14.8
+  }
+ },
+ {
+  "name": "Mitchell Evans",
+  "pos": "TE",
+  "team": "CAR",
+  "playerId": 4683243,
+  "rounds": {
+   "Wild Card": 0.0,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Ty Montgomery II",
+  "pos": "WR",
+  "team": "NE",
+  "playerId": 2577134,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Cam Akers",
+  "pos": "RB",
+  "team": "SEA",
+  "playerId": 4240021,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": 0.0,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Chase Claypool",
+  "pos": "WR",
+  "team": "BUF",
+  "playerId": 4046692,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Kay'Ron Lynch-Adams",
+  "pos": "RB",
+  "team": "CAR",
+  "playerId": 4426530,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Peter LeBlanc",
+  "pos": "WR",
+  "team": "CHI",
+  "playerId": 4427773,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Montorie Foster Jr.",
+  "pos": "WR",
+  "team": "SEA",
+  "playerId": 4600597,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "John Jiles",
+  "pos": "WR",
+  "team": "NE",
+  "playerId": 4887705,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Jace Sternberger",
+  "pos": "TE",
+  "team": "BUF",
+  "playerId": 3917962,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Brycen Tremayne",
+  "pos": "WR",
+  "team": "CAR",
+  "playerId": 4360763,
+  "rounds": {
+   "Wild Card": 0.0,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Patrick Murtagh",
+  "pos": "TE",
+  "team": "DEN",
+  "playerId": 5209791,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "KJ Hamler",
+  "pos": "WR",
+  "team": "BUF",
+  "playerId": 4240380,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Xavier Legette",
+  "pos": "WR",
+  "team": "CAR",
+  "playerId": 4430034,
+  "rounds": {
+   "Wild Card": 1.3,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Kairee Robinson",
+  "pos": "RB",
+  "team": "SEA",
+  "playerId": 4570243,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Davis Allen",
+  "pos": "TE",
+  "team": "LAR",
+  "playerId": 4426553,
+  "rounds": {
+   "Wild Card": 0.0,
+   "Divisional Round": 0.0,
+   "Conference Championship": 0.0,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Jake Kumerow",
+  "pos": "WR",
+  "team": "BUF",
+  "playerId": 3085107,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Justin Marshall",
+  "pos": "WR",
+  "team": "SEA",
+  "playerId": 4240075,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Isaiah Ford",
+  "pos": "WR",
+  "team": "CHI",
+  "playerId": 3124069,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Darrell Henderson Jr.",
+  "pos": "RB",
+  "team": "LAR",
+  "playerId": 4039359,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Ed Lee",
+  "pos": "WR",
+  "team": "NE",
+  "playerId": 4248503,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Brock Lampe",
+  "pos": "FB",
+  "team": "NE",
+  "playerId": 4875767,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Jarveon Howard",
+  "pos": "RB",
+  "team": "BUF",
+  "playerId": 4361945,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Landen Akers",
+  "pos": "WR",
+  "team": "LAR",
+  "playerId": 4035554,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Damien Harris",
+  "pos": "RB",
+  "team": "BUF",
+  "playerId": 3925347,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Stephen Carlson",
+  "pos": "TE",
+  "team": "CHI",
+  "playerId": 3948283,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Elliott Fry",
+  "pos": "PK",
+  "team": "DEN",
+  "playerId": 3048898,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": 16.4,
+   "Conference Championship": -1.0,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Ja'seem Reed",
+  "pos": "WR",
+  "team": "CAR",
+  "playerId": 4876995,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Dawson Knox",
+  "pos": "TE",
+  "team": "BUF",
+  "playerId": 3930086,
+  "rounds": {
+   "Wild Card": 4.5,
+   "Divisional Round": 4.7,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "D'Eriq King",
+  "pos": "QB",
+  "team": "CAR",
+  "playerId": 4039300,
+  "rounds": {
+   "Wild Card": 20.96,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Antonio Gibson",
+  "pos": "RB",
+  "team": "NE",
+  "playerId": 4360294,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Connor Wedington",
+  "pos": "WR",
+  "team": "SEA",
+  "playerId": 4242545,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Cole Fotheringham",
+  "pos": "TE",
+  "team": "NE",
+  "playerId": 4361008,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Miles Boykin",
+  "pos": "WR",
+  "team": "CHI",
+  "playerId": 3932423,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Keon Coleman",
+  "pos": "WR",
+  "team": "BUF",
+  "playerId": 4635008,
+  "rounds": {
+   "Wild Card": 4.1,
+   "Divisional Round": 7.5,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Bryce Pierre",
+  "pos": "TE",
+  "team": "CAR",
+  "playerId": 5082648,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Curtis Samuel",
+  "pos": "WR",
+  "team": "BUF",
+  "playerId": 3121427,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": 0.7,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Rysen John",
+  "pos": "TE",
+  "team": "CHI",
+  "playerId": 4045062,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Jerreth Sterns",
+  "pos": "WR",
+  "team": "LAR",
+  "playerId": 4383723,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Nick Williams",
+  "pos": "WR",
+  "team": "DEN",
+  "playerId": 16345,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Micah Bernard",
+  "pos": "RB",
+  "team": "NE",
+  "playerId": 4426696,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "AJ Barner",
+  "pos": "TE",
+  "team": "SEA",
+  "playerId": 4576297,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": 0.2,
+   "Conference Championship": 2.3,
+   "Super Bowl": 13.4
+  }
+ },
+ {
+  "name": "John Hall",
+  "pos": "WR",
+  "team": "SEA",
+  "playerId": 5143805,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Ben Wooldridge",
+  "pos": "QB",
+  "team": "NE",
+  "playerId": 4373895,
+  "rounds": {
+   "Wild Card": 17.32,
+   "Divisional Round": 14.16,
+   "Conference Championship": 15.94,
+   "Super Bowl": 17.5
+  }
+ },
+ {
+  "name": "J.J. Koski",
+  "pos": "WR",
+  "team": "DEN",
+  "playerId": 3910287,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Nikola Kalinic",
+  "pos": "TE",
+  "team": "CHI",
+  "playerId": 4916349,
+  "rounds": {
+   "Wild Card": 0.0,
+   "Divisional Round": 0.0,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Marvin Mims Jr.",
+  "pos": "WR",
+  "team": "DEN",
+  "playerId": 4686472,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": 19.3,
+   "Conference Championship": 8.2,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Thomas Odukoya",
+  "pos": "TE",
+  "team": "NE",
+  "playerId": 4363554,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Dwayne Washington",
+  "pos": "RB",
+  "team": "DEN",
+  "playerId": 3002265,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Sam Darnold",
+  "pos": "QB",
+  "team": "SEA",
+  "playerId": 3912547,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": 8.96,
+   "Conference Championship": 26.74,
+   "Super Bowl": 12.58
+  }
+ },
+ {
+  "name": "Brandon Smith",
+  "pos": "WR",
+  "team": "NE",
+  "playerId": 4240577,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Tyjon Lindsey",
+  "pos": "WR",
+  "team": "SEA",
+  "playerId": 4240801,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Austin Hooper",
+  "pos": "TE",
+  "team": "NE",
+  "playerId": 3043275,
+  "rounds": {
+   "Wild Card": 0.0,
+   "Divisional Round": 1.9,
+   "Conference Championship": 0.0,
+   "Super Bowl": 2.0
+  }
+ },
+ {
+  "name": "Caleb Lohner",
+  "pos": "TE",
+  "team": "DEN",
+  "playerId": 4432208,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Brennan Presley",
+  "pos": "WR",
+  "team": "LAR",
+  "playerId": 4431342,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Hunter Renfrow",
+  "pos": "WR",
+  "team": "CAR",
+  "playerId": 3135321,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Tiyon Evans",
+  "pos": "RB",
+  "team": "CAR",
+  "playerId": 4875197,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Ryan Griffin",
+  "pos": "TE",
+  "team": "CHI",
+  "playerId": 15887,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Quinn Nordin",
+  "pos": "PK",
+  "team": "NE",
+  "playerId": 4046532,
+  "rounds": {
+   "Wild Card": 10.7,
+   "Divisional Round": 4.0,
+   "Conference Championship": 1.3,
+   "Super Bowl": 1.0
+  }
+ },
+ {
+  "name": "Nate Adkins",
+  "pos": "TE",
+  "team": "DEN",
+  "playerId": 4383440,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": 0.6,
+   "Conference Championship": 0.0,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Aaron Fuller",
+  "pos": "WR",
+  "team": "SEA",
+  "playerId": 4039000,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Kayshon Boutte",
+  "pos": "WR",
+  "team": "NE",
+  "playerId": 4429022,
+  "rounds": {
+   "Wild Card": 8.6,
+   "Divisional Round": 15.0,
+   "Conference Championship": 1.1,
+   "Super Bowl": 2.6
+  }
+ },
+ {
+  "name": "Braydon Johnson",
+  "pos": "WR",
+  "team": "BUF",
+  "playerId": 4241407,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Tavon Austin",
+  "pos": "WR",
+  "team": "BUF",
+  "playerId": 15786,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Neil Pau'u",
+  "pos": "WR",
+  "team": "BUF",
+  "playerId": 4242377,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Kobe Hudson",
+  "pos": "WR",
+  "team": "CAR",
+  "playerId": 4429056,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Kenny McIntosh",
+  "pos": "RB",
+  "team": "SEA",
+  "playerId": 4427391,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Rashaad Penny",
+  "pos": "RB",
+  "team": "CAR",
+  "playerId": 3139925,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Ty Johnson",
+  "pos": "RB",
+  "team": "BUF",
+  "playerId": 3915411,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Nick Guggemos",
+  "pos": "TE",
+  "team": "BUF",
+  "playerId": 3957439,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Jerjuan Newton",
+  "pos": "WR",
+  "team": "DEN",
+  "playerId": 4430254,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Ty Scott",
+  "pos": "WR",
+  "team": "SEA",
+  "playerId": 4362560,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "CJ Marable",
+  "pos": "RB",
+  "team": "NE",
+  "playerId": 4036485,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Reggie Gilliam",
+  "pos": "FB",
+  "team": "BUF",
+  "playerId": 4039505,
+  "rounds": {
+   "Wild Card": 0.0,
+   "Divisional Round": 0.0,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "Khalil Shakir",
+  "pos": "WR",
+  "team": "BUF",
+  "playerId": 4373678,
+  "rounds": {
+   "Wild Card": 14.2,
+   "Divisional Round": 11.0,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "DEN DST",
+  "pos": "DST",
+  "team": "DEN",
+  "playerId": null,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": 8.0,
+   "Conference Championship": 12.0,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "NE DST",
+  "pos": "DST",
+  "team": "NE",
+  "playerId": null,
+  "rounds": {
+   "Wild Card": 14.0,
+   "Divisional Round": 19.0,
+   "Conference Championship": 14.0,
+   "Super Bowl": 2.0
+  }
+ },
+ {
+  "name": "BUF DST",
+  "pos": "DST",
+  "team": "BUF",
+  "playerId": null,
+  "rounds": {
+   "Wild Card": 4.0,
+   "Divisional Round": 1.0,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "SEA DST",
+  "pos": "DST",
+  "team": "SEA",
+  "playerId": null,
+  "rounds": {
+   "Wild Card": null,
+   "Divisional Round": 18.0,
+   "Conference Championship": 3.0,
+   "Super Bowl": 20.0
+  }
+ },
+ {
+  "name": "CHI DST",
+  "pos": "DST",
+  "team": "CHI",
+  "playerId": null,
+  "rounds": {
+   "Wild Card": 2.0,
+   "Divisional Round": 7.0,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "CAR DST",
+  "pos": "DST",
+  "team": "CAR",
+  "playerId": null,
+  "rounds": {
+   "Wild Card": 2.0,
+   "Divisional Round": null,
+   "Conference Championship": null,
+   "Super Bowl": null
+  }
+ },
+ {
+  "name": "LAR DST",
+  "pos": "DST",
+  "team": "LAR",
+  "playerId": null,
+  "rounds": {
+   "Wild Card": 4.0,
+   "Divisional Round": 6.0,
+   "Conference Championship": 3.0,
+   "Super Bowl": null
+  }
+ }
+]
