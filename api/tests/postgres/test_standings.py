@@ -6,12 +6,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.core.config import get_settings
 from api.db.models import (
+    LeagueSettings,
     LeagueStanding,
     NFLGame,
     NFLPlayerGameStats,
     NFLTeam,
     TeamPlayer,
 )
+from api.services.draft_flow import undo_last_pick
+from api.services.draft_picks import record_pick
 from api.services.scheduler import run_poll_cycle
 from api.services.standings import recompute_standings
 from api.tests.postgres.conftest import ClientFactory
@@ -179,3 +182,46 @@ async def test_a_failed_recompute_keeps_the_last_good_rows(
         (Decimal("99"), 7),
         (Decimal("50"), 5),
     ]
+
+
+async def test_finishing_the_draft_creates_a_zero_point_table(
+    db: AsyncSession,
+) -> None:
+    league, _, teams, draft = await make_league(db, roster_total=1)
+    kc = NFLTeam(id=1, team_abv="KC", is_active=True)
+    db.add(kc)
+    await db.flush()
+    qb, rb = await make_players(db, ["QB", "RB"], nfl_team=kc)
+    settings = await db.scalar(
+        select(LeagueSettings).where(LeagueSettings.league_id == league.id)
+    )
+    assert settings is not None
+    assert await _stored(db, league.id) == {}
+
+    for player in (qb, rb):
+        await record_pick(db, draft, settings, player.id, acting_user=None)
+
+    assert draft.status == "completed"
+    rows = await _stored(db, league.id)
+    assert {r.team_id: (r.rank, r.total, r.players_left) for r in rows.values()} == {
+        t.id: (1, Decimal("0"), 1) for t in teams
+    }
+
+
+async def test_undoing_the_final_pick_updates_the_table(db: AsyncSession) -> None:
+    league, _, teams, draft = await make_league(db, roster_total=1)
+    kc = NFLTeam(id=1, team_abv="KC", is_active=True)
+    db.add(kc)
+    await db.flush()
+    players = await make_players(db, ["QB", "RB"], nfl_team=kc)
+    settings = await db.scalar(
+        select(LeagueSettings).where(LeagueSettings.league_id == league.id)
+    )
+    assert settings is not None
+    for player in players:
+        await record_pick(db, draft, settings, player.id, acting_user=None)
+
+    await undo_last_pick(db, league.id)
+
+    rows = await _stored(db, league.id)
+    assert sorted(r.players_left for r in rows.values()) == [0, 1]
