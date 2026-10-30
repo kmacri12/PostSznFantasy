@@ -49,7 +49,7 @@ test.describe("sign in", () => {
 
     await page.getByRole("button", { name: "Account menu" }).click();
     await page.getByRole("menuitem", { name: "Sign out" }).click();
-    await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Sign in", exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Account menu" })).toHaveCount(0);
   });
 });
