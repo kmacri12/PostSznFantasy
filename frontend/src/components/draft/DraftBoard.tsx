@@ -3,6 +3,7 @@ import type React from "react";
 import { useEffect, useRef } from "react";
 import type { DraftPick, DraftState } from "../../api/types";
 import { tokens } from "../../theme";
+import TeamUnitBadge from "../common/TeamUnitBadge";
 import { centeredScroll } from "./boardScroll";
 import { positionColor } from "./positions";
 
@@ -150,6 +151,15 @@ const DraftBoard: React.FC<Props> = ({ state, myTeamId }) => {
                         {pick.position} · #{overall}
                         {pick.autopick ? " · auto" : ""}
                       </Typography>
+                      {pick.scoresWholeTeam && (
+                        <Box component="span" sx={{ ml: 0.5 }}>
+                          <TeamUnitBadge
+                            position={pick.position ?? ""}
+                            teamAbv={pick.teamAbv}
+                            dense
+                          />
+                        </Box>
+                      )}
                     </>
                   ) : (
                     <Typography variant="caption" color="text.secondary">

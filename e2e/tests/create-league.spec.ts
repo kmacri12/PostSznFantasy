@@ -15,6 +15,10 @@ test("a new user creates a league through the wizard", async ({ page, context, r
   await page.getByLabel("League name").fill(name);
   await page.getByLabel("Teams").fill("4");
   await page.getByRole("button", { name: "Next" }).click();
+  // Team QB and team K have no default: Next stays off until both are chosen.
+  await expect(page.getByRole("button", { name: "Next" })).toBeDisabled();
+  await page.getByRole("radiogroup", { name: "Team QB" }).getByLabel(/^Off/).check();
+  await page.getByRole("radiogroup", { name: "Team K" }).getByLabel(/^Off/).check();
   await page.getByRole("button", { name: "Next" }).click();
   await page.getByRole("button", { name: "Next" }).click();
   await expect(page.getByRole("heading", { name: name })).toBeVisible();

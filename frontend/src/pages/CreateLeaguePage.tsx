@@ -23,6 +23,7 @@ import DraftLockNotice from "../components/league/DraftLockNotice";
 import ExhaustionWarning from "../components/league/ExhaustionWarning";
 import RosterForm from "../components/settings/RosterForm";
 import ScoringForm from "../components/settings/ScoringForm";
+import TeamUnitChoice, { type TeamUnitValues } from "../components/settings/TeamUnitChoice";
 import { createLogger } from "../utils/logger";
 import {
   countChangedFromDefaults,
@@ -66,6 +67,7 @@ const CreateLeaguePage = ({
     roster_max_dst: 2,
   });
 
+  const [teamUnits, setTeamUnits] = useState<TeamUnitValues>({ team_qb: null, team_k: null });
   const [scoringSettings, setScoringSettings] = useState<ScoringSettingsState>({});
   const defaultsQuery = useScoringDefaults();
   const createLeague = useCreateLeague();
@@ -86,6 +88,7 @@ const CreateLeaguePage = ({
         leagueName,
         rosterSettings,
         scoringSettings: toNumericScoring(scoringSettings),
+        teamUnitSettings: { teamQb: teamUnits.team_qb, teamK: teamUnits.team_k },
       });
 
       const createdLeagueId = response.leagueId;
@@ -107,11 +110,12 @@ const CreateLeaguePage = ({
     ? countChangedFromDefaults(scoringSettings, scoringDefaults)
     : 0;
   const isLastStep = step === STEPS.length - 1;
-  const canAdvance =
-    step !== 0 ||
-    (leagueName.trim() !== "" &&
-      rosterSettings.number_teams >= 2 &&
-      rosterSettings.number_teams <= 14);
+  const leagueStepValid =
+    leagueName.trim() !== "" &&
+    rosterSettings.number_teams >= 2 &&
+    rosterSettings.number_teams <= 14;
+  const teamUnitsChosen = teamUnits.team_qb !== null && teamUnits.team_k !== null;
+  const canAdvance = (step !== 0 || leagueStepValid) && (step !== 1 || teamUnitsChosen);
 
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
@@ -184,6 +188,10 @@ const CreateLeaguePage = ({
           <>
             <DraftLockNotice />
             <ExhaustionWarning settings={rosterSettings} />
+            <TeamUnitChoice
+              values={teamUnits}
+              onChange={(key, value) => setTeamUnits((previous) => ({ ...previous, [key]: value }))}
+            />
             <RosterForm
               values={rosterSettings}
               onChange={(next) => setRosterSettings(next as typeof rosterSettings)}
@@ -234,6 +242,9 @@ const CreateLeaguePage = ({
               {rosterSettings.roster_num_wr} WR, {rosterSettings.roster_num_te} TE,{" "}
               {rosterSettings.roster_num_flex_wr_rb_te} FLEX, {rosterSettings.roster_num_k} K,{" "}
               {rosterSettings.roster_num_dst} DST
+            </Typography>
+            <Typography color="text.secondary" sx={{ mt: 1 }}>
+              Team QB {teamUnits.team_qb ? "on" : "off"} · Team K {teamUnits.team_k ? "on" : "off"}
             </Typography>
             {scoringDefaults && (
               <>

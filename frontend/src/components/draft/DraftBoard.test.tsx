@@ -74,3 +74,21 @@ describe("DraftBoard", () => {
     expect(screen.getByTestId("pick-1").textContent).toContain("auto");
   });
 });
+
+describe("DraftBoard team QB / team K", () => {
+  const withFlag = (scoresWholeTeam: boolean): DraftState => ({
+    ...base,
+    picks: base.picks.map((pick) => ({ ...pick, teamAbv: "PHI", scoresWholeTeam })),
+  });
+
+  it("badges a drafted team QB while still showing his name", () => {
+    render(<DraftBoard state={withFlag(true)} myTeamId={null} />);
+    expect(screen.getByText("Pat QB")).toBeTruthy();
+    expect(screen.getByRole("note", { name: /Scores all PHI QBs/ })).toBeTruthy();
+  });
+
+  it("shows no badge for an ordinary pick", () => {
+    render(<DraftBoard state={withFlag(false)} myTeamId={null} />);
+    expect(screen.queryByRole("note")).toBeNull();
+  });
+});

@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import CreateLeaguePage from "./CreateLeaguePage";
@@ -32,9 +32,18 @@ async function renderWizard() {
   await waitFor(() => expect(mockGet).toHaveBeenCalled());
 }
 
+function chooseTeamUnits(qb: "On" | "Off", k: "On" | "Off") {
+  const [qbGroup, kGroup] = screen.getAllByRole("radiogroup");
+  fireEvent.click(
+    within(qbGroup as HTMLElement).getByRole("radio", { name: new RegExp(`^${qb}`) }),
+  );
+  fireEvent.click(within(kGroup as HTMLElement).getByRole("radio", { name: new RegExp(`^${k}`) }));
+}
+
 async function openScoringStep() {
   await renderWizard();
   fireEvent.click(screen.getByRole("button", { name: "Next" }));
+  chooseTeamUnits("Off", "Off");
   fireEvent.click(screen.getByRole("button", { name: "Next" }));
 }
 
@@ -68,7 +77,9 @@ describe("CreateLeaguePage scoring step", () => {
 describe("CreateLeaguePage submit", () => {
   async function submitWizard() {
     await renderWizard();
-    for (let i = 0; i < 3; i++) fireEvent.click(screen.getByRole("button", { name: "Next" }));
+    fireEvent.click(screen.getByRole("button", { name: "Next" }));
+    chooseTeamUnits("On", "Off");
+    for (let i = 0; i < 2; i++) fireEvent.click(screen.getByRole("button", { name: "Next" }));
     fireEvent.click(screen.getByRole("button", { name: /create/i }));
   }
 
@@ -88,6 +99,15 @@ describe("CreateLeaguePage submit", () => {
     expect(onLeagueCreated.mock.invocationCallOrder[0] ?? Number.NaN).toBeLessThan(
       mockNavigate.mock.invocationCallOrder[0] ?? Number.NaN,
     );
+  });
+
+  it("sends the explicit team QB and team K choices", async () => {
+    mockPost.mockResolvedValue({ status: 201, data: { leagueId: 7 } });
+    await submitWizard();
+    await waitFor(() => expect(mockPost).toHaveBeenCalled());
+    expect(mockPost.mock.calls[0]?.[1]).toMatchObject({
+      teamUnitSettings: { teamQb: true, teamK: false },
+    });
   });
 
   it("stays on the wizard and shows an error when the request fails", async () => {
@@ -113,5 +133,37 @@ describe("CreateLeaguePage exhaustion warning", () => {
 
     fireEvent.change(teams, { target: { value: "8" } });
     expect(screen.getAllByText(/8 teams × up to 2 K is 16/).length).toBeGreaterThan(0);
+  });
+});
+
+describe("CreateLeaguePage team QB and team K", () => {
+  beforeEach(() => {
+    mockGet.mockReset();
+    mockGet.mockResolvedValue({ data: defaults });
+  });
+
+  it("makes the commissioner choose both before continuing, with nothing preselected", async () => {
+    await renderWizard();
+    fireEvent.click(screen.getByRole("button", { name: "Next" }));
+    const next = screen.getByRole("button", { name: "Next" }) as HTMLButtonElement;
+    expect(screen.queryAllByRole("radio", { checked: true })).toHaveLength(0);
+    expect(next.disabled).toBe(true);
+
+    const [qbGroup] = screen.getAllByRole("radiogroup");
+    fireEvent.click(within(qbGroup as HTMLElement).getByRole("radio", { name: /^On/ }));
+    expect(next.disabled).toBe(true);
+
+    chooseTeamUnits("On", "Off");
+    expect(next.disabled).toBe(false);
+  });
+
+  it("explains each rule in a tooltip that opens on tap", async () => {
+    await renderWizard();
+    fireEvent.click(screen.getByRole("button", { name: "Next" }));
+    fireEvent.touchStart(screen.getByRole("button", { name: "About Team QB" }));
+    expect(await screen.findByRole("tooltip")).toHaveProperty(
+      "textContent",
+      expect.stringMatching(/every QB on his NFL team/),
+    );
   });
 });

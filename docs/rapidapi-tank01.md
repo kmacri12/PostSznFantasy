@@ -23,6 +23,7 @@ real response. Parsers live in `api/services/ingestion/schemas.py`, the client i
 | `getNFLTeams` | | Teams ingest |
 | `getNFLPlayerList` | | Players ingest |
 | `getNFLTeamRoster` | `teamID`, `teamAbv`, `getStats=true` | Season stats ingest |
+| `getNFLDepthCharts` | none (a team filter is unverified) | Team QB / team K starter: `QB1` and `PK1` per team (`services/ingestion/depth_chart_ingest.py`; one call per roster sync). Provenance and refresh cadence are unknown, so a team without a usable entry falls back to the most pass attempts / kicks. See `docs/research/team-qb-k-starter-source.md` |
 | `getNFLGamesForWeek` | `week=all`, `seasonType=post`, `season` | Playoff game list (schedule, `gameTime_epoch`, `espnLink`) |
 | `getNFLBoxScore` | `gameID` (e.g. `20260110_LAR@CAR`) | Playoff box scores and per-game player stats |
 | `getNFLGamesForPlayer` | `playerID`, `season`, `numberOfGames` | Not used yet: per-game stats in the same nested shape |

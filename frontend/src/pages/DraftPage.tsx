@@ -35,7 +35,7 @@ const DraftPage = () => {
   const { leagueId } = useParams<{ leagueId: string }>();
   const room = useDraftRoom(leagueId);
   const league = useLeague(leagueId);
-  const playersQuery = useDraftPool();
+  const playersQuery = useDraftPool(leagueId);
   const saveQueue = useSaveQueue(leagueId);
   const [tab, setTab] = useState<TabKey>("board");
   const [showSetup, setShowSetup] = useState(false);

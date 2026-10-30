@@ -103,7 +103,7 @@ A player becoming immovable, in whatever slot they are in, at their kickoff. A l
 _Avoid_: Freeze, deadline
 
 **Position cap**:
-The most players of one position a fantasy team may draft (default QB 2, K 2, DST 2; RB, WR and TE uncapped). A team at its cap sees that position greyed out in the draft pool with the reason, and neither REST nor WebSocket will accept the pick.
+The most players of one position a fantasy team may draft (default QB 2, K 2, DST 2; RB, WR and TE uncapped). With team QB (or team K) on, the cap counts different NFL teams. A team at its cap sees that position greyed out in the draft pool with the reason, and neither REST nor WebSocket will accept the pick.
 _Avoid_: Max roster spots, limit
 
 ### Team positions

@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from api.core.config import get_settings
 from api.db.models.draft import Draft, DraftPick, DraftQueueItem
 from api.db.models.league import League, LeagueSettings, Team, TeamPlayer
-from api.db.models.nfl import NFLPlayer, NFLPlayerSeasonStats
+from api.db.models.nfl import NFLPlayer, NFLPlayerSeasonStats, NFLTeam
 from api.models.draft_models import (
     DraftPickResponse,
     DraftSetup,
@@ -83,8 +83,9 @@ async def build_state(db: AsyncSession, draft: Draft) -> DraftStateResponse:
     ]
     pick_rows = (
         await db.execute(
-            select(DraftPick, NFLPlayer.name, NFLPlayer.position)
+            select(DraftPick, NFLPlayer.name, NFLPlayer.position, NFLTeam.team_abv)
             .join(NFLPlayer, NFLPlayer.id == DraftPick.player_id)
+            .outerjoin(NFLTeam, NFLTeam.id == NFLPlayer.team_id)
             .where(DraftPick.draft_id == draft.id)
             .order_by(DraftPick.number_pick_overall)
         )
@@ -99,13 +100,14 @@ async def build_state(db: AsyncSession, draft: Draft) -> DraftStateResponse:
             player_id=p.player_id,
             player_name=name,
             position=position,
+            team_abv=team_abv,
             scores_whole_team=scores_whole_team(combined, position),
             number_round=p.number_round,
             number_pick_overall=p.number_pick_overall,
             number_pick_in_round=p.number_pick_in_round,
             autopick=p.autopick,
         )
-        for p, name, position in pick_rows
+        for p, name, position, team_abv in pick_rows
     ]
 
     ids = placed_order(draft)
@@ -393,8 +395,6 @@ async def _best_available_ids(
     db: AsyncSession, draft: Draft, settings: LeagueSettings
 ) -> list[int]:
     """Undrafted draft-pool players, best last-season fantasy output first."""
-    from api.db.models.nfl import NFLTeam
-
     drafted = select(DraftPick.player_id).where(DraftPick.draft_id == draft.id)
     blocked = await unavailable_in_pool(
         db, settings, list((await db.execute(drafted)).scalars())
