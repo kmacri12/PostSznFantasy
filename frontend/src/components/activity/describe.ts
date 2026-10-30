@@ -17,7 +17,6 @@ const slotName = (slot: string | null): string => {
 
 const num = (value: number): string => String(Number(value.toFixed(2)));
 
-/** "scoringPassingTd" -> "Scoring passing td" */
 export const settingLabel = (field: string): string => {
   const words = field.replace(/([A-Z])/g, " $1").toLowerCase();
   return words.charAt(0).toUpperCase() + words.slice(1);
@@ -29,7 +28,6 @@ export const settingValue = (value: unknown): string => {
   return String(value);
 };
 
-/** The one-line sentence for a feed row. */
 export const describeEvent = (event: ActivityEvent): string => {
   const who = event.actorName ?? "Someone";
   switch (event.kind) {
@@ -56,7 +54,6 @@ export const describeEvent = (event: ActivityEvent): string => {
   }
 };
 
-/** Extra lines under a settings change: each field with its old and new value. */
 export const detailLines = (event: ActivityEvent): string[] =>
   event.kind === "settings_change"
     ? event.payload.changes.map(

@@ -55,7 +55,7 @@ const NavBar = ({
   const [profileAnchor, setProfileAnchor] = useState<HTMLElement | null>(null);
 
   const selected = leagues.find((league) => String(league.id) === selectedLeagueId);
-  const links = selected
+  const links: { label: string; to: string; dot?: boolean }[] = selected
     ? [
         { label: "League", to: `/league/${selected.id}`, dot: selected.hasNewActivity },
         { label: "My Team", to: `/team/${selected.userTeamId}` },
@@ -122,8 +122,8 @@ const NavBar = ({
               <Badge
                 variant="dot"
                 color="primary"
-                invisible={!("dot" in link && link.dot)}
-                aria-label={"dot" in link && link.dot ? "New activity" : undefined}
+                invisible={!link.dot}
+                aria-label={link.dot ? "New activity" : undefined}
               >
                 {link.label}
               </Badge>

@@ -53,8 +53,7 @@ export const useUserLeagues = (enabled: boolean) =>
     queryKey: keys.userLeagues,
     queryFn: ({ signal }) => get<LeagueByUser[]>("/api/leagues/user-leagues", signal),
     enabled,
-    // The nav dot for new league activity.
-    refetchInterval: 60_000,
+    refetchInterval: 60_000, // the nav dot for new league activity
   });
 
 export const useLeague = (leagueId: Id | undefined) =>

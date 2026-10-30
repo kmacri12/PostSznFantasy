@@ -54,6 +54,7 @@ PostSznFantasy/
 │   │   ├── base.py             # DeclarativeBase metadata
 │   │   ├── session.py          # asyncpg connection engine & get_db dependency
 │   │   └── models/             # Domain-scoped SQLAlchemy 2.0 ORM models
+│   │       ├── activity.py     # ActivityEvent (append-only feed) and ActivityView (last-viewed per member and feed)
 │   │       ├── user.py         # User model
 │   │       ├── league.py       # League, LeagueSettings, Team, Roster models
 │   │       ├── draft.py        # Draft and DraftPick models
@@ -63,11 +64,13 @@ PostSznFantasy/
 │   │   └── league.py           # LeagueMember/DraftMember/TeamMember guards (403 for non-members)
 │   ├── models/                 # Pydantic v2 DTO schemas (camelCase serialization)
 │   │   ├── base.py             # BaseSchema with alias_generator = to_camel
+│   │   ├── activity_models.py  # Activity event payloads, feed pages, slot marks, score changes
 │   │   ├── auth_models.py      # Auth exchange DTOs
 │   │   ├── league_models.py    # League CRUD, Standings, Team DTOs
 │   │   ├── draft_models.py     # Draft status and pick DTOs
 │   │   └── players_models.py   # Player directory DTOs
 │   ├── routers/                # Modular APIRouters
+│   │   ├── activity.py         # League and team activity feeds, viewed markers
 │   │   ├── admin.py            # Ingestion triggers (admin only)
 │   │   ├── auth.py             # User onboarding & token exchange
 │   │   ├── drafts.py           # Draft state/setup/order/controls/queue/REST picks + authenticated WebSocket
@@ -142,10 +145,12 @@ PostSznFantasy/
         │   ├── TeamPage.tsx    # Roster management view
         │   └── NotFoundPage.tsx# 404 handler
         ├── components/
+        │   ├── activity/       # ActivityFeed (collapsed, new dot), SlotMarker (override / asterisk), ChangedScore tooltip, describeEvent
         │   ├── layout/         # NavBar (blurred header, league switcher, drawer)
         │   ├── draft/          # DraftBoard, Countdown, PlayerSelector
         │   ├── league/         # StandingsTable
         │   ├── players/        # PlayersTable (TanStack Table v8)
+        │   ├── team/           # LineupList (tap/drag lineup), OverrideDialog (commissioner confirm)
         │   └── settings/       # SettingsSection/ScoringForm/RosterForm generated from src/settings schemas
         ├── utils/
         │   ├── draftCue.ts     # Web Audio on-deck beep

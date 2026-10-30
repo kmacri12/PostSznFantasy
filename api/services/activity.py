@@ -89,7 +89,7 @@ class _Baseline:
         )
 
     @property
-    def unseen(self) -> ColumnElement[bool]:
+    def is_new_clause(self) -> ColumnElement[bool]:
         return and_(
             ActivityEvent.id > self.last_event_id,
             ActivityEvent.created_at > self.joined_at,
@@ -145,7 +145,7 @@ async def feed(
     page = rows[:limit]
     has_new = await db.scalar(
         select(ActivityEvent.id)
-        .where(_scope(league_id, team_id), baseline.unseen)
+        .where(_scope(league_id, team_id), baseline.is_new_clause)
         .limit(1)
     )
     return ActivityFeed(

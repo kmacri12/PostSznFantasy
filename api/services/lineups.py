@@ -214,14 +214,13 @@ def _round_lineup(
         for index, pid in stored.items()
         if pid in views and views[pid].status is not PlayerRoundStatus.ELIMINATED
     }
+    occupants = {index: views[pid] for index, pid in placed.items()}
     slots = [
         LineupSlotView(
             index=index,
             slot=spec.slot,
-            player=views[placed[index]] if index in placed else None,
-            mark=_visible_mark(
-                marks.get(index), views[placed[index]] if index in placed else None
-            ),
+            player=occupants.get(index),
+            mark=_visible_mark(marks.get(index), occupants.get(index)),
         )
         for index, spec in enumerate(specs)
     ]

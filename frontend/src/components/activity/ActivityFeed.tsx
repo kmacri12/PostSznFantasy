@@ -1,6 +1,6 @@
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { Box, Button, Chip, Collapse, Typography } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useActivityFeed, useMarkActivityViewed } from "../../api/queries";
 import { tokens } from "../../theme";
 import { describeEvent, detailLines, formatWhen } from "./describe";
@@ -12,7 +12,7 @@ interface Props {
 }
 
 /** The new-activity dot: a shape plus words, so it never relies on colour. */
-export const NewDot = ({ label }: { label: string }) => (
+const NewDot = ({ label }: { label: string }) => (
   <Box
     component="span"
     role="img"
@@ -39,12 +39,19 @@ const ActivityFeed = ({ scope, id, title }: Props) => {
   const hasNew = feed.data?.pages[0]?.hasNew ?? false;
   const panelId = `activity-${scope}-${id}`;
 
+  // While open, everything shown counts as seen, including rows a refetch adds.
+  const newestId = events[0]?.id;
+  const newIds = events.filter((event) => event.isNew).map((event) => event.id);
+  const newIdsKey = newIds.join(",");
+  // biome-ignore lint/correctness/useExhaustiveDependencies: keyed on the ids, not the arrays
+  useEffect(() => {
+    if (!open || !hasNew || newestId === undefined) return;
+    setFreshIds((seen) => new Set([...seen, ...newIds]));
+    markViewed.mutate(newestId);
+  }, [open, hasNew, newestId, newIdsKey]);
+
   const toggle = () => {
-    if (!open) {
-      setFreshIds(new Set(events.filter((event) => event.isNew).map((event) => event.id)));
-      const newest = events[0];
-      if (newest && hasNew) markViewed.mutate(newest.id);
-    }
+    if (open) setFreshIds(new Set());
     setOpen((value) => !value);
   };
 

@@ -79,4 +79,27 @@ describe("ActivityFeed", () => {
     fireEvent.click(toggle);
     expect(markViewed).toHaveBeenCalledTimes(1);
   });
+
+  it("also marks events that arrive while the feed is open, so they are not new once it closes", () => {
+    useActivityFeed.mockReturnValue(feedOf([event(1, true)], true));
+    const { rerender } = render(<ActivityFeed scope="leagues" id={7} title="League activity" />);
+    fireEvent.click(screen.getByRole("button", { name: /League activity/ }));
+    expect(markViewed).toHaveBeenLastCalledWith(1);
+    useActivityFeed.mockReturnValue(feedOf([event(3, true), event(1, false)], true));
+    rerender(<ActivityFeed scope="leagues" id={7} title="League activity" />);
+    expect(markViewed).toHaveBeenLastCalledWith(3);
+    expect(screen.getAllByText("New")).toHaveLength(2);
+  });
+
+  it("does not tag already-seen rows as new when reopened", () => {
+    useActivityFeed.mockReturnValue(feedOf([event(1, true)], true));
+    render(<ActivityFeed scope="leagues" id={7} title="League activity" />);
+    const toggle = screen.getByRole("button", { name: /League activity/ });
+    fireEvent.click(toggle);
+    expect(screen.getAllByText("New")).toHaveLength(1);
+    useActivityFeed.mockReturnValue(feedOf([event(1, false)], false));
+    fireEvent.click(toggle);
+    fireEvent.click(toggle);
+    expect(screen.queryByText("New")).toBeNull();
+  });
 });
