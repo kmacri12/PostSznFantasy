@@ -6,7 +6,11 @@ const PickFeed = ({ state }: { state: DraftState }) => {
     state.order.find((slot) => slot.teamId === id)?.teamName ?? "Team";
   const recent = [...state.picks].reverse();
   if (recent.length === 0) {
-    return <Typography color="text.secondary">No picks yet.</Typography>;
+    return (
+      <Typography color="text.secondary">
+        No picks yet. Picks appear here as the draft runs.
+      </Typography>
+    );
   }
   return (
     <List dense aria-label="Pick feed">

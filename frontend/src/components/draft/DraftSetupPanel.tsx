@@ -26,6 +26,7 @@ import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { useDraftControl, useDraftOrder, useDraftSetup, useLeagueTeams } from "../../api/queries";
 import type { DraftSlot, DraftState, DraftType, PickTimeoutAction } from "../../api/types";
 import { tokens } from "../../theme";
+import { mutationError } from "../common/friendlyError";
 
 const toLocalInput = (iso: string | null): string => {
   if (!iso) return "";
@@ -33,9 +34,6 @@ const toLocalInput = (iso: string | null): string => {
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 };
-
-const detail = (error: unknown): string | null =>
-  (error as { response?: { data?: { detail?: string } } } | null)?.response?.data?.detail ?? null;
 
 const POOL_ID = "pool";
 const slotId = (index: number) => `slot-${index}`;
@@ -223,7 +221,10 @@ const DraftSetupPanel = ({ draft, canEdit }: { draft: DraftState; canEdit: boole
       ...(draft.orderLocked ? {} : { draftType, pickTimeoutAction: timeout }),
     });
 
-  const failure = detail(setup.error) ?? detail(saveOrder.error) ?? detail(control.error);
+  const failure =
+    mutationError(setup.error, "Couldn't save the draft setup. Try again.") ??
+    mutationError(saveOrder.error, "Couldn't save the draft order. Try again.") ??
+    mutationError(control.error, "Couldn't update the draft. Try again.");
 
   return (
     <Card sx={{ p: 2.5 }}>

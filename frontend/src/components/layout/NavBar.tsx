@@ -79,7 +79,7 @@ const NavBar = ({
     >
       <Toolbar sx={{ gap: 1 }}>
         {isMobile && (
-          <IconButton edge="start" aria-label="menu" onClick={() => setDrawerOpen(true)}>
+          <IconButton edge="start" aria-label="Open menu" onClick={() => setDrawerOpen(true)}>
             <MenuIcon />
           </IconButton>
         )}
@@ -163,7 +163,10 @@ const NavBar = ({
 
         {user ? (
           <>
-            <IconButton aria-label="account" onClick={(e) => setProfileAnchor(e.currentTarget)}>
+            <IconButton
+              aria-label="Account menu"
+              onClick={(e) => setProfileAnchor(e.currentTarget)}
+            >
               <Avatar
                 src={user.user_metadata?.avatar_url}
                 sx={{ width: 34, height: 34, bgcolor: tokens.gold, color: "#1c1203" }}

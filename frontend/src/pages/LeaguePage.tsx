@@ -1,5 +1,6 @@
 import EditIcon from "@mui/icons-material/Edit";
 import {
+  Alert,
   Box,
   Button,
   Card,
@@ -19,6 +20,7 @@ import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useLeague, useUpdateLeague } from "../api/queries";
 import type { LeagueOverview } from "../api/types";
+import { mutationError } from "../components/common/friendlyError";
 import QueryBoundary from "../components/common/QueryBoundary";
 import InvitePanel from "../components/league/InvitePanel";
 import StandingsTable from "../components/league/StandingsTable";
@@ -35,6 +37,7 @@ const DRAFT_LABELS: Record<LeagueOverview["draftStatus"], string> = {
 const RenameDialog = ({ league, onClose }: { league: LeagueOverview; onClose: () => void }) => {
   const [name, setName] = useState(league.name);
   const update = useUpdateLeague(league.id);
+  const updateError = mutationError(update.error, "Couldn't rename the league. Try again.");
   return (
     <Dialog open onClose={onClose} fullWidth maxWidth="xs">
       <DialogTitle>Rename league</DialogTitle>
@@ -47,6 +50,7 @@ const RenameDialog = ({ league, onClose }: { league: LeagueOverview; onClose: ()
           value={name}
           onChange={(event) => setName(event.target.value)}
         />
+        {updateError && <Alert severity="error">{updateError}</Alert>}
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>

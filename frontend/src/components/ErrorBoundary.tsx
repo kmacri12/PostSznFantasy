@@ -27,9 +27,12 @@ export class ErrorBoundary extends Component<Props, State> {
     if (!this.state.hasError) return this.props.children;
 
     return (
-      <Box sx={{ p: 6, textAlign: "center" }}>
+      <Box role="alert" sx={{ p: 6, textAlign: "center" }}>
         <Typography variant="h5" gutterBottom>
           Something went wrong
+        </Typography>
+        <Typography color="text.secondary" sx={{ mb: 2 }}>
+          Reload the page to pick up where you left off.
         </Typography>
         <Button variant="contained" onClick={() => window.location.reload()}>
           Reload

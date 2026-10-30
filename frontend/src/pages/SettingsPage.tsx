@@ -10,6 +10,7 @@ import {
 } from "../api/queries";
 import EmptyState from "../components/common/EmptyState";
 import ErrorState from "../components/common/ErrorState";
+import { mutationError } from "../components/common/friendlyError";
 import LoadingState from "../components/common/LoadingState";
 import DraftSetupPanel from "../components/draft/DraftSetupPanel";
 import MembersSection from "../components/settings/MembersSection";
@@ -19,9 +20,6 @@ import ScoringForm from "../components/settings/ScoringForm";
 import { fromApi, postseasonFromApi, ROSTER_KEYS, SCORING_KEYS } from "../settings/convert";
 import { POSTSEASON_KEYS, type PostseasonValues } from "../settings/postseasonFields";
 import type { SettingsValues } from "../settings/types";
-
-const detail = (error: unknown): string | null =>
-  (error as { response?: { data?: { detail?: string } } } | null)?.response?.data?.detail ?? null;
 
 /** One page, grouped sections: League, Roster, Scoring, Draft, Postseason. */
 function SettingsPage() {
@@ -109,7 +107,9 @@ function SettingsPage() {
     }
   };
 
-  const failure = detail(updateSettings.error) ?? detail(updateLeague.error);
+  const failure =
+    mutationError(updateSettings.error, "Couldn't save the settings. Try again.") ??
+    mutationError(updateLeague.error, "Couldn't save the league details. Try again.");
 
   return (
     <Container maxWidth="md" sx={{ py: 3 }}>

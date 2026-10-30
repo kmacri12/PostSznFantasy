@@ -90,7 +90,7 @@ describe("CreateLeaguePage submit", () => {
   it("stays on the wizard and shows an error when the request fails", async () => {
     mockPost.mockRejectedValue(new Error("boom"));
     await submitWizard();
-    expect(await screen.findByText(/could not create the league/i)).toBeTruthy();
+    expect(await screen.findByText(/couldn.t create the league/i)).toBeTruthy();
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(onLeagueCreated).not.toHaveBeenCalled();
   });

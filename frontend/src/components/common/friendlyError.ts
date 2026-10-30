@@ -4,3 +4,7 @@ export const friendlyError = (error: unknown, fallback: string): string => {
     ?.detail;
   return typeof detail === "string" && detail ? detail : fallback;
 };
+
+/** Message for a failed mutation, or null while nothing has failed. */
+export const mutationError = (error: unknown, fallback: string): string | null =>
+  error ? friendlyError(error, fallback) : null;

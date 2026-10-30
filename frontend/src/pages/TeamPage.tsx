@@ -19,15 +19,14 @@ import { Link, useParams } from "react-router-dom";
 import { useAddDrop, useMoveInLineup, usePlayerList, useRenameTeam, useTeam } from "../api/queries";
 import type { RosterPlayer, TeamDetails } from "../api/types";
 import EmptyState from "../components/common/EmptyState";
+import { mutationError } from "../components/common/friendlyError";
 import QueryBoundary from "../components/common/QueryBoundary";
 import LineupList from "../components/team/LineupList";
-
-const detail = (error: unknown): string | null =>
-  (error as { response?: { data?: { detail?: string } } } | null)?.response?.data?.detail ?? null;
 
 const RenameDialog = ({ team, onClose }: { team: TeamDetails; onClose: () => void }) => {
   const [name, setName] = useState(team.name);
   const rename = useRenameTeam(team.id);
+  const renameError = mutationError(rename.error, "Couldn't rename the team. Try again.");
   return (
     <Dialog open onClose={onClose} fullWidth maxWidth="xs">
       <DialogTitle>Rename team</DialogTitle>
@@ -41,7 +40,7 @@ const RenameDialog = ({ team, onClose }: { team: TeamDetails; onClose: () => voi
           slotProps={{ htmlInput: { maxLength: 40 } }}
           onChange={(event) => setName(event.target.value)}
         />
-        {detail(rename.error) && <Alert severity="error">{detail(rename.error)}</Alert>}
+        {renameError && <Alert severity="error">{renameError}</Alert>}
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
@@ -60,6 +59,7 @@ const RenameDialog = ({ team, onClose }: { team: TeamDetails; onClose: () => voi
 const AddDropDialog = ({ team, onClose }: { team: TeamDetails; onClose: () => void }) => {
   const players = usePlayerList();
   const addDrop = useAddDrop(team.id);
+  const addDropError = mutationError(addDrop.error, "Couldn't complete the add/drop. Try again.");
   const [drop, setDrop] = useState<RosterPlayer | null>(null);
   const [add, setAdd] = useState<{ id: number; name: string } | null>(null);
   const rostered = new Set(team.roster.map((player) => player.id));
@@ -82,7 +82,7 @@ const AddDropDialog = ({ team, onClose }: { team: TeamDetails; onClose: () => vo
           onChange={(_, value) => setAdd(value)}
           renderInput={(params) => <TextField {...params} label="Add free agent" />}
         />
-        {detail(addDrop.error) && <Alert severity="error">{detail(addDrop.error)}</Alert>}
+        {addDropError && <Alert severity="error">{addDropError}</Alert>}
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
@@ -105,6 +105,7 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
   const [renaming, setRenaming] = useState(false);
   const [managing, setManaging] = useState(false);
   const moveInLineup = useMoveInLineup(teamId);
+  const moveError = mutationError(moveInLineup.error, "Couldn't move that player. Try again.");
 
   const aliveCount = team.roster.filter((player) => player.isActive).length;
 
@@ -154,9 +155,9 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
         canDrag={team.canManageRoster}
         onMove={(move) => moveInLineup.mutate(move)}
       />
-      {detail(moveInLineup.error) && (
+      {moveError && (
         <Alert severity="error" sx={{ mt: 1 }}>
-          {detail(moveInLineup.error)}
+          {moveError}
         </Alert>
       )}
 

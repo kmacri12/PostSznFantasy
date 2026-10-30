@@ -87,14 +87,16 @@ const CreateLeaguePage = ({
 
       const createdLeagueId = response.leagueId;
       if (!createdLeagueId) {
-        setSubmitError("League was created but the server returned no league id.");
+        setSubmitError(
+          "Your league was created, but we couldn't open it. Find it on the home page.",
+        );
         return;
       }
       await onLeagueCreated(createdLeagueId);
       navigate(`/league/${createdLeagueId}`);
     } catch (error) {
       logger.error("Error creating league:", error);
-      setSubmitError("Could not create the league. Please try again.");
+      setSubmitError("Couldn't create the league. Try again.");
     }
   };
 

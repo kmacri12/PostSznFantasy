@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { friendlyError } from "./friendlyError";
+import { friendlyError, mutationError } from "./friendlyError";
 import QueryBoundary from "./QueryBoundary";
 
 const base = { isLoading: false, isError: false, error: null, data: undefined, refetch: vi.fn() };
@@ -14,6 +14,17 @@ describe("friendlyError", () => {
   it("never leaks a raw exception message", () => {
     expect(friendlyError(new Error("Request failed with status code 500"), "Try again.")).toBe(
       "Try again.",
+    );
+  });
+});
+
+describe("mutationError", () => {
+  it("is null while nothing has failed", () => {
+    expect(mutationError(null, "Couldn't save. Try again.")).toBeNull();
+  });
+  it("falls back to the plain message when the server gave no detail", () => {
+    expect(mutationError(new Error("Network Error"), "Couldn't save. Try again.")).toBe(
+      "Couldn't save. Try again.",
     );
   });
 });
