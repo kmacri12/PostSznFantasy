@@ -32,6 +32,8 @@ class FakeClient:
         self.list_calls = 0
         self.box_calls: list[str] = []
         self.requests_remaining: int | None = 900
+        self.budget_exhausted = False
+        self.requests_today = 7
 
     async def get_nfl_games_list(self, *_: Any, **__: Any) -> list[dict[str, Any]]:
         self.list_calls += 1
@@ -111,8 +113,9 @@ async def teams(db: AsyncSession) -> None:
 
 
 async def test_a_cycle_polls_one_box_score_per_live_game(
-    db: AsyncSession, teams: None
+    db: AsyncSession, teams: None, caplog: pytest.LogCaptureFixture
 ) -> None:
+    caplog.set_level("INFO")
     client = FakeClient(
         games=[
             summary("live", NOW - 3600, "Live - In Progress"),
@@ -127,6 +130,7 @@ async def test_a_cycle_polls_one_box_score_per_live_game(
     await run_poll_cycle(db, 2025, client=client, now=NOW)  # type: ignore[arg-type]
 
     assert client.list_calls == 1
+    assert "RapidAPI calls today: 7" in caplog.text
     assert client.box_calls == ["live", "done"]  # the Final one: its last fetch
     assert (await db.get(NFLGame, "live")).home_pts == 10  # type: ignore[union-attr]
 
@@ -149,6 +153,26 @@ async def test_the_poll_that_sees_completed_is_the_final_fetch(
     loser = await db.get(NFLTeam, 2)
     await db.refresh(loser)
     assert loser.is_active is False  # type: ignore[union-attr]
+
+
+async def test_a_spent_daily_budget_stops_polling_and_keeps_the_data(
+    db: AsyncSession, teams: None, caplog: pytest.LogCaptureFixture
+) -> None:
+    client = FakeClient(
+        games=[summary("g", NOW - 3600, "Live - In Progress")],
+        boxes={"g": box("Live - In Progress", 10, 7)},
+    )
+    await run_poll_cycle(db, 2025, client=client, now=NOW)  # type: ignore[arg-type]
+
+    client.budget_exhausted = True
+    list_calls, box_calls = client.list_calls, list(client.box_calls)
+    polled = await run_poll_cycle(db, 2025, client=client, now=NOW + 150)  # type: ignore[arg-type]
+
+    assert polled == 0
+    assert (client.list_calls, client.box_calls) == (list_calls, box_calls)
+    assert "budget" in caplog.text
+    stored = await db.get(NFLGame, "g")
+    assert (stored.home_pts, stored.away_pts) == (10, 7)  # type: ignore[union-attr]
 
 
 async def test_a_failed_poll_keeps_the_last_good_data(

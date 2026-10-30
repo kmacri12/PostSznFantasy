@@ -4,6 +4,7 @@ import json
 import logging
 import time
 from collections import OrderedDict
+from datetime import UTC, datetime
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -26,6 +27,14 @@ LOW_QUOTA_THRESHOLD = 50
 MAX_RETRY_AFTER_SECONDS = 60.0
 
 _backoff = wait_exponential(multiplier=1, min=1, max=30)
+
+
+class RapidApiBudgetExceeded(Exception):
+    """The daily request cap is spent; no call was made."""
+
+
+def _utc_day() -> str:
+    return datetime.now(UTC).date().isoformat()
 
 
 def _is_retryable(exc: BaseException) -> bool:
@@ -71,6 +80,9 @@ class RapidApiClient:
         self._cache_size = cache_size
         self._http: httpx.AsyncClient | None = None
         self.requests_remaining: int | None = None
+        self._daily_limit = settings.rapidapi_daily_request_limit
+        self._budget_day = _utc_day()
+        self._requests_today = 0
         # Dev-only: replay saved responses so re-seeding doesn't burn the monthly quota.
         self._disk_cache_dir = (
             Path(settings.rapidapi_cache_dir) if settings.rapidapi_cache_dir else None
@@ -107,6 +119,35 @@ class RapidApiClient:
             / f"{hashlib.sha256(cache_key.encode()).hexdigest()}.json"
         )
 
+    def _roll_budget_day(self) -> None:
+        today = _utc_day()
+        if today != self._budget_day:
+            self._budget_day = today
+            self._requests_today = 0
+
+    @property
+    def budget_exhausted(self) -> bool:
+        self._roll_budget_day()
+        return self._daily_limit > 0 and self._requests_today >= self._daily_limit
+
+    @property
+    def requests_today(self) -> int:
+        self._roll_budget_day()
+        return self._requests_today
+
+    def _spend_budget(self, route: str) -> None:
+        if self.budget_exhausted:
+            raise RapidApiBudgetExceeded(
+                f"Daily RapidAPI budget of {self._daily_limit} requests is spent"
+            )
+        self._requests_today += 1
+        logger.info(
+            "RapidAPI call %d/%d today: %s",
+            self._requests_today,
+            self._daily_limit,
+            route,
+        )
+
     def _record_quota(self, response: httpx.Response) -> None:
         try:
             remaining = int(response.headers["x-ratelimit-requests-remaining"])
@@ -141,6 +182,7 @@ class RapidApiClient:
             reraise=True,
         ):
             with attempt:
+                self._spend_budget(route)
                 response = await self._client().get(
                     self._base_url + route, params=params
                 )

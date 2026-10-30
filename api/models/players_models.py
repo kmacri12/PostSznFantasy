@@ -25,6 +25,7 @@ class Player(BaseSchema):
     exp: str | None = None
     team_id: int | None = None
     team: NFLTeamSimple | None = None
+    eliminated: bool = False
 
 
 class PlayerSeasonStatsResponse(BaseSchema):
@@ -74,3 +75,4 @@ class PlayerSeasonStatsResponse(BaseSchema):
 class IngestionStatusResponse(BaseSchema):
     kind: str
     last_synced_at: datetime
+    budget_exhausted: bool = False

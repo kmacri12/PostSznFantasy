@@ -1,3 +1,5 @@
+from types import SimpleNamespace
+
 import pytest
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
@@ -25,6 +27,24 @@ async def test_a_successful_run_records_when_it_synced(
         response = await member.get("/api/players/sync-status")
     assert [row["kind"] for row in response.json()] == ["teams"]
     assert response.json()[0]["lastSyncedAt"]
+
+
+@pytest.mark.parametrize("exhausted", [False, True])
+async def test_sync_status_says_whether_the_daily_api_budget_is_spent(
+    db: AsyncSession,
+    client_as: ClientFactory,
+    monkeypatch: pytest.MonkeyPatch,
+    exhausted: bool,
+) -> None:
+    await make_league(db)
+    await ingest_nfl_teams(db, raw_data=TEAMS)
+    monkeypatch.setattr(
+        "api.routers.players.get_rapidapi_client",
+        lambda: SimpleNamespace(budget_exhausted=exhausted),
+    )
+    async with client_as("uid-0") as member:
+        response = await member.get("/api/players/sync-status")
+    assert [row["budgetExhausted"] for row in response.json()] == [exhausted]
 
 
 async def test_an_overlapping_run_of_the_same_kind_is_skipped(
