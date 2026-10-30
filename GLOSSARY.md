@@ -74,6 +74,10 @@ _Avoid_: Active player
 The roster slots whose players do not score. Bench players are still alive and can move into starter slots before they lock.
 _Avoid_: Reserves
 
+**Unassigned**:
+A rostered player not placed in any slot of a round's lineup. Everyone is unassigned after the draft. Unassigned players do not score.
+_Avoid_: Free agent, inactive
+
 **Eliminated section**:
 The part of the roster below the bench showing, for a given round, players whose NFL team is eliminated. They cannot be moved.
 _Avoid_: Graveyard, IR

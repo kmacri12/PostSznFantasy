@@ -26,6 +26,7 @@ Each league drafts once, before the Wild Card round, from players on the 14 play
 - **Locks.** Each player locks at their game's **scheduled kickoff**, in whatever slot they are in (starter, flex or bench). A locked player cannot be moved, swapped or dropped. A move is legal only if every player involved is unlocked.
 - **Eliminated players.** A player whose NFL team lost is shown in a separate Eliminated section below the bench, from the next round onward (per round: a Wild Card loser is still valid for the Wild Card and eliminated for the Divisional). Eliminated players cannot be moved. When a round ends, eliminated players drop out of any slot they were placed in early, leaving it empty.
 - **Byes.** A team on a bye is alive and its players score 0 that round.
+- Players not placed in a slot are shown as "not in this lineup" and score nothing; placing a player on the bench is optional. (**Open:** whether unplaced players count toward "points left on the bench".)
 - A banner on the team page warns about empty starter slots before the round's first kickoff. There is no email or push in v1.
 - There is no free agency in v1. It may return later as an opt-in league setting.
 

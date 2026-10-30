@@ -23,7 +23,6 @@ const waitForEliminations = async (api: Api, count: number) => {
 };
 
 let main: DraftLeague;
-let swap: DraftLeague;
 
 test.beforeAll(async ({ request }) => {
   test.setTimeout(60_000);
@@ -31,14 +30,20 @@ test.beforeAll(async ({ request }) => {
   // Host owns KCC, BAL, LAR and SFO players; guest owns BUF, HOU, PHI and DET players.
   main = await createDraftLeague(request, { seconds: 60, status: "in_progress" });
   await completeDraft(main, plan([101, 302, 604, 802], [201, 402, 504, 702]));
-  swap = await createDraftLeague(request, { seconds: 60, status: "in_progress" });
-  await completeDraft(swap, plan([101, 302, 604, 802], [201, 402, 504, 702]));
+  // Lineups start empty and only starters score, so the host starts QB, RB and WR.
+  for (const [slotIndex, playerId] of [101, 302, 604].entries()) {
+    await main.host.post(`/api/teams/${main.hostTeamId}/lineup`, { round: 2, playerId, slotIndex });
+  }
 });
 
 // Host roster: QB Aiden Archer (KCC), RB Bryce Cole (BAL), WR Dante Frost (LAR), bench SFO.
-const HOST_ROWS = ["QB Aiden Archer", "RB Bryce Cole", "WR Dante Frost"];
-const row = (page: Page, player: string, status: "Alive" | "Eliminated") =>
-  page.getByRole("button", { name: new RegExp(`^${player}.*${status}$`) });
+// The fixture games are Divisional round games, so their losers are eliminated for the
+// Conference Championship.
+const HOST_ROWS = ["Aiden Archer", "Bryce Cole", "Dante Frost"];
+const inEliminatedSection = async (page: Page, player: string) => {
+  await page.getByRole("tab", { name: "Conference Championship" }).click();
+  await expect(page.getByTestId("eliminated-section")).toContainText(player);
+};
 
 test("eliminations reach the team pages as each replayed game finishes", async ({
   page,
@@ -52,7 +57,8 @@ test("eliminations reach the team pages as each replayed game finishes", async (
     expect(await eliminatedTeams(watcher)).toEqual([]);
     await page.goto(`/team/${main.hostTeamId}`);
     await expect(page.getByText("4 of 4 alive")).toBeVisible();
-    for (const player of HOST_ROWS) await expect(row(page, player, "Alive")).toBeVisible();
+    for (const player of HOST_ROWS) await expect(page.getByText(player)).toBeVisible();
+    await expect(page.getByTestId("eliminated-section")).toHaveCount(0);
   });
 
   for (const [index, team] of ELIMINATION_ORDER.entries()) {
@@ -66,7 +72,7 @@ test("eliminations reach the team pages as each replayed game finishes", async (
       await expect(page.getByText(`${alive} of 4 alive`)).toBeVisible();
       await expect(page.getByText(/Stats updated/)).toBeVisible();
       if (index < 3) {
-        await expect(row(page, HOST_ROWS[index], "Eliminated")).toBeVisible();
+        await inEliminatedSection(page, HOST_ROWS[index]);
       }
     });
   }
@@ -74,31 +80,8 @@ test("eliminations reach the team pages as each replayed game finishes", async (
   await test.step("the guest's roster only lost the last team's player", async () => {
     await page.goto(`/team/${main.guestTeamId}`);
     await expect(page.getByText("3 of 4 alive")).toBeVisible();
-    await expect(row(page, "BN Bryce Grady", "Eliminated")).toBeVisible();
+    await inEliminatedSection(page, "Bryce Grady");
   });
-});
-
-test("an eliminated player can be swapped for a free agent even with free agency off", async ({
-  page,
-  context,
-  request,
-}) => {
-  const watcher = new Api(request, swap.host.uid);
-  await waitForEliminations(watcher, 1);
-  await signInAs(context, swap.host.uid);
-  await page.goto(`/team/${swap.hostTeamId}`);
-  await expect(row(page, "QB Aiden Archer", "Eliminated")).toBeVisible();
-
-  await page.getByRole("button", { name: "Add / drop" }).click();
-  const dialog = page.getByRole("dialog", { name: "Add / drop" });
-  await dialog.getByRole("combobox", { name: "Drop" }).click();
-  await page.getByRole("option", { name: /Aiden Archer/ }).click();
-  await dialog.getByRole("combobox", { name: "Add free agent" }).fill("Aiden Hale");
-  await page.getByRole("option", { name: /Aiden Hale/ }).click();
-  await dialog.getByRole("button", { name: "Confirm" }).click();
-
-  await expect(row(page, "QB Aiden Hale", "Alive")).toBeVisible();
-  await expect(page.getByText("Aiden Archer")).toHaveCount(0);
 });
 
 interface StandingsRow {

@@ -1,7 +1,6 @@
 import EditIcon from "@mui/icons-material/Edit";
 import {
   Alert,
-  Autocomplete,
   Box,
   Button,
   Chip,
@@ -11,18 +10,27 @@ import {
   DialogContent,
   DialogTitle,
   IconButton,
+  Tab,
+  Tabs,
   TextField,
   Typography,
 } from "@mui/material";
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { useAddDrop, useMoveInLineup, usePlayerList, useRenameTeam, useTeam } from "../api/queries";
-import type { RosterPlayer, TeamDetails } from "../api/types";
+import { useMoveInLineup, useRenameTeam, useTeam } from "../api/queries";
+import type { TeamDetails } from "../api/types";
 import DataFreshness from "../components/common/DataFreshness";
 import EmptyState from "../components/common/EmptyState";
 import { mutationError } from "../components/common/friendlyError";
 import QueryBoundary from "../components/common/QueryBoundary";
 import LineupList from "../components/team/LineupList";
+import {
+  defaultRound,
+  emptyLineupWarning,
+  formatKickoff,
+  ROUND_LABELS,
+  ROUND_TAB_LABELS,
+} from "../components/team/lineup";
 
 const RenameDialog = ({ team, onClose }: { team: TeamDetails; onClose: () => void }) => {
   const [name, setName] = useState(team.name);
@@ -57,57 +65,16 @@ const RenameDialog = ({ team, onClose }: { team: TeamDetails; onClose: () => voi
   );
 };
 
-const AddDropDialog = ({ team, onClose }: { team: TeamDetails; onClose: () => void }) => {
-  const players = usePlayerList();
-  const addDrop = useAddDrop(team.id);
-  const addDropError = mutationError(addDrop.error, "Couldn't complete the add/drop. Try again.");
-  const [drop, setDrop] = useState<RosterPlayer | null>(null);
-  const [add, setAdd] = useState<{ id: number; name: string } | null>(null);
-  const rostered = new Set(team.roster.map((player) => player.id));
-
-  return (
-    <Dialog open onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>Add / drop</DialogTitle>
-      <DialogContent sx={{ display: "grid", gap: 2, pt: 2 }}>
-        <Autocomplete
-          options={team.roster}
-          value={drop}
-          getOptionLabel={(player) => `${player.name} (${player.position})`}
-          onChange={(_, value) => setDrop(value)}
-          renderInput={(params) => <TextField {...params} label="Drop" />}
-        />
-        <Autocomplete
-          options={(players.data ?? []).filter((player) => !rostered.has(player.id))}
-          value={add}
-          getOptionLabel={(player) => player.name}
-          onChange={(_, value) => setAdd(value)}
-          renderInput={(params) => <TextField {...params} label="Add free agent" />}
-        />
-        {addDropError && <Alert severity="error">{addDropError}</Alert>}
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
-        <Button
-          variant="contained"
-          disabled={(!drop && !add) || addDrop.isPending}
-          onClick={() =>
-            addDrop.mutate({ addPlayerId: add?.id, dropPlayerId: drop?.id }, { onSuccess: onClose })
-          }
-        >
-          Confirm
-        </Button>
-      </DialogActions>
-    </Dialog>
-  );
-};
-
 const TeamContent = ({ team }: { team: TeamDetails }) => {
   const teamId = team.id;
   const [renaming, setRenaming] = useState(false);
-  const [managing, setManaging] = useState(false);
+  const [now] = useState(() => new Date());
+  const [round, setRound] = useState(() => defaultRound(team.lineups, now));
   const moveInLineup = useMoveInLineup(teamId);
   const moveError = mutationError(moveInLineup.error, "Couldn't move that player. Try again.");
 
+  const lineup = team.lineups.find((entry) => entry.round === round);
+  const warning = emptyLineupWarning(team.lineups, team.roster.length, now);
   const aliveCount = team.roster.filter((player) => player.isActive).length;
 
   return (
@@ -130,12 +97,6 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
             label={`${aliveCount} of ${team.roster.length} alive`}
           />
         )}
-        <Box sx={{ flexGrow: 1 }} />
-        {team.canManageRoster && (
-          <Button variant="outlined" onClick={() => setManaging(true)}>
-            Add / drop
-          </Button>
-        )}
       </Box>
 
       <Box sx={{ mb: 2 }}>
@@ -154,11 +115,40 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
           />
         </Box>
       )}
-      <LineupList
-        slots={team.slots}
-        canDrag={team.canManageRoster}
-        onMove={(move) => moveInLineup.mutate(move)}
-      />
+      {warning && team.canSetLineup && (
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          {ROUND_LABELS[warning.round]}: {warning.emptyStarterSlots} empty starter{" "}
+          {warning.emptyStarterSlots === 1 ? "slot" : "slots"}. First kickoff{" "}
+          {formatKickoff(warning.firstKickoff)}.
+        </Alert>
+      )}
+      {lineup && (
+        <>
+          <Tabs
+            value={round}
+            onChange={(_, value: number) => setRound(value)}
+            variant="fullWidth"
+            aria-label="Round"
+            sx={{ mb: 1.5, maxWidth: 760 }}
+          >
+            {team.lineups.map((entry) => (
+              <Tab
+                key={entry.round}
+                value={entry.round}
+                label={ROUND_TAB_LABELS[entry.round]}
+                aria-label={ROUND_LABELS[entry.round]}
+                sx={{ minWidth: 0, px: 0.5, fontSize: "0.8125rem" }}
+              />
+            ))}
+          </Tabs>
+          <LineupList
+            key={round}
+            lineup={lineup}
+            canEdit={team.canSetLineup}
+            onMove={(move) => moveInLineup.mutate({ round, ...move })}
+          />
+        </>
+      )}
       {moveError && (
         <Alert severity="error" sx={{ mt: 1 }}>
           {moveError}
@@ -166,7 +156,6 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
       )}
 
       {renaming && <RenameDialog team={team} onClose={() => setRenaming(false)} />}
-      {managing && <AddDropDialog team={team} onClose={() => setManaging(false)} />}
     </Container>
   );
 };

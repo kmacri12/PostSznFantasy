@@ -101,15 +101,32 @@ export interface RosterPlayer {
   name: string;
   position: string;
   teamAbv?: string | null;
-  slot: string;
   isActive: boolean;
   nextGame: NextGame | null;
 }
 
-export interface RosterSlot {
+export type PlayerRoundStatus = "alive" | "eliminated" | "bye";
+
+export interface LineupPlayer extends RosterPlayer {
+  status: PlayerRoundStatus;
+  /** Scheduled kickoff of their game that round (ISO), which is when they lock. */
+  kickoff: string | null;
+  locked: boolean;
+}
+
+export interface LineupSlot {
   index: number;
   slot: string;
-  player: RosterPlayer | null;
+  player: LineupPlayer | null;
+}
+
+export interface RoundLineup {
+  round: number;
+  slots: LineupSlot[];
+  unassigned: LineupPlayer[];
+  eliminated: LineupPlayer[];
+  emptyStarterSlots: number;
+  firstKickoff: string | null;
 }
 
 export interface TeamDetails {
@@ -118,9 +135,9 @@ export interface TeamDetails {
   leagueId: number;
   ownerName: string | null;
   canEdit: boolean;
-  canManageRoster: boolean;
+  canSetLineup: boolean;
   roster: RosterPlayer[];
-  slots: RosterSlot[];
+  lineups: RoundLineup[];
 }
 
 export interface DraftPick {

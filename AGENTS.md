@@ -73,7 +73,7 @@ PostSznFantasy/
 │   │   ├── drafts.py           # Draft state/setup/order/controls/queue/REST picks + authenticated WebSocket
 │   │   ├── invites.py          # Invite create/regenerate/revoke, public preview, join
 │   │   ├── leagues.py          # League CRUD, members/roles, settings PATCH, standings
-│   │   ├── teams.py            # Team page: slot layout, rename, add/drop
+│   │   ├── teams.py            # Team page: per-round lineups, rename, lineup moves
 │   │   └── players.py          # Player database & stats endpoints
 │   ├── scripts/                # Database seeding & administrative CLI scripts
 │   │   └── seed_nfl_data.py    # Unified on-demand NFL data seeder
@@ -86,7 +86,8 @@ PostSznFantasy/
 │   │   ├── invites.py          # Invite codes and joining
 │   │   ├── league_members.py   # Role changes with the never-zero-commissioners rule
 │   │   ├── league_admin.py     # Team resizing and post-draft locks
-│   │   ├── roster_slots.py     # Empty roster template and slot assignment
+│   │   ├── lineups.py          # Per-round lineup: slot layout, legal moves, kickoff locks
+│   │   ├── round_status.py     # Per-round alive/eliminated/bye and kickoffs, derived from game results
 │   │   ├── draft_picks.py      # Server-side pick validation (turn, availability, roster limits)
 │   │   ├── scheduler.py        # Opt-in background sync/live-poll/elimination loop
 │   │   └── ingestion/          # Async batch upsert services
@@ -189,7 +190,7 @@ make format     # auto-fix Ruff and Biome
 | Config | `GET /api/config` (season) |
 | Leagues | `POST /api/leagues/create-league`, `GET /api/leagues/user-leagues`, `GET/PATCH /api/leagues/{id}`, `GET/PATCH /api/leagues/{id}/settings` (roster/scoring/postseason; roster shape locks once the draft starts), `PATCH/DELETE /api/leagues/{id}/members/{userId}` |
 | Invites | `GET/POST/DELETE /api/leagues/{id}/invite` (commissioner), `GET /api/invites/{code}` (public preview), `POST /api/invites/{code}/join` |
-| Teams | `GET/PATCH /api/teams/{id}`, `POST /api/teams/{id}/roster` (add/drop under the league's free-agency rules), `POST /api/teams/{id}/lineup` (drag-and-drop move between starter slots and bench), `PUT /api/leagues/{id}/teams/{teamId}/owner` (commissioner assigns/unassigns a team) |
+| Teams | `GET/PATCH /api/teams/{id}` (the GET carries all four rounds' lineups: slots, unassigned and eliminated players, lock times, empty-starter count), `POST /api/teams/{id}/lineup` (`{round, playerId, slotIndex}`; `slotIndex: null` takes a player out; 409 when any player involved is locked or eliminated; owner only). There is no add/drop in v1, `PUT /api/leagues/{id}/teams/{teamId}/owner` (commissioner assigns/unassigns a team) |
 | Players | `GET /api/players/player-list`, `GET /api/players/player-season-stats?season=&leagueId=` (`fantasyPoints` scored under that league's settings; draftable positions only unless `position` is given), `GET /api/players/sync-status` (last successful sync per ingestion type, plus `budgetExhausted` when the daily Tank01 cap has stopped polling); players carry `eliminated` (their NFL team is out) |
 | Draft | `GET /api/drafts/draft-info/{leagueId}`, `PATCH /api/drafts/{leagueId}` (setup), `PUT .../order` (`teamIds` may contain `null` for unfilled slots; starting requires a full order), `POST .../order/randomize`, `POST .../control/{lobby,start,pause,resume,undo}`, `POST .../force-pick`, `POST .../picks`, `GET/PUT .../queue`, `WS /api/drafts/ws/{leagueId}` |
 

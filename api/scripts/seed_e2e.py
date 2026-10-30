@@ -10,6 +10,7 @@ import argparse
 import asyncio
 import json
 import logging
+import time
 from pathlib import Path
 from typing import Any
 
@@ -71,6 +72,10 @@ def _season_stats_row(raw: dict[str, Any]) -> NFLPlayerSeasonStats:
 
 async def _load_fixtures() -> None:
     data = json.loads((FIXTURES / "nfl.json").read_text())
+    # Kickoffs keep their spacing but start in two days, so nobody is locked on a
+    # fresh database whatever day the suite runs.
+    first_kickoff = min(float(g["gameTime_epoch"]) for g in data["games"])
+    shift = time.time() + 2 * 86400 - first_kickoff
     async with db_session.get_session_factory()() as db:
         db.add_all(
             NFLTeam(
@@ -99,7 +104,7 @@ async def _load_fixtures() -> None:
                 id=g["gameID"],
                 game_status=g["gameStatus"],
                 game_date=g["gameDate"],
-                game_time_epoch=g["gameTime_epoch"],
+                game_time_epoch=str(float(g["gameTime_epoch"]) + shift),
                 game_week=20,
                 season=safe_int(g["season"]),
                 team_id_home=safe_int(g["teamIDHome"]),
