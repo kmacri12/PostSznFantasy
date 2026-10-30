@@ -133,7 +133,7 @@ fly ssh console --app postszn-api -C "python -m api.scripts.seed_nfl_data --seas
 1. Sign in once at `https://postsznfantasy.com` with the account that will administer the app. In the Supabase dashboard, Authentication, Users, copy that user's **UID**.
 2. Make sure no draft is live (`DATABASE_URL='<pooler string>' scripts/check-live-drafts.sh`), then: `fly secrets set ADMIN_SUPABASE_UIDS=<uid> --app postszn-api` (this restarts the machine).
 3. Confirm admin works: the admin "Refresh now" control is visible when `VITE_ADMIN_SUPABASE_UIDS` is also set to that UID (optional hint), and `/api/admin/*` returns 403 for non-admins.
-4. **Leave `SCHEDULER_ENABLED=false`** until playoff games are about to start. It polls RapidAPI on a timer and every tick can cost quota; the roster refresh and live scores run only while it is on. Turn it on (same secret-change rule: no live draft) with `fly secrets set SCHEDULER_ENABLED=true --app postszn-api` and turn it off again after the last game of the week. Confirm the daily request budget guard from #71/#78 exists before the first game day.
+4. **Leave `SCHEDULER_ENABLED=false`** until playoff games are about to start. It polls RapidAPI on a timer and every tick can cost quota; the roster refresh and live scores run only while it is on. Turn it on (same secret-change rule: no live draft) with `fly secrets set SCHEDULER_ENABLED=true --app postszn-api` and turn it off again after the last game of the week. The daily request budget guard (`RAPIDAPI_DAILY_REQUEST_LIMIT`, default 700) is in place; confirm the plan limit in #71 first, and watch the `RapidAPI call N/700 today` log lines on the first game day.
 
 **Go / no-go**
 - [ ] Admin account works; a non-admin account gets 403 from an admin endpoint.
