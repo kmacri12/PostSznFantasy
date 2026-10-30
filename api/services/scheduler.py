@@ -5,6 +5,7 @@ from collections.abc import Callable, Sequence
 from datetime import UTC, datetime
 from pathlib import Path
 
+import sentry_sdk
 from sqlalchemy import select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -205,6 +206,7 @@ async def _reconcile_completed(
         except Exception:
             await db.rollback()
             logger.exception("Reconcile of %s failed; will retry next tick", game_id)
+            sentry_sdk.capture_exception()
     return reconciled
 
 
@@ -237,6 +239,7 @@ async def run_poll_cycle(
         except Exception:
             await db.rollback()
             logger.exception("Games list refresh failed; keeping the stored schedule")
+            sentry_sdk.capture_exception()
         games = await _playoff_games(db, season)
 
     polled = 0
@@ -253,6 +256,7 @@ async def run_poll_cycle(
         except Exception:
             await db.rollback()
             logger.exception("Poll of %s failed; keeping its last good data", game_id)
+            sentry_sdk.capture_exception()
 
     # A rollback above expired the loaded rows, so reload before reading them.
     games = await _playoff_games(db, season)
@@ -316,4 +320,5 @@ async def run_scheduler() -> None:
             logger.info("Scheduler cycle skipped: %s", busy)
         except Exception:
             logger.exception("Scheduler cycle failed")
+            sentry_sdk.capture_exception()
         await asyncio.sleep(tick_seconds)
