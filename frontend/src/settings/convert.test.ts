@@ -4,17 +4,17 @@ import { POSTSEASON_KEYS } from "./postseasonFields";
 
 describe("settings conversion", () => {
   it("matches pydantic's camel casing for numeric bands", () => {
-    expect(toCamel("scoring_kicking_fg_made_0_19")).toBe("scoringKickingFgMade019");
-    expect(toCamel("scoring_dst_pts_allowed_35_plus")).toBe("scoringDstPtsAllowed35Plus");
+    expect(toCamel("scoring_dst_yards_allowed_100_199")).toBe("scoringDstYardsAllowed100199");
+    expect(toCamel("scoring_dst_pts_allowed_29_plus")).toBe("scoringDstPtsAllowed29Plus");
     expect(toCamel("number_teams")).toBe("numberTeams");
   });
 
   it("reads snake_case form state from a camelCase response", () => {
     const values = fromApi(
-      { scoringPassingTd: 4, scoringKickingFgMade019: 3, rosterTotal: "x", other: 1 },
+      { scoringPassingTd: 4, scoringDstYardsAllowed100199: 3, rosterTotal: "x", other: 1 },
       [...SCORING_KEYS, ...ROSTER_KEYS],
     );
-    expect(values).toEqual({ scoring_passing_td: 4, scoring_kicking_fg_made_0_19: 3 });
+    expect(values).toEqual({ scoring_passing_td: 4, scoring_dst_yards_allowed_100_199: 3 });
   });
 
   it("keeps booleans and enum strings for postseason settings", () => {

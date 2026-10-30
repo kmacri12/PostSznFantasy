@@ -20,24 +20,19 @@ describe("scoringHelp", () => {
     expect(scoringHelp("scoring_passing_2pt", "2")).toBe("2 points per 2-point conversion");
   });
 
-  it("describes yardage bonuses, kicker bands and defense bands", () => {
+  it("describes yardage bonuses, kick yards and defense bands", () => {
     expect(scoringHelp("scoring_passing_bonus_300_yards", "3")).toBe(
       "3 points bonus for a game of 300+ yards",
     );
-    expect(scoringHelp("scoring_kicking_fg_made_50_plus", "5")).toBe(
-      "5 points per field goal made from 50+ yards",
+    expect(scoringHelp("scoring_kicking_fg_yard", "0.1")).toBe("1 point per 10 yards");
+    expect(scoringHelp("scoring_dst_pts_allowed_1_13", "5")).toBe(
+      "5 points when the defense allows 1-13 points",
     );
-    expect(scoringHelp("scoring_kicking_fg_miss_20_29", "-1")).toBe(
-      "-1 point per missed field goal from 20-29 yards",
+    expect(scoringHelp("scoring_dst_yards_allowed_under_100", "6")).toBe(
+      "6 points when the defense allows under 100 yards",
     );
-    expect(scoringHelp("scoring_dst_pts_allowed_1_6", "7")).toBe(
-      "7 points when the defense allows 1-6 points",
-    );
-    expect(scoringHelp("scoring_dst_yards_allowed_under_100", "5")).toBe(
-      "5 points when the defense allows under 100 yards",
-    );
-    expect(scoringHelp("scoring_dst_pts_allowed_35_plus", "-4")).toBe(
-      "-4 points when the defense allows 35+ points",
+    expect(scoringHelp("scoring_dst_pts_allowed_29_plus", "-1")).toBe(
+      "-1 point when the defense allows 29+ points",
     );
   });
 

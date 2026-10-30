@@ -148,7 +148,7 @@ async def test_player_list_and_season_stats(
 
 
 @pytest.mark.asyncio
-async def test_scoring_defaults_match_sleeper_ppr(async_client: AsyncClient) -> None:
+async def test_scoring_defaults_match_product_rules(async_client: AsyncClient) -> None:
     res = await async_client.get("/api/leagues/scoring-defaults")
     assert res.status_code == 200
     body = res.json()
@@ -157,9 +157,13 @@ async def test_scoring_defaults_match_sleeper_ppr(async_client: AsyncClient) -> 
     assert body["scoring_receiving_reception"] == 1
     assert body["scoring_rushing_yard"] == 0.1
     assert body["scoring_carrying_fumble_lost"] == -2
-    assert body["scoring_kicking_fg_made_50_plus"] == 5
-    assert body["scoring_dst_pts_allowed_0"] == 10
-    assert body["scoring_special_kick_return_td"] == 6
+    assert body["scoring_passing_interception"] == -2
+    assert body["scoring_kicking_fg_yard"] == 0.1
+    assert body["scoring_kicking_xp_miss"] == -1
+    assert body["scoring_dst_pts_allowed_0"] == 7
+    assert body["scoring_dst_yards_allowed_under_100"] == 6
+    assert "scoring_special_kick_return_td" not in body
+    assert "scoring_kicking_fg_made_50_plus" not in body
 
 
 @pytest.mark.asyncio

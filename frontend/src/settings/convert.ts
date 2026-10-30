@@ -2,7 +2,7 @@ import { ROSTER_GROUPS } from "./rosterGroups";
 import { SCORING_GROUPS } from "./scoringGroups";
 import type { SettingsValues } from "./types";
 
-// Mirrors pydantic's to_camel, which is not reversible for numeric bands like `fg_made_0_19`.
+// Mirrors pydantic's to_camel, which is not reversible for numeric bands like `yards_allowed_100_199`.
 export const toCamel = (snake: string): string =>
   snake
     .split("_")
