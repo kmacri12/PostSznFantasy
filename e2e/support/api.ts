@@ -29,6 +29,8 @@ export const TINY_ROSTER: Required<RosterShape> = {
   rosterNumBench: 1,
 };
 
+const COMMIT_LAG_404 = /User not found|Invite not found/;
+
 /** Thin JSON client for arranging state quickly; flows under test still go through the UI. */
 export class Api {
   constructor(
@@ -37,9 +39,10 @@ export class Api {
   ) {}
 
   private async send<T>(method: string, path: string, data?: unknown): Promise<T> {
-    // Observed once in ~200 runs: the first request after /api/auth/login can answer
-    // 404 "User not found" because the login commit lands just after its response.
-    // Retried here so the harness is steady; it is recorded as an app finding.
+    // The request transaction commits just after the response is sent, so the next
+    // request can briefly miss the row (seen as 404 "User not found" after login and
+    // 404 "Invite not found" after creating an invite). Retried here so the harness is
+    // steady; it is recorded as an app finding (#123).
     for (let attempt = 0; ; attempt++) {
       const response = await this.request.fetch(`${API_URL}${path}`, {
         method,
@@ -47,7 +50,7 @@ export class Api {
         data,
       });
       const body = await response.text();
-      if (response.status() === 404 && body.includes("User not found") && attempt < 5) {
+      if (response.status() === 404 && COMMIT_LAG_404.test(body) && attempt < 5) {
         await new Promise((resolve) => setTimeout(resolve, 200));
         continue;
       }
