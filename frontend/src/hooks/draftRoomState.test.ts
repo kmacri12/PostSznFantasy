@@ -60,6 +60,24 @@ describe("draft room reducer", () => {
     expect(room.pendingPlayerId).toBeNull();
   });
 
+  it("toasts my team once when a pick is auto-made for me, not on replays or others' picks", () => {
+    let room = applyDraftEvent(initialRoom, { eventType: "SNAPSHOT", data: snapshot() });
+    const auto = { ...pick(1, 5), autopick: true };
+    room = applyDraftEvent(room, { eventType: "PICK_MADE", data: auto });
+    expect(room.toast?.message).toBe("Auto-pick: P5 was drafted for you");
+    expect(room.toast?.severity).toBe("info");
+
+    room = applyDraftEvent(room, { eventType: "DISMISS_TOAST" });
+    room = applyDraftEvent(room, { eventType: "PICK_MADE", data: auto });
+    expect(room.toast).toBeNull();
+
+    room = applyDraftEvent(room, {
+      eventType: "PICK_MADE",
+      data: { ...auto, numberPickOverall: 2, playerId: 6, teamId: 99 },
+    });
+    expect(room.toast).toBeNull();
+  });
+
   it("clears a pending pick when someone else drafts that player", () => {
     let room = applyDraftEvent(initialRoom, { eventType: "SNAPSHOT", data: snapshot() });
     room = applyDraftEvent(room, { eventType: "PICK_PENDING", data: { playerId: 5 } });

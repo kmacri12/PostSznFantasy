@@ -64,4 +64,10 @@ describe("DraftBoard", () => {
     render(<DraftBoard state={{ ...base, order: [] }} myTeamId={null} />);
     expect(screen.getByText(/hasn't set the draft order/i)).toBeTruthy();
   });
+
+  it("labels auto-picks on the board", () => {
+    const picks = [{ ...base.picks[0], autopick: true }] as DraftState["picks"];
+    render(<DraftBoard state={{ ...base, picks }} myTeamId={10} />);
+    expect(screen.getByTestId("pick-1").textContent).toContain("auto");
+  });
 });

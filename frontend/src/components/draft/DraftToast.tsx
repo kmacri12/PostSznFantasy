@@ -6,10 +6,9 @@ const AUTO_HIDE_MS = 5000;
 interface Props {
   toast: Toast | null;
   onClose: () => void;
-  severity?: "error" | "info";
 }
 
-const DraftToast = ({ toast, onClose, severity = "error" }: Props) => (
+const DraftToast = ({ toast, onClose }: Props) => (
   <Snackbar
     key={toast?.id}
     open={toast !== null}
@@ -17,7 +16,12 @@ const DraftToast = ({ toast, onClose, severity = "error" }: Props) => (
     onClose={(_, reason) => reason !== "clickaway" && onClose()}
     anchorOrigin={{ vertical: "top", horizontal: "center" }}
   >
-    <Alert severity={severity} variant="filled" onClose={onClose} sx={{ width: "100%" }}>
+    <Alert
+      severity={toast?.severity ?? "error"}
+      variant="filled"
+      onClose={onClose}
+      sx={{ width: "100%" }}
+    >
       {toast?.message}
     </Alert>
   </Snackbar>

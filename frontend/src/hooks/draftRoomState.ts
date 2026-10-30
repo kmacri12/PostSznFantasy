@@ -5,6 +5,7 @@ export interface Toast {
   /** Changes on every error so an identical repeat re-shows the toast. */
   id: number;
   message: string;
+  severity: "error" | "info";
 }
 
 export interface DraftRoom {
@@ -31,6 +32,12 @@ export const initialRoom: DraftRoom = {
 const withOffset = (room: DraftRoom, serverTime: string, now: number) => ({
   ...room,
   clockOffsetMs: new Date(serverTime).getTime() - now,
+});
+
+const nextToast = (room: DraftRoom, message: string, severity: Toast["severity"]): Toast => ({
+  id: (room.toast?.id ?? 0) + 1,
+  message,
+  severity,
 });
 
 const mergePick = (picks: DraftPick[], pick: DraftPick): DraftPick[] =>
@@ -62,9 +69,18 @@ export function applyDraftEvent(room: DraftRoom, event: DraftMessage, now = Date
       if (!room.state) return room;
       const pick = event.data as DraftPick;
       const picks = mergePick(room.state.picks, pick);
+      const autoPickedForMe =
+        pick.autopick && pick.teamId === room.state.myTeamId && picks !== room.state.picks;
       // A queued player that just got drafted (by anyone) leaves everyone's queue.
       return {
         ...room,
+        toast: autoPickedForMe
+          ? nextToast(
+              room,
+              `Auto-pick: ${pick.playerName ?? "a player"} was drafted for you`,
+              "info",
+            )
+          : room.toast,
         pendingPlayerId:
           pick.teamId === room.state.myTeamId || pick.playerId === room.pendingPlayerId
             ? null
@@ -96,7 +112,7 @@ export function applyDraftEvent(room: DraftRoom, event: DraftMessage, now = Date
           event.code === "player_taken" && room.pendingPlayerId !== null
             ? [...room.takenPlayerIds, room.pendingPlayerId]
             : room.takenPlayerIds,
-        toast: { id: (room.toast?.id ?? 0) + 1, message: event.message ?? "Something went wrong" },
+        toast: nextToast(room, event.message ?? "Something went wrong", "error"),
       };
     case "DISMISS_TOAST":
       return { ...room, toast: null };
