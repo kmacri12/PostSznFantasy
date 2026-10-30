@@ -1,8 +1,25 @@
 import RefreshIcon from "@mui/icons-material/Refresh";
-import { Box, Button, Typography } from "@mui/material";
+import { Alert, Box, Button, CircularProgress, Snackbar, Typography } from "@mui/material";
+import { useState } from "react";
 import { useRefreshLive, useSyncStatus } from "../../api/queries";
 import { useUser } from "../../contexts/UserContext";
 import { friendlyError } from "./friendlyError";
+
+interface Toast {
+  severity: "success" | "info" | "error";
+  message: string;
+}
+
+const refreshedMessage = (polled: number): Toast =>
+  polled === 0
+    ? {
+        severity: "info",
+        message: "Nothing to refresh: no live games, or the daily API limit is spent.",
+      }
+    : {
+        severity: "success",
+        message: `Refreshed: ${polled} live ${polled === 1 ? "game" : "games"} updated.`,
+      };
 
 const BOX_SCORES = "box_scores";
 
@@ -27,31 +44,69 @@ const DataFreshness = () => {
   const { user } = useUser();
   const status = useSyncStatus();
   const refresh = useRefreshLive();
-  const syncedAt = status.data?.find((item) => item.kind === BOX_SCORES)?.lastSyncedAt;
+  const [toast, setToast] = useState<Toast | null>(null);
+  const boxScores = status.data?.find((item) => item.kind === BOX_SCORES);
+  const syncedAt = boxScores?.lastSyncedAt;
 
-  if (status.isLoading || status.isError) return null;
+  if (status.isLoading) return null;
+
+  // A failed refetch keeps the previous data, so the last known time stays on screen.
+  const message = !status.data
+    ? "Update time unavailable"
+    : !syncedAt
+      ? "Stats haven't synced yet"
+      : `Stats updated ${formatAgo(syncedAt)}`;
 
   return (
     <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
-      <Typography variant="body2" color="text.secondary">
-        {syncedAt ? `Stats updated ${formatAgo(syncedAt)}` : "Stats haven't synced yet"}
-      </Typography>
+      {boxScores?.budgetExhausted && syncedAt ? (
+        <Alert severity="warning" role="status" sx={{ width: "100%" }}>
+          Live updates paused for today (API daily limit). Showing the last update from{" "}
+          {formatAgo(syncedAt)}.
+        </Alert>
+      ) : (
+        <Typography variant="body2" color="text.secondary">
+          {message}
+        </Typography>
+      )}
       {isAdminHint(user?.id) && (
         <Button
           size="small"
           variant="outlined"
-          startIcon={<RefreshIcon />}
+          startIcon={
+            refresh.isPending ? <CircularProgress size={16} color="inherit" /> : <RefreshIcon />
+          }
           disabled={refresh.isPending}
-          onClick={() => refresh.mutate()}
+          onClick={() =>
+            refresh.mutate(undefined, {
+              onSuccess: ({ polled }) => setToast(refreshedMessage(polled)),
+              onError: (error) =>
+                setToast({
+                  severity: "error",
+                  message: friendlyError(error, "Couldn't refresh stats. Try again."),
+                }),
+            })
+          }
         >
           Refresh now
         </Button>
       )}
-      {refresh.isError && (
-        <Typography variant="body2" color="error" role="alert">
-          {friendlyError(refresh.error, "Couldn't refresh stats. Try again.")}
-        </Typography>
-      )}
+      <Snackbar
+        key={toast?.message}
+        open={toast !== null}
+        autoHideDuration={6000}
+        onClose={(_, reason) => reason !== "clickaway" && setToast(null)}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          severity={toast?.severity ?? "info"}
+          variant="filled"
+          onClose={() => setToast(null)}
+          sx={{ width: "100%" }}
+        >
+          {toast?.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
