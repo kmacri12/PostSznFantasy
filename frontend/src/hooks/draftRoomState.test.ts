@@ -88,6 +88,16 @@ describe("draft room reducer", () => {
     expect(room.clockOffsetMs).toBe(5000);
   });
 
+  it("re-syncs the clock offset on every snapshot", () => {
+    let room = applyDraftEvent(
+      initialRoom,
+      { eventType: "SNAPSHOT", data: snapshot() },
+      NOW - 5000,
+    );
+    room = applyDraftEvent(room, { eventType: "SNAPSHOT", data: snapshot() }, NOW - 800);
+    expect(room.clockOffsetMs).toBe(800);
+  });
+
   it("ignores incremental events until a snapshot arrives", () => {
     const room = applyDraftEvent(initialRoom, { eventType: "PICK_MADE", data: pick(1, 5) });
     expect(room).toBe(initialRoom);

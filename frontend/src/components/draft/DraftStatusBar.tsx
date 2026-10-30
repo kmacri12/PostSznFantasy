@@ -1,18 +1,12 @@
 import { Box, Chip, Paper, Typography } from "@mui/material";
 import type { DraftSnapshot } from "../../api/types";
-
-const format = (seconds: number): string => {
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const rest = seconds % 60;
-  const mmss = `${String(minutes).padStart(2, "0")}:${String(rest).padStart(2, "0")}`;
-  return hours > 0 ? `${hours}:${mmss}` : mmss;
-};
+import PickClock, { formatClock } from "./PickClock";
 
 interface Props {
   state: DraftSnapshot;
   secondsLeft: number | null;
   secondsToStart: number | null;
+  isConnected: boolean;
   myTeamId: number | null;
 }
 
@@ -26,7 +20,7 @@ const STATUS_TEXT = {
 } as const;
 
 /** Clock, status and on-the-clock/on-deck banners; everything derives from server state. */
-const DraftStatusBar = ({ state, secondsLeft, secondsToStart, myTeamId }: Props) => {
+const DraftStatusBar = ({ state, secondsLeft, secondsToStart, isConnected, myTeamId }: Props) => {
   const teamName = (id: number | null) => state.order.find((slot) => slot.teamId === id)?.teamName;
   const myTurn = myTeamId !== null && state.onTheClockTeamId === myTeamId;
   const onDeck = myTeamId !== null && state.onDeckTeamId === myTeamId;
@@ -53,22 +47,14 @@ const DraftStatusBar = ({ state, secondsLeft, secondsToStart, myTeamId }: Props)
       </Box>
       {myTurn && <Chip color="primary" label="You're on the clock" />}
       {!myTurn && onDeck && <Chip color="secondary" label="You're on deck" />}
-      {secondsLeft !== null && (
-        <Typography
-          variant="h3"
-          aria-label="Pick clock"
-          sx={{ fontVariantNumeric: "tabular-nums", color: urgent ? "error.main" : "inherit" }}
-        >
-          {format(secondsLeft)}
-        </Typography>
-      )}
+      <PickClock secondsLeft={secondsLeft} isConnected={isConnected} urgent={urgent} />
       {secondsToStart !== null && (
         <Typography
           variant="h4"
           aria-label="Time until start"
           sx={{ fontVariantNumeric: "tabular-nums" }}
         >
-          Starts in {format(secondsToStart)}
+          Starts in {formatClock(secondsToStart)}
         </Typography>
       )}
     </Paper>

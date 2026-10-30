@@ -93,6 +93,7 @@ const DraftPage = () => {
         state={state}
         secondsLeft={room.secondsLeft}
         secondsToStart={room.secondsToStart}
+        isConnected={room.isConnected}
         myTeamId={myTeamId}
       />
       <DraftToast toast={room.toast} onClose={room.dismissToast} />
