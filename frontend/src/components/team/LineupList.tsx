@@ -134,7 +134,7 @@ const PlayerRow = ({
                 {player.position} · {player.teamAbv || "FA"} · {lineupStatusText(player)}
               </Typography>
             </Box>
-            <ChangedScore player={player} />
+            <ChangedScore points={player.points} change={player.scoreChange} />
             {locked && !eliminated && (
               <LockIcon aria-label="Locked" fontSize="small" sx={{ color: tokens.muted }} />
             )}

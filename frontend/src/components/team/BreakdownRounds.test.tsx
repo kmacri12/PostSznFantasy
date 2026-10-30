@@ -10,6 +10,7 @@ const player = (id: number, name: string, slot: string | null, value: number): B
   teamAbv: "KC",
   slot,
   points: value,
+  scoreChange: null,
 });
 
 const round = (number: number, extra: Partial<BreakdownRound> = {}): BreakdownRound => ({
@@ -33,8 +34,14 @@ const breakdown: TeamBreakdown = {
       counted: 10,
       benchPoints: 35,
       starters: [
-        { index: 0, slot: "QB", player: null, points: 0 },
-        { index: 1, slot: "RB", player: player(1, "Sam Starter", "RB", 10), points: 10 },
+        { index: 0, slot: "QB", player: null, points: 0, mark: null },
+        {
+          index: 1,
+          slot: "RB",
+          player: player(1, "Sam Starter", "RB", 10),
+          points: 10,
+          mark: null,
+        },
       ],
       bench: [player(2, "Bea Bench", "BENCH", 30), player(3, "Una Placed", null, 5)],
     }),
@@ -77,5 +84,61 @@ describe("BreakdownRounds", () => {
   it("opens the latest round that has points", () => {
     expect(openRound(breakdown.rounds)).toBe(2);
     expect(openRound([round(1), round(2)])).toBe(1);
+  });
+
+  it("shows the override banner, emptied slot and asterisk on the breakdown too", () => {
+    const marked: TeamBreakdown = {
+      ...breakdown,
+      rounds: [
+        round(1, {
+          starters: [
+            {
+              index: 0,
+              slot: "QB",
+              player: null,
+              points: 0,
+              mark: { kind: "override", actorName: "kyle", at: "2030-01-11T19:00:00Z" },
+            },
+            {
+              index: 1,
+              slot: "RB",
+              player: player(1, "Sam Starter", "RB", 10),
+              points: 10,
+              mark: { kind: "commissioner_set", actorName: "kyle", at: "2030-01-11T19:00:00Z" },
+            },
+          ],
+        }),
+        round(2),
+        round(3),
+        round(4),
+      ],
+    };
+    render(<BreakdownRounds breakdown={marked} />);
+    expect(screen.getByTestId("override-mark").textContent).toContain(
+      "Emptied by commissioner after kickoff",
+    );
+    expect(screen.getByTestId("commissioner-set-mark").textContent).toMatch(/^\* Set by kyle/);
+  });
+
+  it("explains a changed score with the counted before and after", () => {
+    const changed: TeamBreakdown = {
+      ...breakdown,
+      rounds: [
+        round(1, {
+          bench: [
+            {
+              ...player(2, "Bea Bench", "BENCH", 24),
+              scoreChange: { previousPoints: 20, newPoints: 24, changedAt: "2030-01-12T09:00:00Z" },
+            },
+          ],
+        }),
+        round(2),
+        round(3),
+        round(4),
+      ],
+    };
+    render(<BreakdownRounds breakdown={changed} />);
+    const score = screen.getByRole("button", { name: /score changed/ });
+    expect(score.getAttribute("aria-label")).toContain("Was 20 pts, now 24 pts");
   });
 });
