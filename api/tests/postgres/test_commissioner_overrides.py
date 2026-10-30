@@ -125,6 +125,7 @@ async def test_a_confirmed_override_posts_to_the_league_feed_with_a_permanent_ma
     assert event["actorName"] == "user0"
     assert event["payload"]["playerName"] == locked.name
     assert event["payload"]["toSlot"] == "RB"
+    assert event["payload"]["byCommissioner"] is True
     async with client_as("uid-1") as owner:
         later = (await owner.get(f"/api/teams/{s.team.id}")).json()
     assert slot_of(later, RB)["mark"]["kind"] == "override"

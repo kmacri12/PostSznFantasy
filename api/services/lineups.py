@@ -376,6 +376,7 @@ async def move_in_lineup(
         )
         move_fields = move.model_dump(by_alias=False)
         if is_override:
+            move_fields["by_commissioner"] = True
             payload: LineupMovePayload = CommissionerOverridePayload(**move_fields)
         else:
             move_fields["by_commissioner"] = (

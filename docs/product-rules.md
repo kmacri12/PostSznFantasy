@@ -69,6 +69,8 @@ Two independent league settings, each a required explicit commissioner choice wi
 
 One feed per league and one per team, collapsed by default. It records lineup moves, commissioner edits, stat corrections (old score, new score, time) and settings changes (old and new values). A small dot on the league nav and on the feed section marks new activity and clears when the feed is expanded. Individual player scores that changed also carry a tooltip.
 
+The league feed lists every event in the league, and a team's feed the events about that team (settings changes belong to the league only). A member's own actions never count as new for them, and activity from before they joined is not new. A commissioner move that touches a locked player is an override (confirmation, a permanent marker, a league-feed entry); one that touches only unlocked players is an ordinary move marked with an asterisk until the player locks or an owner overwrites the slot. A stat correction is a changed score for a rostered player in a game that was already final, per league because scoring differs.
+
 ## 9. Explaining the game
 
 Several rules are unfamiliar (team QB/K, per-round lineups, kickoff locks, eliminated players). Explain them where they matter: a How to play page in the nav, the empty pre-draft roster showing every slot with its caps and the lock rules, tooltips on commissioner settings, and a "locks at kickoff" note on the lineup screen.
