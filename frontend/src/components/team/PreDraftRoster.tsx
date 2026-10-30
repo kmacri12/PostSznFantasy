@@ -11,10 +11,11 @@ import {
 import { tokens } from "../../theme";
 import { positionCaps, startingSlots } from "./preDraft";
 
-const Row = ({ label, detail }: { label: string; detail: string }) => (
-  <Box sx={{ display: "flex", alignItems: "center", gap: 1.25, minHeight: 44 }}>
-    <Chip size="small" label={label} sx={{ width: 64, color: tokens.gold }} />
-    <Typography>{detail}</Typography>
+const Chips = ({ items }: { items: string[] }) => (
+  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.75, mt: 0.5 }}>
+    {items.map((item) => (
+      <Chip key={item} label={item} variant="outlined" sx={{ color: tokens.gold, height: 32 }} />
+    ))}
   </Box>
 );
 
@@ -42,21 +43,17 @@ const PreDraftRoster = ({ leagueId }: { leagueId: number }) => {
       </Typography>
       <Typography color="text.secondary">{PRE_DRAFT_INTRO}</Typography>
 
-      <Heading>Starter slots</Heading>
-      {starters.map((slot) => (
-        <Row key={slot.label} label={slot.label} detail={`${slot.count} per round`} />
-      ))}
+      <Heading>Starter slots (each round)</Heading>
+      <Chips items={starters.map((slot) => `${slot.label} ×${slot.count}`)} />
       <Heading>Bench</Heading>
-      <Row label="BN" detail={`${bench} spots. Bench players do not score.`} />
+      <Typography>{bench} spots. Bench players do not score.</Typography>
 
       <Heading>Most you can draft per position</Heading>
-      {caps.map((cap) => (
-        <Row
-          key={cap.position}
-          label={cap.position}
-          detail={cap.max === null ? PRE_DRAFT_UNLIMITED : `At most ${cap.max}`}
-        />
-      ))}
+      <Chips
+        items={caps.map(
+          (cap) => `${cap.position}: ${cap.max === null ? PRE_DRAFT_UNLIMITED : cap.max}`,
+        )}
+      />
 
       {unitNotes.length > 0 && (
         <>

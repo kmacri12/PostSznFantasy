@@ -174,6 +174,10 @@ _Avoid_: Tiebreak
 The step of the tiebreaker chain that put one fantasy team above another with the same total, with the two values compared.
 _Avoid_: Tiebreak explanation
 
+**League notes**:
+Free text on the league page for buy-in, prizes and house rules. A commissioner edits it and every member reads it. The app handles no money.
+_Avoid_: Rules text, description
+
 ### Oversight
 
 **Commissioner override**:

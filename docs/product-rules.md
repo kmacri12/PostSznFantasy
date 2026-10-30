@@ -77,7 +77,7 @@ The league feed lists every event in the league, and a team's feed the events ab
 
 ## 9. Explaining the game
 
-Several rules are unfamiliar (team QB/K, per-round lineups, kickoff locks, eliminated players). Explain them where they matter: a How to play page in the nav, the empty pre-draft roster showing every slot with its caps and the lock rules, tooltips on commissioner settings, and a "locks at kickoff" note on the lineup screen.
+Several rules are unfamiliar (team QB/K, per-round lineups, kickoff locks, eliminated players). Explain them where they matter: a How to play page in the nav, the empty pre-draft roster showing every slot with its caps and the lock rules, tooltips on commissioner settings, and a "locks at kickoff" note on the lineup screen. All of this copy lives in `frontend/src/content/rules.ts`. League notes are plain text of up to 5000 characters on the league page, which only commissioners edit; edits are not logged to the activity feed.
 
 ## 10. Season end and history
 

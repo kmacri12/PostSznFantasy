@@ -9,7 +9,13 @@ interface Props {
 
 /** An info button whose explanation opens on a tap, a hover or keyboard focus. */
 const HelpTip = ({ label, text }: Props) => (
-  <Tooltip title={text} arrow enterTouchDelay={0} leaveTouchDelay={8000}>
+  <Tooltip
+    title={text}
+    arrow
+    enterTouchDelay={0}
+    leaveTouchDelay={8000}
+    slotProps={{ tooltip: { sx: { fontSize: 14, p: 1.5 } } }}
+  >
     <IconButton aria-label={`About ${label}`} sx={{ width: 44, height: 44 }}>
       <InfoOutlinedIcon fontSize="small" />
     </IconButton>

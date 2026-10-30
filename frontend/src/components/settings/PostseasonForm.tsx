@@ -37,6 +37,7 @@ const PostseasonForm = ({ values, onChange, disabled }: PostseasonFormProps) => 
                     />
                   }
                   label={field.label}
+                  sx={{ flexGrow: 1, mr: 0 }}
                 />
                 {field.help && <HelpTip label={field.label} text={field.help} />}
               </FormControl>
