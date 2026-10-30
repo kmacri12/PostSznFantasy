@@ -75,23 +75,17 @@ async def get_sync_status(db: DbSession) -> list[IngestionStatusResponse]:
 async def get_player_list(
     db: DbSession,
     position: str | None = None,
-    active: Annotated[bool | None, Query(alias="isActive")] = None,
-    is_active: bool | None = None,
+    is_active: Annotated[bool | None, Query(alias="isActive")] = None,
 ) -> list[Player]:
-    """NFL player directory, optionally filtered by position and team activity.
-
-    `is_active` is the legacy spelling, still used by the replay e2e suite.
-    """
-    if active is None:
-        active = is_active
+    """NFL player directory, optionally filtered by position and team activity."""
     stmt = (
         select(NFLPlayer).options(selectinload(NFLPlayer.team)).order_by(NFLPlayer.name)
     )
     if position:
         stmt = stmt.where(NFLPlayer.position == position.upper())
-    if active is not None:
+    if is_active is not None:
         stmt = stmt.join(NFLTeam, NFLPlayer.team_id == NFLTeam.id).where(
-            NFLTeam.is_active == active
+            NFLTeam.is_active == is_active
         )
     players = (await db.execute(stmt)).scalars().all()
     return [_to_player(p) for p in players]
