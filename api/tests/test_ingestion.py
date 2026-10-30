@@ -13,10 +13,13 @@ async def test_admin_update_all_endpoint(
     mock_db_session: AsyncMock,
 ) -> None:
     app.dependency_overrides[require_admin] = lambda: "admin-uid"
-    with patch(
-        "api.routers.admin.run_full_ingestion_pipeline",
-        new_callable=AsyncMock,
-    ) as mock_pipeline:
+    with (
+        patch(
+            "api.routers.admin.run_full_ingestion_pipeline",
+            new_callable=AsyncMock,
+        ) as mock_pipeline,
+        patch("api.routers.admin.recompute_standings", new_callable=AsyncMock),
+    ):
         mock_pipeline.return_value = {
             "status": "success",
             "duration_ms": 125,

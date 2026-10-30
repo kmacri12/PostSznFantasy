@@ -455,7 +455,7 @@ async def get_standings(
 ) -> list[Standings]:
     """Return the stored standings snapshot enriched with team and owner names.
 
-    players_left and weekly totals are persisted separately by the scoring engine.
+    Rows are rewritten by api.services.standings whenever scores or eliminations change.
     """
     rows = (
         (
@@ -477,10 +477,10 @@ async def get_standings(
             team_name=row.team.name or f"Team {row.team_id}",
             owner=row.team.owner.username if row.team.owner else "Unclaimed",
             players_left=row.players_left or 0,
-            wild_card=row.wild_card or 0,
-            divisional=row.divisional or 0,
-            conf_champ=row.conf_champ or 0,
-            super_bowl=row.super_bowl or 0,
+            wild_card=float(row.wild_card or 0),
+            divisional=float(row.divisional or 0),
+            conf_champ=float(row.conf_champ or 0),
+            super_bowl=float(row.super_bowl or 0),
             total=float(row.total or 0),
         )
         for row in rows

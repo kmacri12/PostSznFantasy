@@ -20,6 +20,7 @@ from api.services.ingestion import (
 )
 from api.services.ingestion.guard import IngestionBusy, IngestionKind
 from api.services.replay import ReplayClient, load_replay, virtual_clock
+from api.services.standings import recompute_standings
 from api.utils.rapidapi.rapidapi import RapidApiClient, get_rapidapi_client
 
 logger = logging.getLogger(__name__)
@@ -264,6 +265,7 @@ async def run_poll_cycle(
         eliminated = await eliminate_losing_teams(
             db, season, reinstate_winners=bool(reconciled)
         )
+        await recompute_standings(db, season)
         await db.commit()
         logger.info("Polled %d live games; %d eliminations applied", polled, eliminated)
     if client.requests_remaining is not None:

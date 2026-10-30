@@ -10,6 +10,7 @@ from api.db.models.league import LeagueSettings, Team, TeamPlayer
 from api.db.models.nfl import NFLPlayer
 from api.db.models.user import User
 from api.models.enums import DraftStatus, DraftType, PlayerPosition
+from api.services.standings import recompute_league_standings
 
 logger = logging.getLogger(__name__)
 
@@ -190,6 +191,8 @@ async def record_pick(
         draft.pick_started_at = now
         draft.current_pick_deadline = next_deadline(draft, now)
     await db.flush()
+    if draft_complete:
+        await recompute_league_standings(db, draft.league_id)
 
     logger.info(
         "Draft pick recorded",
