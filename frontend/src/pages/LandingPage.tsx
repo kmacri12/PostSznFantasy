@@ -165,7 +165,7 @@ const LandingPage = ({ leagues }: { leagues: LeagueByUser[] }) => {
       )}
 
       <Box sx={{ mt: 8 }}>
-        <Typography variant="h5" sx={{ mb: 2 }}>
+        <Typography variant="h5" component="h2" sx={{ mb: 2 }}>
           How it works
         </Typography>
         <Grid container spacing={2}>

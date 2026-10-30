@@ -8,7 +8,6 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import { UserProvider } from "./contexts/UserContext";
 import theme from "./theme";
 import { initSentry } from "./utils/sentry";
-import "./index.css";
 
 initSentry();
 

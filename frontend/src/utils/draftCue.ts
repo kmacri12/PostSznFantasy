@@ -16,5 +16,6 @@ export function playOnDeckCue(): void {
 }
 
 export function vibrateOnTurn(): void {
-  navigator.vibrate?.([200, 100, 200]);
+  // Chrome logs an intervention error for vibrating before the first tap on the page.
+  if (navigator.userActivation?.hasBeenActive) navigator.vibrate?.([200, 100, 200]);
 }
