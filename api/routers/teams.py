@@ -24,6 +24,7 @@ from api.services.roster_slots import (
     move_player,
     slot_layout,
 )
+from api.services.standings import recompute_league_standings
 
 router = APIRouter()
 
@@ -45,6 +46,19 @@ async def _team_or_404(db: DbSession, team_id: int) -> Team:
             status_code=status.HTTP_404_NOT_FOUND, detail="Team not found"
         )
     return team
+
+
+async def _refresh_standings(db: DbSession, league_id: int) -> None:
+    """Same transaction as the roster change; a failure keeps the last good rows.
+
+    Before the draft completes there is no table to refresh (and writing one would
+    lock team rows against people joining).
+    """
+    draft_status = await db.scalar(
+        select(Draft.status).where(Draft.league_id == league_id)
+    )
+    if draft_status == DraftStatus.COMPLETED.value:
+        await recompute_league_standings(db, league_id)
 
 
 async def _next_games(
@@ -310,6 +324,7 @@ async def add_drop(
             TeamPlayer(team_id=team.id, league_id=team.league_id, player_id=added.id)
         )
     await db.flush()
+    await _refresh_standings(db, team.league_id)
     await db.refresh(team, attribute_names=["roster"])
     return await build_team_details(db, team, membership)
 
@@ -359,4 +374,5 @@ async def move_in_lineup(
     for row in rows:
         row.slot_index = slot_of.get(row.player_id)
     await db.flush()
+    await _refresh_standings(db, team.league_id)
     return await build_team_details(db, team, membership)

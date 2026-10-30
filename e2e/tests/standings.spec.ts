@@ -33,4 +33,27 @@ test.describe("standings", () => {
     await expect(standings.getByText("4 alive")).toHaveCount(2);
     await expect(standings.getByText("0", { exact: true })).toHaveCount(2);
   });
+
+  test("moving a scoring bench player into a starter slot raises the team's points", async ({
+    page,
+    context,
+    request,
+  }) => {
+    const league = await createDraftLeague(request, { seconds: 60, status: "in_progress" });
+    await completeDraft(league);
+    await signInAs(context, league.host.uid);
+
+    await page.goto(`/league/${league.leagueId}`);
+    const standings = page.getByRole("list", { name: "Standings" });
+    await expect(standings.getByText("0", { exact: true })).toHaveCount(2);
+
+    await page.goto(`/team/${league.hostTeamId}`);
+    await page.getByRole("button", { name: /^BN Caleb Archer/ }).click();
+    await page.getByRole("button", { name: /^RB Bryce Archer/ }).click();
+    await expect(page.getByRole("button", { name: /^RB Caleb Archer/ })).toBeVisible();
+
+    await page.goto(`/league/${league.leagueId}`);
+    await expect(standings.getByText("10", { exact: true })).toHaveCount(1);
+    await expect(standings.getByText("0", { exact: true })).toHaveCount(1);
+  });
 });

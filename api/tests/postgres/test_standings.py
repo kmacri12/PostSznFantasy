@@ -1,7 +1,7 @@
 from decimal import Decimal
 
 import pytest
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.core.config import get_settings
@@ -234,3 +234,101 @@ async def test_leagues_still_drafting_get_no_table(db: AsyncSession) -> None:
     assert await recompute_standings(db, 2025) == 0
 
     assert await _stored(db, league.id) == {}
+
+
+async def _drafted_roster_with_scoring_bench(
+    db: AsyncSession,
+) -> tuple[int, int, int, int]:
+    """Team 0 starts a QB and a low-scoring RB; a high-scoring RB sits on the bench."""
+    league, _, teams, _ = await make_league(
+        db, draft_status="completed", roster_total=3, roster_num_qb=1,
+        roster_num_rb=1, roster_num_wr=0, roster_num_te=0,
+        roster_num_flex_wr_rb_te=0, roster_num_k=0, roster_num_dst=0,
+        roster_num_bench=1,
+    )  # fmt: skip
+    kc = NFLTeam(id=1, team_abv="KC", is_active=True)
+    db.add(kc)
+    await db.flush()
+    qb, starter_rb, bench_rb = await make_players(db, ["QB", "RB", "RB"], nfl_team=kc)
+    (free_rb,) = await make_players(db, ["RB"], nfl_team=kc, first_id=3000)
+    db.add_all(
+        TeamPlayer(team_id=teams[0].id, league_id=league.id, player_id=p.id)
+        for p in (qb, starter_rb, bench_rb)
+    )
+    db.add(NFLGame(id="wc", season=2025, season_type="post", game_week=1))
+    await db.flush()
+    db.add_all(
+        [
+            NFLPlayerGameStats(game_id="wc", player_id=starter_rb.id, rushing_yards=10),
+            NFLPlayerGameStats(game_id="wc", player_id=bench_rb.id, rushing_yards=100),
+            NFLPlayerGameStats(game_id="wc", player_id=free_rb.id, rushing_yards=200),
+        ]
+    )
+    await db.flush()
+    await recompute_standings(db, 2025)
+    return league.id, teams[0].id, bench_rb.id, free_rb.id
+
+
+async def test_a_lineup_move_recomputes_standings(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    league_id, team_id, bench_rb, _ = await _drafted_roster_with_scoring_bench(db)
+    assert (await _stored(db, league_id))[team_id].total == Decimal("1")
+
+    async with client_as("uid-0") as owner:
+        team = (await owner.get(f"/api/teams/{team_id}")).json()
+        rb_slot = next(s["index"] for s in team["slots"] if s["slot"] == "RB")
+        moved = await owner.post(
+            f"/api/teams/{team_id}/lineup",
+            json={"playerId": bench_rb, "slotIndex": rb_slot},
+        )
+
+    assert moved.status_code == 200
+    assert (await _stored(db, league_id))[team_id].total == Decimal("10")
+
+
+async def test_add_drop_recomputes_standings(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    league_id, team_id, bench_rb, free_rb = await _drafted_roster_with_scoring_bench(db)
+    await db.execute(
+        update(LeagueSettings)
+        .where(LeagueSettings.league_id == league_id)
+        .values(free_agency_enabled=True)
+    )
+
+    async with client_as("uid-0") as owner:
+        starter = next(
+            s["player"]["id"]
+            for s in (await owner.get(f"/api/teams/{team_id}")).json()["slots"]
+            if s["slot"] == "RB"
+        )
+        swapped = await owner.post(
+            f"/api/teams/{team_id}/roster",
+            json={"dropPlayerId": starter, "addPlayerId": free_rb},
+        )
+
+    assert swapped.status_code == 200
+    # The 200-yard free agent takes the vacated RB slot, replacing the 10-yard starter.
+    assert (await _stored(db, league_id))[team_id].total == Decimal("20")
+
+
+async def test_a_failing_recompute_does_not_fail_the_lineup_move(
+    db: AsyncSession, client_as: ClientFactory, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    league_id, team_id, bench_rb, _ = await _drafted_roster_with_scoring_bench(db)
+
+    def boom(_: object) -> None:
+        raise RuntimeError("scoring blew up")
+
+    monkeypatch.setattr("api.services.standings.rank_teams", boom)
+    async with client_as("uid-0") as owner:
+        team = (await owner.get(f"/api/teams/{team_id}")).json()
+        rb_slot = next(s["index"] for s in team["slots"] if s["slot"] == "RB")
+        moved = await owner.post(
+            f"/api/teams/{team_id}/lineup",
+            json={"playerId": bench_rb, "slotIndex": rb_slot},
+        )
+
+    assert moved.status_code == 200
+    assert (await _stored(db, league_id))[team_id].total == Decimal("1")

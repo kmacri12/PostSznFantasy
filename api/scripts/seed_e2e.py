@@ -21,7 +21,13 @@ from api.core.config import get_settings
 from api.core.logging import setup_logging
 from api.db import session as db_session
 from api.db.models import Base
-from api.db.models.nfl import NFLGame, NFLPlayer, NFLPlayerSeasonStats, NFLTeam
+from api.db.models.nfl import (
+    NFLGame,
+    NFLPlayer,
+    NFLPlayerGameStats,
+    NFLPlayerSeasonStats,
+    NFLTeam,
+)
 from api.services.ingestion.schemas import safe_int
 
 logger = logging.getLogger("seed_e2e")
@@ -107,6 +113,23 @@ async def _load_fixtures() -> None:
                 season_type="post",
             )
             for g in data["games"]
+        )
+        await db.flush()
+        # A finished divisional game where only one player scored, so a test can tell
+        # whether he starts: Caleb Archer (103, RB) rushed for 100 yards. No team ids,
+        # so it eliminates nobody.
+        db.add(
+            NFLGame(
+                id="e2e-scored",
+                game_status="Completed",
+                game_week=20,
+                season=safe_int(data["season"]),
+                season_type="post",
+            )
+        )
+        await db.flush()
+        db.add(
+            NFLPlayerGameStats(game_id="e2e-scored", player_id=103, rushing_yards=100)
         )
         await db.commit()
 
