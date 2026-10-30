@@ -40,6 +40,22 @@ hours each is roughly 800 box score calls for the whole postseason. A failed cal
 back that game only and leaves its stored data and the "box_scores" freshness stamp as they
 were. `POST /api/admin/refresh/live` runs one cycle on demand.
 
+## Replay mode (rehearsal, no API calls)
+
+Save a finished postseason once (about 14 calls, free with `RAPIDAPI_CACHE_DIR`):
+
+```bash
+uv run python -m api.scripts.export_replay --season 2025 --out replay-2025.json
+```
+
+Then set `SCHEDULER_ENABLED=true` and `SCHEDULER_REPLAY_FILE=replay-2025.json`
+(`SCHEDULER_REPLAY_SPEED`, default 60, scales the virtual clock). The scheduler serves the
+saved games through `api.services.replay.ReplayClient` into the same
+`run_poll_cycle` / ingest / elimination code: games go Scheduled, Live, then Final over
+3.5 virtual hours, with scores ramping linearly (player stats are served final from
+kickoff). Teams and players must already be seeded, and replay writes into the database
+like a real run, so use a throwaway one.
+
 ## Season semantics
 
 - **`getNFLTeamRoster` has no season parameter.** It always returns the current in-progress

@@ -1,7 +1,7 @@
 import logging
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import case, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -114,15 +114,22 @@ async def _upsert_games_and_stats(
     db: AsyncSession,
     game_rows: list[dict[str, Any]],
     stat_rows: list[dict[str, Any]],
+    *,
+    keep_completed: bool = False,
 ) -> None:
     for i in range(0, len(game_rows), CHUNK_SIZE):
         chunk = game_rows[i : i + CHUNK_SIZE]
         stmt = insert(NFLGame).values(chunk)
-        await db.execute(
-            stmt.on_conflict_do_update(
-                index_elements=["id"],
-                set_={k: stmt.excluded[k] for k in chunk[0] if k != "id"},
+        update_columns: dict[str, Any] = {
+            k: stmt.excluded[k] for k in chunk[0] if k != "id"
+        }
+        if keep_completed and "game_status" in update_columns:
+            update_columns["game_status"] = case(
+                (NFLGame.game_status == GAME_COMPLETED, GAME_COMPLETED),
+                else_=stmt.excluded.game_status,
             )
+        await db.execute(
+            stmt.on_conflict_do_update(index_elements=["id"], set_=update_columns)
         )
     for i in range(0, len(stat_rows), CHUNK_SIZE):
         chunk = stat_rows[i : i + CHUNK_SIZE]
@@ -206,7 +213,10 @@ async def ingest_games_list(
 ) -> int:
     """Refresh the schedule (one API call): kickoff times, status, matchups.
 
-    Scores are left alone; only box scores are authoritative for those.
+    Scores are left alone; only box scores are authoritative for those. The raw
+    "Final" status is kept (not normalised to "Completed") so the game is still
+    polled once to fetch its final stats; the box score then marks it "Completed",
+    which a later refresh never downgrades.
     """
     client = client or get_rapidapi_client()
     games = await client.get_nfl_games_list(season, season_type, "all")
@@ -219,10 +229,11 @@ async def ingest_games_list(
             ).items()
             if key not in _BOX_ONLY_COLUMNS
         }
+        | {"game_status": safe_str(game.get("gameStatus"))}
         for game in games
         if (game_id := safe_str(game.get("gameID")))
     ]
-    await _upsert_games_and_stats(db, rows, [])
+    await _upsert_games_and_stats(db, rows, [], keep_completed=True)
     return len(rows)
 
 

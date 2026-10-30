@@ -119,17 +119,20 @@ async def test_a_cycle_polls_one_box_score_per_live_game(
             summary("upcoming", NOW + 3600),
             summary("done", NOW - 9000, "Final"),
         ],
-        boxes={"live": box("Live - In Progress", 10, 7)},
+        boxes={
+            "live": box("Live - In Progress", 10, 7),
+            "done": box("Completed", 3, 0),
+        },
     )
     await run_poll_cycle(db, 2025, client=client, now=NOW)  # type: ignore[arg-type]
 
     assert client.list_calls == 1
-    assert client.box_calls == ["live"]
+    assert client.box_calls == ["live", "done"]  # the Final one: its last fetch
     assert (await db.get(NFLGame, "live")).home_pts == 10  # type: ignore[union-attr]
 
     await run_poll_cycle(db, 2025, client=client, now=NOW + 150)  # type: ignore[arg-type]
     assert client.list_calls == 1  # list refreshed once, not every tick
-    assert client.box_calls == ["live", "live"]
+    assert client.box_calls == ["live", "done", "live"]
 
 
 async def test_the_poll_that_sees_completed_is_the_final_fetch(
@@ -244,3 +247,19 @@ async def test_reconcile_refetches_once_per_window_and_flips_a_changed_result(
         .all()
     }
     assert (teams_by_id[1].is_active, teams_by_id[2].is_active) == (False, True)
+
+
+async def test_a_game_the_list_calls_final_still_gets_its_final_box_score(
+    db: AsyncSession, teams: None
+) -> None:
+    client = FakeClient(
+        games=[summary("g", NOW - 20 * 3600, "Final")],
+        boxes={"g": box("Completed", 24, 20)},
+    )
+    await run_poll_cycle(db, 2025, client=client, now=NOW)  # type: ignore[arg-type]
+
+    assert client.box_calls == ["g"]
+    stored = await db.get(NFLGame, "g")
+    assert stored is not None
+    await db.refresh(stored)
+    assert (stored.game_status, stored.home_pts) == ("Completed", 24)

@@ -1,8 +1,9 @@
 import asyncio
 import logging
 import time
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from datetime import UTC, datetime
+from pathlib import Path
 
 from sqlalchemy import select, update
 from sqlalchemy.dialects.postgresql import insert
@@ -18,11 +19,13 @@ from api.services.ingestion import (
     run_full_ingestion_pipeline,
 )
 from api.services.ingestion.guard import IngestionBusy, IngestionKind
+from api.services.replay import ReplayClient, load_replay, virtual_clock
 from api.utils.rapidapi.rapidapi import RapidApiClient, get_rapidapi_client
 
 logger = logging.getLogger(__name__)
 
 GAME_COMPLETED = "Completed"
+LIST_FINAL = "Final"
 ONE_HOUR_SECONDS = 3600
 GAMES_LIST_MAX_AGE_SECONDS = 24 * ONE_HOUR_SECONDS
 # Longest plausible game (with delays); past this a "live" game is a stale schedule.
@@ -53,6 +56,8 @@ def _is_live_window(game: NFLGame, now: float) -> bool:
     kickoff = _kickoff(game)
     if game.game_status == GAME_COMPLETED or kickoff is None:
         return False
+    if game.game_status == LIST_FINAL:  # finished, but its box score is still unread
+        return kickoff <= now
     return kickoff <= now < kickoff + MAX_GAME_SECONDS
 
 
@@ -72,7 +77,12 @@ def games_list_due(
     games: Sequence[NFLGame], last_refreshed: float | None, now: float
 ) -> bool:
     """Daily, plus once after each kickoff so flex-moved or delayed games are seen."""
-    if last_refreshed is None or now - last_refreshed >= GAMES_LIST_MAX_AGE_SECONDS:
+    # A stamp from the future (clock skew, or a replay's virtual clock) is no stamp.
+    if (
+        last_refreshed is None
+        or last_refreshed > now + ONE_HOUR_SECONDS
+        or now - last_refreshed >= GAMES_LIST_MAX_AGE_SECONDS
+    ):
         return True
     return any(
         g.game_status != GAME_COMPLETED
@@ -155,6 +165,7 @@ async def _reconcile_completed(
     season: int,
     client: RapidApiClient,
     now: float,
+    skip: set[str],
 ) -> int:
     kinds = {g.id: RECONCILE_KIND_PREFIX + g.id for g in games}
     rows = (
@@ -165,7 +176,11 @@ async def _reconcile_completed(
         )
     ).scalars()
     last_by_kind = {r.kind: r.last_synced_at.timestamp() for r in rows}
-    due = [g.id for g in games if reconcile_due(g, last_by_kind.get(kinds[g.id]), now)]
+    due = [
+        g.id
+        for g in games
+        if g.id not in skip and reconcile_due(g, last_by_kind.get(kinds[g.id]), now)
+    ]
 
     reconciled = 0
     for game_id in due:
@@ -223,7 +238,8 @@ async def run_poll_cycle(
 
     polled = 0
     # Ids up front: rollback expires loaded rows, and logging must not re-query.
-    for game_id in [g.id for g in games_to_poll(games, now)]:
+    live_ids = [g.id for g in games_to_poll(games, now)]
+    for game_id in live_ids:
         try:
             await poll_game_box_score(db, game_id, str(season), client=client)
             await db.commit()
@@ -237,7 +253,9 @@ async def run_poll_cycle(
 
     # A rollback above expired the loaded rows, so reload before reading them.
     games = await _playoff_games(db, season)
-    reconciled = await _reconcile_completed(db, games, season, client, now)
+    reconciled = await _reconcile_completed(
+        db, games, season, client, now, skip=set(live_ids)
+    )
 
     if polled or reconciled:
         eliminated = await eliminate_losing_teams(
@@ -260,18 +278,38 @@ async def run_roster_sync() -> None:
 async def run_scheduler() -> None:
     """Loop until cancelled; a failing cycle is logged and retried next tick."""
     settings = get_settings()
+    replay = settings.scheduler_replay_file
+    season = settings.season_year
+    client: RapidApiClient | ReplayClient | None = None
+    clock: Callable[[], float] | None = None
+    tick_seconds = float(settings.scheduler_live_poll_seconds)
+    if replay:
+        games, boxes = load_replay(Path(replay))
+        season = int(games[0]["season"])
+        first_kickoff = min(float(g["gameTime_epoch"]) for g in games)
+        clock = virtual_clock(first_kickoff - 300, settings.scheduler_replay_speed)
+        client = ReplayClient(games, boxes, clock)
+        tick_seconds /= settings.scheduler_replay_speed
+        logger.warning(
+            "Scheduler REPLAYING season %d from %s; no API calls", season, replay
+        )
     roster_interval = settings.scheduler_roster_sync_hours * ONE_HOUR_SECONDS
     last_roster_sync = float("-inf")
     logger.info("Background scheduler started")
     while True:
         try:
-            if time.monotonic() - last_roster_sync >= roster_interval:
+            if not replay and time.monotonic() - last_roster_sync >= roster_interval:
                 await run_roster_sync()
                 last_roster_sync = time.monotonic()
             async with get_session_factory()() as db:
-                await run_poll_cycle(db, settings.season_year)
+                await run_poll_cycle(
+                    db,
+                    season,
+                    client=client,  # type: ignore[arg-type]
+                    now=clock() if clock else None,
+                )
         except IngestionBusy as busy:
             logger.info("Scheduler cycle skipped: %s", busy)
         except Exception:
             logger.exception("Scheduler cycle failed")
-        await asyncio.sleep(settings.scheduler_live_poll_seconds)
+        await asyncio.sleep(tick_seconds)
