@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, useLocation } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { UserProvider, useUser } from "./UserContext";
 
@@ -26,6 +26,17 @@ const sessionFor = (id: string, token: string) => ({
   access_token: token,
   user: { id, email: `${id}@x.co`, user_metadata: { full_name: "Pat Player" } },
 });
+
+const SignInTrigger = () => {
+  const { signIn } = useUser();
+  const location = useLocation();
+  return (
+    <button type="button" onClick={signIn}>
+      go {location.pathname}
+      {location.search}
+    </button>
+  );
+};
 
 const Probe = () => {
   const { userId, loading, syncError, sessionExpired, signOutUser } = useUser();
@@ -132,5 +143,19 @@ describe("UserProvider auth flow", () => {
 
     act(() => emitAuthChange(sessionFor("u1", "t9")));
     await waitFor(() => expect(screen.getByTestId("expired").textContent).toBe("no"));
+  });
+
+  it("sends signIn() to the sign-in page remembering the invite link it came from", async () => {
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter initialEntries={["/join/ABC123"]}>
+          <UserProvider>
+            <SignInTrigger />
+          </UserProvider>
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+    fireEvent.click(await screen.findByText(/go \/join\/ABC123/));
+    expect(await screen.findByText("go /sign-in?next=%2Fjoin%2FABC123")).toBeInTheDocument();
   });
 });
