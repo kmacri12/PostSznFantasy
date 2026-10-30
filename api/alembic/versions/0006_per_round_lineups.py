@@ -5,8 +5,8 @@ weeks/lineups/player_scores tables) with per-round lineup_slots, and drops the
 free-agency, swap-eliminated, bye-handling and roster-lock settings that the fixed
 product rules make meaningless. Pre-dev: no data is carried over.
 
-Revision ID: 0005
-Revises: 0004
+Revision ID: 0006
+Revises: 0005
 Create Date: 2026-10-30 14:00:00
 
 """
@@ -17,8 +17,8 @@ import sqlalchemy as sa
 
 from alembic import op
 
-revision: str = "0005"
-down_revision: str | Sequence[str] | None = "0004"
+revision: str = "0006"
+down_revision: str | Sequence[str] | None = "0005"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

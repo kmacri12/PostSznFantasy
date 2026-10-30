@@ -247,3 +247,43 @@ async def test_leagues_still_drafting_get_no_table(db: AsyncSession) -> None:
     assert await recompute_standings(db, 2025) == 0
 
     assert await _stored(db, league.id) == {}
+
+
+async def test_lineup_moves_and_settings_changes_recompute_standings(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    league, _, teams, _ = await make_league(db, draft_status="completed")
+    kc = NFLTeam(id=1, team_abv="KC", is_active=True)
+    db.add(kc)
+    await db.flush()
+    (qb,) = await make_players(db, ["QB"], nfl_team=kc)
+    db.add_all(
+        [
+            TeamPlayer(team_id=teams[0].id, league_id=league.id, player_id=qb.id),
+            NFLGame(id="wc", season=2025, season_type="post", game_week=1),
+        ]
+    )
+    await db.flush()
+    db.add(NFLPlayerGameStats(game_id="wc", player_id=qb.id, passing_yards=300))
+    await db.flush()
+    await recompute_standings(db, 2025)
+    assert (await _stored(db, league.id))[teams[0].id].total == 0
+
+    async with client_as("uid-0") as owner:
+        moved = await owner.post(
+            f"/api/teams/{teams[0].id}/lineup",
+            json={"round": 1, "playerId": qb.id, "slotIndex": 0},
+        )
+        assert moved.status_code == 200
+        assert (await _stored(db, league.id))[teams[0].id].total == Decimal("12")
+
+        await owner.patch(
+            f"/api/leagues/{league.id}/settings", json={"multiplierWildCard": 2}
+        )
+        assert (await _stored(db, league.id))[teams[0].id].total == Decimal("24")
+
+        await owner.post(
+            f"/api/teams/{teams[0].id}/lineup",
+            json={"round": 1, "playerId": qb.id, "slotIndex": None},
+        )
+        assert (await _stored(db, league.id))[teams[0].id].total == 0

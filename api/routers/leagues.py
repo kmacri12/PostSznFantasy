@@ -44,6 +44,7 @@ from api.services.league_admin import (
     set_team_count,
 )
 from api.services.league_members import LeagueRuleError, remove_member, set_role
+from api.services.standings import refresh_standings_if_drafted
 
 router = APIRouter()
 
@@ -404,6 +405,7 @@ async def update_league_settings(
             .values(rounds=settings.roster_total)
         )
     await db.flush()
+    await refresh_standings_if_drafted(db, league_id)
     return settings
 
 

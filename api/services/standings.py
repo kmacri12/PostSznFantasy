@@ -237,6 +237,18 @@ async def recompute_league_standings(db: AsyncSession, league_id: int) -> None:
         await _recompute_leagues(db, [league_id], season)
 
 
+async def refresh_standings_if_drafted(db: AsyncSession, league_id: int) -> None:
+    """After a lineup move or settings change: scores always follow the latest inputs."""
+    drafted = await db.scalar(
+        select(Draft.id).where(
+            Draft.league_id == league_id,
+            Draft.status == DraftStatus.COMPLETED.value,
+        )
+    )
+    if drafted is not None:
+        await recompute_league_standings(db, league_id)
+
+
 async def clear_league_standings(db: AsyncSession, league_id: int) -> None:
     """A draft reopened by an undo is no longer complete, so it has no table."""
     await db.execute(

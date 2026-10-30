@@ -17,6 +17,7 @@ from api.models.league_models import (
 )
 from api.services.lineups import LineupError, move_in_lineup, team_lineups
 from api.services.round_status import GAME_COMPLETED
+from api.services.standings import refresh_standings_if_drafted
 
 router = APIRouter()
 
@@ -198,4 +199,5 @@ async def move_in_round_lineup(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail=str(exc)
         ) from exc
+    await refresh_standings_if_drafted(db, team.league_id)
     return await build_team_details(db, team, membership)
