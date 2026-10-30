@@ -6,6 +6,7 @@ DST is always a unit and needs none of this: its stats already belong to the tea
 """
 
 from collections import defaultdict
+from collections.abc import Iterable
 from dataclasses import dataclass
 
 from sqlalchemy import select
@@ -104,3 +105,37 @@ async def require_no_same_team_conflicts(
         "position from the same NFL team, which would draft that unit twice. "
         + "; ".join(str(conflict) for conflict in conflicts)
     )
+
+
+async def scoring_members(
+    db: AsyncSession, settings: LeagueSettings, rostered: Iterable[NFLPlayer]
+) -> dict[int, list[int]]:
+    """Whose stats feed each rostered team-unit player's slot, himself included.
+
+    Membership is by official roster position on the NFL team, so a WR who throws a
+    touchdown is never a member of a QB unit. Players whose position is not combined
+    are absent: they score only for themselves. A player's current team stands in for
+    the team he played for, which is safe because postseason rosters do not trade.
+    """
+    combined = combined_positions(settings)
+    units: dict[int, tuple[int, PlayerPosition]] = {}
+    for player in rostered:
+        position = PlayerPosition.from_str(player.position)
+        if position in combined and player.team_id is not None:
+            units[player.id] = (player.team_id, position)
+    if not units:
+        return {}
+
+    team_ids = {team_id for team_id, _ in units.values()}
+    members: dict[tuple[int, PlayerPosition], list[int]] = defaultdict(list)
+    for player_id, team_id, raw_position in (
+        await db.execute(
+            select(NFLPlayer.id, NFLPlayer.team_id, NFLPlayer.position)
+            .where(NFLPlayer.team_id.in_(team_ids))
+            .order_by(NFLPlayer.id)
+        )
+    ).all():
+        position = PlayerPosition.from_str(raw_position)
+        if team_id is not None and position in combined:
+            members[(team_id, position)].append(player_id)
+    return {player_id: members[unit] for player_id, unit in units.items()}
