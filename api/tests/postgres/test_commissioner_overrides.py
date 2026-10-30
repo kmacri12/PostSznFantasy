@@ -235,5 +235,5 @@ async def test_a_commissioner_override_changes_the_standings(
         standings = (
             await commissioner.get(f"/api/leagues/{s.league.id}/standings")
         ).json()
-    by_team = {row["teamId"]: row for row in standings}
+    by_team = {row["teamId"]: row for row in standings["teams"]}
     assert by_team[s.team.id]["wildCard"] == 12.0
