@@ -27,7 +27,7 @@ _warned: set[tuple[int, PlayerPosition, int]] = set()
 
 
 @dataclass(frozen=True)
-class Starter:
+class ResolvedStarter:
     player_id: int
     from_depth_chart: bool
 
@@ -45,10 +45,10 @@ def _workload(stats: NFLPlayerSeasonStats | None, position: PlayerPosition) -> i
     )
 
 
-async def resolve_starters(
+async def resolve_depth_chart_starters(
     db: AsyncSession,
-) -> dict[tuple[int, PlayerPosition], Starter]:
-    """Starter per (playoff NFL team, QB or K); a team with no such player has none."""
+) -> dict[tuple[int, PlayerPosition], ResolvedStarter]:
+    """ResolvedStarter per (playoff NFL team, QB or K); a team with no such player has none."""
     teams = {
         team_id: abv
         for team_id, abv in (
@@ -97,16 +97,16 @@ async def resolve_starters(
         else {}
     )
 
-    starters: dict[tuple[int, PlayerPosition], Starter] = {}
+    starters: dict[tuple[int, PlayerPosition], ResolvedStarter] = {}
     for unit, player_ids in candidates.items():
         team_id, position = unit
         if listed.get(unit) in player_ids:
-            starters[unit] = Starter(listed[unit], from_depth_chart=True)
+            starters[unit] = ResolvedStarter(listed[unit], from_depth_chart=True)
             continue
         chosen = max(
             player_ids, key=lambda pid: (_workload(stats.get(pid), position), -pid)
         )
-        starters[unit] = Starter(chosen, from_depth_chart=False)
+        starters[unit] = ResolvedStarter(chosen, from_depth_chart=False)
         if (team_id, position, chosen) not in _warned:
             _warned.add((team_id, position, chosen))
             logger.warning(

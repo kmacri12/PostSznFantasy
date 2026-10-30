@@ -120,8 +120,7 @@ export const usePlayerList = () =>
     staleTime: 5 * 60_000,
   });
 
-/** Draftable players on the playoff teams. */
-/** With a league, its team QB / team K settings narrow and flag the pool. */
+/** Draftable players on the playoff teams; with a league, its team QB / team K settings narrow and flag the pool. */
 export const useDraftPool = (leagueId?: Id) =>
   useQuery({
     queryKey: keys.draftPool(leagueId),

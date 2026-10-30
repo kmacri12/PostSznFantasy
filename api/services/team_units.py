@@ -16,7 +16,7 @@ from api.db.models.league import LeagueSettings, Team, TeamPlayer
 from api.db.models.nfl import NFLPlayer, NFLTeam
 from api.models.enums import PlayerPosition
 from api.services.league_members import LeagueRuleError
-from api.services.team_starters import resolve_starters
+from api.services.team_starters import resolve_depth_chart_starters
 
 TEAM_UNIT_SETTING_FIELDS: dict[PlayerPosition, str] = {
     PlayerPosition.QB: "team_qb",
@@ -169,7 +169,7 @@ async def unavailable_in_pool(
     combined = combined_positions(settings)
     if not combined:
         return {}
-    starters = await resolve_starters(db)
+    starters = await resolve_depth_chart_starters(db)
     raw = [value for position in combined for value in RAW_POSITIONS[position]]
     rows = (
         await db.execute(

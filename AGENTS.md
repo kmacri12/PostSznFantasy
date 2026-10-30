@@ -106,6 +106,7 @@ PostSznFantasy/
 │   │   ├── scheduler.py        # Opt-in background sync/live-poll/elimination loop
 │   │   └── ingestion/          # Async batch upsert services
 │   │       ├── schemas.py      # Upstream DTOs & parsing helpers
+│   │       ├── depth_chart_ingest.py # QB1 / PK1 depth chart starters (team QB / K pool)
 │   │       ├── teams_ingest.py # Multi-row NFL team upserts (+ one synthetic DST player per team)
 │   │       ├── dst_stats.py # Per-team DST stat rows from a box score (synthetic DST players, id = -teamID)
 │   │       ├── guard.py    # Per-type advisory lock (skip overlapping runs) + last-synced record

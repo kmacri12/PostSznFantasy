@@ -30,7 +30,7 @@ from api.utils.rapidapi.rapidapi import get_rapidapi_client
 router = APIRouter(dependencies=[Depends(get_current_user)])
 
 
-def _to_player(player: NFLPlayer, scores_whole_team: bool = False) -> Player:
+def _to_player(player: NFLPlayer, whole_team: bool = False) -> Player:
     team = player.team
     return Player(
         id=player.id,
@@ -46,7 +46,7 @@ def _to_player(player: NFLPlayer, scores_whole_team: bool = False) -> Player:
         team_id=player.team_id,
         team=NFLTeamSimple.model_validate(team) if team else None,
         eliminated=team is not None and not team.is_active,
-        scores_whole_team=scores_whole_team,
+        scores_whole_team=whole_team,
     )
 
 

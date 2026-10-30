@@ -17,7 +17,7 @@ from api.models.enums import PlayerPosition
 from api.services import draft_flow
 from api.services.draft_picks import DraftPickError, make_pick
 from api.services.ingestion.depth_chart_ingest import ingest_depth_charts
-from api.services.team_starters import resolve_starters
+from api.services.team_starters import resolve_depth_chart_starters
 from api.tests.postgres.conftest import ClientFactory
 from api.tests.postgres.factories import make_league
 
@@ -237,7 +237,7 @@ async def test_a_depth_chart_outage_keeps_the_last_starters(db: AsyncSession) ->
 
     assert await ingest_depth_charts(db, raw_data=[]) == 0
 
-    starters = await resolve_starters(db)
+    starters = await resolve_depth_chart_starters(db)
     assert starters[(KC, PlayerPosition.QB)].player_id == 10
 
 
@@ -259,7 +259,7 @@ async def test_a_team_without_a_depth_chart_falls_back_to_pass_attempts_and_kick
     await db.flush()
 
     with caplog.at_level(logging.WARNING):
-        starters = await resolve_starters(db)
+        starters = await resolve_depth_chart_starters(db)
 
     assert starters[(PHI, PlayerPosition.QB)].player_id == 21
     assert starters[(PHI, PlayerPosition.K)].player_id == 23
@@ -279,7 +279,7 @@ async def test_a_listed_starter_who_left_the_team_is_not_trusted(
     db.add(NFLPlayerSeasonStats(season="2025", player_id=11, passing_attempts=5))
     await db.flush()
 
-    starters = await resolve_starters(db)
+    starters = await resolve_depth_chart_starters(db)
 
     assert starters[(KC, PlayerPosition.QB)].player_id == 11
     assert not starters[(KC, PlayerPosition.QB)].from_depth_chart
@@ -288,6 +288,6 @@ async def test_a_listed_starter_who_left_the_team_is_not_trusted(
 async def test_only_playoff_teams_get_a_starter(db: AsyncSession) -> None:
     await Field().build(db)
 
-    starters = await resolve_starters(db)
+    starters = await resolve_depth_chart_starters(db)
 
     assert {team for team, _ in starters} == {KC, PHI}

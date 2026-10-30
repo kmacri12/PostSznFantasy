@@ -255,3 +255,28 @@ async def test_the_lineup_shows_the_whole_units_points_and_flags_the_slot(
     assert (qb["points"], qb["scoresWholeTeam"]) == (18, True)
     flags = {p["name"]: p["scoresWholeTeam"] for p in team["roster"]}
     assert flags == {"Hurt Starter": True, "Hurt Kicker": False}
+
+
+async def test_standings_and_breakdown_agree_with_team_units_on_and_off(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    scene = await Scene(db).build(team_qb=False, team_k=False)
+    await scene.roster(0, scene.starter)
+    await scene.start(0, scene.starter, QB_SLOT)
+    await passing_game(scene)
+    await scene.standing(0)
+    team_id, league_id = scene.teams[0].id, scene.league.id
+
+    async def totals() -> tuple[float, float]:
+        async with client_as("uid-0") as owner:
+            standings = (await owner.get(f"/api/leagues/{league_id}/standings")).json()
+            breakdown = (await owner.get(f"/api/teams/{team_id}/breakdown")).json()
+        row = next(r for r in standings["teams"] if r["teamId"] == team_id)
+        return row["total"], breakdown["total"]
+
+    assert await totals() == (8, 8)
+    async with client_as("uid-0") as commissioner:
+        await commissioner.patch(
+            f"/api/leagues/{league_id}/settings", json={"teamQb": True}
+        )
+    assert await totals() == (18, 18)
