@@ -1,3 +1,4 @@
+import { Container } from "@mui/material";
 import type { ReactNode } from "react";
 import EmptyState from "./EmptyState";
 import ErrorState from "./ErrorState";
@@ -19,6 +20,8 @@ interface QueryBoundaryProps<T> {
   isEmpty?: (data: T) => boolean;
   empty?: { title: string; description?: string; action?: ReactNode };
   skeleton?: ReactNode;
+  /** Centre the loading, error and empty states in a page-width container (for whole-page queries). */
+  page?: boolean;
   children: (data: T) => ReactNode;
 }
 
@@ -29,18 +32,30 @@ const QueryBoundary = <T,>({
   isEmpty,
   empty,
   skeleton,
+  page,
   children,
 }: QueryBoundaryProps<T>) => {
-  if (query.isLoading) return <>{skeleton ?? <LoadingState what={what} />}</>;
+  const frame = (node: ReactNode) =>
+    page ? (
+      <Container maxWidth="md" sx={{ py: 4 }}>
+        {node}
+      </Container>
+    ) : (
+      node
+    );
+  if (query.isLoading) return frame(skeleton ?? <LoadingState what={what} />);
   if (query.isError || query.data === undefined) {
-    return (
+    return frame(
       <ErrorState
-        message={friendlyError(query.error, `Reload ${what} to try again.`)}
+        message={friendlyError(
+          query.error,
+          `Couldn't load ${what}. Check your connection and try again.`,
+        )}
         onRetry={() => query.refetch()}
-      />
+      />,
     );
   }
-  if (isEmpty?.(query.data) && empty) return <EmptyState {...empty} />;
+  if (isEmpty?.(query.data) && empty) return frame(<EmptyState {...empty} />);
   return <>{children(query.data)}</>;
 };
 

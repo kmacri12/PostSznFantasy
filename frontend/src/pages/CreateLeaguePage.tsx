@@ -17,6 +17,7 @@ import type React from "react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCreateLeague, useScoringDefaults } from "../api/queries";
+import ErrorState from "../components/common/ErrorState";
 import RosterForm from "../components/settings/RosterForm";
 import ScoringForm from "../components/settings/ScoringForm";
 import { createLogger } from "../utils/logger";
@@ -173,9 +174,10 @@ const CreateLeaguePage = ({
         )}
 
         {step === 2 && defaultsFailed && (
-          <Alert severity="error">
-            Couldn't load the default scoring settings. Check that the API is running and reload.
-          </Alert>
+          <ErrorState
+            message="Couldn't load the default scoring settings. Check your connection and try again."
+            onRetry={() => defaultsQuery.refetch()}
+          />
         )}
 
         {step === 2 && scoringDefaults && (

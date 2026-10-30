@@ -1,11 +1,9 @@
 import EditIcon from "@mui/icons-material/Edit";
 import {
-  Alert,
   Box,
   Button,
   Card,
   Chip,
-  CircularProgress,
   Container,
   Dialog,
   DialogActions,
@@ -21,6 +19,7 @@ import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useLeague, useUpdateLeague } from "../api/queries";
 import type { LeagueOverview } from "../api/types";
+import QueryBoundary from "../components/common/QueryBoundary";
 import InvitePanel from "../components/league/InvitePanel";
 import StandingsTable from "../components/league/StandingsTable";
 
@@ -64,26 +63,8 @@ const RenameDialog = ({ league, onClose }: { league: LeagueOverview; onClose: ()
 };
 
 /** The league home: info, members, commissioner tools, draft status and standings. */
-const LeaguePage: React.FC = () => {
-  const { leagueId } = useParams<{ leagueId: string }>();
-  const { data: league, isLoading, isError } = useLeague(leagueId);
+const LeagueContent = ({ league }: { league: LeagueOverview }) => {
   const [renaming, setRenaming] = useState(false);
-
-  if (isLoading) {
-    return (
-      <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-  if (isError || !league) {
-    return (
-      <Container maxWidth="md" sx={{ py: 4 }}>
-        <Alert severity="error">You don't have access to this league.</Alert>
-      </Container>
-    );
-  }
-
   const isCommissioner = league.myRole === "commissioner";
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -145,6 +126,16 @@ const LeaguePage: React.FC = () => {
 
       {renaming && <RenameDialog league={league} onClose={() => setRenaming(false)} />}
     </Container>
+  );
+};
+
+const LeaguePage: React.FC = () => {
+  const { leagueId } = useParams<{ leagueId: string }>();
+  const query = useLeague(leagueId);
+  return (
+    <QueryBoundary query={query} what="this league" page>
+      {(league) => <LeagueContent league={league} />}
+    </QueryBoundary>
   );
 };
 

@@ -5,7 +5,6 @@ import {
   Box,
   Button,
   Chip,
-  CircularProgress,
   Container,
   Dialog,
   DialogActions,
@@ -16,9 +15,11 @@ import {
   Typography,
 } from "@mui/material";
 import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useAddDrop, useMoveInLineup, usePlayerList, useRenameTeam, useTeam } from "../api/queries";
 import type { RosterPlayer, TeamDetails } from "../api/types";
+import EmptyState from "../components/common/EmptyState";
+import QueryBoundary from "../components/common/QueryBoundary";
 import LineupList from "../components/team/LineupList";
 
 const detail = (error: unknown): string | null =>
@@ -99,27 +100,11 @@ const AddDropDialog = ({ team, onClose }: { team: TeamDetails; onClose: () => vo
   );
 };
 
-function TeamPage() {
-  const { teamId } = useParams<{ teamId: string }>();
-  const { data: team, isLoading, isError } = useTeam(teamId);
+const TeamContent = ({ team }: { team: TeamDetails }) => {
+  const teamId = team.id;
   const [renaming, setRenaming] = useState(false);
   const [managing, setManaging] = useState(false);
   const moveInLineup = useMoveInLineup(teamId);
-
-  if (isLoading) {
-    return (
-      <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-  if (isError || !team) {
-    return (
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Alert severity="error">This team isn't available to you.</Alert>
-      </Container>
-    );
-  }
 
   const aliveCount = team.roster.filter((player) => player.isActive).length;
 
@@ -152,9 +137,17 @@ function TeamPage() {
       </Box>
 
       {team.roster.length === 0 && (
-        <Alert severity="info" sx={{ mb: 2 }}>
-          No players yet. Your lineup fills in as the draft happens.
-        </Alert>
+        <Box sx={{ mb: 2 }}>
+          <EmptyState
+            title="No players yet"
+            description="This lineup fills in as the draft happens."
+            action={
+              <Button component={Link} to={`/league/${team.leagueId}/draft`} variant="outlined">
+                Open the draft room
+              </Button>
+            }
+          />
+        </Box>
       )}
       <LineupList
         slots={team.slots}
@@ -170,6 +163,16 @@ function TeamPage() {
       {renaming && <RenameDialog team={team} onClose={() => setRenaming(false)} />}
       {managing && <AddDropDialog team={team} onClose={() => setManaging(false)} />}
     </Container>
+  );
+};
+
+function TeamPage() {
+  const { teamId } = useParams<{ teamId: string }>();
+  const query = useTeam(teamId);
+  return (
+    <QueryBoundary query={query} what="this team" page>
+      {(team) => <TeamContent key={team.id} team={team} />}
+    </QueryBoundary>
   );
 }
 

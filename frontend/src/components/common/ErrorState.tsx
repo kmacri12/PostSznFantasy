@@ -10,7 +10,12 @@ const ErrorState = ({ message, onRetry }: ErrorStateProps) => (
     severity="error"
     action={
       onRetry && (
-        <Button color="inherit" size="small" onClick={onRetry} sx={{ minHeight: 44 }}>
+        <Button
+          color="inherit"
+          size="small"
+          onClick={onRetry}
+          sx={{ minHeight: 44, whiteSpace: "nowrap" }}
+        >
           Try again
         </Button>
       )

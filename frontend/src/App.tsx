@@ -1,7 +1,8 @@
-import { Box, CircularProgress } from "@mui/material";
+import { Container } from "@mui/material";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { Route, Routes } from "react-router-dom";
 import { useUserLeagues } from "./api/queries";
+import LoadingState from "./components/common/LoadingState";
 import NavBar from "./components/layout/NavBar";
 import { useUser } from "./contexts/UserContext";
 
@@ -41,9 +42,9 @@ function App() {
       />
       <Suspense
         fallback={
-          <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
-            <CircularProgress />
-          </Box>
+          <Container maxWidth="md" sx={{ py: 4 }}>
+            <LoadingState what="page" />
+          </Container>
         }
       >
         <Routes>

@@ -35,7 +35,7 @@ describe("QueryBoundary", () => {
         {() => <p>content</p>}
       </QueryBoundary>,
     );
-    expect(screen.getByRole("alert")).toHaveTextContent("Reload standings");
+    expect(screen.getByRole("alert")).toHaveTextContent("Couldn't load standings");
     fireEvent.click(screen.getByRole("button", { name: "Try again" }));
     expect(refetch).toHaveBeenCalled();
   });
