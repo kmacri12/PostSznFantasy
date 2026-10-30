@@ -234,3 +234,9 @@ Outcome of an API design review; remaining forward-looking work (deploy, scaling
 - [x] **Ingestion guard** (#9): per-type advisory lock, `nfl.ingestion_status` (migration 0003) and `GET /api/players/sync-status`.
 - [x] **Member removal mid-draft** (#10): behaviour pinned by a test (unassign, keep picks, auto-pick covers the team).
 - [ ] Deploy plan (#11) and WebSocket fan-out beyond one process (#12) are open issues, not part of this phase.
+
+---
+
+## Phase 24: Product rules (Epics 11-18)
+
+The game rules were settled in a design interview and live in [docs/product-rules.md](docs/product-rules.md). Delivery is tracked in GitHub Issues, not in this file: per-round lineups and locks (Epic 11), scoring defaults (12), team QB/K (13), commissioner overrides and activity feed (14), live standings (15), draft rules (16), explaining the game (17) in the December launch milestone, and season recap, archive and run it back (18) in Off-season dormancy.
