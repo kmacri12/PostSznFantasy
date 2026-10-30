@@ -91,7 +91,7 @@ PostSznFantasy/
 │   │   ├── draft_flow.py       # Draft state machine, order, pause/resume/undo, queue, auto-pick
 │   │   ├── playoff_field.py    # Playoff field (draft pool), first Wild Card kickoff cutoff
 │   │   ├── activity.py         # Append-only activity feed: append, feed pages, per-member viewed markers, slot marks
-│   │   ├── stat_corrections.py # Snapshots a final game's stats before ingest overwrites them; posts stat_correction events
+│   │   ├── stat_corrections.py # Snapshots a final game's stats before ingest overwrites them; posts stat_correction events (team QB/K unit members' corrections post against the drafted player)
 │   │   ├── settings_changes.py # record_settings_change (old/new diff to the feed) + the recompute hook; Epic 13 calls it too
 │   │   ├── draft_clock.py      # 1s loop auto-picking expired server-side deadlines
 │   │   ├── draft_events.py     # PICK_MADE / DRAFT_STATE broadcast payloads

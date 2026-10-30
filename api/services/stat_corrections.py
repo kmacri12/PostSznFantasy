@@ -19,6 +19,7 @@ from api.models.activity_models import StatCorrectionPayload
 from api.models.enums import PlayerPosition
 from api.services import activity
 from api.services.round_status import GAME_COMPLETED
+from api.services.team_units import scoring_members
 from api.utils.calculations.fantasy_points_utils import calculate_player_points
 from api.utils.calculations.standings_utils import postseason_round_index
 
@@ -64,7 +65,9 @@ async def record(
     """Post an event for each rostered player whose stored game score now differs.
 
     A player with no stored row before had no score to correct, so only rows that
-    existed in the snapshot can be corrections.
+    existed in the snapshot can be corrections. A team QB / team K slot scores every
+    player of the unit, so a unit member's correction changes the drafted player's
+    score and is posted against him.
     """
     arrived: dict[StatKey, dict[str, Any]] = {
         (row["game_id"], row["player_id"]): row
@@ -73,72 +76,91 @@ async def record(
     }
     if not arrived:
         return
-    player_ids = {player_id for _, player_id in arrived}
-    rostered = (
-        await db.execute(
-            select(TeamPlayer.league_id, TeamPlayer.team_id, TeamPlayer.player_id)
-            .join(League, League.id == TeamPlayer.league_id)
-            .where(TeamPlayer.player_id.in_(player_ids))
-        )
-    ).all()
-    if not rostered:
-        return
     games = {
         g.id: g
         for g in await db.scalars(
             select(NFLGame).where(NFLGame.id.in_({game_id for game_id, _ in arrived}))
         )
     }
-    players = {
-        p.id: p
-        for p in await db.scalars(select(NFLPlayer).where(NFLPlayer.id.in_(player_ids)))
+    seasons = {g.season for g in games.values()}
+    leagues = {
+        league.id: league
+        for league in await db.scalars(select(League).where(League.season.in_(seasons)))
     }
+    if not leagues:
+        return
     settings = {
         s.league_id: s
         for s in await db.scalars(
-            select(LeagueSettings).where(
-                LeagueSettings.league_id.in_({league for league, _, _ in rostered})
-            )
+            select(LeagueSettings).where(LeagueSettings.league_id.in_(leagues))
         )
     }
-    seasons = {
-        league.id: league.season
-        for league in await db.scalars(
-            select(League).where(League.id.in_(set(settings)))
+    rostered = (
+        await db.execute(
+            select(TeamPlayer.league_id, TeamPlayer.team_id, NFLPlayer)
+            .join(NFLPlayer, NFLPlayer.id == TeamPlayer.player_id)
+            .where(TeamPlayer.league_id.in_(leagues))
         )
+    ).all()
+    by_league: dict[int, list[tuple[int, NFLPlayer]]] = defaultdict(list)
+    for league_id, team_id, player in rostered:
+        by_league[league_id].append((team_id, player))
+    latest = {(row["game_id"], row["player_id"]): row for row in new_rows} | {
+        key: before[key] for key in before if key not in arrived
     }
-    holders: dict[int, list[tuple[int, int]]] = defaultdict(list)
-    for league_id, team_id, player_id in rostered:
-        holders[player_id].append((league_id, team_id))
 
-    for (game_id, player_id), values in arrived.items():
-        game = games.get(game_id)
-        player = players.get(player_id)
-        if game is None or player is None or game.game_week is None:
-            continue
-        round_index = postseason_round_index(game.game_week)
-        if round_index is None:
-            continue
-        position = PlayerPosition.from_str(player.position)
-        was = _detached(before[(game_id, player_id)])
-        now = _detached(values)
-        for league_id, team_id in holders[player_id]:
-            if seasons.get(league_id) != game.season:
-                continue
-            old_points = calculate_player_points(was, settings[league_id], position)
-            new_points = calculate_player_points(now, settings[league_id], position)
-            if old_points.quantize(CENTS) == new_points.quantize(CENTS):
-                continue
-            await activity.append(
-                db,
-                league_id,
-                StatCorrectionPayload(
-                    round=round_index + 1,
-                    game_id=game_id,
-                    player_id=player_id,
-                    player_name=player.name or "",
-                    previous_points=float(old_points.quantize(CENTS)),
-                    new_points=float(new_points.quantize(CENTS)),
-                ),
-                team_id=team_id,
-            )
+    for league_id, holders in by_league.items():
+        members = await scoring_members(
+            db, settings[league_id], [player for _, player in holders]
+        )
+        for team_id, player in holders:
+            scorers = members.get(player.id, [player.id])
+            position = PlayerPosition.from_str(player.position)
+            for game_id in {g for g, p in arrived if p in scorers}:
+                game = games[game_id]
+                if game.game_week is None or game.season != leagues[league_id].season:
+                    continue
+                round_index = postseason_round_index(game.game_week)
+                if round_index is None:
+                    continue
+                old_points = _points_of(
+                    [before.get((game_id, p)) for p in scorers],
+                    settings[league_id],
+                    position,
+                )
+                new_points = _points_of(
+                    [latest.get((game_id, p)) for p in scorers],
+                    settings[league_id],
+                    position,
+                )
+                if old_points == new_points:
+                    continue
+                await activity.append(
+                    db,
+                    league_id,
+                    StatCorrectionPayload(
+                        round=round_index + 1,
+                        game_id=game_id,
+                        player_id=player.id,
+                        player_name=player.name or "",
+                        previous_points=float(old_points),
+                        new_points=float(new_points),
+                    ),
+                    team_id=team_id,
+                )
+
+
+def _points_of(
+    rows: list[dict[str, Any] | None],
+    settings: LeagueSettings,
+    position: PlayerPosition | None,
+) -> Decimal:
+    total = sum(
+        (
+            calculate_player_points(_detached(row), settings, position)
+            for row in rows
+            if row is not None
+        ),
+        Decimal(0),
+    )
+    return total.quantize(CENTS)
