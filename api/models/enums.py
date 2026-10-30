@@ -57,12 +57,6 @@ class LeagueRole(StrEnum):
     MEMBER = "member"
 
 
-class Tiebreaker(StrEnum):
-    MOST_PLAYERS_ALIVE = "most_players_alive"
-    HIGHEST_SINGLE_ROUND = "highest_single_round"
-    LATEST_ROUND_SCORE = "latest_round_score"
-
-
 class ActivityKind(StrEnum):
     LINEUP_MOVE = "lineup_move"
     COMMISSIONER_OVERRIDE = "commissioner_override"

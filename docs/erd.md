@@ -64,7 +64,6 @@ erDiagram
         int number_teams
         int roster_total
         decimal multiplier_wild_card
-        string tiebreaker
         bool team_qb
         bool team_k
     }

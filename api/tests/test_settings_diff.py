@@ -15,12 +15,12 @@ def test_only_fields_whose_value_changed_are_reported() -> None:
 
 def test_numbers_are_plain_and_other_types_pass_through() -> None:
     changes = diff_settings(
-        {"scoring_passing_yard": Decimal("0.04"), "tiebreaker": "a", "flag": True},
-        {"scoring_passing_yard": 0.05, "tiebreaker": "b", "flag": False},
+        {"scoring_passing_yard": Decimal("0.04"), "label": "a", "flag": True},
+        {"scoring_passing_yard": 0.05, "label": "b", "flag": False},
     )
     assert {c.field: (c.before, c.after) for c in changes} == {
         "scoringPassingYard": (0.04, 0.05),
-        "tiebreaker": ("a", "b"),
+        "label": ("a", "b"),
         "flag": (True, False),
     }
 
