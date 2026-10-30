@@ -3,7 +3,7 @@
 Adds the free-text league notes the commissioner edits (buy-in, prizes, house rules).
 
 Revision ID: 0011_league_notes
-Revises: 0009_team_unit_settings
+Revises: 0010_drop_tiebreaker
 Create Date: 2026-10-30 21:00:00
 
 """
@@ -15,7 +15,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "0011_league_notes"
-down_revision: str | Sequence[str] | None = "0009_team_unit_settings"
+down_revision: str | Sequence[str] | None = "0010_drop_tiebreaker"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
