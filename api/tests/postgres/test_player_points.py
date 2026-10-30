@@ -60,3 +60,31 @@ async def test_season_stats_default_to_draftable_positions(
         ).json()
     assert sorted(row["player"]["position"] for row in default) == ["DEF", "PK", "QB"]
     assert [row["player"]["position"] for row in linemen] == ["OL"]
+
+
+async def test_players_on_eliminated_teams_are_flagged_eliminated(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    await make_league(db)
+    alive = NFLTeam(id=1, team_abv="KC", is_active=True)
+    out = NFLTeam(id=2, team_abv="BUF", is_active=False)
+    db.add_all([alive, out])
+    await db.flush()
+    (kc_qb,) = await make_players(db, ["QB"], nfl_team=alive)
+    (buf_qb,) = await make_players(db, ["QB"], nfl_team=out, first_id=2000)
+    db.add_all(
+        NFLPlayerSeasonStats(season="2025", player_id=p.id) for p in (kc_qb, buf_qb)
+    )
+    await db.flush()
+
+    async with client_as("uid-0") as member:
+        directory = (await member.get("/api/players/player-list")).json()
+        stats = (
+            await member.get("/api/players/player-season-stats?season=2025")
+        ).json()
+
+    flags = {row["teamAbv"]: row["eliminated"] for row in directory}
+    assert flags == {"KC": False, "BUF": True}
+    assert {
+        row["player"]["teamAbv"]: row["player"]["eliminated"] for row in stats
+    } == flags

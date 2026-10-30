@@ -18,6 +18,7 @@ from api.models.players_models import (
 )
 from api.services.scheduler import RECONCILE_KIND_PREFIX
 from api.utils.calculations.fantasy_points_utils import season_points
+from api.utils.rapidapi.rapidapi import get_rapidapi_client
 
 # Every player route requires a login: the directory is cheap to scrape and not meant to be public.
 router = APIRouter(dependencies=[Depends(get_current_user)])
@@ -38,13 +39,17 @@ def _to_player(player: NFLPlayer) -> Player:
         exp=player.exp,
         team_id=player.team_id,
         team=NFLTeamSimple.model_validate(team) if team else None,
+        eliminated=team is not None and not team.is_active,
     )
 
 
 @router.get("/sync-status", response_model=list[IngestionStatusResponse])
-async def get_sync_status(db: DbSession) -> list[IngestionStatus]:
-    """When each kind of NFL data last synced, so the UI can show how fresh it is."""
-    return list(
+async def get_sync_status(db: DbSession) -> list[IngestionStatusResponse]:
+    """When each kind of NFL data last synced, so the UI can show how fresh it is.
+
+    `budgetExhausted` means the daily API cap stopped polling, so the data is going stale.
+    """
+    rows = (
         (
             await db.execute(
                 select(IngestionStatus)
@@ -55,6 +60,15 @@ async def get_sync_status(db: DbSession) -> list[IngestionStatus]:
         .scalars()
         .all()
     )
+    exhausted = get_rapidapi_client().budget_exhausted
+    return [
+        IngestionStatusResponse(
+            kind=row.kind,
+            last_synced_at=row.last_synced_at,
+            budget_exhausted=exhausted,
+        )
+        for row in rows
+    ]
 
 
 @router.get("/player-list", response_model=list[Player])

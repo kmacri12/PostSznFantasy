@@ -166,3 +166,56 @@ async def test_disk_cache_replays_without_network(
         with_transport(client, httpx.MockTransport(handler))
         assert await client.get_nfl_teams() == [{"a": 1}]
     assert calls == 1
+
+
+@pytest.mark.asyncio
+async def test_calls_beyond_the_daily_budget_are_refused_without_hitting_the_api(
+    make_client: type[RapidApiClient], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("RAPIDAPI_DAILY_REQUEST_LIMIT", "2")
+    calls = 0
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal calls
+        calls += 1
+        return httpx.Response(200, json={"body": {}})
+
+    client = make_client(requests_per_second=0)
+    with_transport(client, httpx.MockTransport(handler))
+    await client.get_nfl_box_score("a")
+    assert not client.budget_exhausted
+    await client.get_nfl_box_score("b")
+    assert client.budget_exhausted
+    with pytest.raises(rapidapi.RapidApiBudgetExceeded):
+        await client.get_nfl_box_score("c")
+    assert calls == 2
+
+
+@pytest.mark.asyncio
+async def test_the_daily_budget_resets_on_a_new_utc_day(
+    make_client: type[RapidApiClient], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("RAPIDAPI_DAILY_REQUEST_LIMIT", "1")
+    day = ["2027-01-10"]
+    monkeypatch.setattr(rapidapi, "_utc_day", lambda: day[0])
+    client = make_client(requests_per_second=0)
+    with_transport(
+        client, httpx.MockTransport(lambda r: httpx.Response(200, json={"body": {}}))
+    )
+    await client.get_nfl_box_score("a")
+    assert client.budget_exhausted
+    day[0] = "2027-01-11"
+    assert not client.budget_exhausted
+    await client.get_nfl_box_score("b")
+
+
+@pytest.mark.asyncio
+async def test_retries_count_against_the_budget(
+    make_client: type[RapidApiClient], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("RAPIDAPI_DAILY_REQUEST_LIMIT", "2")
+    client = make_client(requests_per_second=0)
+    with_transport(client, httpx.MockTransport(lambda r: httpx.Response(503)))
+    with pytest.raises(rapidapi.RapidApiBudgetExceeded):
+        await client.get_nfl_box_score("a")
+    assert client.budget_exhausted

@@ -40,6 +40,11 @@ hours each is roughly 800 box score calls for the whole postseason. A failed cal
 back that game only and leaves its stored data and the "box_scores" freshness stamp as they
 were. `POST /api/admin/refresh/live` runs one cycle on demand.
 
+`RAPIDAPI_DAILY_REQUEST_LIMIT` (default 700) caps calls per UTC day, retries included. The
+count lives in memory, so a restart resets it; once spent, the client raises
+`RapidApiBudgetExceeded`, the poll cycle logs a warning and skips, and
+`GET /api/players/sync-status` reports `budgetExhausted: true` so the UI can call the data stale.
+
 ## Replay mode (rehearsal, no API calls)
 
 Save a finished postseason once (about 14 calls, free with `RAPIDAPI_CACHE_DIR`):

@@ -61,6 +61,8 @@ class Settings(BaseSettings):
     rapidapi_apihost: str = ""
     # Set to a directory to cache API responses on disk (dev only; never expires).
     rapidapi_cache_dir: str = ""
+    # Hard stop on calls per UTC day; 700 keeps a 30% margin under the Pro plan's 1,000.
+    rapidapi_daily_request_limit: int = 700
 
     # App
     season_year: int = 2026

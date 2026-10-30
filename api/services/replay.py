@@ -32,6 +32,7 @@ class ReplayClient:
     calls. Only the scores ramp up; player stats are served in their final form."""
 
     requests_remaining: int | None = None
+    budget_exhausted = False
 
     def __init__(
         self,

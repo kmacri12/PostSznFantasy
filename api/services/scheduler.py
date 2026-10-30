@@ -222,6 +222,9 @@ async def run_poll_cycle(
     """
     now = time.time() if now is None else now
     client = client or get_rapidapi_client()
+    if client.budget_exhausted:
+        logger.warning("RapidAPI daily budget spent; skipping this poll cycle")
+        return 0
 
     games = await _playoff_games(db, season)
     if games_list_due(games, await _games_list_last_refreshed(db), now):
