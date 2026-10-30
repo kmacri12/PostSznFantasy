@@ -1,0 +1,12 @@
+**
+!Dockerfile
+!api/
+api/.venv
+api/.env
+api/.env.*
+api/tests
+api/.pytest_cache
+api/.mypy_cache
+api/.ruff_cache
+**/__pycache__
+**/*.py[cod]
