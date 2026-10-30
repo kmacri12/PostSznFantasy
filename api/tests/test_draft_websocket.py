@@ -107,6 +107,7 @@ def test_member_can_ping_and_unknown_events_are_rejected(client: TestClient) -> 
         assert ws.receive_json() == {
             "eventType": "ERROR",
             "message": "Unsupported event type",
+            "code": None,
         }
 
 
@@ -136,7 +137,11 @@ def test_rejected_pick_returns_error_only_to_sender(
         snapshot,
         patch(
             "api.routers.drafts.make_pick",
-            new=AsyncMock(side_effect=DraftPickError("It is not your turn to pick")),
+            new=AsyncMock(
+                side_effect=DraftPickError(
+                    "It is not your turn to pick", code="not_your_turn"
+                )
+            ),
         ),
         client.websocket_connect(WS_URL) as ws,
     ):
@@ -145,6 +150,7 @@ def test_rejected_pick_returns_error_only_to_sender(
         assert ws.receive_json() == {
             "eventType": "ERROR",
             "message": "It is not your turn to pick",
+            "code": "not_your_turn",
         }
     db.rollback.assert_awaited()
 

@@ -18,6 +18,7 @@ import CommissionerControls from "../components/draft/CommissionerControls";
 import DraftBoard from "../components/draft/DraftBoard";
 import DraftSetupPanel from "../components/draft/DraftSetupPanel";
 import DraftStatusBar from "../components/draft/DraftStatusBar";
+import DraftToast from "../components/draft/DraftToast";
 import MyRosterPanel from "../components/draft/MyRosterPanel";
 import PickFeed from "../components/draft/PickFeed";
 import QueuePanel from "../components/draft/QueuePanel";
@@ -48,8 +49,8 @@ const DraftPage = () => {
     [playersQuery.data],
   );
   const draftedIds = useMemo(
-    () => new Set(state?.picks.map((p) => p.playerId) ?? []),
-    [state?.picks],
+    () => new Set([...(state?.picks.map((p) => p.playerId) ?? []), ...room.takenPlayerIds]),
+    [state?.picks, room.takenPlayerIds],
   );
 
   useEffect(() => {
@@ -94,11 +95,7 @@ const DraftPage = () => {
         secondsToStart={room.secondsToStart}
         myTeamId={myTeamId}
       />
-      {room.lastError && (
-        <Alert severity="error" sx={{ mt: 1 }}>
-          {room.lastError}
-        </Alert>
-      )}
+      <DraftToast toast={room.toast} onClose={room.dismissToast} />
       {isCommissioner && (
         <Box sx={{ mt: 2 }}>
           <CommissionerControls draft={state} />

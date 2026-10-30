@@ -49,8 +49,11 @@ export function useDraftRoom(leagueId: string | undefined) {
     [],
   );
 
+  const dismissToast = useCallback(() => dispatch({ eventType: "DISMISS_TOAST" }), []);
+
   return {
     ...room,
+    dismissToast,
     setQueueLocal,
     isConnected,
     makePick,

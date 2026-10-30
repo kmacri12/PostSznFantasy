@@ -7,6 +7,8 @@ export interface DraftMessage {
   eventType: string;
   leagueId?: number;
   message?: string;
+  /** Machine-readable reason on ERROR events (e.g. player_taken). */
+  code?: string | null;
   // biome-ignore lint/suspicious/noExplicitAny: payload shape depends on eventType
   data?: any;
   timestamp?: number | string;

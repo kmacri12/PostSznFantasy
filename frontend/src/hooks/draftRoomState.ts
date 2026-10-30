@@ -1,11 +1,19 @@
 import type { DraftPick, DraftSnapshot, DraftState } from "../api/types";
 import type { DraftMessage } from "./useWebSocket";
 
+export interface Toast {
+  /** Changes on every error so an identical repeat re-shows the toast. */
+  id: number;
+  message: string;
+}
+
 export interface DraftRoom {
   state: DraftSnapshot | null;
   /** Server time minus local time when the last state arrived; corrects the countdown. */
   clockOffsetMs: number;
-  lastError: string | null;
+  toast: Toast | null;
+  /** Players the server rejected as already drafted, hidden until a snapshot confirms the picks. */
+  takenPlayerIds: number[];
   /** Player whose MAKE_PICK is in flight; resolved by my team's PICK_MADE, ERROR or a new snapshot. */
   pendingPlayerId: number | null;
   complete: boolean;
@@ -14,7 +22,8 @@ export interface DraftRoom {
 export const initialRoom: DraftRoom = {
   state: null,
   clockOffsetMs: 0,
-  lastError: null,
+  toast: null,
+  takenPlayerIds: [],
   pendingPlayerId: null,
   complete: false,
 };
@@ -37,7 +46,7 @@ export function applyDraftEvent(room: DraftRoom, event: DraftMessage, now = Date
       return {
         ...withOffset(room, snapshot.serverTime, now),
         state: snapshot,
-        lastError: null,
+        takenPlayerIds: [],
         pendingPlayerId: null,
       };
     }
@@ -83,8 +92,14 @@ export function applyDraftEvent(room: DraftRoom, event: DraftMessage, now = Date
       return {
         ...room,
         pendingPlayerId: null,
-        lastError: event.message ?? "Something went wrong",
+        takenPlayerIds:
+          event.code === "player_taken" && room.pendingPlayerId !== null
+            ? [...room.takenPlayerIds, room.pendingPlayerId]
+            : room.takenPlayerIds,
+        toast: { id: (room.toast?.id ?? 0) + 1, message: event.message ?? "Something went wrong" },
       };
+    case "DISMISS_TOAST":
+      return { ...room, toast: null };
     default:
       return room;
   }

@@ -131,8 +131,32 @@ describe("draft room reducer", () => {
     room = applyDraftEvent(room, { eventType: "ERROR", message: "It is not your turn to pick" });
     room = applyDraftEvent(room, { eventType: "DRAFT_COMPLETE" });
     expect(room.state?.presence).toEqual([1, 2]);
-    expect(room.lastError).toBe("It is not your turn to pick");
+    expect(room.toast?.message).toBe("It is not your turn to pick");
     expect(room.complete).toBe(true);
+  });
+
+  it("gives each error its own toast id so a repeat re-shows, and dismisses on request", () => {
+    let room = applyDraftEvent(initialRoom, { eventType: "SNAPSHOT", data: snapshot() });
+    room = applyDraftEvent(room, { eventType: "ERROR", message: "Your roster is full" });
+    const first = room.toast?.id;
+    room = applyDraftEvent(room, { eventType: "ERROR", message: "Your roster is full" });
+    expect(room.toast?.id).not.toBe(first);
+    room = applyDraftEvent(room, { eventType: "DISMISS_TOAST" });
+    expect(room.toast).toBeNull();
+  });
+
+  it("removes a player from the list when the server says they were taken", () => {
+    let room = applyDraftEvent(initialRoom, { eventType: "SNAPSHOT", data: snapshot() });
+    room = applyDraftEvent(room, { eventType: "PICK_PENDING", data: { playerId: 5 } });
+    room = applyDraftEvent(room, {
+      eventType: "ERROR",
+      message: "Player has already been drafted",
+      code: "player_taken",
+    });
+    expect(room.takenPlayerIds).toEqual([5]);
+    expect(room.pendingPlayerId).toBeNull();
+    room = applyDraftEvent(room, { eventType: "SNAPSHOT", data: snapshot() });
+    expect(room.takenPlayerIds).toEqual([]);
   });
 });
 
