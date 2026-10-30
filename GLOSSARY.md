@@ -145,12 +145,44 @@ _Avoid_: Tiebreak
 ### Oversight
 
 **Commissioner override**:
-A commissioner changing a lineup, including a locked slot or a past round. It requires confirmation and is permanently marked.
+A commissioner changing a lineup in a way an owner could not: moving a locked player, which includes anything in a past round. It requires confirmation and is permanently marked.
 _Avoid_: Admin edit, manual fix
+
+**Override marker**:
+The permanent "changed by commissioner after kickoff" label on a slot a commissioner override changed, naming who and when.
+_Avoid_: Flag, badge
+
+**Commissioner-set slot**:
+A slot a commissioner filled while its player was still unlocked. It carries an asterisk with who and when until the player locks or an owner overwrites it. It is not an override.
+_Avoid_: Pinned slot
 
 **Activity feed**:
 The record of lineup moves, commissioner overrides, stat corrections and settings changes, per league and per fantasy team.
 _Avoid_: Audit log, history
+
+**Activity event**:
+One entry in the activity feed. Events are only ever added, never edited or removed.
+_Avoid_: Log line, notification
+
+**Lineup move**:
+An owner or commissioner placing, moving or removing one player in a round's lineup.
+_Avoid_: Transaction, trade
+
+**Stat correction**:
+A change to a finished game's stats that changes a player's score, recorded with the old score, the new score and when. Stats moving during a live game are not corrections.
+_Avoid_: Score edit, adjustment
+
+**Changed score**:
+A player's round score that differs from an earlier one because of a stat correction.
+_Avoid_: Revised score
+
+**Settings change**:
+An edit to league scoring, multipliers or team QB/K after the league was created, recorded with each changed field's old and new value.
+_Avoid_: Config update
+
+**New activity**:
+Activity events in a feed newer than the last time that member expanded it.
+_Avoid_: Unread, unseen
 
 ### Season
 

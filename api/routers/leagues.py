@@ -38,6 +38,7 @@ from api.models.league_models import (
     TeamOwnerUpdate,
     TeamSimple,
 )
+from api.services.activity import leagues_with_new_activity
 from api.services.draft_picks import DraftPickError
 from api.services.league_admin import (
     ROSTER_LOCKED_FIELDS,
@@ -189,6 +190,7 @@ async def get_user_leagues(
             )
         ).all()
     )
+    with_new_activity = await leagues_with_new_activity(db, user.id)
     return [
         LeaguesByUser(
             id=member.league.id,
@@ -196,6 +198,7 @@ async def get_user_leagues(
             season=member.league.season,
             is_commissioner=member.role == LeagueRole.COMMISSIONER.value,
             user_team_id=team_ids.get(member.league_id),
+            has_new_activity=member.league_id in with_new_activity,
         )
         for member in members
     ]

@@ -3,6 +3,7 @@ from typing import Any
 
 from pydantic import Field, create_model
 
+from api.models.activity_models import SlotMark
 from api.models.base import BaseSchema
 from api.models.enums import (
     DraftStatus,
@@ -125,6 +126,8 @@ class LeaguesByUser(BaseSchema):
     season: int
     is_commissioner: bool
     user_team_id: int | None = None
+    # Events in the league feed this member hasn't seen, for the nav dot.
+    has_new_activity: bool = False
 
 
 def _all_optional(name: str, *models: type[BaseSchema]) -> type[BaseSchema]:
@@ -175,6 +178,8 @@ class LineupMove(BaseSchema):
     player_id: int
     # None takes the player out of the lineup.
     slot_index: int | None = Field(default=None, ge=0)
+    # A commissioner's agreement to change a locked slot or a past round.
+    confirm_override: bool = False
 
 
 class LeagueOverview(BaseSchema):
@@ -240,6 +245,7 @@ class LineupSlotView(BaseSchema):
     index: int
     slot: str
     player: LineupPlayer | None = None
+    mark: SlotMark | None = None
 
 
 class RoundLineup(BaseSchema):
@@ -261,6 +267,8 @@ class TeamDetails(BaseSchema):
     owner_name: str | None = None
     can_edit: bool
     can_set_lineup: bool
+    # A commissioner may also move locked players and edit past rounds, after confirming.
+    can_override: bool = False
     roster: list[RosterPlayer]
     lineups: list[RoundLineup]
 

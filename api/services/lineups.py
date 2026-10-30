@@ -12,8 +12,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.db.models.league import LeagueSettings, LineupSlot, Team
 from api.db.models.nfl import NFLPlayer
+from api.db.models.user import User
+from api.models.activity_models import (
+    CommissionerOverridePayload,
+    DisplacedPlayer,
+    LineupMovePayload,
+    SlotMark,
+)
 from api.models.enums import PlayerPosition, PlayerRoundStatus
 from api.models.league_models import LineupPlayer, LineupSlotView, RoundLineup
+from api.services import activity
 from api.services.round_status import ROUNDS, GameFacts, load_games, round_status
 
 FLEX_SLOTS: dict[str, tuple[PlayerPosition, ...]] = {
@@ -32,6 +40,24 @@ BENCH = "BENCH"
 
 class LineupError(Exception):
     """The requested move isn't allowed; the message is safe to show to the owner."""
+
+
+class OverrideConfirmationRequired(LineupError):
+    """A commissioner's move would be an override and they haven't confirmed it."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "That player is locked: their game has kicked off. This is a "
+            "commissioner-only move and the league will be notified"
+        )
+
+
+@dataclass(frozen=True)
+class LineupActor:
+    user: User
+    is_commissioner: bool
+    # The commissioner agreed that a locked slot or past round may be changed.
+    confirmed_override: bool = False
 
 
 @dataclass(frozen=True)
@@ -154,6 +180,15 @@ async def _placements(db: AsyncSession, team_id: int) -> dict[int, dict[int, int
     return by_round
 
 
+def _visible_mark(
+    mark: SlotMark | None, player: LineupPlayer | None
+) -> SlotMark | None:
+    """An override marker stays for good; the asterisk only while its player can move."""
+    if mark is not None and mark.kind == "commissioner_set":
+        return mark if player is not None and not player.locked else None
+    return mark
+
+
 def _round_lineup(
     specs: list[SlotSpec],
     players: list[NFLPlayer],
@@ -161,6 +196,7 @@ def _round_lineup(
     stored: dict[int, int],
     round_: int,
     now: datetime,
+    marks: dict[int, SlotMark],
 ) -> RoundLineup:
     views = {p.id: _view(p, games, round_, now) for p in players}
     # Eliminated players drop out of any slot they were placed in early.
@@ -174,6 +210,9 @@ def _round_lineup(
             index=index,
             slot=spec.slot,
             player=views[placed[index]] if index in placed else None,
+            mark=_visible_mark(
+                marks.get(index), views[placed[index]] if index in placed else None
+            ),
         )
         for index, spec in enumerate(specs)
     ]
@@ -210,7 +249,19 @@ async def team_lineups(
     games = await load_games(db, season)
     specs = slot_layout(settings)
     placements = await _placements(db, team.id)
-    return [_round_lineup(specs, players, games, placements[r], r, now) for r in ROUNDS]
+    marks = await activity.slot_marks(db, team.id)
+    return [
+        _round_lineup(
+            specs,
+            players,
+            games,
+            placements[r],
+            r,
+            now,
+            {index: mark for (round_, index), mark in marks.items() if round_ == r},
+        )
+        for r in ROUNDS
+    ]
 
 
 async def move_in_lineup(
@@ -223,11 +274,18 @@ async def move_in_lineup(
     player_id: int,
     slot_index: int | None,
     now: datetime,
+    *,
+    actor: LineupActor,
 ) -> None:
-    """Persist one legal move in a round's lineup; raises LineupError otherwise."""
+    """Persist one legal move in a round's lineup and record it in the activity feed.
+
+    An owner may only move unlocked players. A commissioner may move anyone, but a
+    move that touches a locked player (everyone with a game in a past round is) is an
+    override and needs `confirmed_override`. Raises LineupError when not allowed.
+    """
     by_id = {p.id: p for p in players}
     if player_id not in by_id:
-        raise LineupError("That player is not on your roster")
+        raise LineupError("That player is not on the roster")
     games = await load_games(db, season)
     eliminated = _eliminated_ids(players, games, round_)
     if player_id in eliminated:
@@ -238,14 +296,24 @@ async def move_in_lineup(
     # A stale placement of an eliminated player is empty space, not a blocker.
     placement = [None if pid in eliminated else pid for pid in placement]
     locked = {p.id for p in players if _view(p, games, round_, now).locked}
+    # The commissioner's lock check is the empty set; what the move touched decides
+    # afterwards whether it was an override.
     moved = move_player(
         specs,
         placement,
         {p.id: PlayerPosition.from_str(p.position) for p in players},
-        locked,
+        set() if actor.is_commissioner else locked,
         player_id,
         slot_index,
     )
+    changed = [
+        i
+        for i, (was, now_) in enumerate(zip(placement, moved, strict=True))
+        if was != now_
+    ]
+    is_override = actor.is_commissioner and _touches(placement, moved, changed, locked)
+    if is_override and not actor.confirmed_override:
+        raise OverrideConfirmationRequired()
     await db.execute(
         delete(LineupSlot).where(
             LineupSlot.team_id == team.id, LineupSlot.round == round_
@@ -258,3 +326,75 @@ async def move_in_lineup(
         if pid is not None
     )
     await db.flush()
+    if changed:
+        move = _move_payload(
+            specs, placement, moved, changed, by_id, round_, player_id, slot_index
+        )
+        move_fields = move.model_dump(by_alias=False)
+        if is_override:
+            payload: LineupMovePayload = CommissionerOverridePayload(**move_fields)
+        else:
+            move_fields["by_commissioner"] = (
+                actor.is_commissioner and team.owner_id != actor.user.id
+            )
+            payload = LineupMovePayload(**move_fields)
+        await activity.append(
+            db,
+            team.league_id,
+            payload,
+            team_id=team.id,
+            actor=activity.Actor.of(actor.user),
+            at=now,
+        )
+
+
+def _touches(
+    before: list[int | None],
+    after: list[int | None],
+    changed: list[int],
+    locked: set[int],
+) -> bool:
+    """Whether the move changed the slot of any locked player."""
+    return any(
+        pid in locked
+        for i in changed
+        for pid in (before[i], after[i])
+        if pid is not None
+    )
+
+
+def _move_payload(
+    specs: list[SlotSpec],
+    before: list[int | None],
+    after: list[int | None],
+    changed: list[int],
+    by_id: dict[int, NFLPlayer],
+    round_: int,
+    player_id: int,
+    target: int | None,
+) -> LineupMovePayload:
+    def label(index: int | None) -> str | None:
+        return specs[index].slot if index is not None else None
+
+    def slot_of(placement: list[int | None], pid: int) -> int | None:
+        return placement.index(pid) if pid in placement else None
+
+    occupant = before[target] if target is not None else None
+    displaced = (
+        DisplacedPlayer(
+            player_id=occupant,
+            player_name=by_id[occupant].name or "",
+            to_slot=label(slot_of(after, occupant)),
+        )
+        if occupant is not None and occupant != player_id
+        else None
+    )
+    return LineupMovePayload(
+        round=round_,
+        player_id=player_id,
+        player_name=by_id[player_id].name or "",
+        from_slot=label(slot_of(before, player_id)),
+        to_slot=label(target),
+        displaced=displaced,
+        changed_slots=changed,
+    )
