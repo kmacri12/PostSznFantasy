@@ -83,9 +83,9 @@ async def test_starters_score_per_round_and_the_bench_does_not(
 
     rows = await _stored(db, league.id)
     first, second = rows[teams[0].id], rows[teams[1].id]
-    assert (first.rank, first.wild_card, first.divisional) == (1, 20, 4)
+    assert (first.rank, first.wild_card, first.divisional) == (1, 20, 4)  # type: ignore[comparison-overlap]
     assert first.total == Decimal("24")
-    assert (first.conf_champ, first.super_bowl) == (0, 0)
+    assert (first.conf_champ, first.super_bowl) == (0, 0)  # type: ignore[comparison-overlap]
     assert (second.rank, second.total, second.players_left) == (2, Decimal("2"), 1)
     assert first.players_left == 2
 
@@ -224,4 +224,4 @@ async def test_undoing_the_final_pick_updates_the_table(db: AsyncSession) -> Non
     await undo_last_pick(db, league.id)
 
     rows = await _stored(db, league.id)
-    assert sorted(r.players_left for r in rows.values()) == [0, 1]
+    assert sorted(r.players_left or 0 for r in rows.values()) == [0, 1]

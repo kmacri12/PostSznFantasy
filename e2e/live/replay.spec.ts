@@ -101,11 +101,42 @@ test("an eliminated player can be swapped for a free agent even with free agency
   await expect(page.getByText("Aiden Archer")).toHaveCount(0);
 });
 
-// BUG (not fixed here): nothing in the app writes fantasy.standings, so the league page
-// never moves off "No standings yet" while games are scored. Remove the fixme once the
-// scoring engine persists standings.
-test.fixme("standings change as the replay advances", async ({ page, context }) => {
-  await signInAs(context, main.host.uid);
+interface StandingsRow {
+  teamId: number;
+  rank: number;
+  playersLeft: number;
+  total: number;
+}
+
+const standingsOf = (api: Api, league: DraftLeague) =>
+  api.get<StandingsRow[]>(`/api/leagues/${league.leagueId}/standings`);
+
+test("standings follow the replay: players left drop and points accrue", async ({
+  page,
+  context,
+}) => {
+  const host = main.host;
+  const hostRow = async () =>
+    (await standingsOf(host, main)).find((row) => row.teamId === main.hostTeamId);
+
+  // Eliminations and standings commit together, so once n teams are out the host's
+  // count is at or below what n eliminations leave (the replay may already be further on).
+  // The host loses a player per elimination until DET, the guest's, goes out last.
+  for (const [index, left] of [3, 2, 1, 1].entries()) {
+    await waitForEliminations(host, index + 1);
+    expect((await hostRow())?.playersLeft).toBeLessThanOrEqual(left);
+  }
+  await expect.poll(async () => (await hostRow())?.playersLeft).toBe(1);
+
+  const rows = await standingsOf(host, main);
+  expect(rows).toHaveLength(2);
+  expect(rows.map((row) => row.rank)).toEqual([1, 2]);
+  expect(rows[0].total).toBeGreaterThanOrEqual(rows[1].total);
+  expect(rows[0].total).toBeGreaterThan(0);
+  expect(rows.find((row) => row.teamId === main.guestTeamId)?.playersLeft).toBe(3);
+
+  await signInAs(context, host.uid);
   await page.goto(`/league/${main.leagueId}`);
   await expect(page.getByRole("heading", { name: "No standings yet" })).toHaveCount(0);
+  await expect(page.getByRole("list", { name: "Standings" }).getByRole("listitem")).toHaveCount(2);
 });

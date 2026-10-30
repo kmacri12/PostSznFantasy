@@ -88,7 +88,8 @@ async def _postseason_stats(db: AsyncSession, season: int) -> StatsByPlayer:
     )
     by_player: StatsByPlayer = defaultdict(list)
     for stats, week in rows.all():
-        by_player[stats.player_id].append((stats, week))
+        if week is not None:
+            by_player[stats.player_id].append((stats, week))
     return by_player
 
 

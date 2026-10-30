@@ -4,8 +4,8 @@ from api.services.standings import TeamTally, rank_teams
 
 
 def tally(team_id: int, left: int, *rounds: str) -> TeamTally:
-    padded = [Decimal(r) for r in rounds] + [Decimal(0)] * (4 - len(rounds))
-    return TeamTally(team_id, left, tuple(padded))
+    a, b, c, d = [Decimal(r) for r in rounds] + [Decimal(0)] * (4 - len(rounds))
+    return TeamTally(team_id, left, (a, b, c, d))
 
 
 def test_more_points_ranks_higher_and_total_sums_rounds() -> None:
