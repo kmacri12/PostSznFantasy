@@ -323,6 +323,8 @@ class RosterPlayer(BaseSchema):
     team_abv: str | None = None
     is_active: bool
     next_game: NextGame | None = None
+    # Team QB / team K: his slot scores every QB (K) on his NFL team.
+    scores_whole_team: bool = False
 
 
 class LineupPlayer(RosterPlayer):

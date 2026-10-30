@@ -233,7 +233,7 @@ async def test_ingesting_the_depth_chart_replaces_the_stored_starters(
 
 
 async def test_a_depth_chart_outage_keeps_the_last_starters(db: AsyncSession) -> None:
-    field = await Field().build(db)
+    await Field().build(db)
 
     assert await ingest_depth_charts(db, raw_data=[]) == 0
 

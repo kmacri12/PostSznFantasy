@@ -200,3 +200,28 @@ async def test_only_the_commissioner_can_change_them(
             f"/api/leagues/{league.id}/settings", json={"teamK": True}
         )
     assert denied.status_code == 403
+
+
+async def test_switching_a_setting_is_logged_but_a_refused_switch_is_not(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    league, _, teams, _ = await make_league(db)
+    phi = await nfl_team_with(
+        db, "PHI", 21, ("Jake Elliott", "PK"), ("Backup Kicker", "PK")
+    )
+    await hold(db, teams[0], *phi)
+
+    async with client_as("uid-0") as commissioner:
+        await commissioner.patch(
+            f"/api/leagues/{league.id}/settings", json={"teamQb": True}
+        )
+        refused = await commissioner.patch(
+            f"/api/leagues/{league.id}/settings", json={"teamK": True}
+        )
+        feed = (await commissioner.get(f"/api/leagues/{league.id}/activity")).json()
+
+    assert refused.status_code == 409
+    (event,) = feed["events"]
+    assert event["payload"]["changes"] == [
+        {"field": "teamQb", "before": False, "after": True}
+    ]

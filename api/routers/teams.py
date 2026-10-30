@@ -27,6 +27,7 @@ from api.services.lineups import (
 from api.services.round_status import GAME_COMPLETED
 from api.services.standings import refresh_standings_if_drafted
 from api.services.team_breakdown import team_breakdown
+from api.services.team_units import combined_positions, scores_whole_team
 
 router = APIRouter()
 
@@ -125,6 +126,7 @@ async def build_team_details(
         {p.team_id for p in players if p.team_id is not None},
     )
 
+    combined = combined_positions(settings)
     is_owner = team.owner_id == membership.user.id
     return TeamDetails(
         id=team.id,
@@ -142,6 +144,7 @@ async def build_team_details(
                 team_abv=p.team.team_abv if p.team else None,
                 is_active=p.team.is_active if p.team else False,
                 next_game=upcoming.get(p.team_id) if p.team_id else None,
+                scores_whole_team=scores_whole_team(combined, p.position),
             )
             for p in players
         ],

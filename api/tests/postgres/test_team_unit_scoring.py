@@ -238,3 +238,20 @@ async def test_switching_the_setting_reflows_standings(
         .all()
     )
     assert [row.wild_card for row in rows] == [Decimal("18")]
+
+
+async def test_the_lineup_shows_the_whole_units_points_and_flags_the_slot(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    scene = await Scene(db).build(team_qb=True, team_k=False)
+    await scene.roster(0, scene.starter, scene.kicker)
+    await scene.start(0, scene.starter, QB_SLOT)
+    await passing_game(scene)
+
+    async with client_as("uid-0") as owner:
+        team = (await owner.get(f"/api/teams/{scene.teams[0].id}")).json()
+
+    qb = team["lineups"][0]["slots"][QB_SLOT]["player"]
+    assert (qb["points"], qb["scoresWholeTeam"]) == (18, True)
+    flags = {p["name"]: p["scoresWholeTeam"] for p in team["roster"]}
+    assert flags == {"Hurt Starter": True, "Hurt Kicker": False}

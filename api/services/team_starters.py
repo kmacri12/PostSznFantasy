@@ -66,8 +66,7 @@ async def resolve_starters(
         )
     ).all():
         position = PlayerPosition.from_str(raw_position)
-        if team_id is not None and position in UNIT_POSITIONS:
-            assert position is not None
+        if team_id is not None and position is not None and position in UNIT_POSITIONS:
             candidates.setdefault((team_id, position), []).append(player_id)
 
     listed = {

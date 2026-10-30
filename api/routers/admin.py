@@ -49,6 +49,7 @@ class UpdateAllRequest(BaseSchema):
 class IngestStatsSummary(BaseSchema):
     teams: int = 0
     players: int = 0
+    depth_charts: int = 0
     stats: int = 0
     games: int = 0
 

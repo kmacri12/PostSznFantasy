@@ -11,6 +11,7 @@ from api.db.models.nfl import NFLPlayer, NFLTeam
 from api.db.models.user import User
 from api.models.enums import DraftStatus, DraftType, PlayerPosition
 from api.services.standings import recompute_league_standings
+from api.services.team_units import unavailable_in_pool
 
 logger = logging.getLogger(__name__)
 
@@ -180,6 +181,11 @@ async def record_pick(
         raise DraftPickError(
             f"{candidate.name} is not on a playoff team", code="not_in_pool"
         )
+    refusal = (
+        await unavailable_in_pool(db, settings, [p.player_id for p in picks])
+    ).get(player_id)
+    if refusal:
+        raise DraftPickError(refusal, code="not_in_pool")
     check_roster_limits(
         settings,
         [

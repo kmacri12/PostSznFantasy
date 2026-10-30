@@ -6,7 +6,7 @@ DST is always a unit and needs none of this: its stats already belong to the tea
 """
 
 from collections import defaultdict
-from collections.abc import Iterable
+from collections.abc import Collection, Iterable
 from dataclasses import dataclass
 
 from sqlalchemy import select
@@ -16,6 +16,7 @@ from api.db.models.league import LeagueSettings, Team, TeamPlayer
 from api.db.models.nfl import NFLPlayer, NFLTeam
 from api.models.enums import PlayerPosition
 from api.services.league_members import LeagueRuleError
+from api.services.team_starters import resolve_starters
 
 TEAM_UNIT_SETTING_FIELDS: dict[PlayerPosition, str] = {
     PlayerPosition.QB: "team_qb",
@@ -30,6 +31,20 @@ def combined_positions(settings: LeagueSettings) -> frozenset[PlayerPosition]:
         for position, field in TEAM_UNIT_SETTING_FIELDS.items()
         if getattr(settings, field)
     )
+
+
+# The raw `pos` values Tank01 stores for each combinable position (kickers are PK).
+RAW_POSITIONS: dict[PlayerPosition, tuple[str, ...]] = {
+    PlayerPosition.QB: ("QB",),
+    PlayerPosition.K: ("K", "PK"),
+}
+
+
+def scores_whole_team(
+    combined: frozenset[PlayerPosition], raw_position: str | None
+) -> bool:
+    """Whether a player's slot scores his whole NFL team (what the UI badges)."""
+    return PlayerPosition.from_str(raw_position) in combined
 
 
 def newly_enabled(
@@ -139,3 +154,56 @@ async def scoring_members(
         if team_id is not None and position in combined:
             members[(team_id, position)].append(player_id)
     return {player_id: members[unit] for player_id, unit in units.items()}
+
+
+async def unavailable_in_pool(
+    db: AsyncSession, settings: LeagueSettings, drafted_ids: Collection[int]
+) -> dict[int, str]:
+    """Players the team unit settings keep out of the draft pool, with the reason.
+
+    With a position's setting on, only each playoff team's depth-chart starter may be
+    drafted, and not once any player of that team's unit is already drafted (possible
+    when the setting is turned on mid-draft). Players already drafted are not listed
+    twice here; callers reject them as taken.
+    """
+    combined = combined_positions(settings)
+    if not combined:
+        return {}
+    starters = await resolve_starters(db)
+    raw = [value for position in combined for value in RAW_POSITIONS[position]]
+    rows = (
+        await db.execute(
+            select(
+                NFLPlayer.id,
+                NFLPlayer.name,
+                NFLPlayer.team_id,
+                NFLPlayer.position,
+                NFLTeam.team_abv,
+            )
+            .join(NFLTeam, NFLTeam.id == NFLPlayer.team_id)
+            .where(NFLTeam.in_playoffs, NFLPlayer.position.in_(raw))
+        )
+    ).all()
+    drafted = set(drafted_ids)
+    covered_by = {
+        (team_id, PlayerPosition.from_str(position)): name
+        for player_id, name, team_id, position, _ in rows
+        if player_id in drafted
+    }
+    unavailable: dict[int, str] = {}
+    for player_id, _, team_id, raw_position, abv in rows:
+        position = PlayerPosition.from_str(raw_position)
+        if position is None or team_id is None:
+            continue
+        starter = starters.get((team_id, position))
+        if starter is None or starter.player_id != player_id:
+            unavailable[player_id] = (
+                f"With team {position.value} on, only {abv}'s starting "
+                f"{position.value} can be drafted"
+            )
+        elif player_id not in drafted and (team_id, position) in covered_by:
+            unavailable[player_id] = (
+                f"{abv}'s {position.value}s are already covered by "
+                f"{covered_by[(team_id, position)]}"
+            )
+    return unavailable
