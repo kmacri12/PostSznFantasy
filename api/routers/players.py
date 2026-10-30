@@ -75,7 +75,7 @@ async def get_sync_status(db: DbSession) -> list[IngestionStatusResponse]:
 async def get_player_list(
     db: DbSession,
     position: str | None = None,
-    is_active: bool | None = None,
+    is_active: Annotated[bool | None, Query(alias="isActive")] = None,
 ) -> list[Player]:
     """NFL player directory, optionally filtered by position and team activity."""
     stmt = (

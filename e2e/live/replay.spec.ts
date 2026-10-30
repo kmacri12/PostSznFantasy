@@ -8,7 +8,7 @@ import { completeDraft, createDraftLeague, type DraftLeague } from "../support/d
 const ELIMINATION_ORDER = ["KCC", "BAL", "LAR", "DET"];
 
 const eliminatedTeams = async (api: Api): Promise<string[]> => {
-  const players = await api.get<{ teamAbv: string }[]>("/api/players/player-list?is_active=false");
+  const players = await api.get<{ teamAbv: string }[]>("/api/players/player-list?isActive=false");
   return [...new Set(players.map((player) => player.teamAbv))].sort();
 };
 

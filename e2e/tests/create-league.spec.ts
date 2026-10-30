@@ -39,11 +39,8 @@ test("the wizard needs a name before it lets you continue", async ({ page, conte
   await expect(page.getByRole("button", { name: "Next" })).toBeDisabled();
 });
 
-// BUG (not fixed here): /create-league renders the whole wizard to signed-out visitors, so
-// they only learn they need an account when "Create league" fails.
-test.fixme("signed-out visitors are asked to sign in before creating a league", async ({
-  page,
-}) => {
+test("signed-out visitors are asked to sign in before creating a league", async ({ page }) => {
   await page.goto("/create-league");
-  await expect(page).toHaveURL(/sign-in/);
+  await expect(page).toHaveURL(/\/sign-in\?next=%2Fcreate-league$/);
+  await expect(page.getByRole("heading", { name: "Sign in to PostSzn" })).toBeVisible();
 });

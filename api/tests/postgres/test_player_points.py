@@ -88,3 +88,19 @@ async def test_players_on_eliminated_teams_are_flagged_eliminated(
     assert {
         row["player"]["teamAbv"]: row["player"]["eliminated"] for row in stats
     } == flags
+
+
+async def test_player_list_filters_on_the_camel_case_is_active_parameter(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    await make_league(db)
+    alive = NFLTeam(id=1, team_abv="KC", is_active=True)
+    out = NFLTeam(id=2, team_abv="BUF", is_active=False)
+    db.add_all([alive, out])
+    await db.flush()
+    await make_players(db, ["QB"], nfl_team=alive)
+    await make_players(db, ["RB"], nfl_team=out, first_id=2000)
+
+    async with client_as("uid-0") as member:
+        res = await member.get("/api/players/player-list?isActive=false")
+    assert [p["teamAbv"] for p in res.json()] == ["BUF"]
