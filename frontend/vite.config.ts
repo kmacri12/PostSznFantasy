@@ -15,19 +15,23 @@ export default defineConfig({
     },
   },
   build: {
-    rollupOptions: {
+    rolldownOptions: {
       output: {
-        manualChunks(id) {
-          if (!id.includes("node_modules")) return undefined;
-          // Before the react match: "@sentry/react" contains "/react/" and must stay lazy.
-          if (id.includes("@sentry")) return "sentry";
-          if (id.includes("@mui") || id.includes("@emotion")) return "mui";
-          if (id.includes("@tanstack")) return "tanstack";
-          if (id.includes("@supabase")) return "supabase";
-          if (id.includes("react-router") || id.includes("react-dom") || id.includes("/react/")) {
-            return "react";
-          }
-          return undefined;
+        // Vendor groups keep libraries that change on different schedules in separate files, so a
+        // deploy that only touches app code leaves every vendor chunk cached. A group also pulls
+        // in its own dependencies, so react must come first or MUI and Sentry would swallow it
+        // (and Sentry would then become a static, eagerly loaded import of every chunk).
+        codeSplitting: {
+          groups: [
+            {
+              name: "react",
+              test: /node_modules[\\/](react|react-dom|react-router|react-router-dom|scheduler|react-is)[\\/]/,
+            },
+            { name: "sentry", test: /node_modules[\\/]@sentry/ },
+            { name: "mui", test: /node_modules[\\/](@mui|@emotion|@popperjs)[\\/]/ },
+            { name: "tanstack", test: /node_modules[\\/]@tanstack/ },
+            { name: "supabase", test: /node_modules[\\/]@supabase/ },
+          ],
         },
       },
     },

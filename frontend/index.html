@@ -5,16 +5,54 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>PostSznFantasy</title>
+    <meta
+      name="description"
+      content="Fantasy football for the NFL postseason: draft a roster, then watch players drop out as their real teams are eliminated."
+    />
+    <meta name="theme-color" content="#0f172a" />
+    <!-- Inline so first paint is not blocked on a stylesheet request (and the dark background never flashes white). -->
     <style>
-      body, html {
-        margin: 0;
-        padding: 0;
+      html, body, #root {
         width: 100%;
         height: 100%;
       }
-      #root {
-        width: 100%;
-        height: 100%;
+      html, body {
+        margin: 0;
+        padding: 0;
+      }
+      :root {
+        color-scheme: dark;
+      }
+
+      /* MUI draws its own ring on buttons; this covers links and native controls. */
+      :focus-visible {
+        outline: 2px solid #fbbf24;
+        outline-offset: 2px;
+      }
+
+      body {
+        min-width: 320px;
+        min-height: 100vh;
+        background:
+          radial-gradient(900px 500px at 85% -10%, rgba(251, 191, 36, 0.08), transparent),
+          radial-gradient(700px 400px at -10% 10%, rgba(34, 211, 238, 0.07), transparent), #0f172a;
+        background-attachment: fixed;
+      }
+
+      @keyframes pulse-glow {
+        0%,
+        100% {
+          box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.55);
+        }
+        50% {
+          box-shadow: 0 0 0 8px rgba(251, 191, 36, 0);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          animation: none !important;
+        }
       }
     </style>
   </head>

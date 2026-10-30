@@ -54,36 +54,38 @@ function App() {
         onSignOut={signOutUser}
       />
       <SessionExpiredBanner />
-      <Suspense
-        fallback={
-          <Container maxWidth="md" sx={{ py: 4 }}>
-            <LoadingState what="page" />
-          </Container>
-        }
-      >
-        <Routes>
-          <Route path="/" element={<LandingPage leagues={leagues} />} />
-          <Route path="/league/:leagueId" element={<LeaguePage />} />
-          <Route path="/sign-in" element={<SignInPage />} />
-          <Route path="/privacy" element={<PrivacyPage />} />
-          <Route path="/terms" element={<TermsPage />} />
-          <Route path="/welcome" element={<WelcomePage />} />
-          <Route path="/join/:code" element={<JoinPage />} />
-          <Route path="/team/:teamId" element={<TeamPage />} />
-          <Route path="/players" element={<PlayersPage />} />
-          <Route path="/league/:leagueId/draft" element={<DraftPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          <Route
-            path="/create-league"
-            element={
-              <RequireSignIn>
-                <CreateLeaguePage onLeagueCreated={handleLeagueCreated} />
-              </RequireSignIn>
-            }
-          />
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
-      </Suspense>
+      <Box component="main">
+        <Suspense
+          fallback={
+            <Container maxWidth="md" sx={{ py: 4 }}>
+              <LoadingState what="page" />
+            </Container>
+          }
+        >
+          <Routes>
+            <Route path="/" element={<LandingPage leagues={leagues} />} />
+            <Route path="/league/:leagueId" element={<LeaguePage />} />
+            <Route path="/sign-in" element={<SignInPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/terms" element={<TermsPage />} />
+            <Route path="/welcome" element={<WelcomePage />} />
+            <Route path="/join/:code" element={<JoinPage />} />
+            <Route path="/team/:teamId" element={<TeamPage />} />
+            <Route path="/players" element={<PlayersPage />} />
+            <Route path="/league/:leagueId/draft" element={<DraftPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route
+              path="/create-league"
+              element={
+                <RequireSignIn>
+                  <CreateLeaguePage onLeagueCreated={handleLeagueCreated} />
+                </RequireSignIn>
+              }
+            />
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </Suspense>
+      </Box>
       {showTabBar && tabLeague && (
         <>
           <Box sx={{ height: TAB_BAR_HEIGHT }} />

@@ -1,6 +1,7 @@
 import { defineConfig } from "@playwright/test";
 import { iphone } from "./support/devices";
 import {
+  ADMIN_UID,
   API_PORT,
   API_URL,
   E2E_DATABASE_URL,
@@ -47,6 +48,7 @@ export default defineConfig({
         CORS_ORIGINS: WEB_URL,
         ENVIRONMENT: "test",
         TEST_AUTH_STUB: "true",
+        ADMIN_SUPABASE_UIDS: ADMIN_UID,
         LOG_FORMAT: "console",
       },
     },
@@ -64,6 +66,7 @@ export default defineConfig({
         VITE_WS_URL: `ws://localhost:${API_PORT}`,
         VITE_SUPABASE_URL: SUPABASE_URL,
         VITE_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_e2e",
+        VITE_ADMIN_SUPABASE_UIDS: ADMIN_UID,
       },
     },
   ],

@@ -12,6 +12,9 @@ export const LIVE_API_URL = `http://localhost:${LIVE_API_PORT}`;
 // The live config sets E2E_API_URL before workers start so shared helpers follow it.
 export const API_URL = process.env.E2E_API_URL ?? `http://localhost:${API_PORT}`;
 
+// Listed in ADMIN_SUPABASE_UIDS (API) and VITE_ADMIN_SUPABASE_UIDS (button hint) of the main project.
+export const ADMIN_UID = "e2e-admin";
+
 // Nothing listens here: the stub session in localStorage never needs Supabase.
 export const SUPABASE_URL = "http://localhost:54321";
 // supabase-js keys its stored session by the first label of the project hostname.

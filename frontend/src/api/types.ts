@@ -200,4 +200,6 @@ export interface SyncResult {
 export interface SyncStatus {
   kind: string;
   lastSyncedAt: string;
+  /** The daily API cap stopped live polling, so the data is going stale. */
+  budgetExhausted: boolean;
 }

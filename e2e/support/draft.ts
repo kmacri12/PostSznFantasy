@@ -30,9 +30,10 @@ export const createDraftLeague = async (
     seconds?: number;
     roster?: RosterShape;
     status?: "unscheduled" | "lobby" | "in_progress";
+    hostUid?: string;
   } = {},
 ): Promise<DraftLeague> => {
-  const host = new Api(request, unique("host"));
+  const host = new Api(request, options.hostUid ?? unique("host"));
   const guest = new Api(request, unique("guest"));
   await host.signUp("host");
   await guest.signUp("guest");
