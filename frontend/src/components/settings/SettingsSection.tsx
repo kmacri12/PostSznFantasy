@@ -35,7 +35,7 @@ const SettingsSection = ({
 }: SettingsSectionProps) => (
   <Accordion defaultExpanded={defaultExpanded} disableGutters>
     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-      <Typography variant="subtitle1" fontWeight={600}>
+      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
         {title ?? group.title}
       </Typography>
     </AccordionSummary>
@@ -44,7 +44,7 @@ const SettingsSection = ({
         {group.fields.map((field) => {
           const id = field.key.replaceAll("_", "-");
           return (
-            <Grid item xs={12} sm={6} md={4} key={field.key}>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={field.key}>
               <FormControl fullWidth margin="dense" disabled={disabled}>
                 <InputLabel htmlFor={id}>{field.label}</InputLabel>
                 <OutlinedInput

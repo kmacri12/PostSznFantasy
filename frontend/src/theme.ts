@@ -56,14 +56,19 @@ const theme = createTheme({
       defaultProps: { disableElevation: true },
       styleOverrides: {
         root: { borderRadius: 8, transition: "transform .15s, box-shadow .15s" },
-        containedPrimary: {
-          background: `linear-gradient(135deg, ${tokens.gold}, #f97316)`,
-          "&:hover": {
-            transform: "translateY(-1px)",
-            boxShadow: `0 6px 20px ${alpha(tokens.gold, 0.35)}`,
+      },
+      variants: [
+        {
+          props: { variant: "contained", color: "primary" },
+          style: {
+            background: `linear-gradient(135deg, ${tokens.gold}, #f97316)`,
+            "&:hover": {
+              transform: "translateY(-1px)",
+              boxShadow: `0 6px 20px ${alpha(tokens.gold, 0.35)}`,
+            },
           },
         },
-      },
+      ],
     },
     MuiChip: { styleOverrides: { root: { fontWeight: 600 } } },
     MuiTableCell: {

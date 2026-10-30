@@ -71,7 +71,7 @@ const LeaguePage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <Box display="flex" justifyContent="center" py={8}>
+      <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
         <CircularProgress />
       </Box>
     );
@@ -129,11 +129,11 @@ const LeaguePage: React.FC = () => {
 
       <Grid container spacing={3}>
         {isCommissioner && (
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <InvitePanel leagueId={league.id} />
           </Grid>
         )}
-        <Grid item xs={12} sx={{ minWidth: 0 }}>
+        <Grid size={{ xs: 12 }} sx={{ minWidth: 0 }}>
           <Typography variant="h6" sx={{ mb: 1 }}>
             Standings
           </Typography>

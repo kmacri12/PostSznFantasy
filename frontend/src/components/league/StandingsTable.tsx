@@ -92,7 +92,7 @@ const StandingsTable: React.FC<StandingsTableProps> = ({ leagueId }) => {
                     {row.teamName[0]}
                   </Avatar>
                   <Box>
-                    <Typography fontWeight={600} lineHeight={1.2}>
+                    <Typography sx={{ fontWeight: 600, lineHeight: 1.2 }}>
                       {row.teamName}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">

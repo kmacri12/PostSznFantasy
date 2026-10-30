@@ -199,7 +199,7 @@ const NavBar = ({
             <>
               <ListItemText
                 primary="Your leagues"
-                primaryTypographyProps={{ variant: "overline", color: "text.secondary" }}
+                slotProps={{ primary: { variant: "overline", color: "text.secondary" } }}
                 sx={{ px: 2, pt: 1 }}
               />
               {leagues.map((league) => (

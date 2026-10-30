@@ -151,7 +151,7 @@ const PlayersTable = () => {
       )}
 
       {stats.isLoading && (
-        <Box display="flex" justifyContent="center" py={4}>
+        <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
           <CircularProgress />
         </Box>
       )}
@@ -170,7 +170,7 @@ const PlayersTable = () => {
                   {index + 1}
                 </Typography>
                 <Box sx={{ flexGrow: 1, minWidth: 0 }}>
-                  <Typography noWrap fontWeight={700}>
+                  <Typography noWrap sx={{ fontWeight: 700 }}>
                     {row.player?.name ?? "Unknown"}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
@@ -248,7 +248,9 @@ const PlayersTable = () => {
                 <TableRow key={row.playerId} hover>
                   <TableCell>{index + 1}</TableCell>
                   <TableCell>
-                    <Typography fontWeight={600}>{row.player?.name ?? "Unknown"}</Typography>
+                    <Typography sx={{ fontWeight: 600 }}>
+                      {row.player?.name ?? "Unknown"}
+                    </Typography>
                     <Typography variant="caption" color="text.secondary">
                       {row.player?.position}
                     </Typography>

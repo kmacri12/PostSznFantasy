@@ -82,8 +82,8 @@ const TeamChip = ({ teamId, name, canDrag }: TeamChipProps) => {
     >
       {canDrag && <DragIndicatorIcon fontSize="small" />}
       <Typography
-        fontWeight={600}
         sx={{
+          fontWeight: 600,
           fontSize: 13,
           lineHeight: 1.25,
           overflowWrap: "anywhere",
@@ -236,18 +236,18 @@ const DraftSetupPanel = ({ draft, canEdit }: { draft: DraftState; canEdit: boole
         </Alert>
       )}
       <Grid container spacing={2}>
-        <Grid item xs={12} sm={6}>
+        <Grid size={{ xs: 12, sm: 6 }}>
           <TextField
             fullWidth
             type="datetime-local"
             label="Draft date & time"
-            InputLabelProps={{ shrink: true }}
+            slotProps={{ inputLabel: { shrink: true } }}
             value={startTime}
             disabled={locked}
             onChange={(event) => setStartTime(event.target.value)}
           />
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid size={{ xs: 12, sm: 6 }}>
           <TextField
             fullWidth
             label="Seconds per pick"
@@ -256,7 +256,7 @@ const DraftSetupPanel = ({ draft, canEdit }: { draft: DraftState; canEdit: boole
             onChange={(event) => setTimePerPick(event.target.value)}
           />
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid size={{ xs: 12, sm: 6 }}>
           <FormControl fullWidth disabled={locked}>
             <InputLabel id="draft-type-label">Draft type</InputLabel>
             <Select
@@ -271,7 +271,7 @@ const DraftSetupPanel = ({ draft, canEdit }: { draft: DraftState; canEdit: boole
             </Select>
           </FormControl>
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid size={{ xs: 12, sm: 6 }}>
           <FormControl fullWidth disabled={locked}>
             <InputLabel id="draft-timeout-label">When the clock expires</InputLabel>
             <Select
@@ -294,7 +294,7 @@ const DraftSetupPanel = ({ draft, canEdit }: { draft: DraftState; canEdit: boole
         </Button>
       )}
 
-      <Typography variant="subtitle1" fontWeight={600} sx={{ mt: 3, mb: 0.5 }}>
+      <Typography variant="subtitle1" sx={{ fontWeight: 600, mt: 3, mb: 0.5 }}>
         Draft order {draft.orderLocked && "(locked)"}
       </Typography>
       {!locked && (

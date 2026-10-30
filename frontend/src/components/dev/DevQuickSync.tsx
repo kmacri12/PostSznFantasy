@@ -101,10 +101,10 @@ export const DevQuickSync: React.FC = () => {
 
           {result && (
             <Alert severity="success" sx={{ mb: 2 }}>
-              <Typography variant="body2" fontWeight="bold">
+              <Typography variant="body2" sx={{ fontWeight: "bold" }}>
                 Sync Completed in {result.durationMs}ms!
               </Typography>
-              <Typography variant="caption" display="block">
+              <Typography variant="caption" sx={{ display: "block" }}>
                 • Teams: {result.synced.teams}
                 <br />• Players: {result.synced.players}
                 <br />• Season Stats: {result.synced.stats}
