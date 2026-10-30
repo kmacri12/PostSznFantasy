@@ -29,6 +29,17 @@ real response. Parsers live in `api/services/ingestion/schemas.py`, the client i
 | `getNFLPlayerInfo` | not recorded | Not used |
 | `getNFLTeamRoster` + `archiveDate=YYYYMMDD` | | Player id lists only, no stats |
 
+## Quota budget (live polling)
+
+The scheduler spends calls only on games that are in progress: one `getNFLBoxScore` per
+live game every `SCHEDULER_LIVE_POLL_SECONDS` (default 180). The poll that returns
+`Completed` is the final fetch; that game is never polled again. The games list
+(`getNFLGamesForWeek`) is refreshed once a day plus once after each kickoff, and teams and
+players once a day (season stats are not part of the loop). 13 playoff games at about 3.25
+hours each is roughly 800 box score calls for the whole postseason. A failed call rolls
+back that game only and leaves its stored data and the "box_scores" freshness stamp as they
+were. `POST /api/admin/refresh/live` runs one cycle on demand.
+
 ## Season semantics
 
 - **`getNFLTeamRoster` has no season parameter.** It always returns the current in-progress

@@ -2,6 +2,7 @@ from typing import Any
 
 from fastapi import APIRouter, Depends
 
+from api.core.config import get_settings
 from api.db.session import DbSession
 from api.dependencies.auth import require_admin
 from api.models.base import BaseSchema
@@ -13,6 +14,7 @@ from api.services.ingestion import (
     ingest_season_stats,
     run_full_ingestion_pipeline,
 )
+from api.services.scheduler import run_poll_cycle
 
 router = APIRouter(dependencies=[Depends(require_admin)])
 
@@ -105,3 +107,13 @@ async def eliminate_teams(
 ) -> dict[str, str]:
     await mark_eliminated_teams(db, body.team_ids)
     return {"status": "ok"}
+
+
+class RefreshResponse(BaseSchema):
+    polled: int
+
+
+@router.post("/refresh/live", response_model=RefreshResponse)
+async def refresh_live(db: DbSession) -> dict[str, int]:
+    """Run one live-poll cycle now ("Refresh now"); spends one call per live game."""
+    return {"polled": await run_poll_cycle(db, get_settings().season_year)}

@@ -20,6 +20,19 @@ logger = logging.getLogger(__name__)
 
 CHUNK_SIZE = 500
 
+# Columns only a box score can fill; the games-list refresh must not null them.
+_BOX_ONLY_COLUMNS = {
+    "game_date",
+    "home_pts",
+    "away_pts",
+    "team_stats",
+    "scoring_plays",
+    "line_score",
+    "player_stats",
+    "dst",
+    "game_clock",
+}
+
 
 # The games list says "Final", box scores say "Completed"; consumers expect the latter.
 GAME_COMPLETED = "Completed"
@@ -60,6 +73,72 @@ def _points(val: Any) -> int | None:
     return None if val is None or val == "" else safe_int(val)
 
 
+def _game_row(
+    box: dict[str, Any],
+    game_id: str,
+    season: str,
+    season_type: str,
+    valid_team_ids: set[int],
+    summary: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    summary = summary or {}
+    home_id = safe_int(box.get("teamIDHome"))
+    away_id = safe_int(box.get("teamIDAway"))
+    return {
+        "id": game_id,
+        "game_status": normalise_game_status(
+            box.get("gameStatus") or summary.get("gameStatus")
+        ),
+        "game_date": safe_str(box.get("gameDate")),
+        # Only the games list carries these two.
+        "game_time_epoch": safe_str(summary.get("gameTime_epoch")),
+        "game_week": POSTSEASON_WEEKS.get(safe_str(box.get("gameWeek")) or ""),
+        "season": safe_int(season) or None,
+        "espn_link": safe_str(summary.get("espnLink")),
+        "team_id_home": home_id if home_id in valid_team_ids else None,
+        "team_id_away": away_id if away_id in valid_team_ids else None,
+        "home_pts": _points(box.get("homePts")),
+        "away_pts": _points(box.get("awayPts")),
+        "season_type": season_type,
+        "team_stats": box.get("teamStats"),
+        "scoring_plays": box.get("scoringPlays"),
+        "line_score": box.get("lineScore"),
+        "player_stats": box.get("playerStats"),
+        # Per-team defensive totals; no per-player dst_* stats exist upstream.
+        "dst": box.get("DST"),
+        "game_clock": safe_str(box.get("gameClock")),
+    }
+
+
+async def _upsert_games_and_stats(
+    db: AsyncSession,
+    game_rows: list[dict[str, Any]],
+    stat_rows: list[dict[str, Any]],
+) -> None:
+    for i in range(0, len(game_rows), CHUNK_SIZE):
+        chunk = game_rows[i : i + CHUNK_SIZE]
+        stmt = insert(NFLGame).values(chunk)
+        await db.execute(
+            stmt.on_conflict_do_update(
+                index_elements=["id"],
+                set_={k: stmt.excluded[k] for k in chunk[0] if k != "id"},
+            )
+        )
+    for i in range(0, len(stat_rows), CHUNK_SIZE):
+        chunk = stat_rows[i : i + CHUNK_SIZE]
+        stmt = insert(NFLPlayerGameStats).values(chunk)
+        await db.execute(
+            stmt.on_conflict_do_update(
+                index_elements=["game_id", "player_id"],
+                set_={
+                    k: stmt.excluded[k]
+                    for k in chunk[0]
+                    if k not in ("game_id", "player_id")
+                },
+            )
+        )
+
+
 @guarded(IngestionKind.BOX_SCORES)
 async def ingest_box_scores(
     db: AsyncSession,
@@ -70,7 +149,8 @@ async def ingest_box_scores(
     mock_games: list[dict[str, Any]] | None = None,
     mock_box_scores: dict[str, dict[str, Any]] | None = None,
 ) -> int:
-    """Fetch playoff games and box scores, bulk upserting games and player game stats."""
+    """Fetch every playoff game's box score. Costs one call per game: for the live
+    loop use `ingest_games_list` and `poll_game_box_score` instead."""
     client = client or get_rapidapi_client()
 
     if mock_games is not None:
@@ -88,7 +168,7 @@ async def ingest_box_scores(
     valid_player_ids = set((await db.execute(select(NFLPlayer.id))).scalars().all())
 
     game_rows: list[dict[str, Any]] = []
-    all_player_game_stat_rows: list[dict[str, Any]] = []
+    stat_rows: list[dict[str, Any]] = []
 
     for game_summary in games:
         game_id = safe_str(game_summary.get("gameID"))
@@ -103,67 +183,75 @@ async def ingest_box_scores(
         if not box:
             continue
 
-        home_id = safe_int(box.get("teamIDHome"))
-        away_id = safe_int(box.get("teamIDAway"))
-
         game_rows.append(
-            {
-                "id": game_id,
-                "game_status": normalise_game_status(
-                    box.get("gameStatus") or game_summary.get("gameStatus")
-                ),
-                "game_date": safe_str(box.get("gameDate")),
-                # Only the games list carries these two.
-                "game_time_epoch": safe_str(game_summary.get("gameTime_epoch")),
-                "game_week": POSTSEASON_WEEKS.get(safe_str(box.get("gameWeek")) or ""),
-                "season": safe_int(season) or None,
-                "espn_link": safe_str(game_summary.get("espnLink")),
-                "team_id_home": home_id if home_id in valid_team_ids else None,
-                "team_id_away": away_id if away_id in valid_team_ids else None,
-                "home_pts": _points(box.get("homePts")),
-                "away_pts": _points(box.get("awayPts")),
-                "season_type": season_type,
-                "team_stats": box.get("teamStats"),
-                "scoring_plays": box.get("scoringPlays"),
-                "line_score": box.get("lineScore"),
-                "player_stats": box.get("playerStats"),
-                # Per-team defensive totals; no per-player dst_* stats exist upstream.
-                "dst": box.get("DST"),
-                "game_clock": safe_str(box.get("gameClock")),
-            }
+            _game_row(box, game_id, season, season_type, valid_team_ids, game_summary)
         )
+        stat_rows.extend(parse_game_player_stats(game_id, box, valid_player_ids))
 
-        all_player_game_stat_rows.extend(
-            parse_game_player_stats(game_id, box, valid_player_ids)
-        )
-
-    if game_rows:
-        for i in range(0, len(game_rows), CHUNK_SIZE):
-            chunk = game_rows[i : i + CHUNK_SIZE]
-            stmt = insert(NFLGame).values(chunk)
-            upsert_stmt = stmt.on_conflict_do_update(
-                index_elements=["id"],
-                set_={k: stmt.excluded[k] for k in chunk[0].keys() if k != "id"},
-            )
-            await db.execute(upsert_stmt)
-
-    if all_player_game_stat_rows:
-        for i in range(0, len(all_player_game_stat_rows), CHUNK_SIZE):
-            chunk = all_player_game_stat_rows[i : i + CHUNK_SIZE]
-            stmt = insert(NFLPlayerGameStats).values(chunk)
-            upsert_stmt = stmt.on_conflict_do_update(
-                index_elements=["game_id", "player_id"],
-                set_={
-                    k: stmt.excluded[k]
-                    for k in chunk[0].keys()
-                    if k not in ("game_id", "player_id")
-                },
-            )
-            await db.execute(upsert_stmt)
-
+    await _upsert_games_and_stats(db, game_rows, stat_rows)
     logger.info(
         "Ingested %d games and %d player box score rows",
         len(game_rows),
-        len(all_player_game_stat_rows),
+        len(stat_rows),
     )
     return len(game_rows)
+
+
+@guarded(IngestionKind.GAMES)
+async def ingest_games_list(
+    db: AsyncSession,
+    season: str,
+    season_type: str = "post",
+    client: RapidApiClient | None = None,
+) -> int:
+    """Refresh the schedule (one API call): kickoff times, status, matchups.
+
+    Scores are left alone; only box scores are authoritative for those.
+    """
+    client = client or get_rapidapi_client()
+    games = await client.get_nfl_games_list(season, season_type, "all")
+    valid_team_ids = set((await db.execute(select(NFLTeam.id))).scalars().all())
+    rows = [
+        {
+            key: value
+            for key, value in _game_row(
+                game, game_id, season, season_type, valid_team_ids, game
+            ).items()
+            if key not in _BOX_ONLY_COLUMNS
+        }
+        for game in games
+        if (game_id := safe_str(game.get("gameID")))
+    ]
+    await _upsert_games_and_stats(db, rows, [])
+    return len(rows)
+
+
+@guarded(IngestionKind.BOX_SCORES)
+async def poll_game_box_score(
+    db: AsyncSession,
+    game_id: str,
+    season: str,
+    season_type: str = "post",
+    client: RapidApiClient | None = None,
+) -> int:
+    """Fetch one game's box score (one API call) and store it.
+
+    The fetch happens before any write, and a missing score is never written as
+    nothing, so a flaky response cannot degrade the last good data.
+    """
+    client = client or get_rapidapi_client()
+    box = await client.get_nfl_box_score(game_id)
+    if not box:
+        return 0
+
+    valid_team_ids = set((await db.execute(select(NFLTeam.id))).scalars().all())
+    valid_player_ids = set((await db.execute(select(NFLPlayer.id))).scalars().all())
+    row = _game_row(box, game_id, season, season_type, valid_team_ids)
+    # The games list owns these; a box score has none of them.
+    for key in ("game_time_epoch", "espn_link"):
+        del row[key]
+    row = {k: v for k, v in row.items() if v is not None}
+    await _upsert_games_and_stats(
+        db, [row], parse_game_player_stats(game_id, box, valid_player_ids)
+    )
+    return 1

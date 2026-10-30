@@ -68,7 +68,7 @@ class Settings(BaseSettings):
     # Background scheduler (off by default; every tick can spend RapidAPI quota)
     scheduler_enabled: bool = False
     scheduler_roster_sync_hours: int = 24
-    scheduler_live_poll_seconds: int = 90
+    scheduler_live_poll_seconds: int = 180
 
     # Logging
     environment: str = "development"

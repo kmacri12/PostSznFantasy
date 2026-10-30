@@ -1,0 +1,194 @@
+import time
+from typing import Any
+
+import pytest
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from api.db.models import IngestionStatus, NFLGame, NFLTeam
+from api.services.scheduler import (
+    GAMES_LIST_MAX_AGE_SECONDS,
+    games_list_due,
+    games_to_poll,
+    run_poll_cycle,
+)
+
+NOW = time.time()  # the stored freshness stamp is real wall-clock time
+
+
+class FakeClient:
+    """Counts calls so tests can assert how much quota a cycle spends."""
+
+    def __init__(
+        self,
+        games: list[dict[str, Any]],
+        boxes: dict[str, dict[str, Any]],
+        failing: set[str] = frozenset(),  # type: ignore[assignment]
+    ) -> None:
+        self.games, self.boxes, self.failing = games, boxes, failing
+        self.list_calls = 0
+        self.box_calls: list[str] = []
+        self.requests_remaining: int | None = 900
+
+    async def get_nfl_games_list(self, *_: Any, **__: Any) -> list[dict[str, Any]]:
+        self.list_calls += 1
+        return self.games
+
+    async def get_nfl_box_score(self, game_id: str) -> dict[str, Any]:
+        self.box_calls.append(game_id)
+        if game_id in self.failing:
+            raise RuntimeError("upstream down")
+        return self.boxes[game_id]
+
+
+def summary(game_id: str, epoch: float, status: str = "Scheduled") -> dict[str, Any]:
+    return {
+        "gameID": game_id,
+        "gameStatus": status,
+        "gameTime_epoch": str(epoch),
+        "gameWeek": "Wild Card",
+        "teamIDHome": "1",
+        "teamIDAway": "2",
+    }
+
+
+def box(status: str, home: int, away: int) -> dict[str, Any]:
+    return {
+        "gameStatus": status,
+        "gameWeek": "Wild Card",
+        "teamIDHome": "1",
+        "teamIDAway": "2",
+        "homePts": str(home),
+        "awayPts": str(away),
+        "playerStats": {},
+    }
+
+
+def game(
+    game_id: str, epoch: float | None, status: str | None = "Scheduled"
+) -> NFLGame:
+    return NFLGame(
+        id=game_id,
+        season=2025,
+        season_type="post",
+        game_status=status,
+        game_time_epoch=None if epoch is None else str(epoch),
+    )
+
+
+def test_only_started_unfinished_games_are_polled() -> None:
+    games = [
+        game("live", NOW - 3600, "Live - In Progress"),
+        game("upcoming", NOW + 3600),
+        game("done", NOW - 7200, "Completed"),
+        game("abandoned", NOW - 48 * 3600, "Scheduled"),
+        game("unscheduled", None),
+    ]
+    assert [g.id for g in games_to_poll(games, NOW)] == ["live"]
+
+
+def test_games_list_is_due_when_never_fetched_or_a_day_old() -> None:
+    assert games_list_due([], None, NOW)
+    assert games_list_due([], NOW - GAMES_LIST_MAX_AGE_SECONDS - 1, NOW)
+    assert not games_list_due([], NOW - 60, NOW)
+
+
+def test_games_list_is_due_when_a_kickoff_passed_since_the_last_fetch() -> None:
+    kicked_off = [game("g", NOW - 120)]
+    assert games_list_due(kicked_off, NOW - 600, NOW)
+    assert not games_list_due(kicked_off, NOW - 60, NOW)
+    assert not games_list_due([game("g", NOW - 120, "Completed")], NOW - 600, NOW)
+    assert not games_list_due([game("later", NOW + 600)], NOW - 600, NOW)
+
+
+@pytest.fixture
+async def teams(db: AsyncSession) -> None:
+    db.add_all([NFLTeam(id=1, team_abv="KC"), NFLTeam(id=2, team_abv="BUF")])
+    await db.flush()
+
+
+async def test_a_cycle_polls_one_box_score_per_live_game(
+    db: AsyncSession, teams: None
+) -> None:
+    client = FakeClient(
+        games=[
+            summary("live", NOW - 3600, "Live - In Progress"),
+            summary("upcoming", NOW + 3600),
+            summary("done", NOW - 9000, "Final"),
+        ],
+        boxes={"live": box("Live - In Progress", 10, 7)},
+    )
+    await run_poll_cycle(db, 2025, client=client, now=NOW)  # type: ignore[arg-type]
+
+    assert client.list_calls == 1
+    assert client.box_calls == ["live"]
+    assert (await db.get(NFLGame, "live")).home_pts == 10  # type: ignore[union-attr]
+
+    await run_poll_cycle(db, 2025, client=client, now=NOW + 150)  # type: ignore[arg-type]
+    assert client.list_calls == 1  # list refreshed once, not every tick
+    assert client.box_calls == ["live", "live"]
+
+
+async def test_the_poll_that_sees_completed_is_the_final_fetch(
+    db: AsyncSession, teams: None
+) -> None:
+    client = FakeClient(
+        games=[summary("g", NOW - 3600, "Live - In Progress")],
+        boxes={"g": box("Completed", 24, 20)},
+    )
+    await run_poll_cycle(db, 2025, client=client, now=NOW)  # type: ignore[arg-type]
+    await run_poll_cycle(db, 2025, client=client, now=NOW + 150)  # type: ignore[arg-type]
+
+    assert client.box_calls == ["g"]
+    loser = await db.get(NFLTeam, 2)
+    await db.refresh(loser)
+    assert loser.is_active is False  # type: ignore[union-attr]
+
+
+async def test_a_failed_poll_keeps_the_last_good_data(
+    db: AsyncSession, teams: None
+) -> None:
+    client = FakeClient(
+        games=[summary("g", NOW - 3600, "Live - In Progress")],
+        boxes={"g": box("Live - In Progress", 10, 7)},
+    )
+    await run_poll_cycle(db, 2025, client=client, now=NOW)  # type: ignore[arg-type]
+    freshness = (await db.get(IngestionStatus, "box_scores")).last_synced_at  # type: ignore[union-attr]
+
+    client.failing = {"g"}
+    await run_poll_cycle(db, 2025, client=client, now=NOW + 150)  # type: ignore[arg-type]
+
+    stored = await db.get(NFLGame, "g")
+    assert (stored.home_pts, stored.away_pts) == (10, 7)  # type: ignore[union-attr]
+    status = await db.get(IngestionStatus, "box_scores")
+    assert status.last_synced_at == freshness  # type: ignore[union-attr]
+
+
+async def test_one_failing_game_does_not_stop_the_others(
+    db: AsyncSession, teams: None
+) -> None:
+    client = FakeClient(
+        games=[
+            summary("bad", NOW - 3600, "Live - In Progress"),
+            summary("good", NOW - 3600, "Live - In Progress"),
+        ],
+        boxes={"good": box("Live - In Progress", 3, 0)},
+        failing={"bad"},
+    )
+    await run_poll_cycle(db, 2025, client=client, now=NOW)  # type: ignore[arg-type]
+    assert (await db.get(NFLGame, "good")).home_pts == 3  # type: ignore[union-attr]
+
+
+async def test_a_blank_box_score_never_overwrites_scores_with_nothing(
+    db: AsyncSession, teams: None
+) -> None:
+    client = FakeClient(
+        games=[summary("g", NOW - 3600, "Live - In Progress")],
+        boxes={"g": box("Live - In Progress", 10, 7)},
+    )
+    await run_poll_cycle(db, 2025, client=client, now=NOW)  # type: ignore[arg-type]
+    client.boxes["g"] = {"gameStatus": "Live - In Progress", "playerStats": {}}
+    await run_poll_cycle(db, 2025, client=client, now=NOW + 150)  # type: ignore[arg-type]
+
+    stored = (await db.execute(select(NFLGame).where(NFLGame.id == "g"))).scalar_one()
+    assert (stored.home_pts, stored.away_pts) == (10, 7)
