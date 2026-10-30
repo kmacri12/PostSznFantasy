@@ -2,6 +2,7 @@ import { Box, Container, useMediaQuery, useTheme } from "@mui/material";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
 import { useUserLeagues } from "./api/queries";
+import RequireSignIn from "./components/auth/RequireSignIn";
 import SessionExpiredBanner from "./components/auth/SessionExpiredBanner";
 import LoadingState from "./components/common/LoadingState";
 import BottomTabBar, { TAB_BAR_HEIGHT } from "./components/layout/BottomTabBar";
@@ -70,7 +71,11 @@ function App() {
           <Route path="/settings" element={<SettingsPage />} />
           <Route
             path="/create-league"
-            element={<CreateLeaguePage onLeagueCreated={handleLeagueCreated} />}
+            element={
+              <RequireSignIn>
+                <CreateLeaguePage onLeagueCreated={handleLeagueCreated} />
+              </RequireSignIn>
+            }
           />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
