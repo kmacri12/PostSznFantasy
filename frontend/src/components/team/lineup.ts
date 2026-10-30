@@ -33,3 +33,23 @@ export const nextGameText = (player: RosterPlayer): string => {
   const when = kickoff(player.nextGame.gameTimeEpoch);
   return `vs ${player.nextGame.opponentAbv ?? "TBD"}${when ? ` · ${when}` : ""}`;
 };
+
+export interface TapResult {
+  selectedPlayerId: number | null;
+  move: { playerId: number; slotIndex: number } | null;
+}
+
+/**
+ * Tap-to-move: the first tap picks a player up, the next tap on any other slot moves or
+ * swaps them there, and tapping the picked-up player again puts them back down.
+ */
+export function applyTap(
+  selectedPlayerId: number | null,
+  slot: { index: number; playerId: number | null },
+): TapResult {
+  if (selectedPlayerId === null) {
+    return { selectedPlayerId: slot.playerId, move: null };
+  }
+  if (slot.playerId === selectedPlayerId) return { selectedPlayerId: null, move: null };
+  return { selectedPlayerId: null, move: { playerId: selectedPlayerId, slotIndex: slot.index } };
+}

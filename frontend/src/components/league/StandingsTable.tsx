@@ -18,6 +18,7 @@ import { useStandings } from "../../api/queries";
 import type { StandingsRow } from "../../api/types";
 import { tokens } from "../../theme";
 import QueryBoundary from "../common/QueryBoundary";
+import StandingsCards from "./StandingsCards";
 
 interface StandingsTableProps {
   leagueId: string;
@@ -63,81 +64,88 @@ const StandingsTable: React.FC<StandingsTableProps> = ({ leagueId }) => {
 const StandingsRows = ({ rows }: { rows: StandingsRow[] }) => {
   const standings = [...rows].sort((a, b) => a.rank - b.rank);
   return (
-    <TableContainer component={Paper}>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell width={56}>#</TableCell>
-            <TableCell>Team</TableCell>
-            <TableCell align="center">Alive</TableCell>
-            <TableCell align="center">Wild Card</TableCell>
-            <TableCell align="center">Divisional</TableCell>
-            <TableCell align="center">Conf</TableCell>
-            <TableCell align="center">Super Bowl</TableCell>
-            <TableCell align="right">Total</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {standings.map((row) => (
-            <TableRow key={row.teamId} hover>
-              <TableCell sx={{ fontWeight: 800, color: RANK_COLORS[row.rank - 1] ?? tokens.muted }}>
-                {row.rank}
-              </TableCell>
-              <TableCell>
-                <Box
-                  component={Link}
-                  to={`/team/${row.teamId}`}
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1.5,
-                    color: "inherit",
-                    textDecoration: "none",
-                  }}
-                >
-                  <Avatar
-                    sx={{ width: 32, height: 32, bgcolor: tokens.borderStrong, fontSize: 14 }}
-                  >
-                    {row.teamName[0]}
-                  </Avatar>
-                  <Box>
-                    <Typography sx={{ fontWeight: 600, lineHeight: 1.2 }}>
-                      {row.teamName}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {row.owner}
-                    </Typography>
-                  </Box>
-                </Box>
-              </TableCell>
-              <TableCell align="center">
-                <Chip
-                  size="small"
-                  color={row.playersLeft > 0 ? "success" : "default"}
-                  label={`${row.playersLeft} alive`}
-                  variant="outlined"
-                />
-              </TableCell>
-              <TableCell align="center">
-                <RoundBadge points={row.wildCard} />
-              </TableCell>
-              <TableCell align="center">
-                <RoundBadge points={row.divisional} />
-              </TableCell>
-              <TableCell align="center">
-                <RoundBadge points={row.confChamp} />
-              </TableCell>
-              <TableCell align="center">
-                <RoundBadge points={row.superBowl} />
-              </TableCell>
-              <TableCell align="right" sx={{ fontWeight: 800, fontSize: 18 }}>
-                {row.total}
-              </TableCell>
+    <>
+      <Box sx={{ display: { xs: "block", md: "none" } }}>
+        <StandingsCards rows={standings} />
+      </Box>
+      <TableContainer component={Paper} sx={{ display: { xs: "none", md: "block" } }}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell width={56}>#</TableCell>
+              <TableCell>Team</TableCell>
+              <TableCell align="center">Alive</TableCell>
+              <TableCell align="center">Wild Card</TableCell>
+              <TableCell align="center">Divisional</TableCell>
+              <TableCell align="center">Conf</TableCell>
+              <TableCell align="center">Super Bowl</TableCell>
+              <TableCell align="right">Total</TableCell>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
+          </TableHead>
+          <TableBody>
+            {standings.map((row) => (
+              <TableRow key={row.teamId} hover>
+                <TableCell
+                  sx={{ fontWeight: 800, color: RANK_COLORS[row.rank - 1] ?? tokens.muted }}
+                >
+                  {row.rank}
+                </TableCell>
+                <TableCell>
+                  <Box
+                    component={Link}
+                    to={`/team/${row.teamId}`}
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1.5,
+                      color: "inherit",
+                      textDecoration: "none",
+                    }}
+                  >
+                    <Avatar
+                      sx={{ width: 32, height: 32, bgcolor: tokens.borderStrong, fontSize: 14 }}
+                    >
+                      {row.teamName[0]}
+                    </Avatar>
+                    <Box>
+                      <Typography sx={{ fontWeight: 600, lineHeight: 1.2 }}>
+                        {row.teamName}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {row.owner}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </TableCell>
+                <TableCell align="center">
+                  <Chip
+                    size="small"
+                    color={row.playersLeft > 0 ? "success" : "default"}
+                    label={`${row.playersLeft} alive`}
+                    variant="outlined"
+                  />
+                </TableCell>
+                <TableCell align="center">
+                  <RoundBadge points={row.wildCard} />
+                </TableCell>
+                <TableCell align="center">
+                  <RoundBadge points={row.divisional} />
+                </TableCell>
+                <TableCell align="center">
+                  <RoundBadge points={row.confChamp} />
+                </TableCell>
+                <TableCell align="center">
+                  <RoundBadge points={row.superBowl} />
+                </TableCell>
+                <TableCell align="right" sx={{ fontWeight: 800, fontSize: 18 }}>
+                  {row.total}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </>
   );
 };
 

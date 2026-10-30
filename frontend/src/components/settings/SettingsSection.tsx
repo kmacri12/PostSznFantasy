@@ -18,7 +18,9 @@ interface SettingsSectionProps {
   onChange: (key: string, rawValue: string) => void;
   title?: string;
   defaultExpanded?: boolean;
+  /** Shown but not editable (non-commissioners, or locked once the draft starts). */
   disabled?: boolean;
+  inputMode?: "decimal" | "numeric";
   /** Optional explanation shown under an input, e.g. "1 point per 25 yards". */
   helper?: (key: string, rawValue: string | number) => string | null;
 }
@@ -31,6 +33,7 @@ const SettingsSection = ({
   title,
   defaultExpanded = false,
   disabled = false,
+  inputMode = "decimal",
   helper,
 }: SettingsSectionProps) => (
   <Accordion defaultExpanded={defaultExpanded} disableGutters>
@@ -45,13 +48,15 @@ const SettingsSection = ({
           const id = field.key.replaceAll("_", "-");
           return (
             <Grid size={{ xs: 12, sm: 6, md: 4 }} key={field.key}>
-              <FormControl fullWidth margin="dense" disabled={disabled}>
+              <FormControl fullWidth margin="dense">
                 <InputLabel htmlFor={id}>{field.label}</InputLabel>
                 <OutlinedInput
                   id={id}
                   value={values[field.key] ?? ""}
                   onChange={(event) => onChange(field.key, event.target.value)}
                   label={field.label}
+                  readOnly={disabled}
+                  inputProps={{ inputMode }}
                 />
                 {helper && (
                   <FormHelperText>{helper(field.key, values[field.key] ?? "")}</FormHelperText>

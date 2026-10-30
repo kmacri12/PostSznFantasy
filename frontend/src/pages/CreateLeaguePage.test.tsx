@@ -13,6 +13,9 @@ vi.mock("react-router-dom", async (importOriginal) => ({
   useNavigate: () => mockNavigate,
 }));
 
+// The wizard renders every scoring group, which is slow enough to hit 5s on a busy machine.
+vi.setConfig({ testTimeout: 20_000 });
+
 const defaults = { scoring_passing_yard: 0.04, scoring_passing_td: 4 };
 
 const onLeagueCreated = vi.fn().mockResolvedValue(undefined);

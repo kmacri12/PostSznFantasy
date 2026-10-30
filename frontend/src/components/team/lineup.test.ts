@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { RosterPlayer } from "../../api/types";
-import { nextGameText, parseMove, playerDragId, slotDropId } from "./lineup";
+import { applyTap, nextGameText, parseMove, playerDragId, slotDropId } from "./lineup";
 
 const player = (overrides: Partial<RosterPlayer> = {}): RosterPlayer => ({
   id: 1,
@@ -30,5 +30,31 @@ describe("lineup helpers", () => {
     expect(
       nextGameText(player({ nextGame: { opponentAbv: "DEN", gameTimeEpoch: null, status: null } })),
     ).toBe("vs DEN");
+  });
+});
+
+describe("applyTap", () => {
+  it("picks a player up on the first tap", () => {
+    expect(applyTap(null, { index: 0, playerId: 5 })).toEqual({
+      selectedPlayerId: 5,
+      move: null,
+    });
+  });
+
+  it("ignores a first tap on an empty slot", () => {
+    expect(applyTap(null, { index: 1, playerId: null })).toEqual({
+      selectedPlayerId: null,
+      move: null,
+    });
+  });
+
+  it("moves the picked-up player to the next tapped slot, empty or occupied", () => {
+    const expected = { selectedPlayerId: null, move: { playerId: 5, slotIndex: 3 } };
+    expect(applyTap(5, { index: 3, playerId: null })).toEqual(expected);
+    expect(applyTap(5, { index: 3, playerId: 9 })).toEqual(expected);
+  });
+
+  it("puts the player back down when tapped again", () => {
+    expect(applyTap(5, { index: 0, playerId: 5 })).toEqual({ selectedPlayerId: null, move: null });
   });
 });

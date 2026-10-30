@@ -9,17 +9,22 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
-import { Box, Chip, Paper, Typography } from "@mui/material";
+import { Box, Button, Chip, Paper, Typography } from "@mui/material";
+import { useState } from "react";
 import type { RosterSlot } from "../../api/types";
 import { tokens } from "../../theme";
-import { BENCH_SLOT, nextGameText, parseMove, playerDragId, slotDropId } from "./lineup";
+import { applyTap, BENCH_SLOT, nextGameText, parseMove, playerDragId, slotDropId } from "./lineup";
 
 interface RowProps {
   slot: RosterSlot;
   canDrag: boolean;
+  selected: boolean;
+  /** A player is picked up, so this row is a place to put them. */
+  isTarget: boolean;
+  onTap: () => void;
 }
 
-const SlotRow = ({ slot, canDrag }: RowProps) => {
+const SlotRow = ({ slot, canDrag, selected, isTarget, onTap }: RowProps) => {
   const player = slot.player;
   const { setNodeRef: dropRef, isOver } = useDroppable({ id: slotDropId(slot.index) });
   const {
@@ -47,18 +52,25 @@ const SlotRow = ({ slot, canDrag }: RowProps) => {
         ref={dragRef}
         {...attributes}
         {...listeners}
+        aria-pressed={canDrag && player ? selected : undefined}
+        onClick={canDrag ? onTap : undefined}
         sx={{
           display: "flex",
           alignItems: "center",
           gap: 1.25,
           px: 1,
           py: 0.75,
-          minHeight: 48,
+          minHeight: 52,
           touchAction: "pan-y",
-          cursor: canDrag && player ? "grab" : "default",
+          cursor: canDrag && (player || isTarget) ? "pointer" : "default",
+          outline: selected ? `2px solid ${tokens.gold}` : "none",
           zIndex: isDragging ? 10 : "auto",
           position: "relative",
-          bgcolor: isDragging ? "background.paper" : "transparent",
+          bgcolor: isDragging
+            ? "background.paper"
+            : selected
+              ? "rgba(251,191,36,.12)"
+              : "transparent",
           boxShadow: isDragging ? 6 : "none",
           borderRadius: 1,
           transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
@@ -123,6 +135,7 @@ interface Props {
 
 /** Starters then bench as dense rows; drag a player onto any slot to move or swap. */
 const LineupList = ({ slots, canDrag, onMove }: Props) => {
+  const [selectedId, setSelectedId] = useState<number | null>(null);
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 6 } }),
     // A short press-and-hold, so a swipe still scrolls the page on phones.
@@ -130,6 +143,25 @@ const LineupList = ({ slots, canDrag, onMove }: Props) => {
   );
   const starters = slots.filter((slot) => slot.slot !== BENCH_SLOT);
   const bench = slots.filter((slot) => slot.slot === BENCH_SLOT);
+
+  const selectedPlayer = slots.find((slot) => slot.player?.id === selectedId)?.player;
+
+  const handleTap = (slot: RosterSlot) => {
+    const result = applyTap(selectedId, { index: slot.index, playerId: slot.player?.id ?? null });
+    setSelectedId(result.selectedPlayerId);
+    if (result.move) onMove(result.move);
+  };
+
+  const row = (slot: RosterSlot) => (
+    <SlotRow
+      key={slot.index}
+      slot={slot}
+      canDrag={canDrag}
+      selected={slot.player !== null && slot.player.id === selectedId}
+      isTarget={selectedId !== null}
+      onTap={() => handleTap(slot)}
+    />
+  );
 
   const handleDragEnd = (event: DragEndEvent) => {
     const move = parseMove(event.active.id, event.over?.id);
@@ -142,9 +174,7 @@ const LineupList = ({ slots, canDrag, onMove }: Props) => {
         <Typography variant="overline" color="text.secondary" sx={{ px: 1 }}>
           Starters
         </Typography>
-        {starters.map((slot) => (
-          <SlotRow key={slot.index} slot={slot} canDrag={canDrag} />
-        ))}
+        {starters.map(row)}
         {bench.length > 0 && (
           <>
             <Typography
@@ -154,15 +184,25 @@ const LineupList = ({ slots, canDrag, onMove }: Props) => {
             >
               Bench
             </Typography>
-            {bench.map((slot) => (
-              <SlotRow key={slot.index} slot={slot} canDrag={canDrag} />
-            ))}
+            {bench.map(row)}
           </>
         )}
       </Paper>
-      {canDrag && (
+      {canDrag && selectedPlayer && (
+        <Box
+          role="status"
+          sx={{ display: "flex", alignItems: "center", gap: 1, mt: 1, flexWrap: "wrap" }}
+        >
+          <Typography sx={{ flexGrow: 1 }}>
+            Tap a slot to move {selectedPlayer.name} there.
+          </Typography>
+          <Button onClick={() => setSelectedId(null)}>Cancel</Button>
+        </Box>
+      )}
+      {canDrag && !selectedPlayer && (
         <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1 }}>
-          Touch and hold a player, then drag onto a slot to start, bench or swap.
+          Tap a player, then tap a slot to start, bench or swap. You can also touch and hold a
+          player and drag.
         </Typography>
       )}
     </DndContext>

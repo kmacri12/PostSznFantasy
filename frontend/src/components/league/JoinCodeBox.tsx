@@ -14,15 +14,30 @@ const JoinCodeBox = () => {
   };
 
   return (
-    <Box component="form" onSubmit={submit} sx={{ display: "flex", gap: 1 }}>
+    <Box
+      component="form"
+      onSubmit={submit}
+      sx={{
+        display: "flex",
+        flexDirection: { xs: "column", sm: "row" },
+        gap: 1,
+        width: "100%",
+        maxWidth: 420,
+      }}
+    >
       <TextField
-        size="small"
         label="Join code"
         value={code}
         onChange={(event) => setCode(event.target.value)}
         slotProps={{ htmlInput: { maxLength: 16, "aria-label": "Join code" } }}
       />
-      <Button type="submit" variant="outlined" color="inherit" disabled={!code.trim()}>
+      <Button
+        type="submit"
+        sx={{ flexShrink: 0 }}
+        variant="outlined"
+        color="inherit"
+        disabled={!code.trim()}
+      >
         Join with code
       </Button>
     </Box>

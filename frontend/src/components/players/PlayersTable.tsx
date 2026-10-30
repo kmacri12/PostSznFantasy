@@ -2,7 +2,6 @@ import {
   Alert,
   Box,
   Button,
-  Card,
   Chip,
   FormControl,
   InputLabel,
@@ -30,6 +29,8 @@ import { tokens } from "../../theme";
 import EmptyState from "../common/EmptyState";
 import ErrorState from "../common/ErrorState";
 import LoadingState from "../common/LoadingState";
+import PlayerCardList from "./PlayerCardList";
+import type { PlayerCardData } from "./playerCards";
 import {
   filterPlayers,
   formatPoints,
@@ -44,7 +45,7 @@ import {
 
 const PlayersTable = () => {
   const theme = useTheme();
-  const isPhone = useMediaQuery(theme.breakpoints.down("sm"));
+  const isPhone = useMediaQuery(theme.breakpoints.down("md"));
   const { userId } = useUser();
   const { data: config } = useConfig();
   const { data: leagues = [] } = useUserLeagues(userId !== null);
@@ -72,6 +73,20 @@ const PlayersTable = () => {
     [stats.data, position, search, sortKey],
   );
   const hasPoints = league !== undefined;
+  const cards = useMemo(
+    () =>
+      rows.map(
+        (row): PlayerCardData => ({
+          id: row.playerId,
+          name: row.player?.name ?? "Unknown",
+          position: row.player?.position ?? "",
+          team: teamOf(row),
+          points: hasPoints ? (row.fantasyPoints ?? null) : undefined,
+          stats: columns.map((c) => ({ label: c.header, value: statValue(row, c.key) })),
+        }),
+      ),
+    [rows, columns, hasPoints],
+  );
 
   return (
     <Box sx={{ p: { xs: 1.5, sm: 2 } }}>
@@ -79,7 +94,7 @@ const PlayersTable = () => {
         sx={{
           display: "grid",
           gap: 1.5,
-          gridTemplateColumns: { xs: "1fr 1fr", sm: "140px 140px 1fr" },
+          gridTemplateColumns: { xs: "1fr", md: "140px 140px 1fr" },
           mb: 1.5,
         }}
       >
@@ -98,28 +113,31 @@ const PlayersTable = () => {
             ))}
           </Select>
         </FormControl>
-        <FormControl size="small">
-          <InputLabel id="position-select-label">Position</InputLabel>
-          <Select
-            labelId="position-select-label"
-            value={position}
-            label="Position"
-            onChange={(e: SelectChangeEvent) => setPosition(e.target.value as PositionFilter)}
-          >
-            {POSITIONS.map((pos) => (
-              <MenuItem key={pos} value={pos}>
-                {pos}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <TextField
-          size="small"
-          label="Search player"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          sx={{ gridColumn: { xs: "1 / -1", sm: "auto" } }}
-        />
+        {!isPhone && (
+          <FormControl size="small">
+            <InputLabel id="position-select-label">Position</InputLabel>
+            <Select
+              labelId="position-select-label"
+              value={position}
+              label="Position"
+              onChange={(e: SelectChangeEvent) => setPosition(e.target.value as PositionFilter)}
+            >
+              {POSITIONS.map((pos) => (
+                <MenuItem key={pos} value={pos}>
+                  {pos}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        )}
+        {!isPhone && (
+          <TextField
+            size="small"
+            label="Search player"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        )}
       </Box>
 
       {hasPoints ? (
@@ -160,7 +178,7 @@ const PlayersTable = () => {
           onRetry={() => stats.refetch()}
         />
       )}
-      {stats.isSuccess && rows.length === 0 && (
+      {stats.isSuccess && !isPhone && rows.length === 0 && (
         <EmptyState
           title="No players found"
           description={
@@ -178,46 +196,18 @@ const PlayersTable = () => {
         />
       )}
 
-      {rows.length > 0 && isPhone && (
-        <Box sx={{ display: "grid", gap: 1 }} aria-label="Players">
-          {rows.map((row, index) => (
-            <Card key={row.playerId} sx={{ p: 1.5 }}>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                <Typography color="text.secondary" sx={{ width: 24 }}>
-                  {index + 1}
-                </Typography>
-                <Box sx={{ flexGrow: 1, minWidth: 0 }}>
-                  <Typography noWrap sx={{ fontWeight: 700 }}>
-                    {row.player?.name ?? "Unknown"}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {row.player?.position} · {teamOf(row)}
-                  </Typography>
-                </Box>
-                {hasPoints && (
-                  <Box sx={{ textAlign: "right" }}>
-                    <Typography variant="h6" sx={{ color: tokens.gold, lineHeight: 1 }}>
-                      {formatPoints(row.fantasyPoints)}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      fantasy pts
-                    </Typography>
-                  </Box>
-                )}
-              </Box>
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.75, mt: 1 }}>
-                {columns.map((column) => (
-                  <Chip
-                    key={column.key}
-                    size="small"
-                    variant="outlined"
-                    label={`${column.header} ${statValue(row, column.key)}`}
-                  />
-                ))}
-              </Box>
-            </Card>
-          ))}
-        </Box>
+      {isPhone && stats.isSuccess && (
+        <PlayerCardList
+          label="Players"
+          players={cards}
+          search={search}
+          onSearchChange={setSearch}
+          includeAll={false}
+          positions={POSITIONS}
+          position={position}
+          onPositionChange={(pos) => setPosition(pos as PositionFilter)}
+          emptyText="No players found. Try another season or position."
+        />
       )}
 
       {rows.length > 0 && !isPhone && (
