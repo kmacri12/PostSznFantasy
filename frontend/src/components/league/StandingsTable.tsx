@@ -1,8 +1,10 @@
+import TimelineIcon from "@mui/icons-material/Timeline";
 import {
   Avatar,
   Box,
   Button,
   Chip,
+  IconButton,
   Paper,
   Table,
   TableBody,
@@ -10,15 +12,21 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import type React from "react";
 import { Link } from "react-router-dom";
 import { useStandings } from "../../api/queries";
-import type { StandingsRow } from "../../api/types";
+import type { Standings, StandingsRow } from "../../api/types";
 import { tokens } from "../../theme";
 import QueryBoundary from "../common/QueryBoundary";
+import { ROUND_LABELS } from "../team/lineup";
+import LiveSummary from "./LiveSummary";
+import ProgressCounts from "./ProgressCounts";
+import RankCell from "./RankCell";
 import StandingsCards from "./StandingsCards";
+import { PROGRESS_ITEMS, rankLabel, tieNote } from "./standingsView";
 
 interface StandingsTableProps {
   leagueId: string;
@@ -45,7 +53,7 @@ const StandingsTable: React.FC<StandingsTableProps> = ({ leagueId }) => {
     <QueryBoundary
       query={query}
       what="standings"
-      isEmpty={(rows) => rows.length === 0}
+      isEmpty={(standings) => standings.teams.length === 0}
       empty={{
         title: "No standings yet",
         description: "Standings appear once the playoffs begin and scores are in.",
@@ -56,95 +64,124 @@ const StandingsTable: React.FC<StandingsTableProps> = ({ leagueId }) => {
         ),
       }}
     >
-      {(rows) => <StandingsRows rows={rows} />}
+      {(standings) => <StandingsRows standings={standings} />}
     </QueryBoundary>
   );
 };
 
-const StandingsRows = ({ rows }: { rows: StandingsRow[] }) => {
-  const standings = [...rows].sort((a, b) => a.rank - b.rank);
+const Legend = () => (
+  <Typography variant="caption" color="text.secondary" component="p" sx={{ mt: 1, mb: 0 }}>
+    Starters this round: {PROGRESS_ITEMS.map((item) => `${item.label} (${item.hint})`).join(" · ")}
+  </Typography>
+);
+
+const TableRows = ({ rows, round }: { rows: StandingsRow[]; round: number }) => (
+  <TableContainer component={Paper}>
+    <Table>
+      <TableHead>
+        <TableRow>
+          <TableCell width={72}>#</TableCell>
+          <TableCell>Team</TableCell>
+          <TableCell align="center">Players left</TableCell>
+          <TableCell align="center">Wild Card</TableCell>
+          <TableCell align="center">Divisional</TableCell>
+          <TableCell align="center">Conf</TableCell>
+          <TableCell align="center">Super Bowl</TableCell>
+          <TableCell>Starters · {ROUND_LABELS[round]}</TableCell>
+          <TableCell align="right">Total</TableCell>
+          <TableCell width={56} />
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {rows.map((row, index) => (
+          <TableRow key={row.teamId} hover>
+            <TableCell sx={{ p: 0 }}>
+              <RankCell
+                label={rankLabel(rows, index)}
+                note={tieNote(rows, index)}
+                color={RANK_COLORS[row.rank - 1] ?? tokens.muted}
+              />
+            </TableCell>
+            <TableCell>
+              <Box
+                component={Link}
+                to={`/team/${row.teamId}`}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1.5,
+                  color: "inherit",
+                  textDecoration: "none",
+                }}
+              >
+                <Avatar sx={{ width: 32, height: 32, bgcolor: tokens.borderStrong, fontSize: 14 }}>
+                  {row.teamName[0]}
+                </Avatar>
+                <Box>
+                  <Typography sx={{ fontWeight: 600, lineHeight: 1.2 }}>{row.teamName}</Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {row.owner}
+                  </Typography>
+                </Box>
+              </Box>
+            </TableCell>
+            <TableCell align="center">
+              <Chip
+                size="small"
+                color={row.playersLeft > 0 ? "success" : "default"}
+                label={row.playersLeft}
+                variant="outlined"
+                aria-label={`${row.playersLeft} players left`}
+              />
+            </TableCell>
+            <TableCell align="center">
+              <RoundBadge points={row.wildCard} />
+            </TableCell>
+            <TableCell align="center">
+              <RoundBadge points={row.divisional} />
+            </TableCell>
+            <TableCell align="center">
+              <RoundBadge points={row.confChamp} />
+            </TableCell>
+            <TableCell align="center">
+              <RoundBadge points={row.superBowl} />
+            </TableCell>
+            <TableCell>
+              <ProgressCounts progress={row.progress} compact />
+            </TableCell>
+            <TableCell align="right" sx={{ fontWeight: 800, fontSize: 18 }}>
+              {row.total}
+            </TableCell>
+            <TableCell sx={{ p: 0 }}>
+              <Tooltip title="Round-by-round points">
+                <IconButton
+                  component={Link}
+                  to={`/team/${row.teamId}/points`}
+                  aria-label={`Round-by-round points for ${row.teamName}`}
+                >
+                  <TimelineIcon />
+                </IconButton>
+              </Tooltip>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  </TableContainer>
+);
+
+const StandingsRows = ({ standings }: { standings: Standings }) => {
+  const rows = [...standings.teams].sort((a, b) => a.rank - b.rank);
   return (
     <>
+      <LiveSummary standings={standings} />
       <Box sx={{ display: { xs: "block", md: "none" } }}>
-        <StandingsCards rows={standings} />
+        <StandingsCards rows={rows} round={standings.round} />
       </Box>
-      <TableContainer component={Paper} sx={{ display: { xs: "none", md: "block" } }}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell width={56}>#</TableCell>
-              <TableCell>Team</TableCell>
-              <TableCell align="center">Alive</TableCell>
-              <TableCell align="center">Wild Card</TableCell>
-              <TableCell align="center">Divisional</TableCell>
-              <TableCell align="center">Conf</TableCell>
-              <TableCell align="center">Super Bowl</TableCell>
-              <TableCell align="right">Total</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {standings.map((row) => (
-              <TableRow key={row.teamId} hover>
-                <TableCell
-                  sx={{ fontWeight: 800, color: RANK_COLORS[row.rank - 1] ?? tokens.muted }}
-                >
-                  {row.rank}
-                </TableCell>
-                <TableCell>
-                  <Box
-                    component={Link}
-                    to={`/team/${row.teamId}`}
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1.5,
-                      color: "inherit",
-                      textDecoration: "none",
-                    }}
-                  >
-                    <Avatar
-                      sx={{ width: 32, height: 32, bgcolor: tokens.borderStrong, fontSize: 14 }}
-                    >
-                      {row.teamName[0]}
-                    </Avatar>
-                    <Box>
-                      <Typography sx={{ fontWeight: 600, lineHeight: 1.2 }}>
-                        {row.teamName}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {row.owner}
-                      </Typography>
-                    </Box>
-                  </Box>
-                </TableCell>
-                <TableCell align="center">
-                  <Chip
-                    size="small"
-                    color={row.playersLeft > 0 ? "success" : "default"}
-                    label={`${row.playersLeft} alive`}
-                    variant="outlined"
-                  />
-                </TableCell>
-                <TableCell align="center">
-                  <RoundBadge points={row.wildCard} />
-                </TableCell>
-                <TableCell align="center">
-                  <RoundBadge points={row.divisional} />
-                </TableCell>
-                <TableCell align="center">
-                  <RoundBadge points={row.confChamp} />
-                </TableCell>
-                <TableCell align="center">
-                  <RoundBadge points={row.superBowl} />
-                </TableCell>
-                <TableCell align="right" sx={{ fontWeight: 800, fontSize: 18 }}>
-                  {row.total}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <Box sx={{ display: { xs: "none", md: "block" } }}>
+        <TableRows rows={rows} round={standings.round} />
+        <Legend />
+      </Box>
     </>
   );
 };

@@ -70,6 +70,13 @@ class ActivityKind(StrEnum):
     SETTINGS_CHANGE = "settings_change"
 
 
+class TieRule(StrEnum):
+    """The steps of the tiebreaker chain that can separate teams level on total."""
+
+    ROUND_SCORE = "round_score"
+    SUPER_BOWL_WINNER = "super_bowl_winner"
+
+
 class PlayerRoundStatus(StrEnum):
     ALIVE = "alive"
     ELIMINATED = "eliminated"

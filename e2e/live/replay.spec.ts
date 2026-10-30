@@ -89,10 +89,11 @@ interface StandingsRow {
   rank: number;
   playersLeft: number;
   total: number;
+  progress: { finished: number; live: number; toPlay: number; notPlaying: number };
 }
 
-const standingsOf = (api: Api, league: DraftLeague) =>
-  api.get<StandingsRow[]>(`/api/leagues/${league.leagueId}/standings`);
+const standingsOf = async (api: Api, league: DraftLeague) =>
+  (await api.get<{ teams: StandingsRow[] }>(`/api/leagues/${league.leagueId}/standings`)).teams;
 
 test("standings follow the replay: players left drop and points accrue", async ({
   page,
@@ -106,11 +107,21 @@ test("standings follow the replay: players left drop and points accrue", async (
   // Eliminations and standings commit together, so once n teams are out the host's
   // count is at or below what n eliminations leave (the replay may already be further on).
   // The host loses a player per elimination until DET, the guest's, goes out last.
+  // The host starts three players (KCC, BAL, LAR) whose games finish first, so one more
+  // starter is finished with each elimination, and the three starters end up finished.
   for (const [index, left] of [3, 2, 1, 1].entries()) {
     await waitForEliminations(host, index + 1);
-    expect((await hostRow())?.playersLeft).toBeLessThanOrEqual(left);
+    const row = await hostRow();
+    expect(row?.playersLeft).toBeLessThanOrEqual(left);
+    expect(row?.progress.finished).toBeGreaterThanOrEqual(Math.min(index + 1, 3));
   }
   await expect.poll(async () => (await hostRow())?.playersLeft).toBe(1);
+  expect((await hostRow())?.progress).toEqual({
+    finished: 3,
+    live: 0,
+    toPlay: 0,
+    notPlaying: 0,
+  });
 
   const rows = await standingsOf(host, main);
   expect(rows).toHaveLength(2);

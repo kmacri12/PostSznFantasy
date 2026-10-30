@@ -26,7 +26,7 @@ Each league drafts once, before the Wild Card round, from players on the 14 play
 - **Locks.** Each player locks at their game's **scheduled kickoff**, in whatever slot they are in (starter, flex or bench). A locked player cannot be moved, swapped or dropped. A move is legal only if every player involved is unlocked.
 - **Eliminated players.** A player whose NFL team lost is shown in a separate Eliminated section below the bench, from the next round onward (per round: a Wild Card loser is still valid for the Wild Card and eliminated for the Divisional). Eliminated players cannot be moved. When a round ends, eliminated players drop out of any slot they were placed in early, leaving it empty.
 - **Byes.** A team on a bye is alive and its players score 0 that round.
-- Players not placed in a slot are shown as "not in this lineup" and score nothing; placing a player on the bench is optional. (**Open:** whether unplaced players count toward "points left on the bench".)
+- Players not placed in a slot are shown as "not in this lineup" and score nothing; placing a player on the bench is optional. Unplaced players count as bench for "points left on the bench". A player drafted after their game kicked off is locked out of the lineup, so their points that round are bench points.
 - A banner on the team page warns about empty starter slots before the round's first kickoff. There is no email or push in v1.
 - There is no free agency in v1. It may return later as an opt-in league setting.
 
@@ -56,7 +56,9 @@ Two independent league settings, each a required explicit commissioner choice wi
 - Wherever a tie decided the order, a tooltip says why one team is above the other.
 - Players left is the number of players on the roster, starters or not, whose NFL team is still alive. A league-wide total is shown too and updates as soon as a team is eliminated.
 - The home page updates live during games. Each team shows its points, plus nine starters (or however many) as finished, live, to-play and not-playing (colour-coded), and the number of games in progress. Six teams must be visible at once on a phone: rank, team and total in the collapsed row, with the round breakdown, players left and live counts on expand.
-- Every team can show its round-by-round points, with each player's counted points and the points left on the bench.
+- Every team can show its round-by-round points, with each starter's counted points and the bench's points, muted, and a team total of points left on the bench. Bench points are calculated on read from the lineup, game stats and league scoring (nothing is stored) and use the round's multiplier like counted points, so the two compare directly.
+- The live counts describe the current round: the first round not yet complete (every game final), or the Super Bowl once it is final. A starter slot is exactly one of finished, live, to play or not playing (empty slot, eliminated player or bye). The count of games in progress is the number of NFL games being played now.
+- Teams level on every step of the chain share a rank, shown as "T1" and so on. The chain only uses completed rounds and the Super Bowl winner once that game is final.
 
 ## 7. Commissioner powers and settings
 

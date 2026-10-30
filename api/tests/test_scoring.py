@@ -405,7 +405,8 @@ def test_orm_settings_columns_match_pydantic_schemas() -> None:
         | set(PostseasonSettings.model_fields)
     )
     assert declared <= columns
-    assert columns - declared == {"id", "league_id"}
+    # `tiebreaker` is retired (the chain is fixed) and stays until a migration drops it.
+    assert columns - declared == {"id", "league_id", "tiebreaker"}
 
 
 @pytest.mark.parametrize(

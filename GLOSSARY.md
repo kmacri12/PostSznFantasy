@@ -48,6 +48,14 @@ _Avoid_: Off week
 The scheduled start time of a player's game. It is the moment that player locks.
 _Avoid_: Game time, start
 
+**Completed round**:
+A round in which every game is final.
+_Avoid_: Finished round, past round
+
+**Current round**:
+The earliest round that is not complete, or the Super Bowl once it is final. It is the round the live standings describe.
+_Avoid_: Active round, this week
+
 ### Roster and lineup
 
 **Draft pool**:
@@ -119,8 +127,16 @@ Points a player scored while in a starter slot, multiplied by the round's multip
 _Avoid_: Fantasy points (ambiguous), actual points
 
 **Bench points**:
-Points a player scored while on the bench in a round. They never count; they feed the "left on the bench" total.
+Points a player scored in a round without being in a starter slot, whether placed on the bench or unassigned, multiplied by the round's multiplier like counted points so the two compare directly. They never count.
 _Avoid_: Wasted points
+
+**Points left on the bench**:
+A fantasy team's bench points summed over every round.
+_Avoid_: Wasted points, missed points
+
+**Starter progress**:
+Where a fantasy team's starter slots stand in the current round: **finished** (their game is over), **live** (in progress), **to play** (not kicked off) or **not playing** (empty slot, eliminated player or bye). Every starter slot is in exactly one.
+_Avoid_: Live status, game status
 
 **Multiplier**:
 A per-round factor applied to a round's points. Defaults to 1x for every round.
@@ -139,8 +155,12 @@ The number of players on a roster, starters or not, whose NFL team is still aliv
 _Avoid_: Survivors, alive count
 
 **Tiebreaker chain**:
-The ordered rule for breaking ties: the latest completed round's score, back to the Wild Card, then the number of rostered players on the Super Bowl winner, then a shared title.
+The ordered rule for breaking ties: the latest completed round's score, back to the Wild Card, then the number of rostered players on the Super Bowl winner, then a shared title. It is the same in every league.
 _Avoid_: Tiebreak
+
+**Tie reason**:
+The step of the tiebreaker chain that put one fantasy team above another with the same total, with the two values compared.
+_Avoid_: Tiebreak explanation
 
 ### Oversight
 

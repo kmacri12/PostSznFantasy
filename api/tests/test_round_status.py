@@ -1,7 +1,15 @@
+from dataclasses import replace
 from datetime import UTC, datetime
 
 from api.models.enums import PlayerRoundStatus
-from api.services.round_status import GameFacts, round_status
+from api.services.round_status import (
+    GameFacts,
+    completed_rounds,
+    current_round,
+    games_in_progress,
+    round_status,
+    super_bowl_winner,
+)
 
 KC, BUF, DEN, MIA = 1, 2, 3, 4
 
@@ -72,3 +80,59 @@ def test_a_winner_awaiting_its_next_game_is_alive_not_on_a_bye() -> None:
 
 def test_player_without_an_nfl_team_is_alive_without_a_kickoff() -> None:
     assert round_status([game(1, KC, BUF)], None, 1).kickoff is None
+
+
+def live(round_: int, home: int, away: int) -> GameFacts:
+    return replace(game(round_, home, away), in_progress=True)
+
+
+def test_a_round_is_completed_once_every_game_in_it_is_final() -> None:
+    games = [
+        game(1, KC, BUF, score=(27, 20)),
+        game(1, DEN, MIA, score=(10, 13)),
+        game(2, KC, MIA, score=(30, 3)),
+        game(2, DEN, BUF),
+    ]
+    assert completed_rounds(games) == {1}
+
+
+def test_a_round_with_no_games_scheduled_is_not_completed() -> None:
+    assert completed_rounds([]) == frozenset()
+    assert completed_rounds([game(2, KC, BUF, score=(1, 0))]) == {2}
+
+
+def test_current_round_is_the_first_one_not_completed() -> None:
+    assert current_round([]) == 1
+    wild_card = [game(1, KC, BUF, score=(27, 20))]
+    assert current_round(wild_card) == 2  # Divisional not scheduled yet
+    assert current_round([*wild_card, game(2, KC, DEN)]) == 2
+    assert current_round([*wild_card, live(2, KC, DEN)]) == 2
+
+
+def test_current_round_stays_on_the_super_bowl_once_it_is_final() -> None:
+    finals = [game(r, KC, BUF, score=(24, 20)) for r in (1, 2, 3, 4)]
+    assert current_round(finals) == 4
+
+
+def test_super_bowl_winner_needs_a_final_score() -> None:
+    assert super_bowl_winner([game(4, KC, BUF)]) is None
+    assert super_bowl_winner([game(4, KC, BUF, score=(20, 24))]) == BUF
+    assert super_bowl_winner([game(4, KC, BUF, score=(27, 24))]) == KC
+    assert super_bowl_winner([game(3, KC, BUF, score=(27, 24))]) is None
+
+
+def test_games_in_progress_counts_live_games_only() -> None:
+    games = [
+        live(2, KC, BUF),
+        live(2, DEN, MIA),
+        game(2, 5, 6),
+        game(1, 7, 8, score=(3, 0)),
+    ]
+    assert games_in_progress(games) == 2
+    assert games_in_progress([]) == 0
+
+
+def test_current_round_ignores_rounds_before_the_first_one_with_games() -> None:
+    # A schedule that only has the Divisional so far: that is the round to show.
+    assert current_round([game(2, KC, BUF)]) == 2
+    assert current_round([game(3, KC, BUF)]) == 3

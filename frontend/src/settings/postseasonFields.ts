@@ -11,16 +11,6 @@ export interface PostseasonField {
 
 export const POSTSEASON_FIELDS: PostseasonField[] = [
   {
-    key: "tiebreaker",
-    label: "Tiebreaker",
-    kind: "select",
-    options: [
-      { value: "most_players_alive", label: "Most players still alive" },
-      { value: "highest_single_round", label: "Highest single-round score" },
-      { value: "latest_round_score", label: "Latest round score" },
-    ],
-  },
-  {
     key: "allow_join_after_draft_start",
     label: "Allow joining after the draft starts",
     kind: "boolean",

@@ -71,6 +71,26 @@ export interface JoinResult {
   alreadyMember: boolean;
 }
 
+export interface StarterProgress {
+  finished: number;
+  live: number;
+  toPlay: number;
+  notPlaying: number;
+}
+
+export interface StandingTieReason {
+  rule: "round_score" | "super_bowl_winner";
+  round: number | null;
+  overTeamId: number;
+  overTeamName: string;
+  aheadValue: number;
+  behindValue: number;
+  /** The deciding step in words, e.g. "higher Divisional score (20 to 10)". */
+  detail: string;
+  /** `detail` worded for the team ranked above. */
+  message: string;
+}
+
 export interface StandingsRow {
   teamId: number;
   rank: number;
@@ -82,6 +102,53 @@ export interface StandingsRow {
   confChamp: number;
   superBowl: number;
   total: number;
+  /** Set when this team is ordered above the next one by the tiebreaker chain. */
+  tieReason: StandingTieReason | null;
+  progress: StarterProgress;
+}
+
+export interface Standings {
+  /** The round the live counts describe (1-4). */
+  round: number;
+  gamesInProgress: number;
+  /** Players left summed over the whole league. */
+  playersLeft: number;
+  teams: StandingsRow[];
+}
+
+export interface BreakdownPlayer {
+  playerId: number;
+  name: string;
+  position: string;
+  teamAbv: string | null;
+  /** Lineup slot name; null when the owner never placed the player. */
+  slot: string | null;
+  points: number;
+}
+
+export interface BreakdownSlot {
+  index: number;
+  slot: string;
+  player: BreakdownPlayer | null;
+  points: number;
+}
+
+export interface BreakdownRound {
+  round: number;
+  multiplier: number;
+  counted: number;
+  starters: BreakdownSlot[];
+  bench: BreakdownPlayer[];
+  benchPoints: number;
+}
+
+export interface TeamBreakdown {
+  teamId: number;
+  leagueId: number;
+  teamName: string;
+  total: number;
+  pointsLeftOnBench: number;
+  rounds: BreakdownRound[];
 }
 
 export interface TeamSummary {
