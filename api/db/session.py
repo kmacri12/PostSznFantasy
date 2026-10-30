@@ -90,4 +90,6 @@ async def get_db() -> AsyncGenerator[AsyncSession]:
 
 
 # Type-annotated alias for injection in route handlers: db: DbSession
-DbSession = Annotated[AsyncSession, Depends(get_db)]
+# scope="function" commits when the handler returns, before the response is sent; the
+# default ("request") would commit after, so a client's next request could miss the write.
+DbSession = Annotated[AsyncSession, Depends(get_db, scope="function")]
