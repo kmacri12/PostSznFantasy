@@ -6,6 +6,7 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.db.models.nfl import NFLGame, NFLPlayer, NFLPlayerGameStats, NFLTeam
+from api.services.ingestion.dst_stats import empty_dst_columns, parse_dst_stat_rows
 from api.services.ingestion.guard import IngestionKind, guarded
 from api.services.ingestion.schemas import (
     POSTSEASON_WEEKS,
@@ -64,9 +65,10 @@ def parse_game_player_stats(
                 "player_id": player_id,
                 **line,
                 "kicking_fg_yards_made": field_goals.get(player_id, []),
+                **empty_dst_columns(),
             }
         )
-    return rows
+    return [*rows, *parse_dst_stat_rows(game_id, box, valid_player_ids)]
 
 
 def _points(val: Any) -> int | None:
@@ -104,7 +106,7 @@ def _game_row(
         "scoring_plays": box.get("scoringPlays"),
         "line_score": box.get("lineScore"),
         "player_stats": box.get("playerStats"),
-        # Per-team defensive totals; no per-player dst_* stats exist upstream.
+        # Raw cross-check only; DST scoring reads the synthetic DST players' rows.
         "dst": box.get("DST"),
         "game_clock": safe_str(box.get("gameClock")),
     }
