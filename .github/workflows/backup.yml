@@ -1,0 +1,45 @@
+name: Weekly backup
+
+# Independent of the API: it talks straight to the database, so it also covers any window where
+# the backend is down. The query it runs first keeps the Supabase Free project from pausing.
+on:
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+concurrency:
+  group: backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    name: Keep-alive query, pg_dump, encrypt, upload
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # The runner ships PostgreSQL 16 tools and pg_dump refuses to dump a newer server.
+      - name: Install PostgreSQL 17 client
+        run: |
+          sudo apt-get install -y postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y postgresql-client-17
+          echo "/usr/lib/postgresql/17/bin" >> "$GITHUB_PATH"
+
+      # GitHub runners have no IPv6: PROD_DATABASE_URL must be the session pooler string.
+      - name: Dump and encrypt
+        id: dump
+        env:
+          DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+          BACKUP_GPG_PUBLIC_KEY: ${{ secrets.BACKUP_GPG_PUBLIC_KEY }}
+        run: |
+          file=$(scripts/backup-db.sh "$RUNNER_TEMP/backup" | tail -n 1)
+          echo "file=$file" >> "$GITHUB_OUTPUT"
+
+      - name: Upload encrypted backup
+        uses: actions/upload-artifact@v4
+        with:
+          name: postszn-backup-${{ github.run_id }}
+          path: ${{ steps.dump.outputs.file }}
+          retention-days: 90
+          if-no-files-found: error

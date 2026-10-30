@@ -1,0 +1,58 @@
+name: Docker build
+
+on:
+  push:
+    branches: ["main"]
+    paths: ["Dockerfile", ".dockerignore", "api/**", ".github/workflows/docker-build.yml"]
+  pull_request:
+    branches: ["main"]
+    paths: ["Dockerfile", ".dockerignore", "api/**", ".github/workflows/docker-build.yml"]
+
+concurrency:
+  group: docker-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  image:
+    name: API image builds, migrates and passes its health check
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postszn
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d postszn"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      # Host networking lets the container reach the service container on localhost.
+      CONTAINER_ENV: >-
+        -e PG_URI=postgresql://postgres:postgres@localhost:5432/postszn
+        -e SUPABASE_URL=https://example.supabase.co
+        -e ENVIRONMENT=production
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Build image
+        run: docker build -t postszn-api:ci .
+
+      - name: Run the release command (alembic upgrade head)
+        run: docker run --rm --network host $CONTAINER_ENV postszn-api:ci alembic -c api/alembic.ini upgrade head
+
+      - name: Start the API and wait for the Docker health check
+        run: |
+          docker run -d --name api --network host $CONTAINER_ENV postszn-api:ci
+          for _ in $(seq 1 30); do
+            status=$(docker inspect -f '{{.State.Health.Status}}' api)
+            [ "$status" = "healthy" ] && exit 0
+            sleep 3
+          done
+          docker logs api
+          echo "Container never became healthy (last status: $status)"
+          exit 1

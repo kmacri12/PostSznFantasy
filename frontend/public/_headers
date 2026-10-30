@@ -1,0 +1,14 @@
+# Cloudflare Pages response headers (applied to the static site only, not the API).
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+
+# The entry document must revalidate so a new deploy is picked up on the next load.
+/index.html
+  Cache-Control: no-cache
+
+# Vite fingerprints everything under /assets, so it can be cached forever.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable

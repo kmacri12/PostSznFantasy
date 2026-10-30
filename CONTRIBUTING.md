@@ -54,6 +54,17 @@ make format     # auto-fix Ruff and Biome findings
 
 Narrower targets: `make lint`, `make typecheck`, `make test`, each with `-api` / `-web` variants. The backend is FastAPI on Python 3.13 managed by `uv` (Ruff, strict Mypy, pytest); the frontend is React 18 + TypeScript + Vite checked with Biome and Vitest. A pre-commit hook runs Ruff and Biome on staged files (`pre-commit install`).
 
+### Migrations must be additive
+
+Production runs `alembic upgrade head` as the host's release command while the previous version is still serving traffic, and a failed migration aborts the deploy. So every migration has to work with both the old and the new code:
+
+- Add columns as nullable or with a server default; backfill in the same migration or a later one.
+- Never drop or rename a column, table or enum value that the currently deployed code reads or writes. Ship the code that stops using it first, then drop it in a **later** release.
+- Avoid long locks (index builds on large tables: `CREATE INDEX CONCURRENTLY` in an autocommit block).
+- Never edit a migration that has been merged; add a new one.
+
+See [docs/deploy/cutover-runbook.md](docs/deploy/cutover-runbook.md) for the deploy flow.
+
 ---
 
 ## 4. Definition of Done (DoD)
