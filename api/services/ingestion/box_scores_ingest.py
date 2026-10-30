@@ -6,6 +6,7 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.db.models.nfl import NFLGame, NFLPlayer, NFLPlayerGameStats, NFLTeam
+from api.services import stat_corrections
 from api.services.ingestion.dst_stats import empty_dst_columns, parse_dst_stat_rows
 from api.services.ingestion.guard import IngestionKind, guarded
 from api.services.ingestion.schemas import (
@@ -119,6 +120,8 @@ async def _upsert_games_and_stats(
     *,
     keep_completed: bool = False,
 ) -> None:
+    # Taken before any write: the game upsert below may be what marks it final.
+    final_before = await stat_corrections.snapshot(db, [r["id"] for r in game_rows])
     # Any team in a postseason game is in the playoff field (the draft pool).
     playoff_team_ids = {
         team_id
@@ -160,6 +163,7 @@ async def _upsert_games_and_stats(
                 },
             )
         )
+    await stat_corrections.record(db, final_before, stat_rows)
 
 
 @guarded(IngestionKind.BOX_SCORES)
