@@ -102,6 +102,42 @@ describe("DataFreshness", () => {
     renderBar();
     fireEvent.click(await screen.findByRole("button", { name: "Refresh now" }));
     await waitFor(() => expect(api.post).toHaveBeenCalledWith("/api/admin/refresh/live"));
+    expect(await screen.findByText("Refreshed: 2 live games updated.")).toBeInTheDocument();
+    vi.unstubAllEnvs();
+  });
+
+  it("disables the button while refreshing and reloads standings, team and stats after", async () => {
+    vi.stubEnv("VITE_ADMIN_SUPABASE_UIDS", "admin-1");
+    userState.user = { id: "admin-1" };
+    let finish: (value: unknown) => void = () => {};
+    vi.mocked(api.post).mockReturnValue(new Promise((resolve) => (finish = resolve)));
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const invalidate = vi.spyOn(client, "invalidateQueries");
+    render(
+      <QueryClientProvider client={client}>
+        <DataFreshness />
+      </QueryClientProvider>,
+    );
+    fireEvent.click(await screen.findByRole("button", { name: "Refresh now" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Refresh now" })).toBeDisabled());
+    finish({ data: { polled: 1 } });
+    await waitFor(() => expect(screen.getByRole("button", { name: "Refresh now" })).toBeEnabled());
+    const keys = invalidate.mock.calls.map((call) => (call[0]?.queryKey ?? [])[0]);
+    expect(keys).toEqual(
+      expect.arrayContaining(["sync-status", "standings", "team", "player-season-stats"]),
+    );
+    vi.unstubAllEnvs();
+  });
+
+  it("says when there was nothing to refresh", async () => {
+    vi.stubEnv("VITE_ADMIN_SUPABASE_UIDS", "admin-1");
+    userState.user = { id: "admin-1" };
+    vi.mocked(api.post).mockResolvedValue({ data: { polled: 0 } });
+    renderBar();
+    fireEvent.click(await screen.findByRole("button", { name: "Refresh now" }));
+    expect(
+      await screen.findByText(/Nothing to refresh: no live games, or the daily API limit is spent/),
+    ).toBeInTheDocument();
     vi.unstubAllEnvs();
   });
 
@@ -112,6 +148,7 @@ describe("DataFreshness", () => {
     renderBar();
     fireEvent.click(await screen.findByRole("button", { name: "Refresh now" }));
     expect(await screen.findByText("Couldn't refresh stats. Try again.")).toBeInTheDocument();
+    expect(screen.getByRole("alert")).toHaveTextContent("Couldn't refresh stats. Try again.");
     vi.unstubAllEnvs();
   });
 });
