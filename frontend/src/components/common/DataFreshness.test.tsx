@@ -52,6 +52,43 @@ describe("DataFreshness", () => {
     expect(screen.queryByRole("button", { name: "Refresh now" })).toBeNull();
   });
 
+  it("says live updates are paused when the daily API limit is spent", async () => {
+    vi.mocked(api.get).mockResolvedValue({
+      data: [
+        {
+          kind: "box_scores",
+          lastSyncedAt: new Date(Date.now() - 42 * 60_000).toISOString(),
+          budgetExhausted: true,
+        },
+      ],
+    });
+    renderBar();
+    const notice = await screen.findByRole("status");
+    expect(notice).toHaveTextContent(
+      "Live updates paused for today (API daily limit). Showing the last update from 42 min ago.",
+    );
+    expect(screen.queryByText(/^Stats updated/)).toBeNull();
+  });
+
+  it("says the update time is unavailable when the status request fails", async () => {
+    vi.mocked(api.get).mockRejectedValue(new Error("down"));
+    renderBar();
+    expect(await screen.findByText("Update time unavailable")).toBeInTheDocument();
+  });
+
+  it("keeps showing the last known update time when a later status request fails", async () => {
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <QueryClientProvider client={client}>
+        <DataFreshness />
+      </QueryClientProvider>,
+    );
+    expect(await screen.findByText("Stats updated 7 min ago")).toBeInTheDocument();
+    vi.mocked(api.get).mockRejectedValue(new Error("down"));
+    await client.refetchQueries({ queryKey: ["sync-status"] });
+    expect(await screen.findByText("Stats updated 7 min ago")).toBeInTheDocument();
+  });
+
   it("says so when stats have never synced", async () => {
     vi.mocked(api.get).mockResolvedValue({ data: [] });
     renderBar();

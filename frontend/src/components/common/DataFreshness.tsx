@@ -1,5 +1,5 @@
 import RefreshIcon from "@mui/icons-material/Refresh";
-import { Box, Button, Typography } from "@mui/material";
+import { Alert, Box, Button, Typography } from "@mui/material";
 import { useRefreshLive, useSyncStatus } from "../../api/queries";
 import { useUser } from "../../contexts/UserContext";
 import { friendlyError } from "./friendlyError";
@@ -27,15 +27,30 @@ const DataFreshness = () => {
   const { user } = useUser();
   const status = useSyncStatus();
   const refresh = useRefreshLive();
-  const syncedAt = status.data?.find((item) => item.kind === BOX_SCORES)?.lastSyncedAt;
+  const boxScores = status.data?.find((item) => item.kind === BOX_SCORES);
+  const syncedAt = boxScores?.lastSyncedAt;
 
-  if (status.isLoading || status.isError) return null;
+  if (status.isLoading) return null;
+
+  // A failed refetch keeps the previous data, so the last known time stays on screen.
+  const message = !status.data
+    ? "Update time unavailable"
+    : !syncedAt
+      ? "Stats haven't synced yet"
+      : `Stats updated ${formatAgo(syncedAt)}`;
 
   return (
     <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
-      <Typography variant="body2" color="text.secondary">
-        {syncedAt ? `Stats updated ${formatAgo(syncedAt)}` : "Stats haven't synced yet"}
-      </Typography>
+      {boxScores?.budgetExhausted && syncedAt ? (
+        <Alert severity="warning" role="status" sx={{ width: "100%" }}>
+          Live updates paused for today (API daily limit). Showing the last update from{" "}
+          {formatAgo(syncedAt)}.
+        </Alert>
+      ) : (
+        <Typography variant="body2" color="text.secondary">
+          {message}
+        </Typography>
+      )}
       {isAdminHint(user?.id) && (
         <Button
           size="small"
