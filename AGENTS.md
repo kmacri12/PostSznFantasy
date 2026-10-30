@@ -19,7 +19,7 @@
 | **Backend Lint / Format / Type** | **Ruff** (lint & format) + **Mypy** (strict static typing) |
 | **API Validation** | Full Pydantic v2 schemas for all requests/responses (`BaseSchema` with `to_camel`) |
 | **Real-Time / Sockets**| Native **FastAPI WebSockets** (`starlette.websockets` + `DraftConnectionManager`) |
-| **ORM & Database** | SQLAlchemy 2.0 (`asyncpg` async session) + PostgreSQL 16 |
+| **ORM & Database** | SQLAlchemy 2.0 (`asyncpg` async session) + PostgreSQL 17 |
 | **DB Migrations** | **Alembic** migrations (`alembic upgrade head`) |
 | **Configuration** | **Pydantic Settings** (`api/core/config.py` cached singleton) |
 | **Auth** | Supabase Auth (JWT verification via FastAPI `Depends(get_current_user)`) |
@@ -36,7 +36,7 @@
 
 ```
 PostSznFantasy/
-├── docker-compose.yml          # PostgreSQL 16 container definition
+├── docker-compose.yml          # PostgreSQL 17 container definition
 ├── Makefile                    # Single entry point for setup, run, lint, test
 ├── README.md                   # System documentation & developer quickstart
 ├── CONTRIBUTING.md             # Contribution guidelines, branching, & DoD
