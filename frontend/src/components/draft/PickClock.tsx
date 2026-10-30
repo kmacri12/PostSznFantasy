@@ -12,15 +12,16 @@ interface Props {
   secondsLeft: number | null;
   isConnected: boolean;
   urgent?: boolean;
+  compact?: boolean;
 }
 
 /** Server-derived countdown; dimmed while offline because it can no longer be trusted. */
-const PickClock = ({ secondsLeft, isConnected, urgent = false }: Props) => {
+const PickClock = ({ secondsLeft, isConnected, urgent = false, compact = false }: Props) => {
   if (secondsLeft === null) return null;
   return (
     <Box sx={{ textAlign: "center" }}>
       <Typography
-        variant="h3"
+        variant={compact ? "h4" : "h3"}
         aria-label="Pick clock"
         sx={{
           fontVariantNumeric: "tabular-nums",
@@ -31,7 +32,10 @@ const PickClock = ({ secondsLeft, isConnected, urgent = false }: Props) => {
         {formatClock(secondsLeft)}
       </Typography>
       {!isConnected && (
-        <Typography variant="caption" color="warning.main">
+        <Typography
+          variant="caption"
+          sx={{ display: "block", color: compact ? "inherit" : "warning.main" }}
+        >
           Reconnecting…
         </Typography>
       )}

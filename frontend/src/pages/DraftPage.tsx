@@ -20,10 +20,11 @@ import DraftSetupPanel from "../components/draft/DraftSetupPanel";
 import DraftStatusBar from "../components/draft/DraftStatusBar";
 import DraftToast from "../components/draft/DraftToast";
 import MyRosterPanel from "../components/draft/MyRosterPanel";
+import OnTheClockBanner from "../components/draft/OnTheClockBanner";
 import PickFeed from "../components/draft/PickFeed";
 import QueuePanel from "../components/draft/QueuePanel";
 import { useDraftRoom } from "../hooks/useDraftRoom";
-import { playOnDeckCue } from "../utils/draftCue";
+import { playOnDeckCue, vibrateOnTurn } from "../utils/draftCue";
 
 type TabKey = "board" | "players" | "queue" | "roster" | "feed";
 
@@ -56,6 +57,10 @@ const DraftPage = () => {
   useEffect(() => {
     if (onDeck && !myTurn) playOnDeckCue();
   }, [onDeck, myTurn]);
+
+  useEffect(() => {
+    if (myTurn) vibrateOnTurn();
+  }, [myTurn]);
 
   if (!state) {
     return (
@@ -95,6 +100,11 @@ const DraftPage = () => {
         secondsToStart={room.secondsToStart}
         isConnected={room.isConnected}
         myTeamId={myTeamId}
+      />
+      <OnTheClockBanner
+        active={myTurn}
+        secondsLeft={room.secondsLeft}
+        isConnected={room.isConnected}
       />
       <DraftToast toast={room.toast} onClose={room.dismissToast} />
       {isCommissioner && (

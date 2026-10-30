@@ -14,3 +14,7 @@ export function playOnDeckCue(): void {
     // Audio is optional; autoplay policies or missing support must not break the draft.
   }
 }
+
+export function vibrateOnTurn(): void {
+  navigator.vibrate?.([200, 100, 200]);
+}
