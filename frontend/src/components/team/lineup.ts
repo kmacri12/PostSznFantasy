@@ -38,10 +38,8 @@ export function parseMove(
   return { playerId: Number(player[1]), slotIndex: Number(slot[1]) };
 }
 
-const kickoffText = (iso: string): string =>
+export const formatKickoff = (iso: string): string =>
   new Date(iso).toLocaleString(undefined, { weekday: "short", hour: "numeric", minute: "2-digit" });
-
-export const formatKickoff = kickoffText;
 
 /** One line under a player's name: why they can or cannot move, and when they lock. */
 export const lineupStatusText = (player: LineupPlayer): string => {
@@ -49,8 +47,8 @@ export const lineupStatusText = (player: LineupPlayer): string => {
   if (player.status === "bye") return "Bye · scores 0";
   if (!player.kickoff) return "Game not scheduled yet";
   return player.locked
-    ? `Locked · kicked off ${kickoffText(player.kickoff)}`
-    : `Locks at kickoff · ${kickoffText(player.kickoff)}`;
+    ? `Locked · kicked off ${formatKickoff(player.kickoff)}`
+    : `Locks at kickoff · ${formatKickoff(player.kickoff)}`;
 };
 
 export interface TapResult {

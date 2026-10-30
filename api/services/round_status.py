@@ -63,15 +63,9 @@ def round_status(
     )
     if own is not None:
         return TeamRound(PlayerRoundStatus.ALIVE, own.kickoff)
-    # A bye is only knowable once the round has a schedule and the team is not still
-    # waiting on an earlier game to finish.
-    undecided = any(
-        not g.completed
-        and g.round < round_
-        and nfl_team_id in (g.home_team_id, g.away_team_id)
-        for g in games
-    )
-    on_bye = bool(this_round) and not undecided
+    # Only the Wild Card round has byes. Later, an alive team without a game is waiting
+    # for its next game to be scheduled, which is not a bye.
+    on_bye = round_ == 1 and bool(this_round)
     return TeamRound(PlayerRoundStatus.BYE if on_bye else PlayerRoundStatus.ALIVE, None)
 
 

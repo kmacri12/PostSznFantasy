@@ -15,7 +15,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useMoveInLineup, useRenameTeam, useTeam } from "../api/queries";
 import type { TeamDetails } from "../api/types";
@@ -65,10 +65,20 @@ const RenameDialog = ({ team, onClose }: { team: TeamDetails; onClose: () => voi
   );
 };
 
+/** Re-renders every 30s so the banner clears the moment a kickoff passes. */
+const useNow = () => {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 30_000);
+    return () => clearInterval(timer);
+  }, []);
+  return now;
+};
+
 const TeamContent = ({ team }: { team: TeamDetails }) => {
   const teamId = team.id;
   const [renaming, setRenaming] = useState(false);
-  const [now] = useState(() => new Date());
+  const now = useNow();
   const [round, setRound] = useState(() => defaultRound(team.lineups, now));
   const moveInLineup = useMoveInLineup(teamId);
   const moveError = mutationError(moveInLineup.error, "Couldn't move that player. Try again.");

@@ -261,6 +261,7 @@ const LineupList = ({ lineup, canEdit, onMove }: Props) => {
           </Typography>
           {selectedIsPlaced && (
             <Button
+              sx={{ minHeight: 44 }}
               onClick={() => {
                 onMove({ playerId: selectedPlayer.id, slotIndex: null });
                 setSelectedId(null);
@@ -269,7 +270,9 @@ const LineupList = ({ lineup, canEdit, onMove }: Props) => {
               Remove from lineup
             </Button>
           )}
-          <Button onClick={() => setSelectedId(null)}>Cancel</Button>
+          <Button sx={{ minHeight: 44 }} onClick={() => setSelectedId(null)}>
+            Cancel
+          </Button>
         </Box>
       )}
       {canEdit && !selectedPlayer && (

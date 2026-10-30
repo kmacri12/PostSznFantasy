@@ -148,7 +148,7 @@ Goal: one discoverable entry point for running the API, frontend and checks, rep
 - [x] **My Team Page**:
   - [x] Show the roster slot layout even when empty (QB/RB/WR/TE/FLEX/K/DEF etc. per league roster settings), with placeholders per slot.
   - [x] Owner can edit team name (and avatar later); commissioner can edit any team name.
-  - [x] Roster management actions allowed by league rules (add/drop when free agency is enabled, swaps between rounds).
+  - [x] Roster management actions allowed by league rules (add/drop and swaps, since removed from v1: lineups are per round, see docs/product-rules.md).
   - [x] Alive/eliminated badges and next-game status per player.
 - [x] **Draft Lifecycle Rebuild (match Sleeper / ESPN draft room)**:
   - [x] Draft states: `unscheduled` → `scheduled` → `lobby/waiting` → `in_progress` → `paused` → `completed`. Visiting the Draft tab must **never** auto-start a timer.

@@ -229,14 +229,14 @@ async def move_in_lineup(
     if player_id not in by_id:
         raise LineupError("That player is not on your roster")
     games = await load_games(db, season)
-    if player_id in _eliminated_ids(players, games, round_):
+    eliminated = _eliminated_ids(players, games, round_)
+    if player_id in eliminated:
         raise LineupError("That player's team has been eliminated")
     specs = slot_layout(settings)
     stored = (await _placements(db, team.id))[round_]
     placement: list[int | None] = [stored.get(i) for i in range(len(specs))]
     # A stale placement of an eliminated player is empty space, not a blocker.
-    gone = _eliminated_ids(players, games, round_)
-    placement = [None if pid in gone else pid for pid in placement]
+    placement = [None if pid in eliminated else pid for pid in placement]
     locked = {p.id for p in players if _view(p, games, round_, now).locked}
     moved = move_player(
         specs,

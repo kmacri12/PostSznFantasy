@@ -18,6 +18,7 @@ from api.db.models.league import (
 from api.db.models.nfl import NFLGame, NFLPlayer, NFLPlayerGameStats
 from api.models.enums import DraftStatus, PlayerPosition
 from api.services.lineups import BENCH, slot_layout
+from api.services.round_status import ROUNDS
 from api.utils.calculations.fantasy_points_utils import calculate_player_points
 from api.utils.calculations.standings_utils import (
     get_players_left,
@@ -140,7 +141,7 @@ async def _tally_league(
     tallies = []
     for team_id in team_ids:
         points = [Decimal(0)] * 4
-        for round_ in range(1, 5):
+        for round_ in ROUNDS:
             for pid in starters[(team_id, round_)]:
                 position = PlayerPosition.from_str(players[pid].position)
                 for game_stats, week in stats.get(pid, []):

@@ -65,5 +65,10 @@ def test_bye_team_keeps_playing_after_its_bye() -> None:
     assert round_status(games, KC, 2).status is PlayerRoundStatus.ALIVE
 
 
+def test_a_winner_awaiting_its_next_game_is_alive_not_on_a_bye() -> None:
+    games = [game(1, BUF, DEN, score=(10, 3)), game(2, KC, MIA)]
+    assert round_status(games, BUF, 2).status is PlayerRoundStatus.ALIVE
+
+
 def test_player_without_an_nfl_team_is_alive_without_a_kickoff() -> None:
     assert round_status([game(1, KC, BUF)], None, 1).kickoff is None
