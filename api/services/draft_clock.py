@@ -51,11 +51,10 @@ async def expire_overdue_picks() -> int:
                 continue
             except DraftPickError as exc:
                 await db.rollback()
-                logger.warning(
+                logger.error(
                     "Auto-pick failed",
                     extra={"league_id": league_id, "error": str(exc)},
                 )
-                sentry_sdk.capture_exception(exc)
                 continue
         for event in events:
             await draft_manager.broadcast(league_id, event)
