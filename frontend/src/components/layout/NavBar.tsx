@@ -94,6 +94,7 @@ const NavBar = ({
             textDecoration: "none",
             mr: { xs: 0, md: 2 },
             minWidth: 0,
+            minHeight: 44,
           }}
         >
           <SportsFootballIcon sx={{ color: tokens.gold }} />

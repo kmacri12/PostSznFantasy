@@ -62,6 +62,7 @@ const PlayerSelector = ({ onPlayerSelected, isMyTurn, selectedPlayerIDs }: Playe
             clickable
             color={position === pos ? "primary" : "default"}
             variant={position === pos ? "filled" : "outlined"}
+            aria-pressed={position === pos}
             onClick={() => setPosition(pos)}
           />
         ))}
