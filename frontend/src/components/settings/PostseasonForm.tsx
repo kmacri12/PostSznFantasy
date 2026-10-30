@@ -2,7 +2,6 @@ import {
   Box,
   FormControl,
   FormControlLabel,
-  FormHelperText,
   Grid,
   InputLabel,
   MenuItem,
@@ -11,6 +10,7 @@ import {
   Switch,
 } from "@mui/material";
 import { POSTSEASON_FIELDS, type PostseasonValues } from "../../settings/postseasonFields";
+import HelpTip from "../common/HelpTip";
 
 interface PostseasonFormProps {
   values: PostseasonValues;
@@ -26,7 +26,7 @@ const PostseasonForm = ({ values, onChange, disabled }: PostseasonFormProps) => 
         return (
           <Grid size={{ xs: 12, sm: 6 }} key={field.key}>
             {field.kind === "boolean" && (
-              <FormControl fullWidth>
+              <FormControl fullWidth sx={{ flexDirection: "row", alignItems: "center" }}>
                 <FormControlLabel
                   control={
                     <Switch
@@ -38,7 +38,7 @@ const PostseasonForm = ({ values, onChange, disabled }: PostseasonFormProps) => 
                   }
                   label={field.label}
                 />
-                {field.help && <FormHelperText>{field.help}</FormHelperText>}
+                {field.help && <HelpTip label={field.label} text={field.help} />}
               </FormControl>
             )}
             {field.kind === "select" && (
@@ -59,7 +59,7 @@ const PostseasonForm = ({ values, onChange, disabled }: PostseasonFormProps) => 
               </FormControl>
             )}
             {field.kind === "multiplier" && (
-              <FormControl fullWidth>
+              <FormControl fullWidth sx={{ flexDirection: "row", alignItems: "center", gap: 0.5 }}>
                 <InputLabel htmlFor={id}>{field.label}</InputLabel>
                 <OutlinedInput
                   id={id}
@@ -69,7 +69,9 @@ const PostseasonForm = ({ values, onChange, disabled }: PostseasonFormProps) => 
                   value={values[field.key] ?? ""}
                   onChange={(event) => onChange(field.key, event.target.value)}
                   endAdornment="x"
+                  sx={{ flexGrow: 1 }}
                 />
+                {field.help && <HelpTip label={field.label} text={field.help} />}
               </FormControl>
             )}
           </Grid>

@@ -13,6 +13,7 @@ import LockIcon from "@mui/icons-material/Lock";
 import { Box, Button, Chip, Paper, Typography } from "@mui/material";
 import { useState } from "react";
 import type { LineupPlayer, LineupSlot, RoundLineup, SlotMark } from "../../api/types";
+import { LOCK_NOTE, LOCK_NOTE_OVERRIDE } from "../../content/rules";
 import { tokens } from "../../theme";
 import ChangedScore from "../activity/ChangedScore";
 import SlotMarker from "../activity/SlotMarker";
@@ -305,10 +306,18 @@ const LineupList = ({ lineup, canEdit, canOverride = false, onMove }: Props) => 
       {canEdit && !selectedPlayer && (
         <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1 }}>
           Tap a player, then tap a slot to start, bench or swap. You can also touch and hold a
-          player and drag. Players lock at their game's kickoff and can't be moved after
-          {canOverride ? ", except by you as commissioner (you'll be asked to confirm)" : ""}.
+          player and drag.
         </Typography>
       )}
+      <Typography
+        variant="caption"
+        color="text.secondary"
+        sx={{ display: "block", mt: 1 }}
+        data-testid="lock-note"
+      >
+        {LOCK_NOTE}
+        {canOverride ? LOCK_NOTE_OVERRIDE : ""}
+      </Typography>
     </DndContext>
   );
 };

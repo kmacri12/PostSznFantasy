@@ -206,7 +206,7 @@ const useLeagueMutation = <TVariables, TResult>(
 export const useUpdateLeague = (leagueId: Id | undefined) =>
   useLeagueMutation(
     leagueId,
-    async (body: { name?: string; numberTeams?: number }) =>
+    async (body: { name?: string; numberTeams?: number; notes?: string }) =>
       (await api.patch<LeagueOverview>(`/api/leagues/${leagueId}`, body)).data,
   );
 

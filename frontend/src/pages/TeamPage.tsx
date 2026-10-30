@@ -39,6 +39,7 @@ import {
   ROUND_TAB_LABELS,
 } from "../components/team/lineup";
 import OverrideDialog from "../components/team/OverrideDialog";
+import PreDraftRoster from "../components/team/PreDraftRoster";
 
 const RenameDialog = ({ team, onClose }: { team: TeamDetails; onClose: () => void }) => {
   const [name, setName] = useState(team.name);
@@ -133,6 +134,7 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
       <Box sx={{ mb: 2 }}>
         <DataFreshness />
       </Box>
+      {team.roster.length === 0 && <PreDraftRoster leagueId={team.leagueId} />}
       {team.roster.length === 0 && (
         <Box sx={{ mb: 2 }}>
           <EmptyState

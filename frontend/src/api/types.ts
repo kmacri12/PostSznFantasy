@@ -30,6 +30,7 @@ export interface LeagueOverview {
   id: number;
   name: string;
   season: number;
+  notes: string;
   numberTeams: number;
   openSpots: number;
   myRole: LeagueRole;

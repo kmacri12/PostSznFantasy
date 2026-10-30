@@ -11,6 +11,7 @@ import {
 import EmptyState from "../components/common/EmptyState";
 import ErrorState from "../components/common/ErrorState";
 import { mutationError } from "../components/common/friendlyError";
+import HelpTip from "../components/common/HelpTip";
 import LoadingState from "../components/common/LoadingState";
 import DraftSetupPanel from "../components/draft/DraftSetupPanel";
 import { TAB_BAR_HEIGHT } from "../components/layout/BottomTabBar";
@@ -20,6 +21,7 @@ import PostseasonForm from "../components/settings/PostseasonForm";
 import RosterForm from "../components/settings/RosterForm";
 import ScoringForm from "../components/settings/ScoringForm";
 import SettingsGroup from "../components/settings/SettingsGroup";
+import { SETTING_HELP } from "../content/rules";
 import { fromApi, postseasonFromApi, ROSTER_KEYS, SCORING_KEYS } from "../settings/convert";
 import { POSTSEASON_KEYS, type PostseasonValues } from "../settings/postseasonFields";
 import type { SettingsValues } from "../settings/types";
@@ -169,14 +171,18 @@ function SettingsPage() {
             slotProps={{ htmlInput: { readOnly: !canEdit, maxLength: 60 } }}
             onChange={(event) => setName(event.target.value)}
           />
-          <TextField
-            label="Number of teams"
-            value={teamCount}
-            slotProps={{
-              htmlInput: { readOnly: !canEdit || started, inputMode: "numeric" },
-            }}
-            onChange={(event) => setTeamCount(event.target.value)}
-          />
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+            <TextField
+              fullWidth
+              label="Number of teams"
+              value={teamCount}
+              slotProps={{
+                htmlInput: { readOnly: !canEdit || started, inputMode: "numeric" },
+              }}
+              onChange={(event) => setTeamCount(event.target.value)}
+            />
+            <HelpTip label="Number of teams" text={SETTING_HELP.numberTeams} />
+          </Box>
           <Box sx={{ display: "flex", gap: 1, alignItems: "center", flexWrap: "wrap" }}>
             <Chip label={`${league.data.season} season (read-only)`} />
             <Typography variant="body2" color="text.secondary">

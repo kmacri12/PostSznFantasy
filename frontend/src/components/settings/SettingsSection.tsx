@@ -3,6 +3,7 @@ import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
+  Box,
   FormControl,
   FormHelperText,
   Grid,
@@ -11,6 +12,7 @@ import {
   Typography,
 } from "@mui/material";
 import type { SettingGroup, SettingsValues } from "../../settings/types";
+import HelpTip from "../common/HelpTip";
 
 interface SettingsSectionProps {
   group: SettingGroup;
@@ -21,6 +23,8 @@ interface SettingsSectionProps {
   /** Shown but not editable (non-commissioners, or locked once the draft starts). */
   disabled?: boolean;
   inputMode?: "decimal" | "numeric";
+  /** Plain-language note on the whole block, opened from an info button. */
+  help?: string;
   /** Optional explanation shown under an input, e.g. "1 point per 25 yards". */
   helper?: (key: string, rawValue: string | number) => string | null;
 }
@@ -35,6 +39,7 @@ const SettingsSection = ({
   disabled = false,
   inputMode = "decimal",
   helper,
+  help,
 }: SettingsSectionProps) => (
   <Accordion defaultExpanded={defaultExpanded} disableGutters>
     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -43,6 +48,14 @@ const SettingsSection = ({
       </Typography>
     </AccordionSummary>
     <AccordionDetails>
+      {help && (
+        <Box sx={{ display: "flex", alignItems: "center", mt: -1 }}>
+          <Typography variant="body2" color="text.secondary">
+            What do these mean?
+          </Typography>
+          <HelpTip label={title ?? group.title} text={help} />
+        </Box>
+      )}
       <Grid container spacing={2}>
         {group.fields.map((field) => {
           const id = field.key.replaceAll("_", "-");

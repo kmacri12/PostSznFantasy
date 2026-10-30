@@ -24,6 +24,7 @@ import DataFreshness from "../components/common/DataFreshness";
 import { mutationError } from "../components/common/friendlyError";
 import QueryBoundary from "../components/common/QueryBoundary";
 import InvitePanel from "../components/league/InvitePanel";
+import LeagueNotes from "../components/league/LeagueNotes";
 import StandingsTable from "../components/league/StandingsTable";
 
 const DRAFT_LABELS: Record<LeagueOverview["draftStatus"], string> = {
@@ -119,6 +120,9 @@ const LeagueContent = ({ league }: { league: LeagueOverview }) => {
             <InvitePanel leagueId={league.id} />
           </Grid>
         )}
+        <Grid size={{ xs: 12 }}>
+          <LeagueNotes league={league} />
+        </Grid>
         <Grid size={{ xs: 12 }} sx={{ minWidth: 0 }}>
           <Typography variant="h6" sx={{ mb: 0.5 }}>
             Standings
