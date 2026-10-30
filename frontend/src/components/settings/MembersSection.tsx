@@ -44,9 +44,6 @@ const MembersSection = ({ league }: { league: LeagueOverview }) => {
 
   return (
     <Box>
-      <Typography variant="h6" sx={{ mb: 1 }}>
-        Members
-      </Typography>
       {failure && (
         <Alert severity="error" sx={{ mb: 1 }}>
           {failure}

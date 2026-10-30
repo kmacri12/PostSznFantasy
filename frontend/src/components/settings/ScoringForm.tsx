@@ -1,4 +1,4 @@
-import { Box, Typography } from "@mui/material";
+import { Box } from "@mui/material";
 import { SCORING_GROUPS } from "../../settings/scoringGroups";
 import { scoringHelp } from "../../settings/scoringHelp";
 import type { SettingsValues } from "../../settings/types";
@@ -12,9 +12,6 @@ interface ScoringFormProps {
 
 const ScoringForm = ({ values, onChange, disabled }: ScoringFormProps) => (
   <Box>
-    <Typography variant="h6" sx={{ mb: 1 }}>
-      Scoring
-    </Typography>
     {SCORING_GROUPS.map((group, index) => (
       <SettingsSection
         key={group.id}

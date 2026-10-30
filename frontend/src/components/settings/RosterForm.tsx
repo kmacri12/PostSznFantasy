@@ -19,9 +19,6 @@ const RosterForm = ({ values, onChange, disabled }: RosterFormProps) => {
 
   return (
     <Box>
-      <Typography variant="h6" sx={{ mb: 1 }}>
-        Roster
-      </Typography>
       {ROSTER_GROUPS.map((group, index) => (
         <SettingsSection
           key={group.id}
@@ -29,6 +26,7 @@ const RosterForm = ({ values, onChange, disabled }: RosterFormProps) => {
           values={values}
           onChange={handleChange}
           disabled={disabled}
+          inputMode="numeric"
           defaultExpanded={index === 0}
         />
       ))}

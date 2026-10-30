@@ -1,5 +1,5 @@
-import { Alert, Box, Button, Chip, Container, Divider, TextField, Typography } from "@mui/material";
-import { useEffect, useState } from "react";
+import { Alert, Box, Button, Chip, Container, Paper, TextField, Typography } from "@mui/material";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
   useDraft,
@@ -13,10 +13,13 @@ import ErrorState from "../components/common/ErrorState";
 import { mutationError } from "../components/common/friendlyError";
 import LoadingState from "../components/common/LoadingState";
 import DraftSetupPanel from "../components/draft/DraftSetupPanel";
+import { TAB_BAR_HEIGHT } from "../components/layout/BottomTabBar";
+import { valuesEqual } from "../components/settings/dirty";
 import MembersSection from "../components/settings/MembersSection";
 import PostseasonForm from "../components/settings/PostseasonForm";
 import RosterForm from "../components/settings/RosterForm";
 import ScoringForm from "../components/settings/ScoringForm";
+import SettingsGroup from "../components/settings/SettingsGroup";
 import { fromApi, postseasonFromApi, ROSTER_KEYS, SCORING_KEYS } from "../settings/convert";
 import { POSTSEASON_KEYS, type PostseasonValues } from "../settings/postseasonFields";
 import type { SettingsValues } from "../settings/types";
@@ -36,6 +39,36 @@ function SettingsPage() {
   const [roster, setRoster] = useState<SettingsValues>({});
   const [scoring, setScoring] = useState<SettingsValues>({});
   const [postseason, setPostseason] = useState<PostseasonValues>({});
+
+  const baseline = useMemo(
+    () =>
+      settingsQuery.data && league.data
+        ? {
+            roster: fromApi(settingsQuery.data, ROSTER_KEYS),
+            scoring: fromApi(settingsQuery.data, SCORING_KEYS),
+            postseason: postseasonFromApi(settingsQuery.data, POSTSEASON_KEYS),
+            league: { name: league.data.name, teamCount: league.data.numberTeams },
+          }
+        : null,
+    [settingsQuery.data, league.data],
+  );
+  const dirty =
+    baseline !== null &&
+    !(
+      valuesEqual(baseline.roster, roster) &&
+      valuesEqual(baseline.scoring, scoring) &&
+      valuesEqual(baseline.postseason, postseason) &&
+      valuesEqual(baseline.league, { name: name, teamCount })
+    );
+
+  const discard = () => {
+    if (!baseline) return;
+    setRoster(baseline.roster);
+    setScoring(baseline.scoring);
+    setPostseason(baseline.postseason);
+    setName(baseline.league.name);
+    setTeamCount(String(baseline.league.teamCount));
+  };
 
   useEffect(() => {
     if (!settingsQuery.data) return;
@@ -127,56 +160,58 @@ function SettingsPage() {
         </Alert>
       )}
 
-      <Typography variant="h6" sx={{ mb: 1 }}>
-        League
-      </Typography>
-      <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", alignItems: "center", mb: 3 }}>
-        <TextField
-          label="League name"
-          value={name}
-          disabled={!canEdit}
-          onChange={(event) => setName(event.target.value)}
-        />
-        <TextField
-          label="Number of teams"
-          value={teamCount}
-          disabled={!canEdit || started}
-          onChange={(event) => setTeamCount(event.target.value)}
-          sx={{ width: 160 }}
-        />
-        <Chip label={`${league.data.season} season (read-only)`} />
-        <Typography variant="body2" color="text.secondary">
-          Commissioners:{" "}
-          {league.data.members
-            .filter((member) => member.role === "commissioner")
-            .map((member) => member.username)
-            .join(", ")}
-        </Typography>
-      </Box>
-      <Divider sx={{ mb: 3 }} />
+      <SettingsGroup title="League" defaultExpanded>
+        <Box sx={{ display: "grid", gap: 2 }}>
+          <TextField
+            label="League name"
+            value={name}
+            slotProps={{ htmlInput: { readOnly: !canEdit, maxLength: 60 } }}
+            onChange={(event) => setName(event.target.value)}
+          />
+          <TextField
+            label="Number of teams"
+            value={teamCount}
+            slotProps={{
+              htmlInput: { readOnly: !canEdit || started, inputMode: "numeric" },
+            }}
+            onChange={(event) => setTeamCount(event.target.value)}
+          />
+          <Box sx={{ display: "flex", gap: 1, alignItems: "center", flexWrap: "wrap" }}>
+            <Chip label={`${league.data.season} season (read-only)`} />
+            <Typography variant="body2" color="text.secondary">
+              Commissioners:{" "}
+              {league.data.members
+                .filter((member) => member.role === "commissioner")
+                .map((member) => member.username)
+                .join(", ")}
+            </Typography>
+          </Box>
+        </Box>
+      </SettingsGroup>
 
-      <Box sx={{ mb: 3 }}>
+      <SettingsGroup title="Members">
         <MembersSection league={league.data} />
-      </Box>
-      <Divider sx={{ mb: 3 }} />
+      </SettingsGroup>
 
-      <RosterForm values={roster} onChange={setRoster} disabled={!canEdit || started} />
-      <Box sx={{ mt: 3 }}>
+      <SettingsGroup title="Roster">
+        <RosterForm values={roster} onChange={setRoster} disabled={!canEdit || started} />
+      </SettingsGroup>
+      <SettingsGroup title="Scoring">
         <ScoringForm
           values={scoring}
           disabled={!canEdit}
           onChange={(key, rawValue) => setScoring((previous) => ({ ...previous, [key]: rawValue }))}
         />
-      </Box>
-      <Box sx={{ mt: 3 }}>
+      </SettingsGroup>
+      <SettingsGroup title="Postseason">
         <PostseasonForm
           values={postseason}
           disabled={!canEdit}
           onChange={(key, value) => setPostseason((previous) => ({ ...previous, [key]: value }))}
         />
-      </Box>
+      </SettingsGroup>
       {draft.data && (
-        <Box sx={{ mt: 3 }}>
+        <Box sx={{ mb: 1.5 }}>
           <DraftSetupPanel draft={draft.data} canEdit={canEdit} />
         </Box>
       )}
@@ -191,15 +226,34 @@ function SettingsPage() {
           Settings saved.
         </Alert>
       )}
-      {canEdit && (
-        <Button
-          variant="contained"
-          onClick={save}
-          disabled={updateSettings.isPending || updateLeague.isPending}
-          sx={{ mt: 3 }}
+      {canEdit && dirty && (
+        <Paper
+          role="region"
+          aria-label="Unsaved changes"
+          sx={{
+            position: "sticky",
+            bottom: { xs: TAB_BAR_HEIGHT, md: 0 },
+            zIndex: (theme) => theme.zIndex.appBar - 1,
+            mt: 2,
+            p: 1.5,
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            borderColor: "primary.main",
+          }}
         >
-          Save settings
-        </Button>
+          <Typography sx={{ flexGrow: 1 }}>Unsaved changes</Typography>
+          <Button onClick={discard} disabled={updateSettings.isPending || updateLeague.isPending}>
+            Discard
+          </Button>
+          <Button
+            variant="contained"
+            onClick={save}
+            disabled={updateSettings.isPending || updateLeague.isPending}
+          >
+            Save
+          </Button>
+        </Paper>
       )}
     </Container>
   );

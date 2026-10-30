@@ -9,7 +9,6 @@ import {
   OutlinedInput,
   Select,
   Switch,
-  Typography,
 } from "@mui/material";
 import { POSTSEASON_FIELDS, type PostseasonValues } from "../../settings/postseasonFields";
 
@@ -21,9 +20,6 @@ interface PostseasonFormProps {
 
 const PostseasonForm = ({ values, onChange, disabled }: PostseasonFormProps) => (
   <Box>
-    <Typography variant="h6" sx={{ mb: 1 }}>
-      Postseason
-    </Typography>
     <Grid container spacing={2}>
       {POSTSEASON_FIELDS.map((field) => {
         const id = field.key.replaceAll("_", "-");
@@ -63,10 +59,12 @@ const PostseasonForm = ({ values, onChange, disabled }: PostseasonFormProps) => 
               </FormControl>
             )}
             {field.kind === "multiplier" && (
-              <FormControl fullWidth disabled={disabled}>
+              <FormControl fullWidth>
                 <InputLabel htmlFor={id}>{field.label}</InputLabel>
                 <OutlinedInput
                   id={id}
+                  readOnly={disabled}
+                  inputProps={{ inputMode: "decimal" }}
                   label={field.label}
                   value={values[field.key] ?? ""}
                   onChange={(event) => onChange(field.key, event.target.value)}
