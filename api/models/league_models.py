@@ -9,7 +9,6 @@ from api.models.enums import (
     DraftStatus,
     LeagueRole,
     PlayerRoundStatus,
-    Tiebreaker,
     TieRule,
 )
 
@@ -99,7 +98,6 @@ class PostseasonSettings(BaseSchema):
     multiplier_divisional: float = Field(default=1, ge=0, le=10)
     multiplier_conference: float = Field(default=1, ge=0, le=10)
     multiplier_super_bowl: float = Field(default=1, ge=0, le=10)
-    tiebreaker: Tiebreaker = Tiebreaker.MOST_PLAYERS_ALIVE
 
 
 class LeagueCreate(BaseSchema):

@@ -329,6 +329,8 @@ class LeagueSettings(Base):
     multiplier_super_bowl: Mapped[Decimal] = mapped_column(
         Numeric(6, 2), nullable=False, default=1
     )
+    # Unused since the tiebreaker chain became fixed (docs/product-rules.md section 6);
+    # drop with the next schema migration.
     tiebreaker: Mapped[str] = mapped_column(
         String(30), nullable=False, default=Tiebreaker.MOST_PLAYERS_ALIVE.value
     )

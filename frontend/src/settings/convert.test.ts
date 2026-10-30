@@ -19,12 +19,12 @@ describe("settings conversion", () => {
 
   it("keeps booleans and enum strings for postseason settings", () => {
     const values = postseasonFromApi(
-      { allowJoinAfterDraftStart: false, tiebreaker: "latest_round_score", multiplierSuperBowl: 3 },
-      POSTSEASON_KEYS,
+      { allowJoinAfterDraftStart: false, mode: "latest", multiplierSuperBowl: 3 },
+      [...POSTSEASON_KEYS, "mode"],
     );
     expect(values).toEqual({
       allow_join_after_draft_start: false,
-      tiebreaker: "latest_round_score",
+      mode: "latest",
       multiplier_super_bowl: 3,
     });
   });

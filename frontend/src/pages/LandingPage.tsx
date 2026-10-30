@@ -33,7 +33,8 @@ const POSTSEASON_RULES = [
   },
   {
     title: "Tiebreakers",
-    blurb: "Decide ties by players alive or best round.",
+    blurb:
+      "Ties go to the latest round's score, then earlier rounds, then who holds the Super Bowl winner.",
   },
 ];
 
