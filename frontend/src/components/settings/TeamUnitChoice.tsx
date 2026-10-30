@@ -1,16 +1,14 @@
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import {
   Box,
   FormControl,
   FormControlLabel,
   FormHelperText,
   FormLabel,
-  IconButton,
   Radio,
   RadioGroup,
-  Tooltip,
 } from "@mui/material";
 import { TEAM_K_HELP, TEAM_QB_HELP } from "../../settings/postseasonFields";
+import HelpTip from "../common/HelpTip";
 
 export interface TeamUnitValues {
   team_qb: boolean | null;
@@ -37,11 +35,7 @@ const TeamUnitChoice = ({ values, onChange }: Props) => (
         <FormControl key={key} required>
           <Box sx={{ display: "flex", alignItems: "center" }}>
             <FormLabel id={id}>{label}</FormLabel>
-            <Tooltip title={help} arrow enterTouchDelay={0} leaveTouchDelay={6000}>
-              <IconButton aria-label={`About ${label}`} sx={{ width: 44, height: 44 }}>
-                <InfoOutlinedIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
+            <HelpTip label={label} text={help} />
           </Box>
           <RadioGroup
             aria-labelledby={id}

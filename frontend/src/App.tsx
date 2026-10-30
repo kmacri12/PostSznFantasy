@@ -12,6 +12,7 @@ import { useUser } from "./contexts/UserContext";
 const CreateLeaguePage = lazy(() => import("./pages/CreateLeaguePage"));
 const DraftPage = lazy(() => import("./pages/DraftPage"));
 const LandingPage = lazy(() => import("./pages/LandingPage"));
+const HowToPlayPage = lazy(() => import("./pages/HowToPlayPage"));
 const JoinPage = lazy(() => import("./pages/JoinPage"));
 const LeaguePage = lazy(() => import("./pages/LeaguePage"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
@@ -67,6 +68,7 @@ function App() {
             <Route path="/" element={<LandingPage leagues={leagues} />} />
             <Route path="/league/:leagueId" element={<LeaguePage />} />
             <Route path="/sign-in" element={<SignInPage />} />
+            <Route path="/how-to-play" element={<HowToPlayPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/terms" element={<TermsPage />} />
             <Route path="/welcome" element={<WelcomePage />} />

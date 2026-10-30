@@ -1,4 +1,5 @@
 import { Box, Typography } from "@mui/material";
+import { SETTING_HELP } from "../../content/rules";
 import { ROSTER_GROUPS, STARTER_AND_BENCH_KEYS, sumRosterSpots } from "../../settings/rosterGroups";
 import type { SettingsValues } from "../../settings/types";
 import SettingsSection from "./SettingsSection";
@@ -28,6 +29,11 @@ const RosterForm = ({ values, onChange, disabled }: RosterFormProps) => {
           disabled={disabled}
           inputMode="numeric"
           defaultExpanded={index === 0}
+          help={
+            group.id === "limits"
+              ? SETTING_HELP.rosterLimits
+              : `${SETTING_HELP.rosterStarters} ${SETTING_HELP.rosterBench}`
+          }
         />
       ))}
       <Typography color="text.secondary" sx={{ mt: 1 }}>

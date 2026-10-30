@@ -241,6 +241,7 @@ async def get_league(
         id=membership.league.id,
         name=membership.league.name,
         season=membership.league.season,
+        notes=membership.league.notes,
         number_teams=len(teams),
         open_spots=sum(1 for team in teams if team.owner_id is None),
         my_role=LeagueRole(membership.role),
@@ -283,9 +284,11 @@ async def update_league(
     membership: LeagueCommissioner,
     db: DbSession,
 ) -> LeagueOverview:
-    """Rename the league or change its team count (the season is read-only)."""
+    """Rename the league, edit its notes or change its team count (season is fixed)."""
     if payload.name is not None:
         membership.league.name = payload.name
+    if payload.notes is not None:
+        membership.league.notes = payload.notes
     if payload.number_teams is not None:
         old_count = await db.scalar(
             select(LeagueSettings.number_teams).where(

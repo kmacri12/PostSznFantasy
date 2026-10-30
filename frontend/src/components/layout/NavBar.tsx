@@ -27,6 +27,7 @@ import type { User as SupabaseUser } from "@supabase/supabase-js";
 import { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import type { LeagueByUser } from "../../api/types";
+import { HOW_TO_PLAY_LABEL } from "../../content/rules";
 import { tokens } from "../../theme";
 import { DevQuickSync } from "../dev/DevQuickSync";
 
@@ -64,6 +65,7 @@ const NavBar = ({
         { label: "Settings", to: `/settings?leagueId=${selected.id}` },
       ]
     : [{ label: "Players", to: "/players" }];
+  links.push({ label: HOW_TO_PLAY_LABEL, to: "/how-to-play" });
 
   const avatarLabel = (user?.user_metadata?.full_name || user?.email || "?")[0].toUpperCase();
 
@@ -239,7 +241,10 @@ const NavBar = ({
               <Divider />
             </>
           )}
-          {(selected ? links.filter((link) => link.label === "Settings") : links).map((link) => (
+          {(selected
+            ? links.filter((link) => ["Settings", HOW_TO_PLAY_LABEL].includes(link.label))
+            : links
+          ).map((link) => (
             <ListItemButton
               key={link.to}
               component={Link}

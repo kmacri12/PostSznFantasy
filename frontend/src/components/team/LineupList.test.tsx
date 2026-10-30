@@ -34,6 +34,14 @@ const lineup: RoundLineup = {
 const rowOf = (name: string) => screen.getByText(name).closest("[aria-pressed], [aria-disabled]");
 
 describe("LineupList", () => {
+  it("always says players lock at kickoff, and mentions the override only for commissioners", () => {
+    const { rerender } = render(<LineupList lineup={lineup} canEdit={false} onMove={() => {}} />);
+    expect(screen.getByTestId("lock-note")).toHaveTextContent(/lock at their game's kickoff/i);
+    expect(screen.getByTestId("lock-note")).not.toHaveTextContent(/commissioner/i);
+    rerender(<LineupList lineup={lineup} canEdit canOverride onMove={() => {}} />);
+    expect(screen.getByTestId("lock-note")).toHaveTextContent(/as commissioner/i);
+  });
+
   it("shows starters, bench, unplaced players and a separate Eliminated section", () => {
     render(<LineupList lineup={lineup} canEdit onMove={() => {}} />);
     expect(screen.getByText("Starters")).toBeTruthy();

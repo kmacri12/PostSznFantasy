@@ -138,6 +138,8 @@ PostSznFantasy/
         ├── App.tsx             # Routes, league list state, wires NavBar
         ├── theme.ts            # Dark-first MUI theme + design tokens
         ├── main.tsx            # Vite DOM mount point
+        ├── content/
+        │   └── rules.ts        # Every plain-language rule string: How to play, pre-draft roster, lock note, setting tooltips, notes copy
         ├── contexts/
         │   └── UserContext.tsx # Authentication & current user context
         ├── hooks/
@@ -147,7 +149,8 @@ PostSznFantasy/
         │   ├── LandingPage.tsx # Root route: hero, round explainer, user's leagues
         │   ├── CreateLeaguePage.tsx # Multi-step league creation wizard
         │   ├── DraftPage.tsx   # Live synchronized draft room
-        │   ├── LeaguePage.tsx  # Standings display
+        │   ├── HowToPlayPage.tsx # Plain-language rules page (nav link), copy from src/content/rules.ts
+        │   ├── LeaguePage.tsx  # Standings display, league notes
         │   ├── PlayersPage.tsx # Player directory with TanStack Table
         │   ├── SettingsPage.tsx# League configuration viewer
         │   ├── TeamPage.tsx    # Roster management view
@@ -206,7 +209,7 @@ make format     # auto-fix Ruff and Biome
 | Area | Endpoints |
 | :--- | :--- |
 | Config | `GET /api/config` (season) |
-| Leagues | `POST /api/leagues/create-league`, `GET /api/leagues/user-leagues`, `GET/PATCH /api/leagues/{id}`, `GET /api/leagues/{id}/standings` (`{round, gamesInProgress, playersLeft, teams[]}`; each team has `rank`, round points, `tieReason`, `progress`; ranked by the tiebreaker chain, ties for the title share a rank), `GET/PATCH /api/leagues/{id}/settings` (roster/scoring/postseason; roster shape locks once the draft starts), `PATCH/DELETE /api/leagues/{id}/members/{userId}` |
+| Leagues | `POST /api/leagues/create-league`, `GET /api/leagues/user-leagues`, `GET/PATCH /api/leagues/{id}` (PATCH: `name`, `numberTeams`, and `notes`, free text up to 5000 characters shown to every member, commissioner-only edit), `GET /api/leagues/{id}/standings` (`{round, gamesInProgress, playersLeft, teams[]}`; each team has `rank`, round points, `tieReason`, `progress`; ranked by the tiebreaker chain, ties for the title share a rank), `GET/PATCH /api/leagues/{id}/settings` (roster/scoring/postseason; roster shape locks once the draft starts), `PATCH/DELETE /api/leagues/{id}/members/{userId}` |
 | Invites | `GET/POST/DELETE /api/leagues/{id}/invite` (commissioner), `GET /api/invites/{code}` (public preview), `POST /api/invites/{code}/join` |
 | Teams | `GET /api/teams/{id}/breakdown` (each round's counted points per starter slot and the bench's points, computed on read; round scores equal the standings), `GET /api/teams/{id}/breakdown` (each starter slot's `mark` and each player's `scoreChange`, restated in counted points after the round multiplier), `GET/PATCH /api/teams/{id}` (the GET carries all four rounds' lineups: slots, unassigned and eliminated players, lock times, empty-starter count), `POST /api/teams/{id}/lineup` (`{round, playerId, slotIndex, confirmOverride?}`; `slotIndex: null` takes a player out; 409 when any player involved is locked or eliminated; the owner or a commissioner. A commissioner moving a locked player gets 409 `{detail, code: "override_confirmation_required"}` until the request repeats with `confirmOverride: true`; there is no add/drop in v1), `PUT /api/leagues/{id}/teams/{teamId}/owner` (commissioner assigns/unassigns a team) |
 | Activity | `GET /api/leagues/{id}/activity`, `GET /api/teams/{id}/activity` (`?limit=&before=` keyset pages, newest first, members only; each event has `isNew`, the feed has `hasNew`), `POST .../activity/viewed` (`{upToEventId?}`, 204). The league feed is every event of the league; a team's feed is the events with its `team_id` (settings changes have none). `GET /api/leagues/user-leagues` carries `hasNewActivity` for the nav dot, which (like the league feed's `hasNew`) counts only overrides, stat corrections and settings changes; the team feed counts every event. Events: `lineup_move`, `commissioner_override`, `stat_correction`, `settings_change`; the lineup slot `mark` (override or commissioner-set) is derived from them, and lineup players carry `points` and `scoreChange` |

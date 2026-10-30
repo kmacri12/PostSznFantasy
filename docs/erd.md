@@ -51,6 +51,7 @@ erDiagram
         int id PK
         string name
         int season
+        string notes
     }
     league_members {
         int league_id PK,FK
