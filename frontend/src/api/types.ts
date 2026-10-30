@@ -6,6 +6,8 @@ export interface LeagueByUser {
   season: number;
   isCommissioner: boolean;
   userTeamId: number | null;
+  /** Events in the league feed this member hasn't seen: drives the nav dot. */
+  hasNewActivity: boolean;
 }
 
 export interface MemberSummary {
@@ -112,12 +114,30 @@ export interface LineupPlayer extends RosterPlayer {
   /** Scheduled kickoff of their game that round (ISO), which is when they lock. */
   kickoff: string | null;
   locked: boolean;
+  /** Points in that round under the league's scoring; null before any stats. */
+  points: number | null;
+  scoreChange: ScoreChange | null;
+}
+
+/** The latest stat correction to a player's score in a round. */
+export interface ScoreChange {
+  previousPoints: number;
+  newPoints: number;
+  changedAt: string;
+}
+
+/** What a commissioner did to a slot; an override is permanent, the asterisk is not. */
+export interface SlotMark {
+  kind: "override" | "commissioner_set";
+  actorName: string | null;
+  at: string;
 }
 
 export interface LineupSlot {
   index: number;
   slot: string;
   player: LineupPlayer | null;
+  mark: SlotMark | null;
 }
 
 export interface RoundLineup {
@@ -136,6 +156,8 @@ export interface TeamDetails {
   ownerName: string | null;
   canEdit: boolean;
   canSetLineup: boolean;
+  /** A commissioner may also move locked players, after confirming. */
+  canOverride: boolean;
   roster: RosterPlayer[];
   lineups: RoundLineup[];
 }
@@ -224,4 +246,59 @@ export interface SyncStatus {
   lastSyncedAt: string;
   /** The daily API cap stopped live polling, so the data is going stale. */
   budgetExhausted: boolean;
+}
+
+export type ActivityKind =
+  | "lineup_move"
+  | "commissioner_override"
+  | "stat_correction"
+  | "settings_change";
+
+interface ActivityBase {
+  id: number;
+  createdAt: string;
+  teamId: number | null;
+  teamName: string | null;
+  actorUserId: number | null;
+  actorName: string | null;
+  /** Newer than the viewer last looked, and not their own doing. */
+  isNew: boolean;
+}
+
+export interface LineupMovePayload {
+  round: number;
+  playerId: number;
+  playerName: string;
+  fromSlot: string | null;
+  toSlot: string | null;
+  displaced: { playerId: number; playerName: string; toSlot: string | null } | null;
+  changedSlots: number[];
+  byCommissioner: boolean;
+}
+
+export type ActivityEvent = ActivityBase &
+  (
+    | { kind: "lineup_move" | "commissioner_override"; payload: LineupMovePayload }
+    | {
+        kind: "stat_correction";
+        payload: {
+          round: number;
+          gameId: string;
+          playerId: number;
+          playerName: string;
+          previousPoints: number;
+          newPoints: number;
+        };
+      }
+    | {
+        kind: "settings_change";
+        payload: { changes: { field: string; before: unknown; after: unknown }[] };
+      }
+  );
+
+export interface ActivityFeed {
+  events: ActivityEvent[];
+  /** Pass as `before` for the next older page; null on the last page. */
+  nextBefore: number | null;
+  hasNew: boolean;
 }

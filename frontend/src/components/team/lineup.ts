@@ -59,18 +59,20 @@ export interface TapResult {
 /**
  * Tap-to-move: the first tap picks an unlocked player up, the next tap on any other slot
  * moves or swaps them there, and tapping the picked-up player again puts them back down.
- * A locked player is never picked up and a locked occupant is never swapped out; the
- * server enforces the same rule.
+ * A locked player is never picked up and a locked occupant is never swapped out, unless
+ * the commissioner may override; the server enforces the rule either way.
  */
 export function applyTap(
   selectedPlayerId: number | null,
   slot: { index: number | null; playerId: number | null; locked: boolean },
+  canOverride = false,
 ): TapResult {
+  const blocked = slot.locked && !canOverride;
   if (selectedPlayerId === null) {
-    return { selectedPlayerId: slot.locked ? null : slot.playerId, move: null };
+    return { selectedPlayerId: blocked ? null : slot.playerId, move: null };
   }
   if (slot.playerId === selectedPlayerId) return { selectedPlayerId: null, move: null };
-  if (slot.locked) return { selectedPlayerId, move: null };
+  if (blocked) return { selectedPlayerId, move: null };
   return { selectedPlayerId: null, move: { playerId: selectedPlayerId, slotIndex: slot.index } };
 }
 

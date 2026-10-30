@@ -63,6 +63,13 @@ class Tiebreaker(StrEnum):
     LATEST_ROUND_SCORE = "latest_round_score"
 
 
+class ActivityKind(StrEnum):
+    LINEUP_MOVE = "lineup_move"
+    COMMISSIONER_OVERRIDE = "commissioner_override"
+    STAT_CORRECTION = "stat_correction"
+    SETTINGS_CHANGE = "settings_change"
+
+
 class PlayerRoundStatus(StrEnum):
     ALIVE = "alive"
     ELIMINATED = "eliminated"

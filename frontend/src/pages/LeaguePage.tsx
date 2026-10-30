@@ -20,6 +20,7 @@ import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useLeague, useUpdateLeague } from "../api/queries";
 import type { LeagueOverview } from "../api/types";
+import ActivityFeed from "../components/activity/ActivityFeed";
 import DataFreshness from "../components/common/DataFreshness";
 import { mutationError } from "../components/common/friendlyError";
 import QueryBoundary from "../components/common/QueryBoundary";
@@ -129,6 +130,9 @@ const LeagueContent = ({ league }: { league: LeagueOverview }) => {
           <Card sx={{ p: 0, bgcolor: "transparent", boxShadow: "none" }}>
             <StandingsTable leagueId={String(league.id)} />
           </Card>
+        </Grid>
+        <Grid size={{ xs: 12 }} sx={{ minWidth: 0 }}>
+          <ActivityFeed scope="leagues" id={league.id} title="League activity" />
         </Grid>
       </Grid>
 

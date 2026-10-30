@@ -21,6 +21,8 @@ const player = (overrides: Partial<LineupPlayer> = {}): LineupPlayer => ({
   status: "alive",
   kickoff: null,
   locked: false,
+  points: null,
+  scoreChange: null,
   ...overrides,
 });
 
@@ -151,5 +153,23 @@ describe("defaultRound", () => {
   it("falls back to the latest scheduled round, then round one", () => {
     expect(defaultRound([lineup(1, { firstKickoff: EARLIER }), lineup(2)], NOW)).toBe(1);
     expect(defaultRound([lineup(1), lineup(2)], NOW)).toBe(1);
+  });
+});
+
+describe("applyTap for a commissioner", () => {
+  it("picks up and moves onto locked players", () => {
+    const locked = { index: 3, playerId: 7, locked: true };
+    expect(applyTap(null, locked, true)).toEqual({ selectedPlayerId: 7, move: null });
+    expect(applyTap(5, locked, true)).toEqual({
+      selectedPlayerId: null,
+      move: { playerId: 5, slotIndex: 3 },
+    });
+  });
+
+  it("still blocks locked players for everyone else", () => {
+    expect(applyTap(null, { index: 3, playerId: 7, locked: true })).toEqual({
+      selectedPlayerId: null,
+      move: null,
+    });
   });
 });

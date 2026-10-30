@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { activeTabIndex, leagueTabs } from "./leagueTabs";
 
-const league = { id: 7, name: "L", season: 2026, isCommissioner: false, userTeamId: 3 };
+const league = {
+  id: 7,
+  name: "L",
+  season: 2026,
+  isCommissioner: false,
+  userTeamId: 3,
+  hasNewActivity: false,
+};
 
 describe("leagueTabs", () => {
   const tabs = leagueTabs(league);
@@ -21,6 +28,12 @@ describe("leagueTabs", () => {
     expect(activeTabIndex(tabs, "/league/7/draft")).toBe(2);
     expect(activeTabIndex(tabs, "/players")).toBe(3);
     expect(activeTabIndex(tabs, "/settings")).toBe(-1);
+  });
+
+  it("puts the new-activity dot on the League tab only", () => {
+    const dots = leagueTabs({ ...league, hasNewActivity: true }).map((t) => t.dot);
+    expect(dots).toEqual([true, false, false, false]);
+    expect(tabs.some((t) => t.dot)).toBe(false);
   });
 
   it("falls back to the league page when the user has no team", () => {

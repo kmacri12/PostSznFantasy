@@ -1,6 +1,7 @@
 from datetime import UTC, datetime
 
 from fastapi import APIRouter, HTTPException, status
+from fastapi.responses import JSONResponse
 from sqlalchemy import or_, select
 from sqlalchemy.orm import selectinload
 
@@ -15,7 +16,13 @@ from api.models.league_models import (
     TeamDetails,
     TeamRename,
 )
-from api.services.lineups import LineupError, move_in_lineup, team_lineups
+from api.services.lineups import (
+    LineupActor,
+    LineupError,
+    OverrideConfirmationRequired,
+    move_in_lineup,
+    team_lineups,
+)
 from api.services.round_status import GAME_COMPLETED
 from api.services.standings import refresh_standings_if_drafted
 
@@ -123,7 +130,8 @@ async def build_team_details(
         league_id=team.league_id,
         owner_name=team.owner.username if team.owner else None,
         can_edit=is_owner or membership.is_commissioner,
-        can_set_lineup=is_owner,
+        can_set_lineup=is_owner or membership.is_commissioner,
+        can_override=membership.is_commissioner,
         roster=[
             RosterPlayer(
                 id=p.id,
@@ -166,16 +174,18 @@ async def rename_team(
 @router.post("/{team_id}/lineup", response_model=TeamDetails)
 async def move_in_round_lineup(
     team_id: int, payload: LineupMove, membership: TeamMember, db: DbSession
-) -> TeamDetails:
-    """Place, move or clear a player in one round's lineup; the owner only.
+) -> TeamDetails | JSONResponse:
+    """Place, move or clear a player in one round's lineup.
 
-    Rejects any move that touches a player locked by their game's scheduled kickoff.
+    The owner can move anyone whose game hasn't kicked off. A commissioner can also
+    edit other teams, and may move locked players or edit a past round once they
+    confirm it (`confirmOverride`); that is posted to the league feed.
     """
     team = await _team_or_404(db, team_id)
-    if team.owner_id != membership.user.id:
+    if team.owner_id != membership.user.id and not membership.is_commissioner:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only the team owner can set the lineup",
+            detail="Only the team owner or a commissioner can set the lineup",
         )
     settings = (
         await db.execute(
@@ -194,6 +204,19 @@ async def move_in_round_lineup(
             payload.player_id,
             payload.slot_index,
             datetime.now(UTC),
+            actor=LineupActor(
+                membership.user, membership.is_commissioner, payload.confirm_override
+            ),
+        )
+    except OverrideConfirmationRequired as exc:
+        # `detail` stays a string like every other error; `code` tells the client to
+        # ask the commissioner to confirm and resend with `confirmOverride`.
+        return JSONResponse(
+            status_code=status.HTTP_409_CONFLICT,
+            content={
+                "detail": str(exc),
+                "code": "override_confirmation_required",
+            },
         )
     except LineupError as exc:
         raise HTTPException(

@@ -13,6 +13,8 @@ const player = (id: number, name: string, overrides: Partial<LineupPlayer> = {})
   status: "alive",
   kickoff: "2030-01-11T18:00:00Z",
   locked: false,
+  points: null,
+  scoreChange: null,
   ...overrides,
 });
 
@@ -21,9 +23,9 @@ const lineup: RoundLineup = {
   emptyStarterSlots: 1,
   firstKickoff: "2030-01-11T18:00:00Z",
   slots: [
-    { index: 0, slot: "QB", player: player(1, "Josh Allen", { position: "QB" }) },
-    { index: 1, slot: "RB", player: null },
-    { index: 2, slot: "BENCH", player: player(2, "Locked Larry", { locked: true }) },
+    { index: 0, slot: "QB", player: player(1, "Josh Allen", { position: "QB" }), mark: null },
+    { index: 1, slot: "RB", player: null, mark: null },
+    { index: 2, slot: "BENCH", player: player(2, "Locked Larry", { locked: true }), mark: null },
   ],
   unassigned: [player(3, "Free Fred")],
   eliminated: [player(4, "Derrick Henry", { status: "eliminated", kickoff: null })],
@@ -87,5 +89,90 @@ describe("LineupList", () => {
     fireEvent.click(screen.getByTestId("slot-0").firstElementChild as Element);
     expect(screen.queryByText(/Tap a slot to move/)).toBeNull();
     expect(screen.queryByText(/touch and hold/i)).toBeNull();
+  });
+
+  describe("commissioner override", () => {
+    it("lets a commissioner pick up and move a locked player", () => {
+      const onMove = vi.fn();
+      render(<LineupList lineup={lineup} canEdit canOverride onMove={onMove} />);
+      fireEvent.click(rowOf("Locked Larry") as Element);
+      expect(screen.getByText(/Tap a slot to move Locked Larry/)).toBeTruthy();
+      fireEvent.click(screen.getByTestId("slot-1").firstElementChild as Element);
+      expect(onMove).toHaveBeenCalledWith({ playerId: 2, slotIndex: 1 });
+    });
+
+    it("shows a permanent override marker with who and when, in words", () => {
+      const marked: RoundLineup = {
+        ...lineup,
+        slots: [
+          {
+            index: 0,
+            slot: "QB",
+            player: player(1, "Josh Allen", { locked: true }),
+            mark: { kind: "override", actorName: "kyle", at: "2030-01-11T19:00:00Z" },
+          },
+          { index: 1, slot: "RB", player: null, mark: null },
+        ],
+      };
+      render(<LineupList lineup={marked} canEdit={false} onMove={() => {}} />);
+      const mark = screen.getByTestId("override-mark");
+      expect(mark.textContent).toContain("Changed by commissioner after kickoff");
+      expect(mark.textContent).toContain("kyle");
+    });
+
+    it("words an override that took the player out as emptied", () => {
+      const emptied: RoundLineup = {
+        ...lineup,
+        slots: [
+          {
+            index: 0,
+            slot: "QB",
+            player: null,
+            mark: { kind: "override", actorName: "kyle", at: "2030-01-11T19:00:00Z" },
+          },
+        ],
+      };
+      render(<LineupList lineup={emptied} canEdit={false} onMove={() => {}} />);
+      expect(screen.getByTestId("override-mark").textContent).toContain("Emptied by commissioner");
+    });
+
+    it("shows an asterisk with who and when for a commissioner-set slot", () => {
+      const starred: RoundLineup = {
+        ...lineup,
+        slots: [
+          {
+            index: 0,
+            slot: "QB",
+            player: player(1, "Josh Allen"),
+            mark: { kind: "commissioner_set", actorName: "kyle", at: "2030-01-11T19:00:00Z" },
+          },
+        ],
+      };
+      render(<LineupList lineup={starred} canEdit onMove={() => {}} />);
+      const mark = screen.getByTestId("commissioner-set-mark");
+      expect(mark.textContent).toMatch(/^\* Set by kyle/);
+    });
+  });
+
+  it("names a changed score's old and new value for touch and screen readers", () => {
+    const changed: RoundLineup = {
+      ...lineup,
+      slots: [
+        {
+          index: 0,
+          slot: "QB",
+          player: player(1, "Josh Allen", {
+            points: 12,
+            scoreChange: { previousPoints: 10, newPoints: 12, changedAt: "2030-01-12T09:00:00Z" },
+          }),
+          mark: null,
+        },
+      ],
+    };
+    render(<LineupList lineup={changed} canEdit={false} onMove={() => {}} />);
+    const score = screen.getByRole("button", { name: /score changed/ });
+    expect(score.getAttribute("aria-label")).toContain("Was 10 pts, now 12 pts");
+    fireEvent.click(score);
+    expect(screen.queryByText(/Tap a slot to move/)).toBeNull();
   });
 });

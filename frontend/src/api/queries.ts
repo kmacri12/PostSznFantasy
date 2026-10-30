@@ -1,6 +1,7 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "./client";
 import type {
+  ActivityFeed,
   DraftState,
   Invite,
   InvitePreview,
@@ -34,6 +35,7 @@ export const keys = {
   seasonStats: ["player-season-stats"] as const,
   scoringDefaults: ["scoring-defaults"] as const,
   syncStatus: ["sync-status"] as const,
+  activity: (scope: "leagues" | "teams", id: Id) => ["activity", scope, String(id)] as const,
 };
 
 const get = async <T>(url: string, signal?: AbortSignal): Promise<T> =>
@@ -51,6 +53,7 @@ export const useUserLeagues = (enabled: boolean) =>
     queryKey: keys.userLeagues,
     queryFn: ({ signal }) => get<LeagueByUser[]>("/api/leagues/user-leagues", signal),
     enabled,
+    refetchInterval: 60_000, // the nav dot for new league activity
   });
 
 export const useLeague = (leagueId: Id | undefined) =>
@@ -256,12 +259,56 @@ export const useRenameTeam = (teamId: Id | undefined) => {
   });
 };
 
+export interface LineupMoveRequest {
+  round: number;
+  playerId: number;
+  slotIndex: number | null;
+  /** A commissioner's agreement to move a locked player. */
+  confirmOverride?: boolean;
+}
+
 export const useMoveInLineup = (teamId: Id | undefined) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (body: { round: number; playerId: number; slotIndex: number | null }) =>
+    mutationFn: async (body: LineupMoveRequest) =>
       (await api.post<TeamDetails>(`/api/teams/${teamId}/lineup`, body)).data,
-    onSuccess: (data) => queryClient.setQueryData(keys.team(teamId ?? ""), data),
+    onSuccess: (data) => {
+      queryClient.setQueryData(keys.team(teamId ?? ""), data);
+      queryClient.invalidateQueries({ queryKey: ["activity"] });
+    },
+  });
+};
+
+/** Whether a failed lineup move is the server asking a commissioner to confirm. */
+export const needsOverrideConfirmation = (error: unknown): boolean =>
+  (error as { response?: { data?: { code?: unknown } } } | null)?.response?.data?.code ===
+  "override_confirmation_required";
+
+/** One feed, newest first, a page at a time. `scope` is the league or one team. */
+export const useActivityFeed = (scope: "leagues" | "teams", id: Id | undefined) =>
+  useInfiniteQuery({
+    queryKey: keys.activity(scope, id ?? ""),
+    queryFn: ({ signal, pageParam }) => {
+      const before = pageParam ? `?before=${pageParam}` : "";
+      return get<ActivityFeed>(`/api/${scope}/${id}/activity${before}`, signal);
+    },
+    initialPageParam: 0,
+    getNextPageParam: (last) => last.nextBefore ?? undefined,
+    enabled: id !== undefined,
+    refetchInterval: 60_000,
+  });
+
+/** The member expanded a feed: tell the server so its new-activity dot clears. */
+export const useMarkActivityViewed = (scope: "leagues" | "teams", id: Id | undefined) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (upToEventId: number) => {
+      await api.post(`/api/${scope}/${id}/activity/viewed`, { upToEventId });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: keys.activity(scope, id ?? "") });
+      queryClient.invalidateQueries({ queryKey: keys.userLeagues });
+    },
   });
 };
 

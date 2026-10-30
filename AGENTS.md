@@ -54,6 +54,7 @@ PostSznFantasy/
 │   │   ├── base.py             # DeclarativeBase metadata
 │   │   ├── session.py          # asyncpg connection engine & get_db dependency
 │   │   └── models/             # Domain-scoped SQLAlchemy 2.0 ORM models
+│   │       ├── activity.py     # ActivityEvent (append-only feed) and ActivityView (last-viewed per member and feed)
 │   │       ├── user.py         # User model
 │   │       ├── league.py       # League, LeagueSettings, Team, Roster models
 │   │       ├── draft.py        # Draft and DraftPick models
@@ -63,11 +64,13 @@ PostSznFantasy/
 │   │   └── league.py           # LeagueMember/DraftMember/TeamMember guards (403 for non-members)
 │   ├── models/                 # Pydantic v2 DTO schemas (camelCase serialization)
 │   │   ├── base.py             # BaseSchema with alias_generator = to_camel
+│   │   ├── activity_models.py  # Activity event payloads, feed pages, slot marks, score changes
 │   │   ├── auth_models.py      # Auth exchange DTOs
 │   │   ├── league_models.py    # League CRUD, Standings, Team DTOs
 │   │   ├── draft_models.py     # Draft status and pick DTOs
 │   │   └── players_models.py   # Player directory DTOs
 │   ├── routers/                # Modular APIRouters
+│   │   ├── activity.py         # League and team activity feeds, viewed markers
 │   │   ├── admin.py            # Ingestion triggers (admin only)
 │   │   ├── auth.py             # User onboarding & token exchange
 │   │   ├── drafts.py           # Draft state/setup/order/controls/queue/REST picks + authenticated WebSocket
@@ -82,7 +85,9 @@ PostSznFantasy/
 │   │   ├── standings.py        # Recomputes fantasy.standings (starters' round points, players left, ranks) for drafted leagues after polls, reconciles, admin score changes and draft completion; a failing league keeps its old rows
 │   │   ├── draft_flow.py       # Draft state machine, order, pause/resume/undo, queue, auto-pick
 │   │   ├── playoff_field.py    # Playoff field (draft pool), first Wild Card kickoff cutoff
-│   │   ├── settings_changes.py # Hook for settings edited after draft start (recompute; Epic 14 feed)
+│   │   ├── activity.py         # Append-only activity feed: append, feed pages, per-member viewed markers, slot marks
+│   │   ├── stat_corrections.py # Snapshots a final game's stats before ingest overwrites them; posts stat_correction events
+│   │   ├── settings_changes.py # record_settings_change (old/new diff to the feed) + the recompute hook; Epic 13 calls it too
 │   │   ├── draft_clock.py      # 1s loop auto-picking expired server-side deadlines
 │   │   ├── draft_events.py     # PICK_MADE / DRAFT_STATE broadcast payloads
 │   │   ├── invites.py          # Invite codes and joining
@@ -140,10 +145,12 @@ PostSznFantasy/
         │   ├── TeamPage.tsx    # Roster management view
         │   └── NotFoundPage.tsx# 404 handler
         ├── components/
+        │   ├── activity/       # ActivityFeed (collapsed, new dot), SlotMarker (override / asterisk), ChangedScore tooltip, describeEvent
         │   ├── layout/         # NavBar (blurred header, league switcher, drawer)
         │   ├── draft/          # DraftBoard, Countdown, PlayerSelector
         │   ├── league/         # StandingsTable
         │   ├── players/        # PlayersTable (TanStack Table v8)
+        │   ├── team/           # LineupList (tap/drag lineup), OverrideDialog (commissioner confirm)
         │   └── settings/       # SettingsSection/ScoringForm/RosterForm generated from src/settings schemas
         ├── utils/
         │   ├── draftCue.ts     # Web Audio on-deck beep
@@ -192,7 +199,8 @@ make format     # auto-fix Ruff and Biome
 | Config | `GET /api/config` (season) |
 | Leagues | `POST /api/leagues/create-league`, `GET /api/leagues/user-leagues`, `GET/PATCH /api/leagues/{id}`, `GET/PATCH /api/leagues/{id}/settings` (roster/scoring/postseason; roster shape locks once the draft starts), `PATCH/DELETE /api/leagues/{id}/members/{userId}` |
 | Invites | `GET/POST/DELETE /api/leagues/{id}/invite` (commissioner), `GET /api/invites/{code}` (public preview), `POST /api/invites/{code}/join` |
-| Teams | `GET/PATCH /api/teams/{id}` (the GET carries all four rounds' lineups: slots, unassigned and eliminated players, lock times, empty-starter count), `POST /api/teams/{id}/lineup` (`{round, playerId, slotIndex}`; `slotIndex: null` takes a player out; 409 when any player involved is locked or eliminated; owner only; there is no add/drop in v1), `PUT /api/leagues/{id}/teams/{teamId}/owner` (commissioner assigns/unassigns a team) |
+| Teams | `GET/PATCH /api/teams/{id}` (the GET carries all four rounds' lineups: slots, unassigned and eliminated players, lock times, empty-starter count), `POST /api/teams/{id}/lineup` (`{round, playerId, slotIndex, confirmOverride?}`; `slotIndex: null` takes a player out; 409 when any player involved is locked or eliminated; the owner or a commissioner. A commissioner moving a locked player gets 409 `{detail, code: "override_confirmation_required"}` until the request repeats with `confirmOverride: true`; there is no add/drop in v1), `PUT /api/leagues/{id}/teams/{teamId}/owner` (commissioner assigns/unassigns a team) |
+| Activity | `GET /api/leagues/{id}/activity`, `GET /api/teams/{id}/activity` (`?limit=&before=` keyset pages, newest first, members only; each event has `isNew`, the feed has `hasNew`), `POST .../activity/viewed` (`{upToEventId?}`, 204). The league feed is every event of the league; a team's feed is the events with its `team_id` (settings changes have none). `GET /api/leagues/user-leagues` carries `hasNewActivity` for the nav dot. Events: `lineup_move`, `commissioner_override`, `stat_correction`, `settings_change`; the lineup slot `mark` (override or commissioner-set) is derived from them, and lineup players carry `points` and `scoreChange` |
 | Admin | `PUT /api/admin/playoff-field` (exactly 14 NFL team ids; drafts need the field set), other ingest triggers |
 | Players | `GET /api/players/draft-pool` (draftable positions on playoff teams), `GET /api/players/player-list`, `GET /api/players/player-season-stats?season=&leagueId=` (`fantasyPoints` scored under that league's settings; draftable positions only unless `position` is given), `GET /api/players/sync-status` (last successful sync per ingestion type, plus `budgetExhausted` when the daily Tank01 cap has stopped polling); players carry `eliminated` (their NFL team is out) |
 | Draft | `GET /api/drafts/draft-info/{leagueId}`, `PATCH /api/drafts/{leagueId}` (setup), `PUT .../order` (`teamIds` may contain `null` for unfilled slots; starting requires a full order), `POST .../order/randomize`, `POST .../control/{lobby,start,pause,resume,undo}`, `POST .../force-pick`, `POST .../picks`, `GET/PUT .../queue`, `WS /api/drafts/ws/{leagueId}` |

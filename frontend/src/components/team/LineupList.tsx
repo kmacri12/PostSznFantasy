@@ -12,8 +12,10 @@ import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
 import LockIcon from "@mui/icons-material/Lock";
 import { Box, Button, Chip, Paper, Typography } from "@mui/material";
 import { useState } from "react";
-import type { LineupPlayer, LineupSlot, RoundLineup } from "../../api/types";
+import type { LineupPlayer, LineupSlot, RoundLineup, SlotMark } from "../../api/types";
 import { tokens } from "../../theme";
+import ChangedScore from "../activity/ChangedScore";
+import SlotMarker from "../activity/SlotMarker";
 import {
   applyTap,
   BENCH_SLOT,
@@ -31,18 +33,32 @@ interface RowProps {
   slotIndex: number | null;
   player: LineupPlayer | null;
   canEdit: boolean;
+  /** A commissioner may move locked players too (the server asks them to confirm). */
+  canOverride: boolean;
+  mark?: SlotMark | null;
   selected: boolean;
   isTarget: boolean;
   onTap: () => void;
 }
 
-const PlayerRow = ({ label, slotIndex, player, canEdit, selected, isTarget, onTap }: RowProps) => {
+const PlayerRow = ({
+  label,
+  slotIndex,
+  player,
+  canEdit,
+  canOverride,
+  mark,
+  selected,
+  isTarget,
+  onTap,
+}: RowProps) => {
   const eliminated = player?.status === "eliminated";
   const locked = player?.locked ?? false;
-  const movable = canEdit && player !== null && !locked && !eliminated;
+  const frozen = locked && !canOverride;
+  const movable = canEdit && player !== null && !frozen && !eliminated;
   const { setNodeRef: dropRef, isOver } = useDroppable({
     id: slotDropId(slotIndex ?? -1),
-    disabled: slotIndex === null || locked,
+    disabled: slotIndex === null || frozen,
   });
   const {
     attributes,
@@ -54,7 +70,7 @@ const PlayerRow = ({ label, slotIndex, player, canEdit, selected, isTarget, onTa
     id: player ? playerDragId(player.id) : `empty-${slotIndex}`,
     disabled: !movable,
   });
-  const interactive = canEdit && (movable || (isTarget && !locked && !eliminated));
+  const interactive = canEdit && (movable || (isTarget && !frozen && !eliminated));
 
   return (
     <Box
@@ -118,6 +134,7 @@ const PlayerRow = ({ label, slotIndex, player, canEdit, selected, isTarget, onTa
                 {player.position} · {player.teamAbv || "FA"} · {lineupStatusText(player)}
               </Typography>
             </Box>
+            <ChangedScore player={player} />
             {locked && !eliminated && (
               <LockIcon aria-label="Locked" fontSize="small" sx={{ color: tokens.muted }} />
             )}
@@ -129,6 +146,7 @@ const PlayerRow = ({ label, slotIndex, player, canEdit, selected, isTarget, onTa
           </Typography>
         )}
       </Box>
+      {mark && <SlotMarker mark={mark} empty={player === null} />}
     </Box>
   );
 };
@@ -157,11 +175,12 @@ const UnassignedDrop = ({ children }: { children: React.ReactNode }) => {
 interface Props {
   lineup: RoundLineup;
   canEdit: boolean;
+  canOverride?: boolean;
   onMove: (move: Move) => void;
 }
 
 /** One round: starters, bench, unplaced players, then the eliminated section. */
-const LineupList = ({ lineup, canEdit, onMove }: Props) => {
+const LineupList = ({ lineup, canEdit, canOverride = false, onMove }: Props) => {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 6 } }),
@@ -176,11 +195,11 @@ const LineupList = ({ lineup, canEdit, onMove }: Props) => {
   const selectedIsPlaced = lineup.slots.some((slot) => slot.player?.id === selectedId);
 
   const tap = (index: number | null, player: LineupPlayer | null) => {
-    const result = applyTap(selectedId, {
-      index,
-      playerId: player?.id ?? null,
-      locked: player?.locked ?? false,
-    });
+    const result = applyTap(
+      selectedId,
+      { index, playerId: player?.id ?? null, locked: player?.locked ?? false },
+      canOverride,
+    );
     setSelectedId(result.selectedPlayerId);
     if (result.move) onMove(result.move);
   };
@@ -192,6 +211,8 @@ const LineupList = ({ lineup, canEdit, onMove }: Props) => {
       slotIndex={slot.index}
       player={slot.player}
       canEdit={canEdit}
+      canOverride={canOverride}
+      mark={slot.mark}
       selected={slot.player !== null && slot.player.id === selectedId}
       isTarget={selectedId !== null}
       onTap={() => tap(slot.index, slot.player)}
@@ -225,6 +246,7 @@ const LineupList = ({ lineup, canEdit, onMove }: Props) => {
                   slotIndex={null}
                   player={player}
                   canEdit={canEdit}
+                  canOverride={canOverride}
                   selected={player.id === selectedId}
                   isTarget={selectedId !== null}
                   onTap={() => tap(null, player)}
@@ -243,6 +265,7 @@ const LineupList = ({ lineup, canEdit, onMove }: Props) => {
                 slotIndex={null}
                 player={player}
                 canEdit={false}
+                canOverride={false}
                 selected={false}
                 isTarget={false}
                 onTap={() => {}}
@@ -278,7 +301,8 @@ const LineupList = ({ lineup, canEdit, onMove }: Props) => {
       {canEdit && !selectedPlayer && (
         <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1 }}>
           Tap a player, then tap a slot to start, bench or swap. You can also touch and hold a
-          player and drag. Players lock at their game's kickoff and can't be moved after.
+          player and drag. Players lock at their game's kickoff and can't be moved after
+          {canOverride ? ", except by you as commissioner (you'll be asked to confirm)" : ""}.
         </Typography>
       )}
     </DndContext>

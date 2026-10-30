@@ -14,7 +14,16 @@ from api.core.config import get_settings
 from api.core.logging import RequestLoggingMiddleware, setup_logging
 from api.core.observability import init_sentry
 from api.db.session import DbSession, close_db, init_db
-from api.routers import admin, auth, drafts, invites, leagues, players, teams
+from api.routers import (
+    activity,
+    admin,
+    auth,
+    drafts,
+    invites,
+    leagues,
+    players,
+    teams,
+)
 from api.services.draft_clock import run_draft_clock
 from api.services.ingestion.guard import IngestionBusy
 from api.services.scheduler import run_scheduler
@@ -75,6 +84,7 @@ app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(leagues.router, prefix="/api/leagues", tags=["leagues"])
 app.include_router(teams.router, prefix="/api/teams", tags=["teams"])
 app.include_router(invites.router, prefix="/api", tags=["invites"])
+app.include_router(activity.router, prefix="/api", tags=["activity"])
 app.include_router(drafts.router, prefix="/api/drafts", tags=["drafts"])
 app.include_router(players.router, prefix="/api/players", tags=["players"])
 app.include_router(admin.router, prefix="/api/admin", tags=["admin"])

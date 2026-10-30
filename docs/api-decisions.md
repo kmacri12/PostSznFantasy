@@ -17,7 +17,7 @@ Settled in a design review on 2026-10-29. Open work lives in GitHub Issues.
 - Failed syncs are handled by a manual admin re-sync and a last-synced timestamp; reconciliation and alerting are deferred.
 
 ## Contract
-- Errors stay as FastAPI `{"detail": "..."}` strings; no error codes yet.
+- Errors stay as FastAPI `{"detail": "..."}` strings. The one exception: a commissioner moving a locked player gets 409 `{"detail": "...", "code": "override_confirmation_required"}`, so the client can ask them to confirm and resend with `confirmOverride`. Clients that ignore `code` still show a sensible `detail`.
 - Player endpoints return full lists (no pagination), gzip-compressed, and the stats endpoint defaults to draftable positions.
 - Invites are commissioner-generated, 8 random characters, default 7-day expiry shown in the UI; `allow_join_after_draft_start` governs joining mid-draft.
 - Each API change updates `test_frontend_contract.py` and the frontend types in the same PR.
