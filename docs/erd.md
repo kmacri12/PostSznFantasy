@@ -181,6 +181,7 @@ erDiagram
         string height
         string weight
         string exp
+        string injury_status
         int team_id FK
     }
     nfl_games {

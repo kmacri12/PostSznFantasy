@@ -46,6 +46,7 @@ def _to_player(player: NFLPlayer, whole_team: bool = False) -> Player:
         team_id=player.team_id,
         team=NFLTeamSimple.model_validate(team) if team else None,
         eliminated=team is not None and not team.is_active,
+        injury_status=player.injury_status,
         scores_whole_team=whole_team,
     )
 

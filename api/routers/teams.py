@@ -143,6 +143,7 @@ async def build_team_details(
                 position=p.position or "",
                 team_abv=p.team.team_abv if p.team else None,
                 is_active=p.team.is_active if p.team else False,
+                injury_status=p.injury_status,
                 next_game=upcoming.get(p.team_id) if p.team_id else None,
                 scores_whole_team=scores_whole_team(combined, p.position),
             )

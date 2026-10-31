@@ -26,6 +26,7 @@ class Player(BaseSchema):
     team_id: int | None = None
     team: NFLTeamSimple | None = None
     eliminated: bool = False
+    injury_status: str | None = None
     # Team QB / team K: his slot scores every QB (K) on his NFL team.
     scores_whole_team: bool = False
 

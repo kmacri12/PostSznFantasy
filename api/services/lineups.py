@@ -164,6 +164,7 @@ def _view(
         position=player.position or "",
         team_abv=player.team.team_abv if player.team else None,
         is_active=player.team.is_active if player.team else False,
+        injury_status=player.injury_status,
         status=standing.status,
         kickoff=standing.kickoff,
         locked=standing.kickoff is not None and now >= standing.kickoff,

@@ -1,6 +1,7 @@
 import { Box, Card, Chip, TextField, Typography } from "@mui/material";
 import type { ReactNode } from "react";
 import { tokens } from "../../theme";
+import InjuryTag from "../common/InjuryTag";
 import TeamUnitBadge from "../common/TeamUnitBadge";
 import { positionColor } from "../draft/positions";
 import type { PlayerCardData } from "./playerCards";
@@ -88,6 +89,11 @@ const PlayerCardList = ({
                   <Typography variant="caption" color="text.secondary">
                     {player.position} · {player.team}
                   </Typography>
+                  {player.injuryStatus && (
+                    <Box component="span" sx={{ ml: 0.75 }}>
+                      <InjuryTag status={player.injuryStatus} />
+                    </Box>
+                  )}
                   {player.scoresWholeTeam && (
                     <Box component="span" sx={{ ml: 0.75 }}>
                       <TeamUnitBadge position={player.position} teamAbv={player.team} />

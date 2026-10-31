@@ -202,4 +202,14 @@ describe("LineupList team QB / team K", () => {
     render(<LineupList lineup={flagged} canEdit onMove={() => {}} />);
     expect(screen.getByRole("note", { name: /Scores all KC QBs/ })).toBeTruthy();
   });
+
+  it("tags injured players in the lineup and leaves healthy ones alone", () => {
+    const injured: RoundLineup = {
+      ...lineup,
+      unassigned: [player(3, "Free Fred", { injuryStatus: "Questionable" }), player(5, "Fit Fran")],
+    };
+    render(<LineupList lineup={injured} canEdit={false} onMove={() => {}} />);
+    expect(screen.getAllByLabelText(/Injury status/)).toHaveLength(1);
+    expect(screen.getByLabelText("Injury status: Questionable")).toBeTruthy();
+  });
 });

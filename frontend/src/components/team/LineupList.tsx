@@ -17,6 +17,7 @@ import { LOCK_NOTE, LOCK_NOTE_OVERRIDE } from "../../content/rules";
 import { tokens } from "../../theme";
 import ChangedScore from "../activity/ChangedScore";
 import SlotMarker from "../activity/SlotMarker";
+import InjuryTag from "../common/InjuryTag";
 import TeamUnitBadge from "../common/TeamUnitBadge";
 import {
   applyTap,
@@ -135,6 +136,7 @@ const PlayerRow = ({
               >
                 {player.position} · {player.teamAbv || "FA"} · {lineupStatusText(player)}
               </Typography>
+              <InjuryTag status={player.injuryStatus} />
               {player.scoresWholeTeam && (
                 <TeamUnitBadge position={player.position} teamAbv={player.teamAbv} />
               )}
