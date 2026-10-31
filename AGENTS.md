@@ -89,7 +89,7 @@ PostSznFantasy/
 │   │   ├── standings_view.py   # GET standings: re-ranks the snapshot with the tiebreaker chain, adds tie reasons, current-round starter counts, league-wide players left
 │   │   ├── ranking.py          # Pure tiebreaker chain (latest completed round back to the Wild Card, then players on the Super Bowl winner, then shared rank)
 │   │   ├── season_recap.py     # Finished-season recap: champion(s) = rank 1, awards, next league link; `season_is_finished` (Super Bowl final) also drives the archive guard
-│   │   ├── awards.py           # Pure award rules over counted/bench point lines (MVPs, positions, best game/round, bench, draft value, bust)
+│   │   ├── awards.py           # Pure award rules over counted/bench point lines and roster owners (MVPs, positions, best game/round, bench, draft value, bust)
 │   │   ├── run_it_back.py      # Next season's league from a finished one (members, teams, notes, settings, new invite)
 │   │   ├── round_points.py     # Counted and bench points per team/round/player, computed on read; shared by standings, the breakdown and (Epic 18) awards
 │   │   ├── round_progress.py   # Starter counts: finished / live / to play / not playing
@@ -132,6 +132,9 @@ PostSznFantasy/
 │   │   ├── conftest.py         # Test fixtures & dependency overrides
 │   │   ├── test_scoring.py     # Unit tests for scoring evaluator
 │   │   ├── test_golden_2025.py # Replays 2025 box scores against the commissioner's sheet (fixtures/golden_2025)
+│   │   ├── test_awards_golden_2025.py # Season awards over those box scores with fixed teams, lineups and picks (fixtures/golden_2025/awards_league.json)
+│   │   ├── golden_league.py   # The real 2025 league (league_2025.json from the workbook) replayed: standings, awards, `python -m api.tests.golden_league` writes docs/research/awards-2025-replay.md
+│   │   ├── test_awards_real_league_2025.py # Standings and awards of that league against the sheet
 │   │   └── test_api_integration.py # Integration tests for API endpoints
 │   ├── main.py                 # FastAPI application factory, CORS, lifespan
 │   ├── pyproject.toml          # uv backend project specification & tool settings

@@ -1,0 +1,1982 @@
+{
+ "draftOrder": [
+  "Ferg",
+  "Matt",
+  "Stearns",
+  "Slade",
+  "KMac",
+  "Craig"
+ ],
+ "draft": [
+  {
+   "pick": 1,
+   "round": 1,
+   "team": "Ferg",
+   "player": "Puka Nacua (LAR) WR"
+  },
+  {
+   "pick": 2,
+   "round": 1,
+   "team": "Matt",
+   "player": "Matthew Stafford (LAR) QB"
+  },
+  {
+   "pick": 3,
+   "round": 1,
+   "team": "Stearns",
+   "player": "Drake Maye (NE) QB"
+  },
+  {
+   "pick": 4,
+   "round": 1,
+   "team": "Slade",
+   "player": "Josh Allen (BUF) QB"
+  },
+  {
+   "pick": 5,
+   "round": 1,
+   "team": "KMac",
+   "player": "Jaxon Smith-Njigba (SEA) WR"
+  },
+  {
+   "pick": 6,
+   "round": 1,
+   "team": "Craig",
+   "player": "Jalen Hurts (PHI) QB"
+  },
+  {
+   "pick": 7,
+   "round": 2,
+   "team": "Craig",
+   "player": "Saquon Barkley (PHI) RB"
+  },
+  {
+   "pick": 8,
+   "round": 2,
+   "team": "KMac",
+   "player": "TreVeyon Henderson (NE) RB"
+  },
+  {
+   "pick": 9,
+   "round": 2,
+   "team": "Slade",
+   "player": "James Cook III (BUF) RB"
+  },
+  {
+   "pick": 10,
+   "round": 2,
+   "team": "Stearns",
+   "player": "Christian McCaffrey (SF) RB"
+  },
+  {
+   "pick": 11,
+   "round": 2,
+   "team": "Matt",
+   "player": "RJ Harvey (DEN) RB"
+  },
+  {
+   "pick": 12,
+   "round": 2,
+   "team": "Ferg",
+   "player": "Davante Adams (LAR) WR"
+  },
+  {
+   "pick": 13,
+   "round": 3,
+   "team": "Ferg",
+   "player": "Kyren Williams (LAR) RB"
+  },
+  {
+   "pick": 14,
+   "round": 3,
+   "team": "Matt",
+   "player": "Travis Etienne Jr. (JAX) RB"
+  },
+  {
+   "pick": 15,
+   "round": 3,
+   "team": "Stearns",
+   "player": "Rhamondre Stevenson (NE) RB"
+  },
+  {
+   "pick": 16,
+   "round": 3,
+   "team": "Slade",
+   "player": "Stefon Diggs (NE) WR"
+  },
+  {
+   "pick": 17,
+   "round": 3,
+   "team": "KMac",
+   "player": "Zach Charbonnet (SEA) RB"
+  },
+  {
+   "pick": 18,
+   "round": 3,
+   "team": "Craig",
+   "player": "A.J. Brown (PHI) WR"
+  },
+  {
+   "pick": 19,
+   "round": 4,
+   "team": "Craig",
+   "player": "DeVonta Smith (PHI) WR"
+  },
+  {
+   "pick": 20,
+   "round": 4,
+   "team": "KMac",
+   "player": "Kenneth Walker III (SEA) RB"
+  },
+  {
+   "pick": 21,
+   "round": 4,
+   "team": "Slade",
+   "player": "George Kittle (SF) TE"
+  },
+  {
+   "pick": 22,
+   "round": 4,
+   "team": "Stearns",
+   "player": "Nico Collins (HOU) WR"
+  },
+  {
+   "pick": 23,
+   "round": 4,
+   "team": "Matt",
+   "player": "Courtland Sutton (DEN) WR"
+  },
+  {
+   "pick": 24,
+   "round": 4,
+   "team": "Ferg",
+   "player": "Josh Jacobs (GB) RB"
+  },
+  {
+   "pick": 25,
+   "round": 5,
+   "team": "Ferg",
+   "player": "Jakobi Meyers (JAX) WR"
+  },
+  {
+   "pick": 26,
+   "round": 5,
+   "team": "Matt",
+   "player": "Jayden Higgins (HOU) WR"
+  },
+  {
+   "pick": 27,
+   "round": 5,
+   "team": "Stearns",
+   "player": "Trevor Lawrence (JAX) QB"
+  },
+  {
+   "pick": 28,
+   "round": 5,
+   "team": "Slade",
+   "player": "Brock Purdy (SF) QB"
+  },
+  {
+   "pick": 29,
+   "round": 5,
+   "team": "KMac",
+   "player": "Hunter Henry (NE) TE"
+  },
+  {
+   "pick": 30,
+   "round": 5,
+   "team": "Craig",
+   "player": "Ladd McConkey (LAC) WR"
+  },
+  {
+   "pick": 31,
+   "round": 6,
+   "team": "Craig",
+   "player": "Omarion Hampton (LAC) RB"
+  },
+  {
+   "pick": 32,
+   "round": 6,
+   "team": "KMac",
+   "player": "Bo Nix (DEN) QB"
+  },
+  {
+   "pick": 33,
+   "round": 6,
+   "team": "Slade",
+   "player": "D'Andre Swift (CHI) RB"
+  },
+  {
+   "pick": 34,
+   "round": 6,
+   "team": "Stearns",
+   "player": "Parker Washington (JAX) WR"
+  },
+  {
+   "pick": 35,
+   "round": 6,
+   "team": "Matt",
+   "player": "Colby Parkinson (LAR) TE"
+  },
+  {
+   "pick": 36,
+   "round": 6,
+   "team": "Ferg",
+   "player": "Colston Loveland (CHI) TE"
+  },
+  {
+   "pick": 37,
+   "round": 7,
+   "team": "Ferg",
+   "player": "LAR DST (LAR) DST"
+  },
+  {
+   "pick": 38,
+   "round": 7,
+   "team": "Matt",
+   "player": "Kyle Monangai (CHI) RB"
+  },
+  {
+   "pick": 39,
+   "round": 7,
+   "team": "Stearns",
+   "player": "Christian Watson (GB) WR"
+  },
+  {
+   "pick": 40,
+   "round": 7,
+   "team": "Slade",
+   "player": "Khalil Shakir (BUF) WR"
+  },
+  {
+   "pick": 41,
+   "round": 7,
+   "team": "KMac",
+   "player": "Blake Corum (LAR) RB"
+  },
+  {
+   "pick": 42,
+   "round": 7,
+   "team": "Craig",
+   "player": "PHI DST (PHI) DST"
+  },
+  {
+   "pick": 43,
+   "round": 8,
+   "team": "Craig",
+   "player": "Dallas Goedert (PHI) TE"
+  },
+  {
+   "pick": 44,
+   "round": 8,
+   "team": "KMac",
+   "player": "SEA DST (SEA) DST"
+  },
+  {
+   "pick": 45,
+   "round": 8,
+   "team": "Slade",
+   "player": "DEN DST (DEN) DST"
+  },
+  {
+   "pick": 46,
+   "round": 8,
+   "team": "Stearns",
+   "player": "Brenton Strange (JAX) TE"
+  },
+  {
+   "pick": 47,
+   "round": 8,
+   "team": "Matt",
+   "player": "Woody Marks (HOU) RB"
+  },
+  {
+   "pick": 48,
+   "round": 8,
+   "team": "Ferg",
+   "player": "Sam Darnold (SEA) QB"
+  },
+  {
+   "pick": 49,
+   "round": 9,
+   "team": "Ferg",
+   "player": "Harrison Mevis (LAR) PK"
+  },
+  {
+   "pick": 50,
+   "round": 9,
+   "team": "Matt",
+   "player": "HOU DST (HOU) DST"
+  },
+  {
+   "pick": 51,
+   "round": 9,
+   "team": "Stearns",
+   "player": "NE DST (NE) DST"
+  },
+  {
+   "pick": 52,
+   "round": 9,
+   "team": "Slade",
+   "player": "DK Metcalf (PIT) WR"
+  },
+  {
+   "pick": 53,
+   "round": 9,
+   "team": "KMac",
+   "player": "Jauan Jennings (SF) WR"
+  },
+  {
+   "pick": 54,
+   "round": 9,
+   "team": "Craig",
+   "player": "Troy Franklin (DEN) WR"
+  },
+  {
+   "pick": 55,
+   "round": 10,
+   "team": "Craig",
+   "player": "Tetairoa McMillan (CAR) WR"
+  },
+  {
+   "pick": 56,
+   "round": 10,
+   "team": "KMac",
+   "player": "Kenneth Gainwell (PIT) RB"
+  },
+  {
+   "pick": 57,
+   "round": 10,
+   "team": "Slade",
+   "player": "Dalton Kincaid (BUF) TE"
+  },
+  {
+   "pick": 58,
+   "round": 10,
+   "team": "Stearns",
+   "player": "Luther Burden III (CHI) WR"
+  },
+  {
+   "pick": 59,
+   "round": 10,
+   "team": "Matt",
+   "player": "DJ Moore (CHI) WR"
+  },
+  {
+   "pick": 60,
+   "round": 10,
+   "team": "Ferg",
+   "player": "Tyler Higbee (LAR) TE"
+  },
+  {
+   "pick": 61,
+   "round": 11,
+   "team": "Ferg",
+   "player": "C.J. Stroud (HOU) QB"
+  },
+  {
+   "pick": 62,
+   "round": 11,
+   "team": "Matt",
+   "player": "Wil Lutz (DEN) PK"
+  },
+  {
+   "pick": 63,
+   "round": 11,
+   "team": "Stearns",
+   "player": "Dalton Schultz (HOU) TE"
+  },
+  {
+   "pick": 64,
+   "round": 11,
+   "team": "Slade",
+   "player": "Rico Dowdle (CAR) RB"
+  },
+  {
+   "pick": 65,
+   "round": 11,
+   "team": "KMac",
+   "player": "Brian Thomas Jr. (JAX) WR"
+  },
+  {
+   "pick": 66,
+   "round": 11,
+   "team": "Craig",
+   "player": "Jaleel McLaughlin (DEN) RB"
+  },
+  {
+   "pick": 67,
+   "round": 12,
+   "team": "Craig",
+   "player": "Rashid Shaheed (SEA) WR"
+  },
+  {
+   "pick": 68,
+   "round": 12,
+   "team": "KMac",
+   "player": "Caleb Williams (CHI) QB"
+  },
+  {
+   "pick": 69,
+   "round": 12,
+   "team": "Slade",
+   "player": "Ricky Pearsall (SF) WR"
+  },
+  {
+   "pick": 70,
+   "round": 12,
+   "team": "Stearns",
+   "player": "Jaylen Warren (PIT) RB"
+  },
+  {
+   "pick": 71,
+   "round": 12,
+   "team": "Matt",
+   "player": "Pat Bryant (DEN) WR"
+  },
+  {
+   "pick": 72,
+   "round": 12,
+   "team": "Ferg",
+   "player": "Ty Johnson (BUF) RB"
+  },
+  {
+   "pick": 73,
+   "round": 13,
+   "team": "Ferg",
+   "player": "Bhayshul Tuten (JAX) RB"
+  },
+  {
+   "pick": 74,
+   "round": 13,
+   "team": "Matt",
+   "player": "Cooper Kupp (SEA) WR"
+  },
+  {
+   "pick": 75,
+   "round": 13,
+   "team": "Stearns",
+   "player": "Kayshon Boutte (NE) WR"
+  },
+  {
+   "pick": 76,
+   "round": 13,
+   "team": "Slade",
+   "player": "Matt Prater (BUF) PK"
+  },
+  {
+   "pick": 77,
+   "round": 13,
+   "team": "KMac",
+   "player": "AJ Barner (SEA) TE"
+  },
+  {
+   "pick": 78,
+   "round": 13,
+   "team": "Craig",
+   "player": "Rome Odunze (CHI) WR"
+  },
+  {
+   "pick": 79,
+   "round": 14,
+   "team": "Craig",
+   "player": "Romeo Doubs (GB) WR"
+  },
+  {
+   "pick": 80,
+   "round": 14,
+   "team": "KMac",
+   "player": "Quentin Johnston (LAC) WR"
+  },
+  {
+   "pick": 81,
+   "round": 14,
+   "team": "Slade",
+   "player": "JAX DST (JAX) DST"
+  },
+  {
+   "pick": 82,
+   "round": 14,
+   "team": "Stearns",
+   "player": "Cam Little (JAX) PK"
+  },
+  {
+   "pick": 83,
+   "round": 14,
+   "team": "Matt",
+   "player": "Ka'imi Fairbairn (HOU) PK"
+  },
+  {
+   "pick": 84,
+   "round": 14,
+   "team": "Ferg",
+   "player": "Christian Kirk (HOU) WR"
+  },
+  {
+   "pick": 85,
+   "round": 15,
+   "team": "Ferg",
+   "player": "Jayden Reed (GB) WR"
+  },
+  {
+   "pick": 86,
+   "round": 15,
+   "team": "Matt",
+   "player": "Mack Hollins (NE) WR"
+  },
+  {
+   "pick": 87,
+   "round": 15,
+   "team": "Stearns",
+   "player": "Cameron Dicker (LAC) PK"
+  },
+  {
+   "pick": 88,
+   "round": 15,
+   "team": "Slade",
+   "player": "Chuba Hubbard (CAR) RB"
+  },
+  {
+   "pick": 89,
+   "round": 15,
+   "team": "KMac",
+   "player": "Jason Myers (SEA) PK"
+  },
+  {
+   "pick": 90,
+   "round": 15,
+   "team": "Craig",
+   "player": "Jake Elliott (PHI) PK"
+  },
+  {
+   "pick": 91,
+   "round": 16,
+   "team": "Craig",
+   "player": "Oronde Gadsden (LAC) TE"
+  },
+  {
+   "pick": 92,
+   "round": 16,
+   "team": "KMac",
+   "player": "Andy Borregales (NE) PK"
+  },
+  {
+   "pick": 93,
+   "round": 16,
+   "team": "Slade",
+   "player": "Gabe Davis (BUF) WR"
+  },
+  {
+   "pick": 94,
+   "round": 16,
+   "team": "Stearns",
+   "player": "BUF DST (BUF) DST"
+  },
+  {
+   "pick": 95,
+   "round": 16,
+   "team": "Matt",
+   "player": "Xavier Smith (LAR) WR"
+  },
+  {
+   "pick": 96,
+   "round": 16,
+   "team": "Ferg",
+   "player": "Terrance Ferguson (LAR) TE"
+  },
+  {
+   "pick": 97,
+   "round": 17,
+   "team": "Ferg",
+   "player": "J.K. Dobbins (DEN) RB"
+  },
+  {
+   "pick": 98,
+   "round": 17,
+   "team": "Matt",
+   "player": "Evan Engram (DEN) TE"
+  },
+  {
+   "pick": 99,
+   "round": 17,
+   "team": "Stearns",
+   "player": "Dontayvion Wicks (GB) WR"
+  },
+  {
+   "pick": 100,
+   "round": 17,
+   "team": "Slade",
+   "player": "Keon Coleman (BUF) WR"
+  },
+  {
+   "pick": 101,
+   "round": 17,
+   "team": "KMac",
+   "player": "Nick Chubb (HOU) RB"
+  },
+  {
+   "pick": 102,
+   "round": 17,
+   "team": "Craig",
+   "player": "Brandin Cooks (BUF) WR"
+  },
+  {
+   "pick": 103,
+   "round": 18,
+   "team": "Craig",
+   "player": "Jahan Dotson (PHI) WR"
+  },
+  {
+   "pick": 104,
+   "round": 18,
+   "team": "KMac",
+   "player": "SF DST (SF) DST"
+  },
+  {
+   "pick": 105,
+   "round": 18,
+   "team": "Slade",
+   "player": "Dawson Knox (BUF) TE"
+  },
+  {
+   "pick": 106,
+   "round": 18,
+   "team": "Stearns",
+   "player": "Kyle Williams (NE) WR"
+  },
+  {
+   "pick": 107,
+   "round": 18,
+   "team": "Matt",
+   "player": "Jordan Whittington (LAR) WR"
+  },
+  {
+   "pick": 108,
+   "round": 18,
+   "team": "Ferg",
+   "player": "Tyrell Shavers (BUF) WR"
+  }
+ ],
+ "teams": [
+  {
+   "name": "KMac",
+   "roster": [
+    "Jaxon Smith-Njigba (SEA) WR",
+    "TreVeyon Henderson (NE) RB",
+    "Zach Charbonnet (SEA) RB",
+    "Kenneth Walker III (SEA) RB",
+    "Hunter Henry (NE) TE",
+    "Bo Nix (DEN) QB",
+    "Blake Corum (LAR) RB",
+    "SEA DST (SEA) DST",
+    "Jauan Jennings (SF) WR",
+    "Kenneth Gainwell (PIT) RB",
+    "Brian Thomas Jr. (JAX) WR",
+    "Caleb Williams (CHI) QB",
+    "AJ Barner (SEA) TE",
+    "Quentin Johnston (LAC) WR",
+    "Jason Myers (SEA) PK",
+    "Andy Borregales (NE) PK",
+    "Nick Chubb (HOU) RB",
+    "SF DST (SF) DST"
+   ],
+   "lineups": {
+    "1": [
+     {
+      "slot": "QB",
+      "player": "Caleb Williams (CHI) QB",
+      "sheetPoints": 22.44
+     },
+     {
+      "slot": "RB",
+      "player": "TreVeyon Henderson (NE) RB",
+      "sheetPoints": 4.1
+     },
+     {
+      "slot": "RB",
+      "player": "Kenneth Gainwell (PIT) RB",
+      "sheetPoints": 6.6
+     },
+     {
+      "slot": "WR",
+      "player": "Jauan Jennings (SF) WR",
+      "sheetPoints": 10.16
+     },
+     {
+      "slot": "WR",
+      "player": "Brian Thomas Jr. (JAX) WR",
+      "sheetPoints": 9.1
+     },
+     {
+      "slot": "TE",
+      "player": "Hunter Henry (NE) TE",
+      "sheetPoints": 13.9
+     },
+     {
+      "slot": "Flex",
+      "player": "Quentin Johnston (LAC) WR",
+      "sheetPoints": 3.5
+     },
+     {
+      "slot": "K",
+      "player": "Andy Borregales (NE) PK",
+      "sheetPoints": 10.7
+     },
+     {
+      "slot": "DST",
+      "player": "SF DST (SF) DST",
+      "sheetPoints": 4
+     }
+    ],
+    "2": [
+     {
+      "slot": "QB",
+      "player": "Bo Nix (DEN) QB",
+      "sheetPoints": 24.06
+     },
+     {
+      "slot": "RB",
+      "player": "Zach Charbonnet (SEA) RB",
+      "sheetPoints": 2
+     },
+     {
+      "slot": "RB",
+      "player": "Kenneth Walker III (SEA) RB",
+      "sheetPoints": 34
+     },
+     {
+      "slot": "WR",
+      "player": "Jaxon Smith-Njigba (SEA) WR",
+      "sheetPoints": 9.4
+     },
+     {
+      "slot": "WR",
+      "player": "Jauan Jennings (SF) WR",
+      "sheetPoints": 3.3
+     },
+     {
+      "slot": "TE",
+      "player": "AJ Barner (SEA) TE",
+      "sheetPoints": 0.2
+     },
+     {
+      "slot": "Flex",
+      "player": "TreVeyon Henderson (NE) RB",
+      "sheetPoints": 2.8
+     },
+     {
+      "slot": "K",
+      "player": "Jason Myers (SEA) PK",
+      "sheetPoints": 10.5
+     },
+     {
+      "slot": "DST",
+      "player": "SEA DST (SEA) DST",
+      "sheetPoints": 18
+     }
+    ],
+    "3": [
+     {
+      "slot": "QB",
+      "player": "Bo Nix (DEN) QB",
+      "sheetPoints": 7.62
+     },
+     {
+      "slot": "RB",
+      "player": "Kenneth Walker III (SEA) RB",
+      "sheetPoints": 19.1
+     },
+     {
+      "slot": "RB",
+      "player": "Blake Corum (LAR) RB",
+      "sheetPoints": 9.4
+     },
+     {
+      "slot": "WR",
+      "player": "Jaxon Smith-Njigba (SEA) WR",
+      "sheetPoints": 26.3
+     },
+     {
+      "slot": "WR",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "TE",
+      "player": "Hunter Henry (NE) TE",
+      "sheetPoints": 2.2
+     },
+     {
+      "slot": "Flex",
+      "player": "TreVeyon Henderson (NE) RB",
+      "sheetPoints": 0.5
+     },
+     {
+      "slot": "K",
+      "player": "Jason Myers (SEA) PK",
+      "sheetPoints": 6.7
+     },
+     {
+      "slot": "DST",
+      "player": "SEA DST (SEA) DST",
+      "sheetPoints": 3
+     }
+    ],
+    "4": [
+     {
+      "slot": "QB",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "RB",
+      "player": "TreVeyon Henderson (NE) RB",
+      "sheetPoints": 6
+     },
+     {
+      "slot": "RB",
+      "player": "Kenneth Walker III (SEA) RB",
+      "sheetPoints": 17.1
+     },
+     {
+      "slot": "WR",
+      "player": "Jaxon Smith-Njigba (SEA) WR",
+      "sheetPoints": 4.7
+     },
+     {
+      "slot": "WR",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "TE",
+      "player": "Hunter Henry (NE) TE",
+      "sheetPoints": 4.6
+     },
+     {
+      "slot": "Flex",
+      "player": "AJ Barner (SEA) TE",
+      "sheetPoints": 13.4
+     },
+     {
+      "slot": "K",
+      "player": "Jason Myers (SEA) PK",
+      "sheetPoints": 20
+     },
+     {
+      "slot": "DST",
+      "player": "SEA DST (SEA) DST",
+      "sheetPoints": 20
+     }
+    ]
+   },
+   "sheetTotals": [
+    84.5,
+    104.26,
+    74.82,
+    85.8,
+    349.38
+   ]
+  },
+  {
+   "name": "Stearns",
+   "roster": [
+    "Drake Maye (NE) QB",
+    "Christian McCaffrey (SF) RB",
+    "Rhamondre Stevenson (NE) RB",
+    "Nico Collins (HOU) WR",
+    "Trevor Lawrence (JAX) QB",
+    "Parker Washington (JAX) WR",
+    "Christian Watson (GB) WR",
+    "Brenton Strange (JAX) TE",
+    "NE DST (NE) DST",
+    "Luther Burden III (CHI) WR",
+    "Dalton Schultz (HOU) TE",
+    "Jaylen Warren (PIT) RB",
+    "Kayshon Boutte (NE) WR",
+    "Cam Little (JAX) PK",
+    "Cameron Dicker (LAC) PK",
+    "BUF DST (BUF) DST",
+    "Dontayvion Wicks (GB) WR",
+    "Kyle Williams (NE) WR"
+   ],
+   "lineups": {
+    "1": [
+     {
+      "slot": "QB",
+      "player": "Drake Maye (NE) QB",
+      "sheetPoints": 17.32
+     },
+     {
+      "slot": "RB",
+      "player": "Christian McCaffrey (SF) RB",
+      "sheetPoints": 26.4
+     },
+     {
+      "slot": "RB",
+      "player": "Rhamondre Stevenson (NE) RB",
+      "sheetPoints": 14.3
+     },
+     {
+      "slot": "WR",
+      "player": "Nico Collins (HOU) WR",
+      "sheetPoints": 3.6
+     },
+     {
+      "slot": "WR",
+      "player": "Parker Washington (JAX) WR",
+      "sheetPoints": 20.4
+     },
+     {
+      "slot": "TE",
+      "player": "Brenton Strange (JAX) TE",
+      "sheetPoints": 1.9
+     },
+     {
+      "slot": "Flex",
+      "player": "Christian Watson (GB) WR",
+      "sheetPoints": 11.1
+     },
+     {
+      "slot": "K",
+      "player": "Cam Little (JAX) PK",
+      "sheetPoints": 6.3
+     },
+     {
+      "slot": "DST",
+      "player": "NE DST (NE) DST",
+      "sheetPoints": 14
+     }
+    ],
+    "2": [
+     {
+      "slot": "QB",
+      "player": "Drake Maye (NE) QB",
+      "sheetPoints": 14.16
+     },
+     {
+      "slot": "RB",
+      "player": "Christian McCaffrey (SF) RB",
+      "sheetPoints": 9.9
+     },
+     {
+      "slot": "RB",
+      "player": "Rhamondre Stevenson (NE) RB",
+      "sheetPoints": 10.1
+     },
+     {
+      "slot": "WR",
+      "player": "Luther Burden III (CHI) WR",
+      "sheetPoints": 3.9
+     },
+     {
+      "slot": "WR",
+      "player": "Kayshon Boutte (NE) WR",
+      "sheetPoints": 15
+     },
+     {
+      "slot": "TE",
+      "player": "Dalton Schultz (HOU) TE",
+      "sheetPoints": 5.7
+     },
+     {
+      "slot": "Flex",
+      "player": "Kyle Williams (NE) WR",
+      "sheetPoints": 0
+     },
+     {
+      "slot": "K",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "DST",
+      "player": "NE DST (NE) DST",
+      "sheetPoints": 19
+     }
+    ],
+    "3": [
+     {
+      "slot": "QB",
+      "player": "Drake Maye (NE) QB",
+      "sheetPoints": 15.94
+     },
+     {
+      "slot": "RB",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "RB",
+      "player": "Rhamondre Stevenson (NE) RB",
+      "sheetPoints": 7.1
+     },
+     {
+      "slot": "WR",
+      "player": "Kyle Williams (NE) WR",
+      "sheetPoints": 0
+     },
+     {
+      "slot": "WR",
+      "player": "Kayshon Boutte (NE) WR",
+      "sheetPoints": 1.1
+     },
+     {
+      "slot": "TE",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "Flex",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "K",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "DST",
+      "player": "NE DST (NE) DST",
+      "sheetPoints": 14
+     }
+    ],
+    "4": [
+     {
+      "slot": "QB",
+      "player": "Drake Maye (NE) QB",
+      "sheetPoints": 17.5
+     },
+     {
+      "slot": "RB",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "RB",
+      "player": "Rhamondre Stevenson (NE) RB",
+      "sheetPoints": 14.8
+     },
+     {
+      "slot": "WR",
+      "player": "Kyle Williams (NE) WR",
+      "sheetPoints": 1.2
+     },
+     {
+      "slot": "WR",
+      "player": "Kayshon Boutte (NE) WR",
+      "sheetPoints": 2.6
+     },
+     {
+      "slot": "TE",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "Flex",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "K",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "DST",
+      "player": "NE DST (NE) DST",
+      "sheetPoints": 2
+     }
+    ]
+   },
+   "sheetTotals": [
+    115.32,
+    77.76,
+    38.14,
+    38.1,
+    269.32
+   ]
+  },
+  {
+   "name": "Slade",
+   "roster": [
+    "Josh Allen (BUF) QB",
+    "James Cook III (BUF) RB",
+    "Stefon Diggs (NE) WR",
+    "George Kittle (SF) TE",
+    "Brock Purdy (SF) QB",
+    "D'Andre Swift (CHI) RB",
+    "Khalil Shakir (BUF) WR",
+    "DEN DST (DEN) DST",
+    "DK Metcalf (PIT) WR",
+    "Dalton Kincaid (BUF) TE",
+    "Rico Dowdle (CAR) RB",
+    "Ricky Pearsall (SF) WR",
+    "Matt Prater (BUF) PK",
+    "JAX DST (JAX) DST",
+    "Chuba Hubbard (CAR) RB",
+    "Gabe Davis (BUF) WR",
+    "Keon Coleman (BUF) WR",
+    "Dawson Knox (BUF) TE"
+   ],
+   "lineups": {
+    "1": [
+     {
+      "slot": "QB",
+      "player": "Josh Allen (BUF) QB",
+      "sheetPoints": 30.22
+     },
+     {
+      "slot": "RB",
+      "player": "James Cook III (BUF) RB",
+      "sheetPoints": 6.1
+     },
+     {
+      "slot": "RB",
+      "player": "D'Andre Swift (CHI) RB",
+      "sheetPoints": 16.2
+     },
+     {
+      "slot": "WR",
+      "player": "Khalil Shakir (BUF) WR",
+      "sheetPoints": 14.2
+     },
+     {
+      "slot": "WR",
+      "player": "Stefon Diggs (NE) WR",
+      "sheetPoints": 2.6
+     },
+     {
+      "slot": "TE",
+      "player": "George Kittle (SF) TE",
+      "sheetPoints": 1.1
+     },
+     {
+      "slot": "Flex",
+      "player": "DK Metcalf (PIT) WR",
+      "sheetPoints": 5.2
+     },
+     {
+      "slot": "K",
+      "player": "Matt Prater (BUF) PK",
+      "sheetPoints": 12.7
+     },
+     {
+      "slot": "DST",
+      "player": "JAX DST (JAX) DST",
+      "sheetPoints": 3
+     }
+    ],
+    "2": [
+     {
+      "slot": "QB",
+      "player": "Josh Allen (BUF) QB",
+      "sheetPoints": 21.92
+     },
+     {
+      "slot": "RB",
+      "player": "James Cook III (BUF) RB",
+      "sheetPoints": 13.1
+     },
+     {
+      "slot": "RB",
+      "player": "D'Andre Swift (CHI) RB",
+      "sheetPoints": 7.6
+     },
+     {
+      "slot": "WR",
+      "player": "Stefon Diggs (NE) WR",
+      "sheetPoints": 12
+     },
+     {
+      "slot": "WR",
+      "player": "Khalil Shakir (BUF) WR",
+      "sheetPoints": 11
+     },
+     {
+      "slot": "TE",
+      "player": "Dalton Kincaid (BUF) TE",
+      "sheetPoints": 17.3
+     },
+     {
+      "slot": "Flex",
+      "player": "Keon Coleman (BUF) WR",
+      "sheetPoints": 7.5
+     },
+     {
+      "slot": "K",
+      "player": "Matt Prater (BUF) PK",
+      "sheetPoints": 14.4
+     },
+     {
+      "slot": "DST",
+      "player": "DEN DST (DEN) DST",
+      "sheetPoints": 8
+     }
+    ],
+    "3": [
+     {
+      "slot": "QB",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "RB",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "RB",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "WR",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "WR",
+      "player": "Stefon Diggs (NE) WR",
+      "sheetPoints": 4.2
+     },
+     {
+      "slot": "TE",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "Flex",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "K",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "DST",
+      "player": "DEN DST (DEN) DST",
+      "sheetPoints": 12
+     }
+    ],
+    "4": [
+     {
+      "slot": "QB",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "RB",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "RB",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "WR",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "WR",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "TE",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "Flex",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "K",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "DST",
+      "player": null,
+      "sheetPoints": 0
+     }
+    ]
+   },
+   "sheetTotals": [
+    91.32,
+    112.82,
+    16.2,
+    0,
+    220.34
+   ]
+  },
+  {
+   "name": "Matt",
+   "roster": [
+    "Matthew Stafford (LAR) QB",
+    "RJ Harvey (DEN) RB",
+    "Travis Etienne Jr. (JAX) RB",
+    "Courtland Sutton (DEN) WR",
+    "Jayden Higgins (HOU) WR",
+    "Colby Parkinson (LAR) TE",
+    "Kyle Monangai (CHI) RB",
+    "Woody Marks (HOU) RB",
+    "HOU DST (HOU) DST",
+    "DJ Moore (CHI) WR",
+    "Wil Lutz (DEN) PK",
+    "Pat Bryant (DEN) WR",
+    "Cooper Kupp (SEA) WR",
+    "Ka'imi Fairbairn (HOU) PK",
+    "Mack Hollins (NE) WR",
+    "Xavier Smith (LAR) WR",
+    "Evan Engram (DEN) TE",
+    "Jordan Whittington (LAR) WR"
+   ],
+   "lineups": {
+    "1": [
+     {
+      "slot": "QB",
+      "player": "Matthew Stafford (LAR) QB",
+      "sheetPoints": 22.16
+     },
+     {
+      "slot": "RB",
+      "player": "Travis Etienne Jr. (JAX) RB",
+      "sheetPoints": 20.1
+     },
+     {
+      "slot": "RB",
+      "player": "Woody Marks (HOU) RB",
+      "sheetPoints": 17.2
+     },
+     {
+      "slot": "WR",
+      "player": "DJ Moore (CHI) WR",
+      "sheetPoints": 14.9
+     },
+     {
+      "slot": "WR",
+      "player": "Jayden Higgins (HOU) WR",
+      "sheetPoints": 5.4
+     },
+     {
+      "slot": "TE",
+      "player": "Colby Parkinson (LAR) TE",
+      "sheetPoints": 10.4
+     },
+     {
+      "slot": "Flex",
+      "player": "Kyle Monangai (CHI) RB",
+      "sheetPoints": 5.4
+     },
+     {
+      "slot": "K",
+      "player": "Ka'imi Fairbairn (HOU) PK",
+      "sheetPoints": 7.1
+     },
+     {
+      "slot": "DST",
+      "player": "HOU DST (HOU) DST",
+      "sheetPoints": 27
+     }
+    ],
+    "2": [
+     {
+      "slot": "QB",
+      "player": "Matthew Stafford (LAR) QB",
+      "sheetPoints": 10.22
+     },
+     {
+      "slot": "RB",
+      "player": "RJ Harvey (DEN) RB",
+      "sheetPoints": 9.1
+     },
+     {
+      "slot": "RB",
+      "player": "Woody Marks (HOU) RB",
+      "sheetPoints": 2.6
+     },
+     {
+      "slot": "WR",
+      "player": "Courtland Sutton (DEN) WR",
+      "sheetPoints": 7.3
+     },
+     {
+      "slot": "WR",
+      "player": "DJ Moore (CHI) WR",
+      "sheetPoints": 14.5
+     },
+     {
+      "slot": "TE",
+      "player": "Evan Engram (DEN) TE",
+      "sheetPoints": 1.2
+     },
+     {
+      "slot": "Flex",
+      "player": "Jayden Higgins (HOU) WR",
+      "sheetPoints": 8.9
+     },
+     {
+      "slot": "K",
+      "player": "Wil Lutz (DEN) PK",
+      "sheetPoints": 16.4
+     },
+     {
+      "slot": "DST",
+      "player": "HOU DST (HOU) DST",
+      "sheetPoints": 11
+     }
+    ],
+    "3": [
+     {
+      "slot": "QB",
+      "player": "Matthew Stafford (LAR) QB",
+      "sheetPoints": 28.56
+     },
+     {
+      "slot": "RB",
+      "player": "RJ Harvey (DEN) RB",
+      "sheetPoints": 7.9
+     },
+     {
+      "slot": "RB",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "WR",
+      "player": "Courtland Sutton (DEN) WR",
+      "sheetPoints": 9.2
+     },
+     {
+      "slot": "WR",
+      "player": "Cooper Kupp (SEA) WR",
+      "sheetPoints": 11.6
+     },
+     {
+      "slot": "TE",
+      "player": "Colby Parkinson (LAR) TE",
+      "sheetPoints": 7.7
+     },
+     {
+      "slot": "Flex",
+      "player": "Jordan Whittington (LAR) WR",
+      "sheetPoints": 0
+     },
+     {
+      "slot": "K",
+      "player": "Wil Lutz (DEN) PK",
+      "sheetPoints": -1
+     },
+     {
+      "slot": "DST",
+      "player": null,
+      "sheetPoints": 0
+     }
+    ],
+    "4": [
+     {
+      "slot": "QB",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "RB",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "RB",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "WR",
+      "player": "Cooper Kupp (SEA) WR",
+      "sheetPoints": 9.1
+     },
+     {
+      "slot": "WR",
+      "player": "Mack Hollins (NE) WR",
+      "sheetPoints": 15.8
+     },
+     {
+      "slot": "TE",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "Flex",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "K",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "DST",
+      "player": null,
+      "sheetPoints": 0
+     }
+    ]
+   },
+   "sheetTotals": [
+    129.66,
+    81.22,
+    63.96,
+    24.9,
+    299.74
+   ]
+  },
+  {
+   "name": "Ferg",
+   "roster": [
+    "Puka Nacua (LAR) WR",
+    "Davante Adams (LAR) WR",
+    "Kyren Williams (LAR) RB",
+    "Josh Jacobs (GB) RB",
+    "Jakobi Meyers (JAX) WR",
+    "Colston Loveland (CHI) TE",
+    "LAR DST (LAR) DST",
+    "Sam Darnold (SEA) QB",
+    "Harrison Mevis (LAR) PK",
+    "Tyler Higbee (LAR) TE",
+    "C.J. Stroud (HOU) QB",
+    "Ty Johnson (BUF) RB",
+    "Bhayshul Tuten (JAX) RB",
+    "Christian Kirk (HOU) WR",
+    "Jayden Reed (GB) WR",
+    "Terrance Ferguson (LAR) TE",
+    "J.K. Dobbins (DEN) RB",
+    "Tyrell Shavers (BUF) WR"
+   ],
+   "lineups": {
+    "1": [
+     {
+      "slot": "QB",
+      "player": "C.J. Stroud (HOU) QB",
+      "sheetPoints": 8
+     },
+     {
+      "slot": "RB",
+      "player": "Kyren Williams (LAR) RB",
+      "sheetPoints": 14.5
+     },
+     {
+      "slot": "RB",
+      "player": "Josh Jacobs (GB) RB",
+      "sheetPoints": 6.3
+     },
+     {
+      "slot": "WR",
+      "player": "Puka Nacua (LAR) WR",
+      "sheetPoints": 29.5
+     },
+     {
+      "slot": "WR",
+      "player": "Davante Adams (LAR) WR",
+      "sheetPoints": 9.7
+     },
+     {
+      "slot": "TE",
+      "player": "Colston Loveland (CHI) TE",
+      "sheetPoints": 19.7
+     },
+     {
+      "slot": "Flex",
+      "player": "Jakobi Meyers (JAX) WR",
+      "sheetPoints": 1.7
+     },
+     {
+      "slot": "K",
+      "player": "Harrison Mevis (LAR) PK",
+      "sheetPoints": 12.8
+     },
+     {
+      "slot": "DST",
+      "player": "LAR DST (LAR) DST",
+      "sheetPoints": 4
+     }
+    ],
+    "2": [
+     {
+      "slot": "QB",
+      "player": "Sam Darnold (SEA) QB",
+      "sheetPoints": 8.96
+     },
+     {
+      "slot": "RB",
+      "player": "Kyren Williams (LAR) RB",
+      "sheetPoints": 25.7
+     },
+     {
+      "slot": "RB",
+      "player": "Ty Johnson (BUF) RB",
+      "sheetPoints": null
+     },
+     {
+      "slot": "WR",
+      "player": "Davante Adams (LAR) WR",
+      "sheetPoints": 3.4
+     },
+     {
+      "slot": "WR",
+      "player": "Puka Nacua (LAR) WR",
+      "sheetPoints": 8.7
+     },
+     {
+      "slot": "TE",
+      "player": "Colston Loveland (CHI) TE",
+      "sheetPoints": 7.6
+     },
+     {
+      "slot": "Flex",
+      "player": "Christian Kirk (HOU) WR",
+      "sheetPoints": 9
+     },
+     {
+      "slot": "K",
+      "player": "Harrison Mevis (LAR) PK",
+      "sheetPoints": 9.4
+     },
+     {
+      "slot": "DST",
+      "player": "LAR DST (LAR) DST",
+      "sheetPoints": 6
+     }
+    ],
+    "3": [
+     {
+      "slot": "QB",
+      "player": "Sam Darnold (SEA) QB",
+      "sheetPoints": 26.74
+     },
+     {
+      "slot": "RB",
+      "player": "Kyren Williams (LAR) RB",
+      "sheetPoints": 13.1
+     },
+     {
+      "slot": "RB",
+      "player": "J.K. Dobbins (DEN) RB",
+      "sheetPoints": null
+     },
+     {
+      "slot": "WR",
+      "player": "Puka Nacua (LAR) WR",
+      "sheetPoints": 27.4
+     },
+     {
+      "slot": "WR",
+      "player": "Davante Adams (LAR) WR",
+      "sheetPoints": 16.9
+     },
+     {
+      "slot": "TE",
+      "player": "Tyler Higbee (LAR) TE",
+      "sheetPoints": 1.7
+     },
+     {
+      "slot": "Flex",
+      "player": "Terrance Ferguson (LAR) TE",
+      "sheetPoints": 0
+     },
+     {
+      "slot": "K",
+      "player": "Harrison Mevis (LAR) PK",
+      "sheetPoints": 12.4
+     },
+     {
+      "slot": "DST",
+      "player": "LAR DST (LAR) DST",
+      "sheetPoints": 3
+     }
+    ],
+    "4": [
+     {
+      "slot": "QB",
+      "player": "Sam Darnold (SEA) QB",
+      "sheetPoints": 12.58
+     },
+     {
+      "slot": "RB",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "RB",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "WR",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "WR",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "TE",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "Flex",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "K",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "DST",
+      "player": null,
+      "sheetPoints": 0
+     }
+    ]
+   },
+   "sheetTotals": [
+    106.2,
+    78.76,
+    101.24,
+    12.58,
+    298.78
+   ]
+  },
+  {
+   "name": "Craig",
+   "roster": [
+    "Jalen Hurts (PHI) QB",
+    "Saquon Barkley (PHI) RB",
+    "A.J. Brown (PHI) WR",
+    "DeVonta Smith (PHI) WR",
+    "Ladd McConkey (LAC) WR",
+    "Omarion Hampton (LAC) RB",
+    "PHI DST (PHI) DST",
+    "Dallas Goedert (PHI) TE",
+    "Troy Franklin (DEN) WR",
+    "Tetairoa McMillan (CAR) WR",
+    "Jaleel McLaughlin (DEN) RB",
+    "Rashid Shaheed (SEA) WR",
+    "Rome Odunze (CHI) WR",
+    "Romeo Doubs (GB) WR",
+    "Jake Elliott (PHI) PK",
+    "Oronde Gadsden (LAC) TE",
+    "Brandin Cooks (BUF) WR",
+    "Jahan Dotson (PHI) WR"
+   ],
+   "lineups": {
+    "1": [
+     {
+      "slot": "QB",
+      "player": "Jalen Hurts (PHI) QB",
+      "sheetPoints": 12.12
+     },
+     {
+      "slot": "RB",
+      "player": "Saquon Barkley (PHI) RB",
+      "sheetPoints": 14.6
+     },
+     {
+      "slot": "RB",
+      "player": "Omarion Hampton (LAC) RB",
+      "sheetPoints": -0.1
+     },
+     {
+      "slot": "WR",
+      "player": "Ladd McConkey (LAC) WR",
+      "sheetPoints": 4.7
+     },
+     {
+      "slot": "WR",
+      "player": "A.J. Brown (PHI) WR",
+      "sheetPoints": 4
+     },
+     {
+      "slot": "TE",
+      "player": "Oronde Gadsden (LAC) TE",
+      "sheetPoints": 4.5
+     },
+     {
+      "slot": "Flex",
+      "player": "Tetairoa McMillan (CAR) WR",
+      "sheetPoints": 10.6
+     },
+     {
+      "slot": "K",
+      "player": "Jake Elliott (PHI) PK",
+      "sheetPoints": 7.4
+     },
+     {
+      "slot": "DST",
+      "player": "PHI DST (PHI) DST",
+      "sheetPoints": 4
+     }
+    ],
+    "2": [
+     {
+      "slot": "QB",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "RB",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "RB",
+      "player": "Jaleel McLaughlin (DEN) RB",
+      "sheetPoints": 2.1
+     },
+     {
+      "slot": "WR",
+      "player": "Brandin Cooks (BUF) WR",
+      "sheetPoints": 3
+     },
+     {
+      "slot": "WR",
+      "player": "Troy Franklin (DEN) WR",
+      "sheetPoints": 0
+     },
+     {
+      "slot": "TE",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "Flex",
+      "player": "Rome Odunze (CHI) WR",
+      "sheetPoints": 5.4
+     },
+     {
+      "slot": "K",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "DST",
+      "player": null,
+      "sheetPoints": 0
+     }
+    ],
+    "3": [
+     {
+      "slot": "QB",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "RB",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "RB",
+      "player": "Jaleel McLaughlin (DEN) RB",
+      "sheetPoints": 1.8
+     },
+     {
+      "slot": "WR",
+      "player": "Rashid Shaheed (SEA) WR",
+      "sheetPoints": 5.6
+     },
+     {
+      "slot": "WR",
+      "player": "Troy Franklin (DEN) WR",
+      "sheetPoints": null
+     },
+     {
+      "slot": "TE",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "Flex",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "K",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "DST",
+      "player": null,
+      "sheetPoints": 0
+     }
+    ],
+    "4": [
+     {
+      "slot": "QB",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "RB",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "RB",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "WR",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "WR",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "TE",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "Flex",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "K",
+      "player": null,
+      "sheetPoints": 0
+     },
+     {
+      "slot": "DST",
+      "player": null,
+      "sheetPoints": 0
+     }
+    ]
+   },
+   "sheetTotals": [
+    61.82,
+    10.5,
+    7.4,
+    0,
+    79.72
+   ]
+  }
+ ]
+}

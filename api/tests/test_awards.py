@@ -29,11 +29,12 @@ LINES = [
     line(20, 1, 4, "12"),
     line(20, 2, 4, "13"),
 ]
+OWNERS = {1: 10, 2: 10, 3: 10, 4: 20}
 PICKS = {1: 4, 2: 1, 3: 2, 4: 3}  # player id -> overall pick number
 
 
 def awards() -> dict[str, Award]:
-    return {a.key: a for a in compute_awards(LINES, PLAYERS, PICKS, {20})}
+    return {a.key: a for a in compute_awards(LINES, PLAYERS, PICKS, {20}, OWNERS)}
 
 
 def test_playoff_mvp_is_the_top_counted_scorer_and_ignores_the_bench() -> None:
@@ -78,4 +79,27 @@ def test_draft_value_is_the_pick_number_minus_the_rank_by_counted_points() -> No
 
 
 def test_no_awards_when_nobody_scored() -> None:
-    assert compute_awards([], PLAYERS, PICKS, set()) == []
+    assert compute_awards([], PLAYERS, PICKS, set(), {}) == []
+
+
+def test_a_player_without_points_is_never_the_best_draft_value() -> None:
+    # Pick 9 of 9 with nothing counted ranks 4th of 4 on points (9-4 = +5) and would
+    # beat Quinn's +2 on arithmetic alone.
+    result = {
+        a.key: a
+        for a in compute_awards(
+            LINES, PLAYERS, {**PICKS, 5: 9}, {20}, {**OWNERS, 5: 20}
+        )
+    }
+    assert result["draft_value"].player_id == 1
+
+
+def test_a_rostered_player_with_no_line_can_still_be_the_biggest_bust() -> None:
+    # Player 5 was drafted first overall, never started and never played.
+    result = {
+        a.key: a
+        for a in compute_awards(
+            LINES, PLAYERS, {**PICKS, 5: 1}, {20}, {**OWNERS, 5: 20}
+        )
+    }
+    assert (result["bust"].player_id, result["bust"].team_id) == (5, 20)

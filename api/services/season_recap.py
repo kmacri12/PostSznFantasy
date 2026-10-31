@@ -8,7 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.db.models.draft import Draft, DraftPick
-from api.db.models.league import League
+from api.db.models.league import League, TeamPlayer
 from api.db.models.nfl import NFLPlayer
 from api.models.league_models import Standings
 from api.models.recap_models import AwardWinner, RecapTeam, SeasonRecap
@@ -59,6 +59,15 @@ async def _awards(
             )
         ).all()
     )
+    owners = dict(
+        (
+            await db.execute(
+                select(TeamPlayer.player_id, TeamPlayer.team_id).where(
+                    TeamPlayer.league_id == league.id
+                )
+            )
+        ).all()
+    )
     teams = {t.team_id: t for t in standings.teams}
     return [
         AwardWinner(
@@ -73,7 +82,7 @@ async def _awards(
             round=a.round,
             value=float(a.value),
         )
-        for a in compute_awards(lines, players, picks, champion_ids)
+        for a in compute_awards(lines, players, picks, champion_ids, owners)
         if a.team_id in teams
     ]
 

@@ -3,7 +3,8 @@
 All awards but the bench award use counted points (a starter's points after the round
 multiplier); the bench award sums what rostered players earned off the starting
 lineup, the same calculation as the round-by-round breakdown (round_points.py). Ties
-go to the lower id, so the result is stable.
+go to the lower id, so the result is stable. `owners` maps every rostered player to his
+fantasy team, so a drafted player with no points line can still be the biggest bust.
 """
 
 from collections import defaultdict
@@ -58,12 +59,13 @@ def compute_awards(
     players: Mapping[int, NFLPlayer],
     pick_numbers: Mapping[int, int],
     champion_team_ids: Collection[int],
+    owners: Mapping[int, int],
 ) -> list[Award]:
     counted = sorted(
         (ln for ln in lines if ln.starter),
         key=lambda ln: (ln.player_id, ln.round),
     )
-    team_of = {ln.player_id: ln.team_id for ln in lines}
+    team_of = dict(owners)
     totals: dict[int, Decimal] = defaultdict(Decimal)
     for ln in counted:
         totals[ln.player_id] += ln.points
@@ -137,11 +139,16 @@ def compute_awards(
 
     values = _draft_values(totals, pick_numbers)
     ranked = sorted(p for p in values if p in team_of)
+    # A player who never counted outranks nobody's slot, so he can be a bust but
+    # never the best value.
     for key, title, lowest in (
         ("draft_value", "Best draft value", False),
         ("bust", "Biggest bust", True),
     ):
-        found = _best(((p, Decimal(values[p])) for p in ranked), lowest=lowest)
+        found = _best(
+            ((p, Decimal(values[p])) for p in ranked if lowest or totals[p] > 0),
+            lowest=lowest,
+        )
         if found:
             player_award(key, title, *found)
     return awards
