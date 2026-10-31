@@ -7,6 +7,7 @@ export interface PlayerCardData {
   team: string;
   /** Set once the API reports the player's NFL team as out of the playoffs. */
   eliminated?: boolean;
+  injuryStatus?: string | null;
   /** Team QB / team K: the card gets a badge saying he scores the whole team. */
   scoresWholeTeam?: boolean;
   points?: number | null;

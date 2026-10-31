@@ -175,6 +175,8 @@ export interface RosterPlayer {
   position: string;
   teamAbv?: string | null;
   isActive: boolean;
+  /** Out, Doubtful, Questionable or Injured Reserve; null when healthy or unreported. */
+  injuryStatus?: string | null;
   nextGame: NextGame | null;
   /** Team QB / team K: his slot scores every QB (K) on his NFL team. */
   scoresWholeTeam?: boolean;
@@ -308,6 +310,7 @@ export interface PlayerSummary {
   team?: { teamAbv?: string };
   /** Not served yet; the card lists hide these players once the API sets it. */
   eliminated?: boolean;
+  injuryStatus?: string | null;
   scoresWholeTeam?: boolean;
 }
 

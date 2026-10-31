@@ -59,7 +59,6 @@ async def test_the_tag_reaches_the_draft_pool_and_the_roster(
     in_lineup = [
         p
         for rnd in lineup
-        for p in [s["player"] for s in rnd["slots"] if s["player"]]
-        + rnd["unassigned"]
+        for p in [s["player"] for s in rnd["slots"] if s["player"]] + rnd["unassigned"]
     ]
     assert {p["injuryStatus"] for p in in_lineup} == {"Doubtful", None}

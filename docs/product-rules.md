@@ -87,6 +87,10 @@ Several rules are unfamiliar (team QB/K, per-round lineups, kickoff locks, elimi
 - Past seasons are a permanent read-only archive.
 - "Run it back" (post-v1) creates next season's league from this one, keeping members and settings.
 
+## Injury tags
+
+Players show a tag (Out, Doubtful, Questionable, Injured Reserve) in the draft pool and the lineup when Tank01's player list reports one. It is display only: it never blocks a pick or a lineup move, and it is as fresh as the daily player sync. Source and caveats: [research/injury-status.md](research/injury-status.md).
+
 ## Out of scope for v1
 
-Free agency, injury tags, email or push reminders, any money handling, and mid-playoff leagues.
+Free agency, email or push reminders, any money handling, and mid-playoff leagues.

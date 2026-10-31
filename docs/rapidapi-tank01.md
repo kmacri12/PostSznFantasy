@@ -72,6 +72,10 @@ like a real run, so use a throwaway one.
   ingest for 2026 legitimately finds 0 games until then.
 - `playerID` is the ESPN id, as a string.
 
+## Injury status
+
+`getNFLPlayerList` rows carry `injury: {designation, description, injDate, injReturnDate}`. Only `designation` is stored (`nfl_players.injury_status`, `parse_injury_status` in `schemas.py`), and only when it is `Out`, `Doubtful`, `Questionable` or `Injured Reserve`. See `docs/research/injury-status.md`.
+
 ## Stats schema
 
 Roster stats and box-score `playerStats` entries share one nested shape. Values are strings

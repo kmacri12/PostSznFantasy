@@ -85,4 +85,12 @@ describe("AvailablePlayers team QB / team K", () => {
     expect(screen.getAllByRole("note")).toHaveLength(1);
     expect(screen.getByRole("note", { name: /Scores all KC QBs/ })).toBeTruthy();
   });
+
+  it("tags injured players in the pool", () => {
+    renderList({
+      players: [{ ...player(1, "Pat Mahomes"), injuryStatus: "Out" }, player(2, "Josh Allen")],
+    });
+    expect(screen.getAllByLabelText(/Injury status/)).toHaveLength(1);
+    expect(screen.getByLabelText("Injury status: Out")).toBeTruthy();
+  });
 });
