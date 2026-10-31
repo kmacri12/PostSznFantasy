@@ -1,0 +1,353 @@
+{
+ "statusCode": 200,
+ "body": {
+  "gameID": "20260125_NE@DEN",
+  "gameWeek": "Conference Championship",
+  "homePts": "7",
+  "awayPts": "10",
+  "teamIDHome": "10",
+  "teamIDAway": "22",
+  "DST": {
+   "away": {
+    "teamAbv": "NE",
+    "teamID": "22",
+    "defTD": "0",
+    "defensiveInterceptions": "1",
+    "sacks": "3",
+    "ydsAllowed": "181",
+    "fumblesRecovered": "1",
+    "ptsAllowed": "7",
+    "safeties": "0"
+   },
+   "home": {
+    "teamAbv": "DEN",
+    "teamID": "10",
+    "defTD": "0",
+    "defensiveInterceptions": "0",
+    "sacks": "5",
+    "ydsAllowed": "206",
+    "fumblesRecovered": "0",
+    "ptsAllowed": "10",
+    "safeties": "0"
+   }
+  },
+  "teamStats": {
+   "away": {
+    "totalYards": "206",
+    "rushingAttempts": "38",
+    "rushingYards": "141",
+    "fumblesLost": "0",
+    "penalties": "1-5",
+    "totalPlays": "64",
+    "possession": "33:09",
+    "safeties": "0",
+    "passCompletionsAndAttempts": "10-21",
+    "passingFirstDowns": "2",
+    "interceptionsThrown": "0",
+    "sacksAndYardsLost": "5-21",
+    "thirdDownEfficiency": "6-18",
+    "blockedPunt": "0",
+    "yardsPerPlay": "3.2",
+    "redZoneScoredAndAttempted": "1-2",
+    "teamID": "22",
+    "defensiveInterceptions": "1",
+    "defensiveOrSpecialTeamsTds": "0",
+    "totalDrives": "13",
+    "rushingFirstDowns": "10",
+    "blockedFG": "1",
+    "rushTD": "1",
+    "twoPointConversions": "0",
+    "firstDowns": "12",
+    "passTD": "0",
+    "team": "NE",
+    "blockedXP": "0",
+    "teamAbv": "NE",
+    "firstDownsFromPenalties": "0",
+    "fourthDownEfficiency": "1-1",
+    "defensiveTwoPointConversionReturns": "0",
+    "passingYards": "65",
+    "yardsPerRush": "3.7",
+    "snapCounts": {
+     "totalSpecialTeams": "26",
+     "totalOffensive": "64",
+     "totalDefensive": "58"
+    },
+    "turnovers": "0",
+    "yardsPerPass": "2.5"
+   },
+   "home": {
+    "totalYards": "181",
+    "rushingAttempts": "24",
+    "rushingYards": "79",
+    "fumblesLost": "1",
+    "penalties": "2-5",
+    "totalPlays": "58",
+    "possession": "26:51",
+    "safeties": "0",
+    "passCompletionsAndAttempts": "17-31",
+    "passingFirstDowns": "8",
+    "interceptionsThrown": "1",
+    "sacksAndYardsLost": "3-31",
+    "thirdDownEfficiency": "4-14",
+    "blockedPunt": "0",
+    "yardsPerPlay": "3.1",
+    "redZoneScoredAndAttempted": "1-2",
+    "teamID": "10",
+    "defensiveInterceptions": "0",
+    "defensiveOrSpecialTeamsTds": "0",
+    "totalDrives": "12",
+    "rushingFirstDowns": "3",
+    "blockedFG": "0",
+    "rushTD": "0",
+    "twoPointConversions": "0",
+    "firstDowns": "11",
+    "passTD": "1",
+    "team": "DEN",
+    "blockedXP": "0",
+    "teamAbv": "DEN",
+    "firstDownsFromPenalties": "0",
+    "fourthDownEfficiency": "0-1",
+    "defensiveTwoPointConversionReturns": "0",
+    "passingYards": "102",
+    "yardsPerRush": "3.3",
+    "snapCounts": {
+     "totalSpecialTeams": "26",
+     "totalOffensive": "58",
+     "totalDefensive": "64"
+    },
+    "turnovers": "2",
+    "yardsPerPass": "3.0"
+   }
+  },
+  "scoringPlays": [
+   {
+    "score": "Courtland Sutton 6 Yd pass from Jarrett Stidham (Wil Lutz Kick)",
+    "scorePeriod": "Q1",
+    "homeScore": "7",
+    "awayScore": "0",
+    "teamID": "10",
+    "scoreDetails": "5 plays, 59 yards, 1:41",
+    "scoreType": "TD",
+    "scoreTime": "10:19",
+    "team": "DEN",
+    "playerIDs": [
+     "3892775",
+     "3128429",
+     "2985659"
+    ]
+   },
+   {
+    "score": "Drake Maye 6 Yd Rush (Andy Borregales Kick)",
+    "scorePeriod": "Q2",
+    "homeScore": "7",
+    "awayScore": "7",
+    "teamID": "22",
+    "scoreDetails": "2 plays, 12 yards, 0:42",
+    "scoreType": "TD",
+    "scoreTime": "2:10",
+    "team": "NE",
+    "playerIDs": [
+     "4431452",
+     "4569923"
+    ]
+   },
+   {
+    "score": "Andy Borregales 23 Yd Field Goal",
+    "scorePeriod": "Q3",
+    "homeScore": "7",
+    "awayScore": "10",
+    "teamID": "22",
+    "scoreDetails": "16 plays, 64 yards, 9:31",
+    "scoreType": "FG",
+    "scoreTime": "5:29",
+    "team": "NE",
+    "playerIDs": [
+     "4569923"
+    ]
+   }
+  ],
+  "allPlayByPlay": [
+   {
+    "play": "W.Lutz 54 yard field goal is No Good, Wide Right, Center-M.Fraboni, Holder-J.Crawshaw.",
+    "playPeriod": "Q2",
+    "playClock": "0:24",
+    "playerStats": {
+     "2985659": {
+      "Kicking": {
+       "fgAttempts": "1",
+       "fgYds": "54"
+      }
+     }
+    },
+    "downAndDistance": "4th & 6 at NE 36",
+    "teamID": "10"
+   },
+   {
+    "play": "A.Borregales 63 yard field goal is No Good, Wide Left, Center-J.Ashby, Holder-B.Baringer.",
+    "playPeriod": "Q2",
+    "playClock": "0:01",
+    "playerStats": {
+     "4569923": {
+      "Kicking": {
+       "fgAttempts": "1",
+       "fgYds": "63"
+      }
+     }
+    },
+    "downAndDistance": "1st & 10 at DEN 45",
+    "teamID": "22"
+   },
+   {
+    "play": "A.Borregales 23 yard field goal is GOOD, Center-J.Ashby, Holder-B.Baringer.",
+    "playPeriod": "Q3",
+    "playClock": "5:29",
+    "playerStats": {
+     "4569923": {
+      "Kicking": {
+       "fgMade": "1",
+       "fgAttempts": "1",
+       "fgYds": "23"
+      }
+     }
+    },
+    "downAndDistance": "4th & Goal at DEN 5",
+    "teamID": "22"
+   },
+   {
+    "play": "A.Borregales 46 yard field goal is No Good, Wide Right, Center-J.Ashby, Holder-B.Baringer.",
+    "playPeriod": "Q3",
+    "playClock": "0:15",
+    "playerStats": {
+     "4569923": {
+      "Kicking": {
+       "fgAttempts": "1",
+       "fgYds": "46"
+      }
+     }
+    },
+    "downAndDistance": "4th & 7 at DEN 28",
+    "teamID": "22"
+   },
+   {
+    "play": "W.Lutz 45 yard field goal is BLOCKED (L.Taylor), Center-M.Fraboni, Holder-J.Crawshaw.",
+    "playPeriod": "Q4",
+    "playClock": "4:46",
+    "playerStats": {
+     "2985659": {
+      "Kicking": {
+       "fgAttempts": "1",
+       "fgYds": "45"
+      }
+     }
+    },
+    "downAndDistance": "4th & 5 at NE 28",
+    "teamID": "10"
+   }
+  ],
+  "playerStats": {
+   "2985659": {
+    "gameID": "20260125_NE@DEN",
+    "scoringPlays": [
+     {
+      "score": "Courtland Sutton 6 Yd pass from Jarrett Stidham (Wil Lutz Kick)",
+      "scorePeriod": "Q1",
+      "homeScore": "7",
+      "awayScore": "0",
+      "teamID": "10",
+      "scoreDetails": "5 plays, 59 yards, 1:41",
+      "scoreType": "TD",
+      "scoreTime": "10:19",
+      "team": "DEN",
+      "playerIDs": [
+       "3892775",
+       "3128429",
+       "2985659"
+      ]
+     }
+    ],
+    "teamID": "10",
+    "snapCounts": {
+     "offSnapPct": "0.00",
+     "defSnap": "0",
+     "stSnap": "5",
+     "stSnapPct": "0.19",
+     "offSnap": "0",
+     "defSnapPct": "0.00"
+    },
+    "Kicking": {
+     "fgLong": "0",
+     "fgMade": "0",
+     "fgAttempts": "2",
+     "xpMade": "1",
+     "fgPct": "0.0",
+     "kickingPts": "1",
+     "xpAttempts": "1",
+     "fgMissed": "2",
+     "xpMissed": "0"
+    },
+    "team": "DEN",
+    "teamAbv": "DEN",
+    "playerID": "2985659",
+    "longName": "Wil Lutz"
+   },
+   "4569923": {
+    "gameID": "20260125_NE@DEN",
+    "scoringPlays": [
+     {
+      "score": "Drake Maye 6 Yd Rush (Andy Borregales Kick)",
+      "scorePeriod": "Q2",
+      "homeScore": "7",
+      "awayScore": "7",
+      "teamID": "22",
+      "scoreDetails": "2 plays, 12 yards, 0:42",
+      "scoreType": "TD",
+      "scoreTime": "2:10",
+      "team": "NE",
+      "playerIDs": [
+       "4431452",
+       "4569923"
+      ]
+     },
+     {
+      "score": "Andy Borregales 23 Yd Field Goal",
+      "scorePeriod": "Q3",
+      "homeScore": "7",
+      "awayScore": "10",
+      "teamID": "22",
+      "scoreDetails": "16 plays, 64 yards, 9:31",
+      "scoreType": "FG",
+      "scoreTime": "5:29",
+      "team": "NE",
+      "playerIDs": [
+       "4569923"
+      ]
+     }
+    ],
+    "teamID": "22",
+    "snapCounts": {
+     "offSnapPct": "0.00",
+     "defSnap": "0",
+     "stSnap": "7",
+     "stSnapPct": "0.27",
+     "offSnap": "0",
+     "defSnapPct": "0.00"
+    },
+    "Kicking": {
+     "fgLong": "23",
+     "fgMade": "1",
+     "fgAttempts": "3",
+     "xpMade": "1",
+     "fgPct": "33.3",
+     "kickingPts": "4",
+     "xpAttempts": "1",
+     "fgMissed": "2",
+     "xpMissed": "0"
+    },
+    "team": "NE",
+    "teamAbv": "NE",
+    "playerID": "4569923",
+    "longName": "Andy Borregales"
+   }
+  }
+ }
+}

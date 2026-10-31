@@ -93,15 +93,23 @@ def test_defensive_and_return_tds_and_two_point_returns_come_from_team_stats() -
     assert rows[dst_player_id(AWAY)]["dst_def_td"] == 0
 
 
-def test_safeties_are_counted_from_scoring_plays_for_the_scoring_team() -> None:
-    plays = [
-        {"scoreType": "SF", "teamID": str(AWAY)},
-        {"scoreType": "TD", "teamID": str(AWAY)},
-    ]
-    rows = _rows(_box(scoring_plays=plays))
+def test_safeties_come_from_the_dst_block() -> None:
+    box = _box()
+    box["DST"]["away"]["safeties"] = "1"
+    rows = _rows(box)
 
     assert rows[dst_player_id(AWAY)]["dst_safeties"] == 1
     assert rows[dst_player_id(HOME)]["dst_safeties"] == 0
+
+
+def test_every_kind_of_blocked_kick_counts() -> None:
+    # The team that made the block is credited (2026-01-25 NE@DEN: NE blockedFG 1).
+    rows = _rows(
+        _box(home={"blockedFG": "1", "blockedPunt": "1"}, away={"blockedXP": "1"})
+    )
+
+    assert rows[dst_player_id(HOME)]["dst_blocked_kicks"] == 2
+    assert rows[dst_player_id(AWAY)]["dst_blocked_kicks"] == 1
 
 
 def test_unknown_dst_players_are_skipped() -> None:

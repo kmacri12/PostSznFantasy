@@ -12,6 +12,7 @@ from api.services.ingestion.guard import IngestionKind, guarded
 from api.services.ingestion.schemas import (
     POSTSEASON_WEEKS,
     field_goal_yards_by_kicker,
+    field_goal_yards_missed_by_kicker,
     parse_stat_line,
     safe_int,
     safe_str,
@@ -52,6 +53,7 @@ def parse_game_player_stats(
     valid_player_ids: set[int],
 ) -> list[dict[str, Any]]:
     field_goals = field_goal_yards_by_kicker(box.get("scoringPlays"))
+    missed_field_goals = field_goal_yards_missed_by_kicker(box.get("allPlayByPlay"))
     rows: list[dict[str, Any]] = []
     for pid_str, raw_stats in (box.get("playerStats") or {}).items():
         player_id = safe_int(pid_str)
@@ -66,6 +68,7 @@ def parse_game_player_stats(
                 "player_id": player_id,
                 **line,
                 "kicking_fg_yards_made": field_goals.get(player_id, []),
+                "kicking_fg_yards_missed": missed_field_goals.get(player_id, []),
                 **empty_dst_columns(),
             }
         )

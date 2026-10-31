@@ -155,6 +155,7 @@ def calculate_kicking_points(
     fg_yards: list[int] = stats.kicking_fg_yards_made or []
     flat_per_fg = _safe(settings.scoring_kicking_fg_made)
     # Season rows carry a made count but no distances, so they cannot earn per-yard points.
+    missed_yards = Decimal(sum(stats.kicking_fg_yards_missed or []))
     made_without_distance = max((stats.kicking_fg_made or 0) - len(fg_yards), 0)
     return (
         _safe(stats.kicking_xp_made) * _safe(settings.scoring_kicking_xp_made)
@@ -162,6 +163,7 @@ def calculate_kicking_points(
         + _safe(stats.kicking_fg_missed) * _safe(settings.scoring_kicking_fg_miss)
         + flat_per_fg * (len(fg_yards) + made_without_distance)
         + Decimal(sum(fg_yards)) * _safe(settings.scoring_kicking_fg_yard)
+        + missed_yards * _safe(settings.scoring_kicking_fg_miss_yard)
     )
 
 

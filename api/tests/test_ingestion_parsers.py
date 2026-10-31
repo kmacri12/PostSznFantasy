@@ -12,6 +12,7 @@ from api.services.ingestion.schemas import (
     POSTSEASON_WEEKS,
     StatsShapeError,
     field_goal_yards_by_kicker,
+    field_goal_yards_missed_by_kicker,
     parse_injury_status,
     parse_stat_line,
     safe_int,
@@ -107,6 +108,29 @@ def test_field_goal_yards_group_by_kicker() -> None:
         4574716: [46, 42],
         4568263: [46],
     }
+
+
+def test_missed_field_goal_yards_come_from_play_by_play() -> None:
+    # 2026-01-25 NE@DEN: Lutz missed 54 (wide right) and had a 45 blocked; Borregales
+    # missed 63 and 46 and made a 23 (made kicks are not misses).
+    box = load("box_score_ne_den_kicks.json")
+    assert field_goal_yards_missed_by_kicker(box["allPlayByPlay"]) == {
+        2985659: [54, 45],
+        4569923: [63, 46],
+    }
+    assert field_goal_yards_missed_by_kicker(None) == {}
+
+
+def test_game_stat_rows_carry_missed_field_goal_yards() -> None:
+    box = load("box_score_ne_den_kicks.json")
+    rows = {
+        row["player_id"]: row
+        for row in parse_game_player_stats("G", box, {2985659, 4569923})
+    }
+    assert rows[2985659]["kicking_fg_yards_missed"] == [54, 45]
+    assert rows[2985659]["kicking_fg_missed"] == 2
+    assert rows[4569923]["kicking_fg_yards_missed"] == [63, 46]
+    assert rows[4569923]["kicking_fg_yards_made"] == [23]
 
 
 def test_postseason_weeks_cover_rounds_19_to_22() -> None:

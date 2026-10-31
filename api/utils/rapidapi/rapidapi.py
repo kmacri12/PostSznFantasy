@@ -228,7 +228,9 @@ class RapidApiClient:
         return list(data.get("body", []))
 
     async def get_nfl_box_score(self, game_id: str) -> dict[str, Any]:
-        data = await self._get("/getNFLBoxScore", params={"gameID": game_id})
+        # playByPlay adds `allPlayByPlay` (missed FG distances) to the same one call.
+        params = {"gameID": game_id, "playByPlay": "true"}
+        data = await self._get("/getNFLBoxScore", params=params)
         return dict(data.get("body", {}))
 
     async def get_stats_for_team(

@@ -35,7 +35,7 @@ Guiding principles: KISS, comments explain *why* only, self-documenting names.
 
 ### Carried over (still open)
 - [x] Phase 10: ingestion and queries use the schema-qualified `fantasy` / `nfl` models only; the connection-level `search_path` override is removed (verified against a freshly migrated DB).
-- [x] Phase 13: Sleeper scoring gaps closed — blocked kick and defensive 2-pt return (DST), per-length FG-miss penalties, and stacking 300/400 pass, 100/200 rush and 100/200 receiving yardage bonuses. New stat columns (`kicking_fg_yards_missed`, `dst_blocked_kicks`, `dst_two_point_returns`) are read from RapidAPI keys `FGYardsMissed`, `DSTBlockedKicks`, `DST2PtReturns`; verify those key names against live box scores, since they default to 0 if absent.
+- [x] Phase 13: Sleeper scoring gaps closed — blocked kick and defensive 2-pt return (DST), per-length FG-miss penalties, and stacking 300/400 pass, 100/200 rush and 100/200 receiving yardage bonuses. New stat columns (`kicking_fg_yards_missed`, `dst_blocked_kicks`, `dst_two_point_returns`) are filled from the real Tank01 data (issue #77: there are no `FGYardsMissed`, `DSTBlockedKicks` or `DST2PtReturns` keys; see docs/rapidapi-tank01.md).
 
 ---
 

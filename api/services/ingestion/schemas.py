@@ -156,6 +156,27 @@ def field_goal_yards_by_kicker(scoring_plays: Any) -> dict[int, list[int]]:
     return yards_by_kicker
 
 
+def field_goal_yards_missed_by_kicker(play_by_play: Any) -> dict[int, list[int]]:
+    """Missed (wide, short or blocked) FG distances per kicker from `allPlayByPlay`.
+
+    Only `getNFLBoxScore?playByPlay=true` carries them: a kick play lists the kicker's
+    `fgAttempts` and `fgYds`, plus `fgMade` when it was good.
+    """
+    yards_by_kicker: dict[int, list[int]] = {}
+    for play in play_by_play or []:
+        for kicker, stats in (play.get("playerStats") or {}).items():
+            kicking = stats.get("Kicking") if isinstance(stats, dict) else None
+            if not isinstance(kicking, dict) or "fgYds" not in kicking:
+                continue
+            if safe_int(kicking.get("fgAttempts")) and not safe_int(
+                kicking.get("fgMade")
+            ):
+                yards_by_kicker.setdefault(safe_int(kicker), []).append(
+                    safe_int(kicking["fgYds"])
+                )
+    return yards_by_kicker
+
+
 # The depth-chart list that names each unit's starter: QB1 and PK1 (kickers are PK).
 DEPTH_CHART_STARTERS = {"QB": ("QB1", "QB"), "PK": ("PK1", "K")}
 

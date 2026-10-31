@@ -195,6 +195,23 @@ async def test_calls_beyond_the_daily_budget_are_refused_without_hitting_the_api
 
 
 @pytest.mark.asyncio
+async def test_box_scores_are_requested_with_play_by_play(
+    make_client: type[RapidApiClient],
+) -> None:
+    seen: dict[str, str] = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.update(request.url.params)
+        return httpx.Response(200, json={"body": {}})
+
+    client = make_client(requests_per_second=0)
+    with_transport(client, httpx.MockTransport(handler))
+    await client.get_nfl_box_score("20260125_NE@DEN")
+
+    assert seen == {"gameID": "20260125_NE@DEN", "playByPlay": "true"}
+
+
+@pytest.mark.asyncio
 async def test_the_daily_budget_resets_on_a_new_utc_day(
     make_client: type[RapidApiClient], monkeypatch: pytest.MonkeyPatch
 ) -> None:

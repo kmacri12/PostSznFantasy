@@ -1,5 +1,7 @@
 # Kicker per-yard scoring from Tank01 (issue 12.2)
 
+> Update 2026-10-31 (issue #77): missed-FG distances **are** obtainable, from `getNFLBoxScore?playByPlay=true` (`allPlayByPlay`); see docs/rapidapi-tank01.md. The "not obtainable" statements below predate that.
+
 Researched 2026-10-30. Two live calls were made through `RapidApiClient` with `RAPIDAPI_CACHE_DIR` set (`getNFLGamesForPlayer` for Harrison Mevis, `getNFLBoxScore` for `20251218_LAR@SEA`; the `x-ratelimit-requests-remaining` reading was 884 after the first and 883 after the second). Everything else came from the repo fixtures and the git-ignored `.rapidapi-cache/`, which held the 2025 playoff games list and four 2025 playoff box scores when I read it (the first of my calls was a cache hit and spent nothing, so I did not fetch them). The key was not printed or written anywhere.
 
 Labels: **Verified** = observed in a real response (source named). **Unverified** = not observed; the calls to settle it are in [Unverified](#unverified-and-risks).
