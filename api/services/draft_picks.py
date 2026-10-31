@@ -28,7 +28,8 @@ class DraftPickError(Exception):
 
 
 class PickNotDue(DraftPickError):
-    """The deadline was reset (a drafter picked) between the clock's scan and its lock."""
+    """The draft moved on (a pick, pause or completion) between the clock's scan and
+    its lock."""
 
 
 @dataclass(frozen=True)

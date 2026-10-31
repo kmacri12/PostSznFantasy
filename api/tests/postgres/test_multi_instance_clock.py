@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 
 from api.db.models import DraftPick, NFLTeam
 from api.services import draft_flow
-from api.services.draft_picks import PickNotDue
+from api.services.draft_picks import PickNotDue, make_pick
 from api.tests.postgres.conftest import TEST_DATABASE_URL
 from api.tests.postgres.factories import make_league, make_players
 
@@ -36,15 +36,22 @@ async def committed() -> AsyncGenerator[async_sessionmaker[AsyncSession]]:
     await engine.dispose()
 
 
+@pytest.mark.parametrize(
+    ("roster_total", "picks_before"),
+    [(3, 0), (1, 1)],
+    ids=["mid_draft", "final_pick_completes_the_draft"],
+)
 async def test_concurrent_clocks_make_exactly_one_auto_pick(
-    committed: async_sessionmaker[AsyncSession],
+    committed: async_sessionmaker[AsyncSession], roster_total: int, picks_before: int
 ) -> None:
     async with committed() as db:
-        league, _, _, draft = await make_league(db, roster_total=3)
+        league, users, _, draft = await make_league(db, roster_total=roster_total)
         kc = NFLTeam(id=1, team_abv="KC", is_active=True, in_playoffs=True)
         db.add(kc)
         await db.flush()
-        await make_players(db, ["QB", "RB", "WR"], nfl_team=kc)
+        players = await make_players(db, ["QB", "RB", "WR"], nfl_team=kc)
+        for user, player in zip(users[:picks_before], players, strict=False):
+            await make_pick(db, league.id, user, player.id)
         draft.current_pick_deadline = datetime.now(UTC) - timedelta(seconds=1)
         league_id = league.id
         await db.commit()
@@ -61,6 +68,7 @@ async def test_concurrent_clocks_make_exactly_one_auto_pick(
 
     outcomes = await asyncio.gather(one_clock(), one_clock())
 
-    assert sorted(outcomes) == ["not_due", "picked 1"]
+    assert sorted(outcomes) == ["not_due", f"picked {picks_before + 1}"]
     async with committed() as db:
-        assert len((await db.execute(select(DraftPick))).scalars().all()) == 1
+        picks = (await db.execute(select(DraftPick))).scalars().all()
+        assert len(picks) == picks_before + 1

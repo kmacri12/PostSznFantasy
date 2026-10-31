@@ -26,7 +26,7 @@ class DraftConnectionManager:
         self._lock = asyncio.Lock()
         self._relay: BroadcastRelay | None = None
 
-    def use_relay(self, relay: BroadcastRelay) -> None:
+    def use_relay(self, relay: BroadcastRelay | None) -> None:
         """Route broadcasts through other API instances; each hands them back to
         `deliver_local`. Without a relay (the default) broadcasts stay in-process."""
         self._relay = relay

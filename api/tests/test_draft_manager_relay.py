@@ -1,6 +1,10 @@
 from typing import Any
+from unittest.mock import AsyncMock
 
-from api.ws.draft_manager import DraftConnectionManager
+import pytest
+
+from api.core.config import get_settings
+from api.ws.draft_manager import DraftConnectionManager, draft_manager
 
 
 class FakeSocket:
@@ -56,3 +60,33 @@ async def test_failed_publish_still_reaches_local_sockets() -> None:
     await manager.broadcast(1, {"eventType": "E"})
 
     assert socket.sent == ['{"eventType": "E"}']
+
+
+async def test_lifespan_wires_the_relay_only_while_running(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from api import main
+
+    relay = RecordingRelay()
+    relay.start = AsyncMock()  # type: ignore[attr-defined]
+    relay.stop = AsyncMock()  # type: ignore[attr-defined]
+    settings = get_settings().model_copy(update={"draft_broadcast": "postgres"})
+    monkeypatch.setattr("api.main.get_settings", lambda: settings)
+    monkeypatch.setattr(main, "PostgresRelay", lambda *_args: relay)
+    monkeypatch.setattr(main, "init_db", lambda: None)
+    monkeypatch.setattr(main, "run_draft_clock", AsyncMock())
+    monkeypatch.setattr(main, "close_db", AsyncMock())
+    monkeypatch.setattr(main, "close_rapidapi_client", AsyncMock())
+    socket = FakeSocket()
+    await draft_manager.join(99, socket)  # type: ignore[arg-type]
+    try:
+        async with main.lifespan(main.app):
+            relay.start.assert_awaited_once()  # type: ignore[attr-defined]
+            await draft_manager.broadcast(99, {"eventType": "DURING"})
+            assert relay.published == [(99, {"eventType": "DURING"})]
+
+        relay.stop.assert_awaited_once()  # type: ignore[attr-defined]
+        await draft_manager.broadcast(99, {"eventType": "AFTER"})
+        assert socket.sent == ['{"eventType": "AFTER"}']
+    finally:
+        await draft_manager.disconnect(99, socket)  # type: ignore[arg-type]

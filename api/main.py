@@ -55,6 +55,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     if scheduler_task:
         scheduler_task.cancel()
     if relay is not None:
+        draft_manager.use_relay(None)
         await relay.stop()
     await close_rapidapi_client()
     await close_db()

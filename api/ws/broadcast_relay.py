@@ -25,6 +25,7 @@ def encode_chunks(league_id: int, message: dict[str, Any]) -> list[str]:
         for start in range(0, len(text), MAX_NOTIFY_CHUNK)
     ]
     message_id = uuid4().hex
+    # One-letter keys: the envelope counts against the 8000-byte NOTIFY budget.
     return [
         json.dumps(
             {"m": message_id, "i": i, "n": len(parts), "l": league_id, "p": part}
@@ -100,6 +101,8 @@ class PostgresRelay:
                     )
 
     async def _connect(self) -> None:
+        # Cleared before connecting so a drop right after connecting is not lost.
+        self._lost.clear()
         connection = await asyncpg.connect(self._dsn)
         await connection.add_listener(
             self._channel,
@@ -107,7 +110,6 @@ class PostgresRelay:
         )
         connection.add_termination_listener(lambda _conn: self._lost.set())
         self._connection = connection
-        self._lost.clear()
 
     async def _reconnect_when_lost(self) -> None:
         while True:
