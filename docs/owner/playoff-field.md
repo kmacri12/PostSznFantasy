@@ -1,10 +1,10 @@
 # Set the playoff field
 
-5 minutes. Issue #214. Needs Steps 6 and 13. [Back to the list](README.md)
+About 5 minutes, twice. Issue #214. Needs Steps 6 and 13. [Back to the list](README.md)
 
 A draft only starts when exactly 14 NFL teams are in the playoff field, and only their players can be drafted. Loading playoff games marks the 12 Wild Card teams by itself. The two top seeds have a bye, so they never show up that weekend: **you always set the full 14 yourself.**
 
-You do this twice:
+When:
 - **Mock draft** ([Step 15](15-mock-draft.md)): any 14 teams, before January.
 - **For real**: the night the regular season ends, once the 14 seeds are known, before anyone drafts.
 
@@ -35,8 +35,9 @@ Every run replaces the whole field, so a mistake is fixed by running it again wi
 Each of these means **nothing was changed**. Fix the list and run it again.
 
 - `Playoff field not changed: Unknown team abbreviations: KAN. Known: ARI, ATL, ...`: use the spelling from the `Known` list.
-- `The playoff field has exactly 14 teams, got 13`: a team is missing or listed twice.
+- `Playoff field not changed: The playoff field has exactly 14 teams, got 13`: a team is missing or listed twice.
 - `No NFL teams are loaded`: do [Step 13](13-load-data-admin.md) first.
 - `usage: set_playoff_field.py ...`: the team list is missing; check the quotes in step 3.
+- `No module named 'api'` or `No module named api.scripts.set_playoff_field`: the API running is older than this script. Redeploy it (Step 6), then run step 3 again.
 
 If a draft has already started, ask the coordinator before changing the field. If `fly ssh console` itself fails, paste the error (never a secret) to the coordinator.
