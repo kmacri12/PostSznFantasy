@@ -81,11 +81,12 @@ Several rules are unfamiliar (team QB/K, per-round lineups, kickoff locks, elimi
 
 ## 10. Season end and history
 
-- When the Super Bowl is final, crown the champion and turn the league page into a recap.
-- Awards (all use counted points, which means points scored while in a starter slot, multiplied): Playoff MVP, Champion's MVP, top player at each position, best single game, best round, most points left on the bench, best draft value, biggest bust.
-- Draft value is the pick number minus the player's rank by counted points. **Open:** the exact formula is a working definition.
-- Past seasons are a permanent read-only archive.
-- "Run it back" (post-v1) creates next season's league from this one, keeping members and settings.
+- A league is finished when its season's Super Bowl is final. That is derived from the games, so nothing is stored and nothing can drift.
+- The champion is the team ranked first in the final standings (the same tiebreaker chain as section 6). Teams level on the whole chain are co-champions. The league page becomes a recap: champion(s) first, then the awards.
+- Awards (all use counted points, which means points scored while in a starter slot, multiplied) are computed on read, never stored: Playoff MVP (most counted points), Champion's MVP (most counted points on the champion's team), top player at each position that scored, best single game (one player, one round), best round (one team, one round), most points left on the bench (the team's total bench points, the same calculation as the round breakdown) and the two draft awards below. Ties on an award go to the lower player or team id.
+- Draft value is the pick number minus the player's rank by counted points among the league's drafted players (level players share the better rank). The best draft value is the highest, the biggest bust the lowest. **Open:** the exact formula is a working definition; it rewards late picks who score and punishes early picks who do not, but treats a 0-point pick 100 as a bargain.
+- Past seasons are a permanent read-only archive: a finished league can be read by its members and every write (lineups, picks, settings, notes, renames, invites, joining) is refused with 409. The league list shows the season and an Archived tag.
+- Run it back: a commissioner of a finished league creates next season's league (season + 1) with the same members and roles, teams (names and owners), notes and settings, fresh rosters and an unscheduled, empty draft. The old league's invite is retired and a new one created. It can be done once per league.
 
 ## Out of scope for v1
 

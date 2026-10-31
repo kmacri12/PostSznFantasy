@@ -12,8 +12,14 @@ import {
 import { mutationError } from "../common/friendlyError";
 
 /** Free text for buy-in, prizes and house rules: commissioners edit it, everyone reads it. */
-const LeagueNotes = ({ league }: { league: LeagueOverview }) => {
-  const isCommissioner = league.myRole === "commissioner";
+const LeagueNotes = ({
+  league,
+  readOnly = false,
+}: {
+  league: LeagueOverview;
+  readOnly?: boolean;
+}) => {
+  const isCommissioner = league.myRole === "commissioner" && !readOnly;
   const [draft, setDraft] = useState<string | null>(null);
   const update = useUpdateLeague(league.id);
   const failure = mutationError(update.error, "Couldn't save the notes. Try again.");

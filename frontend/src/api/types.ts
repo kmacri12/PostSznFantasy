@@ -8,6 +8,8 @@ export interface LeagueByUser {
   userTeamId: number | null;
   /** Events in the league feed this member hasn't seen: drives the nav dot. */
   hasNewActivity: boolean;
+  /** The Super Bowl is final: the league is a read-only archive. */
+  finished: boolean;
 }
 
 export interface MemberSummary {
@@ -377,4 +379,36 @@ export interface ActivityFeed {
   /** Pass as `before` for the next older page; null on the last page. */
   nextBefore: number | null;
   hasNew: boolean;
+}
+
+export interface RecapTeam {
+  teamId: number;
+  teamName: string;
+  owner: string;
+  total: number;
+}
+
+export interface AwardWinner {
+  key: string;
+  title: string;
+  teamId: number;
+  teamName: string;
+  owner: string;
+  playerId: number | null;
+  playerName: string | null;
+  position: string | null;
+  round: number | null;
+  /** Counted points; for the draft awards picks above or below the slot, for the bench award bench points. */
+  value: number;
+}
+
+export interface SeasonRecap {
+  leagueId: number;
+  season: number;
+  finished: boolean;
+  /** More than one when the title is tied all the way down the tiebreaker chain. */
+  champions: RecapTeam[];
+  standings: Standings;
+  nextLeagueId: number | null;
+  awards: AwardWinner[];
 }

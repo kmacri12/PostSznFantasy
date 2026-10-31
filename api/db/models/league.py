@@ -32,6 +32,13 @@ class League(Base):
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     season: Mapped[int] = mapped_column(Integer, nullable=False)
     notes: Mapped[str] = mapped_column(Text, nullable=False, server_default="")
+    # The league this one was run back from; unique so a season is run back once.
+    previous_league_id: Mapped[int | None] = mapped_column(
+        Integer,
+        ForeignKey("fantasy.leagues.id", ondelete="SET NULL"),
+        nullable=True,
+        unique=True,
+    )
 
     members: Mapped[list["LeagueMember"]] = relationship(
         "LeagueMember", back_populates="league", cascade="all, delete-orphan"
