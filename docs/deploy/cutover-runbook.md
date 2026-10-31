@@ -1,5 +1,7 @@
 # Production cutover runbook
 
+The owner's click-by-click version of these stages, one page per step, is [docs/owner/README.md](../owner/README.md).
+
 First launch of PostSzn Fantasy, from local-only to live. Follow the stages in order. Every stage has: what to do, **go/no-go** checks (do not start the next stage until every box is true), and a **rollback**.
 
 You do not need to know the code. You need: the GitHub repository (admin), a terminal with `git`, `gh`, `flyctl` and `psql`, and accounts for Supabase, Fly.io, Cloudflare (the domain `postsznfantasy.com` registered there or transferable) and RapidAPI. Stages 2 to 4 have a guided script in `scripts/wizards/`; run it from the repository root. The scripts never ask you to paste secrets into them or into chat: secrets go straight into the provider's dashboard or `fly secrets`.
@@ -120,7 +122,7 @@ fly ssh console --app postszn-api -C "python -m api.scripts.seed_nfl_data --seas
 
 **Go / no-go**
 - [ ] The command printed non-zero counts for teams (32), players and stats, and the remaining quota is acceptable.
-- [ ] `psql '<connection>' -c 'select count(*) from nfl.teams'` is 32 and players are in the thousands.
+- [ ] `psql '<connection>' -c 'select count(*) from nfl.nfl_teams'` is 32 and players are in the thousands.
 - [ ] The app's player list page shows players with fantasy points.
 
 **Rollback:** the seed is an idempotent upsert; re-running is safe. To start over: `truncate` the `nfl` tables in the SQL editor (nothing else references them before leagues exist). Spent quota cannot be undone.

@@ -28,17 +28,15 @@ Frontend: add `VITE_SENTRY_DSN` under Pages, Settings, Variables and Secrets (pr
 
 ## Alert rules to create (issue #88, after #85)
 
-Alerts live in the Sentry UI (Alerts, Create Alert), so they cannot be committed. Create these three in the **postszn-api** project, environment `production`, notifying your email.
+Alerts live in the Sentry UI, so they cannot be committed. Create these in the **postszn-api** project, environment `production`, notifying your email. Sentry's 2026 alert builder (**Monitors**, **Alerts**) renamed the pieces used below: "an event is seen" is now the trigger *An event or issue activity is captured*, the frequency condition is the *Number of events* filter, the tag condition is *Tagged event*, and the action interval is *Throttling*. The click-by-click version is [docs/owner/10-sentry.md](../owner/10-sentry.md).
 
 ### 1. Scheduler or sync failures during games
 
 The scheduler logs each failed poll, reconcile, schedule refresh or cycle with `logger.exception`, which becomes a Sentry event with the `logger` tag `api.services.scheduler`.
 
-- Type: **Issue alert**
-- When: *an event is seen*
-- If (filter): `logger` equals `api.services.scheduler` **and** `environment` equals `production`
-- Then: *Frequency*: more than **3** events in **10 minutes** (use "The issue is seen more than 3 times in 10 minutes")
-- Action: send a notification to you; action interval 30 minutes.
+- When: *An event or issue activity is captured*
+- If (filters): *Tagged event* `logger` equals `api.services.scheduler`; *Number of events* more than **3** in **10 minutes**; environment `production`
+- Action: notify you; throttling 30 minutes.
 
 During the live window the poll runs every 180 s, so a persistently failing sync trips this within about ten minutes.
 
@@ -52,7 +50,7 @@ Create it as two rules with the same threshold and action (Sentry filters are AN
 
 - Rule 2a. If: `logger` equals `api.services.draft_clock` and `environment` equals `production`.
 - Rule 2b. If: the issue's `transaction` contains `/api/drafts` and `environment` equals `production`.
-- Then, for both: more than **2** events in **5 minutes**; notify you immediately (action interval 5 minutes), since a draft happens in real time.
+- Then, for both: more than **2** events in **5 minutes**; notify you immediately (throttling 5 minutes), since a draft happens in real time.
 
 Ordinary user mistakes (taking a drafted player, picking out of turn) are 4xx responses, which Sentry does not record, so they will not trigger this.
 
@@ -60,10 +58,9 @@ Ordinary user mistakes (taking a drafted player, picking out of turn) are 4xx re
 
 When the daily cap (`RAPIDAPI_DAILY_REQUEST_LIMIT`) is reached, live polling stops and the data goes stale, but nothing is raised. The client therefore sends one Sentry message, "Tank01 daily request budget spent" (level `warning`, no payload), per UTC day, from `RapidApiClient`. The count is in memory, so a restart after the cap is hit can send it again.
 
-- Type: **Issue alert**
-- When: *an event is seen* (not "a new issue is created": every day's message groups into one issue, so only the first day would notify)
-- If (filter): `message` contains `Tank01 daily request budget spent` **and** `environment` equals `production`
-- Action: notify you; action interval 24 hours.
+- When: *An event or issue activity is captured* (not "A new issue is created": every day's message groups into one issue, so only the first day would notify)
+- If (filters): *Event attribute* `message` contains `Tank01 daily request budget spent`; environment `production`
+- Action: notify you; throttling 24 hours.
 
 ### Check the rules
 

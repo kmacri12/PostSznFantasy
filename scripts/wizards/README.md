@@ -11,5 +11,7 @@ values are saved to `~/.config/postszn-wizards/*.env`, outside the repo.
 | 3 | `sentry-setup.sh` | #85 |
 | Production launch, in this order (see [the cutover runbook](../../docs/deploy/cutover-runbook.md)) | `supabase-prod.sh`, then `fly-setup.sh`, then `cloudflare-pages.sh` | #105, #104, #106 |
 
+The full owner walkthrough around these scripts, in launch order: [docs/owner/README.md](../../docs/owner/README.md).
+
 Run from the repo root: `./scripts/wizards/production-google-oauth.sh`. Ctrl-C and re-run is safe.
 Quota research for #71 is in [docs/research/rapidapi-quota.md](../../docs/research/rapidapi-quota.md).
