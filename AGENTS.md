@@ -132,6 +132,8 @@ PostSznFantasy/
 │   │   ├── test_scoring.py     # Unit tests for scoring evaluator
 │   │   ├── test_golden_2025.py # Replays 2025 box scores against the commissioner's sheet (fixtures/golden_2025)
 │   │   ├── test_awards_golden_2025.py # Season awards over those box scores with fixed teams, lineups and picks (fixtures/golden_2025/awards_league.json)
+│   │   ├── golden_league.py   # The real 2025 league (league_2025.json from the workbook) replayed: standings, awards, `python -m api.tests.golden_league` writes docs/research/awards-2025-replay.md
+│   │   ├── test_awards_real_league_2025.py # Standings and awards of that league against the sheet
 │   │   └── test_api_integration.py # Integration tests for API endpoints
 │   ├── main.py                 # FastAPI application factory, CORS, lifespan
 │   ├── pyproject.toml          # uv backend project specification & tool settings

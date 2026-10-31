@@ -1,9 +1,8 @@
 """Acceptance test: replay the 2025 postseason through our scorer and match the sheet.
 
 The commissioner's 2025 league scored these games in a Google Sheet (half PPR that
-year). Fixtures in `fixtures/golden_2025/` hold the box scores of the four games we
-have cached (Wild Card LAR@CAR, Divisional BUF@DEN and LAR@CHI, Super Bowl SEA@NE)
-and the sheet's per-player round points. QB and K rows are compared as team totals
+year). Fixtures in `fixtures/golden_2025/` hold the box scores of all 14 postseason
+games and the sheet's per-player round points. QB and K rows are compared as team totals
 because the sheet combined every QB (and K) of a team into each of their rows.
 """
 
@@ -74,7 +73,7 @@ class Replay:
         """(label, ours, sheet) for every individual and every team-combined QB/K."""
         out: list[tuple[str, float, float]] = []
         combined: dict[tuple[str, str, str], list[float]] = defaultdict(
-            lambda: [0.0, 0.0]
+            lambda: [0.0, float("-inf")]
         )
         for row in self.sheet:
             for round_name, sheet_points in row["rounds"].items():

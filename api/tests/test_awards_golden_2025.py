@@ -41,6 +41,13 @@ from api.services.lineups import BENCH, slot_layout
 from api.services.round_points import PointsLine, StatsByPlayer, point_lines
 from api.tests.test_golden_2025 import FIXTURES, Replay, _sheet_settings
 
+# The small hand-checkable league scores these four games only.
+GAMES = (
+    "20260110_LAR@CAR",
+    "20260117_BUF@DEN",
+    "20260118_LAR@CHI",
+    "20260208_SEA@NE",
+)
 WEEK_OF = {"Wild Card": 19, "Divisional Round": 20, "Super Bowl": 22}
 SHEET_ROUND = {1: "Wild Card", 2: "Divisional Round", 4: "Super Bowl"}
 SLOT_COUNTS = {
@@ -108,6 +115,8 @@ class League:
     def _stats(self, replay: Replay) -> StatsByPlayer:
         by_player: StatsByPlayer = defaultdict(list)
         for game_id, box in replay.boxes.items():
+            if game_id not in GAMES:
+                continue
             for row in parse_game_player_stats(game_id, box, set(self.players)):
                 by_player[row["player_id"]].append(
                     (NFLPlayerGameStats(**row), WEEK_OF[box["gameWeek"]])
