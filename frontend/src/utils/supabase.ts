@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { AuthClient } from "@supabase/auth-js";
 import { parseAuthCallbackError } from "./authRedirect";
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
@@ -6,7 +6,18 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
 const supabaseKey =
   import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY || "";
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+// Only auth is used, so this is auth-js alone: supabase-js also bundles realtime,
+// storage and postgrest. Persistence, token refresh and URL-session detection are
+// auth-js defaults, spelled out because the sign-in flows depend on them. The storage
+// key is mirrored in e2e/support/env.ts.
+export const supabaseAuth = new AuthClient({
+  url: `${supabaseUrl}/auth/v1`,
+  headers: { apikey: supabaseKey },
+  storageKey: "postszn-auth",
+  persistSession: true,
+  autoRefreshToken: true,
+  detectSessionInUrl: true,
+});
 
 // Read before the client initialises, which consumes the URL fragment.
 export const initialCallbackError =

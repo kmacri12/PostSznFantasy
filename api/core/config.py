@@ -83,6 +83,11 @@ class Settings(BaseSettings):
     scheduler_replay_file: str = ""
     scheduler_replay_speed: float = 60.0
 
+    # "postgres" fans draft broadcasts out to every API instance over LISTEN/NOTIFY, for
+    # running more than one process. Needs a direct or session-mode connection
+    # (not Supabase's transaction pooler); "local" keeps broadcasts in-process.
+    draft_broadcast: Literal["local", "postgres"] = "local"
+
     # Logging
     environment: str = "development"
     log_level: str = "INFO"

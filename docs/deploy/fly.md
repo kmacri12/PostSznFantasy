@@ -1,6 +1,6 @@
 # API on Fly.io
 
-One always-on 1 GB machine runs `uvicorn api.main:app --workers 1 --proxy-headers` (the WebSocket rooms and the draft clock are in-process, so there is exactly one process). Config: [`fly.toml`](../../fly.toml). Image: [`Dockerfile`](../../Dockerfile). Account, app and secrets walkthrough: `scripts/wizards/fly-setup.sh`.
+One always-on 1 GB machine runs `uvicorn api.main:app --workers 1 --proxy-headers` (the WebSocket rooms and the draft clock are in-process, so there is exactly one process unless `DRAFT_BROADCAST=postgres`, see [api-decisions](../api-decisions.md)). Config: [`fly.toml`](../../fly.toml). Image: [`Dockerfile`](../../Dockerfile). Account, app and secrets walkthrough: `scripts/wizards/fly-setup.sh`.
 
 ## How a deploy works
 

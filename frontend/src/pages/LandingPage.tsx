@@ -16,6 +16,7 @@ import type { LeagueByUser } from "../api/types";
 import JoinCodeBox from "../components/league/JoinCodeBox";
 import { useUser } from "../contexts/UserContext";
 import { tokens } from "../theme";
+import { DormantNotice } from "./DormantPage";
 
 const POSTSEASON_RULES = [
   {
@@ -100,65 +101,81 @@ const LeagueWidget = ({ league }: { league: LeagueByUser }) => {
   );
 };
 
-const LandingPage = ({ leagues }: { leagues: LeagueByUser[] }) => {
+const LandingPage = ({
+  leagues,
+  dormant = false,
+}: {
+  leagues: LeagueByUser[];
+  dormant?: boolean;
+}) => {
   const { user, signIn } = useUser();
 
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 4, md: 8 } }}>
       <Box sx={{ textAlign: "center", maxWidth: 760, mx: "auto" }}>
-        <Chip
-          label="NFL postseason only"
-          sx={{ mb: 3, bgcolor: "rgba(251,191,36,.12)", color: tokens.gold }}
-        />
-        <Typography variant="h2" sx={{ fontSize: { xs: 40, md: 64 }, lineHeight: 1.05 }}>
-          Draft once. <br />
-          <Box
-            component="span"
-            sx={{
-              background: `linear-gradient(135deg, ${tokens.gold}, #f97316)`,
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-            }}
-          >
-            Survive every round.
-          </Box>
-        </Typography>
-        <Typography color="text.secondary" sx={{ mt: 3, fontSize: 18 }}>
-          Playoff fantasy with cascading elimination: when an NFL team loses, its players are out
-          for good. Build a roster that keeps scoring while everyone else's disappears.
-        </Typography>
-
-        <Box sx={{ display: "flex", gap: 1.5, justifyContent: "center", flexWrap: "wrap", mt: 4 }}>
-          {user ? (
-            <>
-              <Button
-                variant="contained"
-                size="large"
-                component={Link}
-                to="/create-league"
-                endIcon={<ArrowForwardIcon />}
+        {dormant ? (
+          <DormantNotice />
+        ) : (
+          <>
+            <Chip
+              label="NFL postseason only"
+              sx={{ mb: 3, bgcolor: "rgba(251,191,36,.12)", color: tokens.gold }}
+            />
+            <Typography variant="h2" sx={{ fontSize: { xs: 40, md: 64 }, lineHeight: 1.05 }}>
+              Draft once. <br />
+              <Box
+                component="span"
+                sx={{
+                  background: `linear-gradient(135deg, ${tokens.gold}, #f97316)`,
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                }}
               >
-                Create a league
-              </Button>
-              {leagues.length > 0 && (
+                Survive every round.
+              </Box>
+            </Typography>
+            <Typography color="text.secondary" sx={{ mt: 3, fontSize: 18 }}>
+              Playoff fantasy with cascading elimination: when an NFL team loses, its players are
+              out for good. Build a roster that keeps scoring while everyone else's disappears.
+            </Typography>
+          </>
+        )}
+
+        {!dormant && (
+          <Box
+            sx={{ display: "flex", gap: 1.5, justifyContent: "center", flexWrap: "wrap", mt: 4 }}
+          >
+            {user ? (
+              <>
                 <Button
-                  variant="outlined"
+                  variant="contained"
                   size="large"
-                  color="inherit"
                   component={Link}
-                  to={`/league/${leagues[0]?.id}`}
+                  to="/create-league"
+                  endIcon={<ArrowForwardIcon />}
                 >
-                  View your leagues
+                  Create a league
                 </Button>
-              )}
-            </>
-          ) : (
-            <Button variant="contained" size="large" onClick={signIn}>
-              Sign in to play
-            </Button>
-          )}
-          <JoinCodeBox />
-        </Box>
+                {leagues.length > 0 && (
+                  <Button
+                    variant="outlined"
+                    size="large"
+                    color="inherit"
+                    component={Link}
+                    to={`/league/${leagues[0]?.id}`}
+                  >
+                    View your leagues
+                  </Button>
+                )}
+              </>
+            ) : (
+              <Button variant="contained" size="large" onClick={signIn}>
+                Sign in to play
+              </Button>
+            )}
+            <JoinCodeBox />
+          </Box>
+        )}
       </Box>
 
       {user && leagues.length > 0 && (
