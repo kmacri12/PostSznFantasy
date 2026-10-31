@@ -10,7 +10,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from api.core.config import get_settings
 from api.db.models import NFLTeam
 from api.scripts import set_playoff_field as script
-from api.services.playoff_field import PlayoffFieldError
+from api.services.playoff_field import (
+    PlayoffFieldError,
+    set_playoff_field_by_abbreviation,
+)
 from api.tests.postgres.conftest import ClientFactory
 
 ABBREVIATIONS = [
@@ -21,7 +24,7 @@ FIELD = ABBREVIATIONS[:14]
 
 
 @pytest.fixture(autouse=True)
-def admin(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
+def admin_uid(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     monkeypatch.setenv("ADMIN_SUPABASE_UIDS", "admin-uid")
     get_settings.cache_clear()
     yield
@@ -51,9 +54,7 @@ async def _field(db: AsyncSession) -> list[str]:
 async def test_the_script_replaces_the_field_by_abbreviation(
     db: AsyncSession, teams: list[NFLTeam]
 ) -> None:
-    field = await script.set_field_from_abbreviations(
-        db, [abv.lower() for abv in FIELD]
-    )
+    field = await set_playoff_field_by_abbreviation(db, [abv.lower() for abv in FIELD])
 
     assert [team.team_abv for team in field] == sorted(FIELD)
     assert await _field(db) == sorted(FIELD)
@@ -63,7 +64,7 @@ async def test_unknown_abbreviations_are_named_and_nothing_changes(
     db: AsyncSession, teams: list[NFLTeam]
 ) -> None:
     with pytest.raises(PlayoffFieldError, match="XYZ, ZZZ") as exc:
-        await script.set_field_from_abbreviations(db, [*FIELD[:12], "ZZZ", "XYZ"])
+        await set_playoff_field_by_abbreviation(db, [*FIELD[:12], "ZZZ", "XYZ"])
 
     assert "Known: BAL, BUF" in str(exc.value)
     assert await _field(db) == ["DAL"]
@@ -77,7 +78,7 @@ async def test_the_field_needs_exactly_fourteen_different_teams(
     db: AsyncSession, teams: list[NFLTeam], abbreviations: list[str], count: int
 ) -> None:
     with pytest.raises(PlayoffFieldError, match=f"exactly 14 teams, got {count}"):
-        await script.set_field_from_abbreviations(db, abbreviations)
+        await set_playoff_field_by_abbreviation(db, abbreviations)
 
     assert await _field(db) == ["DAL"]
 
@@ -86,7 +87,7 @@ async def test_an_empty_teams_table_says_to_load_the_data_first(
     db: AsyncSession,
 ) -> None:
     with pytest.raises(PlayoffFieldError, match="No NFL teams are loaded"):
-        await script.set_field_from_abbreviations(db, FIELD)
+        await set_playoff_field_by_abbreviation(db, FIELD)
 
 
 @pytest.fixture
@@ -131,8 +132,8 @@ async def test_the_command_exits_with_the_reason_on_a_bad_field(
 async def test_the_admin_endpoint_rejects_unknown_team_ids(
     db: AsyncSession, teams: list[NFLTeam], client_as: ClientFactory
 ) -> None:
-    async with client_as("admin-uid") as admin:
-        response = await admin.put(
+    async with client_as("admin-uid") as client:
+        response = await client.put(
             "/api/admin/playoff-field", json={"teamIds": [*range(1, 14), 999]}
         )
 
@@ -144,8 +145,8 @@ async def test_the_admin_endpoint_rejects_unknown_team_ids(
 async def test_the_admin_endpoint_sets_the_field(
     db: AsyncSession, teams: list[NFLTeam], client_as: ClientFactory
 ) -> None:
-    async with client_as("admin-uid") as admin:
-        response = await admin.put(
+    async with client_as("admin-uid") as client:
+        response = await client.put(
             "/api/admin/playoff-field", json={"teamIds": list(range(1, 15))}
         )
 

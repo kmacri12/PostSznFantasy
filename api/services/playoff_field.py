@@ -56,6 +56,32 @@ async def set_playoff_field(db: AsyncSession, team_ids: Collection[int]) -> None
     await db.execute(update(NFLTeam).values(in_playoffs=NFLTeam.id.in_(ids)))
 
 
+async def set_playoff_field_by_abbreviation(
+    db: AsyncSession, abbreviations: Collection[str]
+) -> list[NFLTeam]:
+    """The owner's way in (api.scripts.set_playoff_field): `BUF KC ...`."""
+    wanted = {abv.strip().upper() for abv in abbreviations}
+    teams = list(await db.scalars(select(NFLTeam).where(NFLTeam.team_abv.in_(wanted))))
+    if unknown := sorted(wanted - {team.team_abv for team in teams}):
+        known = list(
+            await db.scalars(
+                select(NFLTeam.team_abv)
+                .where(NFLTeam.team_abv.is_not(None))
+                .order_by(NFLTeam.team_abv)
+            )
+        )
+        if not known:
+            raise PlayoffFieldError(
+                "No NFL teams are loaded; run api.scripts.seed_nfl_data first"
+            )
+        raise PlayoffFieldError(
+            f"Unknown team abbreviations: {', '.join(unknown)}. "
+            f"Known: {', '.join(abv or '' for abv in known)}"
+        )
+    await set_playoff_field(db, [team.id for team in teams])
+    return sorted(teams, key=lambda team: team.team_abv or "")
+
+
 async def first_wild_card_kickoff(db: AsyncSession, season: int) -> datetime | None:
     epochs = (
         await db.execute(
