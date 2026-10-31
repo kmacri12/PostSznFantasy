@@ -28,7 +28,7 @@ Frontend: add `VITE_SENTRY_DSN` under Pages, Settings, Variables and Secrets (pr
 
 ## Alert rules to create (issue #88, after #85)
 
-Alerts live in the Sentry UI (Alerts, Create Alert), so they cannot be committed. Create these two in the **postszn-api** project, environment `production`, notifying your email.
+Alerts live in the Sentry UI (Alerts, Create Alert), so they cannot be committed. Create these three in the **postszn-api** project, environment `production`, notifying your email.
 
 ### 1. Scheduler or sync failures during games
 
@@ -42,7 +42,7 @@ The scheduler logs each failed poll, reconcile, schedule refresh or cycle with `
 
 During the live window the poll runs every 180 s, so a persistently failing sync trips this within about ten minutes.
 
-**Gap, be aware:** this catches a sync that *errors*. It cannot catch a scheduler that stopped, or a spent daily RapidAPI budget (`budgetExhausted`), because nothing is raised. Cover those with a second UptimeRobot keyword monitor (see [uptime-check.md](uptime-check.md)) on `https://api.postsznfantasy.com/api/players/sync-status` that alerts when the body contains `"budgetExhausted":true`, and look at `lastSyncedAt` on game days.
+**Gap, be aware:** this catches a sync that *errors*. It cannot catch a scheduler that has stopped; look at `lastSyncedAt` on `/api/players/sync-status` (login-protected, so an external keyword monitor cannot read it) on game days. A spent daily RapidAPI budget has its own alert, rule 3 below.
 
 ### 2. Repeated draft pick failures
 
@@ -55,6 +55,15 @@ Create it as two rules with the same threshold and action (Sentry filters are AN
 - Then, for both: more than **2** events in **5 minutes**; notify you immediately (action interval 5 minutes), since a draft happens in real time.
 
 Ordinary user mistakes (taking a drafted player, picking out of turn) are 4xx responses, which Sentry does not record, so they will not trigger this.
+
+### 3. Daily Tank01 request budget spent
+
+When the daily cap (`RAPIDAPI_DAILY_REQUEST_LIMIT`) is reached, live polling stops and the data goes stale, but nothing is raised. The client therefore sends one Sentry message, "Tank01 daily request budget spent" (level `warning`, no payload), per UTC day, from `RapidApiClient`. The count is in memory, so a restart after the cap is hit can send it again.
+
+- Type: **Issue alert**
+- When: *a new issue is created* (a first occurrence), or *an event is seen*
+- If (filter): `message` contains `Tank01 daily request budget spent` **and** `environment` equals `production`
+- Action: notify you; action interval 24 hours.
 
 ### Check the rules
 
