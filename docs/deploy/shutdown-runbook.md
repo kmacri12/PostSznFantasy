@@ -44,7 +44,7 @@ scripts/restore-backup.sh \
 
 **Verify:** the restore prints `restored, alembic revision <latest>`, the two stored copies match `sha256sum -c SHA256SUMS`, then `dropdb -h localhost -p 5433 -U postgres final_check`.
 
-Note: the dump holds the `public`, `nfl` and `fantasy` schemas. **Sign-in accounts live in Supabase Auth and are not in it.** See step 4.
+Note: the dump holds the `public`, `nfl` and `fantasy` schemas. **Sign-in accounts live in Supabase Auth and are not in it**, but their ids and emails are (`fantasy.users`), which is enough to recreate them: see step 4 and [backup.md](backup.md#recreating-sign-in-accounts).
 
 ## 2. Turn the scheduler off and confirm nothing is running (OWNER)
 
@@ -81,7 +81,7 @@ Both cost $0 on the Free plan. Pick one and write it down in step 7.
 1. Disable the weekly workflow first, or it fails every Monday: `gh workflow disable backup.yml`.
 2. Pause from the dashboard: Project Settings, General, "Pause project". Supabase also auto-pauses a Free project after a week of low activity.
 3. Know the risk. Supabase's docs disagree on how long a paused project can be restored: [Project Pausing](https://supabase.com/docs/guides/platform/free-project-pausing) says 1 year, another page says 90 days. Do not count on it for a whole off-season.
-4. If it is gone, the wake-up runbook restores the dump into a new project. **Auth users do not come back with a dump.** Every player would sign up again, and old leagues would not link to the new account (the dump keys users by their old Supabase user id).
+4. If it is gone, the wake-up runbook restores the dump into a new project and recreates the sign-in accounts from it with `recreate_auth_users` (same ids, so leagues still link). That works, but it is a recovery, not a plan: prefer Option A, which `scripts/dormancy-check.sh dormant` also checks (it warns when the weekly backup has not run for 8 days).
 
 **Verify:** Option A: `gh workflow list` shows `Weekly backup  active`. Option B: the dashboard shows "Paused" and `gh workflow list` shows it disabled.
 

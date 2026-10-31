@@ -3,7 +3,7 @@
 `.github/workflows/backup.yml` runs every Monday at 06:17 UTC (and on demand from the Actions tab). It uses [`scripts/backup-db.sh`](../../scripts/backup-db.sh), which:
 
 1. runs `select ... now()` against the database, so the Supabase Free project never counts as idle (it pauses after a week without activity);
-2. `pg_dump`s the `public`, `nfl` and `fantasy` schemas (custom format). That includes user emails and the Alembic revision. Supabase-managed schemas such as `auth` are not included: sign-in accounts live in Supabase and are not restored from this file;
+2. `pg_dump`s the `public`, `nfl` and `fantasy` schemas (custom format). That includes user emails and the Alembic revision. Supabase-managed schemas such as `auth` are deliberately not included (no password hashes or tokens in the file), so sign-in accounts are not restored by it; they are recreated from `fantasy.users` afterwards, see [Recreating sign-in accounts](#recreating-sign-in-accounts);
 3. encrypts the dump with a **public** gpg key, so the workflow can write backups but can never read them;
 4. uploads `postszn-<UTC timestamp>.dump.gpg` as a workflow artifact, kept 90 days (the GitHub maximum). Artifacts are visible only to people with access to the repository. The final shutdown dump (#111) must be kept somewhere else.
 
@@ -38,7 +38,16 @@ scripts/restore-backup.sh postszn-<timestamp>.dump.gpg \
 # prints: restored, alembic revision <n>
 ```
 
-The restore runs in one transaction, so a failure leaves the target empty. Point the API at the restored database by changing `PG_URI`; because the dump contains the `alembic_version` row, a later `alembic upgrade head` applies only newer migrations. Users must sign in again through Supabase Auth with the same accounts (their `supabase_uid` values are in the restored `fantasy.users`).
+The restore runs in one transaction, so a failure leaves the target empty. Point the API at the restored database by changing `PG_URI`; because the dump contains the `alembic_version` row, a later `alembic upgrade head` applies only newer migrations. Against the **same** Supabase project nothing more is needed: users sign in with the same accounts and their `supabase_uid` values match the restored `fantasy.users`. Against a **new** project, recreate the accounts first (next section).
+
+## Recreating sign-in accounts
+
+Decision (#215): keep the Supabase project active all off-season (the weekly keep-alive above), and treat a lost project as a recovery: `api/scripts/recreate_auth_users.py` reads `fantasy.users` from the restored database and creates each user in the new project through the Auth admin API with the **same id** and a confirmed email. Why this and not the alternatives is in [the research note](../research/supabase-auth-backup.md): no password hashes ever enter a backup, nothing changes in the sign-in path, and linking by email in the app (which would risk account takeover) is not used.
+
+- Needs the new project's `service_role` key in `SUPABASE_SERVICE_ROLE_KEY` (environment only; never a Fly or GitHub secret, never an argument). It defaults to a dry run; `--apply` creates users and can be run twice (existing users count as "already present").
+- Users with no stored email are skipped and listed; they sign up again.
+- Google sign-in links to the recreated user through the confirmed email (Supabase links identities by verified email); not yet confirmed on a real project, so check it with your own account right after the first real use.
+- **Rehearsal, no production needed:** `make rehearse-auth-restore` (local database, `make db-up migrate`) runs the whole flow twice against a fake Auth server and prints `created N, already present 0, failed 0`, then the second run's count. To also rehearse the restore, restore a dump into a scratch database as above and run `PG_URI=postgresql://...scratch python -m api.scripts.recreate_auth_users`.
 
 ## Tested round trip (local, throwaway key and database)
 

@@ -17,8 +17,18 @@ read -rsp 'Session pooler string: ' DATABASE_URL && export DATABASE_URL   # keep
   1. Create a new project as in Stage 2 of the [cutover runbook](cutover-runbook.md) (`scripts/wizards/supabase-prod.sh`; click by click: [owner Step 4](../owner/04-supabase-project.md)).
   2. Restore the stored dump: `scripts/restore-backup.sh <dump.gpg> "$DATABASE_URL"` (the new project's session pooler string).
   3. Update `PG_URI` (step 2) and the GitHub secret `PROD_DATABASE_URL`, and set the Site URL and redirect URLs again.
-  4. Players must sign up again (Auth accounts are not in the dump). Tell them.
-  **Verify:** the restore printed `restored, alembic revision <latest>`.
+  4. Recreate the sign-in accounts. They are not in the dump, but the dump holds every user's id and email, and the script creates each user in the new project with the same id (no passwords involved; sign-in is Google or magic link). Use the project's **service_role** key (Project Settings, API Keys; type it into the prompt, never into chat or a file):
+     ```bash
+     read -rsp 'service_role key: ' SUPABASE_SERVICE_ROLE_KEY && export SUPABASE_SERVICE_ROLE_KEY
+     PG_URI="$DATABASE_URL" SUPABASE_URL='https://<new-ref>.supabase.co' \
+       python -m api.scripts.recreate_auth_users            # dry run: read the plan
+     PG_URI="$DATABASE_URL" SUPABASE_URL='https://<new-ref>.supabase.co' \
+       python -m api.scripts.recreate_auth_users --apply
+     unset SUPABASE_SERVICE_ROLE_KEY
+     ```
+     Users without a stored email are listed as `SKIP`; they sign up again and a commissioner reassigns their team. Safe to run twice.
+     Practise it first with `make rehearse-auth-restore` ([backup.md](backup.md#recreating-sign-in-accounts)).
+  **Verify:** the restore printed `restored, alembic revision <latest>`, the script printed `created N, already present 0, failed 0`, and signing in with a magic link at the new project lands on your old leagues.
 
 **Verify:** `psql "$DATABASE_URL" -tAc 'select version_num from public.alembic_version'` prints the revision, and `show server_version` is a 17.x.
 

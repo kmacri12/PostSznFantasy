@@ -18,6 +18,7 @@ failed=0
 pass() { echo "PASS  $1"; }
 fail() { echo "FAIL  $1"; failed=1; }
 skip() { echo "SKIP  $1"; }
+warn() { echo "WARN  $1"; }
 
 site_code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 "$SITE_URL/") || site_code=000
 [[ $site_code == 200 ]] && pass "static shell answers 200 at $SITE_URL" \
@@ -51,6 +52,21 @@ if command -v fly >/dev/null 2>&1; then
   fi
 else
   skip "flyctl not installed: machine state not checked"
+fi
+
+# A Free Supabase project pauses after a week without database activity, and the weekly
+# backup workflow's keep-alive query is what prevents it (docs/research/supabase-auth-backup.md).
+# Only a warning: pausing on purpose (shutdown runbook, option B) is allowed.
+if [[ $mode == dormant ]] && command -v gh >/dev/null 2>&1; then
+  last_run=$(gh run list --workflow backup.yml --status success --limit 1 \
+    --json createdAt --jq '.[0].createdAt // empty' 2>/dev/null) || last_run=""
+  if [[ -z $last_run ]]; then
+    warn "no successful Weekly backup run found: Supabase may pause, and sign-in accounts need recreating after a lost project (wake-up runbook step 1)"
+  elif (( $(date +%s) - $(date -d "$last_run" +%s) > 8 * 86400 )); then
+    warn "last successful Weekly backup was $last_run (over 8 days ago): the keep-alive is not running, so Supabase may pause"
+  else
+    pass "Weekly backup ran successfully on $last_run, so Supabase stays active"
+  fi
 fi
 
 exit $failed

@@ -81,6 +81,7 @@ PostSznFantasy/
 │   │   ├── teams.py            # Team page: per-round lineups, rename, lineup moves
 │   │   └── players.py          # Player database & stats endpoints
 │   ├── scripts/                # Database seeding & administrative CLI scripts
+│   │   ├── recreate_auth_users.py # Rebuild Supabase Auth users (same ids) from fantasy.users after a lost project; dry run by default, --rehearse for a fake Auth server
 │   │   ├── seed_nfl_data.py    # Unified on-demand NFL data seeder
 │   │   └── set_playoff_field.py # Sets the 14-team field by abbreviation (bye teams aren't ingested); run via fly ssh console
 │   ├── services/               # Decoupled ingestion & domain services
@@ -260,7 +261,7 @@ Authorization: `LeagueMember` (any member), `LeagueCommissioner` (`require_commi
 - **Route Authorization**: Protected routes inject `Depends(get_current_user)`, which extracts and verifies Supabase JWT Bearer tokens from the `Authorization` header.
 - **Async Database Connection**: All database access uses SQLAlchemy 2.0 async sessions injected via `DbSession` (`Annotated[AsyncSession, Depends(get_db)]`).
 - **Logging**: Use `logger = logging.getLogger(__name__)`, never `print()`. `setup_logging()` (called in lifespan and CLI scripts) emits JSON unless `ENVIRONMENT=development`; `RequestLoggingMiddleware` logs every request and sets `X-Request-ID`. Frontend uses `createLogger(scope)` from `utils/logger.ts`, not `console.*`.
-- **Off-season lifecycle**: [shutdown](docs/deploy/shutdown-runbook.md), [wake-up](docs/deploy/wake-up-runbook.md) and [rehearsal](docs/deploy/dormancy-rehearsal.md) runbooks; `scripts/dormancy-check.sh dormant|awake` is the read-only verifier. Stop the Fly machine with `fly machine stop`, never `fly scale count 0`.
+- **Off-season lifecycle**: [shutdown](docs/deploy/shutdown-runbook.md), [wake-up](docs/deploy/wake-up-runbook.md) and [rehearsal](docs/deploy/dormancy-rehearsal.md) runbooks; `scripts/dormancy-check.sh dormant|awake` is the read-only verifier. Stop the Fly machine with `fly machine stop`, never `fly scale count 0`. Sign-in accounts (Supabase Auth, not in the backup) are protected by keeping the project active and, after a lost project, `python -m api.scripts.recreate_auth_users` ([backup.md](docs/deploy/backup.md#recreating-sign-in-accounts), `make rehearse-auth-restore`); never add password hashes to backups.
 - **Error tracking**: Sentry is inert without `SENTRY_DSN` (API, `api/core/observability.py`) / `VITE_SENTRY_DSN` (SPA, `utils/sentry.ts`, lazy-loaded). `logger.error` forwards to it, so never put PII in error messages; `RapidApiClient` also sends one "Tank01 daily request budget spent" message per UTC day. Extend the scrubbers when adding new fields. See [docs/deploy/sentry.md](docs/deploy/sentry.md).
 - **Centralized Configuration**: All environment variables are strongly typed and accessed via `get_settings()` from `api/core/config.py`.
 
