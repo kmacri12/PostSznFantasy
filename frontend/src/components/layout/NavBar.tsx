@@ -16,6 +16,7 @@ import {
   List,
   ListItemButton,
   ListItemText,
+  ListSubheader,
   Menu,
   MenuItem,
   Toolbar,
@@ -24,12 +25,26 @@ import {
   useTheme,
 } from "@mui/material";
 import type { User as SupabaseUser } from "@supabase/auth-js";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import type { LeagueByUser } from "../../api/types";
 import { HOW_TO_PLAY_LABEL } from "../../content/rules";
 import { tokens } from "../../theme";
 import { DevQuickSync } from "../dev/DevQuickSync";
+import { groupBySeason } from "../league/seasons";
+
+const SeasonHeading = ({ season }: { season: number }) => (
+  <ListSubheader component="h3" sx={{ lineHeight: "32px", bgcolor: "transparent" }}>
+    {season} season
+  </ListSubheader>
+);
+
+const LeagueLabel = ({ league }: { league: LeagueByUser }) => (
+  <Box sx={{ display: "flex", alignItems: "center", gap: 1, minWidth: 0 }}>
+    <Typography noWrap>{league.name}</Typography>
+    {league.finished && <Chip size="small" variant="outlined" label="Archived" />}
+  </Box>
+);
 
 interface NavBarProps {
   user: SupabaseUser | null;
@@ -57,6 +72,7 @@ const NavBar = ({
   const [leagueAnchor, setLeagueAnchor] = useState<HTMLElement | null>(null);
   const [profileAnchor, setProfileAnchor] = useState<HTMLElement | null>(null);
 
+  const seasonGroups = groupBySeason(leagues);
   const selected = leagues.find((league) => String(league.id) === selectedLeagueId);
   const links: { label: string; to: string; dot?: boolean }[] = dormant
     ? []
@@ -151,19 +167,22 @@ const NavBar = ({
           />
         )}
         <Menu anchorEl={leagueAnchor} open={!!leagueAnchor} onClose={() => setLeagueAnchor(null)}>
-          {leagues.map((league) => (
-            <MenuItem
-              key={league.id}
-              selected={String(league.id) === selectedLeagueId}
-              onClick={() => {
-                onSelectLeague(String(league.id));
-                setLeagueAnchor(null);
-                navigate(`/league/${league.id}`);
-              }}
-            >
-              {league.name}
-            </MenuItem>
-          ))}
+          {seasonGroups.flatMap((group) => [
+            <SeasonHeading key={`season-${group.season}`} season={group.season} />,
+            ...group.leagues.map((league) => (
+              <MenuItem
+                key={league.id}
+                selected={String(league.id) === selectedLeagueId}
+                onClick={() => {
+                  onSelectLeague(String(league.id));
+                  setLeagueAnchor(null);
+                  navigate(`/league/${league.id}`);
+                }}
+              >
+                <LeagueLabel league={league} />
+              </MenuItem>
+            )),
+          ])}
           {leagues.length > 0 && <Divider />}
           <MenuItem
             onClick={() => {
@@ -220,18 +239,23 @@ const NavBar = ({
                 slotProps={{ primary: { variant: "overline", color: "text.secondary" } }}
                 sx={{ px: 2, pt: 1 }}
               />
-              {leagues.map((league) => (
-                <ListItemButton
-                  key={league.id}
-                  selected={String(league.id) === selectedLeagueId}
-                  onClick={() => {
-                    onSelectLeague(String(league.id));
-                    setDrawerOpen(false);
-                    navigate(`/league/${league.id}`);
-                  }}
-                >
-                  <ListItemText primary={league.name} />
-                </ListItemButton>
+              {seasonGroups.map((group) => (
+                <Fragment key={group.season}>
+                  <SeasonHeading season={group.season} />
+                  {group.leagues.map((league) => (
+                    <ListItemButton
+                      key={league.id}
+                      selected={String(league.id) === selectedLeagueId}
+                      onClick={() => {
+                        onSelectLeague(String(league.id));
+                        setDrawerOpen(false);
+                        navigate(`/league/${league.id}`);
+                      }}
+                    >
+                      <LeagueLabel league={league} />
+                    </ListItemButton>
+                  ))}
+                </Fragment>
               ))}
               <ListItemButton
                 onClick={() => {
