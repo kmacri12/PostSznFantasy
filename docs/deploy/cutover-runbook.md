@@ -192,5 +192,5 @@ Do this with at least two real accounts (two browsers or a phone and a laptop). 
 ## After launch: standing rules
 
 - Before any deploy or secret change: `scripts/check-live-drafts.sh`. Only deploy through the **Deploy API** workflow.
-- The final shutdown dump after the Super Bowl (#111) is stored outside GitHub artifacts.
+- Off-season: [shutdown-runbook.md](shutdown-runbook.md) after the playoffs, [wake-up-runbook.md](wake-up-runbook.md) about a month before the next postseason, and [dormancy-rehearsal.md](dormancy-rehearsal.md) to practise both. The final shutdown dump is stored outside GitHub artifacts.
 - If anything here turned out wrong or unclear for you, fix this file in the same pull request as your change.

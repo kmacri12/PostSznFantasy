@@ -223,13 +223,25 @@ _Avoid_: Unread, unseen
 ### Season
 
 **Champion**:
-The fantasy team that ranks first after the Super Bowl.
+The fantasy team that ranks first once the Super Bowl is final. Teams level on the whole tiebreaker chain are co-champions.
 _Avoid_: Winner
 
+**Finished league**:
+A league whose season's Super Bowl is final. It is derived from the games, never stored.
+_Avoid_: Closed league, ended league
+
 **Archive**:
-The permanent read-only record of a finished season's league.
+The permanent read-only record of a finished league: readable, and every write through the API is refused (409).
 _Avoid_: History
 
+**Season awards**:
+The recap's honours (Playoff MVP, Champion's MVP, top player per position, best single game, best round, most points left on the bench, best draft value, biggest bust), all computed on read from counted points.
+_Avoid_: Trophies, badges
+
+**Draft value**:
+A drafted player's overall pick number minus his rank by counted points in the league (1 = most). Positive means he outscored his draft slot; the most negative is the biggest bust.
+_Avoid_: ADP delta
+
 **Run it back**:
-Creating next season's league from this one, keeping members and settings, with fresh rosters.
+Creating next season's league from a finished one, keeping members and their roles, teams, notes and settings, with fresh rosters, an empty unscheduled draft and a new invite. Allowed once per league.
 _Avoid_: Rollover, clone

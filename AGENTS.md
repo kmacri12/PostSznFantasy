@@ -10,7 +10,7 @@
 > This project is in an **early pre-dev, local-only prototyping phase**. There are **no production databases, no active users, no live data, and no backward-compatibility requirements**.
 > Everything is on the table: schema redesigns, table wipes, dropping legacy code wholesale, replacing state management, or restructuring routes. Do not write complex data migrations or retain deprecated shims for existing data—build the cleanest target architecture from scratch.
 >
-> The codebase has been fully modernized to a **FastAPI** backend with async SQLAlchemy 2.0 and Pydantic v2 schemas, and a **React 18 + Vite** SPA in TypeScript.
+> The codebase has been fully modernized to a **FastAPI** backend with async SQLAlchemy 2.0 and Pydantic v2 schemas, and a **React 19 + Vite** SPA in TypeScript.
 
 | Component | Modern Implementation Stack |
 | :--- | :--- |
@@ -24,9 +24,9 @@
 | **Configuration** | **Pydantic Settings** (`api/core/config.py` cached singleton) |
 | **Auth** | Supabase Auth (JWT verification via FastAPI `Depends(get_current_user)`) |
 | **NFL Data Ingestion** | Async HTTP client (`httpx.AsyncClient`) with `tenacity` retries |
-| **Frontend Runtime** | React 18, Vite 8, strict TypeScript |
+| **Frontend Runtime** | React 19, Vite 8, strict TypeScript |
 | **Frontend Linter & Formatter** | **Biome** (`@biomejs/biome`, `biome.json`) |
-| **UI Components** | MUI (`@mui/material` 5.15, Emotion 11.11) |
+| **UI Components** | MUI (`@mui/material` 9.5, Emotion 11.14) |
 | **Table Component** | TanStack Table v8 (`@tanstack/react-table`) |
 | **State Management** | React Context (`UserContext`) + native `useWebSocket` hook |
 
@@ -62,11 +62,12 @@ PostSznFantasy/
 │   │       └── nfl.py          # NFLTeam, NFLPlayer, Stats, Game models
 │   ├── dependencies/           # FastAPI dependency providers
 │   │   ├── auth.py             # Supabase JWT validation (verify_token, get_current_user)
-│   │   └── league.py           # LeagueMember/DraftMember/TeamMember guards (403 for non-members)
+│   │   └── league.py           # LeagueMember/DraftMember/TeamMember guards (403 for non-members; 409 on writes to a finished league, except ArchiveCommissioner for run it back)
 │   ├── models/                 # Pydantic v2 DTO schemas (camelCase serialization)
 │   │   ├── base.py             # BaseSchema with alias_generator = to_camel
 │   │   ├── activity_models.py  # Activity event payloads, feed pages, slot marks, score changes
 │   │   ├── auth_models.py      # Auth exchange DTOs
+│   │   ├── recap_models.py     # SeasonRecap, RecapTeam, AwardWinner DTOs
 │   │   ├── league_models.py    # League CRUD, Standings, Team DTOs
 │   │   ├── draft_models.py     # Draft status and pick DTOs
 │   │   └── players_models.py   # Player directory DTOs
@@ -86,6 +87,9 @@ PostSznFantasy/
 │   │   ├── standings.py        # Recomputes the fantasy.standings snapshot (starters' round points, players left, ranks) for drafted leagues after polls, reconciles, admin score changes and draft completion; a failing league keeps its old rows
 │   │   ├── standings_view.py   # GET standings: re-ranks the snapshot with the tiebreaker chain, adds tie reasons, current-round starter counts, league-wide players left
 │   │   ├── ranking.py          # Pure tiebreaker chain (latest completed round back to the Wild Card, then players on the Super Bowl winner, then shared rank)
+│   │   ├── season_recap.py     # Finished-season recap: champion(s) = rank 1, awards, next league link; `season_is_finished` (Super Bowl final) also drives the archive guard
+│   │   ├── awards.py           # Pure award rules over counted/bench point lines (MVPs, positions, best game/round, bench, draft value, bust)
+│   │   ├── run_it_back.py      # Next season's league from a finished one (members, teams, notes, settings, new invite)
 │   │   ├── round_points.py     # Counted and bench points per team/round/player, computed on read; shared by standings, the breakdown and (Epic 18) awards
 │   │   ├── round_progress.py   # Starter counts: finished / live / to play / not playing
 │   │   ├── team_breakdown.py   # Round-by-round points page data
@@ -165,6 +169,7 @@ PostSznFantasy/
         │   ├── draft/          # DraftBoard, Countdown, PlayerSelector
         │   ├── league/         # StandingsTable (desktop), StandingsCards (phone), ProgressCounts, RankCell (tie tooltip)
         │   ├── players/        # PlayersTable (TanStack Table v8)
+        │   ├── recap/          # SeasonRecap: champion card, awards grid, run it back
         │   ├── team/           # LineupList (tap/drag lineup), OverrideDialog (commissioner confirm), BreakdownRounds (round-by-round points)
         │   └── settings/       # SettingsSection/ScoringForm/RosterForm generated from src/settings schemas
         ├── utils/
@@ -213,6 +218,7 @@ make format     # auto-fix Ruff and Biome
 | :--- | :--- |
 | Config | `GET /api/config` (season) |
 | Leagues | `POST /api/leagues/create-league`, `GET /api/leagues/user-leagues`, `GET/PATCH /api/leagues/{id}` (PATCH: `name`, `numberTeams`, and `notes`, free text up to 5000 characters shown to every member, commissioner-only edit), `GET /api/leagues/{id}/standings` (`{round, gamesInProgress, playersLeft, teams[]}`; each team has `rank`, round points, `tieReason`, `progress`; ranked by the tiebreaker chain, ties for the title share a rank), `GET/PATCH /api/leagues/{id}/settings` (roster/scoring/postseason; roster shape locks once the draft starts), `PATCH/DELETE /api/leagues/{id}/members/{userId}` |
+| Recap / archive | `GET /api/leagues/{id}/recap` (`{finished, champions[], standings, nextLeagueId, awards[]}`; no champion or awards until the Super Bowl is final; awards computed on read), `POST /api/leagues/{id}/run-it-back` (commissioner of a finished league; 201 `{leagueId}`; 409 if the season is not over or it was already run back). Every write route on a finished league answers 409 "read-only archive"; `GET /api/leagues/user-leagues` carries `finished` |
 | Invites | `GET/POST/DELETE /api/leagues/{id}/invite` (commissioner), `GET /api/invites/{code}` (public preview), `POST /api/invites/{code}/join` |
 | Teams | `GET /api/teams/{id}/breakdown` (each round's counted points per starter slot and the bench's points, computed on read; round scores equal the standings), `GET /api/teams/{id}/breakdown` (each starter slot's `mark` and each player's `scoreChange`, restated in counted points after the round multiplier), `GET/PATCH /api/teams/{id}` (the GET carries all four rounds' lineups: slots, unassigned and eliminated players, lock times, empty-starter count), `POST /api/teams/{id}/lineup` (`{round, playerId, slotIndex, confirmOverride?}`; `slotIndex: null` takes a player out; 409 when any player involved is locked or eliminated; the owner or a commissioner. A commissioner moving a locked player gets 409 `{detail, code: "override_confirmation_required"}` until the request repeats with `confirmOverride: true`; there is no add/drop in v1), `PUT /api/leagues/{id}/teams/{teamId}/owner` (commissioner assigns/unassigns a team) |
 | Activity | `GET /api/leagues/{id}/activity`, `GET /api/teams/{id}/activity` (`?limit=&before=` keyset pages, newest first, members only; each event has `isNew`, the feed has `hasNew`), `POST .../activity/viewed` (`{upToEventId?}`, 204). The league feed is every event of the league; a team's feed is the events with its `team_id` (settings changes have none). `GET /api/leagues/user-leagues` carries `hasNewActivity` for the nav dot, which (like the league feed's `hasNew`) counts only overrides, stat corrections and settings changes; the team feed counts every event. Events: `lineup_move`, `commissioner_override`, `stat_correction`, `settings_change`; the lineup slot `mark` (override or commissioner-set) is derived from them, and lineup players carry `points` and `scoreChange` |
@@ -250,6 +256,7 @@ Authorization: `LeagueMember` (any member), `LeagueCommissioner` (`require_commi
 - **Route Authorization**: Protected routes inject `Depends(get_current_user)`, which extracts and verifies Supabase JWT Bearer tokens from the `Authorization` header.
 - **Async Database Connection**: All database access uses SQLAlchemy 2.0 async sessions injected via `DbSession` (`Annotated[AsyncSession, Depends(get_db)]`).
 - **Logging**: Use `logger = logging.getLogger(__name__)`, never `print()`. `setup_logging()` (called in lifespan and CLI scripts) emits JSON unless `ENVIRONMENT=development`; `RequestLoggingMiddleware` logs every request and sets `X-Request-ID`. Frontend uses `createLogger(scope)` from `utils/logger.ts`, not `console.*`.
+- **Off-season lifecycle**: [shutdown](docs/deploy/shutdown-runbook.md), [wake-up](docs/deploy/wake-up-runbook.md) and [rehearsal](docs/deploy/dormancy-rehearsal.md) runbooks; `scripts/dormancy-check.sh dormant|awake` is the read-only verifier. Stop the Fly machine with `fly machine stop`, never `fly scale count 0`.
 - **Error tracking**: Sentry is inert without `SENTRY_DSN` (API, `api/core/observability.py`) / `VITE_SENTRY_DSN` (SPA, `utils/sentry.ts`, lazy-loaded). `logger.error` forwards to it, so never put PII in error messages; `RapidApiClient` also sends one "Tank01 daily request budget spent" message per UTC day. Extend the scrubbers when adding new fields. See [docs/deploy/sentry.md](docs/deploy/sentry.md).
 - **Centralized Configuration**: All environment variables are strongly typed and accessed via `get_settings()` from `api/core/config.py`.
 
@@ -261,5 +268,5 @@ Authorization: `LeagueMember` (any member), `LeagueCommissioner` (`require_commi
   - `VITE_WS_URL`: WebSocket origin; optional for the same reason (defaults to the page origin). Both are required in production builds (Cloudflare Pages build vars). Full contract: `api/.env.example`, `frontend/.env.example`.
   - `VITE_SUPABASE_URL`: Supabase project URL.
   - `VITE_SUPABASE_PUBLISHABLE_KEY`: Supabase project publishable API key (`sb_publishable_...`, with fallback to legacy `VITE_SUPABASE_ANON_KEY`).
-- **Component Styling**: Material-UI (MUI v5) styled components and `sx` prop.
+- **Component Styling**: Material-UI (MUI v9) styled components and `sx` prop.
 - **State Flow**: Supabase handles auth credentials client-side; on session initialization or auth state change, the Supabase access token is sent to `/api/auth/login` to resolve/upsert the relational `User.id` into `UserContext`.

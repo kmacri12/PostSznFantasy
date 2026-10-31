@@ -10,6 +10,7 @@ import type {
   LeagueOverview,
   LeagueSettings,
   PlayerSummary,
+  SeasonRecap,
   Standings,
   SyncResult,
   SyncStatus,
@@ -24,6 +25,7 @@ export const keys = {
   config: ["config"] as const,
   userLeagues: ["user-leagues"] as const,
   league: (leagueId: Id) => ["league", String(leagueId)] as const,
+  recap: (leagueId: Id) => ["recap", String(leagueId)] as const,
   standings: (leagueId: Id) => ["standings", String(leagueId)] as const,
   teams: (leagueId: Id) => ["teams", String(leagueId)] as const,
   team: (teamId: Id) => ["team", String(teamId)] as const,
@@ -74,6 +76,13 @@ export const useStandings = (leagueId: Id | undefined) =>
     queryFn: ({ signal }) => get<Standings>(`/api/leagues/${leagueId}/standings`, signal),
     enabled: leagueId !== undefined,
     refetchInterval: STANDINGS_REFRESH_MS,
+  });
+
+export const useRecap = (leagueId: Id | undefined) =>
+  useQuery({
+    queryKey: keys.recap(leagueId ?? ""),
+    queryFn: ({ signal }) => get<SeasonRecap>(`/api/leagues/${leagueId}/recap`, signal),
+    enabled: leagueId !== undefined,
   });
 
 export const useTeamBreakdown = (teamId: Id | undefined) =>
@@ -200,6 +209,15 @@ const useLeagueMutation = <TVariables, TResult>(
       }
       queryClient.invalidateQueries({ queryKey: keys.userLeagues });
     },
+  });
+};
+
+export const useRunItBack = (leagueId: Id | undefined) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () =>
+      (await api.post<{ leagueId: number }>(`/api/leagues/${leagueId}/run-it-back`)).data,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: keys.userLeagues }),
   });
 };
 

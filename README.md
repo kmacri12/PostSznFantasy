@@ -21,9 +21,9 @@ PostSzn Fantasy is architected as an asynchronous backend API service paired wit
   - **External Ingestion**: Asynchronous HTTP client ([HTTPX](https://www.python-httpx.org/)) with exponential backoff retries via [Tenacity](https://tenacity.readthedocs.io/) for RapidAPI NFL stats.
 
 - **Frontend (`frontend/`)**:
-  - **Framework & Build**: [React 18](https://react.dev/), [TypeScript](https://www.typescriptlang.org/), and [Vite](https://vitejs.dev/).
+  - **Framework & Build**: [React 19](https://react.dev/), [TypeScript](https://www.typescriptlang.org/), and [Vite](https://vitejs.dev/).
   - **Formatting & Linting**: Ultra-fast AST-based code checking and formatting via [Biome](https://biomejs.dev/).
-  - **UI & Layout**: Material UI (MUI v5) components.
+  - **UI & Layout**: Material UI (MUI v9) components.
   - **Data Tables**: Type-safe headless tabular display with [@tanstack/react-table](https://tanstack.com/table/v8).
   - **State & Real-Time**: React Context (`UserContext`) and native WebSocket hook (`useWebSocket`) for synchronized draft boards.
 
@@ -159,7 +159,7 @@ The frontend application is now accessible at `http://localhost:5173`.
 
 - **One process by default.** Run `uvicorn api.main:app --workers 1 --proxy-headers` on a single always-on instance. `DraftConnectionManager` keeps WebSocket connections in memory and the draft clock runs inside the API process, so extra workers or instances would split broadcasts unless `DRAFT_BROADCAST=postgres` is set (see [docs/api-decisions.md](docs/api-decisions.md)). Hosts that sleep when idle (free tiers) are unsuitable because nothing auto-picks while the server is asleep.
 - Error tracking (Sentry, off unless `SENTRY_DSN` / `VITE_SENTRY_DSN` are set) and its alert rules: [docs/deploy/sentry.md](docs/deploy/sentry.md).
-- Production hosting (Cloudflare Pages, Fly.io, Supabase) and the launch checklist: [docs/deploy/cutover-runbook.md](docs/deploy/cutover-runbook.md). The owner's step-by-step version (accounts, dashboards, keys): [docs/owner/README.md](docs/owner/README.md).
+- Production hosting (Cloudflare Pages, Fly.io, Supabase) and the launch checklist: [docs/deploy/cutover-runbook.md](docs/deploy/cutover-runbook.md). The owner's step-by-step version (accounts, dashboards, keys): [docs/owner/README.md](docs/owner/README.md). Off-season: [shutdown](docs/deploy/shutdown-runbook.md), [wake-up](docs/deploy/wake-up-runbook.md) and [rehearsal](docs/deploy/dormancy-rehearsal.md) runbooks (`scripts/dormancy-check.sh`).
 - User requests never call Tank01; only `/api/admin/*` and the opt-in scheduler spend RapidAPI quota.
 - Open work is tracked in [GitHub Issues](https://github.com/kmacri12/PostSznFantasy/issues) (labels `draft`, `ingestion`, `deploy`, `scaling`). Design decisions: [docs/api-decisions.md](docs/api-decisions.md).
 
@@ -230,7 +230,7 @@ PostSznFantasy/
 │   ├── tests/                  # Pytest unit and integration test suite
 │   ├── utils/                  # Ingestion client and fantasy calculation engines
 │   └── ws/                     # Native WebSocket connection manager
-└── frontend/                   # React 18 + Vite + TypeScript application
+└── frontend/                   # React 19 + Vite + TypeScript application
     ├── biome.json              # Biome linting and formatting configuration
     └── src/
         ├── components/         # Modular UI components (draft board, dev quick sync, player table, etc.)

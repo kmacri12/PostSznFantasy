@@ -39,6 +39,11 @@ Data and launch
 15. [Mock draft on phones, launch checklist](15-mock-draft.md), 1 to 2 hours with friends (#95)
 16. [Turn on live scoring before game day](16-scheduler.md), 10 min (#78)
 
+After the season (engineering runbooks, written for you too)
+- [Shut down after the Super Bowl](../deploy/shutdown-runbook.md)
+- [Wake up before the next postseason](../deploy/wake-up-runbook.md)
+- [Rehearse both](../deploy/dormancy-rehearsal.md)
+
 Decisions only you can make
 - [Pick a performance target](decisions.md#performance-target) (#94)
 
