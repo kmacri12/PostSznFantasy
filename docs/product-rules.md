@@ -88,6 +88,10 @@ Several rules are unfamiliar (team QB/K, per-round lineups, kickoff locks, elimi
 - Past seasons are a permanent read-only archive: a finished league can be read by its members and every write (lineups, picks, settings, notes, renames, invites, joining) is refused with 409. The league list shows the season and an Archived tag.
 - Run it back: a commissioner of a finished league creates next season's league (season + 1) with the same members and roles, teams (names and owners), notes and settings, fresh rosters and an unscheduled, empty draft. The old league's invite is retired and a new one created. It can be done once per league.
 
+## Injury tags
+
+Players show a tag (Out, Doubtful, Questionable, Injured Reserve) in the draft pool and the lineup when Tank01's player list reports one. It is display only: it never blocks a pick or a lineup move, and it is as fresh as the daily player sync. Source and caveats: [research/injury-status.md](research/injury-status.md).
+
 ## Out of scope for v1
 
-Free agency, injury tags, email or push reminders, any money handling, and mid-playoff leagues.
+Free agency, email or push reminders, any money handling, and mid-playoff leagues.

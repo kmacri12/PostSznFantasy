@@ -54,6 +54,8 @@ class NFLPlayer(Base):
     height: Mapped[str | None] = mapped_column(String(255), nullable=True)
     weight: Mapped[str | None] = mapped_column(String(255), nullable=True)
     exp: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    # Out, Doubtful, Questionable or Injured Reserve; refreshed by every player sync.
+    injury_status: Mapped[str | None] = mapped_column(String(32), nullable=True)
     team_id: Mapped[int | None] = mapped_column(
         Integer,
         ForeignKey("nfl.nfl_teams.id", ondelete="SET NULL"),
