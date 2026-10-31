@@ -139,7 +139,7 @@ const NavBar = ({
         <Box sx={{ flexGrow: 1 }} />
         {!isMobile && <DevQuickSync />}
 
-        {user && !isMobile && (
+        {user && !isMobile && !dormant && (
           <Chip
             clickable
             onClick={(event) => setLeagueAnchor(event.currentTarget)}
@@ -213,7 +213,7 @@ const NavBar = ({
 
       <Drawer anchor="left" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
         <List sx={{ width: 280 }}>
-          {user && (
+          {user && !dormant && (
             <>
               <ListItemText
                 primary="Your leagues"
