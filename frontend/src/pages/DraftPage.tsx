@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import { useDraftPool, useLeague, useSaveQueue } from "../api/queries";
+import { useDraftPool, useLeague, useLeagueArchived, useSaveQueue } from "../api/queries";
 import LoadingState from "../components/common/LoadingState";
 import AvailablePlayers from "../components/draft/AvailablePlayers";
 import CommissionerControls from "../components/draft/CommissionerControls";
@@ -26,6 +26,7 @@ import PausedBanner from "../components/draft/PausedBanner";
 import PickFeed from "../components/draft/PickFeed";
 import PreDraftNotice from "../components/draft/PreDraftNotice";
 import QueuePanel from "../components/draft/QueuePanel";
+import ArchivedNotice from "../components/league/ArchivedNotice";
 import { useDraftRoom } from "../hooks/useDraftRoom";
 import { playOnDeckCue, vibrateOnTurn } from "../utils/draftCue";
 
@@ -42,7 +43,8 @@ const DraftPage = () => {
 
   const state = room.state;
   const myTeamId = state?.myTeamId ?? null;
-  const isCommissioner = league.data?.myRole === "commissioner";
+  const archived = useLeagueArchived(leagueId);
+  const isCommissioner = league.data?.myRole === "commissioner" && !archived;
   const myTurn =
     state?.status === "in_progress" && myTeamId !== null && state.onTheClockTeamId === myTeamId;
   const onDeck =
@@ -107,6 +109,7 @@ const DraftPage = () => {
         {isCommissioner && <CommissionerControls draft={state} />}
       </Box>
 
+      {archived && <ArchivedNotice what="picks and the queue" />}
       <DraftStatusBar
         state={state}
         secondsLeft={room.secondsLeft}
@@ -126,8 +129,8 @@ const DraftPage = () => {
       <Paper sx={{ mt: 2 }}>
         <Tabs value={tab} onChange={(_, value: TabKey) => setTab(value)} variant="scrollable">
           <Tab value="board" label="Board" />
-          <Tab value="players" label="Players" />
-          <Tab value="queue" label={`Queue (${state.queue.length})`} />
+          {!archived && <Tab value="players" label="Players" />}
+          {!archived && <Tab value="queue" label={`Queue (${state.queue.length})`} />}
           <Tab value="roster" label="My roster" />
           <Tab value="feed" label="Pick feed" />
         </Tabs>

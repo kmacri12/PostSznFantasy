@@ -172,7 +172,7 @@ PostSznFantasy/
         │   ├── activity/       # ActivityFeed (collapsed, new dot), SlotMarker (override / asterisk), ChangedScore tooltip, describeEvent
         │   ├── layout/         # NavBar (blurred header, league switcher, drawer)
         │   ├── draft/          # DraftBoard, Countdown, PlayerSelector
-        │   ├── league/         # StandingsTable (desktop), StandingsCards (phone), ProgressCounts, RankCell (tie tooltip)
+        │   ├── league/         # StandingsTable (desktop), StandingsCards (phone), ProgressCounts, RankCell (tie tooltip), ArchivedNotice (shown where an archived league hides write controls; the `finished` flag comes from `useLeagueArchived`), `groupBySeason` (season headings in the landing page and league switcher)
         │   ├── players/        # PlayersTable (TanStack Table v8)
         │   ├── recap/          # SeasonRecap: champion card, awards grid, run it back
         │   ├── team/           # LineupList (tap/drag lineup), OverrideDialog (commissioner confirm), BreakdownRounds (round-by-round points)

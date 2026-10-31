@@ -20,6 +20,7 @@ import { Link, useParams } from "react-router-dom";
 import {
   type LineupMoveRequest,
   needsOverrideConfirmation,
+  useLeagueArchived,
   useMoveInLineup,
   useRenameTeam,
   useTeam,
@@ -30,6 +31,7 @@ import DataFreshness from "../components/common/DataFreshness";
 import EmptyState from "../components/common/EmptyState";
 import { mutationError } from "../components/common/friendlyError";
 import QueryBoundary from "../components/common/QueryBoundary";
+import ArchivedNotice from "../components/league/ArchivedNotice";
 import LineupList from "../components/team/LineupList";
 import {
   defaultRound,
@@ -86,6 +88,9 @@ const useNow = () => {
 
 const TeamContent = ({ team }: { team: TeamDetails }) => {
   const teamId = team.id;
+  const archived = useLeagueArchived(team.leagueId);
+  const canEdit = team.canEdit && !archived;
+  const canSetLineup = team.canSetLineup && !archived;
   const [renaming, setRenaming] = useState(false);
   const now = useNow();
   const [round, setRound] = useState(() => defaultRound(team.lineups, now));
@@ -110,7 +115,7 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
     <Container maxWidth="md" sx={{ py: { xs: 2, sm: 4 } }}>
       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
         <Typography variant="h4">{team.name}</Typography>
-        {team.canEdit && (
+        {canEdit && (
           <IconButton aria-label="Rename team" onClick={() => setRenaming(true)}>
             <EditIcon />
           </IconButton>
@@ -134,6 +139,7 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
       <Box sx={{ mb: 2 }}>
         <DataFreshness />
       </Box>
+      {archived && <ArchivedNotice what="names and lineups" />}
       {team.roster.length === 0 && <PreDraftRoster leagueId={team.leagueId} />}
       {team.roster.length === 0 && (
         <Box sx={{ mb: 2 }}>
@@ -148,7 +154,7 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
           />
         </Box>
       )}
-      {warning && team.canSetLineup && (
+      {warning && canSetLineup && (
         <Alert severity="warning" sx={{ mb: 2 }}>
           {ROUND_LABELS[warning.round]}: {warning.emptyStarterSlots} empty starter{" "}
           {warning.emptyStarterSlots === 1 ? "slot" : "slots"}. First kickoff{" "}
@@ -177,8 +183,8 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
           <LineupList
             key={round}
             lineup={lineup}
-            canEdit={team.canSetLineup}
-            canOverride={team.canOverride}
+            canEdit={canSetLineup}
+            canOverride={team.canOverride && !archived}
             onMove={(request) => move({ round, ...request })}
           />
         </>

@@ -14,6 +14,7 @@ import { Link } from "react-router-dom";
 import { useDraft, useStandings } from "../api/queries";
 import type { LeagueByUser } from "../api/types";
 import JoinCodeBox from "../components/league/JoinCodeBox";
+import { groupBySeason } from "../components/league/seasons";
 import { useUser } from "../contexts/UserContext";
 import { tokens } from "../theme";
 import { DormantNotice } from "./DormantPage";
@@ -64,9 +65,6 @@ const LeagueWidget = ({ league }: { league: LeagueByUser }) => {
     <Card sx={{ p: 2.5, height: "100%" }}>
       <Typography variant="h6" noWrap>
         {league.name}
-      </Typography>
-      <Typography variant="caption" color="text.secondary">
-        {league.season} season
       </Typography>
       {snapshot ? (
         <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", my: 1.5 }}>
@@ -187,15 +185,20 @@ const LandingPage = ({
           <Typography variant="h5" sx={{ mb: 2 }}>
             Your leagues
           </Typography>
-          <Grid container spacing={2}>
-            {[...leagues]
-              .sort((a, b) => b.season - a.season)
-              .map((league) => (
-                <Grid size={{ xs: 12, sm: 6, md: 4 }} key={league.id}>
-                  <LeagueWidget league={league} />
-                </Grid>
-              ))}
-          </Grid>
+          {groupBySeason(leagues).map((group, index) => (
+            <Box key={group.season} sx={{ mt: index === 0 ? 0 : 4 }}>
+              <Typography variant="h6" component="h3" color="text.secondary" sx={{ mb: 1.5 }}>
+                {group.season} season
+              </Typography>
+              <Grid container spacing={2}>
+                {group.leagues.map((league) => (
+                  <Grid size={{ xs: 12, sm: 6, md: 4 }} key={league.id}>
+                    <LeagueWidget league={league} />
+                  </Grid>
+                ))}
+              </Grid>
+            </Box>
+          ))}
         </Box>
       )}
 

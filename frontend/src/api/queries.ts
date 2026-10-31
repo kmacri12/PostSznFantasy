@@ -60,6 +60,12 @@ export const useUserLeagues = (enabled: boolean) =>
     refetchInterval: 60_000, // the nav dot for new league activity
   });
 
+/** Whether the league is a finished, read-only archive; reads the cached league list, no extra request. */
+export const useLeagueArchived = (leagueId: Id | undefined): boolean => {
+  const { data } = useUserLeagues(true);
+  return data?.find((league) => String(league.id) === String(leagueId))?.finished === true;
+};
+
 export const useLeague = (leagueId: Id | undefined) =>
   useQuery({
     queryKey: keys.league(leagueId ?? ""),
