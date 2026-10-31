@@ -61,7 +61,7 @@ def compute_awards(
 ) -> list[Award]:
     counted = sorted(
         (ln for ln in lines if ln.starter),
-        key=lambda ln: (ln.team_id, ln.player_id, ln.round),
+        key=lambda ln: (ln.player_id, ln.round),
     )
     team_of = {ln.player_id: ln.team_id for ln in lines}
     totals: dict[int, Decimal] = defaultdict(Decimal)

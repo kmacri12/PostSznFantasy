@@ -43,6 +43,9 @@ def _copy_columns(
 async def run_it_back(db: AsyncSession, league: League, commissioner: User) -> League:
     if not await season_is_finished(db, league.season):
         raise LeagueRuleError("The season is not over yet")
+    # Serializes concurrent runs of the same league, so the check below cannot race
+    # into the unique constraint (a 500) on a double click.
+    await db.execute(select(League.id).where(League.id == league.id).with_for_update())
     already = await db.scalar(
         select(League.id).where(League.previous_league_id == league.id)
     )
