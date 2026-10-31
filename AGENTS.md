@@ -26,7 +26,7 @@
 | **NFL Data Ingestion** | Async HTTP client (`httpx.AsyncClient`) with `tenacity` retries |
 | **Frontend Runtime** | React 19, Vite 8, strict TypeScript |
 | **Frontend Linter & Formatter** | **Biome** (`@biomejs/biome`, `biome.json`) |
-| **UI Components** | MUI (`@mui/material` 5.15, Emotion 11.11) |
+| **UI Components** | MUI (`@mui/material` 9.5, Emotion 11.14) |
 | **Table Component** | TanStack Table v8 (`@tanstack/react-table`) |
 | **State Management** | React Context (`UserContext`) + native `useWebSocket` hook |
 
@@ -260,5 +260,5 @@ Authorization: `LeagueMember` (any member), `LeagueCommissioner` (`require_commi
   - `VITE_WS_URL`: WebSocket origin; optional for the same reason (defaults to the page origin). Both are required in production builds (Cloudflare Pages build vars). Full contract: `api/.env.example`, `frontend/.env.example`.
   - `VITE_SUPABASE_URL`: Supabase project URL.
   - `VITE_SUPABASE_PUBLISHABLE_KEY`: Supabase project publishable API key (`sb_publishable_...`, with fallback to legacy `VITE_SUPABASE_ANON_KEY`).
-- **Component Styling**: Material-UI (MUI v5) styled components and `sx` prop.
+- **Component Styling**: Material-UI (MUI v9) styled components and `sx` prop.
 - **State Flow**: Supabase handles auth credentials client-side; on session initialization or auth state change, the Supabase access token is sent to `/api/auth/login` to resolve/upsert the relational `User.id` into `UserContext`.
