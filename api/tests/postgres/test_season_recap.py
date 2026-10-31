@@ -43,3 +43,25 @@ async def test_the_recap_route_is_for_members(
         assert (
             await stranger.get(f"/api/leagues/{league.id}/recap")
         ).status_code == 403
+
+
+async def test_awards_are_computed_on_read_with_their_owner_teams(
+    db: AsyncSession,
+) -> None:
+    league, teams, players = await finished_league(db)
+
+    recap = await build_recap(db, league)
+
+    by_key = {a.key: a for a in recap.awards}
+    assert by_key["playoff_mvp"].player_id == players[0].id
+    assert by_key["playoff_mvp"].team_id == teams[0].id
+    assert by_key["playoff_mvp"].value == 30
+    assert by_key["best_game"].round == 1
+    assert by_key["best_game"].value == 20
+    assert by_key["top_qb"].owner == "user0"
+    assert by_key["champions_mvp"].team_id == teams[0].id
+
+
+async def test_no_awards_before_the_season_ends(db: AsyncSession) -> None:
+    league, _, _ = await finished_league(db, finished_through=3)
+    assert (await build_recap(db, league)).awards == []
