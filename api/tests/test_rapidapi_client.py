@@ -6,6 +6,8 @@ import pytest
 import sentry_sdk
 import tenacity
 
+from api.core.config import get_settings
+from api.core.observability import init_sentry
 from api.utils.rapidapi import rapidapi
 from api.utils.rapidapi.rapidapi import RapidApiClient
 
@@ -241,6 +243,22 @@ async def test_spending_the_budget_sends_one_sentry_message_per_utc_day(
     with pytest.raises(rapidapi.RapidApiBudgetExceeded):
         await client.get_nfl_box_score("g")
     assert len(messages) == 2
+
+
+@pytest.mark.asyncio
+async def test_spending_the_budget_sends_nothing_without_a_dsn(
+    make_client: type[RapidApiClient], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("RAPIDAPI_DAILY_REQUEST_LIMIT", "1")
+    assert not init_sentry(get_settings())
+    client = make_client(requests_per_second=0)
+    with_transport(
+        client, httpx.MockTransport(lambda r: httpx.Response(200, json={"body": {}}))
+    )
+    await client.get_nfl_box_score("a")
+    with pytest.raises(rapidapi.RapidApiBudgetExceeded):
+        await client.get_nfl_box_score("b")
+    assert not sentry_sdk.get_client().is_active()
 
 
 @pytest.mark.asyncio
