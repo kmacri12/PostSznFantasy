@@ -17,8 +17,8 @@ export const ADMIN_UID = "e2e-admin";
 
 // Nothing listens here: the stub session in localStorage never needs Supabase.
 export const SUPABASE_URL = "http://localhost:54321";
-// supabase-js keys its stored session by the first label of the project hostname.
-export const SESSION_STORAGE_KEY = "sb-localhost-auth-token";
+// Must match the storageKey in frontend/src/utils/supabase.ts.
+export const SESSION_STORAGE_KEY = "postszn-auth";
 
 export const E2E_DATABASE_URL =
   process.env.E2E_DATABASE_URL ?? "postgresql://postgres:postgres@localhost:5433/postszn_e2e";

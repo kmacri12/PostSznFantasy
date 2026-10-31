@@ -17,7 +17,7 @@ The initial total did not change: every initial chunk is needed to render and si
 | :-- | --: | --: | :-- |
 | `mui` | 533.5 kB / 165.2 kB | 390.7 kB / 119.2 kB | MUI, Emotion, Popper |
 | `react` | 39.0 kB / 14.0 kB | 181.7 kB / 59.6 kB | react, react-dom, scheduler, react-router |
-| `supabase` | 214.4 kB / 55.2 kB | unchanged | supabase-js (auth, realtime, storage, postgrest) |
+| `supabase` | 214.4 kB / 55.2 kB | unchanged here (99.5 kB / 23.0 kB after #133) | supabase-js (auth, realtime, storage, postgrest); auth-js only after #133 |
 | `queries` | 63.3 kB / 23.0 kB | unchanged | axios + API query hooks |
 | `tanstack` | 34.9 kB / 10.2 kB | unchanged | react-query |
 | entry `index` | 16.9 kB / 6.5 kB | unchanged | app shell |
@@ -29,9 +29,16 @@ What was wrong: the old `manualChunks` put react-dom, scheduler and react-is int
 
 Heaviest modules (pre-minification): `@mui/material` 556 kB, react-dom 180 kB, supabase `auth-js` 170 kB, axios 118 kB, react-router 92 kB, `@mui/system` 88 kB, `@dnd-kit/core` 73 kB (lazy), `query-core` 62 kB, supabase `realtime-js` 54 kB, popper 49 kB, supabase `storage-js` 41 kB, `postgrest-js` 30 kB.
 
-### Not done, and the lever that remains
+### Supabase client slimmed to auth-js (issue #133)
 
-The app only uses `supabase.auth`, but `@supabase/supabase-js` also bundles realtime, storage and postgrest (roughly 160 kB raw, 40 kB gzip of the supabase chunk). Using `@supabase/auth-js` directly would cut that. It changes the sign-in client (storage key, refresh and URL-session handling that the e2e stub and magic-link flow depend on), so it is a separate change with its own testing, not part of this pass.
+The app only uses `supabase.auth`, so `utils/supabase.ts` builds an `AuthClient` from `@supabase/auth-js` directly instead of `createClient` from `@supabase/supabase-js`, which also bundled realtime, storage and postgrest. The session is stored under the fixed key `postszn-auth` (supabase-js derived `sb-<project-host-label>-auth-token`; `e2e/support/env.ts` mirrors it).
+
+| Initial JS (landing) | Raw | Gzip |
+| :-- | --: | --: |
+| Before | 908,021 B | 273,076 B |
+| After | 793,171 B | 241,275 B |
+
+The `supabase` chunk went from 214.4 kB / 55.2 kB to 99.5 kB / 23.0 kB (gzip), so the saving is about 32 kB gzip, not the 40 kB estimated before measuring: auth-js itself is the bulk of what is left.
 
 ### Re-running the analysis
 
@@ -67,6 +74,19 @@ Fixed because they were cheap and showed up in the report:
 - `errors-in-console` on the draft room (Best Practices 96 to 100): `navigator.vibrate` was called before any tap, which Chrome logs as an intervention. Now it waits for `navigator.userActivation.hasBeenActive`.
 
 Left alone: `unused-javascript` (about 125 kB, mostly the supabase packages above and MUI), `valid-source-maps` (no source maps are shipped; revisit when Sentry source map upload is set up), `bf-cache`, `llms-txt` and `ard-schema` (not relevant). Cache headers in `public/_headers` were already correct (`immutable` for `/assets/*`, `no-cache` for `index.html`). No images or web fonts are loaded (the theme uses the system font stack), so there is nothing to size or preload.
+
+### Lighthouse after #133 (landing, signed out)
+
+Same method, 5 runs each of the previous commit's build and this one, back to back on the same machine (medians; Performance range in brackets). The draft room was not re-run: it loads the same initial chunks, so its JS saving is the same 31 kB, and re-running it needs the seeded draft described below.
+
+| | Landing before | Landing after |
+| :-- | --: | --: |
+| Performance | 85 (74 to 94) | 90 (73 to 96) |
+| LCP | 2.8 s | 2.6 s |
+| TBT | 410 ms | 320 ms |
+| Transfer | 275 kB | 244 kB |
+
+Transfer is the stable signal (31 kB less); the score ranges overlap, so the Performance and TBT gains are within noise.
 
 ### Re-running
 
@@ -112,8 +132,8 @@ if (uid !== "-") {
     user: { id: uid, aud: "authenticated", role: "authenticated", email: `${uid}@e2e.test`,
       app_metadata: {}, user_metadata: { full_name: "host" }, created_at: "2026-01-01T00:00:00Z" },
   };
-  // supabase-js keys the session by the first label of the Supabase URL's hostname.
-  await page.evaluate((s) => localStorage.setItem("sb-localhost-auth-token", s), JSON.stringify(session));
+  // Must match the storageKey in frontend/src/utils/supabase.ts.
+  await page.evaluate((s) => localStorage.setItem("postszn-auth", s), JSON.stringify(session));
 }
 const { lhr } = await lighthouse(base + path, { port: 9333, output: "json", disableStorageReset: true });
 await browser.close();

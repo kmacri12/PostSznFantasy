@@ -170,7 +170,7 @@ PostSznFantasy/
         │   ├── draftCue.ts     # Web Audio on-deck beep
         │   ├── scoring.ts      # Numeric coercion + defaults diff for league forms
         │   ├── logger.ts       # Leveled client logger (debug/info dev-only)
-        │   └── supabase.ts     # Supabase client singleton
+        │   └── supabase.ts     # Supabase auth-only client (@supabase/auth-js), storage key "postszn-auth"
         └── test/               # Vitest environment setup
 ```
 
