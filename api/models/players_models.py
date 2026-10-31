@@ -66,6 +66,11 @@ class PlayerSeasonStatsResponse(BaseSchema):
     kicking_xp_missed: int = 0
     kicking_fg_missed: int = 0
     kicking_fg_yards_made: list[int] = []
+    kicking_fg_yards_missed: list[int] = []
+    dst_blocked_punts: int = 0
+    dst_blocked_field_goals: int = 0
+    dst_blocked_extra_points: int = 0
+    dst_two_point_returns: int = 0
     dst_yards_allowed: int = 0
     dst_points_allowed: int = 0
     dst_sacks: int = 0

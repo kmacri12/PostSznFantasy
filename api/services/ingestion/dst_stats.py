@@ -16,6 +16,9 @@ DST_STAT_COLUMNS = (
     "dst_safeties",
     "dst_fumbles_recovered",
     "dst_interceptions",
+    "dst_blocked_punts",
+    "dst_blocked_field_goals",
+    "dst_blocked_extra_points",
     "dst_two_point_returns",
 )
 
@@ -51,15 +54,6 @@ def _has_scores(box: dict[str, Any]) -> bool:
     return all(str(box.get(key) or "").strip() for key in ("homePts", "awayPts"))
 
 
-def _safeties_by_team(scoring_plays: Any) -> dict[int, int]:
-    counts: dict[int, int] = {}
-    for play in scoring_plays or []:
-        if isinstance(play, dict) and play.get("scoreType") == "SF":
-            team_id = safe_int(play.get("teamID"))
-            counts[team_id] = counts.get(team_id, 0) + 1
-    return counts
-
-
 def parse_dst_stat_rows(
     game_id: str, box: dict[str, Any], valid_player_ids: set[int]
 ) -> list[dict[str, Any]]:
@@ -68,7 +62,6 @@ def parse_dst_stat_rows(
     team_stats = _by_team_id(box.get("teamStats"))
     dst = _by_team_id(box.get("DST"))
     scores = _final_scores(box)
-    safeties = _safeties_by_team(box.get("scoringPlays"))
     rows: list[dict[str, Any]] = []
     for team_id, own in team_stats.items():
         opponent_id = next((other for other in team_stats if other != team_id), None)
@@ -87,6 +80,7 @@ def parse_dst_stat_rows(
                 "player_id": dst_player_id(team_id),
                 **empty_stat_line(),
                 "kicking_fg_yards_made": [],
+                "kicking_fg_yards_missed": [],
                 **empty_dst_columns(),
                 "dst_yards_allowed": safe_int(opponent.get("totalYards")),
                 "dst_points_allowed": max(points_allowed, 0),
@@ -94,7 +88,10 @@ def parse_dst_stat_rows(
                 "dst_interceptions": safe_int(own_dst.get("defensiveInterceptions")),
                 "dst_fumbles_recovered": safe_int(opponent.get("fumblesLost")),
                 "dst_def_td": safe_int(own.get("defensiveOrSpecialTeamsTds")),
-                "dst_safeties": safeties.get(team_id, 0),
+                "dst_safeties": safe_int(own_dst.get("safeties")),
+                "dst_blocked_punts": safe_int(own.get("blockedPunt")),
+                "dst_blocked_field_goals": safe_int(own.get("blockedFG")),
+                "dst_blocked_extra_points": safe_int(own.get("blockedXP")),
                 "dst_two_point_returns": safe_int(
                     own.get("defensiveTwoPointConversionReturns")
                 ),

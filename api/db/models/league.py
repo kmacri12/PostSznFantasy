@@ -275,6 +275,9 @@ class LeagueSettings(Base):
     scoring_kicking_fg_yard: Mapped[Decimal] = mapped_column(
         Numeric(6, 2), nullable=False
     )
+    scoring_kicking_fg_miss_yard: Mapped[Decimal] = mapped_column(
+        Numeric(6, 2), nullable=False
+    )
     scoring_kicking_xp_made: Mapped[Decimal] = mapped_column(
         Numeric(6, 2), nullable=False
     )

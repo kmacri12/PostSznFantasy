@@ -4265,6 +4265,9 @@
   "teamIDHome": "5",
   "teamStats": {
    "away": {
+    "blockedFG": "0",
+    "blockedPunt": "0",
+    "blockedXP": "0",
     "defensiveOrSpecialTeamsTds": "0",
     "defensiveTwoPointConversionReturns": "0",
     "fumblesLost": "0",
@@ -4276,6 +4279,9 @@
     "totalYards": "411"
    },
    "home": {
+    "blockedFG": "0",
+    "blockedPunt": "1",
+    "blockedXP": "0",
     "defensiveOrSpecialTeamsTds": "0",
     "defensiveTwoPointConversionReturns": "0",
     "fumblesLost": "1",
@@ -13939,6 +13945,9 @@
   "teamIDHome": "10",
   "teamStats": {
    "away": {
+    "blockedFG": "0",
+    "blockedPunt": "0",
+    "blockedXP": "0",
     "defensiveOrSpecialTeamsTds": "0",
     "defensiveTwoPointConversionReturns": "0",
     "fumblesLost": "3",
@@ -13950,6 +13959,9 @@
     "totalYards": "449"
    },
    "home": {
+    "blockedFG": "0",
+    "blockedPunt": "0",
+    "blockedXP": "0",
     "defensiveOrSpecialTeamsTds": "0",
     "defensiveTwoPointConversionReturns": "0",
     "fumblesLost": "0",
@@ -19919,6 +19931,9 @@
   "teamIDHome": "6",
   "teamStats": {
    "away": {
+    "blockedFG": "0",
+    "blockedPunt": "0",
+    "blockedXP": "0",
     "defensiveOrSpecialTeamsTds": "0",
     "defensiveTwoPointConversionReturns": "0",
     "fumblesLost": "0",
@@ -19930,6 +19945,9 @@
     "totalYards": "340"
    },
    "home": {
+    "blockedFG": "0",
+    "blockedPunt": "0",
+    "blockedXP": "0",
     "defensiveOrSpecialTeamsTds": "0",
     "defensiveTwoPointConversionReturns": "0",
     "fumblesLost": "0",
@@ -25669,6 +25687,9 @@
   "teamIDHome": "22",
   "teamStats": {
    "away": {
+    "blockedFG": "0",
+    "blockedPunt": "0",
+    "blockedXP": "0",
     "defensiveOrSpecialTeamsTds": "1",
     "defensiveTwoPointConversionReturns": "0",
     "fumblesLost": "0",
@@ -25680,6 +25701,9 @@
     "totalYards": "335"
    },
    "home": {
+    "blockedFG": "0",
+    "blockedPunt": "0",
+    "blockedXP": "0",
     "defensiveOrSpecialTeamsTds": "0",
     "defensiveTwoPointConversionReturns": "0",
     "fumblesLost": "1",

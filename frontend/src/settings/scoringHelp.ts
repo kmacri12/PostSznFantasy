@@ -15,7 +15,7 @@ const NOUNS: Record<string, string> = {
   xp_miss: "missed extra point",
   safety: "safety",
   fumble_recover: "fumble recovery",
-  blocked_kick: "blocked kick",
+  blocked_kick: "blocked kick (punt, field goal or extra point)",
   two_point_return: "2-point return",
   reception_bonus_rb: "reception by a RB (bonus)",
   reception_bonus_wr: "reception by a WR (bonus)",

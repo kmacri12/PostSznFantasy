@@ -390,9 +390,34 @@ def test_dst_blocked_kick_and_two_point_return(
     standard_league_settings.scoring_dst_two_point_return = Decimal(2)
 
     stats = NFLPlayerGameStats()
-    stats.dst_blocked_kicks = 2
+    stats.dst_blocked_punts = 1
+    stats.dst_blocked_field_goals = 1
+    stats.dst_blocked_extra_points = 0
     stats.dst_two_point_returns = 1
     assert calculate_dst_points(stats, standard_league_settings) == Decimal(6)
+
+
+def test_missed_field_goal_yards_are_scored_per_yard(
+    standard_league_settings: LeagueSettings,
+) -> None:
+    standard_league_settings.scoring_kicking_fg_miss = Decimal(-1)
+    standard_league_settings.scoring_kicking_fg_miss_yard = Decimal("-0.05")
+
+    stats = NFLPlayerGameStats()
+    stats.kicking_fg_missed = 2
+    stats.kicking_fg_yards_missed = [54, 46]
+    assert calculate_kicking_points(stats, standard_league_settings) == Decimal(-7)
+
+
+def test_missed_field_goal_yards_score_nothing_by_default(
+    standard_league_settings: LeagueSettings,
+) -> None:
+    standard_league_settings.scoring_kicking_fg_miss = Decimal(-1)
+    standard_league_settings.scoring_kicking_fg_miss_yard = Decimal(0)
+    stats = NFLPlayerGameStats()
+    stats.kicking_fg_missed = 1
+    stats.kicking_fg_yards_missed = [50]
+    assert calculate_kicking_points(stats, standard_league_settings) == Decimal(-1)
 
 
 def test_orm_settings_columns_match_pydantic_schemas() -> None:

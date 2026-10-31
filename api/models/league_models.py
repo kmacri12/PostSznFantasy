@@ -70,6 +70,7 @@ class ScoringSettings(BaseSchema):
     scoring_kicking_fg_made: float = 0
     scoring_kicking_fg_miss: float = -1
     scoring_kicking_fg_yard: float = 0.1
+    scoring_kicking_fg_miss_yard: float = 0
     scoring_kicking_xp_made: float = 1
     scoring_kicking_xp_miss: float = -1
     scoring_dst_td: float = 6
@@ -86,7 +87,7 @@ class ScoringSettings(BaseSchema):
     scoring_dst_safety: float = 2
     scoring_dst_fumble_recover: float = 1
     scoring_dst_interception: float = 1
-    scoring_dst_blocked_kick: float = 0
+    scoring_dst_blocked_kick: float = 1
     scoring_dst_two_point_return: float = 2
 
 

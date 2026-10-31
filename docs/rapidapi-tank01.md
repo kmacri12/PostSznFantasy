@@ -7,6 +7,8 @@ real response. Parsers live in `api/services/ingestion/schemas.py`, the client i
 
 ## Basics
 
+- **Raw samples.** Full raw responses for the questions answered so far are in `docs/research/samples/` (see its `INDEX.md`; read it before spending a call). When you call Tank01 to answer a question, save the full raw response there (trim only huge lists, noting it), add an `INDEX.md` row, and link it from the doc that records the answer. `api/tests/fixtures` is for tests; `docs/research/samples` is for reference.
+
 - Every response is `{"statusCode": 200, "body": ...}`.
 - Every response carries `x-ratelimit-requests-limit` and `x-ratelimit-requests-remaining`.
   The client logs the remaining count (warning when low) and exposes it as
@@ -25,7 +27,7 @@ real response. Parsers live in `api/services/ingestion/schemas.py`, the client i
 | `getNFLTeamRoster` | `teamID`, `teamAbv`, `getStats=true` | Season stats ingest |
 | `getNFLDepthCharts` | none (a team filter is unverified) | Team QB / team K starter: `QB1` and `PK1` per team (`services/ingestion/depth_chart_ingest.py`; one call per roster sync). Provenance and refresh cadence are unknown, so a team without a usable entry falls back to the most pass attempts / kicks. See `docs/research/team-qb-k-starter-source.md` |
 | `getNFLGamesForWeek` | `week=all`, `seasonType=post`, `season` | Playoff game list (schedule, `gameTime_epoch`, `espnLink`) |
-| `getNFLBoxScore` | `gameID` (e.g. `20260110_LAR@CAR`) | Playoff box scores and per-game player stats |
+| `getNFLBoxScore` | `gameID` (e.g. `20260110_LAR@CAR`), `playByPlay=true` | Playoff box scores and per-game player stats. The client always sends `playByPlay=true`: same one call, adds `allPlayByPlay` (missed FG distances) |
 | `getNFLGamesForPlayer` | `playerID`, `season`, `numberOfGames` | Not used yet: per-game stats in the same nested shape |
 | `getNFLPlayerInfo` | not recorded | Not used |
 | `getNFLTeamRoster` + `archiveDate=YYYYMMDD` | | Player id lists only, no stats |
@@ -118,18 +120,55 @@ linemen are skipped), `scoringPlays`, `teamStats`, `lineScore`, and `gameStatus`
   stored as weeks 19 to 22 (`POSTSEASON_WEEKS`).
 - `gameTime_epoch` and `espnLink` exist only in the games list; the box score has neither.
 
+## Confirmed keys (issue #77)
+
+Checked 2026-10-31 against all 13 real 2025 postseason box scores (`seasonType=post`,
+`season=2025`; Wild Card to Super Bowl) and one `playByPlay=true` fetch of
+`20260125_NE@DEN`. 10 live calls in all (9 games not already cached, 1 play-by-play probe); the games list and `getNFLPlayerList` came from cache. A key
+is **Confirmed** when seen with a real, non-zero value that reconciles with the
+scoring plays or the game result; **Present** when the key exists but every observed
+value was `"0"`.
+
+| Stat | Source | Status | Evidence |
+| :-- | :-- | :-- | :-- |
+| Made FG distance | `scoringPlays` (`scoreType` `FG`, `"... 46 Yd Field Goal"`, kicker = `playerIDs[0]`) | Confirmed | 45 FG plays across 13 games; count equals `Kicking.fgMade` and the maximum equals `fgLong` |
+| Missed FG count | `Kicking.fgMissed` | Confirmed | `20260125_NE@DEN`: Lutz 2, Borregales 2 (`fgAttempts - fgMade` held in every game) |
+| **Missed FG distance** | **`allPlayByPlay[].playerStats[kicker].Kicking.fgYds`** on plays with `fgAttempts` and no `fgMade` (needs `playByPlay=true`) | Confirmed | `20260125_NE@DEN`: Lutz 54 (wide right) and 45 (blocked), Borregales 63 and 46 (both wide), matching `fgMissed`; fixture `api/tests/fixtures/box_score_ne_den_kicks.json` |
+| `FGYardsMissed` key | n/a | **Does not exist** | Absent from every box score, roster stat and play. Stored as `kicking_fg_yards_missed` from the play-by-play instead |
+| Missed XP count | `Kicking.xpMissed` | Confirmed | Non-zero for McManus (`20260110_GB@CHI`, 1 of 4), Pineiro, Elliott (`20260111_SF@PHI`), Fairbairn (`20260112_HOU@PIT`) |
+| XP made | `Kicking.xpMade` | Confirmed | every game |
+| Sacks | `DST[team].sacks` | Confirmed | 26 team-games; equals the sum of `Defense.sacks` |
+| Interceptions | `DST[team].defensiveInterceptions` | Confirmed | `20260118_HOU@NE`: NE 4 |
+| Fumble recoveries | opponent's `teamStats.fumblesLost` (equals `DST[team].fumblesRecovered`) | Confirmed | `20260117_BUF@DEN`: DEN 3 = BUF `fumblesLost` 3 |
+| Defensive TDs | `teamStats.defensiveOrSpecialTeamsTds` (includes return TDs); `DST.defTD` is defense only | Confirmed | `20260112_HOU@PIT`: HOU `defTD` 2 (a fumble return and an interception return); `20260117_SF@SEA`: SEA `defTD` 0 but `defensiveOrSpecialTeamsTds` 1 |
+| Kick return TD | `Kicking.kickReturnTD` on the returner, and in `defensiveOrSpecialTeamsTds` | Confirmed | Shaheed 95-yard kickoff return, `20260117_SF@SEA` (`scoreType` `TD`, text "Kickoff Return"). Punt return TD key `Punting.puntReturnTD` is Present only |
+| Points allowed | opponent final score minus 6 per opponent defensive or special-teams TD (our rule, `dst_stats.py`) | Confirmed | Tank01's own `DST.ptsAllowed` removes only `defTD` (SF in `20260117_SF@SEA`: 41, not 35), so we do not use it |
+| Yards allowed | opponent's `teamStats.totalYards` (equals `DST.ydsAllowed`) | Confirmed | all 26 team-games |
+| Blocked kicks, by kind | own `teamStats.blockedPunt`, `blockedFG`, `blockedXP`, each stored in its own column and summed for scoring (the blocking team is credited). Tank01 sends all three kinds as separate keys; the sample had punt and FG blocks, no XP block | Confirmed | `20260125_NE@DEN`: NE `blockedFG` 1, and Lutz's 45-yard FG "is BLOCKED (L.Taylor)" in the play-by-play; `20260110_LAR@CAR`: CAR `blockedPunt` 1. `blockedXP` is Present only |
+| Safeties | `DST[team].safeties` | Present | `"0"` in all 26 team-games, so there is no real sample. Credit direction (scoring team) is assumed. There is no `scoreType` for safeties in `scoringPlays` (only `TD` and `FG` occurred), so the old `SF` lookup was dropped |
+| 2-point returns | `teamStats.defensiveTwoPointConversionReturns` | Present | `"0"` in all 26 team-games; the 2025 postseason had no defensive 2-point return, so the credit direction is unverified |
+| Official position | `getNFLPlayerList` `pos` | Confirmed | every kicker with a `fgMade` key (26 kicker-games) is `PK` (we store `K`), every passer with 4+ attempts (27) is `QB` |
+
+Not observed in the 2025 postseason, so their semantics stay unproven: safeties, defensive
+2-point returns, blocked extra points, punt return TDs, a fumble-return TD against the
+returner's `Rushing`/`Receiving` TD keys.
+
 ## Known gaps
 
-- **No FG distances per kick.** Made-kick distances are parsed from `scoringPlays`
-  (`"Harrison Mevis 46 Yd Field Goal"`, `scoreType == "FG"`, first `playerIDs` entry is the
-  kicker). Missed-kick distances do not exist anywhere, and roster stats have only counts.
+- **Made-kick distances are not per-kick in `playerStats`**, only in `scoringPlays`
+  (`"Harrison Mevis 46 Yd Field Goal"`). Missed-kick distances come from `allPlayByPlay`
+  (see above); roster stats have only counts, so season rows carry neither distance list.
+  If a box score arrives without `allPlayByPlay` (an older replay file), the missed distances
+  are empty, the missed count still comes from `fgMissed`, and the per-yard miss setting
+  scores 0 for those kicks.
 - **`DST` in a box score is per team**, not per player: `{away, home: {defTD,
   defensiveInterceptions, sacks, ydsAllowed, fumblesRecovered, ptsAllowed, safeties}}`. It is
   stored raw on `NFLGame.dst` as a cross-check. DST scoring uses one row per team per game on
   the synthetic DST players (`services/ingestion/dst_stats.py`): yards allowed is the
   opponent's `teamStats.totalYards`, points allowed is the opponent's final score minus 6 per
   opponent `defensiveOrSpecialTeamsTds`, fumble recoveries are the opponent's `fumblesLost`,
-  safeties come from `scoringPlays` with `scoreType == "SF"`.
+  safeties are `DST.safeties`, blocked kicks are the team's `blockedPunt` + `blockedFG` +
+  `blockedXP`, 2-point returns are `defensiveTwoPointConversionReturns`.
 
 ## Unverified
 

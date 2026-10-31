@@ -60,6 +60,7 @@ export const SCORING_GROUPS: SettingGroup[] = [
       { key: "scoring_kicking_fg_made", label: "FG Made (flat)" },
       { key: "scoring_kicking_fg_miss", label: "FG Miss" },
       { key: "scoring_kicking_fg_yard", label: "Made FG Yard" },
+      { key: "scoring_kicking_fg_miss_yard", label: "Missed FG Yard" },
       { key: "scoring_kicking_xp_made", label: "XP Made" },
       { key: "scoring_kicking_xp_miss", label: "XP Miss" },
     ],
