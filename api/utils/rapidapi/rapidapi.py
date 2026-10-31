@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 import httpx
+import sentry_sdk
 from tenacity import (
     AsyncRetrying,
     RetryCallState,
@@ -83,6 +84,7 @@ class RapidApiClient:
         self._daily_limit = settings.rapidapi_daily_request_limit
         self._budget_day = _utc_day()
         self._requests_today = 0
+        self._alerted_day: str | None = None
         # Dev-only: replay saved responses so re-seeding doesn't burn the monthly quota.
         self._disk_cache_dir = (
             Path(settings.rapidapi_cache_dir) if settings.rapidapi_cache_dir else None
@@ -135,8 +137,16 @@ class RapidApiClient:
         self._roll_budget_day()
         return self._requests_today
 
+    def _alert_budget_spent(self) -> None:
+        """Polling stops silently when the cap is hit, so tell Sentry once a day."""
+        if self._alerted_day == self._budget_day:
+            return
+        self._alerted_day = self._budget_day
+        sentry_sdk.capture_message("Tank01 daily request budget spent", level="warning")
+
     def _spend_budget(self, route: str) -> None:
         if self.budget_exhausted:
+            self._alert_budget_spent()
             raise RapidApiBudgetExceeded(
                 f"Daily RapidAPI budget of {self._daily_limit} requests is spent"
             )
@@ -147,6 +157,8 @@ class RapidApiClient:
             self._daily_limit,
             route,
         )
+        if self.budget_exhausted:
+            self._alert_budget_spent()
 
     def _record_quota(self, response: httpx.Response) -> None:
         try:
