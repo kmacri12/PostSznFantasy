@@ -87,7 +87,7 @@ class ScoringSettings(BaseSchema):
     scoring_dst_safety: float = 2
     scoring_dst_fumble_recover: float = 1
     scoring_dst_interception: float = 1
-    scoring_dst_blocked_kick: float = 0
+    scoring_dst_blocked_kick: float = 1
     scoring_dst_two_point_return: float = 2
 
 

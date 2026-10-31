@@ -28,8 +28,11 @@ COMBINED_POSITIONS = ("QB", "PK")
 
 
 def _sheet_settings() -> LeagueSettings:
-    """Our defaults, except the 2025 sheet paid half a point per reception."""
-    template = ScoringSettings(scoring_receiving_reception=0.5)
+    """Our defaults, except the 2025 sheet paid half a point per reception and nothing
+    for blocked kicks (our default is 1; CAR's blocked punt in LAR@CAR would add 1)."""
+    template = ScoringSettings(
+        scoring_receiving_reception=0.5, scoring_dst_blocked_kick=0
+    )
     return LeagueSettings(
         **{k: Decimal(str(v)) for k, v in template.model_dump(by_alias=False).items()}
     )
