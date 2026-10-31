@@ -63,6 +63,10 @@ curl -s https://api.postsznfantasy.com/api   # {"status":"healthy"} (this endpoi
 
 If the direct connection fails from Fly, switch `PG_URI` to the session pooler string (port 5432) and redeploy. GitHub Actions runners have **no** IPv6, so the CI workflows (`backup.yml`, `deploy-api.yml`) always use the session pooler string in `PROD_DATABASE_URL`.
 
+## Stopping for the off-season
+
+Use `fly machine stop`, never `fly scale count 0` (that destroys the machine). Steps: [shutdown-runbook.md](shutdown-runbook.md), [wake-up-runbook.md](wake-up-runbook.md).
+
 ## Roll back
 
 List releases and note the last good image:

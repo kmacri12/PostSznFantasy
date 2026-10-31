@@ -7,6 +7,7 @@ Conventions: entity names are table names without the schema. Tables in `fantasy
 ```mermaid
 erDiagram
     users ||--o{ league_members : "joins"
+    leagues ||--o| leagues : "run back as"
     leagues ||--o{ league_members : "has"
     leagues ||--|| league_settings : "configured by"
     leagues ||--o| drafts : "has one"
@@ -52,6 +53,7 @@ erDiagram
         string name
         int season
         string notes
+        int previous_league_id FK,UK
     }
     league_members {
         int league_id PK,FK
