@@ -4,14 +4,7 @@
 
 ## A. Set a pretend playoff field (only before the real playoffs)
 
-A draft only starts when exactly 14 NFL teams are marked as playoff teams. Before January nobody has qualified, so pick any 14 for the test. This writes to the production database once; there is no button or script for it yet:
-
-```bash
-psql '<Supabase session pooler URL>' -c "update nfl.nfl_teams set in_playoffs = (team_abv in ('BUF','KC','BAL','HOU','PIT','LAC','DEN','PHI','DET','LAR','TB','GB','MIN','WSH'))"
-psql '<Supabase session pooler URL>' -c 'select count(*) from nfl.nfl_teams where in_playoffs'
-```
-
-The second line prints `14`. The real field replaces it later: playoff games mark teams automatically, and the coordinator sets the final 14 once the seeds are known.
+A draft only starts when exactly 14 NFL teams are marked as playoff teams. Before January nobody has qualified, so pick any 14 for the test and set them with [Set the playoff field](playoff-field.md). The real field replaces it later, on that same page, once the seeds are known.
 
 ## B. The mock draft
 
@@ -41,5 +34,5 @@ Then close #95.
 
 ## If it goes wrong
 
-- "The draft can't start until the playoff field is set": part A did not print 14.
+- "The draft can't start until the playoff field is set": part A did not finish; see [Set the playoff field](playoff-field.md#if-it-goes-wrong).
 - "Drafts must start before the first Wild Card kickoff": the real playoffs have started; mock drafts are over for this season.
