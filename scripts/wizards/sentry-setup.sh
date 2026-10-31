@@ -250,10 +250,10 @@ pause "Press Enter to continue"
 
 stage "Hand-over"
 say "Values are saved in: $ENV_FILE (outside the repo)."
-say "Proposed variable names for whoever wires the SDKs (not defined in the app yet):"
-step "backend:  SENTRY_DSN=<SENTRY_API_DSN>,  SENTRY_ENVIRONMENT"
-step "frontend: VITE_SENTRY_DSN=<SENTRY_FRONTEND_DSN>"
-note "Set them in the production host's env settings. Wiring is the coordinator's job."
+say "Install them now (the app already reads these names):"
+step "backend:  fly secrets set SENTRY_DSN='<SENTRY_API_DSN>' --app postszn-api   (never during a live draft)"
+step "frontend: Cloudflare Pages, Variables and Secrets, Production: VITE_SENTRY_DSN, then Retry deployment"
+note "Then create the alert rules: docs/owner/10-sentry.md, part B."
 SKIPPED+=("Tick #85 yourself once both projects show a DSN")
 
 finish

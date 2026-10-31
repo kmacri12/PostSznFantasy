@@ -14,7 +14,7 @@ read -rsp 'Session pooler string: ' DATABASE_URL && export DATABASE_URL   # keep
 - **It was kept active (Option A):** nothing to do. Confirm in the dashboard it shows "Healthy". **Verify:** the dashboard says Healthy.
 - **It was paused (Option B):** open the project, click **Resume project** and wait until it is healthy. Free projects move to the newest Postgres minor version when restored ([Supabase](https://supabase.com/docs/guides/platform/upgrading)). Re-enable the backup workflow: `gh workflow enable backup.yml`.
 - **The project is gone or the restore failed:**
-  1. Create a new project as in Stage 2 of the [cutover runbook](cutover-runbook.md) (`scripts/wizards/supabase-prod.sh`).
+  1. Create a new project as in Stage 2 of the [cutover runbook](cutover-runbook.md) (`scripts/wizards/supabase-prod.sh`; click by click: [owner Step 4](../owner/04-supabase-project.md)).
   2. Restore the stored dump: `scripts/restore-backup.sh <dump.gpg> "$DATABASE_URL"` (the new project's session pooler string).
   3. Update `PG_URI` (step 2) and the GitHub secret `PROD_DATABASE_URL`, and set the Site URL and redirect URLs again.
   4. Players must sign up again (Auth accounts are not in the dump). Tell them.
@@ -64,7 +64,7 @@ fly ssh console --app "$FLY_APP" -C "python -m api.scripts.seed_nfl_data --seaso
 
 4. Once the bracket is known, set the playoff field (`PUT /api/admin/playoff-field`, 14 team ids; drafts need it, see the [AGENTS.md](../../AGENTS.md) route map). Verify: `GET /api/players/draft-pool` returns players.
 
-**Verify:** the workflow is green; `scripts/dormancy-check.sh awake` passes; `curl -s https://api.postsznfantasy.com/api/config` shows the new `season`; `psql "$DATABASE_URL" -tAc 'select count(*) from nfl.teams'` is 32 and the players page lists current rosters. The seed prints the remaining quota: write it down.
+**Verify:** the workflow is green; `scripts/dormancy-check.sh awake` passes; `curl -s https://api.postsznfantasy.com/api/config` shows the new `season`; `psql "$DATABASE_URL" -tAc 'select count(*) from nfl.nfl_teams'` is 32 and the players page lists current rosters. The seed prints the remaining quota: write it down.
 
 ## 5. Re-subscribe to the Tank01 Pro plan and confirm the quota (OWNER)
 

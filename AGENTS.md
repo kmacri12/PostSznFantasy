@@ -43,6 +43,7 @@ PostSznFantasy/
 ├── AGENTS.md                   # This agent operational playbook
 ├── ROADMAP.md                  # Active roadmap (phases 15+)
 ├── REWRITE_ROADMAP.md          # Archived modernization history (phases 1-14)
+├── docs/owner/                 # Owner launch guide: one page per step, in launch order
 ├── api/                        # Backend service (Python 3.13 + FastAPI)
 │   ├── alembic/                # Database migrations
 │   │   ├── versions/           # Migration revisions
