@@ -38,6 +38,7 @@ interface NavBarProps {
   onSelectLeague: (leagueId: string) => void;
   onSignIn: () => void;
   onSignOut: () => void;
+  dormant?: boolean;
 }
 
 const NavBar = ({
@@ -47,6 +48,7 @@ const NavBar = ({
   onSelectLeague,
   onSignIn,
   onSignOut,
+  dormant = false,
 }: NavBarProps) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
@@ -56,15 +58,17 @@ const NavBar = ({
   const [profileAnchor, setProfileAnchor] = useState<HTMLElement | null>(null);
 
   const selected = leagues.find((league) => String(league.id) === selectedLeagueId);
-  const links: { label: string; to: string; dot?: boolean }[] = selected
-    ? [
-        { label: "League", to: `/league/${selected.id}`, dot: selected.hasNewActivity },
-        { label: "My Team", to: `/team/${selected.userTeamId}` },
-        { label: "Draft", to: `/league/${selected.id}/draft` },
-        { label: "Players", to: `/players?leagueId=${selected.id}` },
-        { label: "Settings", to: `/settings?leagueId=${selected.id}` },
-      ]
-    : [{ label: "Players", to: "/players" }];
+  const links: { label: string; to: string; dot?: boolean }[] = dormant
+    ? []
+    : selected
+      ? [
+          { label: "League", to: `/league/${selected.id}`, dot: selected.hasNewActivity },
+          { label: "My Team", to: `/team/${selected.userTeamId}` },
+          { label: "Draft", to: `/league/${selected.id}/draft` },
+          { label: "Players", to: `/players?leagueId=${selected.id}` },
+          { label: "Settings", to: `/settings?leagueId=${selected.id}` },
+        ]
+      : [{ label: "Players", to: "/players" }];
   links.push({ label: HOW_TO_PLAY_LABEL, to: "/how-to-play" });
 
   const avatarLabel = (user?.user_metadata?.full_name || user?.email || "?")[0].toUpperCase();
@@ -135,7 +139,7 @@ const NavBar = ({
         <Box sx={{ flexGrow: 1 }} />
         {!isMobile && <DevQuickSync />}
 
-        {user && !isMobile && (
+        {user && !isMobile && !dormant && (
           <Chip
             clickable
             onClick={(event) => setLeagueAnchor(event.currentTarget)}
@@ -200,7 +204,7 @@ const NavBar = ({
               </MenuItem>
             </Menu>
           </>
-        ) : (
+        ) : dormant ? null : (
           <Button variant="contained" onClick={onSignIn}>
             Sign in
           </Button>
@@ -209,7 +213,7 @@ const NavBar = ({
 
       <Drawer anchor="left" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
         <List sx={{ width: 280 }}>
-          {user && (
+          {user && !dormant && (
             <>
               <ListItemText
                 primary="Your leagues"

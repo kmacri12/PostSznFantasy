@@ -146,7 +146,8 @@ PostSznFantasy/
         │   ├── useWebSocket.ts # Native RFC 6455 WebSocket hook
         │   └── useWebSocket.test.ts # Hook test suite
         ├── pages/
-        │   ├── LandingPage.tsx # Root route: hero, round explainer, user's leagues
+        │   ├── LandingPage.tsx # Root route: hero, round explainer, user's leagues (`dormant` swaps the hero for the off-season notice)
+        │   ├── DormantPage.tsx # Dormant-mode notice and fallback for every route except landing, How to play, privacy, terms
         │   ├── CreateLeaguePage.tsx # Multi-step league creation wizard
         │   ├── DraftPage.tsx   # Live synchronized draft room
         │   ├── HowToPlayPage.tsx # Plain-language rules page (nav link), copy from src/content/rules.ts
