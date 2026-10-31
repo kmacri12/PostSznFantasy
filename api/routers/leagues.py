@@ -47,7 +47,7 @@ from api.services.league_admin import (
 )
 from api.services.league_members import LeagueRuleError, remove_member, set_role
 from api.services.playoff_field import require_draft_window_open
-from api.services.season_recap import build_recap
+from api.services.season_recap import build_recap, season_is_finished
 from api.services.settings_changes import (
     on_editable_settings_changed,
     record_settings_change,
@@ -198,6 +198,11 @@ async def get_user_leagues(
         ).all()
     )
     with_new_activity = await leagues_with_new_activity(db, user.id)
+    finished_seasons = {
+        season
+        for season in {m.league.season for m in members}
+        if await season_is_finished(db, season)
+    }
     return [
         LeaguesByUser(
             id=member.league.id,
@@ -206,6 +211,7 @@ async def get_user_leagues(
             is_commissioner=member.role == LeagueRole.COMMISSIONER.value,
             user_team_id=team_ids.get(member.league_id),
             has_new_activity=member.league_id in with_new_activity,
+            finished=member.league.season in finished_seasons,
         )
         for member in members
     ]

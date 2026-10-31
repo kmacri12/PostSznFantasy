@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -12,6 +12,9 @@ from api.db.models.user import User
 from api.db.session import DbSession
 from api.dependencies.auth import CurrentUser
 from api.models.enums import LeagueRole
+from api.services.season_recap import season_is_finished
+
+READ_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
 
 
 @dataclass(frozen=True)
@@ -68,10 +71,33 @@ async def require_league_member(
     return membership
 
 
+async def reject_archived_writes(
+    request: Request, db: AsyncSession, membership: LeagueMembership
+) -> LeagueMembership:
+    """A league whose Super Bowl is final is an archive: reads only."""
+    if request.method not in READ_METHODS and await season_is_finished(
+        db, membership.league.season
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="This season is over; the league is a read-only archive",
+        )
+    return membership
+
+
 async def get_league_member(
-    league_id: int, supabase_uid: CurrentUser, db: DbSession
+    request: Request, league_id: int, supabase_uid: CurrentUser, db: DbSession
 ) -> LeagueMembership:
     """Guard for routes with a `{league_id}` path parameter."""
+    return await reject_archived_writes(
+        request, db, await require_league_member(db, league_id, supabase_uid)
+    )
+
+
+async def get_archived_league_member(
+    league_id: int, supabase_uid: CurrentUser, db: DbSession
+) -> LeagueMembership:
+    """Like `get_league_member` but lets writes through, for run it back."""
     return await require_league_member(db, league_id, supabase_uid)
 
 
@@ -88,7 +114,7 @@ async def require_commissioner(
 
 
 async def get_draft_member(
-    draft_id: int, supabase_uid: CurrentUser, db: DbSession
+    request: Request, draft_id: int, supabase_uid: CurrentUser, db: DbSession
 ) -> LeagueMembership:
     """Guard for routes addressed by draft id; membership is checked on its league."""
     league_id = (
@@ -98,11 +124,13 @@ async def get_draft_member(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Draft not found"
         )
-    return await require_league_member(db, league_id, supabase_uid)
+    return await reject_archived_writes(
+        request, db, await require_league_member(db, league_id, supabase_uid)
+    )
 
 
 async def get_team_member(
-    team_id: int, supabase_uid: CurrentUser, db: DbSession
+    request: Request, team_id: int, supabase_uid: CurrentUser, db: DbSession
 ) -> LeagueMembership:
     """Guard for routes addressed by team id; membership is checked on its league."""
     league_id = (
@@ -112,7 +140,9 @@ async def get_team_member(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Team not found"
         )
-    return await require_league_member(db, league_id, supabase_uid)
+    return await reject_archived_writes(
+        request, db, await require_league_member(db, league_id, supabase_uid)
+    )
 
 
 LeagueMember = Annotated[LeagueMembership, Depends(get_league_member)]

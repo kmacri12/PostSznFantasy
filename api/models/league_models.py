@@ -143,6 +143,8 @@ class LeaguesByUser(BaseSchema):
     user_team_id: int | None = None
     # Events in the league feed this member hasn't seen, for the nav dot.
     has_new_activity: bool = False
+    # The Super Bowl is final: the league is a read-only archive.
+    finished: bool = False
 
 
 def _all_optional(name: str, *models: type[BaseSchema]) -> type[BaseSchema]:
