@@ -7,7 +7,7 @@ Everything here is **OWNER**: it needs your Supabase, Fly, GitHub and RapidAPI l
 ## Part A: restore the stored dump into a scratch Supabase project
 
 1. Create a new Free Supabase project named `postszn-restore-test` (Postgres 17; the free plan allows two active projects, so delete an unused one first if needed).
-2. Take a fresh dump the way shutdown step 1 does (`gh workflow run backup.yml`, then `gh run download ...`). Use the **stored copy**, not a file still in your downloads, so you prove the storage works. Time: how long the workflow took.
+2. Take a fresh dump the way shutdown step 1 does (`gh workflow run backup.yml`, then `gh run download ...`). Use the **stored copy**, not a file still in your downloads, so you prove the storage works. Verify: the run is green. Time: how long it took.
 3. Restore into the scratch project's **session pooler** string (port 5432, from its Connect dialog; the direct host is IPv6-only):
 
 ```bash
@@ -17,34 +17,40 @@ time scripts/restore-backup.sh final-dump/postszn-<timestamp>.dump.gpg '<scratch
 4. Compare with production:
 
 ```bash
+q='select (select count(*) from fantasy.users),
+  (select count(*) from fantasy.leagues),
+  (select count(*) from nfl.players),
+  (select version_num from public.alembic_version)'
 for url in '<production pooler>' '<scratch pooler>'; do
-  psql "$url" --no-psqlrc -tA -c "select (select count(*) from fantasy.users), (select count(*) from fantasy.leagues), (select count(*) from nfl.players), (select version_num from public.alembic_version)"
+  psql "$url" --no-psqlrc -tA -c "$q"
 done
 ```
 
 **Verify:** the restore printed `restored, alembic revision <latest>` and both rows are identical. Note anything that failed: Supabase-specific roles or extensions are the likely trouble; add the fix to [backup.md](backup.md).
 
 5. Point a throwaway API at it, to prove it starts: `cd api && PG_URI='<scratch string>' SUPABASE_URL='https://<scratch ref>.supabase.co' uv run uvicorn api.main:app --port 8002`, then `curl -s localhost:8002/api` prints `{"status":"healthy"}`.
-6. Delete the scratch project when done.
+6. Delete the scratch project when done. Verify: it no longer appears in the dashboard.
 
 ## Part B: shutdown and wake-up, end to end
 
 Run the [shutdown runbook](shutdown-runbook.md) steps 1 to 7 for real, but with the Supabase project kept active (Option A) and the Tank01 plan left alone (just read the page; do not cancel). Then run the [wake-up runbook](wake-up-runbook.md) steps 1 to 6 and the scheduler step as a dry read. Keep it to the same day; the dormant window itself needs no waiting for.
 
+**Verify:** each runbook step's own Verify line passed, and the dark time (API down to API back) is written down below.
+
 ## Timing table (fill in)
 
-| Step | Minutes | Notes |
-| :-- | :-- | :-- |
-| Fresh dump (workflow) | | |
-| Download + store dump | | |
-| Restore into scratch project | | |
-| Shutdown: scheduler off + stop machine | | |
-| Shutdown: dormant page verified | | |
-| Wake: start machine + health green | | |
-| Wake: Deploy API (new SEASON_YEAR) | | |
-| Wake: seed NFL data | | |
-| Wake: smoke test (mock draft) | | |
-| **Total dark time (API down to API back)** | | |
+Minutes, with notes:
+
+- Fresh dump (workflow):
+- Download and store the dump:
+- Restore into the scratch project:
+- Shutdown, scheduler off and machine stopped:
+- Shutdown, dormant page verified:
+- Wake, machine started and health green:
+- Wake, Deploy API with the new SEASON_YEAR:
+- Wake, seed NFL data:
+- Wake, smoke test (mock draft):
+- **Total dark time (API down to API back):**
 
 ## Done when
 

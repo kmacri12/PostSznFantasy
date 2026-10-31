@@ -5,6 +5,7 @@
 # Usage: scripts/dormancy-check.sh dormant|awake
 # Env:   FLY_APP (postszn-api), SITE_URL (https://postsznfantasy.com),
 #        API_URL (https://api.postsznfantasy.com). Fly checks are skipped without flyctl.
+# No -e on purpose: one failing check must not hide the results of the others.
 set -uo pipefail
 
 mode=${1:-}

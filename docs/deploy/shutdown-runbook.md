@@ -8,6 +8,7 @@ Tools: `git`, `gh`, `flyctl` (`fly auth login`), `psql` and `pg_dump` **17**, `g
 
 ```bash
 export FLY_APP=postszn-api
+read -rsp 'Session pooler string: ' DATABASE_URL && export DATABASE_URL   # keeps it out of shell history
 ```
 
 ## Before you start
@@ -16,7 +17,7 @@ export FLY_APP=postszn-api
 - [ ] No draft is live. Run, with the Supabase **session pooler** string:
 
 ```bash
-DATABASE_URL='<session pooler string>' scripts/check-live-drafts.sh
+scripts/check-live-drafts.sh
 ```
 
 **Verify:** prints `No live drafts.`
@@ -36,7 +37,9 @@ Copy the whole `final-dump/` folder to two places that are not GitHub: your pass
 
 ```bash
 createdb -h localhost -p 5433 -U postgres final_check
-scripts/restore-backup.sh final-dump/postszn-<timestamp>.dump.gpg postgresql://postgres:postgres@localhost:5433/final_check
+scripts/restore-backup.sh \
+  final-dump/postszn-<timestamp>.dump.gpg \
+  postgresql://postgres:postgres@localhost:5433/final_check
 ```
 
 **Verify:** the restore prints `restored, alembic revision <latest>`, the two stored copies match `sha256sum -c SHA256SUMS`, then `dropdb -h localhost -p 5433 -U postgres final_check`.
@@ -52,7 +55,7 @@ fly secrets set SCHEDULER_ENABLED=false --app "$FLY_APP"
 fly logs --app "$FLY_APP" --no-tail | tail -n 40
 ```
 
-**Verify:** the secret is listed (`fly secrets list --app "$FLY_APP"` shows `SCHEDULER_ENABLED`; values are hidden by design) and the newest log lines, after the restart, show no scheduler poll or sync lines. If it was already `false` all season, you may skip the set, but still read the logs.
+**Verify:** the secret is listed (`fly secrets list --app "$FLY_APP"` shows `SCHEDULER_ENABLED`; values are hidden by design) and the logs after the restart contain no `Background scheduler started` line (that line is printed only when the scheduler is on): `fly logs --app "$FLY_APP" --no-tail | grep -c 'Background scheduler started'` counts old lines too, so read only the ones after the restart. If it was already `false` all season, you may skip the set, but still read the logs.
 
 ## 3. Stop the Fly machine (OWNER)
 
@@ -73,7 +76,12 @@ Both cost $0 on the Free plan. Pick one and write it down in step 7.
 
 **Option A, keep active (recommended).** Leave the **Weekly backup** workflow enabled. Its Monday keep-alive query stops Supabase auto-pausing the project, and you keep getting fresh dumps. Nothing to do; the repository is private, so GitHub does not disable the schedule for inactivity (that rule is for public repositories).
 
-**Option B, pause.** Supabase pauses a Free project that has low activity for a week, and you can also pause from the dashboard (Project Settings, General, "Pause project"). Before pausing, disable the weekly workflow so it does not fail every Monday: `gh workflow disable backup.yml`. The docs disagree on how long a paused project can be restored (Supabase's [Project Pausing](https://supabase.com/docs/guides/platform/free-project-pausing) says 1 year, another page of the same docs says 90 days). Do not rely on it for the whole off-season. If it is gone, the wake-up runbook restores the dump into a new project, but **Auth users do not come back with a dump**: every player would have to sign up again and their old leagues would not link to the new account (the dump keys users by their old Supabase user id).
+**Option B, pause.**
+
+1. Disable the weekly workflow first, or it fails every Monday: `gh workflow disable backup.yml`.
+2. Pause from the dashboard: Project Settings, General, "Pause project". Supabase also auto-pauses a Free project after a week of low activity.
+3. Know the risk. Supabase's docs disagree on how long a paused project can be restored: [Project Pausing](https://supabase.com/docs/guides/platform/free-project-pausing) says 1 year, another page says 90 days. Do not count on it for a whole off-season.
+4. If it is gone, the wake-up runbook restores the dump into a new project. **Auth users do not come back with a dump.** Every player would sign up again, and old leagues would not link to the new account (the dump keys users by their old Supabase user id).
 
 **Verify:** Option A: `gh workflow list` shows `Weekly backup  active`. Option B: the dashboard shows "Paused" and `gh workflow list` shows it disabled.
 
@@ -81,7 +89,7 @@ Both cost $0 on the Free plan. Pick one and write it down in step 7.
 
 On rapidapi.com, sign in, open your Tank01 NFL API subscription (Hub, "My Apps", the app's Billing/Subscriptions page; RapidAPI moves these menus, so look for the plan "Pro") and switch it to the free **Basic** plan or unsubscribe. Basic is a hard cap of 1,000 requests per month; nothing calls Tank01 while the API is stopped. Keep the same RapidAPI app so the key and `RAPIDAPI_APIKEY` secret stay valid for next season ([rapidapi-quota.md](../research/rapidapi-quota.md)).
 
-**Verify:** the RapidAPI billing page shows no paid NFL plan and no upcoming charge. Screenshot it and keep the screenshot with the dump.
+**Verify:** the RapidAPI billing page shows no paid NFL plan and no upcoming charge. Screenshot it with account and card details cropped out, and keep it with the dump.
 
 ## 6. Pause the alerts and confirm the shell and dormant page (OWNER, then check)
 
@@ -97,18 +105,18 @@ Then open `https://postsznfantasy.com` in a private window, on your phone too.
 
 ## 7. Record the off-season cost and what still runs
 
-Fill this in below the table and commit it, or keep it in your notes. Do not include secrets.
+Fill this in and commit it, or keep it in your notes. Do not include secrets.
 
-| Item | Dormant state | Monthly cost |
-| :-- | :-- | :-- |
-| Cloudflare Pages shell | up | $0 |
-| Domain `postsznfantasy.com` | registered | annual fee / 12: fill in |
-| Fly machine | stopped | about $0.15 per GB of root filesystem: read it from `fly machine list` / the invoice |
-| Fly IPs and certificates | shared IPv4 free; first 10 certificates free | $0 unless you added a dedicated IPv4 (`fly ips list`; $2) |
-| Supabase | active (A) or paused (B) | $0 |
-| Tank01 | Basic or cancelled | $0 |
-| GitHub Actions | weekly backup (A) or off (B) | $0 |
-| UptimeRobot, Sentry | paused / idle | $0 |
+- Cloudflare Pages shell: up, $0.
+- Domain `postsznfantasy.com`: registered; annual fee divided by 12 (fill in).
+- Fly machine: stopped; $0.15 per GB of root filesystem per month (read the size from the invoice).
+- Fly IPs and certificates: shared IPv4 is free and the first 10 certificates are free. A dedicated IPv4 costs $2 (`fly ips list`).
+- Supabase: active (A) or paused (B), $0.
+- Tank01: Basic or cancelled, $0.
+- GitHub Actions: weekly backup (A) or off (B), $0.
+- UptimeRobot and Sentry: paused or idle, $0.
+
+Add the total and the date under the list.
 
 **Verify:** you can name every service that is still running and its cost; the first Fly invoice after shutdown matches (check it once).
 
