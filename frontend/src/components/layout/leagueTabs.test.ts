@@ -8,6 +8,7 @@ const league = {
   isCommissioner: false,
   userTeamId: 3,
   hasNewActivity: false,
+  finished: false,
 };
 
 describe("leagueTabs", () => {

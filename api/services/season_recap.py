@@ -94,6 +94,9 @@ async def build_recap(db: AsyncSession, league: League) -> SeasonRecap:
         finished=finished,
         champions=champions,
         standings=standings,
+        next_league_id=await db.scalar(
+            select(League.id).where(League.previous_league_id == league.id)
+        ),
         awards=await _awards(db, league, standings, {c.team_id for c in champions})
         if finished
         else [],

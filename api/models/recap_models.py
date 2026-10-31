@@ -35,4 +35,6 @@ class SeasonRecap(BaseSchema):
     # the tiebreaker chain.
     champions: list[RecapTeam]
     standings: Standings
+    # The league this one was run back as, once the commissioner has done it.
+    next_league_id: int | None = None
     awards: list[AwardWinner]

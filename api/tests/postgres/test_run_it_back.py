@@ -128,3 +128,13 @@ async def test_a_league_still_playing_cannot_be_run_back(
     league, _, _ = await finished_league(db, finished_through=3)
     response = await _run_back(client_as, league.id)
     assert response.status_code == 409
+
+
+async def test_the_recap_points_at_the_league_it_was_run_back_as(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    league, _, _ = await finished_league(db)
+    new_id = (await _run_back(client_as, league.id)).json()["leagueId"]
+    async with client_as("uid-1") as member:
+        body = (await member.get(f"/api/leagues/{league.id}/recap")).json()
+    assert body["nextLeagueId"] == new_id

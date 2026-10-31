@@ -17,7 +17,7 @@ import {
 import type React from "react";
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { useLeague, useUpdateLeague } from "../api/queries";
+import { useLeague, useRecap, useUpdateLeague } from "../api/queries";
 import type { LeagueOverview } from "../api/types";
 import ActivityFeed from "../components/activity/ActivityFeed";
 import DataFreshness from "../components/common/DataFreshness";
@@ -26,6 +26,7 @@ import QueryBoundary from "../components/common/QueryBoundary";
 import InvitePanel from "../components/league/InvitePanel";
 import LeagueNotes from "../components/league/LeagueNotes";
 import StandingsTable from "../components/league/StandingsTable";
+import SeasonRecap from "../components/recap/SeasonRecap";
 
 const DRAFT_LABELS: Record<LeagueOverview["draftStatus"], string> = {
   unscheduled: "Draft not scheduled",
@@ -72,24 +73,36 @@ const RenameDialog = ({ league, onClose }: { league: LeagueOverview; onClose: ()
 const LeagueContent = ({ league }: { league: LeagueOverview }) => {
   const [renaming, setRenaming] = useState(false);
   const isCommissioner = league.myRole === "commissioner";
+  const recap = useRecap(league.id).data;
+  const archived = recap?.finished === true;
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap", mb: 1 }}>
         <Typography variant="h4" sx={{ overflowWrap: "anywhere" }}>
           {league.name}
         </Typography>
-        {isCommissioner && (
+        {isCommissioner && !archived && (
           <IconButton aria-label="Rename league" onClick={() => setRenaming(true)}>
             <EditIcon />
           </IconButton>
         )}
         <Chip label={`${league.season} season`} size="small" />
+        {archived && <Chip label="Archived" size="small" variant="outlined" />}
         <Chip
           label={isCommissioner ? "Commissioner" : "Member"}
           size="small"
           color={isCommissioner ? "primary" : "default"}
         />
       </Box>
+      {archived && recap && (
+        <Box sx={{ mb: 3 }}>
+          <SeasonRecap
+            recap={recap}
+            isCommissioner={isCommissioner}
+            nextLeagueId={recap.nextLeagueId}
+          />
+        </Box>
+      )}
       <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap", mb: 3 }}>
         <Chip variant="outlined" label={DRAFT_LABELS[league.draftStatus]} />
         {league.draftStartTime && league.draftStatus === "scheduled" && (
@@ -101,8 +114,12 @@ const LeagueContent = ({ league }: { league: LeagueOverview }) => {
           {league.numberTeams} teams · {league.openSpots} open
         </Typography>
         <Box sx={{ flexGrow: 1 }} />
-        <Button component={Link} to={`/league/${league.id}/draft`} variant="contained">
-          Draft room
+        <Button
+          component={Link}
+          to={`/league/${league.id}/draft`}
+          variant={archived ? "outlined" : "contained"}
+        >
+          {archived ? "Draft results" : "Draft room"}
         </Button>
         {league.myTeamId && (
           <Button component={Link} to={`/team/${league.myTeamId}`} variant="outlined">
@@ -110,18 +127,19 @@ const LeagueContent = ({ league }: { league: LeagueOverview }) => {
           </Button>
         )}
         <Button component={Link} to={`/settings?leagueId=${league.id}`} variant="outlined">
-          {isCommissioner ? "Settings" : "View settings"}
+          {isCommissioner && !archived ? "Settings" : "View settings"}
         </Button>
       </Box>
 
       <Grid container spacing={3}>
-        {isCommissioner && (
+        {isCommissioner && !archived && (
           <Grid size={{ xs: 12 }}>
             <InvitePanel leagueId={league.id} />
           </Grid>
         )}
         <Grid size={{ xs: 12 }}>
-          <LeagueNotes league={league} />
+          {/* Read-only once archived: the API rejects edits. */}
+          <LeagueNotes league={archived ? { ...league, myRole: "member" } : league} />
         </Grid>
         <Grid size={{ xs: 12 }} sx={{ minWidth: 0 }}>
           <Typography variant="h6" sx={{ mb: 0.5 }}>
