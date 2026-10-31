@@ -7,6 +7,8 @@ real response. Parsers live in `api/services/ingestion/schemas.py`, the client i
 
 ## Basics
 
+- **Raw samples.** Full raw responses for the questions answered so far are in `docs/research/samples/` (see its `INDEX.md`; read it before spending a call). When you call Tank01 to answer a question, save the full raw response there (trim only huge lists, noting it), add an `INDEX.md` row, and link it from the doc that records the answer. `api/tests/fixtures` is for tests; `docs/research/samples` is for reference.
+
 - Every response is `{"statusCode": 200, "body": ...}`.
 - Every response carries `x-ratelimit-requests-limit` and `x-ratelimit-requests-remaining`.
   The client logs the remaining count (warning when low) and exposes it as
