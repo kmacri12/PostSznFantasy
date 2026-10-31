@@ -17,9 +17,16 @@ from api.services.round_points import league_point_lines, postseason_stats
 from api.services.round_status import SUPER_BOWL, completed_rounds, load_games
 from api.services.standings_view import league_standings
 
+ARCHIVED_MESSAGE = "This season is over; the league is a read-only archive"
+
 
 async def season_is_finished(db: AsyncSession, season: int) -> bool:
     return SUPER_BOWL in completed_rounds(await load_games(db, season))
+
+
+async def league_is_archived(db: AsyncSession, league_id: int) -> bool:
+    season = await db.scalar(select(League.season).where(League.id == league_id))
+    return season is not None and await season_is_finished(db, season)
 
 
 async def _awards(

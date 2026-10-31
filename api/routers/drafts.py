@@ -29,6 +29,7 @@ from api.models.draft_models import (
 from api.services import draft_flow
 from api.services.draft_events import pick_events, state_event
 from api.services.draft_picks import DraftPickError, PickResult, make_pick
+from api.services.season_recap import ARCHIVED_MESSAGE, league_is_archived
 from api.ws.draft_manager import draft_manager
 
 logger = logging.getLogger(__name__)
@@ -363,6 +364,8 @@ async def _handle_make_pick(
 
     async with get_session_factory()() as db:
         try:
+            if await league_is_archived(db, league_id):
+                raise DraftPickError(ARCHIVED_MESSAGE, code="archived")
             result = await make_pick(db, league_id, user, player_id)
             if result.already_recorded:
                 return

@@ -138,8 +138,7 @@ const LeagueContent = ({ league }: { league: LeagueOverview }) => {
           </Grid>
         )}
         <Grid size={{ xs: 12 }}>
-          {/* Read-only once archived: the API rejects edits. */}
-          <LeagueNotes league={archived ? { ...league, myRole: "member" } : league} />
+          <LeagueNotes league={league} readOnly={archived} />
         </Grid>
         <Grid size={{ xs: 12 }} sx={{ minWidth: 0 }}>
           <Typography variant="h6" sx={{ mb: 0.5 }}>

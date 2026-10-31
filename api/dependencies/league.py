@@ -12,7 +12,7 @@ from api.db.models.user import User
 from api.db.session import DbSession
 from api.dependencies.auth import CurrentUser
 from api.models.enums import LeagueRole
-from api.services.season_recap import season_is_finished
+from api.services.season_recap import ARCHIVED_MESSAGE, season_is_finished
 
 READ_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
 
@@ -80,7 +80,7 @@ async def reject_archived_writes(
     ):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="This season is over; the league is a read-only archive",
+            detail=ARCHIVED_MESSAGE,
         )
     return membership
 

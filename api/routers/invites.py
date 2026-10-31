@@ -14,7 +14,7 @@ from api.models.league_models import (
 )
 from api.services import invites as invite_service
 from api.services.league_members import LeagueRuleError
-from api.services.season_recap import season_is_finished
+from api.services.season_recap import ARCHIVED_MESSAGE, season_is_finished
 
 router = APIRouter()
 
@@ -104,7 +104,7 @@ async def join_with_invite(
     if season is not None and await season_is_finished(db, season):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="This season is over; the league is a read-only archive",
+            detail=ARCHIVED_MESSAGE,
         )
     try:
         league, team, already_member = await invite_service.join_league(
