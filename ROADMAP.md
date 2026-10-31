@@ -7,7 +7,7 @@ Forward-looking work now lives in [GitHub Issues](https://github.com/kmacri12/Po
 
 **PostSzn Fantasy**: fantasy football for the NFL postseason (Wild Card → Divisional → Conference Championships → Super Bowl). Drafted players are eliminated as their real teams lose, so player survival drives the standings.
 
-Stack: FastAPI + async SQLAlchemy 2.0 + Postgres 16 (Alembic) · Supabase Auth (JWT/JWKS) · React 18 + Vite + MUI + TanStack Table · uv, Ruff, Mypy, Biome, Vitest, pytest.
+Stack: FastAPI + async SQLAlchemy 2.0 + Postgres 16 (Alembic) · Supabase Auth (JWT/JWKS) · React 19 + Vite + MUI + TanStack Table · uv, Ruff, Mypy, Biome, Vitest, pytest.
 
 Guiding principles: KISS, comments explain *why* only, self-documenting names.
 

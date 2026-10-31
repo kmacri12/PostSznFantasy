@@ -52,7 +52,7 @@ make check      # lint + type check + tests + production build
 make format     # auto-fix Ruff and Biome findings
 ```
 
-Narrower targets: `make lint`, `make typecheck`, `make test`, each with `-api` / `-web` variants. The backend is FastAPI on Python 3.13 managed by `uv` (Ruff, strict Mypy, pytest); the frontend is React 18 + TypeScript + Vite checked with Biome and Vitest. A pre-commit hook runs Ruff and Biome on staged files (`pre-commit install`).
+Narrower targets: `make lint`, `make typecheck`, `make test`, each with `-api` / `-web` variants. The backend is FastAPI on Python 3.13 managed by `uv` (Ruff, strict Mypy, pytest); the frontend is React 19 + TypeScript + Vite checked with Biome and Vitest. A pre-commit hook runs Ruff and Biome on staged files (`pre-commit install`).
 
 ### Migrations must be additive
 

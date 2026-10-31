@@ -10,7 +10,7 @@
 > This project is in an **early pre-dev, local-only prototyping phase**. There are **no production databases, no active users, no live data, and no backward-compatibility requirements**.
 > Everything is on the table: schema redesigns, table wipes, dropping legacy code wholesale, replacing state management, or restructuring routes. Do not write complex data migrations or retain deprecated shims for existing data—build the cleanest target architecture from scratch.
 >
-> The codebase has been fully modernized to a **FastAPI** backend with async SQLAlchemy 2.0 and Pydantic v2 schemas, and a **React 18 + Vite** SPA in TypeScript.
+> The codebase has been fully modernized to a **FastAPI** backend with async SQLAlchemy 2.0 and Pydantic v2 schemas, and a **React 19 + Vite** SPA in TypeScript.
 
 | Component | Modern Implementation Stack |
 | :--- | :--- |
@@ -24,9 +24,9 @@
 | **Configuration** | **Pydantic Settings** (`api/core/config.py` cached singleton) |
 | **Auth** | Supabase Auth (JWT verification via FastAPI `Depends(get_current_user)`) |
 | **NFL Data Ingestion** | Async HTTP client (`httpx.AsyncClient`) with `tenacity` retries |
-| **Frontend Runtime** | React 18, Vite 8, strict TypeScript |
+| **Frontend Runtime** | React 19, Vite 8, strict TypeScript |
 | **Frontend Linter & Formatter** | **Biome** (`@biomejs/biome`, `biome.json`) |
-| **UI Components** | MUI (`@mui/material` 5.15, Emotion 11.11) |
+| **UI Components** | MUI (`@mui/material` 9.5, Emotion 11.14) |
 | **Table Component** | TanStack Table v8 (`@tanstack/react-table`) |
 | **State Management** | React Context (`UserContext`) + native `useWebSocket` hook |
 
@@ -266,5 +266,5 @@ Authorization: `LeagueMember` (any member), `LeagueCommissioner` (`require_commi
   - `VITE_WS_URL`: WebSocket origin; optional for the same reason (defaults to the page origin). Both are required in production builds (Cloudflare Pages build vars). Full contract: `api/.env.example`, `frontend/.env.example`.
   - `VITE_SUPABASE_URL`: Supabase project URL.
   - `VITE_SUPABASE_PUBLISHABLE_KEY`: Supabase project publishable API key (`sb_publishable_...`, with fallback to legacy `VITE_SUPABASE_ANON_KEY`).
-- **Component Styling**: Material-UI (MUI v5) styled components and `sx` prop.
+- **Component Styling**: Material-UI (MUI v9) styled components and `sx` prop.
 - **State Flow**: Supabase handles auth credentials client-side; on session initialization or auth state change, the Supabase access token is sent to `/api/auth/login` to resolve/upsert the relational `User.id` into `UserContext`.
