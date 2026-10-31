@@ -3,8 +3,11 @@ from pathlib import Path
 
 import httpx
 import pytest
+import sentry_sdk
 import tenacity
 
+from api.core.config import get_settings
+from api.core.observability import init_sentry
 from api.utils.rapidapi import rapidapi
 from api.utils.rapidapi.rapidapi import RapidApiClient
 
@@ -207,6 +210,55 @@ async def test_the_daily_budget_resets_on_a_new_utc_day(
     day[0] = "2027-01-11"
     assert not client.budget_exhausted
     await client.get_nfl_box_score("b")
+
+
+@pytest.mark.asyncio
+async def test_spending_the_budget_sends_one_sentry_message_per_utc_day(
+    make_client: type[RapidApiClient], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("RAPIDAPI_DAILY_REQUEST_LIMIT", "2")
+    day = ["2027-01-10"]
+    monkeypatch.setattr(rapidapi, "_utc_day", lambda: day[0])
+    messages: list[tuple[str, str]] = []
+    monkeypatch.setattr(
+        sentry_sdk,
+        "capture_message",
+        lambda message, level=None: messages.append((message, str(level))),
+    )
+    client = make_client(requests_per_second=0)
+    with_transport(
+        client, httpx.MockTransport(lambda r: httpx.Response(200, json={"body": {}}))
+    )
+    await client.get_nfl_box_score("a")
+    assert messages == []
+    await client.get_nfl_box_score("b")
+    for game in ("c", "d"):
+        with pytest.raises(rapidapi.RapidApiBudgetExceeded):
+            await client.get_nfl_box_score(game)
+    assert messages == [("Tank01 daily request budget spent", "warning")]
+
+    day[0] = "2027-01-11"
+    await client.get_nfl_box_score("e")
+    await client.get_nfl_box_score("f")
+    with pytest.raises(rapidapi.RapidApiBudgetExceeded):
+        await client.get_nfl_box_score("g")
+    assert len(messages) == 2
+
+
+@pytest.mark.asyncio
+async def test_spending_the_budget_sends_nothing_without_a_dsn(
+    make_client: type[RapidApiClient], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("RAPIDAPI_DAILY_REQUEST_LIMIT", "1")
+    assert not init_sentry(get_settings())
+    client = make_client(requests_per_second=0)
+    with_transport(
+        client, httpx.MockTransport(lambda r: httpx.Response(200, json={"body": {}}))
+    )
+    await client.get_nfl_box_score("a")
+    with pytest.raises(rapidapi.RapidApiBudgetExceeded):
+        await client.get_nfl_box_score("b")
+    assert not sentry_sdk.get_client().is_active()
 
 
 @pytest.mark.asyncio

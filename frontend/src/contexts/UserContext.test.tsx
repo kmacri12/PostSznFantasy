@@ -12,12 +12,10 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("../utils/supabase", () => ({
-  supabase: {
-    auth: {
-      getSession: mocks.getSession,
-      onAuthStateChange: mocks.onAuthStateChange,
-      signOut: mocks.signOut,
-    },
+  supabaseAuth: {
+    getSession: mocks.getSession,
+    onAuthStateChange: mocks.onAuthStateChange,
+    signOut: mocks.signOut,
   },
 }));
 vi.mock("../api/client", () => ({ api: { post: mocks.post } }));

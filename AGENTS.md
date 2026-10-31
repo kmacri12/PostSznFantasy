@@ -124,7 +124,8 @@ PostSznFantasy/
 │   │   └── rapidapi/
 │   │       └── rapidapi.py     # Resilient httpx client for NFL data
 │   ├── ws/                     # Real-time WebSocket layer (join after AUTH; inbound events whitelisted in routers/drafts.py)
-│   │   └── draft_manager.py    # DraftConnectionManager (state, pick broadcasts)
+│   │   ├── draft_manager.py    # DraftConnectionManager (state, pick broadcasts)
+│   │   └── broadcast_relay.py  # Opt-in (DRAFT_BROADCAST=postgres) LISTEN/NOTIFY fan-out across API instances
 │   ├── tests/                  # Pytest backend test suite
 │   │   ├── conftest.py         # Test fixtures & dependency overrides
 │   │   ├── test_scoring.py     # Unit tests for scoring evaluator
@@ -150,7 +151,8 @@ PostSznFantasy/
         │   ├── useWebSocket.ts # Native RFC 6455 WebSocket hook
         │   └── useWebSocket.test.ts # Hook test suite
         ├── pages/
-        │   ├── LandingPage.tsx # Root route: hero, round explainer, user's leagues
+        │   ├── LandingPage.tsx # Root route: hero, round explainer, user's leagues (`dormant` swaps the hero for the off-season notice)
+        │   ├── DormantPage.tsx # Dormant-mode notice and fallback for every route except landing, How to play, privacy, terms
         │   ├── CreateLeaguePage.tsx # Multi-step league creation wizard
         │   ├── DraftPage.tsx   # Live synchronized draft room
         │   ├── HowToPlayPage.tsx # Plain-language rules page (nav link), copy from src/content/rules.ts
@@ -173,7 +175,7 @@ PostSznFantasy/
         │   ├── draftCue.ts     # Web Audio on-deck beep
         │   ├── scoring.ts      # Numeric coercion + defaults diff for league forms
         │   ├── logger.ts       # Leveled client logger (debug/info dev-only)
-        │   └── supabase.ts     # Supabase client singleton
+        │   └── supabase.ts     # Supabase auth-only client (@supabase/auth-js), storage key "postszn-auth"
         └── test/               # Vitest environment setup
 ```
 
@@ -253,7 +255,7 @@ Authorization: `LeagueMember` (any member), `LeagueCommissioner` (`require_commi
 - **Route Authorization**: Protected routes inject `Depends(get_current_user)`, which extracts and verifies Supabase JWT Bearer tokens from the `Authorization` header.
 - **Async Database Connection**: All database access uses SQLAlchemy 2.0 async sessions injected via `DbSession` (`Annotated[AsyncSession, Depends(get_db)]`).
 - **Logging**: Use `logger = logging.getLogger(__name__)`, never `print()`. `setup_logging()` (called in lifespan and CLI scripts) emits JSON unless `ENVIRONMENT=development`; `RequestLoggingMiddleware` logs every request and sets `X-Request-ID`. Frontend uses `createLogger(scope)` from `utils/logger.ts`, not `console.*`.
-- **Error tracking**: Sentry is inert without `SENTRY_DSN` (API, `api/core/observability.py`) / `VITE_SENTRY_DSN` (SPA, `utils/sentry.ts`, lazy-loaded). `logger.error` forwards to it, so never put PII in error messages; extend the scrubbers when adding new fields. See [docs/deploy/sentry.md](docs/deploy/sentry.md).
+- **Error tracking**: Sentry is inert without `SENTRY_DSN` (API, `api/core/observability.py`) / `VITE_SENTRY_DSN` (SPA, `utils/sentry.ts`, lazy-loaded). `logger.error` forwards to it, so never put PII in error messages; `RapidApiClient` also sends one "Tank01 daily request budget spent" message per UTC day. Extend the scrubbers when adding new fields. See [docs/deploy/sentry.md](docs/deploy/sentry.md).
 - **Centralized Configuration**: All environment variables are strongly typed and accessed via `get_settings()` from `api/core/config.py`.
 
 ### Frontend Patterns

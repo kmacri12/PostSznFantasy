@@ -453,7 +453,10 @@ async def auto_pick(
     draft = await load_draft_for_update(db, league_id)
     settings = await load_settings(db, league_id)
     if draft.status != DraftStatus.IN_PROGRESS.value:
-        raise DraftPickError("The draft is not in progress")
+        # For the clock this only means its scan went stale (another clock made the
+        # final pick, or a commissioner paused), not a failure worth alerting on.
+        error = PickNotDue if only_if_overdue else DraftPickError
+        raise error("The draft is not in progress")
     if (
         only_if_overdue
         and draft.current_pick_deadline is not None
