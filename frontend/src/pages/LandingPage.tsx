@@ -65,6 +65,9 @@ const LeagueWidget = ({ league }: { league: LeagueByUser }) => {
       <Typography variant="h6" noWrap>
         {league.name}
       </Typography>
+      <Typography variant="caption" color="text.secondary">
+        {league.season} season
+      </Typography>
       {snapshot ? (
         <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", my: 1.5 }}>
           <Chip
@@ -72,6 +75,7 @@ const LeagueWidget = ({ league }: { league: LeagueByUser }) => {
             color={snapshot.rank ? "primary" : "default"}
             label={snapshot.rank ? `Rank #${snapshot.rank} of ${snapshot.teams}` : "Unranked"}
           />
+          {league.finished && <Chip size="small" variant="outlined" label="Archived" />}
           <Chip
             size="small"
             variant="outlined"
@@ -184,11 +188,13 @@ const LandingPage = ({
             Your leagues
           </Typography>
           <Grid container spacing={2}>
-            {leagues.map((league) => (
-              <Grid size={{ xs: 12, sm: 6, md: 4 }} key={league.id}>
-                <LeagueWidget league={league} />
-              </Grid>
-            ))}
+            {[...leagues]
+              .sort((a, b) => b.season - a.season)
+              .map((league) => (
+                <Grid size={{ xs: 12, sm: 6, md: 4 }} key={league.id}>
+                  <LeagueWidget league={league} />
+                </Grid>
+              ))}
           </Grid>
         </Box>
       )}

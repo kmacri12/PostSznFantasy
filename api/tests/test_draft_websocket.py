@@ -26,7 +26,12 @@ def patched_session_factory(db: AsyncMock) -> Iterator[None]:
     async def session() -> Any:
         yield db
 
-    with patch("api.routers.drafts.get_session_factory", return_value=session):
+    with (
+        patch("api.routers.drafts.get_session_factory", return_value=session),
+        patch(
+            "api.routers.drafts.league_is_archived", new=AsyncMock(return_value=False)
+        ),
+    ):
         yield
 
 
@@ -193,3 +198,23 @@ def test_valid_pick_is_committed_and_broadcast(
     assert picked["data"]["playerName"] == "Star QB"
     assert state["eventType"] == "DRAFT_STATE"
     db.commit.assert_awaited()
+
+
+def test_picks_on_an_archived_league_are_refused(client: TestClient) -> None:
+    verify, membership, snapshot = as_member()
+    make = AsyncMock()
+    with (
+        verify,
+        membership,
+        snapshot,
+        patch(
+            "api.routers.drafts.league_is_archived", new=AsyncMock(return_value=True)
+        ),
+        patch("api.routers.drafts.make_pick", new=make),
+        client.websocket_connect(WS_URL) as ws,
+    ):
+        join(ws)
+        ws.send_json({"eventType": "MAKE_PICK", "data": {"playerId": 3}})
+        reply = ws.receive_json()
+    assert (reply["eventType"], reply["code"]) == ("ERROR", "archived")
+    make.assert_not_awaited()
