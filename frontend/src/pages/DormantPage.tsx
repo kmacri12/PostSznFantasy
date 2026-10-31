@@ -1,4 +1,4 @@
-import { Button, Container, Typography } from "@mui/material";
+import { Button, Container, Stack, Typography } from "@mui/material";
 import { Link } from "react-router-dom";
 import { HOW_TO_PLAY_LABEL } from "../content/rules";
 
@@ -19,12 +19,14 @@ export const DormantNotice = () => (
 const DormantPage = () => (
   <Container maxWidth="sm" sx={{ py: { xs: 6, md: 10 }, textAlign: "center" }}>
     <DormantNotice />
-    <Button variant="contained" size="large" component={Link} to="/" sx={{ mt: 4 }}>
-      See how it works
-    </Button>
-    <Button component={Link} to="/how-to-play" color="inherit" sx={{ mt: 4, ml: 1.5 }}>
-      {HOW_TO_PLAY_LABEL}
-    </Button>
+    <Stack spacing={1.5} sx={{ mt: 4, alignItems: "center" }}>
+      <Button variant="contained" size="large" component={Link} to="/">
+        See how it works
+      </Button>
+      <Button component={Link} to="/how-to-play" color="inherit">
+        {HOW_TO_PLAY_LABEL}
+      </Button>
+    </Stack>
   </Container>
 );
 

@@ -1,5 +1,5 @@
 import { Box, Container, useMediaQuery, useTheme } from "@mui/material";
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
 import { useApiHealth } from "./api/health";
 import { useUserLeagues } from "./api/queries";
@@ -30,6 +30,13 @@ const TermsPage = lazy(() => import("./pages/TermsPage"));
 function App() {
   const { user, userId, signIn, signOutUser } = useUser();
   const dormant = useApiHealth() === "down";
+  const wasDormant = useRef(false);
+  // The sign-in sync in UserContext ran against the dead API and will not retry, so a
+  // full reload is the simple way to restore a signed-in session after recovery.
+  useEffect(() => {
+    if (wasDormant.current && !dormant) window.location.reload();
+    wasDormant.current = dormant;
+  }, [dormant]);
   const { data: leagues = [] } = useUserLeagues(userId !== null && !dormant);
   const [selectedLeague, setSelectedLeague] = useState<string>("");
   const isMobile = useMediaQuery(useTheme().breakpoints.down("md"));

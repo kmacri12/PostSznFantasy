@@ -3,6 +3,12 @@ import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App";
 
+const reload = vi.fn();
+Object.defineProperty(window, "location", {
+  value: { ...window.location, reload },
+  writable: true,
+});
+
 const mocks = vi.hoisted(() => ({
   health: "up" as "checking" | "up" | "down",
   user: null as unknown,
@@ -32,6 +38,7 @@ const renderAt = (url: string) =>
   );
 
 beforeEach(() => {
+  reload.mockClear();
   mocks.health = "up";
   mocks.user = null;
   mocks.userId = null;
@@ -75,6 +82,22 @@ describe("API down (dormant mode)", () => {
     expect(await screen.findByText(/back for the next postseason/i)).toBeVisible();
     expect(screen.queryByText("players page")).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "See how it works" })).toBeVisible();
+  });
+});
+
+describe("recovery", () => {
+  it("reloads once the API comes back so a signed-in user is synced again", async () => {
+    mocks.health = "down";
+    const view = renderAt("/");
+    await screen.findByText(/back for the next postseason/i);
+    expect(reload).not.toHaveBeenCalled();
+    mocks.health = "up";
+    view.rerender(
+      <MemoryRouter initialEntries={["/"]}>
+        <App />
+      </MemoryRouter>,
+    );
+    expect(reload).toHaveBeenCalledTimes(1);
   });
 });
 
