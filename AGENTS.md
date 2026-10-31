@@ -131,6 +131,7 @@ PostSznFantasy/
 │   │   ├── conftest.py         # Test fixtures & dependency overrides
 │   │   ├── test_scoring.py     # Unit tests for scoring evaluator
 │   │   ├── test_golden_2025.py # Replays 2025 box scores against the commissioner's sheet (fixtures/golden_2025)
+│   │   ├── test_awards_golden_2025.py # Season awards over those box scores with fixed teams, lineups and picks (fixtures/golden_2025/awards_league.json)
 │   │   └── test_api_integration.py # Integration tests for API endpoints
 │   ├── main.py                 # FastAPI application factory, CORS, lifespan
 │   ├── pyproject.toml          # uv backend project specification & tool settings
