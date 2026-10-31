@@ -41,7 +41,7 @@ Matching API side (Fly secrets, see `api/.env.example`): `CORS_ORIGINS=https://p
 
 ## Dormant mode (off-season or outage)
 
-At load the SPA calls `GET {VITE_API_URL}/api` (the API health endpoint, `src/api/health.ts`). A network error, timeout or 5xx switches it to dormant mode: landing (with a "back for the next postseason" notice instead of sign-in), How to play, Privacy and Terms still render; every other route shows the notice. A 4xx is not dormant. While dormant it re-checks every 30 seconds and recovers on its own. To go dormant for the off-season, stop the API (for example `fly scale count 0`); to wake, start it again. No Pages redeploy either way. The check is a cross-origin request, so a wrong `CORS_ORIGINS` also looks like downtime.
+At load the SPA calls `GET {VITE_API_URL}/api` (the API health endpoint, `src/api/health.ts`). A network error, timeout or 5xx switches it to dormant mode: landing (with a "back for the next postseason" notice instead of sign-in), How to play, Privacy and Terms still render; every other route shows the notice. A 4xx is not dormant. While dormant it re-checks every 30 seconds and recovers on its own. To go dormant for the off-season, stop the Fly machine (`fly machine stop`, see [shutdown-runbook.md](shutdown-runbook.md); not `fly scale count 0`, which destroys it); to wake, start it again ([wake-up-runbook.md](wake-up-runbook.md)). No Pages redeploy either way. The check is a cross-origin request, so a wrong `CORS_ORIGINS` also looks like downtime.
 
 ## Verify a deploy
 
