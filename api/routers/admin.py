@@ -15,7 +15,7 @@ from api.services.ingestion import (
     ingest_season_stats,
     run_full_ingestion_pipeline,
 )
-from api.services.playoff_field import set_playoff_field
+from api.services.playoff_field import PlayoffFieldError, set_playoff_field
 from api.services.scheduler import (
     GAME_COMPLETED,
     eliminate_losing_teams,
@@ -130,15 +130,11 @@ async def set_playoff_field_route(
     body: PlayoffFieldRequest, db: DbSession
 ) -> dict[str, int]:
     """Replace the playoff field (the draft pool); drafts need exactly 14 teams."""
-    teams = set(body.team_ids)
-    size = get_settings().playoff_field_size
-    if len(teams) != size:
-        raise HTTPException(
-            status_code=422,
-            detail=f"The playoff field has exactly {size} teams",
-        )
-    await set_playoff_field(db, sorted(teams))
-    return {"teams": len(teams)}
+    try:
+        await set_playoff_field(db, body.team_ids)
+    except PlayoffFieldError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    return {"teams": len(set(body.team_ids))}
 
 
 class RefreshResponse(BaseSchema):

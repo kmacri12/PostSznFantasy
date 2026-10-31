@@ -72,7 +72,7 @@ The roster endpoint only serves the current season, so refresh everything for th
 fly ssh console --app "$FLY_APP" -C "python -m api.scripts.seed_nfl_data --season <new year>"
 ```
 
-4. Once the bracket is known, set the playoff field (`PUT /api/admin/playoff-field`, 14 team ids; drafts need it, see the [AGENTS.md](../../AGENTS.md) route map). Verify: `GET /api/players/draft-pool` returns players.
+4. Once the bracket is known, set the playoff field: `fly ssh console --app "$FLY_APP" -C "python -m api.scripts.set_playoff_field BUF KC ..."` with all 14 abbreviations (ingest marks only the 12 Wild Card teams; drafts need all 14). Owner steps: [docs/owner/playoff-field.md](../owner/playoff-field.md). Verify: `GET /api/players/draft-pool` returns players.
 
 **Verify:** the workflow is green; `scripts/dormancy-check.sh awake` passes; `curl -s https://api.postsznfantasy.com/api/config` shows the new `season`; `psql "$DATABASE_URL" -tAc 'select count(*) from nfl.nfl_teams'` is 32 and the players page lists current rosters. The seed prints the remaining quota: write it down.
 

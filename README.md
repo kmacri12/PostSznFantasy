@@ -110,6 +110,12 @@ make seed SEED_ARGS="--season 2026 --with-box-scores"
 
 The seed fails loudly if teams, players or stats come back empty, and prints the remaining RapidAPI quota. The roster endpoint only serves the current season, so keep `SEASON_YEAR` current. Set `RAPIDAPI_CACHE_DIR` in `api/.env` to replay responses from disk while developing. API details and quirks: [docs/rapidapi-tank01.md](docs/rapidapi-tank01.md).
 
+A draft needs exactly 14 playoff teams. Box scores mark only the 12 Wild Card teams, so set the full field (the two bye teams included) by abbreviation:
+
+```bash
+uv run --project api python -m api.scripts.set_playoff_field BUF KC BAL HOU PIT LAC DEN PHI DET LAR TB GB MIN WSH
+```
+
 #### Option B: Admin API Trigger
 Trigger complete batch ingestion over HTTP via the admin router. Only users whose Supabase id (the JWT `sub`) is listed in `ADMIN_SUPABASE_UIDS` in `api/.env` are allowed; everyone else gets a 403:
 
@@ -225,7 +231,7 @@ PostSznFantasy/
 │   ├── dependencies/           # FastAPI dependency injection (auth, db session)
 │   ├── models/                 # Pydantic v2 DTO schemas (camelCase serialization)
 │   ├── routers/                # Modular APIRouter endpoints
-│   ├── scripts/                # Utility and seeding CLI scripts (`seed_nfl_data.py`)
+│   ├── scripts/                # Utility and seeding CLI scripts (`seed_nfl_data.py`, `set_playoff_field.py`)
 │   ├── services/               # Decoupled ingestion domain services (`teams`, `players`, `stats`, `box_scores`)
 │   ├── tests/                  # Pytest unit and integration test suite
 │   ├── utils/                  # Ingestion client and fantasy calculation engines
