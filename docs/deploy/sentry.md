@@ -28,7 +28,7 @@ Frontend: add `VITE_SENTRY_DSN` under Pages, Settings, Variables and Secrets (pr
 
 ## Alert rules to create (issue #88, after #85)
 
-Alerts live in the Sentry UI (Alerts, Create Alert), so they cannot be committed. Create these three in the **postszn-api** project, environment `production`, notifying your email.
+Alerts live in the Sentry UI, so they cannot be committed. Create these in the **postszn-api** project, environment `production`, notifying your email. Sentry's 2026 alert builder (**Monitors**, **Alerts**) renamed the pieces used below: "an event is seen" is now the trigger *An event or issue activity is captured*, the frequency condition is the *Number of events* filter, the tag condition is *Tagged event*, and the action interval is *Throttling*. The click-by-click version is [docs/owner/10-sentry.md](../owner/10-sentry.md).
 
 ### 1. Scheduler or sync failures during games
 
