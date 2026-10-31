@@ -2,11 +2,15 @@ import asyncio
 import json
 import logging
 from collections import defaultdict
-from typing import Any
+from typing import Any, Protocol
 
 from fastapi import WebSocket
 
 logger = logging.getLogger(__name__)
+
+
+class BroadcastRelay(Protocol):
+    async def publish(self, league_id: int, message: dict[str, Any]) -> None: ...
 
 
 class DraftConnectionManager:
@@ -20,6 +24,12 @@ class DraftConnectionManager:
         self._rooms: dict[int, set[WebSocket]] = defaultdict(set)
         self._users: dict[WebSocket, int] = {}
         self._lock = asyncio.Lock()
+        self._relay: BroadcastRelay | None = None
+
+    def use_relay(self, relay: BroadcastRelay) -> None:
+        """Route broadcasts through other API instances; each hands them back to
+        `deliver_local`. Without a relay (the default) broadcasts stay in-process."""
+        self._relay = relay
 
     async def join(
         self, league_id: int, websocket: WebSocket, user_id: int | None = None
@@ -46,7 +56,19 @@ class DraftConnectionManager:
         logger.info("WebSocket disconnected from league %s", league_id)
 
     async def broadcast(self, league_id: int, message: dict[str, Any]) -> None:
-        """Broadcast a JSON message to all active clients in the specified league room.
+        """Send a JSON message to every client in the league room, on every instance."""
+        if self._relay is not None:
+            try:
+                await self._relay.publish(league_id, message)
+                return
+            except Exception:
+                logger.exception(
+                    "Broadcast relay failed; delivering to this instance only"
+                )
+        await self.deliver_local(league_id, message)
+
+    async def deliver_local(self, league_id: int, message: dict[str, Any]) -> None:
+        """Write a message to this instance's sockets in the league room.
 
         Automatically cleans up any broken or abruptly disconnected sockets.
         """

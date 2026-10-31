@@ -15,7 +15,7 @@ You do not need to know the code. You need: the GitHub repository (admin), a ter
 
 Rules that must hold at every step:
 
-1. **One API machine, one worker.** Draft rooms and the draft clock live in that process. Never scale it up or add a second machine.
+1. **One API machine, one worker.** Draft rooms and the draft clock live in that process. Never scale it up or add a second machine (the `DRAFT_BROADCAST=postgres` route exists but is untested outside local runs).
 2. **No API deploy, restart or `fly secrets set` during a live draft** (it disconnects everyone). Run `scripts/check-live-drafts.sh` first. Before launch there are no drafts, so this only starts to matter at Stage 8.
 3. **Migrations are additive** (see CONTRIBUTING.md) and run automatically as the deploy's release step; a failed migration stops the deploy and the old version keeps running.
 4. **One environment, no staging.** Everything you do touches real data.

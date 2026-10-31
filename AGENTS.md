@@ -120,7 +120,8 @@ PostSznFantasy/
 │   │   └── rapidapi/
 │   │       └── rapidapi.py     # Resilient httpx client for NFL data
 │   ├── ws/                     # Real-time WebSocket layer (join after AUTH; inbound events whitelisted in routers/drafts.py)
-│   │   └── draft_manager.py    # DraftConnectionManager (state, pick broadcasts)
+│   │   ├── draft_manager.py    # DraftConnectionManager (state, pick broadcasts)
+│   │   └── broadcast_relay.py  # Opt-in (DRAFT_BROADCAST=postgres) LISTEN/NOTIFY fan-out across API instances
 │   ├── tests/                  # Pytest backend test suite
 │   │   ├── conftest.py         # Test fixtures & dependency overrides
 │   │   ├── test_scoring.py     # Unit tests for scoring evaluator

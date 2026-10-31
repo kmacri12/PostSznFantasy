@@ -51,6 +51,7 @@ plugins = ["pydantic.mypy"]
 [[tool.mypy.overrides]]
 module = [
     "requests_cache.*",
+    "asyncpg.*",
 ]
 ignore_missing_imports = true
 
