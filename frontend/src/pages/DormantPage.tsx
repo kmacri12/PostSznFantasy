@@ -1,0 +1,31 @@
+import { Button, Container, Typography } from "@mui/material";
+import { Link } from "react-router-dom";
+import { HOW_TO_PLAY_LABEL } from "../content/rules";
+
+export const DORMANT_HEADLINE = "We're back for the next postseason";
+
+export const DormantNotice = () => (
+  <>
+    <Typography variant="h4" component="h1">
+      {DORMANT_HEADLINE}
+    </Typography>
+    <Typography color="text.secondary" sx={{ mt: 2 }}>
+      PostSzn Fantasy is offline right now, either between seasons or for a short outage. Leagues
+      and drafts return when the playoffs do.
+    </Typography>
+  </>
+);
+
+const DormantPage = () => (
+  <Container maxWidth="sm" sx={{ py: { xs: 6, md: 10 }, textAlign: "center" }}>
+    <DormantNotice />
+    <Button variant="contained" size="large" component={Link} to="/" sx={{ mt: 4 }}>
+      See how it works
+    </Button>
+    <Button component={Link} to="/how-to-play" color="inherit" sx={{ mt: 4, ml: 1.5 }}>
+      {HOW_TO_PLAY_LABEL}
+    </Button>
+  </Container>
+);
+
+export default DormantPage;
