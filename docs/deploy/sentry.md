@@ -61,7 +61,7 @@ Ordinary user mistakes (taking a drafted player, picking out of turn) are 4xx re
 When the daily cap (`RAPIDAPI_DAILY_REQUEST_LIMIT`) is reached, live polling stops and the data goes stale, but nothing is raised. The client therefore sends one Sentry message, "Tank01 daily request budget spent" (level `warning`, no payload), per UTC day, from `RapidApiClient`. The count is in memory, so a restart after the cap is hit can send it again.
 
 - Type: **Issue alert**
-- When: *a new issue is created* (a first occurrence), or *an event is seen*
+- When: *an event is seen* (not "a new issue is created": every day's message groups into one issue, so only the first day would notify)
 - If (filter): `message` contains `Tank01 daily request budget spent` **and** `environment` equals `production`
 - Action: notify you; action interval 24 hours.
 
