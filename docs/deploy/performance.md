@@ -1,5 +1,7 @@
 # Performance pass (issue #94)
 
+Latest numbers and the target check: [Pass 2](#pass-2-react-19-133-and-the-landing-chain).
+
 Measured on a dev machine against the **built** app (`vite build` + `vite preview`), 2026-10-30, with other processes running, so treat single Lighthouse numbers as noisy (see the spread below). Real-device and Cloudflare CDN numbers have not been measured; run the pass again against the first deploy.
 
 ## Bundle
@@ -88,6 +90,30 @@ Same method, 5 runs each of the previous commit's build and this one, back to ba
 
 Transfer is the stable signal (31 kB less); the score ranges overlap, so the Performance and TBT gains are within noise.
 
+## Pass 2 (React 19, #133 and the landing chain)
+
+Measured 2026-10-31 against the production build served by `vite preview`, Lighthouse 13 mobile preset, Playwright Chromium, **median of 5 runs, a fresh browser profile per run** (reusing one profile caches the immutable assets and shows a 2 kB transfer: run the script below once per run, deleting `/tmp/lh-profile` first). The machine was shared with other work, so a run in a busy minute scores 5 to 15 points lower; the table is from a quiet stretch.
+
+Initial JS after React 19 and #133 (before this change): 875,698 B raw / 264,148 B gzip. The `react` chunk grew to 260.7 kB raw / 82.5 kB gzip (React 19 plus react-router 7); `mui` is 387.9 kB / 117.4 kB; `supabase` 99.5 kB / 23.0 kB.
+
+**Cause of the slow landing and How to play pages:** both were `React.lazy` routes, so first paint of real content waited for entry JS, then the page chunk, then its own imports (`JoinCodeBox`, `DormantPage`). Under Lighthouse's simulated mobile network that chain put the LCP at 2.7 s although FCP was 0.63 s. Fix: `LandingPage` and `HowToPlayPage` are static imports in `App.tsx` (the entry grows by 6.9 kB raw / 2.0 kB gzip; initial JS is now 882,594 B raw / 266,143 B gzip). Every other route stays lazy, including the draft room, team page and the dnd-kit chunk.
+
+| Mobile, median of 5 | Landing before | Landing after | How to play before | How to play after | Draft room before | Draft room after |
+| :-- | --: | --: | --: | --: | --: | --: |
+| Performance | 94 (92 to 95) | 98 (97 to 98) | 95 (94 to 96) | 99 (97 to 99) | 91 (90 to 92) | 90 (90 to 91) |
+| LCP | 2.73 s | 0.63 s | 2.73 s | 0.63 s | 3.14 s | 3.31 s |
+| TBT | 155 ms | 175 ms | 119 ms | 126 ms | 169 ms | 171 ms |
+| FCP | 0.63 s | 0.63 s | 0.62 s | 0.63 s | 0.62 s | 0.63 s |
+| Accessibility / Best practices / SEO | 98 / 100 / 100 | 98 / 100 / 100 | 100 / 100 / 100 | 100 / 100 / 100 | 98 / 100 / 100 | 98 / 100 / 100 |
+| CLS | 0 | 0 | 0 | 0 | 0 | 0 |
+| Transfer | 268 kB | 266 kB | 265 kB | 266 kB | 294 kB | 296 kB |
+
+Target (issue #94): landing >= 90 on the mobile preset, median of 5. Met, before and after; the pass was needed because a loaded machine scored the old landing 84 to 89, and the LCP was bound to the lazy chain either way.
+
+The draft room's LCP is a data chain, not a bundle problem: entry, then the lazy `DraftPage` chunks, then `/api` health, `/api/auth/login`, then league and draft data, then the "Pick 1" heading renders. It scores 90 and is not worth bundling into the entry; the only further lever is preconnecting to the API origin (the origin is a build-time variable, so it needs an `index.html` transform).
+
+Checklist for #94: route-level code splitting (done, all routes except landing and How to play are lazy), MUI bundle check (icons imported by path, no barrel imports), Lighthouse pass on landing and draft (above), cache headers (`_headers` already immutable for `/assets/*`).
+
 ### Re-running
 
 Needs `make db-up`, Chromium from `npx playwright install chromium`, and a throwaway database whose name ends in `_e2e` (the seeder refuses anything else).
@@ -119,6 +145,8 @@ import lighthouse from "lighthouse";
 // node run.mjs <baseUrl> <path> <uid|-> : e.g. http://localhost:5292 /league/1/draft host-abc
 const [, , base, path, uid] = process.argv;
 // A persistent context keeps the page in Chrome's default profile, which is what Lighthouse attaches to.
+import { rmSync } from "node:fs";
+rmSync("/tmp/lh-profile", { recursive: true, force: true }); // a warm HTTP cache hides the real transfer size
 const browser = await chromium.launchPersistentContext("/tmp/lh-profile", {
   args: ["--remote-debugging-port=9333", "--no-sandbox"],
 });

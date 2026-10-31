@@ -9,12 +9,12 @@ import LoadingState from "./components/common/LoadingState";
 import BottomTabBar, { TAB_BAR_HEIGHT } from "./components/layout/BottomTabBar";
 import NavBar from "./components/layout/NavBar";
 import { useUser } from "./contexts/UserContext";
+import DormantPage from "./pages/DormantPage";
+import HowToPlayPage from "./pages/HowToPlayPage";
+import LandingPage from "./pages/LandingPage";
 
 const CreateLeaguePage = lazy(() => import("./pages/CreateLeaguePage"));
 const DraftPage = lazy(() => import("./pages/DraftPage"));
-const LandingPage = lazy(() => import("./pages/LandingPage"));
-const DormantPage = lazy(() => import("./pages/DormantPage"));
-const HowToPlayPage = lazy(() => import("./pages/HowToPlayPage"));
 const JoinPage = lazy(() => import("./pages/JoinPage"));
 const LeaguePage = lazy(() => import("./pages/LeaguePage"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
