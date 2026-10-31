@@ -4,6 +4,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import {
   useDraft,
   useLeague,
+  useLeagueArchived,
   useLeagueSettings,
   useUpdateLeague,
   useUpdateSettings,
@@ -15,6 +16,7 @@ import HelpTip from "../components/common/HelpTip";
 import LoadingState from "../components/common/LoadingState";
 import DraftSetupPanel from "../components/draft/DraftSetupPanel";
 import { TAB_BAR_HEIGHT } from "../components/layout/BottomTabBar";
+import ArchivedNotice from "../components/league/ArchivedNotice";
 import { valuesEqual } from "../components/settings/dirty";
 import MembersSection from "../components/settings/MembersSection";
 import PostseasonForm from "../components/settings/PostseasonForm";
@@ -31,6 +33,7 @@ function SettingsPage() {
   const [searchParams] = useSearchParams();
   const leagueId = searchParams.get("leagueId") ?? undefined;
   const league = useLeague(leagueId);
+  const archived = useLeagueArchived(leagueId);
   const settingsQuery = useLeagueSettings(leagueId);
   const draft = useDraft(leagueId);
   const updateSettings = useUpdateSettings(leagueId);
@@ -121,7 +124,7 @@ function SettingsPage() {
     );
   }
 
-  const canEdit = league.data.myRole === "commissioner";
+  const canEdit = league.data.myRole === "commissioner" && !archived;
   const started = ["in_progress", "paused", "completed"].includes(draft.data?.status ?? "");
 
   const save = async () => {
@@ -151,7 +154,8 @@ function SettingsPage() {
       <Typography variant="h4" gutterBottom>
         League Settings
       </Typography>
-      {!canEdit && (
+      {archived && <ArchivedNotice what="settings" />}
+      {!canEdit && !archived && (
         <Alert severity="info" sx={{ mb: 2 }}>
           Only commissioners can change settings.
         </Alert>
