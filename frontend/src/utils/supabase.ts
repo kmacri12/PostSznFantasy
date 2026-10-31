@@ -7,10 +7,10 @@ const supabaseKey =
   import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY || "";
 
 // Only auth is used, so this is auth-js alone: supabase-js also bundles realtime,
-// storage and postgrest (~32 kB gzip). Persistence, token refresh and URL-session
-// detection are auth-js defaults, spelled out because the sign-in flows depend on them.
-// The storage key is mirrored in e2e/support/env.ts.
-export const auth = new AuthClient({
+// storage and postgrest. Persistence, token refresh and URL-session detection are
+// auth-js defaults, spelled out because the sign-in flows depend on them. The storage
+// key is mirrored in e2e/support/env.ts.
+export const supabaseAuth = new AuthClient({
   url: `${supabaseUrl}/auth/v1`,
   headers: { apikey: supabaseKey },
   storageKey: "postszn-auth",

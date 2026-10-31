@@ -77,7 +77,7 @@ Left alone: `unused-javascript` (about 125 kB, mostly the supabase packages abov
 
 ### Lighthouse after #133 (landing, signed out)
 
-Same method, 5 runs each of the previous commit's build and this one, back to back on the same machine (medians; Performance range in brackets). The draft room was not re-run: the change is the same shared bundle and the numbers above show it needs a seeded draft.
+Same method, 5 runs each of the previous commit's build and this one, back to back on the same machine (medians; Performance range in brackets). The draft room was not re-run: it loads the same initial chunks, so its JS saving is the same 31 kB, and re-running it needs the seeded draft described below.
 
 | | Landing before | Landing after |
 | :-- | --: | --: |
