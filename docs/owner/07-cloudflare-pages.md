@@ -1,6 +1,6 @@
 # Step 7: Cloudflare Pages site and API address
 
-About 30 minutes. Issues #106 (part 2) and #92. Needs Steps 3 (domain **Active**) and 6 (API healthy). [Back to the list](README.md)
+About 30 minutes. Issues #106 (part 2) and #92. Needs Steps 3 (domain **Active**) and 6 (API healthy). [Back to the list](README.md) Screens checked 2026-10-30.
 
 Cloudflare Pages serves the website. Cloudflare now steers brand-new projects toward Workers, but Pages still works and our build files (`_redirects`, `_headers`) are written for it.
 
@@ -17,7 +17,7 @@ cd ~/code/PostSznFantasy
    - Build command `npm ci && npm run build`
    - Build output directory `dist`
    - Root directory (advanced): `frontend`
-   - **Save and Deploy**. The first build may fail or show a blank site: the variables come next.
+   - If the form has an **Environment variables** section, add the variables from item 3 there first, then **Save and Deploy**. If it does not, deploy now: the first site is blank until item 3.
 3. **Build variables.** The script prints the list with your Supabase values filled in. In the project, **Settings**, **Variables and Secrets** (older screens: **Environment variables**), **Production**, add each:
    - `NODE_VERSION` = `22.12`
    - `VITE_API_URL` = `https://api.postsznfantasy.com`

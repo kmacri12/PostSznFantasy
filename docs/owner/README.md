@@ -8,6 +8,7 @@ Provider screens were checked against their own docs on **2026-10-30**. If a but
 
 - **Setup script**: a file in `scripts/wizards/`. You run one command, it asks one question at a time, opens the right page and says what to click. Secrets are typed hidden and go straight to the service.
 - **Repo root**: the project folder. Every command starts there: `cd ~/code/PostSznFantasy`.
+- **Coordinator**: the Claude session that runs this project for you. When a page says "tell the coordinator", post in that chat or on the issue.
 - **Password manager**: where every password, key and connection string goes. **Never paste one into a chat, an issue or a file in the project.**
 
 ## The steps

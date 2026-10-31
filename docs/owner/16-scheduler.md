@@ -2,7 +2,7 @@
 
 10 minutes, the day before Wild Card weekend. Issue #78. Needs Steps 6 to 13, and RapidAPI **Pro** active (Step 2's January reminder). [Back to the list](README.md)
 
-The scheduler polls Tank01 for games in progress every 3 minutes. A daily cap of 700 calls stops it, and Sentry emails you when the cap is hit ([Step 10](10-sentry.md), rule 4). **Never do this during a draft.**
+The scheduler polls Tank01 for games in progress every 3 minutes. A daily cap of 700 calls stops it, and Sentry emails you when the cap is hit ([Step 10](10-sentry.md), rule 3). **Never do this during a draft.**
 
 1. Check no draft is live:
    ```bash
@@ -12,7 +12,7 @@ The scheduler polls Tank01 for games in progress every 3 minutes. A daily cap of
    ```bash
    fly secrets set SCHEDULER_ENABLED=true --app postszn-api
    ```
-3. After the Super Bowl, turn it off and drop RapidAPI back to Basic:
+3. Turning it off: after the last game of a weekend if you want to save calls, or leave it on all playoffs once you trust it. After the Super Bowl, always turn it off and drop RapidAPI back to Basic:
    ```bash
    fly secrets set SCHEDULER_ENABLED=false --app postszn-api
    ```
@@ -25,7 +25,7 @@ During the first real game:
 fly logs --app postszn-api
 ```
 
-shows lines like `RapidAPI call 12/700 today` and `Polled 1 live games`. On the site, standings change and "Stats updated X min ago" stays under a few minutes.
+shows lines like `RapidAPI call 12/700 today`, `Polled 1 live games` and `RapidAPI calls today: 12`. On the site, standings change and "Stats updated X min ago" stays under a few minutes.
 
 Close #78.
 

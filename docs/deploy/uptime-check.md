@@ -4,22 +4,9 @@ A free external monitor that requests `https://api.postsznfantasy.com/api` and e
 
 Do this after Stage 3 of the [cutover runbook](cutover-runbook.md); the API must already answer on its public address.
 
-## UptimeRobot (free plan), step by step
+## Setting it up
 
-1. Go to https://uptimerobot.com and sign up (the free plan needs no card). Confirm your email address.
-2. Dashboard: **+ Add New Monitor**.
-3. Fill in:
-   - Monitor Type: **HTTP(s)**
-   - Friendly Name: `PostSzn API`
-   - URL: `https://api.postsznfantasy.com/api`
-   - Monitoring Interval: **5 minutes** (the free-plan minimum).
-4. Under **Alert Contacts To Notify**, tick your email address (add it first under My Settings, Alert Contacts, if it is not listed). Enable notifications for both **down** and **up**.
-5. **Create Monitor.** Wait one interval; the status should turn **Up**.
-6. Check the keyword option if the plan offers it: set it to alert when the page does **not** contain `healthy`. A plain HTTP 200 check is enough otherwise, since the endpoint returns 503 when the database is unreachable.
-7. Test the alert: edit the monitor URL to `https://api.postsznfantasy.com/api-does-not-exist`, save, wait for the "Down" email, then set the URL back and confirm the "Up" email.
-8. Save the monitor's public status page URL if you want to share one (optional, not required).
-
-Any equivalent free service works (Better Stack, Freshping, Cloudflare health checks): same URL, same alert.
+Click-by-click: [docs/owner/12-uptime.md](../owner/12-uptime.md) (UptimeRobot free plan: 50 monitors, 5-minute checks, email alerts). The endpoint returns 503 when the database is unreachable, so a plain HTTP check is enough; a keyword check for `healthy` is optional. Any equivalent free service works (Better Stack, Cloudflare health checks): same URL, same alert.
 
 ## Reading an alert
 

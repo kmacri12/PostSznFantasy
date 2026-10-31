@@ -1,8 +1,8 @@
 # Step 6: Fly.io API
 
-About 30 minutes. Issues #104 and #11. Needs Steps 1, 2 and 4. [Back to the list](README.md)
+About 30 minutes. Issues #104 and #11. Needs Steps 1, 2 and 4. [Back to the list](README.md) Screens checked 2026-10-30.
 
-Fly runs the API: one always-on machine, about $6.70 a month.
+Fly runs the API: one always-on machine, about $6.70 a month (Fly's pricing page, 2026-10-30).
 
 ```bash
 cd ~/code/PostSznFantasy
@@ -30,7 +30,7 @@ The first prints `{"status":"healthy"}`. The second shows exactly **one** machin
 
 ## If it goes wrong
 
-- Logs (`fly logs --app postszn-api`) say "network is unreachable" for the database: Fly could not reach Supabase over IPv6. Use the session pooler instead, then run **Deploy API** again (GitHub, **Actions**, **Deploy API**, **Run workflow**):
+- Logs (`fly logs --app postszn-api`) say "network is unreachable" for the database: Fly could not reach Supabase over IPv6. Use the session pooler instead, then run **Deploy API** again (GitHub, **Actions**, **Deploy API**, **Run workflow**, tick "I checked: no draft is in the lobby, running or paused"; the run stops if it is not ticked):
   ```bash
   fly secrets set PG_URI='<Supabase session pooler URL>' --app postszn-api
   ```

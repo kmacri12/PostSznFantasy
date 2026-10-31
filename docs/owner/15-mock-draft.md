@@ -4,7 +4,7 @@
 
 ## A. Set a pretend playoff field (only before the real playoffs)
 
-A draft only starts when exactly 14 NFL teams are marked as playoff teams. Before January nobody has qualified, so pick any 14 for the test (no screen exists for this yet):
+A draft only starts when exactly 14 NFL teams are marked as playoff teams. Before January nobody has qualified, so pick any 14 for the test. This writes to the production database once; there is no button or script for it yet:
 
 ```bash
 psql '<Supabase session pooler URL>' -c "update nfl.nfl_teams set in_playoffs = (team_abv in ('BUF','KC','BAL','HOU','PIT','LAC','DEN','PHI','DET','LAR','TB','GB','MIN','WSH'))"
@@ -25,7 +25,8 @@ The second line prints `14`. The real field replaces it later: playoff games mar
    - Airplane mode on one phone for a few seconds, then off: it says **Reconnecting**, then recovers.
 5. After the draft, on each phone: standings, a team page, set a lineup. Nothing is cut off or broken.
 6. Check `fly logs --app postszn-api` and Sentry for unexpected errors.
-7. Write down every problem and paste the list on #95. The coordinator turns them into issues.
+7. Optional rehearsal of live scoring: wait for real games ([Step 16](16-scheduler.md)), or ask the coordinator to run the replay mode (`SCHEDULER_REPLAY_FILE`) on a test copy.
+8. Write down every problem and paste the list on #95. The coordinator turns them into issues.
 
 ## C. Launch checklist
 

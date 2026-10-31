@@ -1,6 +1,6 @@
 # Step 3: move the domain to Cloudflare
 
-15 minutes of clicking, then a wait of minutes to a few hours. Issue #106 (part 1). [Back to the list](README.md)
+15 minutes of clicking, then a wait of minutes to a few hours. Issue #106 (part 1). [Back to the list](README.md) Screens checked 2026-10-30.
 
 `postsznfantasy.com` is registered at Porkbun. Its **nameservers** (the address book that says where the domain lives) move to Cloudflare, so the website, the API address and email are all set up in one place. The domain stays registered at Porkbun.
 

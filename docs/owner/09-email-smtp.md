@@ -1,6 +1,6 @@
 # Step 9: email so magic links reach inboxes
 
-About 30 minutes, then DNS can take minutes to hours. Issue #67. Needs Steps 3, 4 and 7. [Back to the list](README.md)
+About 30 minutes, then DNS can take minutes to hours. Issue #67. Needs Steps 3, 4 and 7. [Back to the list](README.md) Screens checked 2026-10-30.
 
 Why: Supabase's built-in email only sends to members of your Supabase organization, at most 2 an hour. Friends get no magic link until this is done. We send from your own domain through Resend (free: 3,000 emails a month, 100 a day).
 

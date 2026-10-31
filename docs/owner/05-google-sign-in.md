@@ -1,6 +1,6 @@
 # Step 5: production Google sign-in
 
-About 30 minutes, then Google may take a few days. Issue #91. Needs Steps 3 and 4. [Back to the list](README.md)
+About 30 minutes, then Google may take a few days. Issue #91. Needs Steps 3 and 4. [Back to the list](README.md) Screens checked 2026-10-30.
 
 The **Sign in with Google** button needs a Google Cloud project that vouches for our site. Google renamed the old "OAuth consent screen" to **Google Auth Platform**, with the pages **Branding**, **Audience**, **Data Access** and **Clients**.
 
@@ -21,11 +21,12 @@ It first asks for: the domain `postsznfantasy.com` (no `https://`), your Supabas
    - Terms of service `https://postsznfantasy.com/terms`
    - Authorized domains: `postsznfantasy.com`. **Save**.
 3. **Scopes** (Google Auth Platform, **Data Access**, **Add or remove scopes**): select only `openid`, `.../auth/userinfo.email` and `.../auth/userinfo.profile`. These basic scopes need no Google review. **Update**, then **Save**.
-4. **Publish** (Google Auth Platform, **Audience**): click **Publish app** and confirm. The status must say **In production**.
+4. **Publish** (Google Auth Platform, **Audience**): click **Publish app** and confirm. The status must say **In production**; in **Testing** only people you list can sign in.
 5. **Clients**: **Create client**, type **Web application**, name `PostSzn Prod Web`.
    - Authorized JavaScript origins: `https://postsznfantasy.com`
    - Authorized redirect URIs: `https://<your Supabase ref>.supabase.co/auth/v1/callback` (Supabase shows this exact address on its Google provider page; copy it from there)
    - **Create**. Keep the window with the **Client ID** and **Client secret** open.
+   - The script asks for the **Client ID** (public, safe to paste). It never asks for the secret: that only goes into Supabase.
 6. **Supabase**: project `postszn-prod`, **Authentication**, **Sign In / Providers**, **Google**. Turn it on, paste the Client ID and the Client secret, **Save**. This is the only place the secret goes.
 7. **Supabase URLs**: **Authentication**, **URL Configuration**. Confirm Site URL `https://postsznfantasy.com` and Redirect URL `https://postsznfantasy.com/**` (set in Step 4).
 8. The script then offers a sign-in test. Answer **later**: it only works once the site is live (Step 8).

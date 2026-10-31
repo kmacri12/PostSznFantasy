@@ -1,6 +1,6 @@
 # Step 2: RapidAPI account and Tank01 key
 
-About 10 minutes. Issue #71. [Back to the list](README.md)
+About 10 minutes. Issue #71. [Back to the list](README.md) Screens checked 2026-10-30.
 
 Tank01 (sold through RapidAPI) is where the NFL stats come from.
 

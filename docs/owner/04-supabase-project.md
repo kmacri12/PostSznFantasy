@@ -1,6 +1,6 @@
 # Step 4: Supabase production project
 
-About 30 minutes. Issue #105. Needs Step 1. [Back to the list](README.md)
+About 30 minutes. Issue #105. Needs Step 1. [Back to the list](README.md) Screens checked 2026-10-30.
 
 Supabase holds the database and the sign-in accounts.
 
@@ -35,7 +35,7 @@ Good to know: until Step 9 is done, Supabase's built-in email only sends to memb
 
 ## Verify
 
-- The script finished and printed a version starting with the newest file name in `api/alembic/versions/` (currently `0011_league_notes`).
+- The script finished and printed a version that matches the newest file name in `api/alembic/versions/`.
 - The database password, the session pooler string and the direct string are in your password manager.
 - `gh secret list --repo kmacri12/PostSznFantasy` shows `PROD_DATABASE_URL`.
 
