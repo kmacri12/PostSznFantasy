@@ -16,7 +16,9 @@ DST_STAT_COLUMNS = (
     "dst_safeties",
     "dst_fumbles_recovered",
     "dst_interceptions",
-    "dst_blocked_kicks",
+    "dst_blocked_punts",
+    "dst_blocked_field_goals",
+    "dst_blocked_extra_points",
     "dst_two_point_returns",
 )
 
@@ -87,10 +89,9 @@ def parse_dst_stat_rows(
                 "dst_fumbles_recovered": safe_int(opponent.get("fumblesLost")),
                 "dst_def_td": safe_int(own.get("defensiveOrSpecialTeamsTds")),
                 "dst_safeties": safe_int(own_dst.get("safeties")),
-                "dst_blocked_kicks": sum(
-                    safe_int(own.get(key))
-                    for key in ("blockedPunt", "blockedFG", "blockedXP")
-                ),
+                "dst_blocked_punts": safe_int(own.get("blockedPunt")),
+                "dst_blocked_field_goals": safe_int(own.get("blockedFG")),
+                "dst_blocked_extra_points": safe_int(own.get("blockedXP")),
                 "dst_two_point_returns": safe_int(
                     own.get("defensiveTwoPointConversionReturns")
                 ),

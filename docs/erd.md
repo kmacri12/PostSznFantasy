@@ -225,7 +225,7 @@ erDiagram
 
 ## Notes
 
-- **Summarised tables.** `league_settings` has about 70 columns in groups: `roster_num_*` and `roster_max_*` (slot counts and position caps), `scoring_*` (points per stat, including the kicker, DST and bonus items), `multiplier_*` (per-round multipliers), and a few league flags. `nfl_player_game_stats` and `nfl_player_season_stats` have one column per stat. Only their keys and relationships are drawn.
+- **Summarised tables.** `league_settings` has about 70 columns in groups: `roster_num_*` and `roster_max_*` (slot counts and position caps), `scoring_*` (points per stat, including the kicker, DST and bonus items), `multiplier_*` (per-round multipliers), and a few league flags. `nfl_player_game_stats` and `nfl_player_season_stats` have one column per stat (blocked kicks are stored by kind: punts, field goals, extra points). Only their keys and relationships are drawn.
 - **Unique constraints beyond `UK` above:** one draft pick per `(draft_id, player_id)` and per `(draft_id, number_pick_overall)`; one roster entry per `(league_id, player_id)` (a player is on one fantasy team per league); one lineup entry per `(team_id, round, slot_index)`; one standings row per `(league_id, team_id)`.
 - **No foreign key:** `nfl_player_game_stats.game_id` points at `nfl_games.id` by value only, and `activity_views.team_id` is a plain column (0 means the league feed).
 - **Lineups** are per fantasy team and round: `lineup_slots` holds only players the owner placed. Players on the roster but absent from `lineup_slots` for a round are unplaced and count as bench (see `product-rules.md`).

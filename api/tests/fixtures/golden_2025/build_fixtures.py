@@ -33,6 +33,9 @@ KEEP_TEAM_STATS = (
     "safeties",
     "defensiveOrSpecialTeamsTds",
     "defensiveTwoPointConversionReturns",
+    "blockedPunt",
+    "blockedFG",
+    "blockedXP",
 )
 ROUNDS = ("Wild Card", "Divisional Round", "Conference Championship", "Super Bowl")
 

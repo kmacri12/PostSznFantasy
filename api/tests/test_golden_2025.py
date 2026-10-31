@@ -133,3 +133,25 @@ def test_dst_rules_match_the_sheet_including_a_pick_six_against_the_offense(
     assert ne["dst_points_allowed"] == 23
     assert replay.points[("Super Bowl", dst_player_id(replay.team_ids["NE"]))] == 2.0
     assert replay.points[("Super Bowl", dst_player_id(replay.team_ids["SEA"]))] == 20.0
+
+
+def test_real_blocked_punt_is_stored_by_kind_and_scored_with_the_default() -> None:
+    boxes = json.loads((FIXTURES / "box_scores.json").read_text())
+    rows = parse_game_player_stats(
+        "20260110_LAR@CAR", boxes["20260110_LAR@CAR"], {dst_player_id(5)}
+    )
+    stats = NFLPlayerGameStats(**rows[0])
+
+    def settings(blocked_kick: float) -> LeagueSettings:
+        template = ScoringSettings(scoring_dst_blocked_kick=blocked_kick)
+        return LeagueSettings(
+            **{
+                k: Decimal(str(v))
+                for k, v in template.model_dump(by_alias=False).items()
+            }
+        )
+
+    assert (stats.dst_blocked_punts, stats.dst_blocked_field_goals) == (1, 0)
+    assert calculate_player_points(stats, settings(1), "DST") - calculate_player_points(
+        stats, settings(0), "DST"
+    ) == Decimal(1)

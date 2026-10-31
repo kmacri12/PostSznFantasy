@@ -390,7 +390,9 @@ def test_dst_blocked_kick_and_two_point_return(
     standard_league_settings.scoring_dst_two_point_return = Decimal(2)
 
     stats = NFLPlayerGameStats()
-    stats.dst_blocked_kicks = 2
+    stats.dst_blocked_punts = 1
+    stats.dst_blocked_field_goals = 1
+    stats.dst_blocked_extra_points = 0
     stats.dst_two_point_returns = 1
     assert calculate_dst_points(stats, standard_league_settings) == Decimal(6)
 

@@ -167,6 +167,15 @@ def calculate_kicking_points(
     )
 
 
+def _blocked_kicks(stats: NFLPlayerGameStats) -> Decimal:
+    # Stored by kind so the setting can be split later without re-ingesting.
+    return (
+        _safe(stats.dst_blocked_punts)
+        + _safe(stats.dst_blocked_field_goals)
+        + _safe(stats.dst_blocked_extra_points)
+    )
+
+
 def calculate_dst_points(
     stats: NFLPlayerGameStats, settings: LeagueSettings
 ) -> Decimal:
@@ -177,7 +186,7 @@ def calculate_dst_points(
         + _safe(stats.dst_fumbles_recovered)
         * _safe(settings.scoring_dst_fumble_recover)
         + _safe(stats.dst_interceptions) * _safe(settings.scoring_dst_interception)
-        + _safe(stats.dst_blocked_kicks) * _safe(settings.scoring_dst_blocked_kick)
+        + _blocked_kicks(stats) * _safe(settings.scoring_dst_blocked_kick)
         + _safe(stats.dst_two_point_returns)
         * _safe(settings.scoring_dst_two_point_return)
         + _dst_pts_allowed_bonus(stats.dst_points_allowed, settings)

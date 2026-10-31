@@ -102,14 +102,17 @@ def test_safeties_come_from_the_dst_block() -> None:
     assert rows[dst_player_id(HOME)]["dst_safeties"] == 0
 
 
-def test_every_kind_of_blocked_kick_counts() -> None:
+def test_each_kind_of_blocked_kick_is_stored_separately() -> None:
     # The team that made the block is credited (2026-01-25 NE@DEN: NE blockedFG 1).
     rows = _rows(
         _box(home={"blockedFG": "1", "blockedPunt": "1"}, away={"blockedXP": "1"})
     )
 
-    assert rows[dst_player_id(HOME)]["dst_blocked_kicks"] == 2
-    assert rows[dst_player_id(AWAY)]["dst_blocked_kicks"] == 1
+    home, away = rows[dst_player_id(HOME)], rows[dst_player_id(AWAY)]
+    assert (home["dst_blocked_punts"], home["dst_blocked_field_goals"]) == (1, 1)
+    assert home["dst_blocked_extra_points"] == 0
+    assert (away["dst_blocked_punts"], away["dst_blocked_field_goals"]) == (0, 0)
+    assert away["dst_blocked_extra_points"] == 1
 
 
 def test_unknown_dst_players_are_skipped() -> None:
