@@ -87,6 +87,19 @@ def normalise_position(raw: Any) -> str | None:
     return "RB" if position == "FB" else position
 
 
+_INJURY_TAGS = {
+    tag.lower(): tag for tag in ("Out", "Doubtful", "Questionable", "Injured Reserve")
+}
+
+
+def parse_injury_status(injury: Any) -> str | None:
+    """The player's `injury.designation` if it is one of the four tags the UI shows."""
+    if not isinstance(injury, dict):
+        return None
+    designation = safe_str(injury.get("designation"))
+    return _INJURY_TAGS.get(designation.lower()) if designation else None
+
+
 def empty_stat_line() -> dict[str, int]:
     return dict.fromkeys(STAT_COLUMNS, 0)
 

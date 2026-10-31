@@ -12,6 +12,7 @@ from api.services.ingestion.schemas import (
     POSTSEASON_WEEKS,
     StatsShapeError,
     field_goal_yards_by_kicker,
+    parse_injury_status,
     parse_stat_line,
     safe_int,
 )
@@ -117,3 +118,23 @@ def test_game_status_normalised() -> None:
     assert normalise_game_status("Final") == "Completed"
     assert normalise_game_status("Completed") == "Completed"
     assert normalise_game_status("Scheduled") == "Scheduled"
+
+
+@pytest.mark.parametrize(
+    ("injury", "expected"),
+    [
+        ({"designation": "Questionable"}, "Questionable"),
+        ({"designation": " doubtful "}, "Doubtful"),
+        ({"designation": "OUT"}, "Out"),
+        ({"designation": "Injured Reserve"}, "Injured Reserve"),
+        ({"designation": ""}, None),
+        ({"designation": "Suspended"}, None),
+        ({}, None),
+        ("", None),
+        (None, None),
+    ],
+)
+def test_injury_status_keeps_only_the_four_game_day_tags(
+    injury: Any, expected: str | None
+) -> None:
+    assert parse_injury_status(injury) == expected
