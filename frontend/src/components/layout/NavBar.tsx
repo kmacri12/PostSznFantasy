@@ -23,7 +23,7 @@ import {
   useMediaQuery,
   useTheme,
 } from "@mui/material";
-import type { User as SupabaseUser } from "@supabase/supabase-js";
+import type { User as SupabaseUser } from "@supabase/auth-js";
 import { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import type { LeagueByUser } from "../../api/types";

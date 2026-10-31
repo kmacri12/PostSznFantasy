@@ -1,5 +1,5 @@
 import axios from "axios";
-import { supabase } from "../utils/supabase";
+import { auth } from "../utils/supabase";
 
 // An empty base keeps requests same-origin so the Vite dev proxy can forward /api.
 export const api = axios.create({ baseURL: import.meta.env.VITE_API_URL ?? "" });
@@ -7,7 +7,7 @@ export const api = axios.create({ baseURL: import.meta.env.VITE_API_URL ?? "" })
 api.interceptors.request.use(async (config) => {
   const {
     data: { session },
-  } = await supabase.auth.getSession();
+  } = await auth.getSession();
   if (session?.access_token) {
     config.headers.Authorization = `Bearer ${session.access_token}`;
   }
@@ -20,7 +20,7 @@ api.interceptors.request.use(async (config) => {
 api.interceptors.response.use(undefined, async (error) => {
   const config = error.config;
   if (error.response?.status !== 401 || !config || config.retriedAfterRefresh) throw error;
-  const { data } = await supabase.auth.refreshSession();
+  const { data } = await auth.refreshSession();
   if (!data.session) throw error;
   config.retriedAfterRefresh = true;
   return api.request(config);

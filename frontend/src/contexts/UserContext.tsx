@@ -1,4 +1,4 @@
-import type { Session, User as SupabaseUser } from "@supabase/supabase-js";
+import type { Session, User as SupabaseUser } from "@supabase/auth-js";
 import { useQueryClient } from "@tanstack/react-query";
 import type React from "react";
 import {
@@ -15,7 +15,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { api } from "../api/client";
 import { authCallbackUrl, signInPath } from "../utils/authRedirect";
 import { createLogger } from "../utils/logger";
-import { supabase } from "../utils/supabase";
+import { auth } from "../utils/supabase";
 
 const logger = createLogger("UserContext");
 
@@ -67,7 +67,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // The listener only records the session: awaiting Supabase or backend calls inside
   // it can deadlock the auth client.
   useEffect(() => {
-    supabase.auth
+    auth
       .getSession()
       .then(({ data }) => setSession(data.session))
       .catch((err) => logger.error("Error checking Supabase session:", err))
@@ -75,7 +75,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+    } = auth.onAuthStateChange((_event, nextSession) => {
       setSession(nextSession);
       setLoading(false);
     });
@@ -125,7 +125,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [navigate, location.pathname, currentPath]);
 
   const signInWithGoogle = useCallback(async (next: string) => {
-    const { error } = await supabase.auth.signInWithOAuth({
+    const { error } = await auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: authCallbackUrl(window.location.origin, next) },
     });
@@ -134,7 +134,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const signInWithEmail = useCallback(async (email: string, next: string) => {
-    const { error } = await supabase.auth.signInWithOtp({
+    const { error } = await auth.signInWithOtp({
       email,
       options: { emailRedirectTo: authCallbackUrl(window.location.origin, next) },
     });
@@ -145,7 +145,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const signOutUser = useCallback(async () => {
     deliberateSignOut.current = true;
     try {
-      await supabase.auth.signOut();
+      await auth.signOut();
     } catch (error) {
       deliberateSignOut.current = false;
       logger.error("Error signing out:", error);
@@ -156,7 +156,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const getIdToken = useCallback(async () => {
     const {
       data: { session: current },
-    } = await supabase.auth.getSession();
+    } = await auth.getSession();
     return current?.access_token ?? null;
   }, []);
 
