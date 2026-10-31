@@ -4,6 +4,7 @@ The draft pool is the players on those teams. Tank01 has no seeds, so the 14-tea
 is complete only once the schedule (12 Wild Card teams) plus the top seeds' byes are in.
 """
 
+from collections.abc import Collection
 from datetime import UTC, datetime
 
 from sqlalchemy import func, select, update
@@ -37,9 +38,22 @@ async def require_field_set(db: AsyncSession) -> None:
         )
 
 
-async def set_playoff_field(db: AsyncSession, team_ids: list[int]) -> None:
+class PlayoffFieldError(ValueError):
+    """The requested field was refused; the message says why and is safe to show."""
+
+
+async def set_playoff_field(db: AsyncSession, team_ids: Collection[int]) -> None:
     """Replace the field; the admin sets this once the seeds are known."""
-    await db.execute(update(NFLTeam).values(in_playoffs=NFLTeam.id.in_(team_ids)))
+    ids = set(team_ids)
+    size = get_settings().playoff_field_size
+    if len(ids) != size:
+        raise PlayoffFieldError(
+            f"The playoff field has exactly {size} teams, got {len(ids)}"
+        )
+    known = set(await db.scalars(select(NFLTeam.id).where(NFLTeam.id.in_(ids))))
+    if unknown := sorted(ids - known):
+        raise PlayoffFieldError(f"Unknown NFL team ids: {', '.join(map(str, unknown))}")
+    await db.execute(update(NFLTeam).values(in_playoffs=NFLTeam.id.in_(ids)))
 
 
 async def first_wild_card_kickoff(db: AsyncSession, season: int) -> datetime | None:
