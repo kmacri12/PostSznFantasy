@@ -47,6 +47,9 @@ dev: db-up migrate ## Run database, API and web together (Ctrl-C stops both serv
 seed: ## Seed NFL data: make seed SEED_ARGS="--season 2026 --no-stats"
 	$(UV) python -m api.scripts.seed_nfl_data $(SEED_ARGS)
 
+rehearse-auth-restore: ## Dry-run rebuilding Auth users from the local database against a fake Auth server
+	$(UV) python -m api.scripts.recreate_auth_users --rehearse
+
 lint-api:
 	$(API_RUN) ruff check .
 	$(API_RUN) ruff format --check .
