@@ -10,7 +10,7 @@
 > This project is in an **early pre-dev, local-only prototyping phase**. There are **no production databases, no active users, no live data, and no backward-compatibility requirements**.
 > Everything is on the table: schema redesigns, table wipes, dropping legacy code wholesale, replacing state management, or restructuring routes. Do not write complex data migrations or retain deprecated shims for existing data—build the cleanest target architecture from scratch.
 >
-> The codebase has been fully modernized to a **FastAPI** backend with async SQLAlchemy 2.0 and Pydantic v2 schemas, and a **React 18 + Vite** SPA in TypeScript.
+> The codebase has been fully modernized to a **FastAPI** backend with async SQLAlchemy 2.0 and Pydantic v2 schemas, and a **React 19 + Vite** SPA in TypeScript.
 
 | Component | Modern Implementation Stack |
 | :--- | :--- |
@@ -24,7 +24,7 @@
 | **Configuration** | **Pydantic Settings** (`api/core/config.py` cached singleton) |
 | **Auth** | Supabase Auth (JWT verification via FastAPI `Depends(get_current_user)`) |
 | **NFL Data Ingestion** | Async HTTP client (`httpx.AsyncClient`) with `tenacity` retries |
-| **Frontend Runtime** | React 18, Vite 8, strict TypeScript |
+| **Frontend Runtime** | React 19, Vite 8, strict TypeScript |
 | **Frontend Linter & Formatter** | **Biome** (`@biomejs/biome`, `biome.json`) |
 | **UI Components** | MUI (`@mui/material` 5.15, Emotion 11.11) |
 | **Table Component** | TanStack Table v8 (`@tanstack/react-table`) |

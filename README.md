@@ -21,7 +21,7 @@ PostSzn Fantasy is architected as an asynchronous backend API service paired wit
   - **External Ingestion**: Asynchronous HTTP client ([HTTPX](https://www.python-httpx.org/)) with exponential backoff retries via [Tenacity](https://tenacity.readthedocs.io/) for RapidAPI NFL stats.
 
 - **Frontend (`frontend/`)**:
-  - **Framework & Build**: [React 18](https://react.dev/), [TypeScript](https://www.typescriptlang.org/), and [Vite](https://vitejs.dev/).
+  - **Framework & Build**: [React 19](https://react.dev/), [TypeScript](https://www.typescriptlang.org/), and [Vite](https://vitejs.dev/).
   - **Formatting & Linting**: Ultra-fast AST-based code checking and formatting via [Biome](https://biomejs.dev/).
   - **UI & Layout**: Material UI (MUI v5) components.
   - **Data Tables**: Type-safe headless tabular display with [@tanstack/react-table](https://tanstack.com/table/v8).
@@ -230,7 +230,7 @@ PostSznFantasy/
 │   ├── tests/                  # Pytest unit and integration test suite
 │   ├── utils/                  # Ingestion client and fantasy calculation engines
 │   └── ws/                     # Native WebSocket connection manager
-└── frontend/                   # React 18 + Vite + TypeScript application
+└── frontend/                   # React 19 + Vite + TypeScript application
     ├── biome.json              # Biome linting and formatting configuration
     └── src/
         ├── components/         # Modular UI components (draft board, dev quick sync, player table, etc.)
