@@ -4,20 +4,19 @@ Question: does Tank01 give us an injury status we can show in the draft pool and
 
 ## Findings
 
-- **Verified** (recorded in `team-qb-k-starter-source.md`, section 2): `getNFLPlayerList` and
-  `getNFLTeamRoster` rows carry `injury: {designation, description, injDate, injReturnDate}`.
-  `designation` values actually observed: `Questionable`, `Injured Reserve`, and empty. No extra
-  call is needed: the player list is already ingested daily (`ingest_nfl_players`), so the tag
-  costs **0 additional requests**.
-- **Unverified**: the strings `Out` and `Doubtful`. They are the NFL's standard game-status
-  designations and the ones the issue names, but no response containing them was captured (the
-  local dev environment has no RapidAPI key, so this research made no live call). The parser
-  matches them case-insensitively and a wrong guess at the spelling simply shows no tag.
+- **Verified (2026-10-31, one live `getNFLPlayerList` response, 3,833 players)**: rows carry
+  `injury: {designation, description, injDate, injReturnDate}`. Counts of `designation`: empty
+  3402, `Injured Reserve` 229, `Questionable` 100, `Out` 68, `Injured Reserve - Designated to
+  Return` 31, `Doubtful` 3. No extra call is needed: the player list is already ingested daily
+  (`ingest_nfl_players`), so the tag costs **0 additional requests**.
+- `Injured Reserve - Designated to Return` is on injured reserve but allowed to practise; it maps to
+  the `Injured Reserve` tag (a separate tag would add a fifth word to explain for no decision a
+  manager can act on differently). Any other string is stored as no tag.
 - **Unverified**: how quickly Tank01 refreshes `designation` (game-week reports are published
   Wednesday to Friday, with Saturday/Sunday inactive lists), and whether it clears the field after a
   player returns. The tag is only as fresh as the daily player sync; the UI must not promise more.
-- **Unverified**: other designations (`Suspended`, `PUP`, `Day-To-Day`, `Physically Unable`).
-  Not shown in v1; they are stored as no tag.
+- No other designation appeared in that response (not `Suspended`, `PUP` or `Day-To-Day`). If one
+  shows up later it is stored as no tag.
 - `description`, `injDate` and `injReturnDate` exist but are free text or dates of unknown
   reliability. Not used.
 - Depth-chart entries have no injury field; the player list is the only source covering injured

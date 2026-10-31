@@ -90,6 +90,8 @@ def normalise_position(raw: Any) -> str | None:
 _INJURY_TAGS = {
     tag.lower(): tag for tag in ("Out", "Doubtful", "Questionable", "Injured Reserve")
 }
+# Still on injured reserve, just allowed to practise; a player is out either way.
+_INJURY_TAGS["injured reserve - designated to return"] = "Injured Reserve"
 
 
 def parse_injury_status(injury: Any) -> str | None:

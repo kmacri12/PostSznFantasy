@@ -127,6 +127,7 @@ def test_game_status_normalised() -> None:
         ({"designation": " doubtful "}, "Doubtful"),
         ({"designation": "OUT"}, "Out"),
         ({"designation": "Injured Reserve"}, "Injured Reserve"),
+        ({"designation": "Injured Reserve - Designated to Return"}, "Injured Reserve"),
         ({"designation": ""}, None),
         ({"designation": "Suspended"}, None),
         ({}, None),
