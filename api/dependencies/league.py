@@ -113,6 +113,18 @@ async def require_commissioner(
     return membership
 
 
+async def require_archive_commissioner(
+    membership: Annotated[LeagueMembership, Depends(get_archived_league_member)],
+) -> LeagueMembership:
+    """Commissioner guard that lets writes through on a finished league."""
+    if not membership.is_commissioner:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Commissioner access required",
+        )
+    return membership
+
+
 async def get_draft_member(
     request: Request, draft_id: int, supabase_uid: CurrentUser, db: DbSession
 ) -> LeagueMembership:
@@ -146,6 +158,7 @@ async def get_team_member(
 
 
 LeagueMember = Annotated[LeagueMembership, Depends(get_league_member)]
+ArchiveCommissioner = Annotated[LeagueMembership, Depends(require_archive_commissioner)]
 LeagueCommissioner = Annotated[LeagueMembership, Depends(require_commissioner)]
 DraftMember = Annotated[LeagueMembership, Depends(get_draft_member)]
 TeamMember = Annotated[LeagueMembership, Depends(get_team_member)]

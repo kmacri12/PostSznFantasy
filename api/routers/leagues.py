@@ -19,7 +19,11 @@ from api.db.models.league import (
 from api.db.models.user import User
 from api.db.session import DbSession
 from api.dependencies.auth import CurrentUser
-from api.dependencies.league import LeagueCommissioner, LeagueMember
+from api.dependencies.league import (
+    ArchiveCommissioner,
+    LeagueCommissioner,
+    LeagueMember,
+)
 from api.models.enums import DraftStatus, DraftType, LeagueRole
 from api.models.league_models import (
     LeagueCreate,
@@ -47,6 +51,7 @@ from api.services.league_admin import (
 )
 from api.services.league_members import LeagueRuleError, remove_member, set_role
 from api.services.playoff_field import require_draft_window_open
+from api.services.run_it_back import run_it_back
 from api.services.season_recap import build_recap, season_is_finished
 from api.services.settings_changes import (
     on_editable_settings_changed,
@@ -531,3 +536,25 @@ async def get_recap(
 ) -> SeasonRecap:
     """Champion(s) and final standings once the Super Bowl is final."""
     return await build_recap(db, membership.league)
+
+
+@router.post(
+    "/{league_id}/run-it-back",
+    response_model=LeagueCreateResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def run_league_back(
+    league_id: int, membership: ArchiveCommissioner, db: DbSession
+) -> LeagueCreateResponse:
+    """Next season's league from a finished one: same members, teams and settings."""
+    try:
+        new = await run_it_back(db, membership.league, membership.user)
+    except LeagueRuleError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail=str(exc)
+        ) from exc
+    await db.commit()
+    return LeagueCreateResponse(
+        message=f"League '{new.name}' is running it back for {new.season}",
+        league_id=new.id,
+    )
