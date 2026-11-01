@@ -1,10 +1,13 @@
 """Season awards, worked out from counted points on every read.
 
 All awards but the bench award use counted points (a starter's points after the round
-multiplier); the bench award sums what rostered players earned off the starting
-lineup, the same calculation as the round-by-round breakdown (round_points.py). Ties
-go to the lower id, so the result is stable. `owners` maps every rostered player to his
-fantasy team, so a drafted player with no points line can still be the biggest bust.
+multiplier). The draft awards compare, per position, the order a player was drafted
+with his finish by counted points (docs/product-rules.md); the bench award sums what
+rostered players earned off the starting lineup, the same calculation as the
+round-by-round breakdown (round_points.py). Ties go to the lower id (the earlier pick
+for a draft award), so the result is stable. `owners` maps every rostered player to
+his fantasy team, so a drafted player with no points line can still be the biggest
+bust.
 """
 
 from collections import defaultdict
@@ -18,6 +21,14 @@ from api.services.round_points import PointsLine
 
 
 @dataclass(frozen=True)
+class DraftValue:
+    drafted_as: int
+    finished_as: int
+    places: int
+    points: Decimal
+
+
+@dataclass(frozen=True)
 class Award:
     key: str
     title: str
@@ -25,6 +36,8 @@ class Award:
     player_id: int | None
     round: int | None
     value: Decimal
+    # Set for the per-position draft awards, whose value is `draft.places`.
+    draft: DraftValue | None = None
 
 
 def _best[T](
@@ -40,17 +53,24 @@ def _best[T](
 
 def _draft_values(
     totals: Mapping[int, Decimal], pick_numbers: Mapping[int, int]
-) -> dict[int, int]:
-    """Pick number minus rank by counted points (1 = most), for every drafted player.
+) -> dict[int, DraftValue]:
+    """Draft value of every player in one position's picks.
 
-    Players level on points share the better rank. Positive means the player
-    outscored his draft slot.
+    Drafted as = his order among those picks; finished as = his rank by counted points
+    among them (1 = most, level players share the better rank). Places gained is the
+    difference: positive means he outscored his draft slot.
     """
-    drafted = sorted(pick_numbers)
+    drafted = sorted(pick_numbers, key=lambda p: (pick_numbers[p], p))
     scores = {p: totals.get(p, Decimal(0)) for p in drafted}
     return {
-        p: pick_numbers[p] - (1 + sum(1 for q in drafted if scores[q] > scores[p]))
-        for p in drafted
+        p: DraftValue(
+            drafted_as=order,
+            finished_as=finish,
+            places=order - finish,
+            points=scores[p],
+        )
+        for order, p in enumerate(drafted, start=1)
+        for finish in [1 + sum(1 for q in drafted if scores[q] > scores[p])]
     }
 
 
@@ -137,18 +157,37 @@ def compute_awards(
             )
         )
 
-    values = _draft_values(totals, pick_numbers)
-    ranked = sorted(p for p in values if p in team_of)
-    # A player who never counted outranks nobody's slot, so he can be a bust but
-    # never the best value.
-    for key, title, lowest in (
-        ("draft_value", "Best draft value", False),
-        ("bust", "Biggest bust", True),
-    ):
-        found = _best(
-            ((p, Decimal(values[p])) for p in ranked if lowest or totals[p] > 0),
-            lowest=lowest,
-        )
-        if found:
-            player_award(key, title, *found)
+    for position in PlayerPosition:
+        picked = {
+            p: n
+            for p, n in pick_numbers.items()
+            if p in team_of
+            and p in players
+            and PlayerPosition.from_str(players[p].position) is position
+        }
+        values = _draft_values(totals, picked)
+        for key, title, lowest in (
+            (
+                f"best_value_{position.value.lower()}",
+                f"Best {position.value} value",
+                False,
+            ),
+            (f"bust_{position.value.lower()}", f"Biggest {position.value} bust", True),
+        ):
+            found = _best(
+                ((p, Decimal(values[p].places)) for p in values),
+                lowest=lowest,
+            )
+            if found:
+                awards.append(
+                    Award(
+                        key,
+                        title,
+                        team_of[found[0]],
+                        found[0],
+                        None,
+                        found[1],
+                        values[found[0]],
+                    )
+                )
     return awards

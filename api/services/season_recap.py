@@ -81,6 +81,9 @@ async def _awards(
             position=players[a.player_id].position if a.player_id else None,
             round=a.round,
             value=float(a.value),
+            drafted_as=a.draft.drafted_as if a.draft else None,
+            finished_as=a.draft.finished_as if a.draft else None,
+            points=float(a.draft.points) if a.draft else None,
         )
         for a in compute_awards(lines, players, picks, champion_ids, owners)
         if a.team_id in teams

@@ -158,42 +158,64 @@ def test_bench_award_goes_to_slade(
     assert (bench.team_id, bench.value) == (SLADE, Decimal("75.14"))
 
 
-def test_best_draft_value_is_the_kicker_taken_89th(
-    league: RealLeague, awards: dict[str, Award]
+@pytest.mark.parametrize(
+    ("key", "name", "drafted", "finished", "places"),
+    [
+        ("best_value_qb", "Sam Darnold", 8, 4, 4),
+        ("bust_qb", "Trevor Lawrence", 5, 9, -4),
+        ("best_value_rb", "Kenneth Walker III", 10, 1, 9),
+        ("bust_rb", "Omarion Hampton", 12, 25, -13),
+        ("best_value_wr", "Mack Hollins", 32, 11, 21),
+        ("bust_wr", "DeVonta Smith", 6, 30, -24),
+        ("best_value_te", "AJ Barner", 10, 5, 5),
+        ("bust_te", "George Kittle", 1, 11, -10),
+        ("best_value_k", "Jason Myers", 7, 1, 6),
+        ("bust_k", "Cam Little", 4, 8, -4),
+        ("best_value_dst", "NE DST", 6, 1, 5),
+        ("bust_dst", "LAR DST", 1, 5, -4),
+    ],
+)
+def test_draft_awards_per_position(
+    league: RealLeague,
+    awards: dict[str, Award],
+    key: str,
+    name: str,
+    drafted: int,
+    finished: int,
+    places: int,
 ) -> None:
-    # Of 108 drafted players 81 scored counted points. Myers (pick 89, 37.2) ranks 13th
-    # by counted points: 89 - 13 = +76.
-    value = awards["draft_value"]
-    assert (league.name(value.player_id or 0), value.team_id, value.value) == (
-        "Jason Myers",
-        KMAC,
-        Decimal(76),
+    # Walker (pick 20) and Woody Marks (pick 47) both gain 9 RB places, and LAR (pick
+    # 37) and PHI (pick 42) both lose 4 DST places: the earlier pick takes the tie.
+    award = awards[key]
+    assert league.name(award.player_id or 0) == name
+    assert award.draft is not None
+    assert (award.draft.drafted_as, award.draft.finished_as, int(award.value)) == (
+        drafted,
+        finished,
+        places,
     )
-    assert league.picks[value.player_id or 0] == 89
+    assert award.draft.drafted_as - award.draft.finished_as == places
 
 
-def test_biggest_bust_started_once_and_lost_a_tenth(
+def test_hampton_counted_below_zero_and_smith_never_started(
     league: RealLeague, awards: dict[str, Award]
 ) -> None:
-    # Omarion Hampton (pick 31) started for Craig in the Wild Card and counted -0.10,
-    # below every zero-point player, so he ranks last of 108: 31 - 108 = -77.
-    bust = awards["bust"]
-    assert (league.name(bust.player_id or 0), bust.team_id, bust.value) == (
-        "Omarion Hampton",
-        CRAIG,
-        Decimal(-77),
-    )
-    assert league.picks[bust.player_id or 0] == 31
+    hampton, smith = awards["bust_rb"], awards["bust_wr"]
+    assert hampton.team_id == CRAIG
+    assert hampton.draft is not None
+    assert hampton.draft.points == Decimal("-0.10")
+    assert smith.draft is not None
+    assert smith.draft.points == 0
 
 
 def test_every_award_is_given(awards: dict[str, Award]) -> None:
-    assert len(awards) == 13
+    assert len(awards) == 11 + 12
 
 
 def test_the_report_names_the_champion_and_the_awards() -> None:
     text = report()
     assert "**Champion: KMac.**" in text
-    assert "| Biggest bust | Omarion Hampton | Craig |" in text
+    assert "| Biggest RB bust | Omarion Hampton | Craig |" in text
 
 
 def test_the_committed_report_is_current() -> None:

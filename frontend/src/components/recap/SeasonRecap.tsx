@@ -1,5 +1,17 @@
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
-import { Alert, Box, Button, Card, Typography } from "@mui/material";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Alert,
+  Box,
+  Button,
+  Card,
+  Typography,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import { useRunItBack } from "../../api/queries";
 import type { AwardWinner, SeasonRecap as Recap } from "../../api/types";
@@ -10,10 +22,15 @@ const ROUND_NAMES = ["Wild Card", "Divisional", "Conference Championship", "Supe
 
 const points = (value: number) => `${Number(value.toFixed(2))} pts`;
 
+const POSITIONS = ["QB", "RB", "WR", "TE", "K", "DST"];
+
+const isDraftAward = (award: AwardWinner) => award.draftedAs !== null;
+
 const awardValue = (award: AwardWinner): string => {
-  if (award.key === "draft_value" || award.key === "bust") {
+  if (isDraftAward(award)) {
     const places = Math.abs(award.value);
-    return `${places} ${places === 1 ? "pick" : "picks"} ${award.value >= 0 ? "above" : "below"} the draft slot`;
+    const verb = award.value >= 0 ? "+" : "-";
+    return `Drafted as ${award.position}${award.draftedAs}, finished ${award.position}${award.finishedAs}, ${verb}${places} ${places === 1 ? "place" : "places"} · ${points(award.points ?? 0)}`;
   }
   const round = award.round ? ` · ${ROUND_NAMES[award.round - 1]}` : "";
   return `${points(award.value)}${round}`;
@@ -39,6 +56,52 @@ const AwardCard = ({ award }: { award: AwardWinner }) => (
     </Typography>
   </Card>
 );
+
+const AwardGrid = ({ awards }: { awards: AwardWinner[] }) => (
+  <Box
+    component="ul"
+    sx={{
+      listStyle: "none",
+      m: 0,
+      p: 0,
+      display: "grid",
+      gap: 1.5,
+      gridTemplateColumns: { xs: "1fr", md: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" },
+    }}
+  >
+    {awards.map((award) => (
+      <AwardCard key={award.key} award={award} />
+    ))}
+  </Box>
+);
+
+/** Best value and bust per position; open by default on desktop, collapsed on a phone. */
+const DraftAwards = ({ awards }: { awards: AwardWinner[] }) => {
+  const theme = useTheme();
+  const wide = useMediaQuery(theme.breakpoints.up("md"));
+  return (
+    <Accordion defaultExpanded={wide} disableGutters>
+      <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: 48 }}>
+        <Typography variant="h6">Draft value by position</Typography>
+      </AccordionSummary>
+      <AccordionDetails sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        {POSITIONS.map((position) => {
+          const group = awards.filter((a) => a.key.endsWith(`_${position.toLowerCase()}`));
+          return (
+            group.length > 0 && (
+              <Box key={position}>
+                <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+                  {position}
+                </Typography>
+                <AwardGrid awards={group} />
+              </Box>
+            )
+          );
+        })}
+      </AccordionDetails>
+    </Accordion>
+  );
+};
 
 const RunItBack = ({ leagueId }: { leagueId: number }) => {
   const navigate = useNavigate();
@@ -103,23 +166,10 @@ const SeasonRecap = ({
         <Typography variant="h6" sx={{ mb: 1 }}>
           Season awards
         </Typography>
-        <Box
-          component="ul"
-          sx={{
-            listStyle: "none",
-            m: 0,
-            p: 0,
-            display: "grid",
-            gap: 1.5,
-            gridTemplateColumns: { xs: "1fr", md: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" },
-          }}
-        >
-          {recap.awards.map((award) => (
-            <AwardCard key={award.key} award={award} />
-          ))}
-        </Box>
+        <AwardGrid awards={recap.awards.filter((a) => !isDraftAward(a))} />
       </Box>
     )}
+    {recap.awards.some(isDraftAward) && <DraftAwards awards={recap.awards.filter(isDraftAward)} />}
     {isCommissioner &&
       (nextLeagueId ? (
         <Button component={Link} to={`/league/${nextLeagueId}`} sx={{ minHeight: 44 }}>

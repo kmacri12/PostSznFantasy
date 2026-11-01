@@ -34,7 +34,7 @@ from typing import Any
 import pytest
 
 from api.db.models.nfl import NFLPlayer, NFLPlayerGameStats
-from api.services.awards import Award, compute_awards
+from api.services.awards import Award, DraftValue, compute_awards
 from api.services.ingestion.box_scores_ingest import parse_game_player_stats
 from api.services.ingestion.dst_stats import dst_player_id
 from api.services.lineups import BENCH, slot_layout
@@ -64,7 +64,8 @@ SLOT_COUNTS = {
     "bench": 4,
 }
 RAMS, BOUND, WARMERS = 1, 2, 3
-PUKA, ADAMS, SHIRDEN = 4426515, 16800, 4775270
+PUKA, SHIRDEN = 4426515, 4775270
+KYREN = 4430737
 
 
 class League:
@@ -245,39 +246,33 @@ def test_bench_award_goes_to_the_team_that_left_its_stars_unplaced(
     assert (bench.team_id, bench.value) == (WARMERS, Decimal("78.06"))
 
 
-def test_best_draft_value_is_the_kicker_taken_25th(
+def test_best_value_is_the_biggest_gain_within_a_position(
     awards: dict[str, Award],
 ) -> None:
-    # Counted points rank 20 scorers (Kyren 1st, Puka 2nd, Stafford 3rd ...). Jason
-    # Myers and the SEA DST tie at 20.0 for 7th: pick 25 - 7 = 18, pick 23 - 7 = 16.
-    # The next best, Mevis (pick 15, 5th) and Mims (pick 19, 9th), are +10.
-    value = awards["draft_value"]
-    assert (value.player_id, value.team_id, value.value) == (
-        2473037,
-        BOUND,
-        Decimal(18),
-    )
+    # Kyren Williams was the 4th RB taken and the top RB on counted points: +3.
+    kyren = awards["best_value_rb"]
+    assert (kyren.player_id, kyren.team_id) == (KYREN, RAMS)
+    assert kyren.draft == DraftValue(4, 1, 3, Decimal("40.20"))
+    # Jason Myers was the 4th K taken and finished 2nd.
+    assert awards["best_value_k"].draft == DraftValue(4, 2, 2, Decimal("20.00"))
 
 
-def test_biggest_bust_is_a_third_round_pick_who_never_had_a_game(
+def test_biggest_bust_is_an_early_pick_who_never_had_a_game(
     awards: dict[str, Award],
 ) -> None:
-    # Jaden Shirden (pick 3) is rostered but has no stats and no lineup line, so the
-    # 8 players with no counted points all rank 21st: 3 - 21 = -18. The next worst,
-    # Bryce Young (pick 7), is -14.
-    bust = awards["bust"]
+    # Jaden Shirden (RB drafted 2nd, no stats or lineup line) finishes 4th of 4 RBs.
+    bust = awards["bust_rb"]
     assert (bust.player_id, bust.team_id, bust.value) == (
         SHIRDEN,
         WARMERS,
-        Decimal(-18),
+        Decimal(-2),
     )
+    assert bust.draft == DraftValue(2, 4, -2, Decimal(0))
 
 
-def test_no_award_for_players_without_points(
+def test_every_position_with_drafted_players_gets_both_awards(
     awards: dict[str, Award],
 ) -> None:
-    # Adams (pick 28) outranks 20 scorers' slot on paper (+7) but never counted.
-    assert awards["draft_value"].player_id != ADAMS
     assert set(awards) == {
         "playoff_mvp",
         "champions_mvp",
@@ -290,8 +285,11 @@ def test_no_award_for_players_without_points(
         "best_game",
         "best_round",
         "bench_points",
-        "draft_value",
-        "bust",
+        *(
+            f"{kind}_{pos}"
+            for kind in ("best_value", "bust")
+            for pos in ("qb", "rb", "wr", "te", "k", "dst")
+        ),
     }
 
 
