@@ -1,7 +1,7 @@
-"""The activity feed: one append-only record of what changed in a league and by whom.
+"""The activity feed: one append-only record of what changed in a season and by whom.
 
 Whatever changes something writes its event with `append`; nothing here edits or
-removes one. The league feed is every event of a league and a team's feed is the
+removes one. The season feed is every event of a season and a team's feed is the
 events carrying its `team_id`. Each member remembers the newest event they were
 shown per feed (`mark_viewed`), which is all "new activity" means.
 """

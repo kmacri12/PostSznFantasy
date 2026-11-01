@@ -56,7 +56,7 @@ test.describe("players page", () => {
     expect(before).toBeGreaterThan(0);
 
     // Double the passing TD value: every quarterback's total must go up.
-    await host.patch(`/api/leagues/${leagueId}/settings`, { scoringPassingTd: 8 });
+    await host.patch(`/api/seasons/${leagueId}/settings`, { scoringPassingTd: 8 });
     await page.reload();
     await expect(
       page.getByRole("list", { name: "Players" }).getByRole("heading").first(),

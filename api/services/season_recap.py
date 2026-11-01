@@ -17,7 +17,7 @@ from api.services.round_points import postseason_stats, season_point_lines
 from api.services.round_status import season_is_finished
 from api.services.standings_view import season_standings
 
-ARCHIVED_MESSAGE = "This season is over; the league is a read-only archive"
+ARCHIVED_MESSAGE = "This season is over; it is a read-only archive"
 
 
 async def season_is_archived(db: AsyncSession, season_id: int) -> bool:

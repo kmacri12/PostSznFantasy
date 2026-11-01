@@ -39,7 +39,7 @@ class PointsLine:
     team_id: int
     round: int
     player_id: int
-    # Index into the league's slot layout; None when the owner never placed them.
+    # Index into the season's slot layout; None when the owner never placed them.
     slot_index: int | None
     starter: bool
     played: bool
@@ -147,7 +147,7 @@ async def postseason_stats(db: AsyncSession, season: int) -> StatsByPlayer:
 async def season_point_lines(
     db: AsyncSession, season_id: int, stats: StatsByPlayer
 ) -> list[PointsLine]:
-    """Every team's lines for a league; pass `postseason_stats` so callers can share it."""
+    """Every team's lines for a season; pass `postseason_stats` so callers can share it."""
     settings = (
         await db.execute(
             select(SeasonSettings).where(SeasonSettings.season_id == season_id)

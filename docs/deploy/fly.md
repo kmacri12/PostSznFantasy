@@ -29,7 +29,7 @@ DATABASE_URL='<session pooler string>' scripts/check-live-drafts.sh
 or in the Supabase SQL editor:
 
 ```sql
-select league_id, status from fantasy.drafts
+select season_id, status from fantasy.drafts
 where status in ('lobby', 'in_progress', 'paused');
 ```
 

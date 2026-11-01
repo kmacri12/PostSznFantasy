@@ -38,7 +38,7 @@ async def record_settings_change(
 ) -> None:
     """Log a settings edit, one event for all fields that changed; none if nothing did.
 
-    Both mappings are keyed by the `league_settings` column name; `after` holds only
+    Both mappings are keyed by the `season_settings` column name; `after` holds only
     the fields that were set. Anything that edits league settings calls this (the
     settings PATCH does through `on_editable_settings_changed`).
     """

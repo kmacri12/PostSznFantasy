@@ -7,8 +7,12 @@ Fantasy football for the NFL postseason. A league drafts once before the Wild Ca
 ### League and people
 
 **League**:
-A group of fantasy teams playing one postseason together.
+The permanent group: its members and roles, notes and invite. It plays one season each year and is never read-only.
 _Avoid_: Group, pool, contest
+
+**Season**:
+One year of a league: its settings, teams and owners, draft, rosters, lineups, standings, activity, awards and recap. Archived (read-only) once that year's Super Bowl is final.
+_Avoid_: Year, edition
 
 **Commissioner**:
 A league member who sets up and manages the league. A league always has at least one.
@@ -239,9 +243,9 @@ The recap's honours (Playoff MVP, Champion's MVP, top player per position, best 
 _Avoid_: Trophies, badges
 
 **Draft value**:
-A drafted player's overall pick number minus his rank by counted points in the league (1 = most). Positive means he outscored his draft slot; the most negative is the biggest bust.
+A drafted player's order among his position's picks minus his finish rank by counted points among that position's drafted players (1 = most). Positive means he outscored his draft slot; the most negative is the biggest bust.
 _Avoid_: ADP delta
 
-**Run it back**:
-Creating next season's league from a finished one, keeping members and their roles, teams, notes and settings, with fresh rosters, an empty unscheduled draft and a new invite. Allowed once per league.
-_Avoid_: Rollover, clone
+**Start a season**:
+A league's commissioner starting next year's season once the last one's Super Bowl is final: the teams, owners and settings carry over, with fresh rosters and an empty unscheduled draft. The league, its members and its invite do not change.
+_Avoid_: Run it back, rollover, clone
