@@ -6,7 +6,7 @@ const logger = createLogger("useWebSocket");
 
 export interface DraftMessage {
   eventType: string;
-  leagueId?: number;
+  seasonId?: number;
   message?: string;
   /** Machine-readable reason on ERROR events (e.g. player_taken). */
   code?: string | null;

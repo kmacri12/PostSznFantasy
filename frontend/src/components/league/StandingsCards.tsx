@@ -3,6 +3,7 @@ import { Box, Button, Card, Collapse, Typography } from "@mui/material";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import type { StandingsRow } from "../../api/types";
+import { useSeasonContext } from "../../contexts/SeasonContext";
 import { tokens } from "../../theme";
 import { ROUND_LABELS } from "../team/lineup";
 import ProgressCounts from "./ProgressCounts";
@@ -24,6 +25,7 @@ interface StandingsCardProps {
 }
 
 const StandingsCard = ({ row, rank, note, round }: StandingsCardProps) => {
+  const { paths } = useSeasonContext();
   const [open, setOpen] = useState(false);
   const panelId = `standings-${row.teamId}`;
   return (
@@ -107,10 +109,10 @@ const StandingsCard = ({ row, rank, note, round }: StandingsCardProps) => {
             <ProgressCounts progress={row.progress} />
           </Box>
           <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-            <Button component={Link} to={`/team/${row.teamId}/points`} variant="outlined">
+            <Button component={Link} to={paths.teamPoints(row.teamId)} variant="outlined">
               Round-by-round points
             </Button>
-            <Button component={Link} to={`/team/${row.teamId}`}>
+            <Button component={Link} to={paths.team(row.teamId)}>
               View team
             </Button>
           </Box>

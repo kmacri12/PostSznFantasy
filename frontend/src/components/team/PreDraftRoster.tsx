@@ -26,8 +26,8 @@ const Heading = ({ children }: { children: string }) => (
 );
 
 /** The empty roster before the draft: every slot, the caps and the lock rules, to plan picks. */
-const PreDraftRoster = ({ leagueId }: { leagueId: number }) => {
-  const { data: settings } = useLeagueSettings(leagueId);
+const PreDraftRoster = ({ seasonId }: { seasonId: number }) => {
+  const { data: settings } = useLeagueSettings(seasonId);
   if (!settings) return null;
   const { starters, bench } = startingSlots(settings);
   const caps = positionCaps(settings);

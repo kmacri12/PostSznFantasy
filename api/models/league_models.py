@@ -137,6 +137,24 @@ class SeasonSettingsResponse(
     season_id: int
 
 
+class SeasonSummary(BaseSchema):
+    id: int
+    year: int
+    # The Super Bowl is final: the season is a read-only archive.
+    finished: bool
+    draft_status: DraftStatus
+    # The caller's team that year; None when they had none.
+    my_team_id: int | None = None
+
+
+class PastLeague(BaseSchema):
+    """A league the caller left, with the finished seasons they still may read."""
+
+    id: int
+    name: str
+    seasons: list[SeasonSummary]
+
+
 class LeaguesByUser(BaseSchema):
     id: int
     name: str
@@ -149,6 +167,9 @@ class LeaguesByUser(BaseSchema):
     has_new_activity: bool = False
     # The latest season's Super Bowl is final: it is a read-only archive.
     finished: bool = False
+    draft_status: DraftStatus = DraftStatus.UNSCHEDULED
+    # Every season of the league, oldest first.
+    seasons: list[SeasonSummary] = []
 
 
 def _all_optional(name: str, *models: type[BaseSchema]) -> type[BaseSchema]:
@@ -211,13 +232,6 @@ class LineupMove(BaseSchema):
     confirm_override: bool = False
 
 
-class SeasonSummary(BaseSchema):
-    id: int
-    year: int
-    # The Super Bowl is final: the season is a read-only archive.
-    finished: bool
-
-
 class LeagueOverview(BaseSchema):
     """The permanent league: members, notes and its seasons, oldest first."""
 
@@ -244,6 +258,8 @@ class SeasonOverview(BaseSchema):
     # The season is open and the caller is an active member / a commissioner.
     can_edit: bool
     can_commission: bool
+    # The caller left the league and reads this finished season as history.
+    is_former_member: bool = False
     number_teams: int
     open_spots: int
     my_role: LeagueRole

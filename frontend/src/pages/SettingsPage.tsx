@@ -1,15 +1,13 @@
 import { Alert, Box, Button, Chip, Container, Paper, TextField, Typography } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
 import {
   useDraft,
-  useLeague,
-  useLeagueArchived,
+  useLeagueInfo,
   useLeagueSettings,
   useUpdateLeague,
+  useUpdateSeason,
   useUpdateSettings,
 } from "../api/queries";
-import EmptyState from "../components/common/EmptyState";
 import ErrorState from "../components/common/ErrorState";
 import { mutationError } from "../components/common/friendlyError";
 import HelpTip from "../components/common/HelpTip";
@@ -24,20 +22,24 @@ import RosterForm from "../components/settings/RosterForm";
 import ScoringForm from "../components/settings/ScoringForm";
 import SettingsGroup from "../components/settings/SettingsGroup";
 import { SETTING_HELP } from "../content/rules";
+import { useSeasonContext } from "../contexts/SeasonContext";
 import { fromApi, postseasonFromApi, ROSTER_KEYS, SCORING_KEYS } from "../settings/convert";
 import { POSTSEASON_KEYS, type PostseasonValues } from "../settings/postseasonFields";
 import type { SettingsValues } from "../settings/types";
 
 /** One page, grouped sections: League, Roster, Scoring, Draft, Postseason. */
 function SettingsPage() {
-  const [searchParams] = useSearchParams();
-  const leagueId = searchParams.get("leagueId") ?? undefined;
-  const league = useLeague(leagueId);
-  const archived = useLeagueArchived(leagueId);
-  const settingsQuery = useLeagueSettings(leagueId);
-  const draft = useDraft(leagueId);
-  const updateSettings = useUpdateSettings(leagueId);
+  const { leagueId, seasonId, season } = useSeasonContext();
+  const info = useLeagueInfo(leagueId, !season.isFormerMember).data;
+  const archived = season.finished;
+  const settingsQuery = useLeagueSettings(seasonId);
+  const draft = useDraft(seasonId);
+  const updateSettings = useUpdateSettings(seasonId);
   const updateLeague = useUpdateLeague(leagueId);
+  const updateSeason = useUpdateSeason(seasonId);
+  // The league's name belongs to the league and stays editable; everything else is the season's.
+  const canRename = info?.myRole === "commissioner";
+  const canEdit = season.canCommission;
 
   const [name, setName] = useState("");
   const [teamCount, setTeamCount] = useState("");
@@ -47,15 +49,15 @@ function SettingsPage() {
 
   const baseline = useMemo(
     () =>
-      settingsQuery.data && league.data
+      settingsQuery.data
         ? {
             roster: fromApi(settingsQuery.data, ROSTER_KEYS),
             scoring: fromApi(settingsQuery.data, SCORING_KEYS),
             postseason: postseasonFromApi(settingsQuery.data, POSTSEASON_KEYS),
-            league: { name: league.data.name, teamCount: league.data.numberTeams },
+            league: { name: season.leagueName, teamCount: season.numberTeams },
           }
         : null,
-    [settingsQuery.data, league.data],
+    [settingsQuery.data, season],
   );
   const dirty =
     baseline !== null &&
@@ -83,71 +85,58 @@ function SettingsPage() {
   }, [settingsQuery.data]);
 
   useEffect(() => {
-    if (!league.data) return;
-    setName(league.data.name);
-    setTeamCount(String(league.data.numberTeams));
-  }, [league.data]);
+    setName(season.leagueName);
+    setTeamCount(String(season.numberTeams));
+  }, [season]);
 
-  if (!leagueId) {
-    return (
-      <Container maxWidth="sm" sx={{ py: 4 }}>
-        <EmptyState
-          title="No league selected"
-          description="Open a league to see its settings."
-          action={
-            <Button component={Link} to="/" variant="outlined">
-              Go to your leagues
-            </Button>
-          }
-        />
-      </Container>
-    );
-  }
-  if (league.isLoading || settingsQuery.isLoading) {
+  if (settingsQuery.isLoading) {
     return (
       <Container maxWidth="md" sx={{ py: 3 }}>
         <LoadingState what="settings" />
       </Container>
     );
   }
-  if (league.isError || settingsQuery.isError || !league.data) {
+  if (settingsQuery.isError) {
     return (
       <Container maxWidth="md" sx={{ py: 3 }}>
         <ErrorState
           message="Couldn't load this league's settings. Check your connection and try again."
-          onRetry={() => {
-            league.refetch();
-            settingsQuery.refetch();
-          }}
+          onRetry={() => settingsQuery.refetch()}
         />
       </Container>
     );
   }
 
-  const canEdit = league.data.myRole === "commissioner" && !archived;
   const started = ["in_progress", "paused", "completed"].includes(draft.data?.status ?? "");
 
   const save = async () => {
-    await updateSettings.mutateAsync({
-      ...roster,
-      ...Object.fromEntries(
-        Object.entries(scoring).map(([key, value]) => [key, Number(value) || 0]),
-      ),
-      ...Object.fromEntries(
-        Object.entries(postseason).map(([key, value]) => [
-          key,
-          key.startsWith("multiplier_") ? Number(value) || 0 : value,
-        ]),
-      ),
-    });
-    if (name.trim() !== league.data?.name || Number(teamCount) !== league.data?.numberTeams) {
-      await updateLeague.mutateAsync({ name: name.trim(), numberTeams: Number(teamCount) });
+    if (canEdit) {
+      await updateSettings.mutateAsync({
+        ...roster,
+        ...Object.fromEntries(
+          Object.entries(scoring).map(([key, value]) => [key, Number(value) || 0]),
+        ),
+        ...Object.fromEntries(
+          Object.entries(postseason).map(([key, value]) => [
+            key,
+            key.startsWith("multiplier_") ? Number(value) || 0 : value,
+          ]),
+        ),
+      });
+    }
+    if (canRename && name.trim() !== season.leagueName) {
+      await updateLeague.mutateAsync({ name: name.trim() });
+    }
+    if (canEdit && !started && Number(teamCount) !== season.numberTeams) {
+      await updateSeason.mutateAsync({ numberTeams: Number(teamCount) });
     }
   };
 
   const failure =
     mutationError(updateSettings.error, "Couldn't save the settings. Try again.") ??
-    mutationError(updateLeague.error, "Couldn't save the league details. Try again.");
+    mutationError(updateLeague.error, "Couldn't save the league details. Try again.") ??
+    mutationError(updateSeason.error, "Couldn't save the team count. Try again.");
+  const saving = updateSettings.isPending || updateLeague.isPending || updateSeason.isPending;
 
   return (
     <Container maxWidth="md" sx={{ py: 3 }}>
@@ -155,7 +144,7 @@ function SettingsPage() {
         League Settings
       </Typography>
       {archived && <ArchivedNotice what="settings" />}
-      {!canEdit && !archived && (
+      {!canEdit && !archived && !season.isFormerMember && (
         <Alert severity="info" sx={{ mb: 2 }}>
           Only commissioners can change settings.
         </Alert>
@@ -172,7 +161,7 @@ function SettingsPage() {
           <TextField
             label="League name"
             value={name}
-            slotProps={{ htmlInput: { readOnly: !canEdit, maxLength: 60 } }}
+            slotProps={{ htmlInput: { readOnly: !canRename, maxLength: 60 } }}
             onChange={(event) => setName(event.target.value)}
           />
           <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
@@ -188,10 +177,10 @@ function SettingsPage() {
             <HelpTip label="Number of teams" text={SETTING_HELP.numberTeams} />
           </Box>
           <Box sx={{ display: "flex", gap: 1, alignItems: "center", flexWrap: "wrap" }}>
-            <Chip label={`${league.data.season} season (read-only)`} />
+            <Chip label={`${season.year} season`} />
             <Typography variant="body2" color="text.secondary">
               Commissioners:{" "}
-              {league.data.members
+              {(info?.members ?? [])
                 .filter((member) => member.role === "commissioner")
                 .map((member) => member.username)
                 .join(", ")}
@@ -200,9 +189,11 @@ function SettingsPage() {
         </Box>
       </SettingsGroup>
 
-      <SettingsGroup title="Members">
-        <MembersSection league={league.data} />
-      </SettingsGroup>
+      {info && info.currentSeasonId === seasonId && (
+        <SettingsGroup title="Members">
+          <MembersSection season={season} canManage={canRename} />
+        </SettingsGroup>
+      )}
 
       <SettingsGroup title="Roster">
         <RosterForm values={roster} onChange={setRoster} disabled={!canEdit || started} />
@@ -237,7 +228,7 @@ function SettingsPage() {
           Settings saved.
         </Alert>
       )}
-      {canEdit && dirty && (
+      {(canEdit || canRename) && dirty && (
         <Paper
           role="region"
           aria-label="Unsaved changes"
@@ -254,14 +245,10 @@ function SettingsPage() {
           }}
         >
           <Typography sx={{ flexGrow: 1 }}>Unsaved changes</Typography>
-          <Button onClick={discard} disabled={updateSettings.isPending || updateLeague.isPending}>
+          <Button onClick={discard} disabled={saving}>
             Discard
           </Button>
-          <Button
-            variant="contained"
-            onClick={save}
-            disabled={updateSettings.isPending || updateLeague.isPending}
-          >
+          <Button variant="contained" onClick={save} disabled={saving}>
             Save
           </Button>
         </Paper>

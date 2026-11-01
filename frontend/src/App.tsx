@@ -1,6 +1,6 @@
 import { Box, Container, useMediaQuery, useTheme } from "@mui/material";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
-import { Route, Routes, useLocation } from "react-router-dom";
+import { matchPath, Route, Routes, useLocation } from "react-router-dom";
 import { useApiHealth } from "./api/health";
 import { useUserLeagues } from "./api/queries";
 import RequireSignIn from "./components/auth/RequireSignIn";
@@ -16,12 +16,14 @@ import LandingPage from "./pages/LandingPage";
 const CreateLeaguePage = lazy(() => import("./pages/CreateLeaguePage"));
 const DraftPage = lazy(() => import("./pages/DraftPage"));
 const JoinPage = lazy(() => import("./pages/JoinPage"));
+const LeagueHomePage = lazy(() => import("./pages/LeagueHomePage"));
 const LeaguePage = lazy(() => import("./pages/LeaguePage"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
 const PlayersPage = lazy(() => import("./pages/PlayersPage"));
 const WelcomePage = lazy(() => import("./pages/WelcomePage"));
 const SignInPage = lazy(() => import("./pages/SignInPage"));
+const SeasonLayout = lazy(() => import("./pages/SeasonLayout"));
 const SettingsPage = lazy(() => import("./pages/SettingsPage"));
 const TeamPage = lazy(() => import("./pages/TeamPage"));
 const TeamPointsPage = lazy(() => import("./pages/TeamPointsPage"));
@@ -42,16 +44,18 @@ function App() {
   const isMobile = useMediaQuery(useTheme().breakpoints.down("md"));
   const { pathname } = useLocation();
 
+  const routeLeagueId = matchPath("/leagues/:leagueId/*", pathname)?.params.leagueId;
+
   useEffect(() => {
     if (userId === null) setSelectedLeague("");
-    else setSelectedLeague((current) => current || String(leagues[0]?.id ?? ""));
-  }, [userId, leagues]);
+    else setSelectedLeague((current) => routeLeagueId || current || String(leagues[0]?.id ?? ""));
+  }, [userId, leagues, routeLeagueId]);
 
   const handleLeagueCreated = async (leagueId: number) => {
     setSelectedLeague(String(leagueId));
   };
 
-  const inLeagueArea = /^\/(league|team|players|settings)/.test(pathname);
+  const inLeagueArea = /^\/(leagues|players)/.test(pathname);
   const tabLeague = leagues.find((league) => String(league.id) === selectedLeague);
   const showTabBar =
     !dormant && isMobile && inLeagueArea && userId !== null && tabLeague !== undefined;
@@ -87,18 +91,22 @@ function App() {
           ) : (
             <Routes>
               <Route path="/" element={<LandingPage leagues={leagues} />} />
-              <Route path="/league/:leagueId" element={<LeaguePage />} />
+              <Route path="/leagues/:leagueId" element={<LeagueHomePage />} />
+              <Route path="/leagues/:leagueId/seasons/:year" element={<SeasonLayout />}>
+                <Route index element={<LeaguePage />} />
+                <Route path="draft" element={<DraftPage />} />
+                <Route path="settings" element={<SettingsPage />} />
+                <Route path="players" element={<PlayersPage />} />
+                <Route path="teams/:teamId" element={<TeamPage />} />
+                <Route path="teams/:teamId/points" element={<TeamPointsPage />} />
+              </Route>
               <Route path="/sign-in" element={<SignInPage />} />
               <Route path="/how-to-play" element={<HowToPlayPage />} />
               <Route path="/privacy" element={<PrivacyPage />} />
               <Route path="/terms" element={<TermsPage />} />
               <Route path="/welcome" element={<WelcomePage />} />
               <Route path="/join/:code" element={<JoinPage />} />
-              <Route path="/team/:teamId" element={<TeamPage />} />
-              <Route path="/team/:teamId/points" element={<TeamPointsPage />} />
               <Route path="/players" element={<PlayersPage />} />
-              <Route path="/league/:leagueId/draft" element={<DraftPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
               <Route
                 path="/create-league"
                 element={

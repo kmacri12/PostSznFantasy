@@ -201,6 +201,50 @@ async def test_a_former_member_reads_only_the_seasons_they_finished(
     assert rename.status_code == 403
 
 
+async def test_a_former_member_lists_their_finished_seasons_and_leagues(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    season, teams, _ = await finished_league(db)
+    leaver = teams[1].owner_id
+    async with client_as("uid-0") as commissioner:
+        await commissioner.delete(f"/api/leagues/{season.league_id}/members/{leaver}")
+    new_id = (await _start(client_as, season.league_id)).json()["seasonId"]
+    url = f"/api/leagues/{season.league_id}/seasons"
+
+    async with client_as("uid-1") as former:
+        seasons = (await former.get(url)).json()
+        past = (await former.get("/api/leagues/past-leagues")).json()
+        active = (await former.get("/api/leagues/user-leagues")).json()
+    async with client_as("uid-0") as commissioner:
+        member_seasons = (await commissioner.get(url)).json()
+        member_leagues = (await commissioner.get("/api/leagues/user-leagues")).json()
+        past_for_member = (await commissioner.get("/api/leagues/past-leagues")).json()
+
+    assert [(s["id"], s["year"], s["myTeamId"]) for s in seasons] == [
+        (season.id, 2025, teams[1].id)
+    ]
+    assert [(p["id"], [s["year"] for s in p["seasons"]]) for p in past] == [
+        (season.league_id, [2025])
+    ]
+    assert active == [] and past_for_member == []
+    assert [s["year"] for s in member_seasons] == [2025, 2026]
+    (entry,) = member_leagues
+    assert entry["seasonId"] == new_id
+    assert [s["year"] for s in entry["seasons"]] == [2025, 2026]
+    assert entry["draftStatus"] == "unscheduled"
+
+
+async def test_a_stranger_cannot_list_a_leagues_seasons(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    season, _, _ = await finished_league(db)
+    db.add(User(supabase_uid="stranger", username="stranger", email="s@x.co"))
+    await db.flush()
+    async with client_as("stranger") as stranger:
+        response = await stranger.get(f"/api/leagues/{season.league_id}/seasons")
+    assert response.status_code == 403
+
+
 async def test_a_former_member_can_rejoin_with_the_invite(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:

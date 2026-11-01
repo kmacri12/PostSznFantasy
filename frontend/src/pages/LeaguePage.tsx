@@ -14,21 +14,20 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import type React from "react";
 import { useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import { useLeague, useRecap, useUpdateLeague } from "../api/queries";
-import type { LeagueOverview } from "../api/types";
+import { Link } from "react-router-dom";
+import { useLeagueInfo, useRecap, useUpdateLeague } from "../api/queries";
+import type { LeagueInfo, SeasonOverview } from "../api/types";
 import ActivityFeed from "../components/activity/ActivityFeed";
 import DataFreshness from "../components/common/DataFreshness";
 import { mutationError } from "../components/common/friendlyError";
-import QueryBoundary from "../components/common/QueryBoundary";
 import InvitePanel from "../components/league/InvitePanel";
 import LeagueNotes from "../components/league/LeagueNotes";
 import StandingsTable from "../components/league/StandingsTable";
 import SeasonRecap from "../components/recap/SeasonRecap";
+import { useSeasonContext } from "../contexts/SeasonContext";
 
-const DRAFT_LABELS: Record<LeagueOverview["draftStatus"], string> = {
+const DRAFT_LABELS: Record<SeasonOverview["draftStatus"], string> = {
   unscheduled: "Draft not scheduled",
   scheduled: "Draft scheduled",
   lobby: "Draft lobby open",
@@ -37,7 +36,7 @@ const DRAFT_LABELS: Record<LeagueOverview["draftStatus"], string> = {
   completed: "Draft complete",
 };
 
-const RenameDialog = ({ league, onClose }: { league: LeagueOverview; onClose: () => void }) => {
+const RenameDialog = ({ league, onClose }: { league: LeagueInfo; onClose: () => void }) => {
   const [name, setName] = useState(league.name);
   const update = useUpdateLeague(league.id);
   const updateError = mutationError(update.error, "Couldn't rename the league. Try again.");
@@ -69,77 +68,104 @@ const RenameDialog = ({ league, onClose }: { league: LeagueOverview; onClose: ()
   );
 };
 
-/** The league home: info, members, commissioner tools, draft status and standings. */
-const LeagueContent = ({ league }: { league: LeagueOverview }) => {
+/** Empty states a season can be in: no team for you, or teams nobody owned at the end. */
+export const SeasonNotices = ({ season }: { season: SeasonOverview }) => (
+  <>
+    {season.myTeamId === null && !season.isFormerMember && (
+      <Alert severity="info" sx={{ mb: 2 }}>
+        {season.finished
+          ? `You didn't have a team in the ${season.year} season.`
+          : `You don't have a team in the ${season.year} season yet. Your commissioner can give you one from Settings.`}
+      </Alert>
+    )}
+    {season.finished && season.openSpots > 0 && (
+      <Alert severity="info" sx={{ mb: 2 }}>
+        {season.openSpots === 1
+          ? "One team had no owner when the season ended, so no one is credited for it."
+          : `${season.openSpots} teams had no owner when the season ended, so no one is credited for them.`}
+      </Alert>
+    )}
+  </>
+);
+
+/** A season's home: standings, draft status, notes, commissioner tools and the activity feed. */
+const LeagueContent = () => {
+  const { leagueId, seasonId, season, paths } = useSeasonContext();
   const [renaming, setRenaming] = useState(false);
-  const isCommissioner = league.myRole === "commissioner";
-  const recap = useRecap(league.id).data;
-  const archived = recap?.finished === true;
+  const info = useLeagueInfo(leagueId, !season.isFormerMember).data;
+  const isCommissioner = info?.myRole === "commissioner";
+  const archived = season.finished;
+  const recap = useRecap(seasonId).data;
+  const canStartSeason = isCommissioner && info?.canStartSeason === true;
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap", mb: 1 }}>
         <Typography variant="h4" sx={{ overflowWrap: "anywhere" }}>
-          {league.name}
+          {season.leagueName}
         </Typography>
-        {isCommissioner && !archived && (
+        {isCommissioner && info && (
           <IconButton aria-label="Rename league" onClick={() => setRenaming(true)}>
             <EditIcon />
           </IconButton>
         )}
-        <Chip label={`${league.season} season`} size="small" />
-        {archived && <Chip label="Archived" size="small" variant="outlined" />}
-        <Chip
-          label={isCommissioner ? "Commissioner" : "Member"}
-          size="small"
-          color={isCommissioner ? "primary" : "default"}
-        />
+        <Chip label={`${season.year} season`} size="small" />
+        {archived && <Chip label="Season over" size="small" variant="outlined" />}
+        {season.isFormerMember ? (
+          <Chip label="Former member" size="small" />
+        ) : (
+          <Chip
+            label={isCommissioner ? "Commissioner" : "Member"}
+            size="small"
+            color={isCommissioner ? "primary" : "default"}
+          />
+        )}
       </Box>
+      <SeasonNotices season={season} />
       {archived && recap && (
         <Box sx={{ mb: 3 }}>
           <SeasonRecap
             recap={recap}
-            isCommissioner={isCommissioner}
-            nextSeasonId={recap.nextSeasonId}
+            canStartSeason={canStartSeason && info?.currentSeasonId === seasonId}
           />
         </Box>
       )}
       <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap", mb: 3 }}>
-        <Chip variant="outlined" label={DRAFT_LABELS[league.draftStatus]} />
-        {league.draftStartTime && league.draftStatus === "scheduled" && (
+        <Chip variant="outlined" label={DRAFT_LABELS[season.draftStatus]} />
+        {season.draftStartTime && season.draftStatus === "scheduled" && (
           <Typography variant="body2" color="text.secondary">
-            {new Date(league.draftStartTime).toLocaleString()}
+            {new Date(season.draftStartTime).toLocaleString()}
           </Typography>
         )}
         <Typography variant="body2" color="text.secondary">
-          {league.numberTeams} teams · {league.openSpots} open
+          {season.numberTeams} teams · {season.openSpots} open
         </Typography>
         <Box sx={{ flexGrow: 1 }} />
-        <Button
-          component={Link}
-          to={`/league/${league.id}/draft`}
-          variant={archived ? "outlined" : "contained"}
-        >
+        <Button component={Link} to={paths.draft} variant={archived ? "outlined" : "contained"}>
           {archived ? "Draft results" : "Draft room"}
         </Button>
-        {league.myTeamId && (
-          <Button component={Link} to={`/team/${league.myTeamId}`} variant="outlined">
+        {season.myTeamId && (
+          <Button component={Link} to={paths.team(season.myTeamId)} variant="outlined">
             My team
           </Button>
         )}
-        <Button component={Link} to={`/settings?leagueId=${league.id}`} variant="outlined">
-          {isCommissioner && !archived ? "Settings" : "View settings"}
-        </Button>
+        {!season.isFormerMember && (
+          <Button component={Link} to={paths.settings} variant="outlined">
+            {season.canCommission ? "Settings" : "View settings"}
+          </Button>
+        )}
       </Box>
 
       <Grid container spacing={3}>
         {isCommissioner && !archived && (
           <Grid size={{ xs: 12 }}>
-            <InvitePanel leagueId={league.id} />
+            <InvitePanel leagueId={leagueId} />
           </Grid>
         )}
-        <Grid size={{ xs: 12 }}>
-          <LeagueNotes league={league} readOnly={archived} />
-        </Grid>
+        {info && (
+          <Grid size={{ xs: 12 }}>
+            <LeagueNotes league={info} />
+          </Grid>
+        )}
         <Grid size={{ xs: 12 }} sx={{ minWidth: 0 }}>
           <Typography variant="h6" sx={{ mb: 0.5 }}>
             Standings
@@ -147,26 +173,16 @@ const LeagueContent = ({ league }: { league: LeagueOverview }) => {
           <Box sx={{ mb: 1 }}>
             <DataFreshness />
           </Box>
-          <StandingsTable leagueId={String(league.id)} />
+          <StandingsTable />
         </Grid>
         <Grid size={{ xs: 12 }} sx={{ minWidth: 0 }}>
-          <ActivityFeed scope="seasons" id={league.id} title="League activity" />
+          <ActivityFeed scope="seasons" id={seasonId} title="League activity" />
         </Grid>
       </Grid>
 
-      {renaming && <RenameDialog league={league} onClose={() => setRenaming(false)} />}
+      {renaming && info && <RenameDialog league={info} onClose={() => setRenaming(false)} />}
     </Container>
   );
 };
 
-const LeaguePage: React.FC = () => {
-  const { leagueId } = useParams<{ leagueId: string }>();
-  const query = useLeague(leagueId);
-  return (
-    <QueryBoundary query={query} what="this league" page>
-      {(league) => <LeagueContent league={league} />}
-    </QueryBoundary>
-  );
-};
-
-export default LeaguePage;
+export default LeagueContent;

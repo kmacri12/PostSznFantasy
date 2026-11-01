@@ -99,7 +99,7 @@ psql '<production connection string>' -c 'select version_num from public.alembic
 
 **Go / no-go**
 - [ ] `curl -s https://api.postsznfantasy.com/api` returns `{"status":"healthy"}` over valid HTTPS.
-- [ ] `https://postsznfantasy.com` loads, and a deep link such as `https://postsznfantasy.com/league/1` loads the app (not a 404).
+- [ ] `https://postsznfantasy.com` loads, and a deep link such as `https://postsznfantasy.com/leagues/1` loads the app (not a 404).
 - [ ] In the browser developer tools (Network), page requests go to `api.postsznfantasy.com`, and there are no CORS errors in the console.
 - [ ] Preflight check: `curl -si -X OPTIONS https://api.postsznfantasy.com/api/config -H 'Origin: https://postsznfantasy.com' -H 'Access-Control-Request-Method: GET' | grep -i access-control-allow-origin` shows `https://postsznfantasy.com`.
 - [ ] WebSocket reachability: `curl -si --max-time 5 https://api.postsznfantasy.com/api/drafts/ws/1 -H 'Connection: Upgrade' -H 'Upgrade: websocket' -H 'Sec-WebSocket-Version: 13' -H 'Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ=='` shows `HTTP/1.1 101` (curl then waits for the socket until the timeout), not a Cloudflare or proxy error page. The full WebSocket check is the mock draft in Stage 8.

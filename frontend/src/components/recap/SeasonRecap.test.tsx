@@ -51,11 +51,11 @@ const recap: Recap = {
   ],
 };
 
-const show = (isCommissioner: boolean, nextSeasonId: number | null = null) =>
+const show = (canStartSeason: boolean, nextSeasonId: number | null = null) =>
   render(
     <QueryClientProvider client={new QueryClient()}>
       <MemoryRouter>
-        <SeasonRecap recap={recap} isCommissioner={isCommissioner} nextSeasonId={nextSeasonId} />
+        <SeasonRecap recap={{ ...recap, nextSeasonId }} canStartSeason={canStartSeason} />
       </MemoryRouter>
     </QueryClientProvider>,
   );
@@ -68,19 +68,20 @@ describe("SeasonRecap", () => {
     expect(screen.getByText(/Drafted as WR6, finished WR30, -24 places/)).toBeTruthy();
   });
 
-  it("offers run it back to commissioners only", () => {
+  it("offers to start the next season only when the caller may", () => {
     const { unmount } = show(false);
     expect(screen.queryByRole("button", { name: "Start 2026 season" })).toBeNull();
     unmount();
     show(true);
+    expect(screen.getByText("Season over: start 2026")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Start 2026 season" })).toBeTruthy();
   });
 
-  it("links to next season once it has been run back", () => {
-    show(true, 7);
+  it("links to the next season once it has been started", () => {
+    show(false, 7);
     expect(screen.queryByRole("button", { name: "Start 2026 season" })).toBeNull();
-    expect(screen.getByRole("link", { name: /next season/ }).getAttribute("href")).toBe(
-      "/league/7",
+    expect(screen.getByRole("link", { name: /2026 season/ }).getAttribute("href")).toBe(
+      "/leagues/1/seasons/2026",
     );
   });
 });

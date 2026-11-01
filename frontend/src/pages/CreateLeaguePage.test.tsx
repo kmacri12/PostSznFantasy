@@ -94,8 +94,8 @@ describe("CreateLeaguePage submit", () => {
   it("refreshes the league list before navigating to the new league", async () => {
     mockPost.mockResolvedValue({ status: 201, data: { leagueId: 70, seasonId: 7 } });
     await submitWizard();
-    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith("/league/7"));
-    expect(onLeagueCreated).toHaveBeenCalledWith(7);
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith("/leagues/70"));
+    expect(onLeagueCreated).toHaveBeenCalledWith(70);
     expect(onLeagueCreated.mock.invocationCallOrder[0] ?? Number.NaN).toBeLessThan(
       mockNavigate.mock.invocationCallOrder[0] ?? Number.NaN,
     );

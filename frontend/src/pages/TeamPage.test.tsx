@@ -2,6 +2,8 @@ import { render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { TeamDetails } from "../api/types";
+import { SeasonContext } from "../contexts/SeasonContext";
+import { testSeason } from "../test/season";
 import TeamPage from "./TeamPage";
 
 const mocks = vi.hoisted(() => ({ archived: false }));
@@ -32,7 +34,6 @@ vi.mock("../api/queries", () => ({
   useTeam: () => ({ isLoading: false, isError: false, data: team }),
   useMoveInLineup: () => ({ mutate: vi.fn(), error: null, isPending: false }),
   useRenameTeam: () => ({ mutateAsync: vi.fn(), error: null, isPending: false }),
-  useLeagueArchived: () => mocks.archived,
 }));
 vi.mock("../components/activity/ActivityFeed", () => ({ default: () => null }));
 vi.mock("../components/common/DataFreshness", () => ({ default: () => null }));
@@ -45,10 +46,14 @@ vi.mock("../components/team/PreDraftRoster", () => ({ default: () => null }));
 
 const renderTeam = () =>
   render(
-    <MemoryRouter initialEntries={["/team/7"]}>
-      <Routes>
-        <Route path="/team/:teamId" element={<TeamPage />} />
-      </Routes>
+    <MemoryRouter initialEntries={["/leagues/3/seasons/2025/teams/7"]}>
+      <SeasonContext.Provider
+        value={testSeason(mocks.archived ? { finished: true, canEdit: false } : {})}
+      >
+        <Routes>
+          <Route path="/leagues/:leagueId/seasons/:year/teams/:teamId" element={<TeamPage />} />
+        </Routes>
+      </SeasonContext.Provider>
     </MemoryRouter>,
   );
 
@@ -57,14 +62,14 @@ beforeEach(() => {
 });
 
 describe("TeamPage", () => {
-  it("offers renaming while the league is live", () => {
+  it("offers renaming while the season is open", () => {
     renderTeam();
     expect(screen.getByRole("button", { name: "Rename team" })).toBeInTheDocument();
     expect(screen.queryByText(/archived/i)).toBeNull();
     expect(screen.getByText("lineup edit=true override=true")).toBeInTheDocument();
   });
 
-  it("hides renaming and explains why once the league is archived", () => {
+  it("hides renaming and explains why once the season is over", () => {
     mocks.archived = true;
     renderTeam();
     expect(screen.queryByRole("button", { name: "Rename team" })).toBeNull();

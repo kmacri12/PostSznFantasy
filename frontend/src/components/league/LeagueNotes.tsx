@@ -1,7 +1,7 @@
 import { Alert, Box, Button, Paper, TextField, Typography } from "@mui/material";
 import { useState } from "react";
 import { useUpdateLeague } from "../../api/queries";
-import type { LeagueOverview } from "../../api/types";
+import type { LeagueInfo } from "../../api/types";
 import {
   NOTES_EMPTY_COMMISSIONER,
   NOTES_EMPTY_MEMBER,
@@ -12,14 +12,8 @@ import {
 import { mutationError } from "../common/friendlyError";
 
 /** Free text for buy-in, prizes and house rules: commissioners edit it, everyone reads it. */
-const LeagueNotes = ({
-  league,
-  readOnly = false,
-}: {
-  league: LeagueOverview;
-  readOnly?: boolean;
-}) => {
-  const isCommissioner = league.myRole === "commissioner" && !readOnly;
+const LeagueNotes = ({ league }: { league: LeagueInfo }) => {
+  const isCommissioner = league.myRole === "commissioner";
   const [draft, setDraft] = useState<string | null>(null);
   const update = useUpdateLeague(league.id);
   const failure = mutationError(update.error, "Couldn't save the notes. Try again.");

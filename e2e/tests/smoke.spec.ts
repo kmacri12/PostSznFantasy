@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { Api, unique } from "../support/api";
+import { Api, seasonUrl, unique } from "../support/api";
 import { signInAs } from "../support/auth";
 
 test("the landing page renders without horizontal scroll", async ({ page }) => {
@@ -24,17 +24,18 @@ test.describe("signed in", () => {
   }, testInfo) => {
     const host = new Api(request, unique("smoke"));
     await host.signUp("smoke");
-    const leagueId = await host.createLeague(unique("Smoke League"));
+    const league = await host.createLeague(unique("Smoke League"));
     await signInAs(context, host.uid);
-    const teamId = (await host.get<{ myTeamId: number }>(`/api/seasons/${leagueId}`)).myTeamId;
+    const teamId = (await host.get<{ myTeamId: number }>(`/api/seasons/${league.seasonId}`))
+      .myTeamId;
 
     const pages = [
       "/",
-      `/league/${leagueId}`,
-      `/league/${leagueId}/draft`,
-      `/team/${teamId}`,
-      `/settings?leagueId=${leagueId}`,
-      `/players?leagueId=${leagueId}`,
+      seasonUrl(league),
+      seasonUrl(league, "/draft"),
+      seasonUrl(league, `/teams/${teamId}`),
+      seasonUrl(league, "/settings"),
+      seasonUrl(league, "/players"),
     ];
     for (const url of pages) {
       await page.goto(url);

@@ -2,7 +2,11 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 import type { StandingsRow } from "../../api/types";
+import { SeasonContext } from "../../contexts/SeasonContext";
+import { testSeason } from "../../test/season";
 import StandingsCards from "./StandingsCards";
+
+const season = testSeason();
 
 const row = (teamId: number, rank: number, extra: Partial<StandingsRow> = {}): StandingsRow => ({
   teamId,
@@ -40,7 +44,9 @@ const tied = [
 const renderCards = (rows: StandingsRow[]) =>
   render(
     <MemoryRouter>
-      <StandingsCards rows={rows} round={2} />
+      <SeasonContext.Provider value={season}>
+        <StandingsCards rows={rows} round={2} />
+      </SeasonContext.Provider>
     </MemoryRouter>,
   );
 
@@ -73,7 +79,7 @@ describe("StandingsCards", () => {
       "Not playing: 3",
     ]);
     expect(screen.getByRole("link", { name: "Round-by-round points" }).getAttribute("href")).toBe(
-      "/team/4/points",
+      "/leagues/3/seasons/2025/teams/4/points",
     );
   });
 

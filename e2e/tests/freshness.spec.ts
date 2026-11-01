@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { seasonUrl } from "../support/api";
 import { authHeaders, signInAs } from "../support/auth";
 import { completeDraft, createDraftLeague } from "../support/draft";
 import { ADMIN_UID, API_URL } from "../support/env";
@@ -20,7 +21,7 @@ test.describe("data freshness and admin refresh", () => {
   }) => {
     const league = await draftedLeague(request);
     await signInAs(context, league.host.uid);
-    await page.goto(`/league/${league.leagueId}`);
+    await page.goto(seasonUrl(league.league));
 
     await expect(page.getByText("Stats haven't synced yet")).toBeVisible();
     await expect(page.getByRole("button", { name: "Refresh now" })).toHaveCount(0);
@@ -64,7 +65,7 @@ test.describe("data freshness and admin refresh", () => {
       await route.fulfill({ response });
     });
 
-    await page.goto(`/league/${league.leagueId}`);
+    await page.goto(seasonUrl(league.league));
     await expect(page.getByText("Stats updated 5 h ago")).toBeVisible();
 
     await page.getByRole("button", { name: "Refresh now" }).click();
@@ -91,7 +92,7 @@ test.describe("data freshness and admin refresh", () => {
         ],
       }),
     );
-    await page.goto(`/league/${league.leagueId}`);
+    await page.goto(seasonUrl(league.league));
 
     await expect(page.getByRole("status").filter({ hasText: "Live updates paused" })).toContainText(
       "Live updates paused for today (API daily limit). Showing the last update from 42 min ago.",
