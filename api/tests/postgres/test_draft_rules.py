@@ -11,7 +11,7 @@ from api.services import draft_flow
 from api.services.draft_picks import DraftPickError, make_pick
 from api.services.ingestion.players_ingest import ingest_nfl_players
 from api.tests.postgres.conftest import ClientFactory
-from api.tests.postgres.factories import make_league, make_players, make_playoff_field
+from api.tests.postgres.factories import make_players, make_playoff_field, make_season
 
 
 def wild_card_game(kickoff: datetime) -> NFLGame:
@@ -41,11 +41,11 @@ async def test_fullbacks_are_running_backs_after_ingest(db: AsyncSession) -> Non
 async def test_draft_cannot_start_until_the_field_is_set(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
-    league, _, _, _ = await make_league(db, draft_status="scheduled")
+    season, _, _, _ = await make_season(db, draft_status="scheduled")
     async with client_as("uid-0") as commissioner:
-        early = await commissioner.post(f"/api/drafts/{league.id}/control/start")
+        early = await commissioner.post(f"/api/drafts/{season.id}/control/start")
         await make_playoff_field(db)
-        ready = await commissioner.post(f"/api/drafts/{league.id}/control/start")
+        ready = await commissioner.post(f"/api/drafts/{season.id}/control/start")
     assert early.status_code == 409
     assert "playoff field" in early.json()["detail"]
     assert ready.status_code == 200
@@ -54,7 +54,7 @@ async def test_draft_cannot_start_until_the_field_is_set(
 async def test_pool_is_playoff_players_at_draftable_positions(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
-    await make_league(db)
+    await make_season(db)
     kc = NFLTeam(id=1, team_abv="KC", in_playoffs=True)
     out = NFLTeam(id=2, team_abv="OUT")
     db.add_all([kc, out])
@@ -67,25 +67,25 @@ async def test_pool_is_playoff_players_at_draftable_positions(
 
 
 async def test_picking_outside_the_pool_is_refused(db: AsyncSession) -> None:
-    _, users, _, draft = await make_league(db)
+    _, users, _, draft = await make_season(db)
     out = NFLTeam(id=2, team_abv="OUT")
     db.add(out)
     await db.flush()
     (player,) = await make_players(db, ["QB"], nfl_team=out)
     with pytest.raises(DraftPickError, match="playoff team") as exc:
-        await make_pick(db, draft.league_id, users[0], player.id)
+        await make_pick(db, draft.season_id, users[0], player.id)
     assert exc.value.code == "not_in_pool"
 
 
 async def test_start_and_scheduling_are_refused_after_the_first_wild_card_kickoff(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
-    league, _, _, _ = await make_league(db, draft_status="scheduled")
+    season, _, _, _ = await make_season(db, draft_status="scheduled")
     await make_playoff_field(db)
     kickoff = datetime.now(UTC) + timedelta(hours=2)
     db.add(wild_card_game(kickoff))
     await db.flush()
-    url = f"/api/drafts/{league.id}"
+    url = f"/api/drafts/{season.id}"
     async with client_as("uid-0") as commissioner:
         just_before = await commissioner.patch(
             url, json={"startTime": (kickoff - timedelta(minutes=5)).isoformat()}
@@ -110,20 +110,20 @@ async def test_start_and_scheduling_are_refused_after_the_first_wild_card_kickof
 
 
 async def test_a_running_draft_keeps_going_after_kickoff(db: AsyncSession) -> None:
-    _, users, _, draft = await make_league(db)
+    _, users, _, draft = await make_season(db)
     db.add(wild_card_game(datetime.now(UTC) - timedelta(hours=1)))
     (player,) = await make_players(db, ["QB"])
     await db.flush()
-    result = await make_pick(db, draft.league_id, users[0], player.id)
+    result = await make_pick(db, draft.season_id, users[0], player.id)
     assert result.pick.number_pick_overall == 1
 
 
 async def test_capped_position_is_refused_with_a_plain_reason_over_rest(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
-    league, _, _, _ = await make_league(db, roster_total=4, roster_max_qb=1)
+    season, _, _, _ = await make_season(db, roster_total=4, roster_max_qb=1)
     players = await make_players(db, ["QB", "QB", "RB", "RB"])
-    url = f"/api/drafts/{league.id}/picks"
+    url = f"/api/drafts/{season.id}/picks"
     async with client_as("uid-0") as a:
         await a.post(url, json={"playerId": players[0].id})
     async with client_as("uid-1") as b:
@@ -140,27 +140,27 @@ async def test_capped_position_is_refused_with_a_plain_reason_over_rest(
 async def test_draft_state_lists_only_real_caps(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
-    league, _, _, _ = await make_league(
+    season, _, _, _ = await make_season(
         db, roster_total=18, roster_max_qb=2, roster_max_k=2, roster_max_dst=2
     )
     async with client_as("uid-0") as user:
-        state = (await user.get(f"/api/drafts/draft-info/{league.id}")).json()
+        state = (await user.get(f"/api/drafts/draft-info/{season.id}")).json()
     assert state["positionCaps"] == {"QB": 2, "K": 2, "DST": 2}
 
 
 async def test_autopick_never_drafts_a_third_qb_from_the_queue(
     db: AsyncSession,
 ) -> None:
-    league, users, teams, draft = await make_league(db, roster_total=6, roster_max_qb=2)
+    season, users, teams, draft = await make_season(db, roster_total=6, roster_max_qb=2)
     qbs = await make_players(db, ["QB", "QB", "QB"])
     rbs = await make_players(db, ["RB"] * 6, first_id=2000)
     await draft_flow.set_queue(db, draft.id, teams[0].id, [q.id for q in qbs])
 
-    await draft_flow.auto_pick(db, league.id)  # pick 1, team 0: first queued QB
-    await make_pick(db, league.id, users[1], rbs[0].id)  # picks 2 and 3: team 1
-    await make_pick(db, league.id, users[1], rbs[1].id)
-    await draft_flow.auto_pick(db, league.id)  # pick 4, team 0: second queued QB
-    fifth = await draft_flow.auto_pick(db, league.id)  # pick 5, team 0 again
+    await draft_flow.auto_pick(db, season.id)  # pick 1, team 0: first queued QB
+    await make_pick(db, season.id, users[1], rbs[0].id)  # picks 2 and 3: team 1
+    await make_pick(db, season.id, users[1], rbs[1].id)
+    await draft_flow.auto_pick(db, season.id)  # pick 4, team 0: second queued QB
+    fifth = await draft_flow.auto_pick(db, season.id)  # pick 5, team 0 again
 
     assert fifth.pick.team_id == teams[0].id
     assert fifth.pick.player_id not in {q.id for q in qbs}
@@ -177,7 +177,7 @@ async def test_autopick_takes_the_best_scorer_and_skips_non_pool_players(
 ) -> None:
     from api.db.models import NFLPlayerSeasonStats
 
-    league, _, _, _ = await make_league(db, roster_total=2)
+    season, _, _, _ = await make_season(db, roster_total=2)
     out = NFLTeam(id=2, team_abv="OUT")
     db.add(out)
     await db.flush()
@@ -190,24 +190,24 @@ async def test_autopick_takes_the_best_scorer_and_skips_non_pool_players(
             )
         )
     await db.flush()
-    result = await draft_flow.auto_pick(db, league.id)
+    result = await draft_flow.auto_pick(db, season.id)
     assert result.pick.player_id == high.id
 
 
 async def test_caps_and_roster_lock_at_draft_start_but_scoring_stays_editable(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
-    league, _, _, _ = await make_league(db, draft_status="scheduled")
+    season, _, _, _ = await make_season(db, draft_status="scheduled")
     await make_playoff_field(db)
-    url = f"/api/leagues/{league.id}/settings"
+    url = f"/api/seasons/{season.id}/settings"
     async with client_as("uid-0") as commissioner:
         before = await commissioner.patch(url, json={"rosterMaxQb": 3})
-        await commissioner.post(f"/api/drafts/{league.id}/order/randomize")
-        await commissioner.post(f"/api/drafts/{league.id}/control/start")
+        await commissioner.post(f"/api/drafts/{season.id}/order/randomize")
+        await commissioner.post(f"/api/drafts/{season.id}/control/start")
         caps = await commissioner.patch(url, json={"rosterMaxQb": 1})
         slots = await commissioner.patch(url, json={"rosterNumRb": 5})
         resize = await commissioner.patch(
-            f"/api/leagues/{league.id}", json={"numberTeams": 4}
+            f"/api/seasons/{season.id}", json={"numberTeams": 4}
         )
         scoring = await commissioner.patch(url, json={"scoringPassingTd": 6})
     assert before.status_code == 200
@@ -222,7 +222,7 @@ async def test_caps_and_roster_lock_at_draft_start_but_scoring_stays_editable(
 async def test_team_defense_without_season_stats_is_in_the_pool_and_auto_pickable(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
-    league, _, _, _ = await make_league(db, roster_total=2, roster_max_dst=1)
+    season, _, _, _ = await make_season(db, roster_total=2, roster_max_dst=1)
     kc = NFLTeam(id=1, team_abv="KC", in_playoffs=True)
     db.add(kc)
     await db.flush()
@@ -232,19 +232,19 @@ async def test_team_defense_without_season_stats_is_in_the_pool_and_auto_pickabl
     async with client_as("uid-0") as user:
         pool = (await user.get("/api/players/draft-pool")).json()
     assert [p["position"] for p in pool] == ["DST"]
-    result = await draft_flow.auto_pick(db, league.id)
+    result = await draft_flow.auto_pick(db, season.id)
     assert result.pick.player_id == -1
 
 
 async def test_naive_start_time_is_treated_as_utc_not_a_server_error(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
-    league, _, _, _ = await make_league(db, draft_status="scheduled")
+    season, _, _, _ = await make_season(db, draft_status="scheduled")
     db.add(wild_card_game(datetime.now(UTC) + timedelta(hours=2)))
     await db.flush()
     late = (datetime.now(UTC) + timedelta(hours=3)).replace(tzinfo=None)
     async with client_as("uid-0") as commissioner:
         response = await commissioner.patch(
-            f"/api/drafts/{league.id}", json={"startTime": late.isoformat()}
+            f"/api/drafts/{season.id}", json={"startTime": late.isoformat()}
         )
     assert response.status_code == 409

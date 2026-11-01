@@ -33,7 +33,7 @@ from api.services.activity import leagues_with_new_activity
 from api.services.draft_picks import DraftPickError
 from api.services.league_members import LeagueRuleError, remove_member, set_role
 from api.services.playoff_field import require_draft_window_open
-from api.services.season_recap import season_is_finished
+from api.services.round_status import season_is_finished
 from api.services.seasons import current_season, start_season
 
 router = APIRouter()
@@ -60,7 +60,7 @@ async def create_league(
     current_user_id: CurrentUser,
     db: DbSession,
 ) -> LeagueCreateResponse:
-    """Create a league and its first season (the creator becomes commissioner), its teams and an unordered draft."""
+    """Create a league with its first season: the creator is commissioner, plus teams and a draft."""
     user = (
         (await db.execute(select(User).where(User.supabase_uid == current_user_id)))
         .scalars()
@@ -109,7 +109,7 @@ async def create_league(
     )
     db.add(
         SeasonSettings(
-            league_id=new_league.id,
+            season_id=season.id,
             **payload.roster_settings.model_dump(by_alias=False),
             **payload.scoring_settings.model_dump(by_alias=False),
             **payload.postseason_settings.model_dump(by_alias=False, mode="json"),
@@ -121,14 +121,14 @@ async def create_league(
             Team(
                 name=f"Team {i + 1}",
                 owner_id=user.id if i == 0 else None,
-                league_id=new_league.id,
+                season_id=season.id,
             )
         )
     await db.flush()
 
     db.add(
         Draft(
-            league_id=new_league.id,
+            season_id=season.id,
             status=(
                 DraftStatus.SCHEDULED.value
                 if payload.draft_start_time

@@ -16,7 +16,7 @@ from api.db.models.user import User
 from api.models.enums import LeagueRole
 from api.services.league_admin import draft_has_started
 from api.services.league_members import LeagueRuleError
-from api.services.season_recap import season_is_finished
+from api.services.round_status import season_is_finished
 from api.services.seasons import current_season
 
 # No 0/O/1/I/L so codes survive being read aloud or retyped.

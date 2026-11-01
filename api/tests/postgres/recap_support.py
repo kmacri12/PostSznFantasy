@@ -3,24 +3,24 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.db.models import (
-    League,
     LineupSlot,
     NFLGame,
     NFLPlayer,
     NFLPlayerGameStats,
     NFLTeam,
+    Season,
     Team,
     TeamPlayer,
 )
 from api.services.standings import recompute_standings
-from api.tests.postgres.factories import make_league, make_players
+from api.tests.postgres.factories import make_players, make_season
 
 # game_week for rounds 1-4
 WEEKS = (1, 20, 21, 22)
 
 
 async def add_season_games(
-    db: AsyncSession, *, finished_through: int = 4, season: int = 2025
+    db: AsyncSession, *, finished_through: int = 4, year: int = 2025
 ) -> None:
     """KC (id 1) beats BUF (id 2) in every round up to `finished_through`."""
     for team_id, abv in ((1, "KC"), (2, "BUF")):
@@ -30,7 +30,7 @@ async def add_season_games(
     db.add_all(
         NFLGame(
             id=f"g{round_}",
-            season=season,
+            season=year,
             season_type="post",
             game_week=week,
             game_status="Completed" if round_ <= finished_through else "Scheduled",
@@ -46,13 +46,13 @@ async def add_season_games(
 
 async def finished_league(
     db: AsyncSession, *, finished_through: int = 4
-) -> tuple[League, list[Team], list[NFLPlayer]]:
+) -> tuple[Season, list[Team], list[NFLPlayer]]:
     """Team 0 owns the KC QB, team 1 the BUF QB; both start them every round.
 
     The KC QB scores 20 in round 1 and 10 in round 4 (30 total); the BUF QB scores 4
     in round 1 and 4 in round 4.
     """
-    league, _, teams, _ = await make_league(db, draft_status="completed")
+    season, _, teams, _ = await make_season(db, draft_status="completed")
     await add_season_games(db, finished_through=finished_through)
     (kc_qb,) = await make_players(db, ["QB"], nfl_team=await db.get(NFLTeam, 1))
     (buf_qb,) = await make_players(
@@ -60,8 +60,8 @@ async def finished_league(
     )
     db.add_all(
         [
-            TeamPlayer(team_id=teams[0].id, league_id=league.id, player_id=kc_qb.id),
-            TeamPlayer(team_id=teams[1].id, league_id=league.id, player_id=buf_qb.id),
+            TeamPlayer(team_id=teams[0].id, season_id=season.id, player_id=kc_qb.id),
+            TeamPlayer(team_id=teams[1].id, season_id=season.id, player_id=buf_qb.id),
         ]
     )
     for team, qb in ((teams[0], kc_qb), (teams[1], buf_qb)):
@@ -85,4 +85,4 @@ async def finished_league(
         )
     await db.flush()
     await recompute_standings(db, 2025)
-    return league, teams, [kc_qb, buf_qb]
+    return season, teams, [kc_qb, buf_qb]

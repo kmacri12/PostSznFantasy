@@ -5,9 +5,9 @@ from httpx import AsyncClient
 
 LEAGUE_ROUTES = [
     "/api/drafts/draft-info/1",
-    "/api/leagues/1/settings",
-    "/api/leagues/1/teams",
-    "/api/leagues/1/standings",
+    "/api/seasons/1/settings",
+    "/api/seasons/1/teams",
+    "/api/seasons/1/standings",
 ]
 LOOKUP_ROUTES = ["/api/drafts/draft-picks/1", "/api/teams/1"]
 

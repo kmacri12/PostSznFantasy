@@ -13,7 +13,7 @@ from api.db.models.draft import Draft
 from api.db.models.league import League, LeagueMember, Season, SeasonSettings, Team
 from api.models.enums import DraftStatus
 from api.services.league_members import LeagueRuleError
-from api.services.season_recap import season_is_finished
+from api.services.round_status import season_is_finished
 
 # Draft columns that describe this draft's progress rather than how it is set up.
 _DRAFT_STATE = {

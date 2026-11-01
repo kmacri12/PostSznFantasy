@@ -8,7 +8,7 @@ from api.db.models import IngestionStatus, NFLTeam
 from api.services.ingestion import ingest_nfl_teams
 from api.services.ingestion.guard import LOCK_NAMESPACE, IngestionBusy, IngestionKind
 from api.tests.postgres.conftest import TEST_DATABASE_URL, ClientFactory
-from api.tests.postgres.factories import make_league
+from api.tests.postgres.factories import make_season
 
 TEAMS = [{"teamID": "1", "teamAbv": "KC"}]
 
@@ -16,7 +16,7 @@ TEAMS = [{"teamID": "1", "teamAbv": "KC"}]
 async def test_a_successful_run_records_when_it_synced(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
-    await make_league(db)
+    await make_season(db)
     assert await ingest_nfl_teams(db, raw_data=TEAMS) == 1
     assert await ingest_nfl_teams(db, raw_data=TEAMS) == 1  # upserts the same row
 
@@ -36,7 +36,7 @@ async def test_sync_status_says_whether_the_daily_api_budget_is_spent(
     monkeypatch: pytest.MonkeyPatch,
     exhausted: bool,
 ) -> None:
-    await make_league(db)
+    await make_season(db)
     await ingest_nfl_teams(db, raw_data=TEAMS)
     monkeypatch.setattr(
         "api.routers.players.get_rapidapi_client",

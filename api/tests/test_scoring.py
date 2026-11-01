@@ -435,7 +435,7 @@ def test_orm_settings_columns_match_pydantic_schemas() -> None:
         | set(TeamUnitSettings.model_fields)
     )
     assert declared <= columns
-    assert columns - declared == {"id", "league_id"}
+    assert columns - declared == {"id", "season_id"}
 
 
 @pytest.mark.parametrize(

@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from api.db.models import NFLPlayer, NFLTeam, TeamPlayer
 from api.services.ingestion.players_ingest import ingest_nfl_players
 from api.tests.postgres.conftest import ClientFactory
-from api.tests.postgres.factories import make_league, make_players
+from api.tests.postgres.factories import make_players, make_season
 
 
 async def injury_statuses(db: AsyncSession) -> dict[str, str | None]:
@@ -35,11 +35,11 @@ async def test_ingest_stores_the_tag_and_clears_it_when_tank01_does(
 async def test_the_tag_reaches_the_draft_pool_and_the_roster(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
-    league, _, teams, _ = await make_league(db, roster_total=2)
+    season, _, teams, _ = await make_season(db, roster_total=2)
     hurt, healthy = await make_players(db, ["WR", "WR"])
     hurt.injury_status = "Doubtful"
     db.add_all(
-        TeamPlayer(team_id=teams[0].id, league_id=league.id, player_id=p.id)
+        TeamPlayer(team_id=teams[0].id, season_id=season.id, player_id=p.id)
         for p in (hurt, healthy)
     )
     await db.flush()

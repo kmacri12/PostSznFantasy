@@ -16,7 +16,7 @@ from api.db.models import (
 )
 from api.services.lineups import team_lineups
 from api.tests.postgres.conftest import ClientFactory
-from api.tests.postgres.factories import make_league, make_players
+from api.tests.postgres.factories import make_players, make_season
 
 LAYOUT: dict[str, Any] = dict(
     roster_total=5, roster_num_qb=1, roster_num_rb=1, roster_num_wr=0, roster_num_te=0,
@@ -62,7 +62,7 @@ async def _setup(
     db: AsyncSession, games: list[NFLGame], positions: list[str] | None = None
 ) -> Setup:
     """Players 0..n on KC (id 1), except the last on BUF (id 2); DEN (3) is the foe."""
-    league, _, teams, _ = await make_league(db, **LAYOUT)
+    season, _, teams, _ = await make_season(db, **LAYOUT)
     db.add_all(
         NFLTeam(id=i, team_abv=a, is_active=True)
         for i, a in [(1, "KC"), (2, "BUF"), (3, "DEN")]
@@ -74,7 +74,7 @@ async def _setup(
         db, positions[-1:], nfl_team=await db.get(NFLTeam, 2), first_id=2000
     )
     db.add_all(
-        TeamPlayer(team_id=teams[0].id, league_id=league.id, player_id=p.id)
+        TeamPlayer(team_id=teams[0].id, season_id=season.id, player_id=p.id)
         for p in players
     )
     db.add_all(games)

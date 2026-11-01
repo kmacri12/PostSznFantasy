@@ -16,7 +16,7 @@ from api.db.models import (
 )
 from api.services.standings import recompute_standings
 from api.tests.postgres.conftest import ClientFactory
-from api.tests.postgres.factories import make_league
+from api.tests.postgres.factories import make_season
 
 # Slot indexes in the default layout: QB 0, RB 1-2, WR 3-4, TE 5, FLEX 6, K 7, DEF 8.
 QB_SLOT, WR_SLOT, K_SLOT, BENCH_SLOT = 0, 3, 7, 9
@@ -30,7 +30,7 @@ class Scene:
 
     async def build(self, *, team_qb: bool, team_k: bool) -> "Scene":
         db = self.db
-        self.league, _, self.teams, _ = await make_league(
+        self.season, _, self.teams, _ = await make_season(
             db, draft_status="completed", team_qb=team_qb, team_k=team_k
         )
         db.add_all(
@@ -71,7 +71,7 @@ class Scene:
     async def roster(self, team_index: int, *players: NFLPlayer) -> None:
         team = self.teams[team_index]
         self.db.add_all(
-            TeamPlayer(team_id=team.id, league_id=self.league.id, player_id=p.id)
+            TeamPlayer(team_id=team.id, season_id=self.season.id, player_id=p.id)
             for p in players
         )
         await self.db.flush()
@@ -223,7 +223,7 @@ async def test_switching_the_setting_reflows_standings(
 
     async with client_as("uid-0") as commissioner:
         on = await commissioner.patch(
-            f"/api/leagues/{scene.league.id}/settings", json={"teamQb": True}
+            f"/api/seasons/{scene.season.id}/settings", json={"teamQb": True}
         )
     assert on.status_code == 200
     rows = (
@@ -265,11 +265,11 @@ async def test_standings_and_breakdown_agree_with_team_units_on_and_off(
     await scene.start(0, scene.starter, QB_SLOT)
     await passing_game(scene)
     await scene.standing(0)
-    team_id, league_id = scene.teams[0].id, scene.league.id
+    team_id, league_id = scene.teams[0].id, scene.season.id
 
     async def totals() -> tuple[float, float]:
         async with client_as("uid-0") as owner:
-            standings = (await owner.get(f"/api/leagues/{league_id}/standings")).json()
+            standings = (await owner.get(f"/api/seasons/{league_id}/standings")).json()
             breakdown = (await owner.get(f"/api/teams/{team_id}/breakdown")).json()
         row = next(r for r in standings["teams"] if r["teamId"] == team_id)
         return row["total"], breakdown["total"]
@@ -277,6 +277,6 @@ async def test_standings_and_breakdown_agree_with_team_units_on_and_off(
     assert await totals() == (8, 8)
     async with client_as("uid-0") as commissioner:
         await commissioner.patch(
-            f"/api/leagues/{league_id}/settings", json={"teamQb": True}
+            f"/api/seasons/{league_id}/settings", json={"teamQb": True}
         )
     assert await totals() == (18, 18)

@@ -106,7 +106,7 @@ async def test_the_team_total_of_points_left_on_the_bench_sums_every_round(
 
     body = await breakdown(w)
 
-    assert body["leagueId"] == w.league_id
+    assert body["seasonId"] == w.league_id
     assert body["pointsLeftOnBench"] == 55  # 35 in the Wild Card + 20 in the Divisional
     assert body["total"] == 18
 

@@ -96,7 +96,7 @@ async def test_moving_a_locked_player_needs_the_confirm_flag(
     locked = s.players[1]
     async with client_as("uid-0") as commissioner:
         refused = await commissioner.post(s.lineup_url, json=s.move(locked, RB))
-        feed = (await commissioner.get(f"/api/leagues/{s.league.id}/activity")).json()
+        feed = (await commissioner.get(f"/api/seasons/{s.season.id}/activity")).json()
     assert refused.status_code == 409
     assert refused.json()["code"] == "override_confirmation_required"
     assert "commissioner-only move" in refused.json()["detail"]
@@ -114,7 +114,7 @@ async def test_a_confirmed_override_posts_to_the_league_feed_with_a_permanent_ma
             s.lineup_url, json=s.move(locked, RB, confirmOverride=True)
         )
         league_feed = (
-            await commissioner.get(f"/api/leagues/{s.league.id}/activity")
+            await commissioner.get(f"/api/seasons/{s.season.id}/activity")
         ).json()
     assert done.status_code == 200
     mark = slot_of(done.json(), RB)["mark"]
@@ -233,7 +233,7 @@ async def test_a_commissioner_override_changes_the_standings(
             s.lineup_url, json=s.move(s.players[0], QB, confirmOverride=True)
         )
         standings = (
-            await commissioner.get(f"/api/leagues/{s.league.id}/standings")
+            await commissioner.get(f"/api/seasons/{s.season.id}/standings")
         ).json()
     by_team = {row["teamId"]: row for row in standings["teams"]}
     assert by_team[s.team.id]["wildCard"] == 12.0

@@ -17,7 +17,7 @@ from api.db.models import (
 from api.services.scheduler import eliminate_losing_teams
 from api.services.standings import recompute_standings
 from api.tests.postgres.conftest import ClientFactory
-from api.tests.postgres.factories import make_league
+from api.tests.postgres.factories import make_season
 
 # Tank01 numbers the postseason weeks 19-22.
 WILD_CARD, DIVISIONAL, CONFERENCE, SUPER_BOWL = 19, 20, 21, 22
@@ -36,7 +36,7 @@ class World:
     async def standings(self) -> dict[str, Any]:
         await recompute_standings(self.db, 2025)
         async with self.client_as("uid-0") as client:
-            response = await client.get(f"/api/leagues/{self.league_id}/standings")
+            response = await client.get(f"/api/seasons/{self.league_id}/standings")
         assert response.status_code == 200
         body: dict[str, Any] = response.json()
         return body
@@ -50,7 +50,7 @@ class World:
 async def world(
     db: AsyncSession, client_as: ClientFactory, *, fantasy_teams: int = 2
 ) -> World:
-    league, _, teams, _ = await make_league(
+    season, _, teams, _ = await make_season(
         db, teams=fantasy_teams, draft_status="completed"
     )
     abvs = ["KC", "BUF", "DEN", "MIA", "SEA", "GB"]
@@ -60,7 +60,7 @@ async def world(
     }
     db.add_all(nfl.values())
     await db.flush()
-    return World(league.id, teams, nfl, client_as, db)
+    return World(season.id, teams, nfl, client_as, db)
 
 
 _player_ids = iter(range(5000, 6000))
@@ -82,7 +82,7 @@ async def draft(
     )
     w.db.add(player)
     await w.db.flush()
-    w.db.add(TeamPlayer(team_id=team.id, league_id=w.league_id, player_id=player.id))
+    w.db.add(TeamPlayer(team_id=team.id, season_id=w.league_id, player_id=player.id))
     if slot is not None:
         w.db.add(
             LineupSlot(

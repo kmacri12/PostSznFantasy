@@ -12,7 +12,8 @@ from api.db.models.user import User
 from api.db.session import DbSession
 from api.dependencies.auth import CurrentUser
 from api.models.enums import LeagueRole
-from api.services.season_recap import ARCHIVED_MESSAGE, season_is_finished
+from api.services.round_status import season_is_finished
+from api.services.season_recap import ARCHIVED_MESSAGE
 
 READ_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
 

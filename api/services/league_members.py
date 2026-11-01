@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.db.models.league import LeagueMember, Season, Team
 from api.models.enums import LeagueRole
-from api.services.season_recap import season_is_finished
+from api.services.round_status import season_is_finished
 
 
 class LeagueRuleError(Exception):
