@@ -1,7 +1,13 @@
 export type LeagueRole = "commissioner" | "member";
 
+/**
+ * One entry of the user's league list. `id` is the id of the league's latest season,
+ * which is what every page route and season API call uses; `leagueId` is the
+ * permanent league (members, invite, notes).
+ */
 export interface LeagueByUser {
   id: number;
+  leagueId: number;
   name: string;
   season: number;
   isCommissioner: boolean;
@@ -28,10 +34,16 @@ export type DraftStatus =
   | "paused"
   | "completed";
 
+/** A season's home data joined with its league's name, notes and members (see `useLeague`). */
 export interface LeagueOverview {
+  /** The season id: what routes and season API calls use. */
   id: number;
+  leagueId: number;
   name: string;
   season: number;
+  finished: boolean;
+  canEdit: boolean;
+  canCommission: boolean;
   notes: string;
   numberTeams: number;
   openSpots: number;
@@ -70,6 +82,7 @@ export interface InvitePreview {
 
 export interface JoinResult {
   leagueId: number;
+  seasonId: number | null;
   teamId: number | null;
   alreadyMember: boolean;
 }
@@ -150,7 +163,7 @@ export interface BreakdownRound {
 
 export interface TeamBreakdown {
   teamId: number;
-  leagueId: number;
+  seasonId: number;
   teamName: string;
   total: number;
   pointsLeftOnBench: number;
@@ -229,7 +242,7 @@ export interface RoundLineup {
 export interface TeamDetails {
   id: number;
   name: string;
-  leagueId: number;
+  seasonId: number;
   ownerName: string | null;
   canEdit: boolean;
   canSetLineup: boolean;
@@ -266,7 +279,7 @@ export type PickTimeoutAction = "queue_then_best_available" | "best_available";
 
 export interface DraftState {
   draftId: number;
-  leagueId: number;
+  seasonId: number;
   status: DraftStatus;
   startTime: string | null;
   draftType: DraftType;
@@ -301,7 +314,7 @@ export interface DraftSnapshot extends DraftState {
 /** Settings arrive flat in camelCase: numbers, booleans and enum strings. */
 export type LeagueSettings = Record<string, number | string | boolean> & {
   id: number;
-  leagueId: number;
+  seasonId: number;
 };
 
 export interface PlayerSummary {
@@ -410,12 +423,13 @@ export interface AwardWinner {
 }
 
 export interface SeasonRecap {
+  seasonId: number;
   leagueId: number;
-  season: number;
+  year: number;
   finished: boolean;
   /** More than one when the title is tied all the way down the tiebreaker chain. */
   champions: RecapTeam[];
   standings: Standings;
-  nextLeagueId: number | null;
+  nextSeasonId: number | null;
   awards: AwardWinner[];
 }

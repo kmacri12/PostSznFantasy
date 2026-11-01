@@ -9,7 +9,7 @@ const mocks = vi.hoisted(() => ({ archived: false }));
 const team = {
   id: 7,
   name: "Gridiron",
-  leagueId: 3,
+  seasonId: 3,
   ownerName: "kyle",
   canEdit: true,
   canSetLineup: true,

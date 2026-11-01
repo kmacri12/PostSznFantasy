@@ -33,7 +33,7 @@ class FakeSocket {
 
 const snapshot = {
   draftId: 1,
-  leagueId: 7,
+  seasonId: 7,
   status: "in_progress",
   serverTime: "2030-01-01T00:00:00Z",
   currentPickDeadline: "2030-01-01T00:01:00Z",

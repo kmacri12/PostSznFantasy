@@ -6,7 +6,7 @@ import { tokens } from "../../theme";
 import { describeEvent, detailLines, formatWhen } from "./describe";
 
 interface Props {
-  scope: "leagues" | "teams";
+  scope: "seasons" | "teams";
   id: number;
   title: string;
 }

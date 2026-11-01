@@ -6,7 +6,7 @@ import DraftPage from "./DraftPage";
 const mocks = vi.hoisted(() => ({ archived: false }));
 
 const state = {
-  leagueId: 3,
+  seasonId: 3,
   status: "completed",
   presence: [],
   queue: [],

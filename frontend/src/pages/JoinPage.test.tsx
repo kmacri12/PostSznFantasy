@@ -48,7 +48,7 @@ describe("JoinPage when signed out", () => {
 
   it("joins automatically once the sign-in returns here", async () => {
     mocks.user = { user: { id: "u1" }, userId: 5, loading: false };
-    mocks.joinMutate.mockImplementation((_code, options) => options.onSuccess({ leagueId: 9 }));
+    mocks.joinMutate.mockImplementation((_code, options) => options.onSuccess({ leagueId: 90, seasonId: 9 }));
     renderJoin();
 
     await waitFor(() => expect(screen.getByText("league page")).toBeInTheDocument());

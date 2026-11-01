@@ -109,8 +109,10 @@ async def join_with_invite(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail=str(exc)
         ) from exc
+    season = await current_season(db, league.id)
     return JoinResponse(
         league_id=league.id,
+        season_id=season.id if season else None,
         team_id=team.id if team else None,
         already_member=already_member,
     )

@@ -47,7 +47,7 @@ beforeEach(() => {
 describe("ActivityFeed", () => {
   it("is collapsed by default, with a dot and the word New when there is new activity", () => {
     useActivityFeed.mockReturnValue(feedOf([event(2, true), event(1, false)], true));
-    render(<ActivityFeed scope="leagues" id={7} title="League activity" />);
+    render(<ActivityFeed scope="seasons" id={7} title="League activity" />);
     const toggle = screen.getByRole("button", { name: /League activity/ });
     expect(toggle.getAttribute("aria-expanded")).toBe("false");
     expect(screen.getByRole("img", { name: "New activity" })).toBeTruthy();
@@ -63,7 +63,7 @@ describe("ActivityFeed", () => {
 
   it("marks the newest event as seen on expand, clearing the dot, and tags the new rows", () => {
     useActivityFeed.mockReturnValue(feedOf([event(2, true), event(1, false)], true));
-    render(<ActivityFeed scope="leagues" id={7} title="League activity" />);
+    render(<ActivityFeed scope="seasons" id={7} title="League activity" />);
     fireEvent.click(screen.getByRole("button", { name: /League activity/ }));
     expect(markViewed).toHaveBeenCalledWith(2);
     expect(screen.queryByRole("img", { name: "New activity" })).toBeNull();
@@ -73,7 +73,7 @@ describe("ActivityFeed", () => {
 
   it("does not ask the server again on collapse", () => {
     useActivityFeed.mockReturnValue(feedOf([event(1, true)], true));
-    render(<ActivityFeed scope="leagues" id={7} title="League activity" />);
+    render(<ActivityFeed scope="seasons" id={7} title="League activity" />);
     const toggle = screen.getByRole("button", { name: /League activity/ });
     fireEvent.click(toggle);
     fireEvent.click(toggle);
@@ -82,18 +82,18 @@ describe("ActivityFeed", () => {
 
   it("also marks events that arrive while the feed is open, so they are not new once it closes", () => {
     useActivityFeed.mockReturnValue(feedOf([event(1, true)], true));
-    const { rerender } = render(<ActivityFeed scope="leagues" id={7} title="League activity" />);
+    const { rerender } = render(<ActivityFeed scope="seasons" id={7} title="League activity" />);
     fireEvent.click(screen.getByRole("button", { name: /League activity/ }));
     expect(markViewed).toHaveBeenLastCalledWith(1);
     useActivityFeed.mockReturnValue(feedOf([event(3, true), event(1, false)], true));
-    rerender(<ActivityFeed scope="leagues" id={7} title="League activity" />);
+    rerender(<ActivityFeed scope="seasons" id={7} title="League activity" />);
     expect(markViewed).toHaveBeenLastCalledWith(3);
     expect(screen.getAllByText("New")).toHaveLength(2);
   });
 
   it("does not tag already-seen rows as new when reopened", () => {
     useActivityFeed.mockReturnValue(feedOf([event(1, true)], true));
-    render(<ActivityFeed scope="leagues" id={7} title="League activity" />);
+    render(<ActivityFeed scope="seasons" id={7} title="League activity" />);
     const toggle = screen.getByRole("button", { name: /League activity/ });
     fireEvent.click(toggle);
     expect(screen.getAllByText("New")).toHaveLength(1);

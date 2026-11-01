@@ -12,7 +12,7 @@ const DRAFT_FAILURE = "Couldn't update the draft. Try again.";
  * keeps the screen; commissioners only.
  */
 const CommissionerControls = ({ draft }: { draft: DraftState }) => {
-  const control = useDraftControl(draft.leagueId);
+  const control = useDraftControl(draft.seasonId);
   const [open, setOpen] = useState(false);
   const run = (action: Parameters<typeof control.mutate>[0]) => () => {
     control.mutate(action, { onSuccess: () => setOpen(false) });

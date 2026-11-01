@@ -21,7 +21,7 @@ const JoinPage = () => {
   useEffect(() => {
     if (!code || userId === null || !joinable || attempted.current) return;
     attempted.current = true;
-    join.mutate(code, { onSuccess: (result) => navigate(`/league/${result.leagueId}`) });
+    join.mutate(code, { onSuccess: (result) => navigate(`/league/${result.seasonId}`) });
   }, [code, userId, joinable]);
 
   if (preview.isLoading || loading) {

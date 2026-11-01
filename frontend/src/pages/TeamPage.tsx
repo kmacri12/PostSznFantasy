@@ -88,7 +88,7 @@ const useNow = () => {
 
 const TeamContent = ({ team }: { team: TeamDetails }) => {
   const teamId = team.id;
-  const archived = useLeagueArchived(team.leagueId);
+  const archived = useLeagueArchived(team.seasonId);
   const canEdit = team.canEdit && !archived;
   const canSetLineup = team.canSetLineup && !archived;
   const [renaming, setRenaming] = useState(false);
@@ -140,14 +140,14 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
         <DataFreshness />
       </Box>
       {archived && <ArchivedNotice what="names and lineups" />}
-      {team.roster.length === 0 && <PreDraftRoster leagueId={team.leagueId} />}
+      {team.roster.length === 0 && <PreDraftRoster leagueId={team.seasonId} />}
       {team.roster.length === 0 && (
         <Box sx={{ mb: 2 }}>
           <EmptyState
             title="No players yet"
             description="This lineup fills in as the draft happens."
             action={
-              <Button component={Link} to={`/league/${team.leagueId}/draft`} variant="outlined">
+              <Button component={Link} to={`/league/${team.seasonId}/draft`} variant="outlined">
                 Open the draft room
               </Button>
             }

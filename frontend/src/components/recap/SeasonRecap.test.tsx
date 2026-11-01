@@ -6,16 +6,17 @@ import type { SeasonRecap as Recap } from "../../api/types";
 import SeasonRecap from "./SeasonRecap";
 
 vi.mock("../../api/queries", () => ({
-  useRunItBack: () => ({ mutate: vi.fn(), isPending: false, error: null }),
+  useStartSeason: () => ({ mutate: vi.fn(), isPending: false, error: null }),
 }));
 
 const recap: Recap = {
+  seasonId: 1,
   leagueId: 1,
-  season: 2025,
+  year: 2025,
   finished: true,
   champions: [{ teamId: 1, teamName: "Gridiron Gang", owner: "kyle", total: 123.5 }],
   standings: { round: 4, gamesInProgress: 0, playersLeft: 0, teams: [] },
-  nextLeagueId: null,
+  nextSeasonId: null,
   awards: [
     {
       key: "playoff_mvp",
@@ -50,11 +51,11 @@ const recap: Recap = {
   ],
 };
 
-const show = (isCommissioner: boolean, nextLeagueId: number | null = null) =>
+const show = (isCommissioner: boolean, nextSeasonId: number | null = null) =>
   render(
     <QueryClientProvider client={new QueryClient()}>
       <MemoryRouter>
-        <SeasonRecap recap={recap} isCommissioner={isCommissioner} nextLeagueId={nextLeagueId} />
+        <SeasonRecap recap={recap} isCommissioner={isCommissioner} nextSeasonId={nextSeasonId} />
       </MemoryRouter>
     </QueryClientProvider>,
   );
@@ -69,15 +70,15 @@ describe("SeasonRecap", () => {
 
   it("offers run it back to commissioners only", () => {
     const { unmount } = show(false);
-    expect(screen.queryByRole("button", { name: "Run it back" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Start 2026 season" })).toBeNull();
     unmount();
     show(true);
-    expect(screen.getByRole("button", { name: "Run it back" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Start 2026 season" })).toBeTruthy();
   });
 
   it("links to next season once it has been run back", () => {
     show(true, 7);
-    expect(screen.queryByRole("button", { name: "Run it back" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Start 2026 season" })).toBeNull();
     expect(screen.getByRole("link", { name: /next season/ }).getAttribute("href")).toBe(
       "/league/7",
     );

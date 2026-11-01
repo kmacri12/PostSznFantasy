@@ -99,7 +99,7 @@ const LeagueContent = ({ league }: { league: LeagueOverview }) => {
           <SeasonRecap
             recap={recap}
             isCommissioner={isCommissioner}
-            nextLeagueId={recap.nextLeagueId}
+            nextSeasonId={recap.nextSeasonId}
           />
         </Box>
       )}
@@ -150,7 +150,7 @@ const LeagueContent = ({ league }: { league: LeagueOverview }) => {
           <StandingsTable leagueId={String(league.id)} />
         </Grid>
         <Grid size={{ xs: 12 }} sx={{ minWidth: 0 }}>
-          <ActivityFeed scope="leagues" id={league.id} title="League activity" />
+          <ActivityFeed scope="seasons" id={league.id} title="League activity" />
         </Grid>
       </Grid>
 
