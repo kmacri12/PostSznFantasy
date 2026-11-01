@@ -340,7 +340,10 @@ async def _authenticate(
         return None
 
     async with get_session_factory()() as db:
-        membership = await find_season_membership(db, season_id, supabase_uid)
+        try:
+            membership = await find_season_membership(db, season_id, supabase_uid)
+        except HTTPException:  # the league was deleted
+            membership = None
     if membership is None:
         await _close_quietly(websocket, "Not a member of this league")
         return None

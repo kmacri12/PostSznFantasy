@@ -18,6 +18,7 @@ from api.db.models.nfl import NFLGame, NFLPlayer, NFLPlayerGameStats
 from api.models.activity_models import StatCorrectionPayload
 from api.models.enums import PlayerPosition
 from api.services import activity
+from api.services.live_leagues import live_season_ids
 from api.services.round_status import GAME_COMPLETED
 from api.services.team_units import scoring_members
 from api.utils.calculations.fantasy_points_utils import calculate_player_points
@@ -85,7 +86,11 @@ async def record(
     years = {g.season for g in games.values()}
     seasons = {
         season.id: season
-        for season in await db.scalars(select(Season).where(Season.year.in_(years)))
+        for season in await db.scalars(
+            select(Season).where(
+                Season.year.in_(years), Season.id.in_(live_season_ids())
+            )
+        )
     }
     if not seasons:
         return

@@ -37,6 +37,7 @@ Data and launch
 13. [Load NFL data and make yourself admin](13-load-data-admin.md), 20 min (#74)
 14. [Verify stat keys](14-stat-keys.md), 2 min for you (#77)
 15. [Mock draft on phones, launch checklist](15-mock-draft.md), 1 to 2 hours with friends (#95)
+- [Restore a deleted league](league-restore.md), 2 min, only when a commissioner asks (#231)
 - [Set the playoff field](playoff-field.md), 5 min, once for the mock draft and again when the seeds are known (#214)
 16. [Turn on live scoring before game day](16-scheduler.md), 10 min (#78)
 

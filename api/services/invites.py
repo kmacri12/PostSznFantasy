@@ -16,6 +16,7 @@ from api.db.models.user import User
 from api.models.enums import LeagueRole
 from api.services.league_admin import draft_has_started
 from api.services.league_members import LeagueRuleError
+from api.services.live_leagues import live_league_ids
 from api.services.round_status import season_is_finished
 from api.services.seasons import current_season
 
@@ -97,7 +98,10 @@ async def create_invite(
 async def find_invite(db: AsyncSession, code: str) -> LeagueInvite | None:
     return (
         await db.execute(
-            select(LeagueInvite).where(LeagueInvite.code == normalize_code(code))
+            select(LeagueInvite).where(
+                LeagueInvite.code == normalize_code(code),
+                LeagueInvite.league_id.in_(live_league_ids()),
+            )
         )
     ).scalar_one_or_none()
 

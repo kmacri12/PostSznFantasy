@@ -26,6 +26,7 @@ from api.models.activity_models import (
     SlotMark,
 )
 from api.models.enums import ActivityKind
+from api.services.live_leagues import live_league_ids
 
 # What lights the dot on the league nav and the league feed. Ordinary lineup moves are
 # in the feed but happen too often to count as news; a team's own feed counts them.
@@ -218,6 +219,7 @@ async def leagues_with_new_activity(db: AsyncSession, viewer_id: int) -> set[int
     rows = await db.execute(
         select(Season.league_id)
         .join(ActivityEvent, ActivityEvent.season_id == Season.id)
+        .where(Season.league_id.in_(live_league_ids()))
         .join(
             LeagueMember,
             and_(

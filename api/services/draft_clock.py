@@ -11,6 +11,7 @@ from api.models.enums import DraftStatus
 from api.services import draft_flow
 from api.services.draft_events import pick_events
 from api.services.draft_picks import DraftPickError, PickNotDue, next_deadline
+from api.services.live_leagues import live_season_ids
 from api.ws.draft_manager import draft_manager
 
 logger = logging.getLogger(__name__)
@@ -26,6 +27,7 @@ async def expire_overdue_picks() -> int:
             (
                 await db.execute(
                     select(Draft.season_id).where(
+                        Draft.season_id.in_(live_season_ids()),
                         Draft.status == DraftStatus.IN_PROGRESS.value,
                         Draft.current_pick_deadline <= now,
                     )
@@ -75,6 +77,7 @@ async def extend_overdue_deadlines() -> int:
                 await db.execute(
                     select(Draft)
                     .where(
+                        Draft.season_id.in_(live_season_ids()),
                         Draft.status == DraftStatus.IN_PROGRESS.value,
                         Draft.current_pick_deadline <= now,
                     )

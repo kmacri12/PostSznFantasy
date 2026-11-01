@@ -68,6 +68,7 @@ Two independent league settings, each a required explicit commissioner choice wi
 - A league always has at least one commissioner. A team whose owner leaves stays exactly as it was; the commissioner can manage it or assign it to a new member.
 - Roster slots, caps and team count lock at draft start. Scoring, multipliers and the team QB/K choices stay editable; changes recompute everything.
 - League notes: a free-text box on the league page for things like buy-in and prizes. The app handles no money.
+- Deleting a league (any commissioner, anytime, finished or not, #231): a soft delete of the permanent league, so it covers every season and no row is removed. It is refused (409) while a draft in any season is in progress or paused, and the request must carry the league's exact name (422 otherwise). It is permanent for users: no restore in the app; only the owner's `python -m api.scripts.restore_league <id>` brings a league back. A deleted league leaves the league list, switcher, nav dot and activity feeds; its invite is revoked and answers 404 (the code is never reissued); the draft clock, standings recompute and scheduler skip it; awards and recaps do not include it. Members and former members who open a link to it get 404 with code `leagueDeleted` (name and deletion date only); anyone else gets the plain 404. Its predecessor stays "already run back". A user with only deleted leagues sees the normal empty landing page.
 
 ## 8. Activity feed
 
