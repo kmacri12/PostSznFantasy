@@ -158,6 +158,9 @@ PostSznFantasy/
         ├── contexts/
         │   ├── SeasonContext.tsx # The route's season (`useSeasonContext`: ids, year, `season` with `canEdit` / `canCommission`, `paths`), provided by SeasonLayout
         │   └── UserContext.tsx # Authentication & current user context
+        ├── api/
+        │   ├── queries.ts      # React Query hooks for every endpoint (`useDeleteLeague` leaves for `/` before refreshing the league list)
+        │   └── leagueDeleted.ts # Reads the `leagueDeleted` 404; QueryBoundary renders LeagueDeletedNotice for it, and the query/mutation caches (main.tsx) plus the draft socket's 1008 close refetch `league-seasons` so the season layout shows that page from any guarded call
         ├── hooks/
         │   ├── useWebSocket.ts # Native RFC 6455 WebSocket hook
         │   └── useWebSocket.test.ts # Hook test suite
@@ -179,11 +182,11 @@ PostSznFantasy/
         │   ├── activity/       # ActivityFeed (collapsed, new dot), SlotMarker (override / asterisk), ChangedScore tooltip, describeEvent
         │   ├── layout/         # NavBar (blurred header, league switcher, drawer)
         │   ├── draft/          # DraftBoard, Countdown, PlayerSelector
-        │   ├── league/         # StandingsTable (desktop), StandingsCards (phone), ProgressCounts, RankCell (tie tooltip), ArchivedNotice (shown where a finished season hides write controls; write controls follow the season's `canEdit` / `canCommission` from `useSeasonContext`)
+        │   ├── league/         # StandingsTable (desktop), StandingsCards (phone), ProgressCounts, RankCell (tie tooltip), ArchivedNotice (shown where a finished season hides write controls; write controls follow the season's `canEdit` / `canCommission` from `useSeasonContext`), LeagueDeletedNotice (the "deleted by a commissioner" page)
         │   ├── players/        # PlayersTable (TanStack Table v8)
         │   ├── recap/          # SeasonRecap: champion card, awards grid, start the next season
         │   ├── team/           # LineupList (tap/drag lineup), OverrideDialog (commissioner confirm), BreakdownRounds (round-by-round points)
-        │   └── settings/       # SettingsSection/ScoringForm/RosterForm generated from src/settings schemas
+        │   └── settings/       # SettingsSection/ScoringForm/RosterForm generated from src/settings schemas; DeleteLeagueDialog (three-step confirm: warning with season count, type the exact name, final "Are you sure?")
         ├── utils/
         │   ├── draftCue.ts     # Web Audio on-deck beep
         │   ├── scoring.ts      # Numeric coercion + defaults diff for league forms

@@ -22,6 +22,7 @@ const state = {
 vi.mock("../api/queries", () => ({
   useDraftPool: () => ({ data: [] }),
   useSaveQueue: () => ({ mutate: vi.fn() }),
+  useRecheckLeague: () => vi.fn(),
 }));
 vi.mock("../hooks/useDraftRoom", () => ({
   useDraftRoom: () => ({

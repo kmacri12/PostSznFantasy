@@ -1,5 +1,7 @@
 import { Container } from "@mui/material";
 import type { ReactNode } from "react";
+import { leagueDeletedInfo } from "../../api/leagueDeleted";
+import LeagueDeletedNotice from "../league/LeagueDeletedNotice";
 import EmptyState from "./EmptyState";
 import ErrorState from "./ErrorState";
 import { friendlyError } from "./friendlyError";
@@ -44,6 +46,8 @@ const QueryBoundary = <T,>({
       node
     );
   if (query.isLoading) return frame(skeleton ?? <LoadingState what={what} />);
+  const deleted = leagueDeletedInfo(query.error);
+  if (deleted) return frame(<LeagueDeletedNotice {...deleted} />);
   if (query.isError || query.data === undefined) {
     return frame(
       <ErrorState

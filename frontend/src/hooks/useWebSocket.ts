@@ -19,6 +19,8 @@ export interface DraftMessage {
 interface Options {
   getToken?: () => Promise<string | null>;
   onMessage?: (message: DraftMessage) => void;
+  /** The server refused the connection (auth or membership, e.g. the league was deleted). */
+  onRejected?: () => void;
 }
 
 const HEARTBEAT_MS = 20_000;
@@ -42,6 +44,8 @@ export const useWebSocket = (url: string, options: Options = {}) => {
   const onMessageRef = useRef(options.onMessage);
   getTokenRef.current = options.getToken;
   onMessageRef.current = options.onMessage;
+  const onRejectedRef = useRef(options.onRejected);
+  onRejectedRef.current = options.onRejected;
 
   useEffect(() => {
     if (!url) return;
@@ -97,6 +101,7 @@ export const useWebSocket = (url: string, options: Options = {}) => {
         clearInterval(heartbeatTimer);
         logger.info("Connection closed", event.code, event.reason);
 
+        if (event.code === POLICY_VIOLATION && !disposed) onRejectedRef.current?.();
         if (disposed || event.code === NORMAL_CLOSURE || event.code === POLICY_VIOLATION) {
           return;
         }

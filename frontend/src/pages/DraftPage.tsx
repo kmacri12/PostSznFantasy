@@ -10,7 +10,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
-import { useDraftPool, useSaveQueue } from "../api/queries";
+import { useDraftPool, useRecheckLeague, useSaveQueue } from "../api/queries";
 import LoadingState from "../components/common/LoadingState";
 import AvailablePlayers from "../components/draft/AvailablePlayers";
 import CommissionerControls from "../components/draft/CommissionerControls";
@@ -34,7 +34,7 @@ type TabKey = "board" | "players" | "queue" | "roster" | "feed";
 
 const DraftPage = () => {
   const { seasonId, season } = useSeasonContext();
-  const room = useDraftRoom(seasonId);
+  const room = useDraftRoom(seasonId, useRecheckLeague());
   const playersQuery = useDraftPool(seasonId);
   const saveQueue = useSaveQueue(seasonId);
   const [tab, setTab] = useState<TabKey>("board");

@@ -14,7 +14,7 @@ const wsOrigin = () =>
   `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}`;
 
 /** Live draft room: full snapshot on every (re)connect, then incremental events. */
-export function useDraftRoom(seasonId: number | undefined) {
+export function useDraftRoom(seasonId: number | undefined, onRejected?: () => void) {
   const { getIdToken } = useUser();
   const [room, dispatch] = useReducer(
     (current: DraftRoom, event: DraftMessage) => applyDraftEvent(current, event),
@@ -24,7 +24,7 @@ export function useDraftRoom(seasonId: number | undefined) {
 
   const { isConnected, sendMessage } = useWebSocket(
     seasonId ? `${wsOrigin()}/api/drafts/ws/${seasonId}` : "",
-    { getToken: getIdToken, onMessage: dispatch },
+    { getToken: getIdToken, onMessage: dispatch, onRejected },
   );
 
   // Only drives re-rendering; the numbers come from the server deadline.

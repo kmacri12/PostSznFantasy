@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 import { friendlyError, mutationError } from "./friendlyError";
 import QueryBoundary from "./QueryBoundary";
@@ -30,6 +31,31 @@ describe("mutationError", () => {
 });
 
 describe("QueryBoundary", () => {
+  it("shows the deleted-league page instead of an error with a retry", () => {
+    const error = {
+      response: {
+        status: 404,
+        data: {
+          detail: "This league was deleted",
+          code: "leagueDeleted",
+          leagueName: "Dynasty Bros",
+          deletedAt: "2026-11-01T12:00:00Z",
+        },
+      },
+    };
+    render(
+      <MemoryRouter>
+        <QueryBoundary query={{ ...base, isError: true, error }} what="this league">
+          {() => <p>content</p>}
+        </QueryBoundary>
+      </MemoryRouter>,
+    );
+    expect(screen.getByText("This league was deleted by a commissioner")).toBeInTheDocument();
+    expect(screen.getByText(/Dynasty Bros/)).toBeInTheDocument();
+    expect(screen.getByText(/November 1, 2026/)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /reload|try again/i })).not.toBeInTheDocument();
+  });
+
   it("shows a status skeleton while loading", () => {
     render(
       <QueryBoundary query={{ ...base, isLoading: true }} what="standings">
