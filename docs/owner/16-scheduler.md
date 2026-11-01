@@ -25,11 +25,11 @@ During the first real game:
 fly logs --app postszn-api
 ```
 
-shows lines like `RapidAPI call 12/700 today`, `Polled 1 live games` and `RapidAPI calls today: 12`. On the site, standings change and "Stats updated X min ago" stays under a few minutes.
+shows a line every 3 minutes like `Scheduler cycle: 1 polled, 0 reconciled; RapidAPI calls today 12/700, plan requests remaining 905`. On the site, standings change and "Stats updated X min ago" stays under a few minutes.
 
 Close #78.
 
 ## If it goes wrong
 
-- No poll lines during a game: `fly secrets list --app postszn-api` must list `SCHEDULER_ENABLED`; check the logs for errors and paste them to the coordinator.
+- No `Scheduler cycle` lines during a game: `fly secrets list --app postszn-api` must list `SCHEDULER_ENABLED`; check the logs for errors and paste them to the coordinator.
 - The Sentry "Tank01 budget spent" email arrives: polling has stopped for the day (resets at midnight UTC). Tell the coordinator.

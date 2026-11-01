@@ -47,7 +47,7 @@ Set once with `fly secrets set` (the wizard does this without putting values in 
 | `RAPIDAPI_APIKEY`, `RAPIDAPI_BASEURL`, `RAPIDAPI_APIHOST` | Tank01 on RapidAPI |
 | `CORS_ORIGINS` | `https://postsznfantasy.com` |
 | `SENTRY_DSN`, `SENTRY_RELEASE` | Optional error tracking, see [sentry.md](sentry.md); empty disables it |
-| `SCHEDULER_ENABLED` and `SCHEDULER_*` | Keep `SCHEDULER_ENABLED=false` until games are near |
+| `SCHEDULER_ENABLED` and `SCHEDULER_*` | Keep `SCHEDULER_ENABLED=false` until games are near. `SCHEDULER_LIVE_POLL_SECONDS` (default 180) has a 60 s floor and `SCHEDULER_ROSTER_SYNC_HOURS` (24) a 1 h floor; the API refuses to start below them, and refuses `SCHEDULER_REPLAY_FILE` when `ENVIRONMENT=production` |
 
 Non-secret settings (`ENVIRONMENT`, `SEASON_YEAR`, `PORT`, `FORWARDED_ALLOW_IPS`, pool sizes) live in `fly.toml`. GitHub repository secrets used by workflows: `FLY_API_TOKEN`, `PROD_DATABASE_URL`, `BACKUP_GPG_PUBLIC_KEY`.
 
@@ -62,6 +62,10 @@ curl -s https://api.postsznfantasy.com/api   # {"status":"healthy"} (this endpoi
 ```
 
 If the direct connection fails from Fly, switch `PG_URI` to the session pooler string (port 5432) and redeploy. GitHub Actions runners have **no** IPv6, so the CI workflows (`backup.yml`, `deploy-api.yml`) always use the session pooler string in `PROD_DATABASE_URL`.
+
+## Scheduler logs (#78)
+
+With `SCHEDULER_ENABLED=true` each cycle (every 3 minutes) logs one line: `Scheduler cycle: N polled, M reconciled; RapidAPI calls today X/700, plan requests remaining Y`. `fly logs --app postszn-api | grep "Scheduler cycle"` is the quick look. A warning appears when the plan has fewer than 100 requests left, and Sentry gets one message when the daily cap stops polling. Turning it on or off is a secret change, so the live-draft rule above applies ([owner step 16](../owner/16-scheduler.md)).
 
 ## Stopping for the off-season
 

@@ -76,8 +76,10 @@ class Settings(BaseSettings):
 
     # Background scheduler (off by default; every tick can spend RapidAPI quota)
     scheduler_enabled: bool = False
-    scheduler_roster_sync_hours: int = 24
-    scheduler_live_poll_seconds: int = 180
+    scheduler_roster_sync_hours: int = Field(default=24, ge=1)
+    # Floor: each tick spends one call per live game, and 700 calls a day must last a
+    # whole Saturday plus Sunday.
+    scheduler_live_poll_seconds: int = Field(default=180, ge=60)
     # Rehearsal: replay a saved postseason (api.scripts.export_replay) instead of
     # calling RapidAPI. The speed multiplies the virtual clock.
     scheduler_replay_file: str = ""
@@ -107,6 +109,15 @@ class Settings(BaseSettings):
             raise ValueError(
                 "TEST_AUTH_STUB is only allowed when ENVIRONMENT is one of "
                 f"{sorted(TEST_AUTH_ENVIRONMENTS)}, got {self.environment!r}"
+            )
+        return self
+
+    @model_validator(mode="after")
+    def _refuse_replay_in_production(self) -> "Settings":
+        if self.scheduler_replay_file and self.environment == "production":
+            raise ValueError(
+                "SCHEDULER_REPLAY_FILE replaces live scores with a recording; "
+                "it is refused when ENVIRONMENT is production"
             )
         return self
 

@@ -40,6 +40,8 @@ RECONCILE_SECOND_SECONDS = 48 * ONE_HOUR_SECONDS
 # One freshness row per game records its last reconcile (nfl.ingestion_status.kind is
 # 32 chars; a game id is 16). Hidden from the public sync-status listing.
 RECONCILE_KIND_PREFIX = "rc:"
+# Plan requests left (from Tank01's response headers) below which each cycle warns.
+LOW_QUOTA_WARNING = 100
 
 
 def games_to_poll(games: Sequence[NFLGame], now: float) -> list[NFLGame]:
@@ -272,9 +274,24 @@ async def run_poll_cycle(
         await recompute_standings(db, season)
         await db.commit()
         logger.info("Polled %d live games; %d eliminations applied", polled, eliminated)
-    if client.requests_remaining is not None:
-        logger.info("RapidAPI requests remaining: %d", client.requests_remaining)
-    logger.info("RapidAPI calls today: %d", client.requests_today)
+    limit = get_settings().rapidapi_daily_request_limit
+    logger.info(
+        "Scheduler cycle: %d polled, %d reconciled; RapidAPI calls today %d/%s, "
+        "plan requests remaining %s",
+        polled,
+        reconciled,
+        client.requests_today,
+        limit or "unlimited",
+        client.requests_remaining if client.requests_remaining is not None else "?",
+    )
+    if (
+        client.requests_remaining is not None
+        and client.requests_remaining < LOW_QUOTA_WARNING
+    ):
+        logger.warning(
+            "RapidAPI plan quota is low: %d requests remaining",
+            client.requests_remaining,
+        )
     return polled
 
 
@@ -305,7 +322,11 @@ async def run_scheduler() -> None:
         )
     roster_interval = settings.scheduler_roster_sync_hours * ONE_HOUR_SECONDS
     last_roster_sync = float("-inf")
-    logger.info("Background scheduler started")
+    logger.info(
+        "Background scheduler started: live poll every %ds, roster sync every %dh",
+        settings.scheduler_live_poll_seconds,
+        settings.scheduler_roster_sync_hours,
+    )
     while True:
         try:
             if not replay and time.monotonic() - last_roster_sync >= roster_interval:
