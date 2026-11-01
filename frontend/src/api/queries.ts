@@ -1,4 +1,5 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { api } from "./client";
 import type {
   ActivityFeed,
@@ -303,6 +304,34 @@ export const useRevokeInvite = (leagueId: Id | undefined) =>
   useLeagueMutation(async () => {
     await api.delete(`/api/leagues/${leagueId}/invite`);
   });
+
+/** Delete the league for every member (soft delete; the API checks the typed name too). */
+export const useDeleteLeague = (leagueId: Id | undefined) => {
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  return useMutation({
+    mutationFn: async (leagueName: string) => {
+      await api.delete(`/api/leagues/${leagueId}`, { data: { leagueName } });
+    },
+    // Leave first: refetching the deleted league's pages in place would show its deleted page.
+    onSuccess: () => {
+      navigate("/", { replace: true });
+      window.scrollTo(0, 0);
+      queryClient.removeQueries({ queryKey: keys.leagueSeasons(leagueId ?? "") });
+      queryClient.removeQueries({ queryKey: keys.leagueInfo(leagueId ?? "") });
+      return Promise.all([
+        queryClient.invalidateQueries({ queryKey: keys.userLeagues }),
+        queryClient.invalidateQueries({ queryKey: keys.pastLeagues }),
+      ]);
+    },
+  });
+};
+
+/** For callers outside React Query (the draft socket): recheck whether the league still exists. */
+export const useRecheckLeague = () => {
+  const queryClient = useQueryClient();
+  return () => queryClient.invalidateQueries({ queryKey: ["league-seasons"] });
+};
 
 export const useJoinWithCode = () => {
   const queryClient = useQueryClient();

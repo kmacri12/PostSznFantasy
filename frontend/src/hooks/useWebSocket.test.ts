@@ -140,6 +140,16 @@ describe("useWebSocket hook", () => {
     expect(MockWebSocket.instances).toHaveLength(1);
   });
 
+  it("tells the caller when the server refuses the connection", () => {
+    const onRejected = vi.fn();
+    renderHook(() => useWebSocket(URL, { onRejected }));
+    act(() => socketAt(0).simulateDrop(1006));
+    expect(onRejected).not.toHaveBeenCalled();
+    act(() => vi.advanceTimersByTime(60_000));
+    act(() => socketAt(1).simulateDrop(1008));
+    expect(onRejected).toHaveBeenCalledTimes(1);
+  });
+
   it("does not reconnect after unmount", () => {
     const { unmount } = renderHook(() => useWebSocket(URL));
     unmount();

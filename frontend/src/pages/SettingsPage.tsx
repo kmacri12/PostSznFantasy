@@ -15,6 +15,7 @@ import LoadingState from "../components/common/LoadingState";
 import DraftSetupPanel from "../components/draft/DraftSetupPanel";
 import { TAB_BAR_HEIGHT } from "../components/layout/BottomTabBar";
 import ArchivedNotice from "../components/league/ArchivedNotice";
+import DeleteLeagueDialog from "../components/settings/DeleteLeagueDialog";
 import { valuesEqual } from "../components/settings/dirty";
 import MembersSection from "../components/settings/MembersSection";
 import PostseasonForm from "../components/settings/PostseasonForm";
@@ -46,6 +47,7 @@ function SettingsPage() {
   const [roster, setRoster] = useState<SettingsValues>({});
   const [scoring, setScoring] = useState<SettingsValues>({});
   const [postseason, setPostseason] = useState<PostseasonValues>({});
+  const [deleting, setDeleting] = useState(false);
 
   const baseline = useMemo(
     () =>
@@ -216,6 +218,30 @@ function SettingsPage() {
         <Box sx={{ mb: 1.5 }}>
           <DraftSetupPanel draft={draft.data} canEdit={canEdit} />
         </Box>
+      )}
+
+      {canRename && info && (
+        <SettingsGroup title="Delete league">
+          <Typography color="text.secondary" sx={{ mb: 1.5 }}>
+            Deletes the league and all its seasons for every member. This cannot be undone.
+          </Typography>
+          <Button
+            variant="outlined"
+            color="error"
+            sx={{ minHeight: 44 }}
+            onClick={() => setDeleting(true)}
+          >
+            Delete league
+          </Button>
+          {deleting && (
+            <DeleteLeagueDialog
+              leagueId={leagueId}
+              leagueName={info.name}
+              seasonCount={info.seasons.length}
+              onClose={() => setDeleting(false)}
+            />
+          )}
+        </SettingsGroup>
       )}
 
       {failure && (
