@@ -10,13 +10,13 @@ logger = logging.getLogger(__name__)
 
 
 class BroadcastRelay(Protocol):
-    async def publish(self, league_id: int, message: dict[str, Any]) -> None: ...
+    async def publish(self, season_id: int, message: dict[str, Any]) -> None: ...
 
 
 class DraftConnectionManager:
     """Thread-safe and async-safe connection manager for live draft rooms.
 
-    Manages active WebSockets grouped by league_id, allowing broadcast
+    Manages active WebSockets grouped by season_id, allowing broadcast
     of draft picks, clock ticks, state synchronizations, and error notifications.
     """
 
@@ -32,48 +32,48 @@ class DraftConnectionManager:
         self._relay = relay
 
     async def join(
-        self, league_id: int, websocket: WebSocket, user_id: int | None = None
+        self, season_id: int, websocket: WebSocket, user_id: int | None = None
     ) -> None:
         """Register an already-accepted, authenticated socket in the league room."""
         async with self._lock:
-            self._rooms[league_id].add(websocket)
+            self._rooms[season_id].add(websocket)
             if user_id is not None:
                 self._users[websocket] = user_id
         logger.info(
             "WebSocket connected to league %s. Total connections: %s",
-            league_id,
-            len(self._rooms[league_id]),
+            season_id,
+            len(self._rooms[season_id]),
         )
 
-    async def disconnect(self, league_id: int, websocket: WebSocket) -> None:
+    async def disconnect(self, season_id: int, websocket: WebSocket) -> None:
         """Unregister a WebSocket from the league room."""
         async with self._lock:
             self._users.pop(websocket, None)
-            if league_id in self._rooms:
-                self._rooms[league_id].discard(websocket)
-                if not self._rooms[league_id]:
-                    del self._rooms[league_id]
-        logger.info("WebSocket disconnected from league %s", league_id)
+            if season_id in self._rooms:
+                self._rooms[season_id].discard(websocket)
+                if not self._rooms[season_id]:
+                    del self._rooms[season_id]
+        logger.info("WebSocket disconnected from league %s", season_id)
 
-    async def broadcast(self, league_id: int, message: dict[str, Any]) -> None:
+    async def broadcast(self, season_id: int, message: dict[str, Any]) -> None:
         """Send a JSON message to every client in the league room, on every instance."""
         if self._relay is not None:
             try:
-                await self._relay.publish(league_id, message)
+                await self._relay.publish(season_id, message)
                 return
             except Exception:
                 logger.exception(
                     "Broadcast relay failed; delivering to this instance only"
                 )
-        await self.deliver_local(league_id, message)
+        await self.deliver_local(season_id, message)
 
-    async def deliver_local(self, league_id: int, message: dict[str, Any]) -> None:
+    async def deliver_local(self, season_id: int, message: dict[str, Any]) -> None:
         """Write a message to this instance's sockets in the league room.
 
         Automatically cleans up any broken or abruptly disconnected sockets.
         """
         async with self._lock:
-            sockets = list(self._rooms.get(league_id, []))
+            sockets = list(self._rooms.get(season_id, []))
 
         if not sockets:
             return
@@ -86,17 +86,17 @@ class DraftConnectionManager:
                 await socket.send_text(payload)
             except Exception as e:
                 logger.warning(
-                    "Failed to send to client in league %s: %s", league_id, e
+                    "Failed to send to client in league %s: %s", season_id, e
                 )
                 dead_sockets.append(socket)
 
         if dead_sockets:
             async with self._lock:
-                if league_id in self._rooms:
+                if season_id in self._rooms:
                     for dead in dead_sockets:
-                        self._rooms[league_id].discard(dead)
-                    if not self._rooms[league_id]:
-                        del self._rooms[league_id]
+                        self._rooms[season_id].discard(dead)
+                    if not self._rooms[season_id]:
+                        del self._rooms[season_id]
 
     async def send_personal(
         self, websocket: WebSocket, message: dict[str, Any]
@@ -104,15 +104,15 @@ class DraftConnectionManager:
         """Send a direct JSON message to a single connected client."""
         await websocket.send_text(json.dumps(message))
 
-    def present_user_ids(self, league_id: int) -> list[int]:
+    def present_user_ids(self, season_id: int) -> list[int]:
         """Distinct users with at least one open socket in the room."""
         return sorted(
-            {self._users[s] for s in self._rooms.get(league_id, ()) if s in self._users}
+            {self._users[s] for s in self._rooms.get(season_id, ()) if s in self._users}
         )
 
-    def get_room_size(self, league_id: int) -> int:
+    def get_room_size(self, season_id: int) -> int:
         """Return the count of active connections for a given league room."""
-        return len(self._rooms.get(league_id, []))
+        return len(self._rooms.get(season_id, []))
 
 
 # Global singleton instance for draft room connections

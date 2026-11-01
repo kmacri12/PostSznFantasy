@@ -6,12 +6,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.core.config import get_settings
 from api.db.models import (
-    LeagueSettings,
-    LeagueStanding,
     LineupSlot,
     NFLGame,
     NFLPlayerGameStats,
     NFLTeam,
+    SeasonSettings,
+    SeasonStanding,
     TeamPlayer,
 )
 from api.services.draft_flow import undo_last_pick
@@ -23,12 +23,12 @@ from api.tests.postgres.factories import make_league, make_players
 from api.tests.postgres.test_live_polling import NOW, FakeClient, box, summary
 
 
-async def _stored(db: AsyncSession, league_id: int) -> dict[int, LeagueStanding]:
+async def _stored(db: AsyncSession, league_id: int) -> dict[int, SeasonStanding]:
     rows = (
         (
             await db.execute(
-                select(LeagueStanding)
-                .where(LeagueStanding.league_id == league_id)
+                select(SeasonStanding)
+                .where(SeasonStanding.league_id == league_id)
                 .execution_options(populate_existing=True)
             )
         )
@@ -173,11 +173,11 @@ async def test_a_failed_recompute_keeps_the_last_good_rows(
     league_id, (kc_owner, buf_owner) = await _two_team_league(db)
     db.add_all(
         [
-            LeagueStanding(
+            SeasonStanding(
                 league_id=league_id, team_id=kc_owner, rank=1, players_left=7,
                 total=Decimal("99"),
             ),
-            LeagueStanding(
+            SeasonStanding(
                 league_id=league_id, team_id=buf_owner, rank=2, players_left=5,
                 total=Decimal("50"),
             ),
@@ -207,7 +207,7 @@ async def test_finishing_the_draft_creates_a_zero_point_table(
     await db.flush()
     qb, rb = await make_players(db, ["QB", "RB"], nfl_team=kc)
     settings = await db.scalar(
-        select(LeagueSettings).where(LeagueSettings.league_id == league.id)
+        select(SeasonSettings).where(SeasonSettings.league_id == league.id)
     )
     assert settings is not None
     assert await _stored(db, league.id) == {}
@@ -229,7 +229,7 @@ async def test_undoing_the_final_pick_removes_the_table(db: AsyncSession) -> Non
     await db.flush()
     players = await make_players(db, ["QB", "RB"], nfl_team=kc)
     settings = await db.scalar(
-        select(LeagueSettings).where(LeagueSettings.league_id == league.id)
+        select(SeasonSettings).where(SeasonSettings.league_id == league.id)
     )
     assert settings is not None
     for player in players:

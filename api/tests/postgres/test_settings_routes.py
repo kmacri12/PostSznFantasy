@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.db.models import LeagueSettings
+from api.db.models import SeasonSettings
 from api.tests.postgres.conftest import ClientFactory
 from api.tests.postgres.factories import make_league
 
@@ -30,7 +30,7 @@ async def test_only_the_commissioner_can_update_settings(
     assert ok.json()["rosterTotal"] == 5
 
     stored = await db.scalar(
-        select(LeagueSettings).where(LeagueSettings.league_id == league.id)
+        select(SeasonSettings).where(SeasonSettings.league_id == league.id)
     )
     assert stored is not None
     assert stored.roster_total == 5

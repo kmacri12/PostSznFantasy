@@ -1,20 +1,23 @@
 import secrets
 from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import select, update
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.db.models.league import (
     League,
     LeagueInvite,
     LeagueMember,
-    LeagueSettings,
+    Season,
+    SeasonSettings,
     Team,
 )
 from api.db.models.user import User
 from api.models.enums import LeagueRole
 from api.services.league_admin import draft_has_started
 from api.services.league_members import LeagueRuleError
+from api.services.season_recap import season_is_finished
+from api.services.seasons import current_season
 
 # No 0/O/1/I/L so codes survive being read aloud or retyped.
 CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
@@ -100,33 +103,37 @@ async def find_invite(db: AsyncSession, code: str) -> LeagueInvite | None:
 
 
 async def open_team_count(db: AsyncSession, league_id: int) -> int:
-    teams = (
-        (
-            await db.execute(
-                select(Team.id).where(
-                    Team.league_id == league_id, Team.owner_id.is_(None)
-                )
+    """Unclaimed teams in the league's current season."""
+    season = await current_season(db, league_id)
+    if season is None:
+        return 0
+    return (
+        await db.scalar(
+            select(func.count()).where(
+                Team.season_id == season.id, Team.owner_id.is_(None)
             )
         )
-        .scalars()
-        .all()
-    )
-    return len(teams)
+    ) or 0
 
 
 async def join_problem(db: AsyncSession, invite: LeagueInvite) -> str | None:
     problem = invite_problem(invite, datetime.now(UTC))
     if problem:
         return problem
+    season = await current_season(db, invite.league_id)
+    if season is None or await season_is_finished(db, season.year):
+        # Between seasons there is no team to claim; the commissioner assigns one
+        # once the next season starts.
+        return None
     if await open_team_count(db, invite.league_id) == 0:
         return "This league is full"
     settings = (
         await db.execute(
-            select(LeagueSettings).where(LeagueSettings.league_id == invite.league_id)
+            select(SeasonSettings).where(SeasonSettings.season_id == season.id)
         )
     ).scalar_one()
     if not settings.allow_join_after_draft_start and await draft_has_started(
-        db, invite.league_id
+        db, season.id
     ):
         return "The draft has already started"
     return None
@@ -135,49 +142,70 @@ async def join_problem(db: AsyncSession, invite: LeagueInvite) -> str | None:
 async def join_league(
     db: AsyncSession, invite: LeagueInvite, user: User
 ) -> tuple[League, Team | None, bool]:
-    """Claim an open team for the user; returns (league, team, already_member)."""
+    """Join the league and claim an open team of its current season, if there is one.
+
+    Returns (league, team, already_member). Someone who left may rejoin with any
+    live invite.
+    """
     league = await db.get(League, invite.league_id)
     assert league is not None
+    season = await current_season(db, invite.league_id)
     existing = await db.get(LeagueMember, (invite.league_id, user.id))
-    if existing is not None:
-        team = (
-            (
-                await db.execute(
-                    select(Team).where(
-                        Team.league_id == invite.league_id, Team.owner_id == user.id
-                    )
-                )
-            )
-            .scalars()
-            .first()
-        )
-        return league, team, True
+    if existing is not None and existing.left_at is None:
+        return league, await _owned_team(db, season, user), True
 
     problem = await join_problem(db, invite)
     if problem:
         raise LeagueRuleError(problem)
 
-    team = (
+    team = None
+    if season is not None and not await season_is_finished(db, season.year):
+        team = (
+            (
+                await db.execute(
+                    select(Team)
+                    .where(Team.season_id == season.id, Team.owner_id.is_(None))
+                    .order_by(Team.id)
+                    .limit(1)
+                    .with_for_update(skip_locked=True)
+                )
+            )
+            .scalars()
+            .first()
+        )
+        if team is None:
+            raise LeagueRuleError("This league is full")
+        team.owner_id = user.id
+    if existing is not None:
+        existing.left_at = None
+        existing.role = LeagueRole.MEMBER.value
+        existing.joined_at = datetime.now(UTC)
+    else:
+        db.add(
+            LeagueMember(
+                league_id=invite.league_id,
+                user_id=user.id,
+                role=LeagueRole.MEMBER.value,
+            )
+        )
+    invite.uses += 1
+    await db.flush()
+    return league, team, False
+
+
+async def _owned_team(
+    db: AsyncSession, season: Season | None, user: User
+) -> Team | None:
+    if season is None:
+        return None
+    return (
         (
             await db.execute(
-                select(Team)
-                .where(Team.league_id == invite.league_id, Team.owner_id.is_(None))
-                .order_by(Team.id)
-                .limit(1)
-                .with_for_update(skip_locked=True)
+                select(Team).where(
+                    Team.season_id == season.id, Team.owner_id == user.id
+                )
             )
         )
         .scalars()
         .first()
     )
-    if team is None:
-        raise LeagueRuleError("This league is full")
-    team.owner_id = user.id
-    db.add(
-        LeagueMember(
-            league_id=invite.league_id, user_id=user.id, role=LeagueRole.MEMBER.value
-        )
-    )
-    invite.uses += 1
-    await db.flush()
-    return league, team, False

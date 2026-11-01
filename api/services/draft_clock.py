@@ -22,10 +22,10 @@ async def expire_overdue_picks() -> int:
     """Auto-pick for every draft whose server-side deadline has passed."""
     now = datetime.now(UTC)
     async with get_session_factory()() as db:
-        league_ids = list(
+        season_ids = list(
             (
                 await db.execute(
-                    select(Draft.league_id).where(
+                    select(Draft.season_id).where(
                         Draft.status == DraftStatus.IN_PROGRESS.value,
                         Draft.current_pick_deadline <= now,
                     )
@@ -36,12 +36,12 @@ async def expire_overdue_picks() -> int:
         )
 
     handled = 0
-    for league_id in league_ids:
+    for season_id in season_ids:
         async with get_session_factory()() as db:
             try:
-                result = await draft_flow.auto_pick(db, league_id, only_if_overdue=True)
+                result = await draft_flow.auto_pick(db, season_id, only_if_overdue=True)
                 draft = await db.scalar(
-                    select(Draft).where(Draft.league_id == league_id)
+                    select(Draft).where(Draft.season_id == season_id)
                 )
                 assert draft is not None
                 events = await pick_events(db, draft, result)
@@ -53,11 +53,11 @@ async def expire_overdue_picks() -> int:
                 await db.rollback()
                 logger.error(
                     "Auto-pick failed",
-                    extra={"league_id": league_id, "error": str(exc)},
+                    extra={"season_id": season_id, "error": str(exc)},
                 )
                 continue
         for event in events:
-            await draft_manager.broadcast(league_id, event)
+            await draft_manager.broadcast(season_id, event)
         handled += 1
     return handled
 

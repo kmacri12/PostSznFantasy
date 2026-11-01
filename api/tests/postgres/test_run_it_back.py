@@ -6,7 +6,7 @@ from api.db.models import (
     League,
     LeagueInvite,
     LeagueMember,
-    LeagueSettings,
+    SeasonSettings,
     Team,
     TeamPlayer,
 )
@@ -52,17 +52,17 @@ async def test_run_it_back_copies_members_teams_and_settings(
 
     old_settings = (
         await db.execute(
-            select(LeagueSettings).where(LeagueSettings.league_id == league.id)
+            select(SeasonSettings).where(SeasonSettings.league_id == league.id)
         )
     ).scalar_one()
     new_settings = (
         await db.execute(
-            select(LeagueSettings).where(LeagueSettings.league_id == new_id)
+            select(SeasonSettings).where(SeasonSettings.league_id == new_id)
         )
     ).scalar_one()
     columns = [
         c.name
-        for c in LeagueSettings.__table__.columns
+        for c in SeasonSettings.__table__.columns
         if c.name not in ("id", "league_id")
     ]
     assert [getattr(new_settings, c) for c in columns] == [

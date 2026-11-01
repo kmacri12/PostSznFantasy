@@ -127,24 +127,27 @@ class LeagueCreate(BaseSchema):
 class LeagueCreateResponse(BaseSchema):
     message: str
     league_id: int | None = None
+    season_id: int | None = None
 
 
-class LeagueSettingsResponse(
+class SeasonSettingsResponse(
     RosterSettings, ScoringSettings, PostseasonSettings, TeamUnitSettings
 ):
     id: int
-    league_id: int
+    season_id: int
 
 
 class LeaguesByUser(BaseSchema):
     id: int
     name: str
+    # The league's latest season: its id and year.
+    season_id: int
     season: int
     is_commissioner: bool
     user_team_id: int | None = None
-    # Events in the league feed this member hasn't seen, for the nav dot.
+    # Events in the season feed this member hasn't seen, for the nav dot.
     has_new_activity: bool = False
-    # The Super Bowl is final: the league is a read-only archive.
+    # The latest season's Super Bowl is final: it is a read-only archive.
     finished: bool = False
 
 
@@ -158,8 +161,8 @@ def _all_optional(name: str, *models: type[BaseSchema]) -> type[BaseSchema]:
 
 
 # Partial update body: any subset of the roster, scoring, postseason and team unit fields.
-LeagueSettingsPatch = _all_optional(
-    "LeagueSettingsPatch",
+SeasonSettingsPatch = _all_optional(
+    "SeasonSettingsPatch",
     RosterSettings,
     ScoringSettings,
     PostseasonSettings,
@@ -169,8 +172,11 @@ LeagueSettingsPatch = _all_optional(
 
 class LeagueUpdate(BaseSchema):
     name: str | None = Field(default=None, min_length=1, max_length=100)
-    number_teams: int | None = Field(default=None, ge=2, le=14)
     notes: str | None = Field(default=None, max_length=NOTES_MAX_LENGTH)
+
+
+class SeasonUpdate(BaseSchema):
+    number_teams: int | None = Field(default=None, ge=2, le=14)
 
 
 class MemberSummary(BaseSchema):
@@ -205,11 +211,39 @@ class LineupMove(BaseSchema):
     confirm_override: bool = False
 
 
+class SeasonSummary(BaseSchema):
+    id: int
+    year: int
+    # The Super Bowl is final: the season is a read-only archive.
+    finished: bool
+
+
 class LeagueOverview(BaseSchema):
+    """The permanent league: members, notes and its seasons, oldest first."""
+
     id: int
     name: str
-    season: int
     notes: str
+    my_role: LeagueRole
+    current_season_id: int
+    # The latest season is over, so the commissioner may start the next one.
+    can_start_season: bool
+    next_year: int
+    seasons: list[SeasonSummary]
+    members: list[MemberSummary]
+
+
+class SeasonOverview(BaseSchema):
+    """Everything a season's home page needs: teams, draft status and who may edit."""
+
+    id: int
+    league_id: int
+    league_name: str
+    year: int
+    finished: bool
+    # The season is open and the caller is an active member / a commissioner.
+    can_edit: bool
+    can_commission: bool
     number_teams: int
     open_spots: int
     my_role: LeagueRole
@@ -306,7 +340,7 @@ class BreakdownRound(BaseSchema):
 
 class TeamBreakdown(BaseSchema):
     team_id: int
-    league_id: int
+    season_id: int
     team_name: str
     total: float
     points_left_on_bench: float
@@ -373,7 +407,7 @@ class RoundLineup(BaseSchema):
 class TeamDetails(BaseSchema):
     id: int
     name: str
-    league_id: int
+    season_id: int
     owner_name: str | None = None
     can_edit: bool
     can_set_lineup: bool
@@ -412,5 +446,6 @@ class InvitePreview(BaseSchema):
 
 class JoinResponse(BaseSchema):
     league_id: int
+    season_id: int | None = None
     team_id: int | None = None
     already_member: bool = False

@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.db.models.draft import Draft
-from api.db.models.league import League, Team
+from api.db.models.league import League, Season, Team
 from api.db.models.league import LeagueMember as LeagueMemberRow
 from api.db.models.user import User
 from api.db.session import DbSession
@@ -22,46 +22,96 @@ class LeagueMembership:
     user: User
     league: League
     role: str
-    team: Team | None
+    # A member who left: they keep read access to seasons they finished (see
+    # `find_season_membership`) but nothing else.
+    left: bool = False
 
     @property
     def is_commissioner(self) -> bool:
-        return self.role == LeagueRole.COMMISSIONER.value
+        return self.role == LeagueRole.COMMISSIONER.value and not self.left
+
+
+@dataclass(frozen=True, kw_only=True)
+class SeasonMembership(LeagueMembership):
+    season: Season
+    team: Team | None
+    finished: bool
+
+    @property
+    def can_edit(self) -> bool:
+        """Whether this caller may change anything in the season."""
+        return not self.finished and not self.left
+
+
+async def _user(db: AsyncSession, supabase_uid: str) -> User | None:
+    return (
+        (await db.execute(select(User).where(User.supabase_uid == supabase_uid)))
+        .scalars()
+        .first()
+    )
 
 
 async def find_membership(
     db: AsyncSession, league_id: int, supabase_uid: str
 ) -> LeagueMembership | None:
-    """Return the caller's membership, or None unless they belong to the league."""
-    user = (
-        (await db.execute(select(User).where(User.supabase_uid == supabase_uid)))
-        .scalars()
-        .first()
-    )
+    """The caller's active membership, or None unless they belong to the league."""
+    user = await _user(db, supabase_uid)
     if user is None:
         return None
     member = await db.get(LeagueMemberRow, (league_id, user.id))
     league = await db.get(League, league_id)
+    if member is None or member.left_at is not None or league is None:
+        return None
+    return LeagueMembership(user=user, league=league, role=member.role)
+
+
+async def find_season_membership(
+    db: AsyncSession, season_id: int, supabase_uid: str, *, read_only: bool = False
+) -> SeasonMembership | None:
+    """The caller's membership checked through a season.
+
+    A former member qualifies only for reads of a finished season in which they own a
+    team: their presence there is permanent.
+    """
+    user = await _user(db, supabase_uid)
+    season = await db.get(Season, season_id)
+    if user is None or season is None:
+        return None
+    member = await db.get(LeagueMemberRow, (season.league_id, user.id))
+    league = await db.get(League, season.league_id)
     if member is None or league is None:
         return None
-
     team = (
         (
             await db.execute(
                 select(Team)
-                .where(Team.league_id == league_id, Team.owner_id == user.id)
+                .where(Team.season_id == season_id, Team.owner_id == user.id)
                 .order_by(Team.id)
             )
         )
         .scalars()
         .first()
     )
-    return LeagueMembership(user=user, league=league, role=member.role, team=team)
+    finished = await season_is_finished(db, season.year)
+    left = member.left_at is not None
+    if left and not (read_only and finished and team is not None):
+        return None
+    return SeasonMembership(
+        user=user,
+        league=league,
+        role=member.role,
+        left=left,
+        season=season,
+        team=team,
+        finished=finished,
+    )
 
 
-async def require_league_member(
-    db: AsyncSession, league_id: int, supabase_uid: str
+async def get_league_member(
+    league_id: int, supabase_uid: CurrentUser, db: DbSession
 ) -> LeagueMembership:
+    """Guard for routes with a `{league_id}` path parameter. A league is never
+    read-only; only its seasons are."""
     membership = await find_membership(db, league_id, supabase_uid)
     if membership is None:
         raise HTTPException(
@@ -71,94 +121,101 @@ async def require_league_member(
     return membership
 
 
-async def reject_archived_writes(
-    request: Request, db: AsyncSession, membership: LeagueMembership
-) -> LeagueMembership:
-    """A league whose Super Bowl is final is an archive: reads only."""
-    if request.method not in READ_METHODS and await season_is_finished(
-        db, membership.league.season
-    ):
+async def require_season_member(
+    request: Request, db: AsyncSession, season_id: int, supabase_uid: str
+) -> SeasonMembership:
+    membership = await find_season_membership(
+        db, season_id, supabase_uid, read_only=request.method in READ_METHODS
+    )
+    if membership is None:
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail=ARCHIVED_MESSAGE,
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not a member of this league",
+        )
+    if request.method not in READ_METHODS and membership.finished:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail=ARCHIVED_MESSAGE
         )
     return membership
 
 
-async def get_league_member(
-    request: Request, league_id: int, supabase_uid: CurrentUser, db: DbSession
-) -> LeagueMembership:
-    """Guard for routes with a `{league_id}` path parameter."""
-    return await reject_archived_writes(
-        request, db, await require_league_member(db, league_id, supabase_uid)
+async def require_season_reader(
+    db: AsyncSession, season_id: int, supabase_uid: str
+) -> SeasonMembership:
+    """Read access to a season, for routes that are not addressed by season path."""
+    membership = await find_season_membership(
+        db, season_id, supabase_uid, read_only=True
     )
+    if membership is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not a member of this league",
+        )
+    return membership
 
 
-async def get_archived_league_member(
-    league_id: int, supabase_uid: CurrentUser, db: DbSession
-) -> LeagueMembership:
-    """Like `get_league_member` but lets writes through, for run it back."""
-    return await require_league_member(db, league_id, supabase_uid)
+async def get_season_member(
+    request: Request, season_id: int, supabase_uid: CurrentUser, db: DbSession
+) -> SeasonMembership:
+    """Guard for routes with a `{season_id}` path parameter; writes to a finished
+    season answer 409."""
+    return await require_season_member(request, db, season_id, supabase_uid)
+
+
+def _commissioner_only[M: LeagueMembership](membership: M) -> M:
+    if not membership.is_commissioner:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Commissioner access required",
+        )
+    return membership
 
 
 async def require_commissioner(
     membership: Annotated[LeagueMembership, Depends(get_league_member)],
 ) -> LeagueMembership:
-    """Guard for settings, invites, draft control and member management."""
-    if not membership.is_commissioner:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Commissioner access required",
-        )
-    return membership
+    """Guard for member management, invites and starting a season."""
+    return _commissioner_only(membership)
 
 
-async def require_archive_commissioner(
-    membership: Annotated[LeagueMembership, Depends(get_archived_league_member)],
-) -> LeagueMembership:
-    """Commissioner guard that lets writes through on a finished league."""
-    if not membership.is_commissioner:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Commissioner access required",
-        )
-    return membership
+async def require_season_commissioner(
+    membership: Annotated[SeasonMembership, Depends(get_season_member)],
+) -> SeasonMembership:
+    """Guard for settings, draft control and team assignment."""
+    return _commissioner_only(membership)
 
 
 async def get_draft_member(
     request: Request, draft_id: int, supabase_uid: CurrentUser, db: DbSession
-) -> LeagueMembership:
-    """Guard for routes addressed by draft id; membership is checked on its league."""
-    league_id = (
-        await db.execute(select(Draft.league_id).where(Draft.id == draft_id))
+) -> SeasonMembership:
+    """Guard for routes addressed by draft id; membership is checked on its season."""
+    season_id = (
+        await db.execute(select(Draft.season_id).where(Draft.id == draft_id))
     ).scalar()
-    if league_id is None:
+    if season_id is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Draft not found"
         )
-    return await reject_archived_writes(
-        request, db, await require_league_member(db, league_id, supabase_uid)
-    )
+    return await require_season_member(request, db, season_id, supabase_uid)
 
 
 async def get_team_member(
     request: Request, team_id: int, supabase_uid: CurrentUser, db: DbSession
-) -> LeagueMembership:
-    """Guard for routes addressed by team id; membership is checked on its league."""
-    league_id = (
-        await db.execute(select(Team.league_id).where(Team.id == team_id))
+) -> SeasonMembership:
+    """Guard for routes addressed by team id; membership is checked on its season."""
+    season_id = (
+        await db.execute(select(Team.season_id).where(Team.id == team_id))
     ).scalar()
-    if league_id is None:
+    if season_id is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Team not found"
         )
-    return await reject_archived_writes(
-        request, db, await require_league_member(db, league_id, supabase_uid)
-    )
+    return await require_season_member(request, db, season_id, supabase_uid)
 
 
 LeagueMember = Annotated[LeagueMembership, Depends(get_league_member)]
-ArchiveCommissioner = Annotated[LeagueMembership, Depends(require_archive_commissioner)]
 LeagueCommissioner = Annotated[LeagueMembership, Depends(require_commissioner)]
-DraftMember = Annotated[LeagueMembership, Depends(get_draft_member)]
-TeamMember = Annotated[LeagueMembership, Depends(get_team_member)]
+SeasonMember = Annotated[SeasonMembership, Depends(get_season_member)]
+SeasonCommissioner = Annotated[SeasonMembership, Depends(require_season_commissioner)]
+DraftMember = Annotated[SeasonMembership, Depends(get_draft_member)]
+TeamMember = Annotated[SeasonMembership, Depends(get_team_member)]

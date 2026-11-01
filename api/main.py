@@ -22,6 +22,7 @@ from api.routers import (
     invites,
     leagues,
     players,
+    seasons,
     teams,
 )
 from api.services.draft_clock import run_draft_clock
@@ -92,6 +93,7 @@ async def ingestion_busy_handler(_: Request, exc: IngestionBusy) -> JSONResponse
 
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(leagues.router, prefix="/api/leagues", tags=["leagues"])
+app.include_router(seasons.router, prefix="/api/seasons", tags=["seasons"])
 app.include_router(teams.router, prefix="/api/teams", tags=["teams"])
 app.include_router(invites.router, prefix="/api", tags=["invites"])
 app.include_router(activity.router, prefix="/api", tags=["activity"])

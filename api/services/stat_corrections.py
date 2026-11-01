@@ -13,7 +13,7 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.db.models.league import League, LeagueSettings, TeamPlayer
+from api.db.models.league import Season, SeasonSettings, TeamPlayer
 from api.db.models.nfl import NFLGame, NFLPlayer, NFLPlayerGameStats
 from api.models.activity_models import StatCorrectionPayload
 from api.models.enums import PlayerPosition
@@ -82,62 +82,62 @@ async def record(
             select(NFLGame).where(NFLGame.id.in_({game_id for game_id, _ in arrived}))
         )
     }
-    seasons = {g.season for g in games.values()}
-    leagues = {
-        league.id: league
-        for league in await db.scalars(select(League).where(League.season.in_(seasons)))
+    years = {g.season for g in games.values()}
+    seasons = {
+        season.id: season
+        for season in await db.scalars(select(Season).where(Season.year.in_(years)))
     }
-    if not leagues:
+    if not seasons:
         return
     settings = {
-        s.league_id: s
+        s.season_id: s
         for s in await db.scalars(
-            select(LeagueSettings).where(LeagueSettings.league_id.in_(leagues))
+            select(SeasonSettings).where(SeasonSettings.season_id.in_(seasons))
         )
     }
     rostered = (
         await db.execute(
-            select(TeamPlayer.league_id, TeamPlayer.team_id, NFLPlayer)
+            select(TeamPlayer.season_id, TeamPlayer.team_id, NFLPlayer)
             .join(NFLPlayer, NFLPlayer.id == TeamPlayer.player_id)
-            .where(TeamPlayer.league_id.in_(leagues))
+            .where(TeamPlayer.season_id.in_(seasons))
         )
     ).all()
-    by_league: dict[int, list[tuple[int, NFLPlayer]]] = defaultdict(list)
-    for league_id, team_id, player in rostered:
-        by_league[league_id].append((team_id, player))
+    by_season: dict[int, list[tuple[int, NFLPlayer]]] = defaultdict(list)
+    for season_id, team_id, player in rostered:
+        by_season[season_id].append((team_id, player))
     latest = {(row["game_id"], row["player_id"]): row for row in new_rows} | {
         key: before[key] for key in before if key not in arrived
     }
 
-    for league_id, holders in by_league.items():
+    for season_id, holders in by_season.items():
         members = await scoring_members(
-            db, settings[league_id], [player for _, player in holders]
+            db, settings[season_id], [player for _, player in holders]
         )
         for team_id, player in holders:
             scorers = members.get(player.id, [player.id])
             position = PlayerPosition.from_str(player.position)
             for game_id in {g for g, p in arrived if p in scorers}:
                 game = games[game_id]
-                if game.game_week is None or game.season != leagues[league_id].season:
+                if game.game_week is None or game.season != seasons[season_id].year:
                     continue
                 round_index = postseason_round_index(game.game_week)
                 if round_index is None:
                     continue
                 old_points = _points_of(
                     [before.get((game_id, p)) for p in scorers],
-                    settings[league_id],
+                    settings[season_id],
                     position,
                 )
                 new_points = _points_of(
                     [latest.get((game_id, p)) for p in scorers],
-                    settings[league_id],
+                    settings[season_id],
                     position,
                 )
                 if old_points == new_points:
                     continue
                 await activity.append(
                     db,
-                    league_id,
+                    season_id,
                     StatCorrectionPayload(
                         round=round_index + 1,
                         game_id=game_id,
@@ -152,7 +152,7 @@ async def record(
 
 def _points_of(
     rows: list[dict[str, Any] | None],
-    settings: LeagueSettings,
+    settings: SeasonSettings,
     position: PlayerPosition | None,
 ) -> Decimal:
     total = sum(

@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Query, Response, status
 
 from api.db.session import DbSession
-from api.dependencies.league import LeagueMember, TeamMember
+from api.dependencies.league import SeasonMember, TeamMember
 from api.models.activity_models import ActivityFeed, ActivityViewed
 from api.services import activity
 
@@ -13,17 +13,17 @@ PageSize = Annotated[int, Query(ge=1, le=activity.MAX_PAGE_SIZE)]
 Before = Annotated[int | None, Query(description="Return events older than this id")]
 
 
-@router.get("/leagues/{league_id}/activity", response_model=ActivityFeed)
+@router.get("/seasons/{season_id}/activity", response_model=ActivityFeed)
 async def league_feed(
-    league_id: int,
-    membership: LeagueMember,
+    season_id: int,
+    membership: SeasonMember,
     db: DbSession,
     limit: PageSize = activity.DEFAULT_PAGE_SIZE,
     before: Before = None,
 ) -> ActivityFeed:
-    """Everything that happened in the league, newest first; members only."""
+    """Everything that happened in the season, newest first; members only."""
     return await activity.feed(
-        db, membership.user.id, league_id, limit=limit, before=before
+        db, membership.user.id, season_id, limit=limit, before=before
     )
 
 
@@ -39,7 +39,7 @@ async def team_feed(
     return await activity.feed(
         db,
         membership.user.id,
-        membership.league.id,
+        membership.season.id,
         team_id=team_id,
         limit=limit,
         before=before,
@@ -47,19 +47,19 @@ async def team_feed(
 
 
 @router.post(
-    "/leagues/{league_id}/activity/viewed", status_code=status.HTTP_204_NO_CONTENT
+    "/seasons/{season_id}/activity/viewed", status_code=status.HTTP_204_NO_CONTENT
 )
 async def league_feed_viewed(
-    league_id: int,
-    membership: LeagueMember,
+    season_id: int,
+    membership: SeasonMember,
     db: DbSession,
     body: ActivityViewed | None = None,
 ) -> Response:
-    """The member expanded the league feed: clear its new-activity dot."""
+    """The member expanded the season feed: clear its new-activity dot."""
     await activity.mark_viewed(
         db,
         membership.user.id,
-        league_id,
+        season_id,
         up_to=body.up_to_event_id if body else None,
     )
     return Response(status_code=status.HTTP_204_NO_CONTENT)
@@ -76,7 +76,7 @@ async def team_feed_viewed(
     await activity.mark_viewed(
         db,
         membership.user.id,
-        membership.league.id,
+        membership.season.id,
         team_id=team_id,
         up_to=body.up_to_event_id if body else None,
     )

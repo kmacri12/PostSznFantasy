@@ -2,7 +2,7 @@ from decimal import Decimal
 
 import pytest
 
-from api.db.models.league import LeagueSettings
+from api.db.models.league import SeasonSettings
 from api.db.models.nfl import NFLPlayerGameStats
 from api.models.enums import PlayerPosition
 from api.models.league_models import ScoringSettings
@@ -19,8 +19,8 @@ from api.utils.calculations.fantasy_points_utils import (
 
 
 @pytest.fixture
-def standard_league_settings() -> LeagueSettings:
-    settings = LeagueSettings()
+def standard_league_settings() -> SeasonSettings:
+    settings = SeasonSettings()
     # Passing
     settings.scoring_passing_yard = Decimal(1)
     settings.scoring_passing_td = Decimal(4)
@@ -76,7 +76,7 @@ def standard_league_settings() -> LeagueSettings:
     return settings
 
 
-def test_calculate_passing_points(standard_league_settings: LeagueSettings) -> None:
+def test_calculate_passing_points(standard_league_settings: SeasonSettings) -> None:
     stats = NFLPlayerGameStats()
     stats.passing_yards = 300
     stats.passing_touchdowns = 3
@@ -89,7 +89,7 @@ def test_calculate_passing_points(standard_league_settings: LeagueSettings) -> N
     assert pts == Decimal(310)
 
 
-def test_calculate_rushing_points(standard_league_settings: LeagueSettings) -> None:
+def test_calculate_rushing_points(standard_league_settings: SeasonSettings) -> None:
     stats = NFLPlayerGameStats()
     stats.rushing_yards = 120
     stats.rushing_touchdowns = 2
@@ -102,7 +102,7 @@ def test_calculate_rushing_points(standard_league_settings: LeagueSettings) -> N
 
 
 def test_calculate_receiving_points_te_premium(
-    standard_league_settings: LeagueSettings,
+    standard_league_settings: SeasonSettings,
 ) -> None:
     stats = NFLPlayerGameStats()
     stats.receiving_receptions = 6
@@ -124,7 +124,7 @@ def test_calculate_receiving_points_te_premium(
 
 
 def test_calculate_turnover_and_special_teams_points(
-    standard_league_settings: LeagueSettings,
+    standard_league_settings: SeasonSettings,
 ) -> None:
     stats = NFLPlayerGameStats()
     stats.carrying_fumbles = 2
@@ -140,7 +140,7 @@ def test_calculate_turnover_and_special_teams_points(
     assert st_pts == Decimal(50)  # the return TD scores for the DST, not the returner
 
 
-def test_calculate_kicking_points(standard_league_settings: LeagueSettings) -> None:
+def test_calculate_kicking_points(standard_league_settings: SeasonSettings) -> None:
     standard_league_settings.scoring_kicking_fg_made = Decimal(0)
     standard_league_settings.scoring_kicking_fg_yard = Decimal("0.1")
     stats = NFLPlayerGameStats()
@@ -154,7 +154,7 @@ def test_calculate_kicking_points(standard_league_settings: LeagueSettings) -> N
     assert pts == Decimal("14.2")
 
 
-def test_calculate_dst_points(standard_league_settings: LeagueSettings) -> None:
+def test_calculate_dst_points(standard_league_settings: SeasonSettings) -> None:
     stats = NFLPlayerGameStats()
     stats.dst_def_td = 1
     stats.dst_sacks = 4
@@ -177,7 +177,7 @@ def test_calculate_dst_points(standard_league_settings: LeagueSettings) -> None:
 
 
 def test_calculate_player_points_total(
-    standard_league_settings: LeagueSettings,
+    standard_league_settings: SeasonSettings,
 ) -> None:
     stats = NFLPlayerGameStats()
     stats.rushing_yards = 50
@@ -195,9 +195,9 @@ def test_calculate_player_points_total(
     assert pts == Decimal(86)
 
 
-def _default_settings() -> LeagueSettings:
+def _default_settings() -> SeasonSettings:
     template = ScoringSettings().model_dump(by_alias=False)
-    return LeagueSettings(**{k: Decimal(str(v)) for k, v in template.items()})
+    return SeasonSettings(**{k: Decimal(str(v)) for k, v in template.items()})
 
 
 def test_default_template_scores_full_ppr_stat_line() -> None:
@@ -345,7 +345,7 @@ def test_return_tds_never_score_for_the_individual() -> None:
 
 
 def test_yardage_bonuses_stack_at_each_threshold(
-    standard_league_settings: LeagueSettings,
+    standard_league_settings: SeasonSettings,
 ) -> None:
     standard_league_settings.scoring_passing_bonus_300_yards = Decimal(3)
     standard_league_settings.scoring_passing_bonus_400_yards = Decimal(2)
@@ -384,7 +384,7 @@ def test_yardage_bonuses_stack_at_each_threshold(
 
 
 def test_dst_blocked_kick_and_two_point_return(
-    standard_league_settings: LeagueSettings,
+    standard_league_settings: SeasonSettings,
 ) -> None:
     standard_league_settings.scoring_dst_blocked_kick = Decimal(2)
     standard_league_settings.scoring_dst_two_point_return = Decimal(2)
@@ -398,7 +398,7 @@ def test_dst_blocked_kick_and_two_point_return(
 
 
 def test_missed_field_goal_yards_are_scored_per_yard(
-    standard_league_settings: LeagueSettings,
+    standard_league_settings: SeasonSettings,
 ) -> None:
     standard_league_settings.scoring_kicking_fg_miss = Decimal(-1)
     standard_league_settings.scoring_kicking_fg_miss_yard = Decimal("-0.05")
@@ -410,7 +410,7 @@ def test_missed_field_goal_yards_are_scored_per_yard(
 
 
 def test_missed_field_goal_yards_score_nothing_by_default(
-    standard_league_settings: LeagueSettings,
+    standard_league_settings: SeasonSettings,
 ) -> None:
     standard_league_settings.scoring_kicking_fg_miss = Decimal(-1)
     standard_league_settings.scoring_kicking_fg_miss_yard = Decimal(0)
@@ -427,7 +427,7 @@ def test_orm_settings_columns_match_pydantic_schemas() -> None:
         TeamUnitSettings,
     )
 
-    columns = {c.key for c in LeagueSettings.__table__.columns}
+    columns = {c.key for c in SeasonSettings.__table__.columns}
     declared = (
         set(RosterSettings.model_fields)
         | set(ScoringSettings.model_fields)
@@ -445,7 +445,7 @@ def test_orm_settings_columns_match_pydantic_schemas() -> None:
 def test_round_multiplier_maps_postseason_weeks(week: int, expected: float) -> None:
     from api.utils.calculations.standings_utils import round_multiplier
 
-    settings = LeagueSettings()
+    settings = SeasonSettings()
     settings.multiplier_wild_card = Decimal(1)
     settings.multiplier_divisional = Decimal("1.5")
     settings.multiplier_conference = Decimal(2)
@@ -454,7 +454,7 @@ def test_round_multiplier_maps_postseason_weeks(week: int, expected: float) -> N
 
 
 def test_defense_scoring_only_applies_to_defenses(
-    standard_league_settings: LeagueSettings,
+    standard_league_settings: SeasonSettings,
 ) -> None:
     """A QB row has 0 points allowed; it must not earn the shutout bonus."""
     stats = NFLPlayerGameStats()
@@ -466,7 +466,7 @@ def test_defense_scoring_only_applies_to_defenses(
 
 
 def test_season_kicking_points_use_flat_rate_for_count_without_distances(
-    standard_league_settings: LeagueSettings,
+    standard_league_settings: SeasonSettings,
 ) -> None:
     stats = NFLPlayerGameStats()
     stats.kicking_fg_made = 11

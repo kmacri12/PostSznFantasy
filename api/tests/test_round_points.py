@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from api.db.models.league import LeagueSettings
+from api.db.models.league import SeasonSettings
 from api.db.models.nfl import NFLPlayer, NFLPlayerGameStats
 from api.models.league_models import PostseasonSettings, ScoringSettings
 from api.services.round_points import PointsLine, point_lines, sum_points
@@ -11,13 +11,13 @@ WILD_CARD, DIVISIONAL = 19, 20  # Tank01 numbers the postseason weeks 19-22
 STARTER_SLOTS = frozenset({0, 1})  # slot 2 and up is the bench
 
 
-def league_settings(**overrides: float) -> LeagueSettings:
+def league_settings(**overrides: float) -> SeasonSettings:
     values = {
         **ScoringSettings().model_dump(by_alias=False),
         **PostseasonSettings().model_dump(by_alias=False, mode="json"),
         **overrides,
     }
-    return LeagueSettings(**values)
+    return SeasonSettings(**values)
 
 
 def players() -> dict[int, NFLPlayer]:
@@ -56,7 +56,7 @@ def lines_for(
     placements: dict[tuple[int, int], dict[int, int]],
     stats: dict[int, list[tuple[NFLPlayerGameStats, int]]],
     *,
-    settings: LeagueSettings | None = None,
+    settings: SeasonSettings | None = None,
     roster: tuple[int, ...] = (QB, RB, WR),
 ) -> list[PointsLine]:
     return point_lines(

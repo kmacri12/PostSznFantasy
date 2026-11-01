@@ -10,10 +10,10 @@ from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.db.models import (
-    LeagueSettings,
     LineupSlot,
     NFLPlayer,
     NFLPlayerGameStats,
+    SeasonSettings,
     TeamPlayer,
 )
 from api.services.ingestion import poll_game_box_score
@@ -83,8 +83,8 @@ async def test_a_backup_qbs_correction_reaches_a_team_qb_slot_and_feed(
         db, [game("g1", 19, 1, 3, PAST, score=(24, 17))], draft_status="completed"
     )
     await db.execute(
-        update(LeagueSettings)
-        .where(LeagueSettings.league_id == s.league.id)
+        update(SeasonSettings)
+        .where(SeasonSettings.league_id == s.league.id)
         .values(team_qb=True)
     )
     starter = s.players[0]

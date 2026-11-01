@@ -14,7 +14,7 @@ from typing import Any
 
 import pytest
 
-from api.db.models.league import LeagueSettings
+from api.db.models.league import SeasonSettings
 from api.db.models.nfl import NFLPlayerGameStats
 from api.models.league_models import ScoringSettings
 from api.services.ingestion.box_scores_ingest import parse_game_player_stats
@@ -26,13 +26,13 @@ TOLERANCE = 0.01
 COMBINED_POSITIONS = ("QB", "PK")
 
 
-def _sheet_settings() -> LeagueSettings:
+def _sheet_settings() -> SeasonSettings:
     """Our defaults, except the 2025 sheet paid half a point per reception and nothing
     for blocked kicks (our default is 1; CAR's blocked punt in LAR@CAR would add 1)."""
     template = ScoringSettings(
         scoring_receiving_reception=0.5, scoring_dst_blocked_kick=0
     )
-    return LeagueSettings(
+    return SeasonSettings(
         **{k: Decimal(str(v)) for k, v in template.model_dump(by_alias=False).items()}
     )
 
@@ -141,9 +141,9 @@ def test_real_blocked_punt_is_stored_by_kind_and_scored_with_the_default() -> No
     )
     stats = NFLPlayerGameStats(**rows[0])
 
-    def settings(blocked_kick: float) -> LeagueSettings:
+    def settings(blocked_kick: float) -> SeasonSettings:
         template = ScoringSettings(scoring_dst_blocked_kick=blocked_kick)
-        return LeagueSettings(
+        return SeasonSettings(
             **{
                 k: Decimal(str(v))
                 for k, v in template.model_dump(by_alias=False).items()

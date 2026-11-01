@@ -6,11 +6,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from api.db.models import (
-    LeagueSettings,
     LineupSlot,
     NFLGame,
     NFLPlayer,
     NFLTeam,
+    SeasonSettings,
     Team,
     TeamPlayer,
 )
@@ -196,7 +196,7 @@ async def test_locks_follow_the_scheduled_kickoff_per_player(
 async def test_the_lock_applies_exactly_at_kickoff(db: AsyncSession) -> None:
     kickoff = datetime(2030, 1, 12, 21, 30, tzinfo=UTC)
     s = await _setup(db, [game("g1", 1, 1, 3, kickoff)])
-    settings = (await db.execute(select(LeagueSettings))).scalars().first()
+    settings = (await db.execute(select(SeasonSettings))).scalars().first()
     assert settings is not None
     roster = list(
         (

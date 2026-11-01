@@ -6,11 +6,11 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.db.models.draft import Draft, DraftPick
-from api.db.models.league import LeagueSettings, Team, TeamPlayer
+from api.db.models.league import SeasonSettings, Team, TeamPlayer
 from api.db.models.nfl import NFLPlayer, NFLTeam
 from api.db.models.user import User
 from api.models.enums import DraftStatus, DraftType, PlayerPosition
-from api.services.standings import recompute_league_standings
+from api.services.standings import recompute_season_standings
 from api.services.team_units import unavailable_in_pool
 
 logger = logging.getLogger(__name__)
@@ -60,7 +60,7 @@ def team_on_the_clock(order: list[int], pick_index: int, draft_type: str | None)
 
 
 def position_cap_reason(
-    settings: LeagueSettings,
+    settings: SeasonSettings,
     drafted_positions: list[PlayerPosition | None],
     position: PlayerPosition | None,
 ) -> str | None:
@@ -75,7 +75,7 @@ def position_cap_reason(
 
 
 def check_roster_limits(
-    settings: LeagueSettings,
+    settings: SeasonSettings,
     drafted_positions: list[PlayerPosition | None],
     candidate_position: PlayerPosition | None,
 ) -> None:
@@ -98,11 +98,11 @@ def next_deadline(draft: Draft, now: datetime) -> datetime:
     return now + timedelta(seconds=draft.time_per_pick_seconds)
 
 
-async def load_draft_for_update(db: AsyncSession, league_id: int) -> Draft:
+async def load_draft_for_update(db: AsyncSession, season_id: int) -> Draft:
     draft = (
         (
             await db.execute(
-                select(Draft).where(Draft.league_id == league_id).with_for_update()
+                select(Draft).where(Draft.season_id == season_id).with_for_update()
             )
         )
         .scalars()
@@ -113,10 +113,10 @@ async def load_draft_for_update(db: AsyncSession, league_id: int) -> Draft:
     return draft
 
 
-async def load_settings(db: AsyncSession, league_id: int) -> LeagueSettings:
+async def load_settings(db: AsyncSession, season_id: int) -> SeasonSettings:
     settings = (
         await db.execute(
-            select(LeagueSettings).where(LeagueSettings.league_id == league_id)
+            select(SeasonSettings).where(SeasonSettings.season_id == season_id)
         )
     ).scalar_one_or_none()
     if settings is None:
@@ -127,7 +127,7 @@ async def load_settings(db: AsyncSession, league_id: int) -> LeagueSettings:
 async def record_pick(
     db: AsyncSession,
     draft: Draft,
-    settings: LeagueSettings,
+    settings: SeasonSettings,
     player_id: int,
     *,
     acting_user: User | None,
@@ -207,7 +207,7 @@ async def record_pick(
         autopick=autopick,
     )
     db.add(pick)
-    db.add(TeamPlayer(team_id=team_id, league_id=draft.league_id, player_id=player_id))
+    db.add(TeamPlayer(team_id=team_id, season_id=draft.season_id, player_id=player_id))
 
     draft_complete = pick_index + 1 >= total_picks
     now = datetime.now(UTC)
@@ -220,11 +220,11 @@ async def record_pick(
         draft.current_pick_deadline = next_deadline(draft, now)
     await db.flush()
     if draft_complete:
-        await recompute_league_standings(db, draft.league_id)
+        await recompute_season_standings(db, draft.season_id)
 
     logger.info(
         "Draft pick recorded",
-        extra={"league_id": draft.league_id, "pick": pick.number_pick_overall},
+        extra={"season_id": draft.season_id, "pick": pick.number_pick_overall},
     )
     return PickResult(
         pick=pick,
@@ -235,11 +235,11 @@ async def record_pick(
 
 
 async def make_pick(
-    db: AsyncSession, league_id: int, user: User, player_id: int
+    db: AsyncSession, season_id: int, user: User, player_id: int
 ) -> PickResult:
     """A drafter's pick. Replaying the pick just made returns it instead of failing."""
-    draft = await load_draft_for_update(db, league_id)
-    settings = await load_settings(db, league_id)
+    draft = await load_draft_for_update(db, season_id)
+    settings = await load_settings(db, season_id)
 
     latest = (
         (

@@ -11,7 +11,7 @@ from decimal import Decimal
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.db.models.league import LeagueSettings, LineupSlot, Team
+from api.db.models.league import LineupSlot, SeasonSettings, Team
 from api.db.models.nfl import NFLGame, NFLPlayer, NFLPlayerGameStats
 from api.db.models.user import User
 from api.models.activity_models import (
@@ -75,7 +75,7 @@ class SlotSpec:
     allowed: tuple[PlayerPosition, ...] | None  # None: any position (bench)
 
 
-def slot_layout(settings: LeagueSettings) -> list[SlotSpec]:
+def slot_layout(settings: SeasonSettings) -> list[SlotSpec]:
     """The empty lineup template implied by the league's roster settings."""
     specs: list[SlotSpec] = []
 
@@ -260,7 +260,7 @@ def _round_lineup(
 async def team_lineups(
     db: AsyncSession,
     team: Team,
-    settings: LeagueSettings,
+    settings: SeasonSettings,
     players: list[NFLPlayer],
     season: int,
     now: datetime,
@@ -291,7 +291,7 @@ async def team_lineups(
 
 async def _round_points(
     db: AsyncSession,
-    settings: LeagueSettings,
+    settings: SeasonSettings,
     players: list[NFLPlayer],
     season: int,
 ) -> dict[tuple[int, int], Decimal]:
@@ -332,7 +332,7 @@ async def _round_points(
 async def move_in_lineup(
     db: AsyncSession,
     team: Team,
-    settings: LeagueSettings,
+    settings: SeasonSettings,
     players: list[NFLPlayer],
     season: int,
     round_: int,
@@ -406,7 +406,7 @@ async def move_in_lineup(
             payload = LineupMovePayload(**move_fields)
         await activity.append(
             db,
-            team.league_id,
+            team.season_id,
             payload,
             team_id=team.id,
             actor=activity.Actor.of(actor.user),

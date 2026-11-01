@@ -7,8 +7,8 @@ from api.db.models import (
     DraftPick,
     LeagueInvite,
     LeagueMember,
-    LeagueSettings,
     NFLTeam,
+    SeasonSettings,
     Team,
     User,
 )
@@ -231,7 +231,7 @@ async def test_revoked_full_and_started_invites_are_refused(
 ) -> None:
     league_id, _ = await _join_setup(db)  # draft already in progress
     settings = await db.scalar(
-        select(LeagueSettings).where(LeagueSettings.league_id == league_id)
+        select(SeasonSettings).where(SeasonSettings.league_id == league_id)
     )
     assert settings is not None
     settings.allow_join_after_draft_start = False  # commissioner opted out

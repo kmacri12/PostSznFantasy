@@ -13,10 +13,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from api.db.models.league import (
-    League,
-    LeagueSettings,
-    LeagueStanding,
     LineupSlot,
+    Season,
+    SeasonSettings,
+    SeasonStanding,
     Team,
 )
 from api.db.models.nfl import NFLPlayer
@@ -65,26 +65,26 @@ def _tie_reason(reason: TieReason, over_team_name: str) -> StandingTieReason:
     )
 
 
-async def league_standings(db: AsyncSession, league_id: int) -> Standings:
-    season = await db.scalar(select(League.season).where(League.id == league_id))
+async def season_standings(db: AsyncSession, season_id: int) -> Standings:
+    year = await db.scalar(select(Season.year).where(Season.id == season_id))
     rows = (
         (
             await db.execute(
-                select(LeagueStanding)
-                .options(selectinload(LeagueStanding.team).selectinload(Team.owner))
-                .where(LeagueStanding.league_id == league_id)
+                select(SeasonStanding)
+                .options(selectinload(SeasonStanding.team).selectinload(Team.owner))
+                .where(SeasonStanding.season_id == season_id)
                 .execution_options(populate_existing=True)
             )
         )
         .scalars()
         .all()
     )
-    games = await load_games(db, season) if season is not None else []
+    games = await load_games(db, year) if year is not None else []
     round_ = current_round(games)
 
     settings = (
         await db.execute(
-            select(LeagueSettings).where(LeagueSettings.league_id == league_id)
+            select(SeasonSettings).where(SeasonSettings.season_id == season_id)
         )
     ).scalar_one()
     starter_slots = {
@@ -96,7 +96,7 @@ async def league_standings(db: AsyncSession, league_id: int) -> Standings:
             select(LineupSlot.team_id, LineupSlot.slot_index, NFLPlayer.team_id)
             .join(NFLPlayer, NFLPlayer.id == LineupSlot.player_id)
             .join(Team, Team.id == LineupSlot.team_id)
-            .where(Team.league_id == league_id, LineupSlot.round == round_)
+            .where(Team.season_id == season_id, LineupSlot.round == round_)
         )
     ).all():
         if slot_index in starter_slots:
@@ -112,7 +112,7 @@ async def league_standings(db: AsyncSession, league_id: int) -> Standings:
         )
         for row in rows
     }
-    ranked = rank_teams(round_points, await load_ranking_facts(db, league_id, games))
+    ranked = rank_teams(round_points, await load_ranking_facts(db, season_id, games))
     names = {row.team_id: row.team.name or f"Team {row.team_id}" for row in rows}
     owners = {
         row.team_id: row.team.owner.username if row.team.owner else "Unclaimed"

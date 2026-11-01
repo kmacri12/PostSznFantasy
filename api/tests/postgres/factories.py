@@ -4,9 +4,9 @@ from api.db.models import (
     Draft,
     League,
     LeagueMember,
-    LeagueSettings,
     NFLPlayer,
     NFLTeam,
+    SeasonSettings,
     Team,
     User,
 )
@@ -53,7 +53,7 @@ async def make_league(
         number_teams=teams, roster_total=roster_total, **roster
     )
     db.add(
-        LeagueSettings(
+        SeasonSettings(
             league_id=league.id,
             **roster_settings.model_dump(by_alias=False),
             **ScoringSettings().model_dump(by_alias=False),

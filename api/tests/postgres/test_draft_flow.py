@@ -3,7 +3,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.db.models import DraftPick, League, LeagueSettings, TeamPlayer
+from api.db.models import DraftPick, League, SeasonSettings, TeamPlayer
 from api.services.draft_picks import DraftPickError, make_pick
 from api.tests.postgres.factories import make_league, make_players
 
@@ -105,7 +105,7 @@ async def test_deleting_a_league_cascades(db: AsyncSession) -> None:
     )
     assert (
         await db.scalar(
-            select(LeagueSettings.id).where(LeagueSettings.league_id == league.id)
+            select(SeasonSettings.id).where(SeasonSettings.league_id == league.id)
         )
         is None
     )

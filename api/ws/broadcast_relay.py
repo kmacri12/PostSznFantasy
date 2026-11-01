@@ -18,7 +18,7 @@ RECONNECT_SECONDS = 2
 Deliver = Callable[[int, dict[str, Any]], Awaitable[None]]
 
 
-def encode_chunks(league_id: int, message: dict[str, Any]) -> list[str]:
+def encode_chunks(season_id: int, message: dict[str, Any]) -> list[str]:
     text = json.dumps(message)
     parts = [
         text[start : start + MAX_NOTIFY_CHUNK]
@@ -28,7 +28,7 @@ def encode_chunks(league_id: int, message: dict[str, Any]) -> list[str]:
     # One-letter keys: the envelope counts against the 8000-byte NOTIFY budget.
     return [
         json.dumps(
-            {"m": message_id, "i": i, "n": len(parts), "l": league_id, "p": part}
+            {"m": message_id, "i": i, "n": len(parts), "l": season_id, "p": part}
         )
         for i, part in enumerate(parts)
     ]
@@ -88,9 +88,9 @@ class PostgresRelay:
             await self._connection.close()
             self._connection = None
 
-    async def publish(self, league_id: int, message: dict[str, Any]) -> None:
+    async def publish(self, season_id: int, message: dict[str, Any]) -> None:
         """Raises when the connection is gone, so the caller can fall back to local."""
-        chunks = encode_chunks(league_id, message)
+        chunks = encode_chunks(season_id, message)
         async with self._publish_lock:
             if self._connection is None or self._connection.is_closed():
                 raise ConnectionError("broadcast relay is not connected")

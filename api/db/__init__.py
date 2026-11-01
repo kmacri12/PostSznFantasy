@@ -2,9 +2,9 @@ from api.db.base import Base
 from api.db.models.draft import Draft, DraftPick
 from api.db.models.league import (
     League,
-    LeagueSettings,
-    LeagueStanding,
     LineupSlot,
+    SeasonSettings,
+    SeasonStanding,
     Team,
 )
 from api.db.models.nfl import (
@@ -31,8 +31,8 @@ __all__ = [
     "Draft",
     "DraftPick",
     "League",
-    "LeagueSettings",
-    "LeagueStanding",
+    "SeasonSettings",
+    "SeasonStanding",
     "LineupSlot",
     "NFLGame",
     "NFLPlayer",

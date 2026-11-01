@@ -31,7 +31,7 @@ def diff_settings(
 
 async def record_settings_change(
     db: AsyncSession,
-    league_id: int,
+    season_id: int,
     actor: activity.Actor,
     before: Mapping[str, Any],
     after: Mapping[str, Any],
@@ -45,13 +45,13 @@ async def record_settings_change(
     changes = diff_settings(before, after)
     if changes:
         await activity.append(
-            db, league_id, SettingsChangePayload(changes=changes), actor=actor
+            db, season_id, SettingsChangePayload(changes=changes), actor=actor
         )
 
 
 async def on_editable_settings_changed(
     db: AsyncSession,
-    league_id: int,
+    season_id: int,
     *,
     actor: activity.Actor,
     before: Mapping[str, Any],
@@ -62,5 +62,5 @@ async def on_editable_settings_changed(
     The change goes to the activity feed and everything derived from the settings is
     recomputed.
     """
-    await record_settings_change(db, league_id, actor, before, after)
-    await refresh_standings_if_drafted(db, league_id)
+    await record_settings_change(db, season_id, actor, before, after)
+    await refresh_standings_if_drafted(db, season_id)

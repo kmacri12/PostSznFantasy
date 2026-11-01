@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.db.models.league import LeagueSettings, Team, TeamPlayer
+from api.db.models.league import SeasonSettings, Team, TeamPlayer
 from api.db.models.nfl import NFLPlayer, NFLTeam
 from api.models.enums import PlayerPosition
 from api.services.league_members import LeagueRuleError
@@ -24,7 +24,7 @@ TEAM_UNIT_SETTING_FIELDS: dict[PlayerPosition, str] = {
 }
 
 
-def combined_positions(settings: LeagueSettings) -> frozenset[PlayerPosition]:
+def combined_positions(settings: SeasonSettings) -> frozenset[PlayerPosition]:
     """Positions whose drafted player scores his whole NFL team's players."""
     return frozenset(
         position
@@ -48,7 +48,7 @@ def scores_whole_team(
 
 
 def newly_enabled(
-    settings: LeagueSettings, updates: dict[str, object]
+    settings: SeasonSettings, updates: dict[str, object]
 ) -> frozenset[PlayerPosition]:
     """Positions an update would switch from off to on."""
     return frozenset(
@@ -73,7 +73,7 @@ class SameTeamConflict:
 
 
 async def same_team_conflicts(
-    db: AsyncSession, league_id: int, positions: frozenset[PlayerPosition]
+    db: AsyncSession, season_id: int, positions: frozenset[PlayerPosition]
 ) -> list[SameTeamConflict]:
     rows = (
         await db.execute(
@@ -82,7 +82,7 @@ async def same_team_conflicts(
             .join(Team, Team.id == TeamPlayer.team_id)
             .join(NFLPlayer, NFLPlayer.id == TeamPlayer.player_id)
             .join(NFLTeam, NFLTeam.id == NFLPlayer.team_id)
-            .where(TeamPlayer.league_id == league_id)
+            .where(TeamPlayer.season_id == season_id)
             .order_by(Team.id, NFLPlayer.name)
         )
     ).all()
@@ -105,10 +105,10 @@ async def same_team_conflicts(
 
 
 async def require_no_same_team_conflicts(
-    db: AsyncSession, league_id: int, positions: frozenset[PlayerPosition]
+    db: AsyncSession, season_id: int, positions: frozenset[PlayerPosition]
 ) -> None:
     """Turning a position on is refused while any fantasy team holds two from one NFL team."""
-    conflicts = await same_team_conflicts(db, league_id, positions)
+    conflicts = await same_team_conflicts(db, season_id, positions)
     if not conflicts:
         return
     label = " and ".join(
@@ -123,7 +123,7 @@ async def require_no_same_team_conflicts(
 
 
 async def scoring_members(
-    db: AsyncSession, settings: LeagueSettings, rostered: Iterable[NFLPlayer]
+    db: AsyncSession, settings: SeasonSettings, rostered: Iterable[NFLPlayer]
 ) -> dict[int, list[int]]:
     """Whose stats feed each rostered team-unit player's slot, himself included.
 
@@ -157,7 +157,7 @@ async def scoring_members(
 
 
 async def unavailable_in_pool(
-    db: AsyncSession, settings: LeagueSettings, drafted_ids: Collection[int]
+    db: AsyncSession, settings: SeasonSettings, drafted_ids: Collection[int]
 ) -> dict[int, str]:
     """Players the team unit settings keep out of the draft pool, with the reason.
 

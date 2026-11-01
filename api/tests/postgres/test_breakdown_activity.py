@@ -6,7 +6,7 @@ from typing import Any
 from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.db.models import LeagueSettings, NFLPlayerGameStats
+from api.db.models import NFLPlayerGameStats, SeasonSettings
 from api.tests.postgres.activity_support import (
     FLEX,
     FUTURE,
@@ -31,7 +31,7 @@ async def _world(db: AsyncSession) -> ActivityLeague:
         ],
         draft_status="completed",
     )
-    await db.execute(update(LeagueSettings).values(multiplier_wild_card=2))
+    await db.execute(update(SeasonSettings).values(multiplier_wild_card=2))
     db.add(
         NFLPlayerGameStats(game_id="g1", player_id=s.players[0].id, passing_yards=250)
     )

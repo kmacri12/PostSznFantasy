@@ -6,12 +6,12 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.db.models import (
-    LeagueStanding,
     LineupSlot,
     NFLGame,
     NFLPlayer,
     NFLPlayerGameStats,
     NFLTeam,
+    SeasonStanding,
     TeamPlayer,
 )
 from api.services.standings import recompute_standings
@@ -95,11 +95,11 @@ class Scene:
         self.db.add(NFLPlayerGameStats(game_id=game_id, player_id=player.id, **line))
         await self.db.flush()
 
-    async def standing(self, team_index: int) -> LeagueStanding:
+    async def standing(self, team_index: int) -> SeasonStanding:
         await recompute_standings(self.db, 2025)
         row = await self.db.scalar(
-            select(LeagueStanding)
-            .where(LeagueStanding.team_id == self.teams[team_index].id)
+            select(SeasonStanding)
+            .where(SeasonStanding.team_id == self.teams[team_index].id)
             .execution_options(populate_existing=True)
         )
         assert row is not None
@@ -229,8 +229,8 @@ async def test_switching_the_setting_reflows_standings(
     rows = (
         (
             await db.execute(
-                select(LeagueStanding)
-                .where(LeagueStanding.team_id == scene.teams[0].id)
+                select(SeasonStanding)
+                .where(SeasonStanding.team_id == scene.teams[0].id)
                 .execution_options(populate_existing=True)
             )
         )

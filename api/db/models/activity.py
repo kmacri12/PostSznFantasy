@@ -23,7 +23,7 @@ LEAGUE_FEED = 0
 class ActivityEvent(Base):
     """One entry in the activity feed. Rows are only ever inserted.
 
-    The league feed is every event of a league; a team's feed is the events carrying
+    The league feed is every event of a season; a team's feed is the events carrying
     its `team_id` (settings changes belong to no team). Names are snapshotted so an
     old entry still reads the same after a rename or an account change.
     """
@@ -34,14 +34,14 @@ class ActivityEvent(Base):
             f"kind IN ({', '.join(repr(k.value) for k in ActivityKind)})",
             name="ck_activity_events_kind",
         ),
-        Index("ix_activity_events_league_id_id", "league_id", "id"),
+        Index("ix_activity_events_season_id_id", "season_id", "id"),
         Index("ix_activity_events_team_id_id", "team_id", "id"),
         {"schema": "fantasy"},
     )
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
-    league_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("fantasy.leagues.id", ondelete="CASCADE"), nullable=False
+    season_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("fantasy.seasons.id", ondelete="CASCADE"), nullable=False
     )
     team_id: Mapped[int | None] = mapped_column(
         Integer, ForeignKey("fantasy.teams.id", ondelete="CASCADE"), nullable=True
@@ -66,8 +66,8 @@ class ActivityView(Base):
     user_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("fantasy.users.id", ondelete="CASCADE"), primary_key=True
     )
-    league_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("fantasy.leagues.id", ondelete="CASCADE"), primary_key=True
+    season_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("fantasy.seasons.id", ondelete="CASCADE"), primary_key=True
     )
     team_id: Mapped[int] = mapped_column(Integer, primary_key=True, default=LEAGUE_FEED)
     last_event_id: Mapped[int] = mapped_column(BigInteger, nullable=False)

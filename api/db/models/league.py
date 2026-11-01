@@ -25,19 +25,20 @@ if TYPE_CHECKING:
 
 
 class League(Base):
+    """The permanent league: members, invite and notes. Every year is a `Season`."""
+
     __tablename__ = "leagues"
     __table_args__ = {"schema": "fantasy"}
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
-    season: Mapped[int] = mapped_column(Integer, nullable=False)
     notes: Mapped[str] = mapped_column(Text, nullable=False, server_default="")
-    # The league this one was run back from; unique so a season is run back once.
-    previous_league_id: Mapped[int | None] = mapped_column(
-        Integer,
-        ForeignKey("fantasy.leagues.id", ondelete="SET NULL"),
-        nullable=True,
-        unique=True,
+    # Set by the league delete (rows are kept forever, #231).
+    deleted_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    deleted_by: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("fantasy.users.id", ondelete="SET NULL"), nullable=True
     )
 
     members: Mapped[list["LeagueMember"]] = relationship(
@@ -46,27 +47,57 @@ class League(Base):
     invites: Mapped[list["LeagueInvite"]] = relationship(
         "LeagueInvite", back_populates="league", cascade="all, delete-orphan"
     )
-    teams: Mapped[list["Team"]] = relationship(
-        "Team", back_populates="league", cascade="all, delete-orphan"
-    )
-    settings: Mapped["LeagueSettings | None"] = relationship(
-        "LeagueSettings",
+    seasons: Mapped[list["Season"]] = relationship(
+        "Season",
         back_populates="league",
+        cascade="all, delete-orphan",
+        order_by="Season.year",
+    )
+
+    def __repr__(self) -> str:
+        return f"<League(id={self.id}, name={self.name})>"
+
+
+class Season(Base):
+    """One year of a league: its teams, settings, draft, standings and activity."""
+
+    __tablename__ = "seasons"
+    __table_args__ = (
+        UniqueConstraint("league_id", "year"),
+        {"schema": "fantasy"},
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    league_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("fantasy.leagues.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    year: Mapped[int] = mapped_column(Integer, nullable=False)
+
+    league: Mapped["League"] = relationship("League", back_populates="seasons")
+    teams: Mapped[list["Team"]] = relationship(
+        "Team", back_populates="season", cascade="all, delete-orphan"
+    )
+    settings: Mapped["SeasonSettings | None"] = relationship(
+        "SeasonSettings",
+        back_populates="season",
         uselist=False,
         cascade="all, delete-orphan",
     )
     draft: Mapped["Draft | None"] = relationship(
         "Draft",
-        back_populates="league",
+        back_populates="season",
         uselist=False,
         cascade="all, delete-orphan",
     )
-    standings: Mapped[list["LeagueStanding"]] = relationship(
-        "LeagueStanding", back_populates="league", cascade="all, delete-orphan"
+    standings: Mapped[list["SeasonStanding"]] = relationship(
+        "SeasonStanding", back_populates="season", cascade="all, delete-orphan"
     )
 
     def __repr__(self) -> str:
-        return f"<League(id={self.id}, name={self.name})>"
+        return f"<Season(id={self.id}, league_id={self.league_id}, year={self.year})>"
 
 
 class LeagueMember(Base):
@@ -93,6 +124,10 @@ class LeagueMember(Base):
     )
     joined_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC)
+    )
+    # Set when the member leaves or is removed; the row stays as history.
+    left_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
     )
 
     league: Mapped["League"] = relationship("League", back_populates="members")
@@ -139,15 +174,15 @@ class Team(Base):
         nullable=True,
         index=True,
     )
-    league_id: Mapped[int] = mapped_column(
+    season_id: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("fantasy.leagues.id", ondelete="CASCADE"),
+        ForeignKey("fantasy.seasons.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
 
     owner: Mapped["User | None"] = relationship("User", back_populates="teams_owned")
-    league: Mapped["League"] = relationship("League", back_populates="teams")
+    season: Mapped["Season"] = relationship("Season", back_populates="teams")
     draft_picks: Mapped[list["DraftPick"]] = relationship(
         "DraftPick", back_populates="team", cascade="all, delete-orphan"
     )
@@ -157,22 +192,22 @@ class Team(Base):
     lineup_slots: Mapped[list["LineupSlot"]] = relationship(
         "LineupSlot", back_populates="team", cascade="all, delete-orphan"
     )
-    standings: Mapped[list["LeagueStanding"]] = relationship(
-        "LeagueStanding", back_populates="team", cascade="all, delete-orphan"
+    standings: Mapped[list["SeasonStanding"]] = relationship(
+        "SeasonStanding", back_populates="team", cascade="all, delete-orphan"
     )
 
     def __repr__(self) -> str:
         return f"<Team(id={self.id}, name={self.name})>"
 
 
-class LeagueSettings(Base):
-    __tablename__ = "league_settings"
+class SeasonSettings(Base):
+    __tablename__ = "season_settings"
     __table_args__ = {"schema": "fantasy"}
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    league_id: Mapped[int] = mapped_column(
+    season_id: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("fantasy.leagues.id", ondelete="CASCADE"),
+        ForeignKey("fantasy.seasons.id", ondelete="CASCADE"),
         nullable=False,
         unique=True,
     )
@@ -345,7 +380,7 @@ class LeagueSettings(Base):
     team_qb: Mapped[bool] = mapped_column(Boolean, nullable=False)
     team_k: Mapped[bool] = mapped_column(Boolean, nullable=False)
 
-    league: Mapped["League"] = relationship("League", back_populates="settings")
+    season: Mapped["Season"] = relationship("Season", back_populates="settings")
 
 
 class TeamPlayer(Base):
@@ -353,14 +388,14 @@ class TeamPlayer(Base):
 
     __tablename__ = "team_players"
     __table_args__ = (
-        UniqueConstraint("league_id", "player_id"),
+        UniqueConstraint("season_id", "player_id"),
         {"schema": "fantasy"},
     )
 
-    # Denormalized from the team so the database can enforce one owner per player per league.
-    league_id: Mapped[int] = mapped_column(
+    # Denormalized from the team so the database can enforce one owner per player per season.
+    season_id: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("fantasy.leagues.id", ondelete="CASCADE"),
+        ForeignKey("fantasy.seasons.id", ondelete="CASCADE"),
         nullable=False,
     )
     team_id: Mapped[int] = mapped_column(
@@ -398,23 +433,23 @@ class LineupSlot(Base):
         ForeignKey("nfl.nfl_players.id", ondelete="CASCADE"),
         primary_key=True,
     )
-    # Index into the league's slot layout (see services.lineups.slot_layout).
+    # Index into the season's slot layout (see services.lineups.slot_layout).
     slot_index: Mapped[int] = mapped_column(Integer, nullable=False)
 
     team: Mapped["Team"] = relationship("Team", back_populates="lineup_slots")
 
 
-class LeagueStanding(Base):
+class SeasonStanding(Base):
     __tablename__ = "standings"
     __table_args__ = (
-        UniqueConstraint("league_id", "team_id"),
+        UniqueConstraint("season_id", "team_id"),
         {"schema": "fantasy"},
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    league_id: Mapped[int] = mapped_column(
+    season_id: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("fantasy.leagues.id", ondelete="CASCADE"),
+        ForeignKey("fantasy.seasons.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
@@ -432,5 +467,5 @@ class LeagueStanding(Base):
     super_bowl: Mapped[Decimal | None] = mapped_column(DECIMAL(10, 2), nullable=True)
     total: Mapped[Decimal | None] = mapped_column(DECIMAL(10, 2), nullable=True)
 
-    league: Mapped["League"] = relationship("League", back_populates="standings")
+    season: Mapped["Season"] = relationship("Season", back_populates="standings")
     team: Mapped["Team"] = relationship("Team", back_populates="standings")

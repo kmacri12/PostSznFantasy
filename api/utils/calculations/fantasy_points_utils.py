@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from api.db.models.league import LeagueSettings
+from api.db.models.league import SeasonSettings
 from api.db.models.nfl import NFLPlayerGameStats, NFLPlayerSeasonStats
 from api.models.enums import PlayerPosition
 
@@ -10,7 +10,7 @@ def _safe(val: Decimal | float | None) -> Decimal:
     return Decimal(str(val)) if val is not None else Decimal(0)
 
 
-def _dst_pts_allowed_bonus(pts: int | None, settings: LeagueSettings) -> Decimal:
+def _dst_pts_allowed_bonus(pts: int | None, settings: SeasonSettings) -> Decimal:
     if pts is None:
         return Decimal(0)
     if pts == 0:
@@ -24,7 +24,7 @@ def _dst_pts_allowed_bonus(pts: int | None, settings: LeagueSettings) -> Decimal
     return _safe(settings.scoring_dst_pts_allowed_29_plus)
 
 
-def _dst_yards_allowed_bonus(yards: int | None, settings: LeagueSettings) -> Decimal:
+def _dst_yards_allowed_bonus(yards: int | None, settings: SeasonSettings) -> Decimal:
     if yards is None:
         return Decimal(0)
     if yards < 100:
@@ -48,7 +48,7 @@ def _yardage_bonus(
 
 
 def calculate_passing_points(
-    stats: NFLPlayerGameStats, settings: LeagueSettings
+    stats: NFLPlayerGameStats, settings: SeasonSettings
 ) -> Decimal:
     return (
         _safe(stats.passing_yards) * _safe(settings.scoring_passing_yard)
@@ -70,7 +70,7 @@ def calculate_passing_points(
 
 
 def calculate_rushing_points(
-    stats: NFLPlayerGameStats, settings: LeagueSettings
+    stats: NFLPlayerGameStats, settings: SeasonSettings
 ) -> Decimal:
     return (
         _safe(stats.rushing_yards) * _safe(settings.scoring_rushing_yard)
@@ -89,7 +89,7 @@ def calculate_rushing_points(
 
 def calculate_receiving_points(
     stats: NFLPlayerGameStats,
-    settings: LeagueSettings,
+    settings: SeasonSettings,
     player_position: PlayerPosition | str | None,
 ) -> Decimal:
     points = (
@@ -129,7 +129,7 @@ def calculate_receiving_points(
 
 
 def calculate_turnover_points(
-    stats: NFLPlayerGameStats, settings: LeagueSettings
+    stats: NFLPlayerGameStats, settings: SeasonSettings
 ) -> Decimal:
     return _safe(stats.carrying_fumbles) * _safe(
         settings.scoring_carrying_fumble
@@ -139,7 +139,7 @@ def calculate_turnover_points(
 
 
 def calculate_special_teams_points(
-    stats: NFLPlayerGameStats, settings: LeagueSettings
+    stats: NFLPlayerGameStats, settings: SeasonSettings
 ) -> Decimal:
     # Return TDs are scored by the DST, never by the returner (product rules, section 5).
     return _safe(stats.punt_return_yards) * _safe(
@@ -150,7 +150,7 @@ def calculate_special_teams_points(
 
 
 def calculate_kicking_points(
-    stats: NFLPlayerGameStats, settings: LeagueSettings
+    stats: NFLPlayerGameStats, settings: SeasonSettings
 ) -> Decimal:
     fg_yards: list[int] = stats.kicking_fg_yards_made or []
     flat_per_fg = _safe(settings.scoring_kicking_fg_made)
@@ -177,7 +177,7 @@ def _blocked_kicks(stats: NFLPlayerGameStats) -> Decimal:
 
 
 def calculate_dst_points(
-    stats: NFLPlayerGameStats, settings: LeagueSettings
+    stats: NFLPlayerGameStats, settings: SeasonSettings
 ) -> Decimal:
     return (
         _safe(stats.dst_def_td) * _safe(settings.scoring_dst_td)
@@ -196,7 +196,7 @@ def calculate_dst_points(
 
 def calculate_player_points(
     stats: NFLPlayerGameStats,
-    settings: LeagueSettings,
+    settings: SeasonSettings,
     player_position: PlayerPosition | str | None,
 ) -> Decimal:
     """Return fantasy points for a single player game stat row under the given league settings.
@@ -232,7 +232,7 @@ _SHARED_STAT_COLUMNS = [
 
 def season_points(
     stats: NFLPlayerSeasonStats,
-    settings: LeagueSettings,
+    settings: SeasonSettings,
     player_position: PlayerPosition | str | None,
 ) -> Decimal:
     """Fantasy points for a season-stat row, scored like a single game under `settings`."""

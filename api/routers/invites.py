@@ -14,7 +14,7 @@ from api.models.league_models import (
 )
 from api.services import invites as invite_service
 from api.services.league_members import LeagueRuleError
-from api.services.season_recap import ARCHIVED_MESSAGE, season_is_finished
+from api.services.seasons import current_season
 
 router = APIRouter()
 
@@ -72,11 +72,12 @@ async def preview_invite(code: str, db: DbSession) -> InvitePreview:
     league = (
         await db.execute(select(League).where(League.id == invite.league_id))
     ).scalar_one()
+    season = await current_season(db, league.id)
     problem = await invite_service.join_problem(db, invite)
     return InvitePreview(
         code=invite.code,
         league_name=league.name,
-        season=league.season,
+        season=season.year if season else 0,
         open_spots=await invite_service.open_team_count(db, league.id),
         joinable=problem is None,
         reason=problem,
@@ -99,12 +100,6 @@ async def join_with_invite(
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
-        )
-    season = await db.scalar(select(League.season).where(League.id == invite.league_id))
-    if season is not None and await season_is_finished(db, season):
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail=ARCHIVED_MESSAGE,
         )
     try:
         league, team, already_member = await invite_service.join_league(

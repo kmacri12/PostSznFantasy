@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from api.db.models.league import LeagueSettings, Team, TeamPlayer
+from api.db.models.league import SeasonSettings, Team, TeamPlayer
 from api.db.models.nfl import NFLPlayer
 from api.models.activity_models import ScoreChange
 from api.models.league_models import (
@@ -20,8 +20,8 @@ from api.services import activity
 from api.services.lineups import BENCH, slot_layout, team_lineups
 from api.services.round_points import (
     PointsLine,
-    league_point_lines,
     postseason_stats,
+    season_point_lines,
     sum_points,
 )
 from api.services.round_status import ROUNDS
@@ -62,7 +62,7 @@ async def team_breakdown(
     """Computed on read from lineups, game stats and league settings; nothing is stored."""
     settings = (
         await db.execute(
-            select(LeagueSettings).where(LeagueSettings.league_id == team.league_id)
+            select(SeasonSettings).where(SeasonSettings.season_id == team.season_id)
         )
     ).scalar_one()
     specs = slot_layout(settings)
@@ -80,8 +80,8 @@ async def team_breakdown(
     }
     lines = [
         ln
-        for ln in await league_point_lines(
-            db, team.league_id, await postseason_stats(db, season)
+        for ln in await season_point_lines(
+            db, team.season_id, await postseason_stats(db, season)
         )
         if ln.team_id == team.id
     ]
@@ -158,7 +158,7 @@ async def team_breakdown(
         )
     return TeamBreakdown(
         team_id=team.id,
-        league_id=team.league_id,
+        season_id=team.season_id,
         team_name=team.name or f"Team {team.id}",
         total=float(sum(counted.values(), Decimal(0))),
         points_left_on_bench=float(sum(bench.values(), Decimal(0))),

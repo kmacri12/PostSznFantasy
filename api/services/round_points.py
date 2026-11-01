@@ -14,7 +14,7 @@ from decimal import Decimal
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.db.models.league import LeagueSettings, LineupSlot, Team, TeamPlayer
+from api.db.models.league import LineupSlot, SeasonSettings, Team, TeamPlayer
 from api.db.models.nfl import NFLGame, NFLPlayer, NFLPlayerGameStats
 from api.models.enums import PlayerPosition
 from api.services.lineups import BENCH, slot_layout
@@ -48,12 +48,12 @@ class PointsLine:
     points: Decimal
 
 
-def _multiplier(settings: LeagueSettings, round_: int) -> Decimal:
+def _multiplier(settings: SeasonSettings, round_: int) -> Decimal:
     return Decimal(str(getattr(settings, ROUND_MULTIPLIER_FIELDS[round_ - 1])))
 
 
 def point_lines(
-    settings: LeagueSettings,
+    settings: SeasonSettings,
     starter_slots: Collection[int],
     rosters: Mapping[int, Collection[int]],
     placements: Mapping[tuple[int, int], Mapping[int, int]],
@@ -144,13 +144,13 @@ async def postseason_stats(db: AsyncSession, season: int) -> StatsByPlayer:
     return by_player
 
 
-async def league_point_lines(
-    db: AsyncSession, league_id: int, stats: StatsByPlayer
+async def season_point_lines(
+    db: AsyncSession, season_id: int, stats: StatsByPlayer
 ) -> list[PointsLine]:
     """Every team's lines for a league; pass `postseason_stats` so callers can share it."""
     settings = (
         await db.execute(
-            select(LeagueSettings).where(LeagueSettings.league_id == league_id)
+            select(SeasonSettings).where(SeasonSettings.season_id == season_id)
         )
     ).scalar_one()
     starter_slots = {
@@ -160,7 +160,7 @@ async def league_point_lines(
     for team_id, player_id in (
         await db.execute(
             select(TeamPlayer.team_id, TeamPlayer.player_id).where(
-                TeamPlayer.league_id == league_id
+                TeamPlayer.season_id == season_id
             )
         )
     ).all():
@@ -171,7 +171,7 @@ async def league_point_lines(
             await db.execute(
                 select(NFLPlayer)
                 .join(TeamPlayer, TeamPlayer.player_id == NFLPlayer.id)
-                .where(TeamPlayer.league_id == league_id)
+                .where(TeamPlayer.season_id == season_id)
             )
         ).scalars()
     }
@@ -185,7 +185,7 @@ async def league_point_lines(
                 LineupSlot.player_id,
             )
             .join(Team, Team.id == LineupSlot.team_id)
-            .where(Team.league_id == league_id)
+            .where(Team.season_id == season_id)
         )
     ).all():
         placements[(team_id, round_)][slot_index] = player_id
