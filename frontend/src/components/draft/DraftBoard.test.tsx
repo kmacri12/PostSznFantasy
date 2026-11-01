@@ -5,7 +5,7 @@ import DraftBoard from "./DraftBoard";
 
 const base: DraftState = {
   draftId: 1,
-  leagueId: 1,
+  seasonId: 1,
   status: "in_progress",
   startTime: null,
   draftType: "snake",

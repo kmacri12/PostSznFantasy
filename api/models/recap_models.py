@@ -31,14 +31,15 @@ class AwardWinner(BaseSchema):
 
 
 class SeasonRecap(BaseSchema):
+    season_id: int
     league_id: int
-    season: int
+    year: int
     # The Super Bowl is final; until then there is no champion and no awards.
     finished: bool
     # Every team ranked first: more than one when the title is tied all the way down
     # the tiebreaker chain.
     champions: list[RecapTeam]
     standings: Standings
-    # The league this one was run back as, once the commissioner has done it.
-    next_league_id: int | None = None
+    # The following season of the league, once the commissioner has started it.
+    next_season_id: int | None = None
     awards: list[AwardWinner]

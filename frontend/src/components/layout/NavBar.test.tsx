@@ -8,6 +8,7 @@ vi.mock("../dev/DevQuickSync", () => ({ DevQuickSync: () => null }));
 
 const league = (id: number, season: number, finished: boolean): LeagueByUser => ({
   id,
+  leagueId: id,
   name: `League ${id}`,
   season,
   isCommissioner: false,

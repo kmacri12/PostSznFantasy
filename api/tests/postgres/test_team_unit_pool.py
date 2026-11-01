@@ -19,7 +19,7 @@ from api.services.draft_picks import DraftPickError, make_pick
 from api.services.ingestion.depth_chart_ingest import ingest_depth_charts
 from api.services.team_starters import resolve_depth_chart_starters
 from api.tests.postgres.conftest import ClientFactory
-from api.tests.postgres.factories import make_league
+from api.tests.postgres.factories import make_season
 
 KC, PHI = 1, 2
 
@@ -72,7 +72,7 @@ class Field:
         self, client_as: ClientFactory, league_id: int, uid: str = "uid-0"
     ) -> dict[int, dict[str, Any]]:
         async with client_as(uid) as user:
-            response = await user.get(f"/api/players/draft-pool?leagueId={league_id}")
+            response = await user.get(f"/api/players/draft-pool?seasonId={league_id}")
         assert response.status_code == 200
         return {player["id"]: player for player in response.json()}
 
@@ -80,10 +80,10 @@ class Field:
 async def test_the_pool_lists_only_the_starting_qb_of_each_team(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
-    league, _, _, _ = await make_league(db, team_qb=True)
+    season, _, _, _ = await make_season(db, team_qb=True)
     field = await Field().build(db)
 
-    pool = await field.pool(client_as, league.id)
+    pool = await field.pool(client_as, season.id)
 
     qbs = {pid for pid, p in pool.items() if p["position"] == "QB"}
     assert qbs == {10, 20}
@@ -95,10 +95,10 @@ async def test_the_pool_lists_only_the_starting_qb_of_each_team(
 async def test_team_k_lists_one_kicker_per_team(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
-    league, _, _, _ = await make_league(db, team_k=True)
+    season, _, _, _ = await make_season(db, team_k=True)
     field = await Field().build(db)
 
-    pool = await field.pool(client_as, league.id)
+    pool = await field.pool(client_as, season.id)
 
     assert {pid for pid, p in pool.items() if p["position"] == "PK"} == {12, 22}
     assert {10, 11, 20, 21} <= set(pool)
@@ -107,10 +107,10 @@ async def test_team_k_lists_one_kicker_per_team(
 async def test_with_both_off_every_qb_and_k_is_listed_and_unflagged(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
-    league, _, _, _ = await make_league(db)
+    season, _, _, _ = await make_season(db)
     field = await Field().build(db)
 
-    pool = await field.pool(client_as, league.id)
+    pool = await field.pool(client_as, season.id)
 
     assert {10, 11, 12, 13, 14, 20, 21, 22, 23} == set(pool)
     assert not any(player["scoresWholeTeam"] for player in pool.values())
@@ -119,10 +119,10 @@ async def test_with_both_off_every_qb_and_k_is_listed_and_unflagged(
 async def test_listed_qbs_and_ks_say_they_score_the_whole_team(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
-    league, _, _, _ = await make_league(db, team_qb=True, team_k=True)
+    season, _, _, _ = await make_season(db, team_qb=True, team_k=True)
     field = await Field().build(db)
 
-    pool = await field.pool(client_as, league.id)
+    pool = await field.pool(client_as, season.id)
 
     assert {pid for pid, p in pool.items() if p["scoresWholeTeam"]} == {10, 12, 20, 22}
     assert pool[14]["scoresWholeTeam"] is False
@@ -131,7 +131,7 @@ async def test_listed_qbs_and_ks_say_they_score_the_whole_team(
 async def test_without_a_league_the_pool_is_unchanged(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
-    await make_league(db, team_qb=True)
+    await make_season(db, team_qb=True)
     await Field().build(db)
     async with client_as("uid-0") as user:
         everyone = (await user.get("/api/players/draft-pool")).json()
@@ -142,12 +142,12 @@ async def test_without_a_league_the_pool_is_unchanged(
 async def test_a_backup_qb_cannot_be_drafted_but_the_starter_can(
     db: AsyncSession,
 ) -> None:
-    league, users, _, _ = await make_league(db, team_qb=True)
+    season, users, _, _ = await make_season(db, team_qb=True)
     await Field().build(db)
 
     with pytest.raises(DraftPickError, match="starting QB") as refused:
-        await make_pick(db, league.id, users[0], 11)
-    picked = await make_pick(db, league.id, users[0], 10)
+        await make_pick(db, season.id, users[0], 11)
+    picked = await make_pick(db, season.id, users[0], 10)
 
     assert refused.value.code == "not_in_pool"
     assert picked.player_name == "Mahomes"
@@ -156,13 +156,13 @@ async def test_a_backup_qb_cannot_be_drafted_but_the_starter_can(
 async def test_drafting_a_team_qb_keeps_the_rest_of_his_team_out(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
-    league, users, _, _ = await make_league(db, team_qb=True)
+    season, users, _, _ = await make_season(db, team_qb=True)
     field = await Field().build(db)
-    await make_pick(db, league.id, users[0], 10)
+    await make_pick(db, season.id, users[0], 10)
 
-    pool = await field.pool(client_as, league.id)
+    pool = await field.pool(client_as, season.id)
     with pytest.raises(DraftPickError):
-        await make_pick(db, league.id, users[1], 11)
+        await make_pick(db, season.id, users[1], 11)
 
     assert {pid for pid, p in pool.items() if p["position"] == "QB"} <= {10, 20}
 
@@ -171,17 +171,17 @@ async def test_a_unit_already_covered_by_a_drafted_backup_is_closed(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
     # Team QB was off when a backup went; turning it on mid-draft closes his team.
-    league, users, _, _ = await make_league(db)
+    season, users, _, _ = await make_season(db)
     field = await Field().build(db)
-    await make_pick(db, league.id, users[0], 21)  # PHI's backup
+    await make_pick(db, season.id, users[0], 21)  # PHI's backup
     async with client_as("uid-0") as commissioner:
         await commissioner.patch(
-            f"/api/leagues/{league.id}/settings", json={"teamQb": True}
+            f"/api/seasons/{season.id}/settings", json={"teamQb": True}
         )
 
-    pool = await field.pool(client_as, league.id)
+    pool = await field.pool(client_as, season.id)
     with pytest.raises(DraftPickError, match="already covered") as refused:
-        await make_pick(db, league.id, users[1], 20)  # PHI's starter
+        await make_pick(db, season.id, users[1], 20)  # PHI's starter
 
     assert 20 not in pool and 10 in pool
     assert refused.value.code == "not_in_pool"
@@ -190,7 +190,7 @@ async def test_a_unit_already_covered_by_a_drafted_backup_is_closed(
 async def test_auto_pick_never_takes_a_backup_even_when_he_scores_more(
     db: AsyncSession,
 ) -> None:
-    league, _, _, _ = await make_league(db, team_qb=True)
+    season, _, _, _ = await make_season(db, team_qb=True)
     await Field().build(db)
     db.add_all(
         NFLPlayerSeasonStats(season="2025", player_id=pid, passing_yards=yards)
@@ -198,7 +198,7 @@ async def test_auto_pick_never_takes_a_backup_even_when_he_scores_more(
     )
     await db.flush()
 
-    result = await draft_flow.auto_pick(db, league.id)
+    result = await draft_flow.auto_pick(db, season.id)
 
     assert result.pick.player_id == 10
 
@@ -206,13 +206,13 @@ async def test_auto_pick_never_takes_a_backup_even_when_he_scores_more(
 async def test_the_draft_board_flags_a_picked_team_qb(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
-    league, users, _, _ = await make_league(db, team_qb=True)
+    season, users, _, _ = await make_season(db, team_qb=True)
     await Field().build(db)
-    await make_pick(db, league.id, users[0], 10)
-    await make_pick(db, league.id, users[1], 14)
+    await make_pick(db, season.id, users[0], 10)
+    await make_pick(db, season.id, users[1], 14)
 
     async with client_as("uid-0") as user:
-        state = (await user.get(f"/api/drafts/draft-info/{league.id}")).json()
+        state = (await user.get(f"/api/drafts/draft-info/{season.id}")).json()
 
     flags = {pick["playerName"]: pick["scoresWholeTeam"] for pick in state["picks"]}
     assert flags == {"Mahomes": True, "Kelce Back": False}

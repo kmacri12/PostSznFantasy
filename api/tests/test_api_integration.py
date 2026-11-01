@@ -5,7 +5,7 @@ from httpx import AsyncClient
 from sqlalchemy.exc import IntegrityError, OperationalError
 
 from api.db.models.draft import Draft
-from api.db.models.league import LeagueSettings
+from api.db.models.league import SeasonSettings
 from api.db.models.nfl import NFLPlayer, NFLPlayerSeasonStats, NFLTeam
 from api.db.models.user import User
 
@@ -189,7 +189,7 @@ async def test_create_league_without_scoring_persists_defaults(
     )
     assert res.status_code == 201
     added = [call.args[0] for call in mock_db_session.add.call_args_list]
-    settings = next(obj for obj in added if isinstance(obj, LeagueSettings))
+    settings = next(obj for obj in added if isinstance(obj, SeasonSettings))
     assert settings.scoring_passing_yard == 0.04
     assert settings.scoring_receiving_reception == 1
 

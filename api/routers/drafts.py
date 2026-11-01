@@ -13,9 +13,9 @@ from api.db.session import DbSession, get_session_factory
 from api.dependencies.auth import verify_token
 from api.dependencies.league import (
     DraftMember,
-    LeagueCommissioner,
-    LeagueMember,
-    find_membership,
+    SeasonCommissioner,
+    SeasonMember,
+    find_season_membership,
 )
 from api.models.draft_models import (
     DraftOrderUpdate,
@@ -29,7 +29,7 @@ from api.models.draft_models import (
 from api.services import draft_flow
 from api.services.draft_events import pick_events, state_event
 from api.services.draft_picks import DraftPickError, PickResult, make_pick
-from api.services.season_recap import ARCHIVED_MESSAGE, league_is_archived
+from api.services.season_recap import ARCHIVED_MESSAGE, season_is_archived
 from api.ws.draft_manager import draft_manager
 
 logger = logging.getLogger(__name__)
@@ -44,9 +44,9 @@ def _conflict(exc: DraftPickError) -> HTTPException:
     return HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
 
 
-async def _draft_for(db: DbSession, league_id: int) -> Draft:
+async def _draft_for(db: DbSession, season_id: int) -> Draft:
     draft = (
-        await db.execute(select(Draft).where(Draft.league_id == league_id))
+        await db.execute(select(Draft).where(Draft.season_id == season_id))
     ).scalar_one_or_none()
     if draft is None:
         raise HTTPException(
@@ -55,12 +55,12 @@ async def _draft_for(db: DbSession, league_id: int) -> Draft:
     return draft
 
 
-@router.get("/draft-info/{league_id}", response_model=DraftStateResponse)
+@router.get("/draft-info/{season_id}", response_model=DraftStateResponse)
 async def get_draft_info(
-    league_id: int, _: LeagueMember, db: DbSession
+    season_id: int, _: SeasonMember, db: DbSession
 ) -> DraftStateResponse:
     """Full draft state including the server clock (deadline + server time)."""
-    return await draft_flow.build_state(db, await _draft_for(db, league_id))
+    return await draft_flow.build_state(db, await _draft_for(db, season_id))
 
 
 @router.get("/draft-picks/{draft_id}", response_model=list[DraftPickResponse])
@@ -75,39 +75,39 @@ async def _broadcast_state(db: DbSession, draft: Draft) -> DraftStateResponse:
     """Commit first so clients refetching on the broadcast see the new state."""
     await db.commit()
     event = await state_event(db, draft)
-    await draft_manager.broadcast(draft.league_id, event)
+    await draft_manager.broadcast(draft.season_id, event)
     return DraftStateResponse.model_validate(event["data"])
 
 
-@router.patch("/{league_id}", response_model=DraftStateResponse)
+@router.patch("/{season_id}", response_model=DraftStateResponse)
 async def update_setup(
-    league_id: int, payload: DraftSetup, _: LeagueCommissioner, db: DbSession
+    season_id: int, payload: DraftSetup, _: SeasonCommissioner, db: DbSession
 ) -> DraftStateResponse:
     """Date/time, time per pick, type and timeout behaviour."""
     try:
-        draft = await draft_flow.apply_setup(db, league_id, payload)
+        draft = await draft_flow.apply_setup(db, season_id, payload)
     except DraftPickError as exc:
         raise _conflict(exc) from exc
     return await _broadcast_state(db, draft)
 
 
-@router.put("/{league_id}/order", response_model=DraftStateResponse)
+@router.put("/{season_id}/order", response_model=DraftStateResponse)
 async def update_order(
-    league_id: int, payload: DraftOrderUpdate, _: LeagueCommissioner, db: DbSession
+    season_id: int, payload: DraftOrderUpdate, _: SeasonCommissioner, db: DbSession
 ) -> DraftStateResponse:
     try:
-        draft = await draft_flow.set_order(db, league_id, payload.team_ids)
+        draft = await draft_flow.set_order(db, season_id, payload.team_ids)
     except DraftPickError as exc:
         raise _conflict(exc) from exc
     return await _broadcast_state(db, draft)
 
 
-@router.post("/{league_id}/order/randomize", response_model=DraftStateResponse)
+@router.post("/{season_id}/order/randomize", response_model=DraftStateResponse)
 async def randomize_order(
-    league_id: int, _: LeagueCommissioner, db: DbSession
+    season_id: int, _: SeasonCommissioner, db: DbSession
 ) -> DraftStateResponse:
     try:
-        draft = await draft_flow.randomize_order(db, league_id)
+        draft = await draft_flow.randomize_order(db, season_id)
     except DraftPickError as exc:
         raise _conflict(exc) from exc
     return await _broadcast_state(db, draft)
@@ -122,9 +122,9 @@ CONTROLS = {
 }
 
 
-@router.post("/{league_id}/control/{action}", response_model=DraftStateResponse)
+@router.post("/{season_id}/control/{action}", response_model=DraftStateResponse)
 async def control(
-    league_id: int, action: str, _: LeagueCommissioner, db: DbSession
+    season_id: int, action: str, _: SeasonCommissioner, db: DbSession
 ) -> DraftStateResponse:
     """Commissioner controls: lobby, start, pause, resume and undo of the last pick."""
     handler = CONTROLS.get(action)
@@ -133,46 +133,46 @@ async def control(
             status_code=status.HTTP_404_NOT_FOUND, detail="Unknown draft action"
         )
     try:
-        draft = await handler(db, league_id)
+        draft = await handler(db, season_id)
     except DraftPickError as exc:
         raise _conflict(exc) from exc
     return await _broadcast_state(db, draft)
 
 
-@router.post("/{league_id}/force-pick", response_model=DraftStateResponse)
+@router.post("/{season_id}/force-pick", response_model=DraftStateResponse)
 async def force_pick(
-    league_id: int, _: LeagueCommissioner, db: DbSession
+    season_id: int, _: SeasonCommissioner, db: DbSession
 ) -> DraftStateResponse:
     """Auto-pick now for whoever is on the clock."""
     try:
-        result = await draft_flow.auto_pick(db, league_id)
+        result = await draft_flow.auto_pick(db, season_id)
     except DraftPickError as exc:
         raise _conflict(exc) from exc
-    return await _commit_and_announce(db, league_id, result)
+    return await _commit_and_announce(db, season_id, result)
 
 
 async def _commit_and_announce(
-    db: DbSession, league_id: int, result: PickResult
+    db: DbSession, season_id: int, result: PickResult
 ) -> DraftStateResponse:
-    draft = await _draft_for(db, league_id)
+    draft = await _draft_for(db, season_id)
     events = await pick_events(db, draft, result)
     await db.commit()
     for event in events:
-        await draft_manager.broadcast(league_id, event)
+        await draft_manager.broadcast(season_id, event)
     return DraftStateResponse.model_validate(events[1]["data"])
 
 
-@router.post("/{league_id}/picks", response_model=DraftPickResponse)
+@router.post("/{season_id}/picks", response_model=DraftPickResponse)
 async def submit_pick(
-    league_id: int, payload: PickRequest, membership: LeagueMember, db: DbSession
+    season_id: int, payload: PickRequest, membership: SeasonMember, db: DbSession
 ) -> DraftPickResponse:
     """REST twin of the WebSocket MAKE_PICK; replaying the same pick is a no-op."""
     try:
-        result = await make_pick(db, league_id, membership.user, payload.player_id)
+        result = await make_pick(db, season_id, membership.user, payload.player_id)
     except DraftPickError as exc:
         raise _conflict(exc) from exc
     if not result.already_recorded:
-        await _commit_and_announce(db, league_id, result)
+        await _commit_and_announce(db, season_id, result)
     pick = result.pick
     return DraftPickResponse(
         id=pick.id,
@@ -187,21 +187,21 @@ async def submit_pick(
     )
 
 
-@router.get("/{league_id}/queue", response_model=QueueResponse)
+@router.get("/{season_id}/queue", response_model=QueueResponse)
 async def get_queue(
-    league_id: int, membership: LeagueMember, db: DbSession
+    season_id: int, membership: SeasonMember, db: DbSession
 ) -> QueueResponse:
     if membership.team is None:
         return QueueResponse(player_ids=[])
-    draft = await _draft_for(db, league_id)
+    draft = await _draft_for(db, season_id)
     return QueueResponse(
         player_ids=await draft_flow.get_queue(db, draft.id, membership.team.id)
     )
 
 
-@router.put("/{league_id}/queue", response_model=QueueResponse)
+@router.put("/{season_id}/queue", response_model=QueueResponse)
 async def put_queue(
-    league_id: int, payload: QueueUpdate, membership: LeagueMember, db: DbSession
+    season_id: int, payload: QueueUpdate, membership: SeasonMember, db: DbSession
 ) -> QueueResponse:
     """Pre-rank players; auto-pick consumes this list in order."""
     if membership.team is None:
@@ -209,7 +209,7 @@ async def put_queue(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You have no team in this league",
         )
-    draft = await _draft_for(db, league_id)
+    draft = await _draft_for(db, season_id)
     try:
         ids = await draft_flow.set_queue(
             db, draft.id, membership.team.id, payload.player_ids
@@ -219,9 +219,9 @@ async def put_queue(
     return QueueResponse(player_ids=ids)
 
 
-async def _snapshot(league_id: int, user: User, team_id: int | None) -> dict[str, Any]:
+async def _snapshot(season_id: int, user: User, team_id: int | None) -> dict[str, Any]:
     async with get_session_factory()() as db:
-        draft = await _draft_for_session(db, league_id)
+        draft = await _draft_for_session(db, season_id)
         state = await draft_flow.build_state(db, draft)
         queue = await draft_flow.get_queue(db, draft.id, team_id) if team_id else []
     return {
@@ -229,43 +229,43 @@ async def _snapshot(league_id: int, user: User, team_id: int | None) -> dict[str
         "data": {
             **state.model_dump(mode="json"),
             "queue": queue,
-            "presence": draft_manager.present_user_ids(league_id),
+            "presence": draft_manager.present_user_ids(season_id),
             "myTeamId": team_id,
         },
     }
 
 
-async def _draft_for_session(db: Any, league_id: int) -> Draft:
+async def _draft_for_session(db: Any, season_id: int) -> Draft:
     draft = (
-        await db.execute(select(Draft).where(Draft.league_id == league_id))
+        await db.execute(select(Draft).where(Draft.season_id == season_id))
     ).scalar_one()
     return draft  # type: ignore[no-any-return]
 
 
-@router.websocket("/ws/{league_id}")
-async def websocket_draft_endpoint(websocket: WebSocket, league_id: int) -> None:
-    """Live draft room (ws://localhost:8000/api/drafts/ws/{league_id}).
+@router.websocket("/ws/{season_id}")
+async def websocket_draft_endpoint(websocket: WebSocket, season_id: int) -> None:
+    """Live draft room (ws://localhost:8000/api/drafts/ws/{season_id}).
 
     The first client message must be `{"eventType": "AUTH", "token": "<jwt>"}`; sending
     the token in a message rather than the URL keeps it out of access logs. Members
     receive a full SNAPSHOT on connect (so reconnects resync) and then live events.
     """
     await websocket.accept()
-    member = await _authenticate(websocket, league_id)
+    member = await _authenticate(websocket, season_id)
     if member is None:
         return
     user, team_id = member
 
-    await draft_manager.join(league_id, websocket, user.id)
+    await draft_manager.join(season_id, websocket, user.id)
     try:
         await draft_manager.send_personal(
-            websocket, await _snapshot(league_id, user, team_id)
+            websocket, await _snapshot(season_id, user, team_id)
         )
         await draft_manager.broadcast(
-            league_id,
+            season_id,
             {
                 "eventType": "PRESENCE",
-                "data": draft_manager.present_user_ids(league_id),
+                "data": draft_manager.present_user_ids(season_id),
             },
         )
 
@@ -290,22 +290,22 @@ async def websocket_draft_endpoint(websocket: WebSocket, league_id: int) -> None
                 )
             elif event_type == "SYNC_REQUEST":
                 await draft_manager.send_personal(
-                    websocket, await _snapshot(league_id, user, team_id)
+                    websocket, await _snapshot(season_id, user, team_id)
                 )
             elif event_type == "MAKE_PICK":
-                await _handle_make_pick(websocket, league_id, user, message)
+                await _handle_make_pick(websocket, season_id, user, message)
 
     except WebSocketDisconnect:
         pass
     except Exception:
         logger.exception("Error in draft room websocket")
     finally:
-        await draft_manager.disconnect(league_id, websocket)
+        await draft_manager.disconnect(season_id, websocket)
         await draft_manager.broadcast(
-            league_id,
+            season_id,
             {
                 "eventType": "PRESENCE",
-                "data": draft_manager.present_user_ids(league_id),
+                "data": draft_manager.present_user_ids(season_id),
             },
         )
 
@@ -319,7 +319,7 @@ async def _send_error(
 
 
 async def _authenticate(
-    websocket: WebSocket, league_id: int
+    websocket: WebSocket, season_id: int
 ) -> tuple[User, int | None] | None:
     """Return (user, team id), or close the socket and return None."""
     try:
@@ -340,7 +340,7 @@ async def _authenticate(
         return None
 
     async with get_session_factory()() as db:
-        membership = await find_membership(db, league_id, supabase_uid)
+        membership = await find_season_membership(db, season_id, supabase_uid)
     if membership is None:
         await _close_quietly(websocket, "Not a member of this league")
         return None
@@ -354,7 +354,7 @@ async def _close_quietly(websocket: WebSocket, reason: str) -> None:
 
 
 async def _handle_make_pick(
-    websocket: WebSocket, league_id: int, user: User, message: dict[str, Any]
+    websocket: WebSocket, season_id: int, user: User, message: dict[str, Any]
 ) -> None:
     data = message.get("data")
     player_id = data.get("playerId") if isinstance(data, dict) else None
@@ -364,12 +364,12 @@ async def _handle_make_pick(
 
     async with get_session_factory()() as db:
         try:
-            if await league_is_archived(db, league_id):
+            if await season_is_archived(db, season_id):
                 raise DraftPickError(ARCHIVED_MESSAGE, code="archived")
-            result = await make_pick(db, league_id, user, player_id)
+            result = await make_pick(db, season_id, user, player_id)
             if result.already_recorded:
                 return
-            draft = await _draft_for_session(db, league_id)
+            draft = await _draft_for_session(db, season_id)
             events = await pick_events(db, draft, result)
             await db.commit()
         except DraftPickError as exc:
@@ -378,4 +378,4 @@ async def _handle_make_pick(
             return
 
     for event in events:
-        await draft_manager.broadcast(league_id, event)
+        await draft_manager.broadcast(season_id, event)

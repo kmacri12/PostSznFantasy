@@ -5,7 +5,7 @@ from typing import Any
 from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.db.models import LeagueSettings, LineupSlot
+from api.db.models import LineupSlot, SeasonSettings
 from api.tests.postgres.conftest import ClientFactory
 from api.tests.postgres.test_live_standings import (
     BENCH_SLOT,
@@ -35,7 +35,7 @@ async def scored_world(db: AsyncSession, client_as: ClientFactory) -> World:
     Round 2 (2x): the TE starts and scores 8, the RB sits and scores 20."""
     w = await world(db, client_as)
     me = w.teams[0]
-    await db.execute(update(LeagueSettings).values(multiplier_divisional=2))
+    await db.execute(update(SeasonSettings).values(multiplier_divisional=2))
     rb = await draft(w, me, "RB", "KC", (1, RB_SLOT))
     wr = await draft(w, me, "WR", "KC", (1, BENCH_SLOT))
     te = await draft(w, me, "TE", "KC")
@@ -106,7 +106,7 @@ async def test_the_team_total_of_points_left_on_the_bench_sums_every_round(
 
     body = await breakdown(w)
 
-    assert body["leagueId"] == w.league_id
+    assert body["seasonId"] == w.league_id
     assert body["pointsLeftOnBench"] == 55  # 35 in the Wild Card + 20 in the Divisional
     assert body["total"] == 18
 

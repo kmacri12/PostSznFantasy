@@ -60,17 +60,22 @@ export class Api {
     return userId;
   }
 
+  /**
+   * Creates a league and returns the id of its first season: the id the SPA routes and
+   * the season API use (tests call it `leagueId`, as the pages do).
+   */
   async createLeague(name: string, roster: RosterShape = TINY_ROSTER): Promise<number> {
-    const { leagueId } = await this.post<{ leagueId: number }>("/api/leagues/create-league", {
+    const { seasonId } = await this.post<{ seasonId: number }>("/api/leagues/create-league", {
       leagueName: name,
       rosterSettings: { ...TINY_ROSTER, ...roster },
       teamUnitSettings: { teamQb: false, teamK: false },
     });
-    return leagueId;
+    return seasonId;
   }
 
-  /** Creates an invite and returns its code. */
-  async invite(leagueId: number): Promise<string> {
+  /** Creates an invite for the season's league and returns its code. */
+  async invite(seasonId: number): Promise<string> {
+    const { leagueId } = await this.get<{ leagueId: number }>(`/api/seasons/${seasonId}`);
     const { code } = await this.post<{ code: string }>(`/api/leagues/${leagueId}/invite`, {});
     return code;
   }

@@ -4,12 +4,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.db.models import NFLPlayer, NFLTeam, Team, TeamPlayer, User
 from api.tests.postgres.conftest import ClientFactory
-from api.tests.postgres.factories import make_league
+from api.tests.postgres.factories import make_season
 
 
 async def hold(db: AsyncSession, team: Team, *players: NFLPlayer) -> None:
     db.add_all(
-        TeamPlayer(team_id=team.id, league_id=team.league_id, player_id=p.id)
+        TeamPlayer(team_id=team.id, season_id=team.season_id, player_id=p.id)
         for p in players
     )
     await db.flush()
@@ -49,8 +49,8 @@ async def test_creating_a_league_needs_an_explicit_choice_for_both(
             "/api/leagues/create-league",
             json={**base, "teamUnitSettings": {"teamQb": True, "teamK": False}},
         )
-        league_id = both.json()["leagueId"]
-        settings = (await creator.get(f"/api/leagues/{league_id}/settings")).json()
+        season_id = both.json()["seasonId"]
+        settings = (await creator.get(f"/api/seasons/{season_id}/settings")).json()
 
     assert (none.status_code, only_qb.status_code, nulls.status_code) == (422, 422, 422)
     assert both.status_code == 201
@@ -60,7 +60,7 @@ async def test_creating_a_league_needs_an_explicit_choice_for_both(
 async def test_turning_on_is_blocked_while_a_team_holds_two_from_one_nfl_team(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
-    league, _, teams, _ = await make_league(db)
+    season, _, teams, _ = await make_season(db)
     phi = await nfl_team_with(
         db, "PHI", 21, ("Jalen Hurts", "QB"), ("Tanner McKee", "QB")
     )
@@ -68,9 +68,9 @@ async def test_turning_on_is_blocked_while_a_team_holds_two_from_one_nfl_team(
 
     async with client_as("uid-0") as commissioner:
         blocked = await commissioner.patch(
-            f"/api/leagues/{league.id}/settings", json={"teamQb": True}
+            f"/api/seasons/{season.id}/settings", json={"teamQb": True}
         )
-        settings = (await commissioner.get(f"/api/leagues/{league.id}/settings")).json()
+        settings = (await commissioner.get(f"/api/seasons/{season.id}/settings")).json()
 
     assert blocked.status_code == 409
     detail = blocked.json()["detail"]
@@ -82,7 +82,7 @@ async def test_turning_on_is_blocked_while_a_team_holds_two_from_one_nfl_team(
 async def test_every_conflict_is_listed_not_just_the_first(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
-    league, _, teams, _ = await make_league(db)
+    season, _, teams, _ = await make_season(db)
     phi = await nfl_team_with(
         db, "PHI", 21, ("Jalen Hurts", "QB"), ("Tanner McKee", "QB")
     )
@@ -94,7 +94,7 @@ async def test_every_conflict_is_listed_not_just_the_first(
 
     async with client_as("uid-0") as commissioner:
         blocked = await commissioner.patch(
-            f"/api/leagues/{league.id}/settings", json={"teamQb": True}
+            f"/api/seasons/{season.id}/settings", json={"teamQb": True}
         )
 
     detail = blocked.json()["detail"]
@@ -104,7 +104,7 @@ async def test_every_conflict_is_listed_not_just_the_first(
 async def test_the_two_settings_are_checked_independently(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
-    league, _, teams, _ = await make_league(db)
+    season, _, teams, _ = await make_season(db)
     phi = await nfl_team_with(
         db, "PHI", 21, ("Jake Elliott", "PK"), ("Backup Kicker", "PK")
     )
@@ -112,16 +112,16 @@ async def test_the_two_settings_are_checked_independently(
 
     async with client_as("uid-0") as commissioner:
         qb_ok = await commissioner.patch(
-            f"/api/leagues/{league.id}/settings", json={"teamQb": True}
+            f"/api/seasons/{season.id}/settings", json={"teamQb": True}
         )
         k_blocked = await commissioner.patch(
-            f"/api/leagues/{league.id}/settings", json={"teamK": True}
+            f"/api/seasons/{season.id}/settings", json={"teamK": True}
         )
         both_blocked = await commissioner.patch(
-            f"/api/leagues/{league.id}/settings",
+            f"/api/seasons/{season.id}/settings",
             json={"teamQb": False, "teamK": True},
         )
-        settings = (await commissioner.get(f"/api/leagues/{league.id}/settings")).json()
+        settings = (await commissioner.get(f"/api/seasons/{season.id}/settings")).json()
 
     assert qb_ok.status_code == 200
     assert k_blocked.status_code == 409
@@ -134,7 +134,7 @@ async def test_the_two_settings_are_checked_independently(
 async def test_one_qb_from_each_nfl_team_is_not_a_conflict(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
-    league, _, teams, _ = await make_league(db)
+    season, _, teams, _ = await make_season(db)
     phi = await nfl_team_with(
         db, "PHI", 21, ("Jalen Hurts", "QB"), ("Tanner McKee", "QB")
     )
@@ -145,7 +145,7 @@ async def test_one_qb_from_each_nfl_team_is_not_a_conflict(
 
     async with client_as("uid-0") as commissioner:
         ok = await commissioner.patch(
-            f"/api/leagues/{league.id}/settings", json={"teamQb": True}
+            f"/api/seasons/{season.id}/settings", json={"teamQb": True}
         )
     assert ok.status_code == 200
     assert ok.json()["teamQb"] is True
@@ -154,7 +154,7 @@ async def test_one_qb_from_each_nfl_team_is_not_a_conflict(
 async def test_turning_off_is_always_allowed(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
-    league, _, teams, _ = await make_league(db, team_qb=True, team_k=True)
+    season, _, teams, _ = await make_season(db, team_qb=True, team_k=True)
     phi = await nfl_team_with(
         db, "PHI", 21, ("Jalen Hurts", "QB"), ("Tanner McKee", "QB")
     )
@@ -162,11 +162,11 @@ async def test_turning_off_is_always_allowed(
 
     async with client_as("uid-0") as commissioner:
         off = await commissioner.patch(
-            f"/api/leagues/{league.id}/settings",
+            f"/api/seasons/{season.id}/settings",
             json={"teamQb": False, "teamK": False},
         )
         back_on = await commissioner.patch(
-            f"/api/leagues/{league.id}/settings", json={"teamQb": True}
+            f"/api/seasons/{season.id}/settings", json={"teamQb": True}
         )
 
     assert off.status_code == 200
@@ -177,7 +177,7 @@ async def test_turning_off_is_always_allowed(
 async def test_leaving_a_setting_as_it_is_never_conflicts(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
-    league, _, teams, _ = await make_league(db, team_qb=True)
+    season, _, teams, _ = await make_season(db, team_qb=True)
     phi = await nfl_team_with(
         db, "PHI", 21, ("Jalen Hurts", "QB"), ("Tanner McKee", "QB")
     )
@@ -185,7 +185,7 @@ async def test_leaving_a_setting_as_it_is_never_conflicts(
 
     async with client_as("uid-0") as commissioner:
         same = await commissioner.patch(
-            f"/api/leagues/{league.id}/settings",
+            f"/api/seasons/{season.id}/settings",
             json={"teamQb": True, "scoringPassingTd": 5},
         )
     assert same.status_code == 200
@@ -194,10 +194,10 @@ async def test_leaving_a_setting_as_it_is_never_conflicts(
 async def test_only_the_commissioner_can_change_them(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
-    league, _, _, _ = await make_league(db)
+    season, _, _, _ = await make_season(db)
     async with client_as("uid-1") as member:
         denied = await member.patch(
-            f"/api/leagues/{league.id}/settings", json={"teamK": True}
+            f"/api/seasons/{season.id}/settings", json={"teamK": True}
         )
     assert denied.status_code == 403
 
@@ -205,7 +205,7 @@ async def test_only_the_commissioner_can_change_them(
 async def test_switching_a_setting_is_logged_but_a_refused_switch_is_not(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
-    league, _, teams, _ = await make_league(db)
+    season, _, teams, _ = await make_season(db)
     phi = await nfl_team_with(
         db, "PHI", 21, ("Jake Elliott", "PK"), ("Backup Kicker", "PK")
     )
@@ -213,12 +213,12 @@ async def test_switching_a_setting_is_logged_but_a_refused_switch_is_not(
 
     async with client_as("uid-0") as commissioner:
         await commissioner.patch(
-            f"/api/leagues/{league.id}/settings", json={"teamQb": True}
+            f"/api/seasons/{season.id}/settings", json={"teamQb": True}
         )
         refused = await commissioner.patch(
-            f"/api/leagues/{league.id}/settings", json={"teamK": True}
+            f"/api/seasons/{season.id}/settings", json={"teamK": True}
         )
-        feed = (await commissioner.get(f"/api/leagues/{league.id}/activity")).json()
+        feed = (await commissioner.get(f"/api/seasons/{season.id}/activity")).json()
 
     assert refused.status_code == 409
     (event,) = feed["events"]

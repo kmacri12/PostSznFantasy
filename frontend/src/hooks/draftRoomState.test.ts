@@ -9,7 +9,7 @@ import {
 
 const snapshot = (overrides: Partial<DraftSnapshot> = {}): DraftSnapshot => ({
   draftId: 1,
-  leagueId: 7,
+  seasonId: 7,
   status: "in_progress",
   startTime: null,
   draftType: "snake",
@@ -105,7 +105,7 @@ describe("draft room reducer", () => {
       { eventType: "SNAPSHOT", data: snapshot() },
       NOW - 5000,
     );
-    expect(room.state?.leagueId).toBe(7);
+    expect(room.state?.seasonId).toBe(7);
     expect(room.clockOffsetMs).toBe(5000);
   });
 

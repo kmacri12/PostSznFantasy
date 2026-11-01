@@ -31,27 +31,27 @@ def diff_settings(
 
 async def record_settings_change(
     db: AsyncSession,
-    league_id: int,
+    season_id: int,
     actor: activity.Actor,
     before: Mapping[str, Any],
     after: Mapping[str, Any],
 ) -> None:
     """Log a settings edit, one event for all fields that changed; none if nothing did.
 
-    Both mappings are keyed by the `league_settings` column name; `after` holds only
+    Both mappings are keyed by the `season_settings` column name; `after` holds only
     the fields that were set. Anything that edits league settings calls this (the
     settings PATCH does through `on_editable_settings_changed`).
     """
     changes = diff_settings(before, after)
     if changes:
         await activity.append(
-            db, league_id, SettingsChangePayload(changes=changes), actor=actor
+            db, season_id, SettingsChangePayload(changes=changes), actor=actor
         )
 
 
 async def on_editable_settings_changed(
     db: AsyncSession,
-    league_id: int,
+    season_id: int,
     *,
     actor: activity.Actor,
     before: Mapping[str, Any],
@@ -62,5 +62,5 @@ async def on_editable_settings_changed(
     The change goes to the activity feed and everything derived from the settings is
     recomputed.
     """
-    await record_settings_change(db, league_id, actor, before, after)
-    await refresh_standings_if_drafted(db, league_id)
+    await record_settings_change(db, season_id, actor, before, after)
+    await refresh_standings_if_drafted(db, season_id)

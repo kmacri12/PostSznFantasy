@@ -2,7 +2,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.db.models.draft import Draft
-from api.db.models.league import LeagueSettings, Team
+from api.db.models.league import SeasonSettings, Team
 from api.models.enums import DraftStatus
 from api.services.league_members import LeagueRuleError
 
@@ -39,26 +39,26 @@ STARTED_STATUSES = frozenset(
 )
 
 
-async def draft_has_started(db: AsyncSession, league_id: int) -> bool:
-    status = await db.scalar(select(Draft.status).where(Draft.league_id == league_id))
+async def draft_has_started(db: AsyncSession, season_id: int) -> bool:
+    status = await db.scalar(select(Draft.status).where(Draft.season_id == season_id))
     return status in STARTED_STATUSES
 
 
-async def set_team_count(db: AsyncSession, league_id: int, count: int) -> None:
+async def set_team_count(db: AsyncSession, season_id: int, count: int) -> None:
     """Grow with empty teams, or shrink by dropping unclaimed ones (never claimed ones)."""
-    if await draft_has_started(db, league_id):
+    if await draft_has_started(db, season_id):
         raise LeagueRuleError("The number of teams is locked once the draft starts")
     teams = list(
         (
             await db.execute(
-                select(Team).where(Team.league_id == league_id).order_by(Team.id)
+                select(Team).where(Team.season_id == season_id).order_by(Team.id)
             )
         )
         .scalars()
         .all()
     )
     for index in range(len(teams), count):
-        db.add(Team(name=f"Team {index + 1}", league_id=league_id))
+        db.add(Team(name=f"Team {index + 1}", season_id=season_id))
 
     if count < len(teams):
         removable = [team for team in reversed(teams) if team.owner_id is None]
@@ -71,7 +71,7 @@ async def set_team_count(db: AsyncSession, league_id: int, count: int) -> None:
         for team in dropped:
             await db.delete(team)
         draft = (
-            await db.execute(select(Draft).where(Draft.league_id == league_id))
+            await db.execute(select(Draft).where(Draft.season_id == season_id))
         ).scalar_one_or_none()
         if draft is not None:
             gone = {team.id for team in dropped}
@@ -82,7 +82,7 @@ async def set_team_count(db: AsyncSession, league_id: int, count: int) -> None:
 
     settings = (
         await db.execute(
-            select(LeagueSettings).where(LeagueSettings.league_id == league_id)
+            select(SeasonSettings).where(SeasonSettings.season_id == season_id)
         )
     ).scalar_one()
     settings.number_teams = count

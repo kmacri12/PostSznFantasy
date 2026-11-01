@@ -4,9 +4,10 @@ from api.db.models import (
     Draft,
     League,
     LeagueMember,
-    LeagueSettings,
     NFLPlayer,
     NFLTeam,
+    Season,
+    SeasonSettings,
     Team,
     User,
 )
@@ -18,18 +19,22 @@ from api.models.league_models import (
 )
 
 
-async def make_league(
+async def make_season(
     db: AsyncSession,
     *,
     teams: int = 2,
     roster_total: int = 2,
     draft_status: str = "in_progress",
     ordered: bool = True,
+    year: int = 2025,
     team_qb: bool = False,
     team_k: bool = False,
     **roster: int,
-) -> tuple[League, list[User], list[Team], Draft]:
-    """A league with one user per team; user 0 is the commissioner."""
+) -> tuple[Season, list[User], list[Team], Draft]:
+    """A league with one season of one team per user; user 0 is the commissioner.
+
+    Returns the season; its league is `season.league_id`.
+    """
     users = [
         User(supabase_uid=f"uid-{i}", username=f"user{i}", email=f"u{i}@x.co")
         for i in range(teams)
@@ -37,8 +42,11 @@ async def make_league(
     db.add_all(users)
     await db.flush()
 
-    league = League(name="Test League", season=2025)
+    league = League(name="Test League")
     db.add(league)
+    await db.flush()
+    season = Season(league_id=league.id, year=year)
+    db.add(season)
     await db.flush()
 
     db.add_all(
@@ -53,8 +61,8 @@ async def make_league(
         number_teams=teams, roster_total=roster_total, **roster
     )
     db.add(
-        LeagueSettings(
-            league_id=league.id,
+        SeasonSettings(
+            season_id=season.id,
             **roster_settings.model_dump(by_alias=False),
             **ScoringSettings().model_dump(by_alias=False),
             **PostseasonSettings().model_dump(by_alias=False, mode="json"),
@@ -64,21 +72,21 @@ async def make_league(
         )
     )
     fantasy_teams = [
-        Team(name=f"Team {i}", owner_id=u.id, league_id=league.id)
+        Team(name=f"Team {i}", owner_id=u.id, season_id=season.id)
         for i, u in enumerate(users)
     ]
     db.add_all(fantasy_teams)
     await db.flush()
 
     draft = Draft(
-        league_id=league.id,
+        season_id=season.id,
         status=draft_status,
         rounds=roster_total,
         draft_order_team_ids=[t.id for t in fantasy_teams] if ordered else [],
     )
     db.add(draft)
     await db.flush()
-    return league, users, fantasy_teams, draft
+    return season, users, fantasy_teams, draft
 
 
 async def make_players(

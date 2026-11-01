@@ -5,11 +5,11 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 
 from api.db.models.draft import Draft, DraftPick
-from api.db.models.league import LeagueSettings
+from api.db.models.league import SeasonSettings
 from api.db.models.nfl import IngestionStatus, NFLPlayer, NFLPlayerSeasonStats, NFLTeam
 from api.db.session import DbSession
 from api.dependencies.auth import CurrentUser, get_current_user
-from api.dependencies.league import require_league_member
+from api.dependencies.league import require_season_reader
 from api.models.enums import DRAFTABLE_POSITION_VALUES, PlayerPosition
 from api.models.players_models import (
     IngestionStatusResponse,
@@ -103,27 +103,27 @@ async def get_player_list(
 async def get_draft_pool(
     db: DbSession,
     supabase_uid: CurrentUser,
-    league_id: Annotated[int | None, Query(alias="leagueId")] = None,
+    season_id: Annotated[int | None, Query(alias="seasonId")] = None,
 ) -> list[Player]:
     """Everyone who can be drafted: draftable positions on the 14 playoff teams.
 
-    With `leagueId` (members only) the league's team QB / team K settings apply: only
+    With `seasonId` (members only) the season's team QB / team K settings apply: only
     each team's starting QB (K) is listed, flagged `scoresWholeTeam`.
     """
     unavailable: dict[int, str] = {}
     combined: frozenset[PlayerPosition] = frozenset()
-    if league_id is not None:
-        await require_league_member(db, league_id, supabase_uid)
+    if season_id is not None:
+        await require_season_reader(db, season_id, supabase_uid)
         settings = (
             await db.execute(
-                select(LeagueSettings).where(LeagueSettings.league_id == league_id)
+                select(SeasonSettings).where(SeasonSettings.season_id == season_id)
             )
         ).scalar_one()
         drafted = (
             await db.execute(
                 select(DraftPick.player_id)
                 .join(Draft, Draft.id == DraftPick.draft_id)
-                .where(Draft.league_id == league_id)
+                .where(Draft.season_id == season_id)
             )
         ).scalars()
         unavailable = await unavailable_in_pool(db, settings, list(drafted))
@@ -154,20 +154,20 @@ async def get_player_season_stats(
     supabase_uid: CurrentUser,
     season: str | None = None,
     position: str | None = None,
-    league_id: Annotated[int | None, Query(alias="leagueId")] = None,
+    season_id: Annotated[int | None, Query(alias="seasonId")] = None,
 ) -> list[PlayerSeasonStatsResponse]:
     """Season stats joined with player and team; defaults to the latest season.
 
     Without `position`, only draftable positions (QB/RB/WR/TE/K/DST) are returned.
 
-    With `league_id`, `fantasyPoints` is scored under that league's settings (members only).
+    With `season_id`, `fantasyPoints` is scored under that season's settings (members only).
     """
-    settings: LeagueSettings | None = None
-    if league_id is not None:
-        await require_league_member(db, league_id, supabase_uid)
+    settings: SeasonSettings | None = None
+    if season_id is not None:
+        await require_season_reader(db, season_id, supabase_uid)
         settings = (
             await db.execute(
-                select(LeagueSettings).where(LeagueSettings.league_id == league_id)
+                select(SeasonSettings).where(SeasonSettings.season_id == season_id)
             )
         ).scalar_one_or_none()
     if season is None:

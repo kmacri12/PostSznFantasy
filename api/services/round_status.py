@@ -148,3 +148,8 @@ async def load_games(db: AsyncSession, season: int) -> list[GameFacts]:
             )
         )
     return facts
+
+
+async def season_is_finished(db: AsyncSession, year: int) -> bool:
+    """The Super Bowl of this NFL season is final."""
+    return SUPER_BOWL in completed_rounds(await load_games(db, year))

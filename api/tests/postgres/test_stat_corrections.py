@@ -7,7 +7,7 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.db.models import LeagueSettings, NFLGame, NFLPlayerGameStats
+from api.db.models import NFLGame, NFLPlayerGameStats, SeasonSettings
 from api.services.ingestion import poll_game_box_score
 from api.tests.postgres.activity_support import (
     PAST,
@@ -48,7 +48,7 @@ async def _poll(db: AsyncSession, s: ActivityLeague, status: str, yards: str) ->
 
 async def _events(client_as: ClientFactory, s: ActivityLeague) -> list[dict[str, Any]]:
     async with client_as("uid-0") as commissioner:
-        feed = await commissioner.get(f"/api/leagues/{s.league.id}/activity")
+        feed = await commissioner.get(f"/api/seasons/{s.season.id}/activity")
     events: list[dict[str, Any]] = feed.json()["events"]
     return events
 
@@ -108,7 +108,7 @@ async def test_a_change_the_league_does_not_score_is_not_a_correction(
     s = await _final_game(db)
     settings = (
         await db.execute(
-            select(LeagueSettings).where(LeagueSettings.league_id == s.league.id)
+            select(SeasonSettings).where(SeasonSettings.season_id == s.season.id)
         )
     ).scalar_one()
     settings.scoring_passing_yard = Decimal(0)

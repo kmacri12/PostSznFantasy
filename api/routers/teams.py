@@ -5,10 +5,10 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import or_, select
 from sqlalchemy.orm import selectinload
 
-from api.db.models.league import LeagueSettings, Team, TeamPlayer
+from api.db.models.league import SeasonSettings, Team, TeamPlayer
 from api.db.models.nfl import NFLGame, NFLPlayer, NFLTeam
 from api.db.session import DbSession
-from api.dependencies.league import LeagueMembership, TeamMember
+from api.dependencies.league import SeasonMembership, TeamMember
 from api.models.league_models import (
     LineupMove,
     NextGame,
@@ -112,17 +112,17 @@ async def _roster(db: DbSession, team_id: int) -> list[NFLPlayer]:
 
 
 async def build_team_details(
-    db: DbSession, team: Team, membership: LeagueMembership
+    db: DbSession, team: Team, membership: SeasonMembership
 ) -> TeamDetails:
     settings = (
         await db.execute(
-            select(LeagueSettings).where(LeagueSettings.league_id == team.league_id)
+            select(SeasonSettings).where(SeasonSettings.season_id == team.season_id)
         )
     ).scalar_one()
     players = await _roster(db, team.id)
     upcoming = await _next_games(
         db,
-        membership.league.season,
+        membership.season.year,
         {p.team_id for p in players if p.team_id is not None},
     )
 
@@ -131,11 +131,11 @@ async def build_team_details(
     return TeamDetails(
         id=team.id,
         name=team.name or f"Team {team.id}",
-        league_id=team.league_id,
+        season_id=team.season_id,
         owner_name=team.owner.username if team.owner else None,
-        can_edit=is_owner or membership.is_commissioner,
-        can_set_lineup=is_owner or membership.is_commissioner,
-        can_override=membership.is_commissioner,
+        can_edit=membership.can_edit and (is_owner or membership.is_commissioner),
+        can_set_lineup=membership.can_edit and (is_owner or membership.is_commissioner),
+        can_override=membership.can_edit and membership.is_commissioner,
         roster=[
             RosterPlayer(
                 id=p.id,
@@ -150,7 +150,7 @@ async def build_team_details(
             for p in players
         ],
         lineups=await team_lineups(
-            db, team, settings, players, membership.league.season, datetime.now(UTC)
+            db, team, settings, players, membership.season.year, datetime.now(UTC)
         ),
     )
 
@@ -168,7 +168,7 @@ async def get_team_breakdown(
     """Each round's counted points per starter slot and the bench's points, all computed
     on read; round scores equal the standings values."""
     return await team_breakdown(
-        db, await _team_or_404(db, team_id), membership.league.season, datetime.now(UTC)
+        db, await _team_or_404(db, team_id), membership.season.year, datetime.now(UTC)
     )
 
 
@@ -206,7 +206,7 @@ async def move_in_round_lineup(
         )
     settings = (
         await db.execute(
-            select(LeagueSettings).where(LeagueSettings.league_id == team.league_id)
+            select(SeasonSettings).where(SeasonSettings.season_id == team.season_id)
         )
     ).scalar_one()
     players = await _roster(db, team.id)
@@ -216,7 +216,7 @@ async def move_in_round_lineup(
             team,
             settings,
             players,
-            membership.league.season,
+            membership.season.year,
             payload.round,
             payload.player_id,
             payload.slot_index,
@@ -239,5 +239,5 @@ async def move_in_round_lineup(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail=str(exc)
         ) from exc
-    await refresh_standings_if_drafted(db, team.league_id)
+    await refresh_standings_if_drafted(db, team.season_id)
     return await build_team_details(db, team, membership)

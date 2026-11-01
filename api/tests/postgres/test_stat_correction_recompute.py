@@ -10,10 +10,10 @@ from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.db.models import (
-    LeagueSettings,
     LineupSlot,
     NFLPlayer,
     NFLPlayerGameStats,
+    SeasonSettings,
     TeamPlayer,
 )
 from api.services.ingestion import poll_game_box_score
@@ -32,7 +32,7 @@ from api.tests.postgres.test_live_polling import FakeClient, summary
 
 async def _standing_total(client_as: ClientFactory, s: ActivityLeague) -> float:
     async with client_as("uid-0") as client:
-        body = (await client.get(f"/api/leagues/{s.league.id}/standings")).json()
+        body = (await client.get(f"/api/seasons/{s.season.id}/standings")).json()
     row = next(t for t in body["teams"] if t["teamId"] == s.team.id)
     total: float = row["total"]
     return total
@@ -69,7 +69,7 @@ async def test_a_reconciled_correction_updates_round_score_standings_and_feed(
 
     assert await _standing_total(client_as, s) == 12  # 300 yds x 0.04
     async with client_as("uid-0") as client_:
-        feed = (await client_.get(f"/api/leagues/{s.league.id}/activity")).json()
+        feed = (await client_.get(f"/api/seasons/{s.season.id}/activity")).json()
     (event,) = feed["events"]
     assert event["kind"] == "stat_correction"
     assert event["payload"]["previousPoints"] == 10
@@ -83,8 +83,8 @@ async def test_a_backup_qbs_correction_reaches_a_team_qb_slot_and_feed(
         db, [game("g1", 19, 1, 3, PAST, score=(24, 17))], draft_status="completed"
     )
     await db.execute(
-        update(LeagueSettings)
-        .where(LeagueSettings.league_id == s.league.id)
+        update(SeasonSettings)
+        .where(SeasonSettings.season_id == s.season.id)
         .values(team_qb=True)
     )
     starter = s.players[0]
@@ -119,7 +119,7 @@ async def test_a_backup_qbs_correction_reaches_a_team_qb_slot_and_feed(
 
     assert await _standing_total(client_as, s) == 16
     async with client_as("uid-0") as client_:
-        feed = (await client_.get(f"/api/leagues/{s.league.id}/activity")).json()
+        feed = (await client_.get(f"/api/seasons/{s.season.id}/activity")).json()
     (event,) = feed["events"]
     assert (event["teamId"], event["payload"]["playerId"]) == (s.team.id, starter.id)
     assert (event["payload"]["previousPoints"], event["payload"]["newPoints"]) == (
@@ -163,14 +163,14 @@ async def test_a_corrected_dst_stat_posts_to_the_team_holding_the_defense(
     chiefs_dst = NFLPlayer(id=-1, name="KC DST", position="DST", team_id=1)
     db.add(chiefs_dst)
     await db.flush()
-    db.add(TeamPlayer(team_id=s.team.id, league_id=s.league.id, player_id=-1))
+    db.add(TeamPlayer(team_id=s.team.id, season_id=s.season.id, player_id=-1))
     await db.flush()
     for sacks in (1, 3):
         client = FakeClient([], {"g1": _dst_box(sacks)})
         await poll_game_box_score(db, "g1", "2025", client=client)  # type: ignore[arg-type]
 
     async with client_as("uid-0") as commissioner:
-        feed = (await commissioner.get(f"/api/leagues/{s.league.id}/activity")).json()
+        feed = (await commissioner.get(f"/api/seasons/{s.season.id}/activity")).json()
     (event,) = feed["events"]
     assert event["teamId"] == s.team.id
     assert event["payload"]["playerId"] == -1

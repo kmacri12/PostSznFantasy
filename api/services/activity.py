@@ -1,7 +1,7 @@
-"""The activity feed: one append-only record of what changed in a league and by whom.
+"""The activity feed: one append-only record of what changed in a season and by whom.
 
 Whatever changes something writes its event with `append`; nothing here edits or
-removes one. The league feed is every event of a league and a team's feed is the
+removes one. The season feed is every event of a season and a team's feed is the
 events carrying its `team_id`. Each member remembers the newest event they were
 shown per feed (`mark_viewed`), which is all "new activity" means.
 """
@@ -16,7 +16,7 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.db.models.activity import LEAGUE_FEED, ActivityEvent, ActivityView
-from api.db.models.league import LeagueMember, Team
+from api.db.models.league import LeagueMember, Season, Team
 from api.db.models.user import User
 from api.models.activity_models import (
     ActivityEventOut,
@@ -50,7 +50,7 @@ class Actor:
 
 async def append(
     db: AsyncSession,
-    league_id: int,
+    season_id: int,
     payload: ActivityPayload,
     *,
     team_id: int | None = None,
@@ -59,7 +59,7 @@ async def append(
 ) -> ActivityEvent:
     """Add one event; with no actor it was the system's doing (e.g. a stat correction)."""
     event = ActivityEvent(
-        league_id=league_id,
+        season_id=season_id,
         team_id=team_id,
         kind=payload.kind.value,
         actor_user_id=actor.user_id if actor else None,
@@ -73,8 +73,8 @@ async def append(
     return event
 
 
-def _scope(league_id: int, team_id: int | None) -> ColumnElement[bool]:
-    in_league = ActivityEvent.league_id == league_id
+def _scope(season_id: int, team_id: int | None) -> ColumnElement[bool]:
+    in_league = ActivityEvent.season_id == season_id
     if team_id is None:
         return in_league
     return and_(in_league, ActivityEvent.team_id == team_id)
@@ -108,19 +108,19 @@ class _Baseline:
 
 
 async def _baseline(
-    db: AsyncSession, viewer_id: int, league_id: int, team_id: int | None
+    db: AsyncSession, viewer_id: int, season_id: int, team_id: int | None
 ) -> _Baseline:
     last = await db.scalar(
         select(ActivityView.last_event_id).where(
             ActivityView.user_id == viewer_id,
-            ActivityView.league_id == league_id,
+            ActivityView.season_id == season_id,
             ActivityView.team_id == (team_id if team_id is not None else LEAGUE_FEED),
         )
     )
     joined_at = await db.scalar(
-        select(LeagueMember.joined_at).where(
-            LeagueMember.league_id == league_id, LeagueMember.user_id == viewer_id
-        )
+        select(LeagueMember.joined_at)
+        .join(Season, Season.league_id == LeagueMember.league_id)
+        .where(Season.id == season_id, LeagueMember.user_id == viewer_id)
     )
     return _Baseline(
         viewer_id, last or 0, joined_at or datetime.min.replace(tzinfo=UTC)
@@ -130,7 +130,7 @@ async def _baseline(
 async def feed(
     db: AsyncSession,
     viewer_id: int,
-    league_id: int,
+    season_id: int,
     *,
     team_id: int | None = None,
     limit: int = DEFAULT_PAGE_SIZE,
@@ -138,11 +138,11 @@ async def feed(
 ) -> ActivityFeed:
     """A page of the league's feed, or of one team's, newest first."""
     limit = max(1, min(limit, MAX_PAGE_SIZE))
-    baseline = await _baseline(db, viewer_id, league_id, team_id)
+    baseline = await _baseline(db, viewer_id, season_id, team_id)
     query = (
         select(ActivityEvent, Team.name)
         .outerjoin(Team, Team.id == ActivityEvent.team_id)
-        .where(_scope(league_id, team_id))
+        .where(_scope(season_id, team_id))
         .order_by(ActivityEvent.id.desc())
         .limit(limit + 1)
     )
@@ -154,7 +154,7 @@ async def feed(
     if team_id is None:
         lights_dot = and_(lights_dot, ActivityEvent.kind.in_(LEAGUE_DOT_KINDS))
     has_new = await db.scalar(
-        select(ActivityEvent.id).where(_scope(league_id, team_id), lights_dot).limit(1)
+        select(ActivityEvent.id).where(_scope(season_id, team_id), lights_dot).limit(1)
     )
     return ActivityFeed(
         events=[
@@ -179,21 +179,21 @@ async def feed(
 async def mark_viewed(
     db: AsyncSession,
     viewer_id: int,
-    league_id: int,
+    season_id: int,
     *,
     team_id: int | None = None,
     up_to: int | None = None,
 ) -> None:
     """Remember the viewer has seen the feed up to `up_to` (default: everything now)."""
     newest = await db.scalar(
-        select(func.max(ActivityEvent.id)).where(_scope(league_id, team_id))
+        select(func.max(ActivityEvent.id)).where(_scope(season_id, team_id))
     )
     if newest is None:
         return
     seen = newest if up_to is None else min(up_to, newest)
     row = insert(ActivityView).values(
         user_id=viewer_id,
-        league_id=league_id,
+        season_id=season_id,
         team_id=team_id if team_id is not None else LEAGUE_FEED,
         last_event_id=seen,
     )
@@ -201,7 +201,7 @@ async def mark_viewed(
         row.on_conflict_do_update(
             index_elements=[
                 ActivityView.user_id,
-                ActivityView.league_id,
+                ActivityView.season_id,
                 ActivityView.team_id,
             ],
             set_={
@@ -214,21 +214,23 @@ async def mark_viewed(
 
 
 async def leagues_with_new_activity(db: AsyncSession, viewer_id: int) -> set[int]:
-    """Leagues whose feed has events the member hasn't seen, for the nav dot."""
+    """Leagues with a season feed holding events the member hasn't seen (nav dot)."""
     rows = await db.execute(
-        select(ActivityEvent.league_id)
+        select(Season.league_id)
+        .join(ActivityEvent, ActivityEvent.season_id == Season.id)
         .join(
             LeagueMember,
             and_(
-                LeagueMember.league_id == ActivityEvent.league_id,
+                LeagueMember.league_id == Season.league_id,
                 LeagueMember.user_id == viewer_id,
+                LeagueMember.left_at.is_(None),
             ),
         )
         .outerjoin(
             ActivityView,
             and_(
                 ActivityView.user_id == viewer_id,
-                ActivityView.league_id == ActivityEvent.league_id,
+                ActivityView.season_id == ActivityEvent.season_id,
                 ActivityView.team_id == LEAGUE_FEED,
             ),
         )

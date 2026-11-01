@@ -13,7 +13,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
-import { useRunItBack } from "../../api/queries";
+import { useStartSeason } from "../../api/queries";
 import type { AwardWinner, SeasonRecap as Recap } from "../../api/types";
 import { tokens } from "../../theme";
 import { mutationError } from "../common/friendlyError";
@@ -103,9 +103,9 @@ const DraftAwards = ({ awards }: { awards: AwardWinner[] }) => {
   );
 };
 
-const RunItBack = ({ leagueId }: { leagueId: number }) => {
+const RunItBack = ({ seasonId, year }: { seasonId: number; year: number }) => {
   const navigate = useNavigate();
-  const runItBack = useRunItBack(leagueId);
+  const runItBack = useStartSeason(seasonId);
   const failure = mutationError(runItBack.error, "Couldn't start next season. Try again.");
   return (
     <Box>
@@ -115,15 +115,15 @@ const RunItBack = ({ leagueId }: { leagueId: number }) => {
         disabled={runItBack.isPending}
         onClick={() =>
           runItBack.mutate(undefined, {
-            onSuccess: (data) => navigate(`/league/${data.leagueId}`),
+            onSuccess: (data) => navigate(`/league/${data.seasonId}`),
           })
         }
       >
-        Run it back
+        Start {year} season
       </Button>
       <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-        Creates next season's league with the same members, teams and settings, fresh rosters and an
-        empty draft.
+        Starts next season in this league with the same members, teams and settings, fresh rosters
+        and an empty draft.
       </Typography>
       {failure && (
         <Alert severity="error" sx={{ mt: 1 }}>
@@ -138,17 +138,17 @@ const RunItBack = ({ leagueId }: { leagueId: number }) => {
 const SeasonRecap = ({
   recap,
   isCommissioner,
-  nextLeagueId,
+  nextSeasonId,
 }: {
   recap: Recap;
   isCommissioner: boolean;
-  nextLeagueId: number | null;
+  nextSeasonId: number | null;
 }) => (
   <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
     <Card sx={{ p: { xs: 2.5, md: 4 }, textAlign: "center", border: `1px solid ${tokens.gold}` }}>
       <EmojiEventsIcon sx={{ fontSize: 48, color: tokens.gold }} />
       <Typography variant="overline" color="text.secondary" sx={{ display: "block" }}>
-        {recap.season} champion{recap.champions.length > 1 ? "s" : ""}
+        {recap.year} champion{recap.champions.length > 1 ? "s" : ""}
       </Typography>
       {recap.champions.map((champion) => (
         <Box key={champion.teamId} sx={{ my: 1 }}>
@@ -171,12 +171,12 @@ const SeasonRecap = ({
     )}
     {recap.awards.some(isDraftAward) && <DraftAwards awards={recap.awards.filter(isDraftAward)} />}
     {isCommissioner &&
-      (nextLeagueId ? (
-        <Button component={Link} to={`/league/${nextLeagueId}`} sx={{ minHeight: 44 }}>
-          Go to next season's league
+      (nextSeasonId ? (
+        <Button component={Link} to={`/league/${nextSeasonId}`} sx={{ minHeight: 44 }}>
+          Go to next season
         </Button>
       ) : (
-        <RunItBack leagueId={recap.leagueId} />
+        <RunItBack seasonId={recap.seasonId} year={recap.year + 1} />
       ))}
   </Box>
 );

@@ -3,6 +3,7 @@ import { activeTabIndex, leagueTabs } from "./leagueTabs";
 
 const league = {
   id: 7,
+  leagueId: 70,
   name: "L",
   season: 2026,
   isCommissioner: false,

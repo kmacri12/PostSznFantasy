@@ -18,7 +18,7 @@ const TeamPointsPage: React.FC = () => {
             {breakdown.teamName}
           </Typography>
           <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mt: 1, mb: 1 }}>
-            <Button component={Link} to={`/league/${breakdown.leagueId}`}>
+            <Button component={Link} to={`/league/${breakdown.seasonId}`}>
               Standings
             </Button>
             <Button component={Link} to={`/team/${breakdown.teamId}`}>

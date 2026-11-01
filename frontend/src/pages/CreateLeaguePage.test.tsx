@@ -92,7 +92,7 @@ describe("CreateLeaguePage submit", () => {
   });
 
   it("refreshes the league list before navigating to the new league", async () => {
-    mockPost.mockResolvedValue({ status: 201, data: { leagueId: 7 } });
+    mockPost.mockResolvedValue({ status: 201, data: { leagueId: 70, seasonId: 7 } });
     await submitWizard();
     await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith("/league/7"));
     expect(onLeagueCreated).toHaveBeenCalledWith(7);
@@ -102,7 +102,7 @@ describe("CreateLeaguePage submit", () => {
   });
 
   it("sends the explicit team QB and team K choices", async () => {
-    mockPost.mockResolvedValue({ status: 201, data: { leagueId: 7 } });
+    mockPost.mockResolvedValue({ status: 201, data: { leagueId: 70, seasonId: 7 } });
     await submitWizard();
     await waitFor(() => expect(mockPost).toHaveBeenCalled());
     expect(mockPost.mock.calls[0]?.[1]).toMatchObject({

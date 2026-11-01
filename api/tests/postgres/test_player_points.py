@@ -2,13 +2,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.db.models import NFLPlayerSeasonStats, NFLTeam
 from api.tests.postgres.conftest import ClientFactory
-from api.tests.postgres.factories import make_league, make_players
+from api.tests.postgres.factories import make_players, make_season
 
 
 async def test_fantasy_points_follow_the_leagues_scoring(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
-    league, _, _, _ = await make_league(db)
+    season, _, _, _ = await make_season(db)
     kc = NFLTeam(id=1, team_abv="KC", is_active=True)
     db.add(kc)
     await db.flush()
@@ -20,14 +20,14 @@ async def test_fantasy_points_follow_the_leagues_scoring(
         )
     )  # fmt: skip
     await db.flush()
-    url = f"/api/players/player-season-stats?season=2025&leagueId={league.id}"
+    url = f"/api/players/player-season-stats?season=2025&seasonId={season.id}"
 
     async with client_as("uid-0") as member:
         default = (await member.get(url)).json()[0]
         # 4000 * 0.04 + 30 * 4 - 20 = 260 under the default scoring (interception -2).
         assert default["fantasyPoints"] == 260.0
         await member.patch(
-            f"/api/leagues/{league.id}/settings", json={"scoringPassingTd": 6}
+            f"/api/seasons/{season.id}/settings", json={"scoringPassingTd": 6}
         )
         bumped = (await member.get(url)).json()[0]
         no_league = (
@@ -43,7 +43,7 @@ async def test_fantasy_points_follow_the_leagues_scoring(
 async def test_season_stats_default_to_draftable_positions(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
-    await make_league(db)
+    await make_season(db)
     kc = NFLTeam(id=1, team_abv="KC", is_active=True)
     db.add(kc)
     await db.flush()
@@ -65,7 +65,7 @@ async def test_season_stats_default_to_draftable_positions(
 async def test_players_on_eliminated_teams_are_flagged_eliminated(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
-    await make_league(db)
+    await make_season(db)
     alive = NFLTeam(id=1, team_abv="KC", is_active=True)
     out = NFLTeam(id=2, team_abv="BUF", is_active=False)
     db.add_all([alive, out])
@@ -93,7 +93,7 @@ async def test_players_on_eliminated_teams_are_flagged_eliminated(
 async def test_player_list_filters_on_the_camel_case_is_active_parameter(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
-    await make_league(db)
+    await make_season(db)
     alive = NFLTeam(id=1, team_abv="KC", is_active=True)
     out = NFLTeam(id=2, team_abv="BUF", is_active=False)
     db.add_all([alive, out])

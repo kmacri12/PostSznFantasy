@@ -19,7 +19,7 @@ from api.db.base import Base
 from api.models.enums import DraftStatus, DraftType, PickTimeoutAction
 
 if TYPE_CHECKING:
-    from api.db.models.league import League, Team
+    from api.db.models.league import Season, Team
     from api.db.models.nfl import NFLPlayer
 
 
@@ -44,9 +44,9 @@ class Draft(Base):
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    league_id: Mapped[int] = mapped_column(
+    season_id: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("fantasy.leagues.id", ondelete="CASCADE"),
+        ForeignKey("fantasy.seasons.id", ondelete="CASCADE"),
         nullable=False,
         unique=True,
     )
@@ -93,7 +93,7 @@ class Draft(Base):
         ARRAY(Integer), nullable=False, default=list
     )
 
-    league: Mapped["League"] = relationship("League", back_populates="draft")
+    season: Mapped["Season"] = relationship("Season", back_populates="draft")
     draft_picks: Mapped[list["DraftPick"]] = relationship(
         "DraftPick", back_populates="draft", cascade="all, delete-orphan"
     )

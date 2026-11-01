@@ -3,11 +3,11 @@ from decimal import Decimal
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.db.models.league import LeagueSettings, Team, TeamPlayer
+from api.db.models.league import SeasonSettings, Team, TeamPlayer
 from api.db.models.nfl import NFLPlayer, NFLTeam
 
 
-async def get_players_left(team_id: int, league_id: int, db: AsyncSession) -> int:
+async def get_players_left(team_id: int, season_id: int, db: AsyncSession) -> int:
     """Count rostered players whose NFL team is still active (not eliminated)."""
     count = await db.scalar(
         select(func.count())
@@ -17,7 +17,7 @@ async def get_players_left(team_id: int, league_id: int, db: AsyncSession) -> in
         .join(NFLTeam, NFLTeam.id == NFLPlayer.team_id)
         .where(
             TeamPlayer.team_id == team_id,
-            Team.league_id == league_id,
+            Team.season_id == season_id,
             NFLTeam.is_active.is_(True),
         )
     )
@@ -40,7 +40,7 @@ def postseason_round_index(week: int) -> int | None:
     return index if 0 <= index < len(ROUND_MULTIPLIER_FIELDS) else None
 
 
-def round_multiplier(settings: LeagueSettings, week: int) -> Decimal:
+def round_multiplier(settings: SeasonSettings, week: int) -> Decimal:
     """Commissioner-configured scoring multiplier for the postseason round of `week`."""
     index = postseason_round_index(week)
     if index is None:

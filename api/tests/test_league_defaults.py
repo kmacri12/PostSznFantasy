@@ -4,8 +4,8 @@ from pydantic import ValidationError
 from api.models.enums import PlayerPosition
 from api.models.league_models import (
     LeagueCreate,
-    LeagueUpdate,
     RosterSettings,
+    SeasonUpdate,
     TeamUnitSettings,
 )
 
@@ -54,7 +54,7 @@ def test_league_size_is_two_to_fourteen(teams: int) -> None:
     with pytest.raises(ValidationError):
         RosterSettings(number_teams=teams)
     with pytest.raises(ValidationError):
-        LeagueUpdate(number_teams=teams)
+        SeasonUpdate(number_teams=teams)
 
 
 def test_fullback_means_running_back() -> None:

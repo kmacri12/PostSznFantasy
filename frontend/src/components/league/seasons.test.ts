@@ -4,6 +4,7 @@ import { groupBySeason } from "./seasons";
 
 const league = (id: number, season: number): LeagueByUser => ({
   id,
+  leagueId: id,
   name: `League ${id}`,
   season,
   isCommissioner: false,

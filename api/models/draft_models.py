@@ -33,7 +33,7 @@ class DraftStateResponse(BaseSchema):
     """Everything a client needs to render the room; the clock fields are authoritative."""
 
     draft_id: int
-    league_id: int
+    season_id: int
     status: DraftStatus
     start_time: datetime | None = None
     draft_type: DraftType

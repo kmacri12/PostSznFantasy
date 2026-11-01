@@ -1,6 +1,6 @@
 import pytest
 
-from api.db.models.league import LeagueSettings
+from api.db.models.league import SeasonSettings
 from api.models.enums import PlayerPosition
 from api.services.draft_picks import (
     DraftPickError,
@@ -35,8 +35,8 @@ def test_third_round_reversal_repeats_round_two_direction() -> None:
     ]  # fmt: skip
 
 
-def make_settings(**overrides: int | None) -> LeagueSettings:
-    settings = LeagueSettings()
+def make_settings(**overrides: int | None) -> SeasonSettings:
+    settings = SeasonSettings()
     settings.roster_total = 3
     settings.roster_max_qb = 1
     settings.roster_max_rb = 99

@@ -30,7 +30,7 @@ async def test_an_owners_lineup_move_is_in_the_league_and_team_feeds(
         await owner.post(s.lineup_url, json=s.move(qb, QB))
     async with client_as("uid-0") as commissioner:
         league_feed = (
-            await commissioner.get(f"/api/leagues/{s.league.id}/activity")
+            await commissioner.get(f"/api/seasons/{s.season.id}/activity")
         ).json()
         team_feed = (await commissioner.get(f"/api/teams/{s.team.id}/activity")).json()
     for feed in (league_feed, team_feed):
@@ -81,7 +81,7 @@ async def test_feeds_are_newest_first_and_paginated(
             (s.players[0], None),
         ]:
             await owner.post(s.lineup_url, json=s.move(player, slot))
-        url = f"/api/leagues/{s.league.id}/activity"
+        url = f"/api/seasons/{s.season.id}/activity"
         first = (await owner.get(url, params={"limit": 2})).json()
         assert [e["payload"]["toSlot"] for e in first["events"]] == [None, "RB"]
         assert first["nextBefore"] == first["events"][-1]["id"]
@@ -98,7 +98,7 @@ async def test_only_league_members_can_read_the_feeds(
     s = await activity_league(db)
     async with client_as("stranger") as stranger:
         assert (
-            await stranger.get(f"/api/leagues/{s.league.id}/activity")
+            await stranger.get(f"/api/seasons/{s.season.id}/activity")
         ).status_code == 403
         assert (
             await stranger.get(f"/api/teams/{s.team.id}/activity")
@@ -139,7 +139,7 @@ async def _announce(db: AsyncSession, s: ActivityLeague) -> None:
     """A settings change: league news that lights the dot."""
     await activity.append(
         db,
-        s.league.id,
+        s.season.id,
         SettingsChangePayload(
             changes=[SettingChange(field="scoringPassingTd", before=4, after=6)]
         ),
@@ -168,11 +168,11 @@ async def test_ordinary_lineup_moves_do_not_light_the_league_dot(
     async with client_as("uid-1") as owner:
         await _move(owner, s, 0, QB)
     async with client_as("uid-0") as commissioner:
-        feed = (await commissioner.get(f"/api/leagues/{s.league.id}/activity")).json()
-        leagues = (await commissioner.get("/api/leagues/user-leagues")).json()
+        feed = (await commissioner.get(f"/api/seasons/{s.season.id}/activity")).json()
+        seasons = (await commissioner.get("/api/leagues/user-leagues")).json()
     assert [e["kind"] for e in feed["events"]] == ["lineup_move"]
     assert feed["hasNew"] is False
-    assert [row["hasNewActivity"] for row in leagues] == [False]
+    assert [row["hasNewActivity"] for row in seasons] == [False]
 
 
 async def test_overrides_corrections_and_settings_changes_light_the_league_dot(
@@ -180,16 +180,16 @@ async def test_overrides_corrections_and_settings_changes_light_the_league_dot(
 ) -> None:
     s = await _kc_started(db)
     async with client_as("uid-1") as owner:
-        leagues = (await owner.get("/api/leagues/user-leagues")).json()
-        assert [row["hasNewActivity"] for row in leagues] == [False]
+        seasons = (await owner.get("/api/leagues/user-leagues")).json()
+        assert [row["hasNewActivity"] for row in seasons] == [False]
     async with client_as("uid-0") as commissioner:
         await commissioner.post(
             s.lineup_url, json=s.move(s.players[1], RB, confirmOverride=True)
         )
     async with client_as("uid-1") as owner:
-        leagues = (await owner.get("/api/leagues/user-leagues")).json()
-        feed = (await owner.get(f"/api/leagues/{s.league.id}/activity")).json()
-    assert [row["hasNewActivity"] for row in leagues] == [True]
+        seasons = (await owner.get("/api/leagues/user-leagues")).json()
+        feed = (await owner.get(f"/api/seasons/{s.season.id}/activity")).json()
+    assert [row["hasNewActivity"] for row in seasons] == [True]
     assert feed["hasNew"] is True
 
 
@@ -197,7 +197,7 @@ async def test_expanding_the_feed_clears_new_and_only_later_events_are_new_again
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
     s = await activity_league(db)
-    url = f"/api/leagues/{s.league.id}/activity"
+    url = f"/api/seasons/{s.season.id}/activity"
     await _announce(db, s)
     async with client_as("uid-0") as commissioner:
         assert (await commissioner.post(f"{url}/viewed")).status_code == 204
@@ -214,7 +214,7 @@ async def test_viewing_up_to_an_event_leaves_newer_ones_new(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
     s = await activity_league(db)
-    url = f"/api/leagues/{s.league.id}/activity"
+    url = f"/api/seasons/{s.season.id}/activity"
     await _announce(db, s)
     await _announce(db, s)
     async with client_as("uid-0") as commissioner:
@@ -236,7 +236,7 @@ async def test_each_feed_remembers_its_own_view(
         await commissioner.post(f"/api/teams/{s.team.id}/activity/viewed")
         team_feed = (await commissioner.get(f"/api/teams/{s.team.id}/activity")).json()
         league_feed = (
-            await commissioner.get(f"/api/leagues/{s.league.id}/activity")
+            await commissioner.get(f"/api/seasons/{s.season.id}/activity")
         ).json()
     assert team_feed["hasNew"] is False
     assert league_feed["hasNew"] is True
@@ -248,12 +248,12 @@ async def test_activity_from_before_you_joined_is_not_new(
     s = await activity_league(db)
     await activity.append(
         db,
-        s.league.id,
+        s.season.id,
         SettingsChangePayload(changes=[SettingChange(field="x", before=1, after=2)]),
         at=PAST,
     )
     async with client_as("uid-0") as commissioner:
-        feed = (await commissioner.get(f"/api/leagues/{s.league.id}/activity")).json()
+        feed = (await commissioner.get(f"/api/seasons/{s.season.id}/activity")).json()
     assert feed["hasNew"] is False
     assert [e["isNew"] for e in feed["events"]] == [False]
 
@@ -265,7 +265,7 @@ async def test_the_league_list_flags_leagues_with_new_activity(
     await _announce(db, s)
     async with client_as("uid-0") as commissioner:
         before = (await commissioner.get("/api/leagues/user-leagues")).json()
-        await commissioner.post(f"/api/leagues/{s.league.id}/activity/viewed")
+        await commissioner.post(f"/api/seasons/{s.season.id}/activity/viewed")
         after = (await commissioner.get("/api/leagues/user-leagues")).json()
     assert [row["hasNewActivity"] for row in before] == [True]
     assert [row["hasNewActivity"] for row in after] == [False]

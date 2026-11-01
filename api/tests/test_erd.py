@@ -9,7 +9,7 @@ from api.db.base import Base
 ERD = Path(__file__).resolve().parents[2] / "docs" / "erd.md"
 
 # Too wide to draw column by column; the diagram lists a subset of their columns.
-SUMMARISED = {"league_settings", "nfl_player_game_stats", "nfl_player_season_stats"}
+SUMMARISED = {"season_settings", "nfl_player_game_stats", "nfl_player_season_stats"}
 
 
 def _diagram() -> str:

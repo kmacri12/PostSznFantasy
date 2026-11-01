@@ -4,7 +4,7 @@ import { positionCaps, startingSlots } from "./preDraft";
 
 const defaults = {
   id: 1,
-  leagueId: 1,
+  seasonId: 1,
   rosterTotal: 18,
   rosterNumQb: 1,
   rosterNumRb: 2,

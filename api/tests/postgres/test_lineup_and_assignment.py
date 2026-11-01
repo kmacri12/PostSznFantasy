@@ -1,14 +1,14 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.tests.postgres.conftest import ClientFactory
-from api.tests.postgres.factories import make_league
+from api.tests.postgres.factories import make_season
 
 
 async def test_commissioner_assigns_and_moves_team_owners(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
-    league, users, teams, _ = await make_league(db)
-    base = f"/api/leagues/{league.id}/teams"
+    season, users, teams, _ = await make_season(db)
+    base = f"/api/seasons/{season.id}/teams"
     async with client_as("uid-0") as commissioner:
         unassign = await commissioner.put(
             f"{base}/{teams[1].id}/owner", json={"userId": None}

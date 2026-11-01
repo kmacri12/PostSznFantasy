@@ -8,7 +8,7 @@ vi.mock("../../api/queries", () => ({
   useDraftControl: () => ({ mutate, error: null }),
 }));
 
-const draft = (status: DraftState["status"]) => ({ leagueId: 1, status }) as DraftState;
+const draft = (status: DraftState["status"]) => ({ seasonId: 1, status }) as DraftState;
 
 const open = (status: DraftState["status"]) => {
   render(<CommissionerControls draft={draft(status)} />);

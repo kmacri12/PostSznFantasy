@@ -163,7 +163,7 @@ const TeamPool = ({
 
 /** Commissioner draft setup: schedule, clock, type, timeout behaviour and slot order. */
 const DraftSetupPanel = ({ draft, canEdit }: { draft: DraftState; canEdit: boolean }) => {
-  const leagueId = draft.leagueId;
+  const leagueId = draft.seasonId;
   const setup = useDraftSetup(leagueId);
   const saveOrder = useDraftOrder(leagueId);
   const control = useDraftControl(leagueId);

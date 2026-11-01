@@ -25,7 +25,7 @@ const round = (number: number, extra: Partial<BreakdownRound> = {}): BreakdownRo
 
 const breakdown: TeamBreakdown = {
   teamId: 1,
-  leagueId: 9,
+  seasonId: 9,
   teamName: "Alpha",
   total: 18,
   pointsLeftOnBench: 55,

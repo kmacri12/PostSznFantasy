@@ -9,6 +9,7 @@ import type {
   LeagueByUser,
   LeagueOverview,
   LeagueSettings,
+  MemberSummary,
   PlayerSummary,
   SeasonRecap,
   Standings,
@@ -19,6 +20,12 @@ import type {
   TeamSummary,
 } from "./types";
 
+/**
+ * Ids in the SPA: a page's "league id" (route param, `?leagueId=`) is the id of the
+ * league's season, which is what the season API routes take. League-level calls
+ * (members, notes, invite, starting a season) resolve the permanent league id from
+ * the season first. The frontend is reworked around seasons in #235.
+ */
 type Id = string | number;
 
 export const keys = {
@@ -39,7 +46,7 @@ export const keys = {
   seasonStats: ["player-season-stats"] as const,
   scoringDefaults: ["scoring-defaults"] as const,
   syncStatus: ["sync-status"] as const,
-  activity: (scope: "leagues" | "teams", id: Id) => ["activity", scope, String(id)] as const,
+  activity: (scope: "seasons" | "teams", id: Id) => ["activity", scope, String(id)] as const,
 };
 
 const get = async <T>(url: string, signal?: AbortSignal): Promise<T> =>
@@ -55,7 +62,13 @@ export const useConfig = () =>
 export const useUserLeagues = (enabled: boolean) =>
   useQuery({
     queryKey: keys.userLeagues,
-    queryFn: ({ signal }) => get<LeagueByUser[]>("/api/leagues/user-leagues", signal),
+    queryFn: async ({ signal }) =>
+      (
+        await get<(Omit<LeagueByUser, "id" | "leagueId"> & { id: number; seasonId: number })[]>(
+          "/api/leagues/user-leagues",
+          signal,
+        )
+      ).map(({ seasonId, id, ...league }) => ({ ...league, id: seasonId, leagueId: id })),
     enabled,
     refetchInterval: 60_000, // the nav dot for new league activity
   });
@@ -66,12 +79,69 @@ export const useLeagueArchived = (leagueId: Id | undefined): boolean => {
   return data?.find((league) => String(league.id) === String(leagueId))?.finished === true;
 };
 
+interface SeasonOverview {
+  id: number;
+  leagueId: number;
+  leagueName: string;
+  year: number;
+  finished: boolean;
+  canEdit: boolean;
+  canCommission: boolean;
+  numberTeams: number;
+  openSpots: number;
+  myRole: LeagueOverview["myRole"];
+  myTeamId: number | null;
+  draftStatus: LeagueOverview["draftStatus"];
+  draftStartTime: string | null;
+  members: MemberSummary[];
+  teams: LeagueOverview["teams"];
+}
+
+const fetchLeague = async (seasonId: Id, signal?: AbortSignal): Promise<LeagueOverview> => {
+  const season = await get<SeasonOverview>(`/api/seasons/${seasonId}`, signal);
+  const league = await get<{ name: string; notes: string }>(
+    `/api/leagues/${season.leagueId}`,
+    signal,
+  );
+  return {
+    id: season.id,
+    leagueId: season.leagueId,
+    name: league.name,
+    season: season.year,
+    finished: season.finished,
+    canEdit: season.canEdit,
+    canCommission: season.canCommission,
+    notes: league.notes,
+    numberTeams: season.numberTeams,
+    openSpots: season.openSpots,
+    myRole: season.myRole,
+    myTeamId: season.myTeamId,
+    draftStatus: season.draftStatus,
+    draftStartTime: season.draftStartTime,
+    members: season.members,
+    teams: season.teams,
+  };
+};
+
 export const useLeague = (leagueId: Id | undefined) =>
   useQuery({
     queryKey: keys.league(leagueId ?? ""),
-    queryFn: ({ signal }) => get<LeagueOverview>(`/api/leagues/${leagueId}`, signal),
+    queryFn: ({ signal }) => fetchLeague(leagueId ?? "", signal),
     enabled: leagueId !== undefined,
   });
+
+/** The permanent league behind a page's season id, from the cache or one fetch. */
+const resolveLeagueId = async (
+  queryClient: ReturnType<typeof useQueryClient>,
+  seasonId: Id | undefined,
+): Promise<number> =>
+  (
+    await queryClient.fetchQuery({
+      queryKey: keys.league(seasonId ?? ""),
+      queryFn: ({ signal }) => fetchLeague(seasonId ?? "", signal),
+      staleTime: Number.POSITIVE_INFINITY,
+    })
+  ).leagueId;
 
 /** Seconds between standings refetches while the page is visible; scores land every poll cycle. */
 export const STANDINGS_REFRESH_MS = 20_000;
@@ -79,7 +149,7 @@ export const STANDINGS_REFRESH_MS = 20_000;
 export const useStandings = (leagueId: Id | undefined) =>
   useQuery({
     queryKey: keys.standings(leagueId ?? ""),
-    queryFn: ({ signal }) => get<Standings>(`/api/leagues/${leagueId}/standings`, signal),
+    queryFn: ({ signal }) => get<Standings>(`/api/seasons/${leagueId}/standings`, signal),
     enabled: leagueId !== undefined,
     refetchInterval: STANDINGS_REFRESH_MS,
   });
@@ -87,7 +157,7 @@ export const useStandings = (leagueId: Id | undefined) =>
 export const useRecap = (leagueId: Id | undefined) =>
   useQuery({
     queryKey: keys.recap(leagueId ?? ""),
-    queryFn: ({ signal }) => get<SeasonRecap>(`/api/leagues/${leagueId}/recap`, signal),
+    queryFn: ({ signal }) => get<SeasonRecap>(`/api/seasons/${leagueId}/recap`, signal),
     enabled: leagueId !== undefined,
   });
 
@@ -102,7 +172,7 @@ export const useTeamBreakdown = (teamId: Id | undefined) =>
 export const useLeagueTeams = (leagueId: Id | undefined) =>
   useQuery({
     queryKey: keys.teams(leagueId ?? ""),
-    queryFn: ({ signal }) => get<TeamSummary[]>(`/api/leagues/${leagueId}/teams`, signal),
+    queryFn: ({ signal }) => get<TeamSummary[]>(`/api/seasons/${leagueId}/teams`, signal),
     enabled: leagueId !== undefined,
   });
 
@@ -116,7 +186,7 @@ export const useTeam = (teamId: Id | undefined) =>
 export const useLeagueSettings = (leagueId: Id | undefined) =>
   useQuery({
     queryKey: keys.settings(leagueId ?? ""),
-    queryFn: ({ signal }) => get<LeagueSettings>(`/api/leagues/${leagueId}/settings`, signal),
+    queryFn: ({ signal }) => get<LeagueSettings>(`/api/seasons/${leagueId}/settings`, signal),
     enabled: leagueId !== undefined,
   });
 
@@ -143,7 +213,7 @@ export const useDraftPool = (leagueId?: Id) =>
       get<PlayerSummary[]>(
         leagueId === undefined
           ? "/api/players/draft-pool"
-          : `/api/players/draft-pool?leagueId=${leagueId}`,
+          : `/api/players/draft-pool?seasonId=${leagueId}`,
         signal,
       ),
     staleTime: 5 * 60_000,
@@ -154,7 +224,7 @@ export const usePlayerSeasonStats = <T>(season: string | undefined, leagueId: Id
     queryKey: [...keys.seasonStats, season, leagueId ?? "none"],
     queryFn: ({ signal }) => {
       const params = new URLSearchParams({ season: season ?? "" });
-      if (leagueId !== undefined) params.set("leagueId", String(leagueId));
+      if (leagueId !== undefined) params.set("seasonId", String(leagueId));
       return get<T[]>(`/api/players/player-season-stats?${params}`, signal);
     },
     enabled: !!season,
@@ -175,12 +245,18 @@ export const useScoringDefaults = () =>
     staleTime: Number.POSITIVE_INFINITY,
   });
 
-export const useInvite = (leagueId: Id | undefined, enabled: boolean) =>
-  useQuery({
+export const useInvite = (leagueId: Id | undefined, enabled: boolean) => {
+  const queryClient = useQueryClient();
+  return useQuery({
     queryKey: keys.invite(leagueId ?? ""),
-    queryFn: ({ signal }) => get<Invite | null>(`/api/leagues/${leagueId}/invite`, signal),
+    queryFn: async ({ signal }) =>
+      get<Invite | null>(
+        `/api/leagues/${await resolveLeagueId(queryClient, leagueId)}/invite`,
+        signal,
+      ),
     enabled: enabled && leagueId !== undefined,
   });
+};
 
 export const useInvitePreview = (code: string | undefined) =>
   useQuery({
@@ -196,7 +272,8 @@ export const useCreateLeague = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (body: object) =>
-      (await api.post<{ leagueId?: number }>("/api/leagues/create-league", body)).data,
+      (await api.post<{ leagueId?: number; seasonId?: number }>("/api/leagues/create-league", body))
+        .data,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: keys.userLeagues }),
   });
 };
@@ -218,68 +295,89 @@ const useLeagueMutation = <TVariables, TResult>(
   });
 };
 
-export const useRunItBack = (leagueId: Id | undefined) => {
+export const useStartSeason = (seasonId: Id | undefined) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async () =>
-      (await api.post<{ leagueId: number }>(`/api/leagues/${leagueId}/run-it-back`)).data,
+    mutationFn: async () => {
+      const leagueId = await resolveLeagueId(queryClient, seasonId);
+      return (await api.post<{ seasonId: number }>(`/api/leagues/${leagueId}/seasons`)).data;
+    },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: keys.userLeagues }),
   });
 };
 
-export const useUpdateLeague = (leagueId: Id | undefined) =>
-  useLeagueMutation(
+export const useUpdateLeague = (leagueId: Id | undefined) => {
+  const queryClient = useQueryClient();
+  return useLeagueMutation(
     leagueId,
-    async (body: { name?: string; numberTeams?: number; notes?: string }) =>
-      (await api.patch<LeagueOverview>(`/api/leagues/${leagueId}`, body)).data,
+    async ({ numberTeams, ...league }: { name?: string; numberTeams?: number; notes?: string }) => {
+      if (Object.keys(league).length > 0) {
+        await api.patch(`/api/leagues/${await resolveLeagueId(queryClient, leagueId)}`, league);
+      }
+      if (numberTeams !== undefined) {
+        await api.patch(`/api/seasons/${leagueId}`, { numberTeams });
+      }
+    },
   );
+};
 
 export const useUpdateSettings = (leagueId: Id | undefined) =>
   useLeagueMutation(
     leagueId,
     async (body: object) =>
-      (await api.patch<LeagueSettings>(`/api/leagues/${leagueId}/settings`, body)).data,
+      (await api.patch<LeagueSettings>(`/api/seasons/${leagueId}/settings`, body)).data,
   );
 
-export const useSetMemberRole = (leagueId: Id | undefined) =>
-  useLeagueMutation(
+export const useSetMemberRole = (leagueId: Id | undefined) => {
+  const queryClient = useQueryClient();
+  return useLeagueMutation(
     leagueId,
-    async (v: { userId: number; role: "commissioner" | "member" }) =>
-      (
-        await api.patch<LeagueOverview>(`/api/leagues/${leagueId}/members/${v.userId}`, {
-          role: v.role,
-        })
-      ).data,
+    async (v: { userId: number; role: "commissioner" | "member" }) => {
+      const league = await resolveLeagueId(queryClient, leagueId);
+      await api.patch(`/api/leagues/${league}/members/${v.userId}`, { role: v.role });
+    },
   );
+};
 
 export const useAssignTeamOwner = (leagueId: Id | undefined) =>
   useLeagueMutation(
     leagueId,
     async (v: { teamId: number; userId: number | null }) =>
       (
-        await api.put<LeagueOverview>(`/api/leagues/${leagueId}/teams/${v.teamId}/owner`, {
+        await api.put<LeagueOverview>(`/api/seasons/${leagueId}/teams/${v.teamId}/owner`, {
           userId: v.userId,
         })
       ).data,
   );
 
-export const useRemoveMember = (leagueId: Id | undefined) =>
-  useLeagueMutation(
-    leagueId,
-    async (userId: number) =>
-      (await api.delete<LeagueOverview>(`/api/leagues/${leagueId}/members/${userId}`)).data,
-  );
-
-export const useRegenerateInvite = (leagueId: Id | undefined) =>
-  useLeagueMutation(
-    leagueId,
-    async () => (await api.post<Invite>(`/api/leagues/${leagueId}/invite`, {})).data,
-  );
-
-export const useRevokeInvite = (leagueId: Id | undefined) =>
-  useLeagueMutation(leagueId, async () => {
-    await api.delete(`/api/leagues/${leagueId}/invite`);
+export const useRemoveMember = (leagueId: Id | undefined) => {
+  const queryClient = useQueryClient();
+  return useLeagueMutation(leagueId, async (userId: number) => {
+    const league = await resolveLeagueId(queryClient, leagueId);
+    await api.delete(`/api/leagues/${league}/members/${userId}`);
   });
+};
+
+export const useRegenerateInvite = (leagueId: Id | undefined) => {
+  const queryClient = useQueryClient();
+  return useLeagueMutation(
+    leagueId,
+    async () =>
+      (
+        await api.post<Invite>(
+          `/api/leagues/${await resolveLeagueId(queryClient, leagueId)}/invite`,
+          {},
+        )
+      ).data,
+  );
+};
+
+export const useRevokeInvite = (leagueId: Id | undefined) => {
+  const queryClient = useQueryClient();
+  return useLeagueMutation(leagueId, async () => {
+    await api.delete(`/api/leagues/${await resolveLeagueId(queryClient, leagueId)}/invite`);
+  });
+};
 
 export const useJoinWithCode = () => {
   const queryClient = useQueryClient();
@@ -332,8 +430,8 @@ export const needsOverrideConfirmation = (error: unknown): boolean =>
   (error as { response?: { data?: { code?: unknown } } } | null)?.response?.data?.code ===
   "override_confirmation_required";
 
-/** One feed, newest first, a page at a time. `scope` is the league or one team. */
-export const useActivityFeed = (scope: "leagues" | "teams", id: Id | undefined) =>
+/** One feed, newest first, a page at a time. `scope` is the season or one team. */
+export const useActivityFeed = (scope: "seasons" | "teams", id: Id | undefined) =>
   useInfiniteQuery({
     queryKey: keys.activity(scope, id ?? ""),
     queryFn: ({ signal, pageParam }) => {
@@ -347,7 +445,7 @@ export const useActivityFeed = (scope: "leagues" | "teams", id: Id | undefined) 
   });
 
 /** The member expanded a feed: tell the server so its new-activity dot clears. */
-export const useMarkActivityViewed = (scope: "leagues" | "teams", id: Id | undefined) => {
+export const useMarkActivityViewed = (scope: "seasons" | "teams", id: Id | undefined) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (upToEventId: number) => {

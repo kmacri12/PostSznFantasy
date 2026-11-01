@@ -7,34 +7,39 @@ from api.db.models import (
     DraftPick,
     LeagueInvite,
     LeagueMember,
-    LeagueSettings,
     NFLTeam,
+    Season,
+    SeasonSettings,
     Team,
     User,
 )
 from api.services import draft_flow
 from api.services.draft_picks import make_pick
 from api.tests.postgres.conftest import ClientFactory
-from api.tests.postgres.factories import make_league, make_players
+from api.tests.postgres.factories import make_players, make_season
 
 
 async def test_overview_lists_members_and_roles(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
-    league, _, _, _ = await make_league(db, draft_status="scheduled")
+    season, _, _, _ = await make_season(db, draft_status="scheduled")
     async with client_as("uid-1") as member:
-        body = (await member.get(f"/api/leagues/{league.id}")).json()
-    assert body["season"] == 2025
+        body = (await member.get(f"/api/leagues/{season.league_id}")).json()
+    assert body["currentSeasonId"] == season.id
+    assert [s["year"] for s in body["seasons"]] == [2025]
     assert body["myRole"] == "member"
-    assert body["draftStatus"] == "scheduled"
     assert [m["role"] for m in body["members"]] == ["commissioner", "member"]
+    async with client_as("uid-1") as member:
+        overview = (await member.get(f"/api/seasons/{season.id}")).json()
+    assert overview["draftStatus"] == "scheduled"
+    assert overview["year"] == 2025
 
 
 async def test_league_can_never_lose_its_last_commissioner(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
-    league, users, _, _ = await make_league(db)
-    base = f"/api/leagues/{league.id}/members"
+    season, users, _, _ = await make_season(db)
+    base = f"/api/leagues/{season.league_id}/members"
     async with client_as("uid-0") as commissioner:
         demote = await commissioner.patch(
             f"{base}/{users[0].id}", json={"role": "member"}
@@ -55,51 +60,54 @@ async def test_league_can_never_lose_its_last_commissioner(
 async def test_members_cannot_manage_members_or_the_league(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
-    league, users, _, _ = await make_league(db)
+    season, users, _, _ = await make_season(db)
     async with client_as("uid-1") as member:
         role = await member.patch(
-            f"/api/leagues/{league.id}/members/{users[1].id}",
+            f"/api/leagues/{season.league_id}/members/{users[1].id}",
             json={"role": "commissioner"},
         )
-        rename = await member.patch(f"/api/leagues/{league.id}", json={"name": "x"})
-        invite = await member.post(f"/api/leagues/{league.id}/invite", json={})
+        rename = await member.patch(
+            f"/api/leagues/{season.league_id}", json={"name": "x"}
+        )
+        invite = await member.post(f"/api/leagues/{season.league_id}/invite", json={})
     assert {role.status_code, rename.status_code, invite.status_code} == {403}
 
 
 async def test_removing_a_member_frees_their_team(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
-    league, users, teams, _ = await make_league(db)
+    season, users, teams, _ = await make_season(db)
     async with client_as("uid-0") as commissioner:
         response = await commissioner.delete(
-            f"/api/leagues/{league.id}/members/{users[1].id}"
+            f"/api/leagues/{season.league_id}/members/{users[1].id}"
         )
     assert response.status_code == 200
     await db.refresh(teams[1])
     assert teams[1].owner_id is None
-    assert await db.get(LeagueMember, (league.id, users[1].id)) is None
+    member = await db.get(LeagueMember, (season.league_id, users[1].id))
+    assert member is not None and member.left_at is not None
 
 
 async def test_removing_a_drafter_mid_draft_keeps_picks_and_autopicks_for_the_team(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
-    league, users, teams, draft = await make_league(db, roster_total=3)
+    season, users, teams, draft = await make_season(db, roster_total=3)
     kc = NFLTeam(id=1, team_abv="KC", is_active=True, in_playoffs=True)
     db.add(kc)
     await db.flush()
     players = await make_players(db, ["QB", "RB", "WR", "TE"], nfl_team=kc)
-    await make_pick(db, league.id, users[0], players[0].id)
-    await make_pick(db, league.id, users[1], players[1].id)  # snake: B picks again next
+    await make_pick(db, season.id, users[0], players[0].id)
+    await make_pick(db, season.id, users[1], players[1].id)  # snake: B picks again next
 
     async with client_as("uid-0") as commissioner:
         response = await commissioner.delete(
-            f"/api/leagues/{league.id}/members/{users[1].id}"
+            f"/api/leagues/{season.league_id}/members/{users[1].id}"
         )
     assert response.status_code == 200
     await db.refresh(teams[1])
     assert teams[1].owner_id is None
 
-    covered = await draft_flow.auto_pick(db, league.id)
+    covered = await draft_flow.auto_pick(db, season.id)
     assert covered.pick.team_id == teams[1].id
     assert covered.pick.autopick is True
     kept = (
@@ -115,16 +123,19 @@ async def test_removing_a_drafter_mid_draft_keeps_picks_and_autopicks_for_the_te
 async def test_commissioner_renames_league_and_resizes_before_draft(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
-    league, _, _, _ = await make_league(db, draft_status="scheduled")
+    season, _, _, _ = await make_season(db, draft_status="scheduled")
     async with client_as("uid-0") as commissioner:
+        renamed = await commissioner.patch(
+            f"/api/leagues/{season.league_id}", json={"name": "Renamed"}
+        )
         grow = await commissioner.patch(
-            f"/api/leagues/{league.id}", json={"name": "Renamed", "numberTeams": 4}
+            f"/api/seasons/{season.id}", json={"numberTeams": 4}
         )
         shrink_claimed = await commissioner.patch(
-            f"/api/leagues/{league.id}", json={"numberTeams": 1}
+            f"/api/seasons/{season.id}", json={"numberTeams": 1}
         )
+    assert renamed.json()["name"] == "Renamed"
     assert grow.status_code == 200
-    assert grow.json()["name"] == "Renamed"
     assert grow.json()["numberTeams"] == 4
     assert grow.json()["openSpots"] == 2
     assert shrink_claimed.status_code == 422  # below the allowed minimum
@@ -133,20 +144,21 @@ async def test_commissioner_renames_league_and_resizes_before_draft(
 async def test_team_count_is_locked_after_draft_start(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
-    league, _, _, _ = await make_league(db)  # in progress
+    season, _, _, _ = await make_season(db)  # in progress
     async with client_as("uid-0") as commissioner:
         response = await commissioner.patch(
-            f"/api/leagues/{league.id}", json={"numberTeams": 4}
+            f"/api/seasons/{season.id}", json={"numberTeams": 4}
         )
     assert response.status_code == 409
 
 
 async def _join_setup(db: AsyncSession, **kwargs: object) -> tuple[int, str]:
-    league, _, _, _ = await make_league(db, teams=2, **kwargs)  # type: ignore[arg-type]
-    db.add(Team(name="Open", league_id=league.id))
+    """A league with one open team and a user to join; returns (league id, uid)."""
+    season, _, _, _ = await make_season(db, teams=2, **kwargs)  # type: ignore[arg-type]
+    db.add(Team(name="Open", season_id=season.id))
     db.add(User(supabase_uid="newbie", username="newbie", email="n@x.co"))
     await db.flush()
-    return league.id, "newbie"
+    return season.league_id, "newbie"
 
 
 async def test_invite_link_flow(db: AsyncSession, client_as: ClientFactory) -> None:
@@ -231,7 +243,9 @@ async def test_revoked_full_and_started_invites_are_refused(
 ) -> None:
     league_id, _ = await _join_setup(db)  # draft already in progress
     settings = await db.scalar(
-        select(LeagueSettings).where(LeagueSettings.league_id == league_id)
+        select(SeasonSettings)
+        .join(Season, Season.id == SeasonSettings.season_id)
+        .where(Season.league_id == league_id)
     )
     assert settings is not None
     settings.allow_join_after_draft_start = False  # commissioner opted out
@@ -264,12 +278,12 @@ async def test_unknown_invite_is_404(client_as: ClientFactory) -> None:
 async def test_full_league_refuses_joins(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
-    league, _, _, _ = await make_league(db, draft_status="scheduled")
+    season, _, _, _ = await make_season(db, draft_status="scheduled")
     db.add(User(supabase_uid="late", username="late", email="l@x.co"))
     await db.flush()
     async with client_as("uid-0") as commissioner:
         code = (
-            await commissioner.post(f"/api/leagues/{league.id}/invite", json={})
+            await commissioner.post(f"/api/leagues/{season.league_id}/invite", json={})
         ).json()["code"]
     async with client_as("late") as late:
         response = await late.post(f"/api/invites/{code}/join")
@@ -286,31 +300,34 @@ async def test_public_config_exposes_the_season(client_as: ClientFactory) -> Non
 async def test_commissioner_edits_notes_and_members_read_them(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
-    league, _, _, _ = await make_league(db, draft_status="scheduled")
+    season, _, _, _ = await make_season(db, draft_status="scheduled")
     async with client_as("uid-1") as member:
-        assert (await member.get(f"/api/leagues/{league.id}")).json()["notes"] == ""
+        assert (await member.get(f"/api/leagues/{season.league_id}")).json()[
+            "notes"
+        ] == ""
     async with client_as("uid-0") as commissioner:
         saved = await commissioner.patch(
-            f"/api/leagues/{league.id}", json={"notes": "Buy-in $20\nWinner takes all"}
+            f"/api/leagues/{season.league_id}",
+            json={"notes": "Buy-in $20\nWinner takes all"},
         )
         renamed = await commissioner.patch(
-            f"/api/leagues/{league.id}", json={"name": "Renamed"}
+            f"/api/leagues/{season.league_id}", json={"name": "Renamed"}
         )
     assert saved.status_code == 200
     assert saved.json()["notes"] == "Buy-in $20\nWinner takes all"
     assert renamed.json()["notes"] == "Buy-in $20\nWinner takes all"
     async with client_as("uid-1") as member:
-        body = (await member.get(f"/api/leagues/{league.id}")).json()
+        body = (await member.get(f"/api/leagues/{season.league_id}")).json()
     assert body["notes"] == "Buy-in $20\nWinner takes all"
 
 
 async def test_members_cannot_edit_notes(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
-    league, _, _, _ = await make_league(db, draft_status="scheduled")
+    season, _, _, _ = await make_season(db, draft_status="scheduled")
     async with client_as("uid-1") as member:
         response = await member.patch(
-            f"/api/leagues/{league.id}", json={"notes": "mine now"}
+            f"/api/leagues/{season.league_id}", json={"notes": "mine now"}
         )
     assert response.status_code == 403
 
@@ -318,14 +335,16 @@ async def test_members_cannot_edit_notes(
 async def test_notes_can_be_cleared_and_are_length_limited(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
-    league, _, _, _ = await make_league(db, draft_status="scheduled")
+    season, _, _, _ = await make_season(db, draft_status="scheduled")
     async with client_as("uid-0") as commissioner:
-        await commissioner.patch(f"/api/leagues/{league.id}", json={"notes": "x"})
+        await commissioner.patch(
+            f"/api/leagues/{season.league_id}", json={"notes": "x"}
+        )
         cleared = await commissioner.patch(
-            f"/api/leagues/{league.id}", json={"notes": ""}
+            f"/api/leagues/{season.league_id}", json={"notes": ""}
         )
         too_long = await commissioner.patch(
-            f"/api/leagues/{league.id}", json={"notes": "x" * 5001}
+            f"/api/leagues/{season.league_id}", json={"notes": "x" * 5001}
         )
     assert cleared.json()["notes"] == ""
     assert too_long.status_code == 422

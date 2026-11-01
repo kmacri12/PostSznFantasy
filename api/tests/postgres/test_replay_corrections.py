@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from api.db.models import NFLPlayer, NFLTeam, TeamPlayer
 from api.services.ingestion import poll_game_box_score
 from api.tests.postgres.conftest import ClientFactory
-from api.tests.postgres.factories import make_league
+from api.tests.postgres.factories import make_season
 from api.tests.postgres.test_live_polling import FakeClient
 
 REPLAY = Path(__file__).resolve().parents[3] / "e2e" / "fixtures" / "replay.json"
@@ -26,8 +26,8 @@ async def test_a_corrected_stat_in_the_replay_fixture_reaches_the_team_page_and_
     box: dict[str, Any] = json.loads(REPLAY.read_text())["boxes"][GAME_ID]
     corrected = copy.deepcopy(box)
     corrected["playerStats"][str(PASSER_ID)]["Passing"]["passYds"] = "357"
-    league, _, teams, _ = await make_league(db, draft_status="completed")
-    league.season = 2026
+    season, _, teams, _ = await make_season(db, draft_status="completed")
+    season.year = 2026
     home, away = int(box["teamIDHome"]), int(box["teamIDAway"])
     db.add_all(
         NFLTeam(id=team_id, team_abv=f"T{team_id}", is_active=True, in_playoffs=True)
@@ -36,7 +36,7 @@ async def test_a_corrected_stat_in_the_replay_fixture_reaches_the_team_page_and_
     await db.flush()
     db.add(NFLPlayer(id=PASSER_ID, name="Josh Allen", position="QB", team_id=home))
     await db.flush()
-    db.add(TeamPlayer(team_id=teams[0].id, league_id=league.id, player_id=PASSER_ID))
+    db.add(TeamPlayer(team_id=teams[0].id, season_id=season.id, player_id=PASSER_ID))
     await db.flush()
 
     for payload in (box, corrected):

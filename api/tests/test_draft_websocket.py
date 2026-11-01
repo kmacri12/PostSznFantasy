@@ -29,7 +29,7 @@ def patched_session_factory(db: AsyncMock) -> Iterator[None]:
     with (
         patch("api.routers.drafts.get_session_factory", return_value=session),
         patch(
-            "api.routers.drafts.league_is_archived", new=AsyncMock(return_value=False)
+            "api.routers.drafts.season_is_archived", new=AsyncMock(return_value=False)
         ),
     ):
         yield
@@ -59,7 +59,7 @@ def as_member(uid: str = "uid-1") -> Any:
     return (
         patch("api.routers.drafts.verify_token", return_value=uid),
         patch(
-            "api.routers.drafts.find_membership",
+            "api.routers.drafts.find_season_membership",
             new=AsyncMock(return_value=membership),
         ),
         patch("api.routers.drafts._snapshot", new=AsyncMock(return_value=snapshot)),
@@ -91,7 +91,10 @@ def test_forged_token_is_rejected(client: TestClient) -> None:
 def test_non_member_is_rejected(client: TestClient) -> None:
     with (
         patch("api.routers.drafts.verify_token", return_value="outsider"),
-        patch("api.routers.drafts.find_membership", new=AsyncMock(return_value=None)),
+        patch(
+            "api.routers.drafts.find_season_membership",
+            new=AsyncMock(return_value=None),
+        ),
     ):
         with client.websocket_connect(WS_URL) as ws:
             ws.send_json(auth_message())
@@ -208,7 +211,7 @@ def test_picks_on_an_archived_league_are_refused(client: TestClient) -> None:
         membership,
         snapshot,
         patch(
-            "api.routers.drafts.league_is_archived", new=AsyncMock(return_value=True)
+            "api.routers.drafts.season_is_archived", new=AsyncMock(return_value=True)
         ),
         patch("api.routers.drafts.make_pick", new=make),
         client.websocket_connect(WS_URL) as ws,

@@ -7,8 +7,8 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.db.models import League, NFLGame, NFLPlayer, NFLTeam, Team, TeamPlayer, User
-from api.tests.postgres.factories import make_league, make_players
+from api.db.models import NFLGame, NFLPlayer, NFLTeam, Season, Team, TeamPlayer, User
+from api.tests.postgres.factories import make_players, make_season
 
 LAYOUT: dict[str, Any] = dict(
     roster_total=5, roster_num_qb=1, roster_num_rb=1, roster_num_wr=0, roster_num_te=0,
@@ -41,7 +41,7 @@ def game(
 
 @dataclass
 class ActivityLeague:
-    league: League
+    season: Season
     commissioner: User
     owner: User
     commissioner_team: Team
@@ -71,7 +71,7 @@ async def activity_league(
     draft_status: str = "in_progress",
 ) -> ActivityLeague:
     """Players 0-2 are on KC (id 1), player 3 on BUF (id 2); DEN (id 3) is the foe."""
-    league, users, teams, _ = await make_league(
+    season, users, teams, _ = await make_season(
         db, teams=team_count, draft_status=draft_status, **LAYOUT
     )
     db.add_all(
@@ -86,13 +86,13 @@ async def activity_league(
         db, ["WR"], nfl_team=await db.get(NFLTeam, 2), first_id=2000
     )
     db.add_all(
-        TeamPlayer(team_id=teams[roster_on].id, league_id=league.id, player_id=p.id)
+        TeamPlayer(team_id=teams[roster_on].id, season_id=season.id, player_id=p.id)
         for p in players
     )
     db.add_all(games if games is not None else [game("g1", 1, 1, 3, FUTURE)])
     await db.flush()
     return ActivityLeague(
-        league, users[0], users[roster_on], teams[0], teams[roster_on], players
+        season, users[0], users[roster_on], teams[0], teams[roster_on], players
     )
 
 

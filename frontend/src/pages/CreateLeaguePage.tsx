@@ -91,7 +91,7 @@ const CreateLeaguePage = ({
         teamUnitSettings: { teamQb: teamUnits.team_qb, teamK: teamUnits.team_k },
       });
 
-      const createdLeagueId = response.leagueId;
+      const createdLeagueId = response.seasonId;
       if (!createdLeagueId) {
         setSubmitError(
           "Your league was created, but we couldn't open it. Find it on the home page.",

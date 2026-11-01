@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.core.config import get_settings
 from api.db.models.draft import Draft, DraftPick, DraftQueueItem
-from api.db.models.league import League, LeagueSettings, Team, TeamPlayer
+from api.db.models.league import Season, SeasonSettings, Team, TeamPlayer
 from api.db.models.nfl import NFLPlayer, NFLPlayerSeasonStats, NFLTeam
 from api.models.draft_models import (
     DraftPickResponse,
@@ -39,7 +39,7 @@ from api.services.playoff_field import (
     require_draft_window_open,
     require_field_set,
 )
-from api.services.standings import clear_league_standings
+from api.services.standings import clear_season_standings
 from api.services.team_units import (
     combined_positions,
     scores_whole_team,
@@ -63,7 +63,7 @@ async def build_state(db: AsyncSession, draft: Draft) -> DraftStateResponse:
     teams = list(
         (
             await db.execute(
-                select(Team).where(Team.league_id == draft.league_id).order_by(Team.id)
+                select(Team).where(Team.season_id == draft.season_id).order_by(Team.id)
             )
         )
         .scalars()
@@ -90,7 +90,7 @@ async def build_state(db: AsyncSession, draft: Draft) -> DraftStateResponse:
             .order_by(DraftPick.number_pick_overall)
         )
     ).all()
-    settings = await load_settings(db, draft.league_id)
+    settings = await load_settings(db, draft.season_id)
     combined = combined_positions(settings)
     picks = [
         DraftPickResponse(
@@ -130,7 +130,7 @@ async def build_state(db: AsyncSession, draft: Draft) -> DraftStateResponse:
     }
     return DraftStateResponse(
         draft_id=draft.id,
-        league_id=draft.league_id,
+        season_id=draft.season_id,
         status=DraftStatus(draft.status),
         start_time=draft.start_time,
         draft_type=DraftType(draft.draft_type),
@@ -151,7 +151,7 @@ async def build_state(db: AsyncSession, draft: Draft) -> DraftStateResponse:
         on_deck_team_id=deck,
         position_caps=caps,
         draft_cutoff=await first_wild_card_kickoff(
-            db, await _league_season(db, draft.league_id)
+            db, await _season_year(db, draft.season_id)
         ),
         playoff_field_set=await playoff_team_count(db)
         == get_settings().playoff_field_size,
@@ -174,12 +174,12 @@ def _require_pre_draft(draft: Draft) -> None:
         raise DraftPickError("This can't be changed once the draft has started")
 
 
-async def _league_season(db: AsyncSession, league_id: int) -> int:
-    return await db.scalar(select(League.season).where(League.id == league_id)) or 0
+async def _season_year(db: AsyncSession, season_id: int) -> int:
+    return await db.scalar(select(Season.year).where(Season.id == season_id)) or 0
 
 
-async def apply_setup(db: AsyncSession, league_id: int, setup: DraftSetup) -> Draft:
-    draft = await load_draft_for_update(db, league_id)
+async def apply_setup(db: AsyncSession, season_id: int, setup: DraftSetup) -> Draft:
+    draft = await load_draft_for_update(db, season_id)
     if draft.status == DraftStatus.COMPLETED.value:
         raise DraftPickError("The draft is already complete")
     fields = setup.model_fields_set
@@ -195,7 +195,7 @@ async def apply_setup(db: AsyncSession, league_id: int, setup: DraftSetup) -> Dr
         draft.time_per_pick_seconds = setup.time_per_pick_seconds
     if setup.start_time is not None:
         await require_draft_window_open(
-            db, await _league_season(db, league_id), scheduled_for=setup.start_time
+            db, await _season_year(db, season_id), scheduled_for=setup.start_time
         )
     if setup.clear_start_time:
         draft.start_time = None
@@ -209,12 +209,12 @@ async def apply_setup(db: AsyncSession, league_id: int, setup: DraftSetup) -> Dr
 
 
 async def set_order(
-    db: AsyncSession, league_id: int, team_ids: list[int | None]
+    db: AsyncSession, season_id: int, team_ids: list[int | None]
 ) -> Draft:
-    draft = await load_draft_for_update(db, league_id)
+    draft = await load_draft_for_update(db, season_id)
     _require_pre_draft(draft)
     league_team_ids = set(
-        (await db.execute(select(Team.id).where(Team.league_id == league_id)))
+        (await db.execute(select(Team.id).where(Team.season_id == season_id)))
         .scalars()
         .all()
     )
@@ -232,18 +232,18 @@ async def set_order(
     return draft
 
 
-async def randomize_order(db: AsyncSession, league_id: int) -> Draft:
+async def randomize_order(db: AsyncSession, season_id: int) -> Draft:
     team_ids = list(
-        (await db.execute(select(Team.id).where(Team.league_id == league_id)))
+        (await db.execute(select(Team.id).where(Team.season_id == season_id)))
         .scalars()
         .all()
     )
     random.shuffle(team_ids)
-    return await set_order(db, league_id, [*team_ids])
+    return await set_order(db, season_id, [*team_ids])
 
 
-async def open_lobby(db: AsyncSession, league_id: int) -> Draft:
-    draft = await load_draft_for_update(db, league_id)
+async def open_lobby(db: AsyncSession, season_id: int) -> Draft:
+    draft = await load_draft_for_update(db, season_id)
     if draft.status not in (
         DraftStatus.UNSCHEDULED.value,
         DraftStatus.SCHEDULED.value,
@@ -254,14 +254,14 @@ async def open_lobby(db: AsyncSession, league_id: int) -> Draft:
     return draft
 
 
-async def start_draft(db: AsyncSession, league_id: int) -> Draft:
+async def start_draft(db: AsyncSession, season_id: int) -> Draft:
     """The only way a draft starts: an explicit commissioner action, never a page visit."""
-    draft = await load_draft_for_update(db, league_id)
+    draft = await load_draft_for_update(db, season_id)
     _require_pre_draft(draft)
     await require_field_set(db)
-    await require_draft_window_open(db, await _league_season(db, league_id))
+    await require_draft_window_open(db, await _season_year(db, season_id))
     team_count = await db.scalar(
-        select(func.count()).select_from(Team).where(Team.league_id == league_id)
+        select(func.count()).select_from(Team).where(Team.season_id == season_id)
     )
     order = draft.draft_order_team_ids
     if len(order) != team_count or None in order:
@@ -275,8 +275,8 @@ async def start_draft(db: AsyncSession, league_id: int) -> Draft:
     return draft
 
 
-async def pause_draft(db: AsyncSession, league_id: int) -> Draft:
-    draft = await load_draft_for_update(db, league_id)
+async def pause_draft(db: AsyncSession, season_id: int) -> Draft:
+    draft = await load_draft_for_update(db, season_id)
     if draft.status != DraftStatus.IN_PROGRESS.value:
         raise DraftPickError("Only a running draft can be paused")
     remaining = 0
@@ -292,8 +292,8 @@ async def pause_draft(db: AsyncSession, league_id: int) -> Draft:
     return draft
 
 
-async def resume_draft(db: AsyncSession, league_id: int) -> Draft:
-    draft = await load_draft_for_update(db, league_id)
+async def resume_draft(db: AsyncSession, season_id: int) -> Draft:
+    draft = await load_draft_for_update(db, season_id)
     if draft.status != DraftStatus.PAUSED.value:
         raise DraftPickError("Only a paused draft can be resumed")
     now = datetime.now(UTC)
@@ -306,8 +306,8 @@ async def resume_draft(db: AsyncSession, league_id: int) -> Draft:
     return draft
 
 
-async def undo_last_pick(db: AsyncSession, league_id: int) -> Draft:
-    draft = await load_draft_for_update(db, league_id)
+async def undo_last_pick(db: AsyncSession, season_id: int) -> Draft:
+    draft = await load_draft_for_update(db, season_id)
     if draft.status not in (
         DraftStatus.IN_PROGRESS.value,
         DraftStatus.PAUSED.value,
@@ -344,7 +344,7 @@ async def undo_last_pick(db: AsyncSession, league_id: int) -> Draft:
         draft.current_pick_deadline = next_deadline(draft, now)
     await db.flush()
     if was_completed:
-        await clear_league_standings(db, league_id)
+        await clear_season_standings(db, season_id)
     return draft
 
 
@@ -392,7 +392,7 @@ async def set_queue(
 
 
 async def _best_available_ids(
-    db: AsyncSession, draft: Draft, settings: LeagueSettings
+    db: AsyncSession, draft: Draft, settings: SeasonSettings
 ) -> list[int]:
     """Undrafted draft-pool players, best last-season fantasy output first."""
     drafted = select(DraftPick.player_id).where(DraftPick.draft_id == draft.id)
@@ -443,15 +443,15 @@ async def _best_available_ids(
 
 
 async def auto_pick(
-    db: AsyncSession, league_id: int, *, only_if_overdue: bool = False
+    db: AsyncSession, season_id: int, *, only_if_overdue: bool = False
 ) -> PickResult:
     """Pick for whoever is on the clock: their queue first (if configured), then best available.
 
     The clock sets `only_if_overdue` because it scans for expired deadlines before taking
     the lock; a drafter may have picked in between, which would burn the next team's turn.
     """
-    draft = await load_draft_for_update(db, league_id)
-    settings = await load_settings(db, league_id)
+    draft = await load_draft_for_update(db, season_id)
+    settings = await load_settings(db, season_id)
     if draft.status != DraftStatus.IN_PROGRESS.value:
         # For the clock this only means its scan went stale (another clock made the
         # final pick, or a commissioner paused), not a failure worth alerting on.

@@ -26,7 +26,7 @@ test.describe("signed in", () => {
     await host.signUp("smoke");
     const leagueId = await host.createLeague(unique("Smoke League"));
     await signInAs(context, host.uid);
-    const teamId = (await host.get<{ myTeamId: number }>(`/api/leagues/${leagueId}`)).myTeamId;
+    const teamId = (await host.get<{ myTeamId: number }>(`/api/seasons/${leagueId}`)).myTeamId;
 
     const pages = [
       "/",

@@ -2,13 +2,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.db.models import NFLGame, NFLTeam, TeamPlayer
 from api.tests.postgres.conftest import ClientFactory
-from api.tests.postgres.factories import make_league, make_players
+from api.tests.postgres.factories import make_players, make_season
 
 
 async def test_roster_shows_alive_status_and_next_game(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
-    league, _, teams, _ = await make_league(db, roster_total=2, roster_num_bench=1)
+    season, _, teams, _ = await make_season(db, roster_total=2, roster_num_bench=1)
     kc = NFLTeam(id=1, team_abv="KC", is_active=True)
     buf = NFLTeam(id=2, team_abv="BUF", is_active=False)
     db.add_all([kc, buf])
@@ -17,8 +17,8 @@ async def test_roster_shows_alive_status_and_next_game(
     dead = (await make_players(db, ["RB"], nfl_team=buf, first_id=2000))[0]
     db.add_all(
         [
-            TeamPlayer(team_id=teams[0].id, league_id=league.id, player_id=alive.id),
-            TeamPlayer(team_id=teams[0].id, league_id=league.id, player_id=dead.id),
+            TeamPlayer(team_id=teams[0].id, season_id=season.id, player_id=alive.id),
+            TeamPlayer(team_id=teams[0].id, season_id=season.id, player_id=dead.id),
             NFLGame(
                 id="g1", season=2025, season_type="post", game_status="Scheduled",
                 game_time_epoch="1800000000", team_id_home=1, team_id_away=3,
@@ -39,7 +39,7 @@ async def test_roster_shows_alive_status_and_next_game(
 async def test_owner_and_commissioner_can_rename_others_cannot(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
-    _, _, teams, _ = await make_league(db)
+    _, _, teams, _ = await make_season(db)
     url = f"/api/teams/{teams[1].id}"
     async with client_as("uid-1") as owner:
         assert (await owner.patch(url, json={"name": "Mine"})).status_code == 200

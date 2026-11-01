@@ -44,8 +44,8 @@ export const createDraftLeague = async (
   const info = await host.get<{ unassignedTeamIds: number[] }>(
     `/api/drafts/draft-info/${leagueId}`,
   );
-  const hostTeam = (await host.get<{ myTeamId: number }>(`/api/leagues/${leagueId}`)).myTeamId;
-  const guestTeam = (await guest.get<{ myTeamId: number }>(`/api/leagues/${leagueId}`)).myTeamId;
+  const hostTeam = (await host.get<{ myTeamId: number }>(`/api/seasons/${leagueId}`)).myTeamId;
+  const guestTeam = (await guest.get<{ myTeamId: number }>(`/api/seasons/${leagueId}`)).myTeamId;
   expectSeated(info.unassignedTeamIds.length === 2);
   await host.put(`/api/drafts/${leagueId}/order`, { teamIds: [hostTeam, guestTeam] });
   if (options.seconds)
