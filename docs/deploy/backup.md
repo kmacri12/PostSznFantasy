@@ -40,6 +40,8 @@ scripts/restore-backup.sh postszn-<timestamp>.dump.gpg \
 
 The restore runs in one transaction, so a failure leaves the target empty. Point the API at the restored database by changing `PG_URI`; because the dump contains the `alembic_version` row, a later `alembic upgrade head` applies only newer migrations. Against the **same** Supabase project nothing more is needed: users sign in with the same accounts and their `supabase_uid` values match the restored `fantasy.users`. Against a **new** project, recreate the accounts first (next section).
 
+Deleted leagues are ordinary rows with `fantasy.leagues.deleted_at` set, so a dump contains them and a restore keeps them deleted. To bring one back afterwards, see [Restore a deleted league](../owner/league-restore.md) (`python -m api.scripts.restore_league <id>`).
+
 ## Recreating sign-in accounts
 
 Decision (#215): keep the Supabase project active all off-season (the weekly keep-alive above), and treat a lost project as a recovery: `api/scripts/recreate_auth_users.py` reads `fantasy.users` from the restored database and creates each user in the new project through the Auth admin API with the **same id** and a confirmed email. Why this and not the alternatives is in [the research note](../research/supabase-auth-backup.md): no password hashes ever enter a backup, nothing changes in the sign-in path, and linking by email in the app (which would risk account takeover) is not used.

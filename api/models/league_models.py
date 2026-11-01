@@ -191,6 +191,12 @@ SeasonSettingsPatch = _all_optional(
 )
 
 
+class LeagueDelete(BaseSchema):
+    """The typed confirmation: the API enforces it, not only the UI."""
+
+    league_name: str
+
+
 class LeagueUpdate(BaseSchema):
     name: str | None = Field(default=None, min_length=1, max_length=100)
     notes: str | None = Field(default=None, max_length=NOTES_MAX_LENGTH)

@@ -28,8 +28,9 @@ done
 
 **Verify:** the restore printed `restored, alembic revision <latest>` and both rows are identical. Note anything that failed: Supabase-specific roles or extensions are the likely trouble; add the fix to [backup.md](backup.md).
 
-5. Point a throwaway API at it, to prove it starts: `cd api && PG_URI='<scratch string>' SUPABASE_URL='https://<scratch ref>.supabase.co' uv run uvicorn api.main:app --port 8002`, then `curl -s localhost:8002/api` prints `{"status":"healthy"}`.
-6. Delete the scratch project when done. Verify: it no longer appears in the dashboard.
+5. A deleted league stays deleted. Before the dump, delete one league in the app (or `UPDATE fantasy.leagues SET deleted_at = now() WHERE id = <id>`); after the restore run `psql "$scratch" -tA -c "select id from fantasy.leagues where deleted_at is not null"` and the same id is listed, and `curl` of `/api/leagues/user-leagues` for a member does not include it (#231).
+6. Point a throwaway API at it, to prove it starts: `cd api && PG_URI='<scratch string>' SUPABASE_URL='https://<scratch ref>.supabase.co' uv run uvicorn api.main:app --port 8002`, then `curl -s localhost:8002/api` prints `{"status":"healthy"}`.
+7. Delete the scratch project when done. Verify: it no longer appears in the dashboard.
 
 ## Part B: shutdown and wake-up, end to end
 
@@ -55,6 +56,7 @@ Minutes, with notes:
 ## Done when
 
 - [ ] The restore worked from the **stored** dump into a scratch Supabase project, and the counts matched.
+- [ ] A league deleted before the dump is still deleted after the restore.
 - [ ] Shutdown and wake-up ran end to end once, and `scripts/dormancy-check.sh dormant` / `awake` passed at the right moments.
 - [ ] The timing table above is filled in and committed.
 - [ ] Every place a runbook was wrong is fixed.

@@ -2,7 +2,7 @@
 
 Entity relationships for the Postgres schema (`fantasy` and `nfl`). The source of truth is the SQLAlchemy models in `api/db/models/`; this diagram is checked against them by `api/tests/test_erd.py`, so update it in the same PR as any model or migration change.
 
-Conventions: entity names are table names without the schema. Tables in `fantasy` are the league game (a permanent `leagues` row owns members and the invite; each year is a `seasons` row owning teams, settings, the draft, standings and activity); tables in `nfl` are ingested NFL data. Very wide tables are summarised as column groups (see the notes under the diagram) and are exempt from the per-column check.
+Conventions: entity names are table names without the schema. Tables in `fantasy` are the league game (a permanent `leagues` row owns members and the invite; each year is a `seasons` row owning teams, settings, the draft, standings and activity); tables in `nfl` are ingested NFL data. A league with `deleted_at` set is soft-deleted (#231): every query goes through `services/live_leagues.py`, no row is removed, and `deleted_by` records the commissioner. Very wide tables are summarised as column groups (see the notes under the diagram) and are exempt from the per-column check.
 
 ```mermaid
 erDiagram

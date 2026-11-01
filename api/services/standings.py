@@ -8,6 +8,7 @@ from api.db.models.draft import Draft
 from api.db.models.league import Season, SeasonStanding, Team, TeamPlayer
 from api.db.models.nfl import NFLPlayer
 from api.models.enums import DraftStatus
+from api.services.live_leagues import live_season_ids
 from api.services.ranking import RankingFacts, RoundPoints, rank_teams
 from api.services.round_points import (
     StatsByPlayer,
@@ -134,6 +135,7 @@ async def recompute_standings(db: AsyncSession, year: int) -> int:
                 select(Season.id)
                 .join(Draft, Draft.season_id == Season.id)
                 .where(
+                    Season.id.in_(live_season_ids()),
                     Season.year == year,
                     Draft.status == DraftStatus.COMPLETED.value,
                 )

@@ -16,11 +16,16 @@ from api.db.models.league import (
 from api.db.models.user import User
 from api.db.session import DbSession
 from api.dependencies.auth import CurrentUser
-from api.dependencies.league import LeagueCommissioner, LeagueMember
+from api.dependencies.league import (
+    LeagueCommissioner,
+    LeagueMember,
+    deleted_league_error,
+)
 from api.models.enums import DraftStatus, DraftType, LeagueRole
 from api.models.league_models import (
     LeagueCreate,
     LeagueCreateResponse,
+    LeagueDelete,
     LeagueOverview,
     LeaguesByUser,
     LeagueUpdate,
@@ -38,6 +43,7 @@ from api.services.league_members import (
     rule_error,
     set_role,
 )
+from api.services.live_leagues import delete_league, live_league_ids
 from api.services.playoff_field import require_draft_window_open
 from api.services.round_status import season_is_finished
 from api.services.seasons import current_season, season_summaries, start_season
@@ -180,6 +186,7 @@ async def get_user_leagues(
                 .where(
                     LeagueMemberRow.user_id == user.id,
                     LeagueMemberRow.left_at.is_(None),
+                    LeagueMemberRow.league_id.in_(live_league_ids()),
                 )
                 .order_by(LeagueMemberRow.joined_at)
             )
@@ -228,6 +235,7 @@ async def get_past_leagues(
                 .where(
                     LeagueMemberRow.user_id == user.id,
                     LeagueMemberRow.left_at.is_not(None),
+                    LeagueMemberRow.league_id.in_(live_league_ids()),
                 )
                 .order_by(LeagueMemberRow.joined_at)
             )
@@ -305,6 +313,9 @@ async def list_league_seasons(
     leaving."""
     user = await _caller(db, current_user_id)
     member = await db.get(LeagueMemberRow, (league_id, user.id)) if user else None
+    league = await db.get(League, league_id)
+    if league is not None and league.deleted_at is not None:
+        raise deleted_league_error(league, member)
     if user is None or member is None:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -335,6 +346,25 @@ async def update_league(
         membership.league.notes = payload.notes
     await db.flush()
     return await get_league(league_id, membership, db)
+
+
+@router.delete("/{league_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def remove_league(
+    league_id: int,
+    payload: LeagueDelete,
+    membership: LeagueCommissioner,
+    db: DbSession,
+) -> None:
+    """Soft delete: permanent for users, covers every season, keeps all rows."""
+    if payload.league_name != membership.league.name:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail="Type the league name exactly to delete it",
+        )
+    try:
+        await delete_league(db, membership.league, deleted_by=membership.user.id)
+    except LeagueRuleError as exc:
+        raise rule_error(exc) from exc
 
 
 @router.patch("/{league_id}/members/{user_id}", response_model=LeagueOverview)

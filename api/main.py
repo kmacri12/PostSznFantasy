@@ -27,6 +27,7 @@ from api.routers import (
 )
 from api.services.draft_clock import run_draft_clock
 from api.services.ingestion.guard import IngestionBusy
+from api.services.live_leagues import LeagueDeletedError
 from api.services.scheduler import run_scheduler
 from api.utils.rapidapi.rapidapi import close_rapidapi_client
 from api.ws.broadcast_relay import PostgresRelay
@@ -82,6 +83,19 @@ app.add_middleware(
 
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.add_middleware(RequestLoggingMiddleware)
+
+
+@app.exception_handler(LeagueDeletedError)
+async def league_deleted_handler(_: Request, exc: LeagueDeletedError) -> JSONResponse:
+    return JSONResponse(
+        status_code=status.HTTP_404_NOT_FOUND,
+        content={
+            "detail": exc.detail,
+            "code": "leagueDeleted",
+            "leagueName": exc.league_name,
+            "deletedAt": exc.deleted_at.isoformat() if exc.deleted_at else None,
+        },
+    )
 
 
 @app.exception_handler(IngestionBusy)
