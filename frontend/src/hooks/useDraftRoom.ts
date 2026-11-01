@@ -14,7 +14,7 @@ const wsOrigin = () =>
   `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}`;
 
 /** Live draft room: full snapshot on every (re)connect, then incremental events. */
-export function useDraftRoom(leagueId: string | undefined) {
+export function useDraftRoom(seasonId: number | undefined) {
   const { getIdToken } = useUser();
   const [room, dispatch] = useReducer(
     (current: DraftRoom, event: DraftMessage) => applyDraftEvent(current, event),
@@ -23,7 +23,7 @@ export function useDraftRoom(leagueId: string | undefined) {
   const [now, setNow] = useState(() => Date.now());
 
   const { isConnected, sendMessage } = useWebSocket(
-    leagueId ? `${wsOrigin()}/api/drafts/ws/${leagueId}` : "",
+    seasonId ? `${wsOrigin()}/api/drafts/ws/${seasonId}` : "",
     { getToken: getIdToken, onMessage: dispatch },
   );
 

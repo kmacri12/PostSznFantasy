@@ -163,11 +163,11 @@ const TeamPool = ({
 
 /** Commissioner draft setup: schedule, clock, type, timeout behaviour and slot order. */
 const DraftSetupPanel = ({ draft, canEdit }: { draft: DraftState; canEdit: boolean }) => {
-  const leagueId = draft.seasonId;
-  const setup = useDraftSetup(leagueId);
-  const saveOrder = useDraftOrder(leagueId);
-  const control = useDraftControl(leagueId);
-  const teams = useLeagueTeams(leagueId);
+  const seasonId = draft.seasonId;
+  const setup = useDraftSetup(seasonId);
+  const saveOrder = useDraftOrder(seasonId);
+  const control = useDraftControl(seasonId);
+  const teams = useLeagueTeams(seasonId);
 
   const allTeamIds = useMemo(() => (teams.data ?? []).map((team) => team.id), [teams.data]);
 

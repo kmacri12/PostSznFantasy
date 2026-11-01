@@ -12,6 +12,7 @@ from sqlalchemy.orm import class_mapper
 from api.db.models.draft import Draft
 from api.db.models.league import League, LeagueMember, Season, SeasonSettings, Team
 from api.models.enums import DraftStatus
+from api.models.league_models import SeasonSummary
 from api.services.league_members import LeagueRuleError
 from api.services.round_status import season_is_finished
 
@@ -52,6 +53,50 @@ async def current_season(db: AsyncSession, league_id: int) -> Season | None:
         .scalars()
         .first()
     )
+
+
+async def season_summaries(
+    db: AsyncSession, league_id: int, user_id: int, *, former: bool = False
+) -> list[SeasonSummary]:
+    """The league's seasons, oldest first, with the caller's team in each.
+
+    A former member gets only the finished seasons in which they owned a team.
+    """
+    seasons = (
+        (
+            await db.execute(
+                select(Season)
+                .where(Season.league_id == league_id)
+                .order_by(Season.year)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    summaries: list[SeasonSummary] = []
+    for season in seasons:
+        finished = await season_is_finished(db, season.year)
+        team_id = await db.scalar(
+            select(Team.id)
+            .where(Team.season_id == season.id, Team.owner_id == user_id)
+            .order_by(Team.id)
+            .limit(1)
+        )
+        if former and not (finished and team_id is not None):
+            continue
+        status = await db.scalar(
+            select(Draft.status).where(Draft.season_id == season.id)
+        )
+        summaries.append(
+            SeasonSummary(
+                id=season.id,
+                year=season.year,
+                finished=finished,
+                draft_status=DraftStatus(status or DraftStatus.UNSCHEDULED),
+                my_team_id=team_id,
+            )
+        )
+    return summaries
 
 
 async def start_season(db: AsyncSession, league: League) -> Season:

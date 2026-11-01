@@ -7,11 +7,13 @@ import type {
   InvitePreview,
   JoinResult,
   LeagueByUser,
-  LeagueOverview,
+  LeagueInfo,
   LeagueSettings,
-  MemberSummary,
+  PastLeague,
   PlayerSummary,
+  SeasonOverview,
   SeasonRecap,
+  SeasonSummary,
   Standings,
   SyncResult,
   SyncStatus,
@@ -20,29 +22,26 @@ import type {
   TeamSummary,
 } from "./types";
 
-/**
- * Ids in the SPA: a page's "league id" (route param, `?leagueId=`) is the id of the
- * league's season, which is what the season API routes take. League-level calls
- * (members, notes, invite, starting a season) resolve the permanent league id from
- * the season first. The frontend is reworked around seasons in #235.
- */
 type Id = string | number;
 
 export const keys = {
   config: ["config"] as const,
   userLeagues: ["user-leagues"] as const,
-  league: (leagueId: Id) => ["league", String(leagueId)] as const,
-  recap: (leagueId: Id) => ["recap", String(leagueId)] as const,
-  standings: (leagueId: Id) => ["standings", String(leagueId)] as const,
-  teams: (leagueId: Id) => ["teams", String(leagueId)] as const,
+  pastLeagues: ["past-leagues"] as const,
+  leagueInfo: (leagueId: Id) => ["league-info", String(leagueId)] as const,
+  leagueSeasons: (leagueId: Id) => ["league-seasons", String(leagueId)] as const,
+  season: (seasonId: Id) => ["season", String(seasonId)] as const,
+  recap: (seasonId: Id) => ["recap", String(seasonId)] as const,
+  standings: (seasonId: Id) => ["standings", String(seasonId)] as const,
+  teams: (seasonId: Id) => ["teams", String(seasonId)] as const,
   team: (teamId: Id) => ["team", String(teamId)] as const,
   breakdown: (teamId: Id) => ["breakdown", String(teamId)] as const,
-  settings: (leagueId: Id) => ["settings", String(leagueId)] as const,
-  draft: (leagueId: Id) => ["draft", String(leagueId)] as const,
+  settings: (seasonId: Id) => ["settings", String(seasonId)] as const,
+  draft: (seasonId: Id) => ["draft", String(seasonId)] as const,
   invite: (leagueId: Id) => ["invite", String(leagueId)] as const,
   invitePreview: (code: string) => ["invite-preview", code] as const,
   players: ["players"] as const,
-  draftPool: (leagueId?: Id) => ["draft-pool", leagueId ?? "all"] as const,
+  draftPool: (seasonId?: Id) => ["draft-pool", seasonId ?? "all"] as const,
   seasonStats: ["player-season-stats"] as const,
   scoringDefaults: ["scoring-defaults"] as const,
   syncStatus: ["sync-status"] as const,
@@ -62,103 +61,61 @@ export const useConfig = () =>
 export const useUserLeagues = (enabled: boolean) =>
   useQuery({
     queryKey: keys.userLeagues,
-    queryFn: async ({ signal }) =>
-      (
-        await get<(Omit<LeagueByUser, "id" | "leagueId"> & { id: number; seasonId: number })[]>(
-          "/api/leagues/user-leagues",
-          signal,
-        )
-      ).map(({ seasonId, id, ...league }) => ({ ...league, id: seasonId, leagueId: id })),
+    queryFn: ({ signal }) => get<LeagueByUser[]>("/api/leagues/user-leagues", signal),
     enabled,
     refetchInterval: 60_000, // the nav dot for new league activity
   });
 
-/** Whether the league is a finished, read-only archive; reads the cached league list, no extra request. */
-export const useLeagueArchived = (leagueId: Id | undefined): boolean => {
-  const { data } = useUserLeagues(true);
-  return data?.find((league) => String(league.id) === String(leagueId))?.finished === true;
-};
-
-interface SeasonOverview {
-  id: number;
-  leagueId: number;
-  leagueName: string;
-  year: number;
-  finished: boolean;
-  canEdit: boolean;
-  canCommission: boolean;
-  numberTeams: number;
-  openSpots: number;
-  myRole: LeagueOverview["myRole"];
-  myTeamId: number | null;
-  draftStatus: LeagueOverview["draftStatus"];
-  draftStartTime: string | null;
-  members: MemberSummary[];
-  teams: LeagueOverview["teams"];
-}
-
-const fetchLeague = async (seasonId: Id, signal?: AbortSignal): Promise<LeagueOverview> => {
-  const season = await get<SeasonOverview>(`/api/seasons/${seasonId}`, signal);
-  const league = await get<{ name: string; notes: string }>(
-    `/api/leagues/${season.leagueId}`,
-    signal,
-  );
-  return {
-    id: season.id,
-    leagueId: season.leagueId,
-    name: league.name,
-    season: season.year,
-    finished: season.finished,
-    canEdit: season.canEdit,
-    canCommission: season.canCommission,
-    notes: league.notes,
-    numberTeams: season.numberTeams,
-    openSpots: season.openSpots,
-    myRole: season.myRole,
-    myTeamId: season.myTeamId,
-    draftStatus: season.draftStatus,
-    draftStartTime: season.draftStartTime,
-    members: season.members,
-    teams: season.teams,
-  };
-};
-
-export const useLeague = (leagueId: Id | undefined) =>
+/** Leagues the caller left, with the finished seasons they still may read. */
+export const usePastLeagues = (enabled: boolean) =>
   useQuery({
-    queryKey: keys.league(leagueId ?? ""),
-    queryFn: ({ signal }) => fetchLeague(leagueId ?? "", signal),
-    enabled: leagueId !== undefined,
+    queryKey: keys.pastLeagues,
+    queryFn: ({ signal }) => get<PastLeague[]>("/api/leagues/past-leagues", signal),
+    enabled,
   });
 
-/** The permanent league behind a page's season id, from the cache or one fetch. */
-const resolveLeagueId = async (
-  queryClient: ReturnType<typeof useQueryClient>,
-  seasonId: Id | undefined,
-): Promise<number> =>
-  (
-    await queryClient.fetchQuery({
-      queryKey: keys.league(seasonId ?? ""),
-      queryFn: ({ signal }) => fetchLeague(seasonId ?? "", signal),
-      staleTime: Number.POSITIVE_INFINITY,
-    })
-  ).leagueId;
+/** The seasons of a league the caller may open (all for a member, finished ones after leaving). */
+export const useLeagueSeasons = (leagueId: Id | undefined) =>
+  useQuery({
+    queryKey: keys.leagueSeasons(leagueId ?? ""),
+    queryFn: ({ signal }) => get<SeasonSummary[]>(`/api/leagues/${leagueId}/seasons`, signal),
+    enabled: leagueId !== undefined,
+    retry: false,
+  });
+
+/** A season's home data and the caller's `canEdit` / `canCommission` flags in it. */
+export const useSeason = (seasonId: Id | undefined) =>
+  useQuery({
+    queryKey: keys.season(seasonId ?? ""),
+    queryFn: ({ signal }) => get<SeasonOverview>(`/api/seasons/${seasonId}`, signal),
+    enabled: seasonId !== undefined,
+    retry: false,
+  });
+
+/** The permanent league: notes, members, whether a next season can start. Members only. */
+export const useLeagueInfo = (leagueId: Id | undefined, enabled = true) =>
+  useQuery({
+    queryKey: keys.leagueInfo(leagueId ?? ""),
+    queryFn: ({ signal }) => get<LeagueInfo>(`/api/leagues/${leagueId}`, signal),
+    enabled: enabled && leagueId !== undefined,
+  });
 
 /** Seconds between standings refetches while the page is visible; scores land every poll cycle. */
 export const STANDINGS_REFRESH_MS = 20_000;
 
-export const useStandings = (leagueId: Id | undefined) =>
+export const useStandings = (seasonId: Id | undefined) =>
   useQuery({
-    queryKey: keys.standings(leagueId ?? ""),
-    queryFn: ({ signal }) => get<Standings>(`/api/seasons/${leagueId}/standings`, signal),
-    enabled: leagueId !== undefined,
+    queryKey: keys.standings(seasonId ?? ""),
+    queryFn: ({ signal }) => get<Standings>(`/api/seasons/${seasonId}/standings`, signal),
+    enabled: seasonId !== undefined,
     refetchInterval: STANDINGS_REFRESH_MS,
   });
 
-export const useRecap = (leagueId: Id | undefined) =>
+export const useRecap = (seasonId: Id | undefined) =>
   useQuery({
-    queryKey: keys.recap(leagueId ?? ""),
-    queryFn: ({ signal }) => get<SeasonRecap>(`/api/seasons/${leagueId}/recap`, signal),
-    enabled: leagueId !== undefined,
+    queryKey: keys.recap(seasonId ?? ""),
+    queryFn: ({ signal }) => get<SeasonRecap>(`/api/seasons/${seasonId}/recap`, signal),
+    enabled: seasonId !== undefined,
   });
 
 export const useTeamBreakdown = (teamId: Id | undefined) =>
@@ -169,11 +126,11 @@ export const useTeamBreakdown = (teamId: Id | undefined) =>
     refetchInterval: STANDINGS_REFRESH_MS,
   });
 
-export const useLeagueTeams = (leagueId: Id | undefined) =>
+export const useLeagueTeams = (seasonId: Id | undefined) =>
   useQuery({
-    queryKey: keys.teams(leagueId ?? ""),
-    queryFn: ({ signal }) => get<TeamSummary[]>(`/api/seasons/${leagueId}/teams`, signal),
-    enabled: leagueId !== undefined,
+    queryKey: keys.teams(seasonId ?? ""),
+    queryFn: ({ signal }) => get<TeamSummary[]>(`/api/seasons/${seasonId}/teams`, signal),
+    enabled: seasonId !== undefined,
   });
 
 export const useTeam = (teamId: Id | undefined) =>
@@ -183,18 +140,18 @@ export const useTeam = (teamId: Id | undefined) =>
     enabled: teamId !== undefined,
   });
 
-export const useLeagueSettings = (leagueId: Id | undefined) =>
+export const useLeagueSettings = (seasonId: Id | undefined) =>
   useQuery({
-    queryKey: keys.settings(leagueId ?? ""),
-    queryFn: ({ signal }) => get<LeagueSettings>(`/api/seasons/${leagueId}/settings`, signal),
-    enabled: leagueId !== undefined,
+    queryKey: keys.settings(seasonId ?? ""),
+    queryFn: ({ signal }) => get<LeagueSettings>(`/api/seasons/${seasonId}/settings`, signal),
+    enabled: seasonId !== undefined,
   });
 
-export const useDraft = (leagueId: Id | undefined) =>
+export const useDraft = (seasonId: Id | undefined) =>
   useQuery({
-    queryKey: keys.draft(leagueId ?? ""),
-    queryFn: ({ signal }) => get<DraftState>(`/api/drafts/draft-info/${leagueId}`, signal),
-    enabled: leagueId !== undefined,
+    queryKey: keys.draft(seasonId ?? ""),
+    queryFn: ({ signal }) => get<DraftState>(`/api/drafts/draft-info/${seasonId}`, signal),
+    enabled: seasonId !== undefined,
     retry: false,
   });
 
@@ -206,25 +163,25 @@ export const usePlayerList = () =>
   });
 
 /** Draftable players on the playoff teams; with a league, its team QB / team K settings narrow and flag the pool. */
-export const useDraftPool = (leagueId?: Id) =>
+export const useDraftPool = (seasonId?: Id) =>
   useQuery({
-    queryKey: keys.draftPool(leagueId),
+    queryKey: keys.draftPool(seasonId),
     queryFn: ({ signal }) =>
       get<PlayerSummary[]>(
-        leagueId === undefined
+        seasonId === undefined
           ? "/api/players/draft-pool"
-          : `/api/players/draft-pool?seasonId=${leagueId}`,
+          : `/api/players/draft-pool?seasonId=${seasonId}`,
         signal,
       ),
     staleTime: 5 * 60_000,
   });
 
-export const usePlayerSeasonStats = <T>(season: string | undefined, leagueId: Id | undefined) =>
+export const usePlayerSeasonStats = <T>(season: string | undefined, seasonId: Id | undefined) =>
   useQuery({
-    queryKey: [...keys.seasonStats, season, leagueId ?? "none"],
+    queryKey: [...keys.seasonStats, season, seasonId ?? "none"],
     queryFn: ({ signal }) => {
       const params = new URLSearchParams({ season: season ?? "" });
-      if (leagueId !== undefined) params.set("seasonId", String(leagueId));
+      if (seasonId !== undefined) params.set("seasonId", String(seasonId));
       return get<T[]>(`/api/players/player-season-stats?${params}`, signal);
     },
     enabled: !!season,
@@ -245,18 +202,12 @@ export const useScoringDefaults = () =>
     staleTime: Number.POSITIVE_INFINITY,
   });
 
-export const useInvite = (leagueId: Id | undefined, enabled: boolean) => {
-  const queryClient = useQueryClient();
-  return useQuery({
+export const useInvite = (leagueId: Id | undefined, enabled: boolean) =>
+  useQuery({
     queryKey: keys.invite(leagueId ?? ""),
-    queryFn: async ({ signal }) =>
-      get<Invite | null>(
-        `/api/leagues/${await resolveLeagueId(queryClient, leagueId)}/invite`,
-        signal,
-      ),
+    queryFn: ({ signal }) => get<Invite | null>(`/api/leagues/${leagueId}/invite`, signal),
     enabled: enabled && leagueId !== undefined,
   });
-};
 
 export const useInvitePreview = (code: string | undefined) =>
   useQuery({
@@ -278,106 +229,80 @@ export const useCreateLeague = () => {
   });
 };
 
-/** Mutation whose success refreshes everything cached for one league. */
+/** League and season data a membership, setting or team change can touch. */
+const LEAGUE_DATA_KEYS = [
+  "league-info",
+  "league-seasons",
+  "season",
+  "settings",
+  "teams",
+  "standings",
+  "invite",
+  "draft",
+];
+
+/** Mutation whose success refreshes every cached league and season view. */
 const useLeagueMutation = <TVariables, TResult>(
-  leagueId: Id | undefined,
   request: (variables: TVariables) => Promise<TResult>,
 ) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: request,
-    onSuccess: () => {
-      for (const key of ["league", "settings", "teams", "standings", "invite", "draft"]) {
-        queryClient.invalidateQueries({ queryKey: [key, String(leagueId)] });
-      }
-      queryClient.invalidateQueries({ queryKey: keys.userLeagues });
-    },
+    // Awaited so a caller's onSuccess (e.g. navigating to the new season) sees fresh lists.
+    onSuccess: () =>
+      Promise.all([
+        ...LEAGUE_DATA_KEYS.map((key) => queryClient.invalidateQueries({ queryKey: [key] })),
+        queryClient.invalidateQueries({ queryKey: keys.userLeagues }),
+        queryClient.invalidateQueries({ queryKey: keys.pastLeagues }),
+      ]),
   });
 };
 
-export const useStartSeason = (seasonId: Id | undefined) => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async () => {
-      const leagueId = await resolveLeagueId(queryClient, seasonId);
-      return (await api.post<{ seasonId: number }>(`/api/leagues/${leagueId}/seasons`)).data;
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: keys.userLeagues }),
-  });
-};
-
-export const useUpdateLeague = (leagueId: Id | undefined) => {
-  const queryClient = useQueryClient();
-  return useLeagueMutation(
-    leagueId,
-    async ({ numberTeams, ...league }: { name?: string; numberTeams?: number; notes?: string }) => {
-      if (Object.keys(league).length > 0) {
-        await api.patch(`/api/leagues/${await resolveLeagueId(queryClient, leagueId)}`, league);
-      }
-      if (numberTeams !== undefined) {
-        await api.patch(`/api/seasons/${leagueId}`, { numberTeams });
-      }
-    },
-  );
-};
-
-export const useUpdateSettings = (leagueId: Id | undefined) =>
+export const useStartSeason = (leagueId: Id | undefined) =>
   useLeagueMutation(
-    leagueId,
+    async () => (await api.post<{ seasonId: number }>(`/api/leagues/${leagueId}/seasons`)).data,
+  );
+
+export const useUpdateLeague = (leagueId: Id | undefined) =>
+  useLeagueMutation(async (body: { name?: string; notes?: string }) => {
+    await api.patch(`/api/leagues/${leagueId}`, body);
+  });
+
+export const useUpdateSeason = (seasonId: Id | undefined) =>
+  useLeagueMutation(async (body: { numberTeams: number }) => {
+    await api.patch(`/api/seasons/${seasonId}`, body);
+  });
+
+export const useUpdateSettings = (seasonId: Id | undefined) =>
+  useLeagueMutation(
     async (body: object) =>
-      (await api.patch<LeagueSettings>(`/api/seasons/${leagueId}/settings`, body)).data,
+      (await api.patch<LeagueSettings>(`/api/seasons/${seasonId}/settings`, body)).data,
   );
 
-export const useSetMemberRole = (leagueId: Id | undefined) => {
-  const queryClient = useQueryClient();
-  return useLeagueMutation(
-    leagueId,
-    async (v: { userId: number; role: "commissioner" | "member" }) => {
-      const league = await resolveLeagueId(queryClient, leagueId);
-      await api.patch(`/api/leagues/${league}/members/${v.userId}`, { role: v.role });
-    },
-  );
-};
+export const useSetMemberRole = (leagueId: Id | undefined) =>
+  useLeagueMutation(async (v: { userId: number; role: "commissioner" | "member" }) => {
+    await api.patch(`/api/leagues/${leagueId}/members/${v.userId}`, { role: v.role });
+  });
 
-export const useAssignTeamOwner = (leagueId: Id | undefined) =>
+export const useAssignTeamOwner = (seasonId: Id | undefined) =>
+  useLeagueMutation(async (v: { teamId: number; userId: number | null }) => {
+    await api.put(`/api/seasons/${seasonId}/teams/${v.teamId}/owner`, { userId: v.userId });
+  });
+
+export const useRemoveMember = (leagueId: Id | undefined) =>
+  useLeagueMutation(async (userId: number) => {
+    await api.delete(`/api/leagues/${leagueId}/members/${userId}`);
+  });
+
+export const useRegenerateInvite = (leagueId: Id | undefined) =>
   useLeagueMutation(
-    leagueId,
-    async (v: { teamId: number; userId: number | null }) =>
-      (
-        await api.put<LeagueOverview>(`/api/seasons/${leagueId}/teams/${v.teamId}/owner`, {
-          userId: v.userId,
-        })
-      ).data,
+    async () => (await api.post<Invite>(`/api/leagues/${leagueId}/invite`, {})).data,
   );
 
-export const useRemoveMember = (leagueId: Id | undefined) => {
-  const queryClient = useQueryClient();
-  return useLeagueMutation(leagueId, async (userId: number) => {
-    const league = await resolveLeagueId(queryClient, leagueId);
-    await api.delete(`/api/leagues/${league}/members/${userId}`);
+export const useRevokeInvite = (leagueId: Id | undefined) =>
+  useLeagueMutation(async () => {
+    await api.delete(`/api/leagues/${leagueId}/invite`);
   });
-};
-
-export const useRegenerateInvite = (leagueId: Id | undefined) => {
-  const queryClient = useQueryClient();
-  return useLeagueMutation(
-    leagueId,
-    async () =>
-      (
-        await api.post<Invite>(
-          `/api/leagues/${await resolveLeagueId(queryClient, leagueId)}/invite`,
-          {},
-        )
-      ).data,
-  );
-};
-
-export const useRevokeInvite = (leagueId: Id | undefined) => {
-  const queryClient = useQueryClient();
-  return useLeagueMutation(leagueId, async () => {
-    await api.delete(`/api/leagues/${await resolveLeagueId(queryClient, leagueId)}/invite`);
-  });
-};
 
 export const useJoinWithCode = () => {
   const queryClient = useQueryClient();
@@ -395,7 +320,7 @@ export const useRenameTeam = (teamId: Id | undefined) => {
       (await api.patch<TeamDetails>(`/api/teams/${teamId}`, { name })).data,
     onSuccess: (data) => {
       queryClient.setQueryData(keys.team(teamId ?? ""), data);
-      queryClient.invalidateQueries({ queryKey: ["league"] });
+      queryClient.invalidateQueries({ queryKey: ["season"] });
       queryClient.invalidateQueries({ queryKey: ["standings"] });
     },
   });
@@ -460,10 +385,10 @@ export const useMarkActivityViewed = (scope: "seasons" | "teams", id: Id | undef
 
 type DraftAction = "lobby" | "start" | "pause" | "resume" | "undo";
 
-export const useDraftControl = (leagueId: Id | undefined) => {
+export const useDraftControl = (seasonId: Id | undefined) => {
   const queryClient = useQueryClient();
-  const base = `/api/drafts/${leagueId}`;
-  const update = (data: DraftState) => queryClient.setQueryData(keys.draft(leagueId ?? ""), data);
+  const base = `/api/drafts/${seasonId}`;
+  const update = (data: DraftState) => queryClient.setQueryData(keys.draft(seasonId ?? ""), data);
   return useMutation({
     mutationFn: async (action: DraftAction | "force-pick" | "randomize") => {
       const path =
@@ -478,21 +403,21 @@ export const useDraftControl = (leagueId: Id | undefined) => {
   });
 };
 
-export const useDraftSetup = (leagueId: Id | undefined) => {
+export const useDraftSetup = (seasonId: Id | undefined) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (body: object) =>
-      (await api.patch<DraftState>(`/api/drafts/${leagueId}`, body)).data,
-    onSuccess: (data) => queryClient.setQueryData(keys.draft(leagueId ?? ""), data),
+      (await api.patch<DraftState>(`/api/drafts/${seasonId}`, body)).data,
+    onSuccess: (data) => queryClient.setQueryData(keys.draft(seasonId ?? ""), data),
   });
 };
 
-export const useDraftOrder = (leagueId: Id | undefined) => {
+export const useDraftOrder = (seasonId: Id | undefined) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (teamIds: (number | null)[]) =>
-      (await api.put<DraftState>(`/api/drafts/${leagueId}/order`, { teamIds })).data,
-    onSuccess: (data) => queryClient.setQueryData(keys.draft(leagueId ?? ""), data),
+      (await api.put<DraftState>(`/api/drafts/${seasonId}/order`, { teamIds })).data,
+    onSuccess: (data) => queryClient.setQueryData(keys.draft(seasonId ?? ""), data),
   });
 };
 
@@ -520,9 +445,9 @@ export const useRefreshLive = () => {
   });
 };
 
-export const useSaveQueue = (leagueId: Id | undefined) =>
+export const useSaveQueue = (seasonId: Id | undefined) =>
   useMutation({
     mutationFn: async (playerIds: number[]) =>
-      (await api.put<{ playerIds: number[] }>(`/api/drafts/${leagueId}/queue`, { playerIds })).data
+      (await api.put<{ playerIds: number[] }>(`/api/drafts/${seasonId}/queue`, { playerIds })).data
         .playerIds,
   });

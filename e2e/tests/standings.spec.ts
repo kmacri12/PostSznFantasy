@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { seasonUrl } from "../support/api";
 import { signInAs } from "../support/auth";
 import { completeDraft, createDraftLeague } from "../support/draft";
 
@@ -10,7 +11,7 @@ test.describe("standings", () => {
   }) => {
     const league = await createDraftLeague(request);
     await signInAs(context, league.host.uid);
-    await page.goto(`/league/${league.leagueId}`);
+    await page.goto(seasonUrl(league.league));
 
     await expect(page.getByRole("heading", { name: "No standings yet" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Open the draft room" })).toBeVisible();
@@ -25,7 +26,7 @@ test.describe("standings", () => {
     await completeDraft(league);
 
     await signInAs(context, league.host.uid);
-    await page.goto(`/league/${league.leagueId}`);
+    await page.goto(seasonUrl(league.league));
 
     await expect(page.getByRole("heading", { name: "No standings yet" })).toHaveCount(0);
     const standings = page.getByRole("list", { name: "Standings" });
@@ -48,7 +49,7 @@ test.describe("standings", () => {
     await completeDraft(league);
 
     await signInAs(context, league.host.uid);
-    await page.goto(`/team/${league.hostTeamId}/points`);
+    await page.goto(seasonUrl(league.league, `/teams/${league.hostTeamId}/points`));
 
     await expect(page.getByText("Left on the bench", { exact: true })).toBeVisible();
     for (const round of ["Wild Card", "Divisional", "Conference Championship", "Super Bowl"]) {

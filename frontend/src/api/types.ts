@@ -1,21 +1,38 @@
 export type LeagueRole = "commissioner" | "member";
 
-/**
- * One entry of the user's league list. `id` is the id of the league's latest season,
- * which is what every page route and season API call uses; `leagueId` is the
- * permanent league (members, invite, notes).
- */
+/** One season of a league as the caller may open it. */
+export interface SeasonSummary {
+  id: number;
+  year: number;
+  /** The Super Bowl is final: the season is a read-only archive. */
+  finished: boolean;
+  draftStatus: DraftStatus;
+  /** The caller's team that year; null when they had none. */
+  myTeamId: number | null;
+}
+
+/** One entry of the user's league list: the league and where its latest season stands. */
 export interface LeagueByUser {
   id: number;
-  leagueId: number;
   name: string;
+  seasonId: number;
+  /** The latest season's year. */
   season: number;
   isCommissioner: boolean;
   userTeamId: number | null;
   /** Events in the league feed this member hasn't seen: drives the nav dot. */
   hasNewActivity: boolean;
-  /** The Super Bowl is final: the league is a read-only archive. */
   finished: boolean;
+  draftStatus: DraftStatus;
+  /** Every season, oldest first. */
+  seasons: SeasonSummary[];
+}
+
+/** A league the caller left: only the finished seasons they owned a team in. */
+export interface PastLeague {
+  id: number;
+  name: string;
+  seasons: SeasonSummary[];
 }
 
 export interface MemberSummary {
@@ -34,25 +51,42 @@ export type DraftStatus =
   | "paused"
   | "completed";
 
-/** A season's home data joined with its league's name, notes and members (see `useLeague`). */
-export interface LeagueOverview {
-  /** The season id: what routes and season API calls use. */
+/** A season's home data: teams, draft status and what the caller may do in it. */
+export interface SeasonOverview {
   id: number;
   leagueId: number;
-  name: string;
-  season: number;
+  leagueName: string;
+  year: number;
   finished: boolean;
+  /** The season is open and the caller is an active member. */
   canEdit: boolean;
+  /** The season is open and the caller is a commissioner. */
   canCommission: boolean;
-  notes: string;
+  /** The caller left the league and reads this finished season as history. */
+  isFormerMember: boolean;
   numberTeams: number;
   openSpots: number;
   myRole: LeagueRole;
   myTeamId: number | null;
   draftStatus: DraftStatus;
   draftStartTime: string | null;
+  /** Empty for a former member. */
   members: MemberSummary[];
   teams: TeamBrief[];
+}
+
+/** The permanent league: notes, members and its seasons. Not readable by former members. */
+export interface LeagueInfo {
+  id: number;
+  name: string;
+  notes: string;
+  myRole: LeagueRole;
+  currentSeasonId: number;
+  /** The latest season is over and no later one exists. */
+  canStartSeason: boolean;
+  nextYear: number;
+  seasons: SeasonSummary[];
+  members: MemberSummary[];
 }
 
 export interface TeamBrief {

@@ -15,6 +15,7 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { useStartSeason } from "../../api/queries";
 import type { AwardWinner, SeasonRecap as Recap } from "../../api/types";
+import { seasonPaths } from "../../routes";
 import { tokens } from "../../theme";
 import { mutationError } from "../common/friendlyError";
 
@@ -103,27 +104,28 @@ const DraftAwards = ({ awards }: { awards: AwardWinner[] }) => {
   );
 };
 
-const RunItBack = ({ seasonId, year }: { seasonId: number; year: number }) => {
+const StartSeason = ({ leagueId, year }: { leagueId: number; year: number }) => {
   const navigate = useNavigate();
-  const runItBack = useStartSeason(seasonId);
-  const failure = mutationError(runItBack.error, "Couldn't start next season. Try again.");
+  const startSeason = useStartSeason(leagueId);
+  const failure = mutationError(startSeason.error, "Couldn't start the season. Try again.");
   return (
     <Box>
+      <Typography sx={{ mb: 1 }}>Season over: start {year}</Typography>
       <Button
         variant="contained"
         sx={{ minHeight: 44 }}
-        disabled={runItBack.isPending}
+        disabled={startSeason.isPending}
         onClick={() =>
-          runItBack.mutate(undefined, {
-            onSuccess: (data) => navigate(`/league/${data.seasonId}`),
+          startSeason.mutate(undefined, {
+            onSuccess: () => navigate(seasonPaths(leagueId, year).home),
           })
         }
       >
         Start {year} season
       </Button>
       <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-        Starts next season in this league with the same members, teams and settings, fresh rosters
-        and an empty draft.
+        Starts the next season in this league with the same members, teams and settings, fresh
+        rosters and an empty draft.
       </Typography>
       {failure && (
         <Alert severity="error" sx={{ mt: 1 }}>
@@ -134,15 +136,14 @@ const RunItBack = ({ seasonId, year }: { seasonId: number; year: number }) => {
   );
 };
 
-/** The finished league's top: champion(s), awards, and the run-it-back action. */
+/** A finished season's top: champion(s), awards, and the way on to the next season. */
 const SeasonRecap = ({
   recap,
-  isCommissioner,
-  nextSeasonId,
+  canStartSeason,
 }: {
   recap: Recap;
-  isCommissioner: boolean;
-  nextSeasonId: number | null;
+  /** The caller is a commissioner and no later season exists yet. */
+  canStartSeason: boolean;
 }) => (
   <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
     <Card sx={{ p: { xs: 2.5, md: 4 }, textAlign: "center", border: `1px solid ${tokens.gold}` }}>
@@ -170,14 +171,19 @@ const SeasonRecap = ({
       </Box>
     )}
     {recap.awards.some(isDraftAward) && <DraftAwards awards={recap.awards.filter(isDraftAward)} />}
-    {isCommissioner &&
-      (nextSeasonId ? (
-        <Button component={Link} to={`/league/${nextSeasonId}`} sx={{ minHeight: 44 }}>
-          Go to next season
+    {canStartSeason ? (
+      <StartSeason leagueId={recap.leagueId} year={recap.year + 1} />
+    ) : (
+      recap.nextSeasonId !== null && (
+        <Button
+          component={Link}
+          to={seasonPaths(recap.leagueId, recap.year + 1).home}
+          sx={{ minHeight: 44 }}
+        >
+          Go to the {recap.year + 1} season
         </Button>
-      ) : (
-        <RunItBack seasonId={recap.seasonId} year={recap.year + 1} />
-      ))}
+      )
+    )}
   </Box>
 );
 

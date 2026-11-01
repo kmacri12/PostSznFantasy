@@ -15,23 +15,27 @@ import {
   Typography,
 } from "@mui/material";
 import { useAssignTeamOwner, useRemoveMember, useSetMemberRole } from "../../api/queries";
-import type { LeagueOverview } from "../../api/types";
+import type { SeasonOverview } from "../../api/types";
 import { mutationError } from "../common/friendlyError";
 
 const NO_TEAM = "none";
 
-/** Roles, team assignment and removal. Commissioners can edit; members see the roster. */
-const MembersSection = ({ league }: { league: LeagueOverview }) => {
-  const canEdit = league.myRole === "commissioner";
-  const setRole = useSetMemberRole(league.id);
-  const remove = useRemoveMember(league.id);
-  const assign = useAssignTeamOwner(league.id);
+/**
+ * Roles, removal and team assignment. Roles and removal are the league's, so a commissioner
+ * has them in any season; assigning a team belongs to an open season (`canAssign`).
+ */
+const MembersSection = ({ season, canManage }: { season: SeasonOverview; canManage: boolean }) => {
+  const canEdit = canManage;
+  const canAssign = season.canCommission;
+  const setRole = useSetMemberRole(season.leagueId);
+  const remove = useRemoveMember(season.leagueId);
+  const assign = useAssignTeamOwner(season.id);
   const failure =
     mutationError(setRole.error, "Couldn't change that role. Try again.") ??
     mutationError(remove.error, "Couldn't remove that member. Try again.") ??
     mutationError(assign.error, "Couldn't assign that team. Try again.");
 
-  const teamOf = (userId: number) => league.teams.find((team) => team.ownerUserId === userId);
+  const teamOf = (userId: number) => season.teams.find((team) => team.ownerUserId === userId);
 
   const changeTeam = (userId: number, value: string) => {
     if (value === NO_TEAM) {
@@ -60,14 +64,14 @@ const MembersSection = ({ league }: { league: LeagueOverview }) => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {league.members.map((member) => {
+            {season.members.map((member) => {
               const team = teamOf(member.userId);
               const nextRole = member.role === "commissioner" ? "member" : "commissioner";
               return (
                 <TableRow key={member.userId}>
                   <TableCell>{member.username}</TableCell>
                   <TableCell>
-                    {canEdit ? (
+                    {canAssign ? (
                       <Select
                         size="small"
                         value={team ? String(team.id) : NO_TEAM}
@@ -76,7 +80,7 @@ const MembersSection = ({ league }: { league: LeagueOverview }) => {
                         sx={{ minWidth: 160 }}
                       >
                         <MenuItem value={NO_TEAM}>No team</MenuItem>
-                        {league.teams
+                        {season.teams
                           .filter((t) => t.ownerUserId === null || t.ownerUserId === member.userId)
                           .map((t) => (
                             <MenuItem key={t.id} value={String(t.id)}>
@@ -109,7 +113,11 @@ const MembersSection = ({ league }: { league: LeagueOverview }) => {
                         color="error"
                         disabled={remove.isPending}
                         onClick={() => {
-                          if (window.confirm(`Remove ${member.username} from the league?`)) {
+                          if (
+                            window.confirm(
+                              `Remove ${member.username} from the league? Their team in an unfinished season is freed; finished seasons keep their name on it.`,
+                            )
+                          ) {
                             remove.mutate(member.userId);
                           }
                         }}
@@ -124,10 +132,10 @@ const MembersSection = ({ league }: { league: LeagueOverview }) => {
           </TableBody>
         </Table>
       </TableContainer>
-      {league.teams.some((team) => team.ownerUserId === null) && (
+      {season.teams.some((team) => team.ownerUserId === null) && (
         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
           Unclaimed teams:{" "}
-          {league.teams
+          {season.teams
             .filter((t) => t.ownerUserId === null)
             .map((t) => t.name)
             .join(", ")}

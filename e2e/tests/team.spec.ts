@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { seasonUrl } from "../support/api";
 import { signInAs } from "../support/auth";
 import { completeDraft, createDraftLeague } from "../support/draft";
 
@@ -16,7 +17,7 @@ test.describe("team page", () => {
   }) => {
     const league = await draftedLeague(request);
     await signInAs(context, league.host.uid);
-    await page.goto(`/team/${league.hostTeamId}`);
+    await page.goto(seasonUrl(league.league, `/teams/${league.hostTeamId}`));
 
     await expect(page.getByText("4 of 4 alive")).toBeVisible();
     await expect(page.getByRole("alert")).toContainText("empty starter slots");
@@ -34,7 +35,7 @@ test.describe("team page", () => {
   }) => {
     const league = await draftedLeague(request);
     await signInAs(context, league.host.uid);
-    await page.goto(`/team/${league.hostTeamId}`);
+    await page.goto(seasonUrl(league.league, `/teams/${league.hostTeamId}`));
 
     await page.getByRole("button", { name: /^RB Bryce Archer/ }).click();
     await page.getByTestId("slot-1").click();
@@ -53,7 +54,7 @@ test.describe("team page", () => {
   }) => {
     const league = await draftedLeague(request);
     await signInAs(context, league.host.uid);
-    await page.goto(`/team/${league.hostTeamId}`);
+    await page.goto(seasonUrl(league.league, `/teams/${league.hostTeamId}`));
 
     await page.getByRole("button", { name: /^RB Bryce Archer/ }).click();
     await page.getByTestId("slot-0").click();
@@ -64,7 +65,7 @@ test.describe("team page", () => {
   test("the owner renames the team", async ({ page, context, request }) => {
     const league = await draftedLeague(request);
     await signInAs(context, league.host.uid);
-    await page.goto(`/team/${league.hostTeamId}`);
+    await page.goto(seasonUrl(league.league, `/teams/${league.hostTeamId}`));
 
     await page.getByRole("button", { name: "Rename team" }).click();
     await page.getByLabel(/team name/i).fill("Sunday Survivors");
@@ -79,7 +80,7 @@ test.describe("team page", () => {
   }) => {
     const league = await draftedLeague(request);
     await signInAs(context, league.guest.uid);
-    await page.goto(`/team/${league.hostTeamId}`);
+    await page.goto(seasonUrl(league.league, `/teams/${league.hostTeamId}`));
 
     await expect(page.getByRole("button", { name: /^QB Aiden Archer/ })).toBeVisible();
     await expect(page.getByRole("alert")).toHaveCount(0);

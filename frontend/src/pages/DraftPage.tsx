@@ -10,8 +10,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
-import { useDraftPool, useLeague, useLeagueArchived, useSaveQueue } from "../api/queries";
+import { useDraftPool, useSaveQueue } from "../api/queries";
 import LoadingState from "../components/common/LoadingState";
 import AvailablePlayers from "../components/draft/AvailablePlayers";
 import CommissionerControls from "../components/draft/CommissionerControls";
@@ -27,24 +26,24 @@ import PickFeed from "../components/draft/PickFeed";
 import PreDraftNotice from "../components/draft/PreDraftNotice";
 import QueuePanel from "../components/draft/QueuePanel";
 import ArchivedNotice from "../components/league/ArchivedNotice";
+import { useSeasonContext } from "../contexts/SeasonContext";
 import { useDraftRoom } from "../hooks/useDraftRoom";
 import { playOnDeckCue, vibrateOnTurn } from "../utils/draftCue";
 
 type TabKey = "board" | "players" | "queue" | "roster" | "feed";
 
 const DraftPage = () => {
-  const { leagueId } = useParams<{ leagueId: string }>();
-  const room = useDraftRoom(leagueId);
-  const league = useLeague(leagueId);
-  const playersQuery = useDraftPool(leagueId);
-  const saveQueue = useSaveQueue(leagueId);
+  const { seasonId, season } = useSeasonContext();
+  const room = useDraftRoom(seasonId);
+  const playersQuery = useDraftPool(seasonId);
+  const saveQueue = useSaveQueue(seasonId);
   const [tab, setTab] = useState<TabKey>("board");
   const [showSetup, setShowSetup] = useState(false);
 
   const state = room.state;
   const myTeamId = state?.myTeamId ?? null;
-  const archived = useLeagueArchived(leagueId);
-  const isCommissioner = league.data?.myRole === "commissioner" && !archived;
+  const archived = season.finished;
+  const isCommissioner = season.canCommission;
   const myTurn =
     state?.status === "in_progress" && myTeamId !== null && state.onTheClockTeamId === myTeamId;
   const onDeck =

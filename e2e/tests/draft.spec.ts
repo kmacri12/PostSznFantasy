@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { seasonUrl } from "../support/api";
 import { signInAs } from "../support/auth";
 import {
   createDraftLeague,
@@ -17,7 +18,7 @@ test.describe("draft room", () => {
     const league = await createDraftLeague(request, { seconds: 60 });
     await signInAs(context, league.host.uid);
 
-    await page.goto(`/league/${league.leagueId}/draft`);
+    await page.goto(seasonUrl(league.league, "/draft"));
     await page.getByRole("button", { name: "Draft controls" }).click();
     await page.getByRole("button", { name: /open lobby/i }).click();
     await expect(page.getByRole("heading", { name: "Lobby open" })).toBeVisible();
@@ -44,8 +45,8 @@ test.describe("draft room", () => {
     await signInAs(context, league.host.uid);
     const guestContext = await newUserContext(browser, league.guest.uid);
     const guestPage = await guestContext.newPage();
-    await page.goto(`/league/${league.leagueId}/draft`);
-    await guestPage.goto(`/league/${league.leagueId}/draft`);
+    await page.goto(seasonUrl(league.league, "/draft"));
+    await guestPage.goto(seasonUrl(league.league, "/draft"));
 
     const positions = ["QB", "RB", "WR", "RB"];
     for (let overall = 1; overall <= 8; overall++) {
@@ -76,8 +77,8 @@ test.describe("draft room", () => {
     await signInAs(context, league.host.uid);
     const guestContext = await newUserContext(browser, league.guest.uid);
     const guestPage = await guestContext.newPage();
-    await page.goto(`/league/${league.leagueId}/draft`);
-    await guestPage.goto(`/league/${league.leagueId}/draft`);
+    await page.goto(seasonUrl(league.league, "/draft"));
+    await guestPage.goto(seasonUrl(league.league, "/draft"));
 
     await page.getByRole("button", { name: "Draft controls" }).click();
     await page.getByRole("button", { name: "Pause" }).click();
@@ -101,7 +102,7 @@ test.describe("draft room", () => {
   }) => {
     const league = await createDraftLeague(request, { seconds: 60, status: "in_progress" });
     await signInAs(context, league.host.uid);
-    await page.goto(`/league/${league.leagueId}/draft`);
+    await page.goto(seasonUrl(league.league, "/draft"));
     await draftFirst(page, "QB");
     await expect(page.getByText(/Pick 2 of 8/)).toBeVisible();
 
@@ -116,7 +117,7 @@ test.describe("draft room", () => {
   test("force pick auto-drafts for whoever is on the clock", async ({ page, context, request }) => {
     const league = await createDraftLeague(request, { seconds: 60, status: "in_progress" });
     await signInAs(context, league.host.uid);
-    await page.goto(`/league/${league.leagueId}/draft`);
+    await page.goto(seasonUrl(league.league, "/draft"));
 
     await page.getByRole("button", { name: "Draft controls" }).click();
     await page.getByRole("button", { name: "Auto-pick now" }).click();
@@ -133,7 +134,7 @@ test.describe("draft room", () => {
   }) => {
     const league = await createDraftLeague(request, { seconds: 10, status: "in_progress" });
     await signInAs(context, league.host.uid);
-    await page.goto(`/league/${league.leagueId}/draft`);
+    await page.goto(seasonUrl(league.league, "/draft"));
 
     await expect.poll(async () => (await league.state()).picks.length, { timeout: 25_000 }).toBe(1);
     const [pick] = (await league.state()).picks;
@@ -144,7 +145,7 @@ test.describe("draft room", () => {
   test("auto-pick takes the queued player first", async ({ browser, page, context, request }) => {
     const league = await createDraftLeague(request, { seconds: 60, status: "in_progress" });
     await signInAs(context, league.host.uid);
-    await page.goto(`/league/${league.leagueId}/draft`);
+    await page.goto(seasonUrl(league.league, "/draft"));
 
     await page.getByRole("tab", { name: "Players" }).click();
     await page.getByRole("button", { name: "WR", exact: true }).click();
@@ -170,11 +171,11 @@ test.describe("draft room", () => {
     const guestContext = await newUserContext(browser, league.guest.uid);
     await trackSockets(guestContext);
     const guestPage = await guestContext.newPage();
-    await guestPage.goto(`/league/${league.leagueId}/draft`);
+    await guestPage.goto(seasonUrl(league.league, "/draft"));
     await expect(guestPage.getByText("Live", { exact: true })).toBeVisible();
 
     await signInAs(context, league.host.uid);
-    await page.goto(`/league/${league.leagueId}/draft`);
+    await page.goto(seasonUrl(league.league, "/draft"));
 
     // Offline first so the socket cannot reopen before the pick it must not miss.
     await guestContext.setOffline(true);
@@ -194,7 +195,7 @@ test.describe("draft room", () => {
     const league = await createDraftLeague(request, { seconds: 60, status: "in_progress" });
     const guestContext = await newUserContext(browser, league.guest.uid);
     const guestPage = await guestContext.newPage();
-    await guestPage.goto(`/league/${league.leagueId}/draft`);
+    await guestPage.goto(seasonUrl(league.league, "/draft"));
     await expect(guestPage.getByRole("heading", { name: "Draft in progress" })).toBeVisible();
     await expect(guestPage.getByRole("button", { name: "Draft controls" })).toHaveCount(0);
     await guestContext.close();
@@ -212,14 +213,14 @@ test.describe("position caps", () => {
       status: "in_progress",
     });
     await signInAs(context, league.host.uid);
-    await page.goto(`/league/${league.leagueId}/draft`);
+    await page.goto(seasonUrl(league.league, "/draft"));
 
     await draftFirst(page, "QB");
     const players =
       await league.guest.get<{ id: number; position: string }[]>("/api/players/draft-pool");
     const rbs = players.filter((p) => p.position === "RB");
     for (const rb of rbs.slice(0, 2)) {
-      await league.guest.post(`/api/drafts/${league.leagueId}/picks`, { playerId: rb.id });
+      await league.guest.post(`/api/drafts/${league.league.seasonId}/picks`, { playerId: rb.id });
     }
     await draftFirst(page, "QB");
     await expect(page.getByText("Pick 5 of 8")).toBeVisible();

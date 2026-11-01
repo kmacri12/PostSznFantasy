@@ -25,6 +25,7 @@ from api.models.league_models import (
     LeaguesByUser,
     LeagueUpdate,
     MemberRoleUpdate,
+    PastLeague,
     ScoringSettings,
     SeasonSummary,
 )
@@ -39,9 +40,17 @@ from api.services.league_members import (
 )
 from api.services.playoff_field import require_draft_window_open
 from api.services.round_status import season_is_finished
-from api.services.seasons import current_season, start_season
+from api.services.seasons import current_season, season_summaries, start_season
 
 router = APIRouter()
+
+
+async def _caller(db: DbSession, supabase_uid: str) -> User | None:
+    return (
+        (await db.execute(select(User).where(User.supabase_uid == supabase_uid)))
+        .scalars()
+        .first()
+    )
 
 
 @router.get("/scoring-defaults", response_model=dict[str, float])
@@ -66,11 +75,7 @@ async def create_league(
     db: DbSession,
 ) -> LeagueCreateResponse:
     """Create a league with its first season: the creator is commissioner, plus teams and a draft."""
-    user = (
-        (await db.execute(select(User).where(User.supabase_uid == current_user_id)))
-        .scalars()
-        .first()
-    )
+    user = await _caller(db, current_user_id)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
@@ -163,11 +168,7 @@ async def get_user_leagues(
     db: DbSession,
 ) -> list[LeaguesByUser]:
     """Retrieve all leagues the current user belongs to, with their latest season."""
-    user = (
-        (await db.execute(select(User).where(User.supabase_uid == current_user_id)))
-        .scalars()
-        .first()
-    )
+    user = await _caller(db, current_user_id)
     if not user:
         return []
 
@@ -189,28 +190,66 @@ async def get_user_leagues(
     with_new_activity = await leagues_with_new_activity(db, user.id)
     result: list[LeaguesByUser] = []
     for member in members:
-        season = await current_season(db, member.league_id)
-        if season is None:
+        seasons = await season_summaries(db, member.league_id, user.id)
+        if not seasons:
             continue
-        team_id = await db.scalar(
-            select(Team.id).where(Team.season_id == season.id, Team.owner_id == user.id)
-        )
+        latest = seasons[-1]
         result.append(
             LeaguesByUser(
                 id=member.league.id,
                 name=member.league.name,
-                season_id=season.id,
-                season=season.year,
+                season_id=latest.id,
+                season=latest.year,
                 is_commissioner=member.role == LeagueRole.COMMISSIONER.value,
-                user_team_id=team_id,
+                user_team_id=latest.my_team_id,
                 has_new_activity=member.league_id in with_new_activity,
-                finished=await season_is_finished(db, season.year),
+                finished=latest.finished,
+                draft_status=latest.draft_status,
+                seasons=seasons,
             )
         )
     return result
 
 
-async def _league_overview(db: DbSession, league: League, role: str) -> LeagueOverview:
+@router.get("/past-leagues", response_model=list[PastLeague])
+async def get_past_leagues(
+    current_user_id: CurrentUser,
+    db: DbSession,
+) -> list[PastLeague]:
+    """Leagues the caller left, each with the finished seasons they still may read."""
+    user = await _caller(db, current_user_id)
+    if not user:
+        return []
+    former = (
+        (
+            await db.execute(
+                select(LeagueMemberRow)
+                .options(selectinload(LeagueMemberRow.league))
+                .where(
+                    LeagueMemberRow.user_id == user.id,
+                    LeagueMemberRow.left_at.is_not(None),
+                )
+                .order_by(LeagueMemberRow.joined_at)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    result: list[PastLeague] = []
+    for member in former:
+        seasons = await season_summaries(db, member.league_id, user.id, former=True)
+        if seasons:
+            result.append(
+                PastLeague(
+                    id=member.league.id, name=member.league.name, seasons=seasons
+                )
+            )
+    return result
+
+
+async def _league_overview(
+    db: DbSession, league: League, role: str, user_id: int
+) -> LeagueOverview:
     season = await current_season(db, league.id)
     assert season is not None
     members = (
@@ -233,12 +272,7 @@ async def _league_overview(db: DbSession, league: League, role: str) -> LeagueOv
         .scalars()
         .all()
     )
-    summaries = [
-        SeasonSummary(
-            id=s.id, year=s.year, finished=await season_is_finished(db, s.year)
-        )
-        for s in sorted(league.seasons, key=lambda s: s.year)
-    ]
+    summaries = await season_summaries(db, league.id, user_id)
     latest_finished = summaries[-1].finished
     return LeagueOverview(
         id=league.id,
@@ -258,8 +292,33 @@ async def get_league(
     league_id: int, membership: LeagueMember, db: DbSession
 ) -> LeagueOverview:
     """The League page in one call: notes, members and the list of seasons."""
-    await db.refresh(membership.league, ["seasons"])
-    return await _league_overview(db, membership.league, membership.role)
+    return await _league_overview(
+        db, membership.league, membership.role, membership.user.id
+    )
+
+
+@router.get("/{league_id}/seasons", response_model=list[SeasonSummary])
+async def list_league_seasons(
+    league_id: int, current_user_id: CurrentUser, db: DbSession
+) -> list[SeasonSummary]:
+    """The seasons the caller may open: all for a member, their finished ones after
+    leaving."""
+    user = await _caller(db, current_user_id)
+    member = await db.get(LeagueMemberRow, (league_id, user.id)) if user else None
+    if user is None or member is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not a member of this league",
+        )
+    seasons = await season_summaries(
+        db, league_id, user.id, former=member.left_at is not None
+    )
+    if not seasons:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not a member of this league",
+        )
+    return seasons
 
 
 @router.patch("/{league_id}", response_model=LeagueOverview)

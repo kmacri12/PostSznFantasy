@@ -60,28 +60,39 @@ export class Api {
     return userId;
   }
 
-  /**
-   * Creates a league and returns the id of its first season: the id the SPA routes and
-   * the season API use (tests call it `leagueId`, as the pages do).
-   */
-  async createLeague(name: string, roster: RosterShape = TINY_ROSTER): Promise<number> {
-    const { seasonId } = await this.post<{ seasonId: number }>("/api/leagues/create-league", {
-      leagueName: name,
-      rosterSettings: { ...TINY_ROSTER, ...roster },
-      teamUnitSettings: { teamQb: false, teamK: false },
-    });
-    return seasonId;
+  /** Creates a league; its first season is the one the SPA opens. */
+  async createLeague(name: string, roster: RosterShape = TINY_ROSTER): Promise<LeagueRef> {
+    const { leagueId, seasonId } = await this.post<{ leagueId: number; seasonId: number }>(
+      "/api/leagues/create-league",
+      {
+        leagueName: name,
+        rosterSettings: { ...TINY_ROSTER, ...roster },
+        teamUnitSettings: { teamQb: false, teamK: false },
+      },
+    );
+    const { year } = await this.get<{ year: number }>(`/api/seasons/${seasonId}`);
+    return { leagueId, seasonId, year };
   }
 
-  /** Creates an invite for the season's league and returns its code. */
-  async invite(seasonId: number): Promise<string> {
-    const { leagueId } = await this.get<{ leagueId: number }>(`/api/seasons/${seasonId}`);
+  /** Creates an invite for the league and returns its code. */
+  async invite({ leagueId }: LeagueRef): Promise<string> {
     const { code } = await this.post<{ code: string }>(`/api/leagues/${leagueId}/invite`, {});
     return code;
   }
 
   joinWith = (code: string) => this.post(`/api/invites/${code}/join`);
 }
+
+/** A league and one of its seasons: the API takes the season id, the SPA routes take the year. */
+export interface LeagueRef {
+  leagueId: number;
+  seasonId: number;
+  year: number;
+}
+
+/** A page of the season in the SPA, e.g. `seasonUrl(league, "/draft")`. */
+export const seasonUrl = ({ leagueId, year }: LeagueRef, rest = ""): string =>
+  `/leagues/${leagueId}/seasons/${year}${rest}`;
 
 let counter = 0;
 const runId = Date.now().toString(36);

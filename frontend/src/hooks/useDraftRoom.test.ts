@@ -66,7 +66,7 @@ describe("useDraftRoom pick flow", () => {
   });
 
   const connected = () => {
-    const hook = renderHook(() => useDraftRoom("7"));
+    const hook = renderHook(() => useDraftRoom(7));
     const socket = FakeSocket.instances[0] as FakeSocket;
     act(() => socket.open());
     act(() => socket.receive({ eventType: "SNAPSHOT", data: snapshot }));
