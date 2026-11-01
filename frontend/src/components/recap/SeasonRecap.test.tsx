@@ -28,10 +28,13 @@ const recap: Recap = {
       position: "QB",
       round: null,
       value: 61.2,
+      draftedAs: null,
+      finishedAs: null,
+      points: null,
     },
     {
-      key: "bust",
-      title: "Biggest bust",
+      key: "bust_wr",
+      title: "Biggest WR bust",
       teamId: 1,
       teamName: "Gridiron Gang",
       owner: "kyle",
@@ -39,7 +42,10 @@ const recap: Recap = {
       playerName: "Pick One",
       position: "WR",
       round: null,
-      value: -40,
+      value: -24,
+      draftedAs: 6,
+      finishedAs: 30,
+      points: 0,
     },
   ],
 };
@@ -58,7 +64,7 @@ describe("SeasonRecap", () => {
     show(false);
     expect(screen.getByText("Gridiron Gang", { selector: "h4" })).toBeTruthy();
     expect(screen.getByText(/Josh Allen/)).toBeTruthy();
-    expect(screen.getByText(/40 picks below the draft slot/)).toBeTruthy();
+    expect(screen.getByText(/Drafted as WR6, finished WR30, -24 places/)).toBeTruthy();
   });
 
   it("offers run it back to commissioners only", () => {

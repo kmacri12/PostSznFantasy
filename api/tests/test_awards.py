@@ -1,7 +1,7 @@
 from decimal import Decimal
 
 from api.db.models.nfl import NFLPlayer
-from api.services.awards import Award, compute_awards
+from api.services.awards import Award, DraftValue, compute_awards
 from api.services.round_points import PointsLine
 
 
@@ -70,36 +70,71 @@ def test_bench_points_are_summed_per_team() -> None:
     assert (bench.team_id, bench.value) == (10, Decimal("50"))
 
 
-def test_draft_value_is_the_pick_number_minus_the_rank_by_counted_points() -> None:
+def test_draft_value_compares_draft_order_with_finish_within_the_position() -> None:
+    # Bo is taken before Ray among RBs but never started: Ray drafted RB2, finished
+    # RB1; Bo drafted RB1, finished RB2.
+    picks = {**PICKS, 2: 3, 3: 1}
+    result = {a.key: a for a in compute_awards(LINES, PLAYERS, picks, {20}, OWNERS)}
+    ray, bo = result["best_value_rb"], result["bust_rb"]
+    assert (ray.player_id, ray.value) == (2, Decimal(1))
+    assert (bo.player_id, bo.value) == (3, Decimal(-1))
+    assert ray.draft == DraftValue(2, 1, 1, Decimal("45"))
+    assert bo.draft == DraftValue(1, 2, -1, Decimal("0"))
+
+
+def test_a_lone_player_at_a_position_gets_both_awards_at_zero() -> None:
     result = awards()
-    # Ranks by counted points: Ray 1, Quinn 2, Wes 3, Bo 4 (never started).
-    # Values: Quinn 4-2=2, Ray 1-1=0, Bo 2-4=-2, Wes 3-3=0.
-    assert (result["draft_value"].player_id, result["draft_value"].value) == (1, 2)  # type: ignore[comparison-overlap]
-    assert (result["bust"].player_id, result["bust"].value) == (3, -2)  # type: ignore[comparison-overlap]
+    for key in ("best_value_qb", "bust_qb"):
+        assert (result[key].player_id, result[key].value) == (1, Decimal(0))
+    assert "best_value_te" not in result
+
+
+def test_a_best_value_can_be_negative() -> None:
+    # Ray (pick 1) and Bo (pick 2) are the only RBs, both with gap 0; add a better
+    # RB drafted last so both fall behind him: Ray 1-2, Bo 2-3.
+    players = {**PLAYERS, 6: NFLPlayer(id=6, name="Late RB", position="RB")}
+    lines = [*LINES, line(20, 1, 6, "100")]
+    picks = {**PICKS, 6: 9}
+    result = {
+        a.key: a for a in compute_awards(lines, players, picks, {20}, {**OWNERS, 6: 20})
+    }
+    assert result["best_value_rb"].player_id == 6
+    assert result["best_value_rb"].value == 2
+    assert result["bust_rb"].value == -1
+
+
+def test_players_level_on_points_share_the_better_finish_rank() -> None:
+    players = {
+        1: NFLPlayer(id=1, name="A", position="WR"),
+        2: NFLPlayer(id=2, name="B", position="WR"),
+        3: NFLPlayer(id=3, name="C", position="WR"),
+    }
+    lines = [line(10, 1, 1, "5"), line(10, 1, 2, "5"), line(10, 1, 3, "9")]
+    result = {
+        a.key: a
+        for a in compute_awards(
+            lines, players, {1: 1, 2: 2, 3: 3}, set(), {1: 10, 2: 10, 3: 10}
+        )
+    }
+    # C: drafted 3rd, finished 1st (+2). A and B tie for 2nd: A 1-2=-1, B 2-2=0.
+    assert (result["best_value_wr"].player_id, result["best_value_wr"].value) == (
+        3,
+        Decimal(2),
+    )
+    assert (result["bust_wr"].player_id, result["bust_wr"].value) == (1, Decimal(-1))
 
 
 def test_no_awards_when_nobody_scored() -> None:
     assert compute_awards([], PLAYERS, PICKS, set(), {}) == []
 
 
-def test_a_player_without_points_is_never_the_best_draft_value() -> None:
-    # Pick 9 of 9 with nothing counted ranks 4th of 4 on points (9-4 = +5) and would
-    # beat Quinn's +2 on arithmetic alone.
-    result = {
-        a.key: a
-        for a in compute_awards(
-            LINES, PLAYERS, {**PICKS, 5: 9}, {20}, {**OWNERS, 5: 20}
-        )
-    }
-    assert result["draft_value"].player_id == 1
-
-
 def test_a_rostered_player_with_no_line_can_still_be_the_biggest_bust() -> None:
     # Player 5 was drafted first overall, never started and never played.
+    players = {**PLAYERS, 5: NFLPlayer(id=5, name="Pat", position="RB")}
     result = {
         a.key: a
         for a in compute_awards(
-            LINES, PLAYERS, {**PICKS, 5: 1}, {20}, {**OWNERS, 5: 20}
+            LINES, players, {**PICKS, 5: 0}, {20}, {**OWNERS, 5: 20}
         )
     }
-    assert (result["bust"].player_id, result["bust"].team_id) == (5, 20)
+    assert (result["bust_rb"].player_id, result["bust_rb"].team_id) == (5, 20)

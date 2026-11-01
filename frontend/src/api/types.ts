@@ -401,8 +401,12 @@ export interface AwardWinner {
   playerName: string | null;
   position: string | null;
   round: number | null;
-  /** Counted points; for the draft awards picks above or below the slot, for the bench award bench points. */
+  /** Counted points; for the draft awards places gained or lost, for the bench award bench points. */
   value: number;
+  /** Per-position draft awards only: order drafted and finish by counted points within the position. */
+  draftedAs: number | null;
+  finishedAs: number | null;
+  points: number | null;
 }
 
 export interface SeasonRecap {

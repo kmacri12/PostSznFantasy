@@ -260,11 +260,9 @@ def report() -> str:
         "",
         "## Reading the draft awards",
         "",
-        "Draft value is the pick number minus the player's rank by counted points among "
-        f"all {len(league.picks)} drafted players, so a late pick who scored is rewarded "
-        "and an early pick who did not is punished. The biggest bust, Omarion Hampton, "
-        "started once for Craig and counted -0.10, which ranks below every player who "
-        "never scored; DeVonta Smith (pick 19, 0 points) is next at -63.",
+        "Draft value is per position: the order a player was drafted among his "
+        "position's picks minus his finish among them by counted points. Each position "
+        "has a best value and a biggest bust, with no cutoff at zero.",
     ]
     return "\n".join(out) + "\n"
 
@@ -272,9 +270,13 @@ def report() -> str:
 def _award_row(league: RealLeague, award: Award, team_name: dict[int, str]) -> str:
     player = league.name(award.player_id) if award.player_id else "(team)"
     detail = f" ({ROUND_NAMES[award.round - 1]})" if award.round else ""
-    if award.key in ("draft_value", "bust"):
-        pick = league.picks[award.player_id or 0]
-        points = f"pick {pick}, {int(award.value):+d} places"
+    if award.draft:
+        d = award.draft
+        pos = award.key.rsplit("_", 1)[1].upper()
+        points = (
+            f"drafted {pos}{d.drafted_as}, finished {pos}{d.finished_as}, "
+            f"{d.places:+d} places, {_fmt(d.points)}"
+        )
     else:
         points = _fmt(award.value)
     return (

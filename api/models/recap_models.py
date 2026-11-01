@@ -21,9 +21,13 @@ class AwardWinner(BaseSchema):
     position: str | None = None
     # Set for the best single game and the best round.
     round: int | None = None
-    # Counted points, except the draft awards (pick number minus rank) and the bench
+    # Counted points, except the draft awards (places gained or lost) and the bench
     # award (bench points).
     value: float
+    # Set for the per-position draft awards.
+    drafted_as: int | None = None
+    finished_as: int | None = None
+    points: float | None = None
 
 
 class SeasonRecap(BaseSchema):
