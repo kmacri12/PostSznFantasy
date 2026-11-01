@@ -45,6 +45,14 @@ from api.services.seasons import current_season, season_summaries, start_season
 router = APIRouter()
 
 
+async def _caller(db: DbSession, supabase_uid: str) -> User | None:
+    return (
+        (await db.execute(select(User).where(User.supabase_uid == supabase_uid)))
+        .scalars()
+        .first()
+    )
+
+
 @router.get("/scoring-defaults", response_model=dict[str, float])
 async def get_scoring_defaults() -> dict[str, float]:
     """Sleeper standard PPR template used to seed the league creation flow.
@@ -67,11 +75,7 @@ async def create_league(
     db: DbSession,
 ) -> LeagueCreateResponse:
     """Create a league with its first season: the creator is commissioner, plus teams and a draft."""
-    user = (
-        (await db.execute(select(User).where(User.supabase_uid == current_user_id)))
-        .scalars()
-        .first()
-    )
+    user = await _caller(db, current_user_id)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
@@ -164,11 +168,7 @@ async def get_user_leagues(
     db: DbSession,
 ) -> list[LeaguesByUser]:
     """Retrieve all leagues the current user belongs to, with their latest season."""
-    user = (
-        (await db.execute(select(User).where(User.supabase_uid == current_user_id)))
-        .scalars()
-        .first()
-    )
+    user = await _caller(db, current_user_id)
     if not user:
         return []
 
@@ -217,11 +217,7 @@ async def get_past_leagues(
     db: DbSession,
 ) -> list[PastLeague]:
     """Leagues the caller left, each with the finished seasons they still may read."""
-    user = (
-        (await db.execute(select(User).where(User.supabase_uid == current_user_id)))
-        .scalars()
-        .first()
-    )
+    user = await _caller(db, current_user_id)
     if not user:
         return []
     former = (
@@ -244,7 +240,9 @@ async def get_past_leagues(
         seasons = await season_summaries(db, member.league_id, user.id, former=True)
         if seasons:
             result.append(
-                PastLeague(id=member.league.id, name=member.league.name, seasons=seasons)
+                PastLeague(
+                    id=member.league.id, name=member.league.name, seasons=seasons
+                )
             )
     return result
 
@@ -305,11 +303,7 @@ async def list_league_seasons(
 ) -> list[SeasonSummary]:
     """The seasons the caller may open: all for a member, their finished ones after
     leaving."""
-    user = (
-        (await db.execute(select(User).where(User.supabase_uid == current_user_id)))
-        .scalars()
-        .first()
-    )
+    user = await _caller(db, current_user_id)
     member = await db.get(LeagueMemberRow, (league_id, user.id)) if user else None
     if user is None or member is None:
         raise HTTPException(

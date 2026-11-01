@@ -248,11 +248,13 @@ const useLeagueMutation = <TVariables, TResult>(
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: request,
-    onSuccess: () => {
-      for (const key of LEAGUE_DATA_KEYS) queryClient.invalidateQueries({ queryKey: [key] });
-      queryClient.invalidateQueries({ queryKey: keys.userLeagues });
-      queryClient.invalidateQueries({ queryKey: keys.pastLeagues });
-    },
+    // Awaited so a caller's onSuccess (e.g. navigating to the new season) sees fresh lists.
+    onSuccess: () =>
+      Promise.all([
+        ...LEAGUE_DATA_KEYS.map((key) => queryClient.invalidateQueries({ queryKey: [key] })),
+        queryClient.invalidateQueries({ queryKey: keys.userLeagues }),
+        queryClient.invalidateQueries({ queryKey: keys.pastLeagues }),
+      ]),
   });
 };
 
