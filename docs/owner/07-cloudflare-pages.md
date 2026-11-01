@@ -25,7 +25,7 @@ cd ~/code/PostSznFantasy
    - `VITE_SUPABASE_URL` = from the script
    - `VITE_SUPABASE_PUBLISHABLE_KEY` = from the script
 
-   Then **Deployments**, the latest one, **Retry deployment**. The site reads variables only when it is built.
+   Then **Deployments**, the latest one, **Retry deployment**. The site reads variables only when it is built. If the build log says "Missing build variables", the log names which ones to add; a variable must also be spelled exactly, with `https://` and `wss://` at the start of the two addresses.
 4. **Custom domain**: project, **Custom domains**, **Set up a custom domain**, `postsznfantasy.com`. Accept the DNS record Cloudflare suggests. Add `www.postsznfantasy.com` too if you want it.
 5. **API address.** The script runs `fly certs add api.postsznfantasy.com --app postszn-api` and prints DNS records. In Cloudflare, **DNS**, **Records**, **Add record**, add exactly those. **Set Proxy status to DNS only (grey cloud).** An orange cloud breaks the live draft. Wait until this says **Issued**:
    ```bash

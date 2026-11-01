@@ -30,10 +30,12 @@ These are read by Vite at **build time** and baked into the JavaScript bundle, s
 | Variable | Used in | Production value | If unset |
 | :-- | :-- | :-- | :-- |
 | `VITE_API_URL` | `src/api/client.ts` (axios `baseURL`) | `https://api.postsznfantasy.com` | `""`, so requests go to the **page's own origin** (`/api/...` on Pages), which has no API: every call fails |
-| `VITE_WS_URL` | `src/hooks/useDraftRoom.ts` | `wss://api.postsznfantasy.com` | `ws(s)://` + the page's host, the same failure for the draft room |
+| `VITE_WS_URL` | `src/hooks/useDraftRoom.ts` via `src/utils/wsOrigin.ts` | `wss://api.postsznfantasy.com` | `VITE_API_URL` with `https` swapped for `wss` (`http` for `ws`), else `ws(s)://` + the page's host |
 | `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` | `src/utils/supabase.ts` | from the Supabase production project | sign-in fails |
 | `VITE_SENTRY_DSN`, `VITE_SENTRY_ENVIRONMENT` | `src/utils/sentry.ts` | optional, see [sentry.md](sentry.md) | error tracking off |
 | `VITE_ADMIN_SUPABASE_UIDS` | `DataFreshness.tsx` | optional admin hint | the admin refresh button stays hidden |
+
+**The build fails loudly when they are missing.** On Cloudflare Pages (which sets `CF_PAGES`) or with `REQUIRE_PRODUCTION_ENV=1`, `vite build` (`requireProductionEnv` in `vite.config.ts`) stops with the names of any missing `VITE_API_URL`, `VITE_WS_URL`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, and also if the API URL is not `https://` or the WebSocket URL not `wss://`. A plain local `npm run build` (and `make check`) needs no `.env`.
 
 Locally the Vite dev server proxies `/api` (including the WebSocket) to `localhost:8000`, which is why these are optional in development but **required** in the Pages project. Pages cannot proxy `/api` to Fly (`_redirects` proxying only works for same-site paths, and does not carry WebSockets), so the cross-origin setup is the supported route.
 

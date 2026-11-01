@@ -209,7 +209,7 @@ They skip automatically when the database is unreachable and fail in CI.
 
 - **WebSocket Connection Refused on Draft Page**:
   - Verify that the backend is running at `http://localhost:8000`.
-  - Locally the Vite dev server proxies `/api` (including the WebSocket) to port 8000; make sure the API is running there, or set `VITE_API_URL` / `VITE_WS_URL` in `frontend/.env` if it lives elsewhere.
+  - Locally the Vite dev server proxies `/api` (including the WebSocket) to port 8000; make sure the API is running there, or set `VITE_API_URL` / `VITE_WS_URL` in `frontend/.env` if it lives elsewhere. Production builds on Cloudflare Pages fail with a list of missing `VITE_*` variables; see [docs/deploy/frontend-hosting.md](docs/deploy/frontend-hosting.md).
 
 ---
 
