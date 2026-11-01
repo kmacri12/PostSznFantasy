@@ -8,13 +8,15 @@ vi.mock("../dev/DevQuickSync", () => ({ DevQuickSync: () => null }));
 
 const league = (id: number, season: number, finished: boolean): LeagueByUser => ({
   id,
-  leagueId: id,
   name: `League ${id}`,
+  seasonId: id * 10,
   season,
   isCommissioner: false,
   userTeamId: id,
   hasNewActivity: false,
   finished,
+  draftStatus: "completed",
+  seasons: [],
 });
 
 beforeEach(() => {
@@ -28,7 +30,7 @@ beforeEach(() => {
 });
 
 describe("NavBar league switcher", () => {
-  it("groups leagues under season headings and tags archives", () => {
+  it("lists each league once and tags those whose season is over", () => {
     render(
       <MemoryRouter>
         <NavBar
@@ -42,8 +44,8 @@ describe("NavBar league switcher", () => {
       </MemoryRouter>,
     );
     fireEvent.click(screen.getByRole("button", { name: "Open menu" }));
-    const headings = screen.getAllByRole("heading", { level: 3 }).map((node) => node.textContent);
-    expect(headings).toEqual(["2026 season", "2025 season"]);
-    expect(screen.getAllByText("Archived")).toHaveLength(1);
+    expect(screen.getByText("League 1")).toBeTruthy();
+    expect(screen.getByText("League 2")).toBeTruthy();
+    expect(screen.getAllByText("Season over")).toHaveLength(1);
   });
 });

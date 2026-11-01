@@ -134,6 +134,23 @@ async def test_the_league_leaves_the_list_and_the_nav_dot(
     assert after.json() == []
 
 
+async def test_season_list_and_past_leagues_hide_a_deleted_league(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    season, users, _, _ = await make_season(db, draft_status="completed")
+    async with client_as("uid-0") as commissioner:
+        await commissioner.delete(
+            f"/api/leagues/{season.league_id}/members/{users[1].id}"
+        )
+        await _delete(commissioner, season.league_id)
+    async with client_as("uid-1") as former:
+        past = await former.get("/api/leagues/past-leagues")
+        seasons = await former.get(f"/api/leagues/{season.league_id}/seasons")
+    assert past.json() == []
+    assert seasons.status_code == 404
+    assert seasons.json()["code"] == "leagueDeleted"
+
+
 async def test_the_invite_is_revoked_and_its_preview_404s(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:

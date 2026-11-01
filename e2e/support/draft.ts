@@ -1,6 +1,6 @@
 import type { APIRequestContext, Browser, BrowserContext, Page } from "@playwright/test";
 import { test } from "@playwright/test";
-import { Api, type RosterShape, unique } from "./api";
+import { Api, type LeagueRef, type RosterShape, unique } from "./api";
 import { signInAs } from "./auth";
 
 export interface DraftState {
@@ -16,7 +16,7 @@ export interface DraftState {
 export interface DraftLeague {
   host: Api;
   guest: Api;
-  leagueId: number;
+  league: LeagueRef;
   code: string;
   hostTeamId: number;
   guestTeamId: number;
@@ -37,31 +37,33 @@ export const createDraftLeague = async (
   const guest = new Api(request, unique("guest"));
   await host.signUp("host");
   await guest.signUp("guest");
-  const leagueId = await host.createLeague(unique("Draft League"), options.roster);
-  const code = await host.invite(leagueId);
+  const league = await host.createLeague(unique("Draft League"), options.roster);
+  const code = await host.invite(league);
   await guest.joinWith(code);
 
   const info = await host.get<{ unassignedTeamIds: number[] }>(
-    `/api/drafts/draft-info/${leagueId}`,
+    `/api/drafts/draft-info/${league.seasonId}`,
   );
-  const hostTeam = (await host.get<{ myTeamId: number }>(`/api/seasons/${leagueId}`)).myTeamId;
-  const guestTeam = (await guest.get<{ myTeamId: number }>(`/api/seasons/${leagueId}`)).myTeamId;
+  const hostTeam = (await host.get<{ myTeamId: number }>(`/api/seasons/${league.seasonId}`))
+    .myTeamId;
+  const guestTeam = (await guest.get<{ myTeamId: number }>(`/api/seasons/${league.seasonId}`))
+    .myTeamId;
   expectSeated(info.unassignedTeamIds.length === 2);
-  await host.put(`/api/drafts/${leagueId}/order`, { teamIds: [hostTeam, guestTeam] });
+  await host.put(`/api/drafts/${league.seasonId}/order`, { teamIds: [hostTeam, guestTeam] });
   if (options.seconds)
-    await host.patch(`/api/drafts/${leagueId}`, { timePerPickSeconds: options.seconds });
+    await host.patch(`/api/drafts/${league.seasonId}`, { timePerPickSeconds: options.seconds });
   const status = options.status ?? "unscheduled";
-  if (status !== "unscheduled") await host.post(`/api/drafts/${leagueId}/control/lobby`);
-  if (status === "in_progress") await host.post(`/api/drafts/${leagueId}/control/start`);
+  if (status !== "unscheduled") await host.post(`/api/drafts/${league.seasonId}/control/lobby`);
+  if (status === "in_progress") await host.post(`/api/drafts/${league.seasonId}/control/start`);
 
   return {
     host,
     guest,
-    leagueId,
+    league,
     code,
     hostTeamId: hostTeam,
     guestTeamId: guestTeam,
-    state: () => host.get<DraftState>(`/api/drafts/draft-info/${leagueId}`),
+    state: () => host.get<DraftState>(`/api/drafts/draft-info/${league.seasonId}`),
   };
 };
 
@@ -128,6 +130,6 @@ export const completeDraft = async (league: DraftLeague, plan: DraftPlan = DEFAU
     const who = state.onTheClockTeamId === league.hostTeamId ? "host" : "guest";
     const playerId = queues[who].shift();
     if (playerId === undefined) throw new Error(`${who} ran out of planned picks`);
-    await league[who].post(`/api/drafts/${league.leagueId}/picks`, { playerId });
+    await league[who].post(`/api/drafts/${league.league.seasonId}/picks`, { playerId });
   }
 };

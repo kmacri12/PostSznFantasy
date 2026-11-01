@@ -142,7 +142,7 @@ Then run Lighthouse from a scratch directory (`npm i lighthouse playwright-core`
 import { chromium } from "playwright-core";
 import lighthouse from "lighthouse";
 
-// node run.mjs <baseUrl> <path> <uid|-> : e.g. http://localhost:5292 /league/1/draft host-abc
+// node run.mjs <baseUrl> <path> <uid|-> : e.g. http://localhost:5292 /leagues/1/seasons/2026/draft host-abc
 const [, , base, path, uid] = process.argv;
 // A persistent context keeps the page in Chrome's default profile, which is what Lighthouse attaches to.
 import { rmSync } from "node:fs";

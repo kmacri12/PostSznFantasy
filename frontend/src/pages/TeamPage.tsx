@@ -20,7 +20,6 @@ import { Link, useParams } from "react-router-dom";
 import {
   type LineupMoveRequest,
   needsOverrideConfirmation,
-  useLeagueArchived,
   useMoveInLineup,
   useRenameTeam,
   useTeam,
@@ -42,6 +41,7 @@ import {
 } from "../components/team/lineup";
 import OverrideDialog from "../components/team/OverrideDialog";
 import PreDraftRoster from "../components/team/PreDraftRoster";
+import { useSeasonContext } from "../contexts/SeasonContext";
 
 const RenameDialog = ({ team, onClose }: { team: TeamDetails; onClose: () => void }) => {
   const [name, setName] = useState(team.name);
@@ -88,9 +88,10 @@ const useNow = () => {
 
 const TeamContent = ({ team }: { team: TeamDetails }) => {
   const teamId = team.id;
-  const archived = useLeagueArchived(team.seasonId);
-  const canEdit = team.canEdit && !archived;
-  const canSetLineup = team.canSetLineup && !archived;
+  const { season, seasonId, paths } = useSeasonContext();
+  const archived = season.finished;
+  const canEdit = team.canEdit && season.canEdit;
+  const canSetLineup = team.canSetLineup && season.canEdit;
   const [renaming, setRenaming] = useState(false);
   const now = useNow();
   const [round, setRound] = useState(() => defaultRound(team.lineups, now));
@@ -123,7 +124,7 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
       </Box>
       <Box sx={{ display: "flex", gap: 1, alignItems: "center", mt: 0.5, mb: 2, flexWrap: "wrap" }}>
         <Typography color="text.secondary">Owner: {team.ownerName || "Unclaimed"}</Typography>
-        <Button component={Link} to={`/team/${team.id}/points`} size="small">
+        <Button component={Link} to={paths.teamPoints(team.id)} size="small">
           Points by round
         </Button>
         {team.roster.length > 0 && (
@@ -140,14 +141,14 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
         <DataFreshness />
       </Box>
       {archived && <ArchivedNotice what="names and lineups" />}
-      {team.roster.length === 0 && <PreDraftRoster leagueId={team.seasonId} />}
+      {team.roster.length === 0 && <PreDraftRoster seasonId={seasonId} />}
       {team.roster.length === 0 && (
         <Box sx={{ mb: 2 }}>
           <EmptyState
             title="No players yet"
             description="This lineup fills in as the draft happens."
             action={
-              <Button component={Link} to={`/league/${team.seasonId}/draft`} variant="outlined">
+              <Button component={Link} to={paths.draft} variant="outlined">
                 Open the draft room
               </Button>
             }
@@ -184,7 +185,7 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
             key={round}
             lineup={lineup}
             canEdit={canSetLineup}
-            canOverride={team.canOverride && !archived}
+            canOverride={team.canOverride && season.canEdit}
             onMove={(request) => move({ round, ...request })}
           />
         </>

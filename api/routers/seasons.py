@@ -88,6 +88,7 @@ async def get_season(
         finished=membership.finished,
         can_edit=membership.can_edit,
         can_commission=membership.can_edit and membership.is_commissioner,
+        is_former_member=membership.left,
         number_teams=len(teams),
         open_spots=sum(1 for team in teams if team.owner_id is None),
         my_role=LeagueRole(membership.role),

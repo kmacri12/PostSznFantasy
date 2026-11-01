@@ -1,6 +1,8 @@
 import { render, screen } from "@testing-library/react";
-import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { SeasonContext } from "../contexts/SeasonContext";
+import { testSeason } from "../test/season";
 import DraftPage from "./DraftPage";
 
 const mocks = vi.hoisted(() => ({ archived: false }));
@@ -19,9 +21,7 @@ const state = {
 
 vi.mock("../api/queries", () => ({
   useDraftPool: () => ({ data: [] }),
-  useLeague: () => ({ data: { myRole: "commissioner" } }),
   useSaveQueue: () => ({ mutate: vi.fn() }),
-  useLeagueArchived: () => mocks.archived,
 }));
 vi.mock("../hooks/useDraftRoom", () => ({
   useDraftRoom: () => ({
@@ -52,10 +52,16 @@ vi.mock("../utils/draftCue", () => ({ playOnDeckCue: vi.fn(), vibrateOnTurn: vi.
 
 const renderDraft = () =>
   render(
-    <MemoryRouter initialEntries={["/league/3/draft"]}>
-      <Routes>
-        <Route path="/league/:leagueId/draft" element={<DraftPage />} />
-      </Routes>
+    <MemoryRouter>
+      <SeasonContext.Provider
+        value={testSeason(
+          mocks.archived
+            ? { finished: true, canEdit: false, canCommission: false }
+            : { canCommission: true },
+        )}
+      >
+        <DraftPage />
+      </SeasonContext.Provider>
     </MemoryRouter>,
   );
 
@@ -64,14 +70,14 @@ beforeEach(() => {
 });
 
 describe("DraftPage", () => {
-  it("gives a commissioner setup and controls while the league is live", () => {
+  it("gives a commissioner setup and controls while the season is open", () => {
     renderDraft();
     expect(screen.getByText("Draft setup")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Draft controls" })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: /Players/ })).toBeInTheDocument();
   });
 
-  it("drops setup, controls and the pick and queue tabs once the league is archived", () => {
+  it("drops setup, controls and the pick and queue tabs once the season is over", () => {
     mocks.archived = true;
     renderDraft();
     expect(screen.queryByText("Draft setup")).toBeNull();

@@ -24,6 +24,7 @@ import {
 import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useConfig, usePlayerSeasonStats, useUserLeagues } from "../../api/queries";
+import { useOptionalSeasonContext } from "../../contexts/SeasonContext";
 import { useUser } from "../../contexts/UserContext";
 import { tokens } from "../../theme";
 import EmptyState from "../common/EmptyState";
@@ -63,10 +64,15 @@ const PlayersTable = () => {
     ? [currentSeason, currentSeason - 1, currentSeason - 2].map(String)
     : [];
 
+  // Under a season route its scoring applies; otherwise the member picks among their leagues.
+  const pinned = useOptionalSeasonContext();
   const requestedLeague = searchParams.get("leagueId");
-  const league = leagues.find((l) => String(l.id) === requestedLeague) ?? leagues[0];
+  const picked = leagues.find((l) => String(l.id) === requestedLeague) ?? leagues[0];
+  const league = pinned
+    ? { id: pinned.leagueId, seasonId: pinned.seasonId, name: pinned.season.leagueName }
+    : picked;
 
-  const stats = usePlayerSeasonStats<PlayerSeasonStats>(season, league?.id);
+  const stats = usePlayerSeasonStats<PlayerSeasonStats>(season, league?.seasonId);
   const columns = STAT_COLUMNS[position];
   const rows = useMemo(
     () => sortPlayers(filterPlayers(stats.data ?? [], position, search), sortKey),
@@ -145,7 +151,7 @@ const PlayersTable = () => {
           <Typography variant="body2" color="text.secondary">
             Fantasy points use
           </Typography>
-          {leagues.length > 1 ? (
+          {!pinned && leagues.length > 1 ? (
             <Select
               size="small"
               value={String(league.id)}

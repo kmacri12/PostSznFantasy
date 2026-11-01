@@ -26,7 +26,7 @@ const renderJoin = () =>
     <MemoryRouter initialEntries={["/join/ABC123"]}>
       <Routes>
         <Route path="/join/:code" element={<JoinPage />} />
-        <Route path="/league/:id" element={<div>league page</div>} />
+        <Route path="/leagues/:id" element={<div>league page</div>} />
       </Routes>
     </MemoryRouter>,
   );

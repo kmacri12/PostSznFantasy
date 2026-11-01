@@ -1,5 +1,5 @@
 import { expect, type Page, test } from "@playwright/test";
-import { Api } from "../support/api";
+import { Api, seasonUrl } from "../support/api";
 import { signInAs } from "../support/auth";
 import { completeDraft, createDraftLeague, type DraftLeague } from "../support/draft";
 
@@ -55,7 +55,7 @@ test("eliminations reach the team pages as each replayed game finishes", async (
 
   await test.step("before the first kickoff nobody is out", async () => {
     expect(await eliminatedTeams(watcher)).toEqual([]);
-    await page.goto(`/team/${main.hostTeamId}`);
+    await page.goto(seasonUrl(main.league, `/teams/${main.hostTeamId}`));
     await expect(page.getByText("4 of 4 alive")).toBeVisible();
     for (const player of HOST_ROWS) await expect(page.getByText(player)).toBeVisible();
     await expect(page.getByTestId("eliminated-section")).toHaveCount(0);
@@ -68,7 +68,7 @@ test("eliminations reach the team pages as each replayed game finishes", async (
 
       // The host loses a player for each of the first three eliminations; DET is the guest's.
       const alive = 4 - Math.min(index + 1, 3);
-      await page.goto(`/team/${main.hostTeamId}`);
+      await page.goto(seasonUrl(main.league, `/teams/${main.hostTeamId}`));
       await expect(page.getByText(`${alive} of 4 alive`)).toBeVisible();
       await expect(page.getByText(/Stats updated/)).toBeVisible();
       if (index < 3) {
@@ -78,7 +78,7 @@ test("eliminations reach the team pages as each replayed game finishes", async (
   }
 
   await test.step("the guest's roster only lost the last team's player", async () => {
-    await page.goto(`/team/${main.guestTeamId}`);
+    await page.goto(seasonUrl(main.league, `/teams/${main.guestTeamId}`));
     await expect(page.getByText("3 of 4 alive")).toBeVisible();
     await inEliminatedSection(page, "Bryce Grady");
   });
@@ -93,7 +93,8 @@ interface StandingsRow {
 }
 
 const standingsOf = async (api: Api, league: DraftLeague) =>
-  (await api.get<{ teams: StandingsRow[] }>(`/api/seasons/${league.leagueId}/standings`)).teams;
+  (await api.get<{ teams: StandingsRow[] }>(`/api/seasons/${league.league.seasonId}/standings`))
+    .teams;
 
 test("standings follow the replay: players left drop and points accrue", async ({
   page,
@@ -131,7 +132,7 @@ test("standings follow the replay: players left drop and points accrue", async (
   expect(rows.find((row) => row.teamId === main.guestTeamId)?.playersLeft).toBe(3);
 
   await signInAs(context, host.uid);
-  await page.goto(`/league/${main.leagueId}`);
+  await page.goto(seasonUrl(main.league));
   await expect(page.getByRole("heading", { name: "No standings yet" })).toHaveCount(0);
   await expect(page.getByRole("list", { name: "Standings" }).getByRole("listitem")).toHaveCount(2);
 });

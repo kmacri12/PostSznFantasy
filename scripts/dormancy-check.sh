@@ -24,8 +24,8 @@ site_code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 "$SITE_URL/") |
 [[ $site_code == 200 ]] && pass "static shell answers 200 at $SITE_URL" \
   || fail "static shell at $SITE_URL returned $site_code (expected 200)"
 
-deep_code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 "$SITE_URL/league/1") || deep_code=000
-[[ $deep_code == 200 ]] && pass "deep link /league/1 serves the app (SPA fallback)" \
+deep_code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 "$SITE_URL/leagues/1") || deep_code=000
+[[ $deep_code == 200 ]] && pass "deep link /leagues/1 serves the app (SPA fallback)" \
   || fail "deep link returned $deep_code (expected 200)"
 
 api_body=$(curl -s --max-time 15 -w '\n%{http_code}' "$API_URL/api") || api_body=$'\n000'

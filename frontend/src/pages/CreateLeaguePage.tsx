@@ -24,6 +24,7 @@ import ExhaustionWarning from "../components/league/ExhaustionWarning";
 import RosterForm from "../components/settings/RosterForm";
 import ScoringForm from "../components/settings/ScoringForm";
 import TeamUnitChoice, { type TeamUnitValues } from "../components/settings/TeamUnitChoice";
+import { leaguePath } from "../routes";
 import { createLogger } from "../utils/logger";
 import {
   countChangedFromDefaults,
@@ -91,7 +92,7 @@ const CreateLeaguePage = ({
         teamUnitSettings: { teamQb: teamUnits.team_qb, teamK: teamUnits.team_k },
       });
 
-      const createdLeagueId = response.seasonId;
+      const createdLeagueId = response.leagueId;
       if (!createdLeagueId) {
         setSubmitError(
           "Your league was created, but we couldn't open it. Find it on the home page.",
@@ -99,7 +100,7 @@ const CreateLeaguePage = ({
         return;
       }
       await onLeagueCreated(createdLeagueId);
-      navigate(`/league/${createdLeagueId}`);
+      navigate(leaguePath(createdLeagueId));
     } catch (error) {
       logger.error("Error creating league:", error);
       setSubmitError("Couldn't create the league. Try again.");

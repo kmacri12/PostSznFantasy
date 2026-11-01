@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { Api, unique } from "../support/api";
+import { Api, seasonUrl, unique } from "../support/api";
 import { signInAs } from "../support/auth";
 
 test.describe("players page", () => {
@@ -46,17 +46,17 @@ test.describe("players page", () => {
   }) => {
     const host = new Api(request, unique("host"));
     await host.signUp("host");
-    const leagueId = await host.createLeague(unique("Points League"));
+    const league = await host.createLeague(unique("Points League"));
     await signInAs(context, host.uid);
 
-    await page.goto(`/players?leagueId=${leagueId}`);
+    await page.goto(seasonUrl(league, "/players"));
     await expect(page.getByText("Fantasy points use")).toBeVisible();
     const topPoints = page.getByRole("list", { name: "Players" }).getByRole("heading").first();
     const before = Number(await topPoints.textContent());
     expect(before).toBeGreaterThan(0);
 
     // Double the passing TD value: every quarterback's total must go up.
-    await host.patch(`/api/seasons/${leagueId}/settings`, { scoringPassingTd: 8 });
+    await host.patch(`/api/seasons/${league.seasonId}/settings`, { scoringPassingTd: 8 });
     await page.reload();
     await expect(
       page.getByRole("list", { name: "Players" }).getByRole("heading").first(),

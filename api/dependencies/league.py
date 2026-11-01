@@ -53,7 +53,7 @@ async def _user(db: AsyncSession, supabase_uid: str) -> User | None:
     )
 
 
-def _deleted_league_error(league: League, member: object | None) -> HTTPException:
+def deleted_league_error(league: League, member: object | None) -> HTTPException:
     """Anyone who was ever a member learns it was deleted; others see a plain 404."""
     if member is None:
         return HTTPException(status.HTTP_404_NOT_FOUND, "League not found")
@@ -70,7 +70,7 @@ async def find_membership(
     member = await db.get(LeagueMemberRow, (league_id, user.id))
     league = await db.get(League, league_id)
     if league is not None and league.deleted_at is not None:
-        raise _deleted_league_error(league, member)
+        raise deleted_league_error(league, member)
     if member is None or member.left_at is not None or league is None:
         return None
     return LeagueMembership(user=user, league=league, role=member.role)
@@ -91,7 +91,7 @@ async def find_season_membership(
     member = await db.get(LeagueMemberRow, (season.league_id, user.id))
     league = await db.get(League, season.league_id)
     if league is not None and league.deleted_at is not None:
-        raise _deleted_league_error(league, member)
+        raise deleted_league_error(league, member)
     if member is None or league is None:
         return None
     team = (

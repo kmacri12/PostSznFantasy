@@ -10,12 +10,13 @@ import {
   Skeleton,
   Typography,
 } from "@mui/material";
-import { Link } from "react-router-dom";
-import { useDraft, useStandings } from "../api/queries";
-import type { LeagueByUser } from "../api/types";
+import { Link, useNavigate } from "react-router-dom";
+import { useDraft, usePastLeagues, useStandings, useStartSeason } from "../api/queries";
+import type { LeagueByUser, SeasonSummary } from "../api/types";
+import { mutationError } from "../components/common/friendlyError";
 import JoinCodeBox from "../components/league/JoinCodeBox";
-import { groupBySeason } from "../components/league/seasons";
 import { useUser } from "../contexts/UserContext";
+import { leaguePath, seasonPaths } from "../routes";
 import { tokens } from "../theme";
 import { DormantNotice } from "./DormantPage";
 
@@ -47,9 +48,73 @@ const ROUNDS = [
   { name: "Super Bowl", blurb: "2 teams left. Last roster standing wins." },
 ];
 
+/** Links to a league's earlier seasons, newest first. */
+const PastSeasons = ({ leagueId, seasons }: { leagueId: number; seasons: SeasonSummary[] }) => (
+  <Box sx={{ mt: 1.5 }}>
+    <Typography variant="overline" color="text.secondary" component="h4">
+      Past seasons
+    </Typography>
+    <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap" }}>
+      {[...seasons]
+        .sort((a, b) => b.year - a.year)
+        .map((season) => (
+          <Button
+            key={season.id}
+            size="small"
+            component={Link}
+            to={seasonPaths(leagueId, season.year).home}
+            sx={{ minHeight: 44 }}
+          >
+            {season.year}
+          </Button>
+        ))}
+    </Box>
+  </Box>
+);
+
+/** The finished season's next step: the commissioner starts the following one. */
+const SeasonOver = ({ league }: { league: LeagueByUser }) => {
+  const navigate = useNavigate();
+  const startSeason = useStartSeason(league.id);
+  const nextYear = league.season + 1;
+  const failure = mutationError(startSeason.error, "Couldn't start the season. Try again.");
+  return (
+    <Box sx={{ mt: 1.5 }}>
+      <Typography variant="body2" color="text.secondary">
+        Season over: start {nextYear}
+      </Typography>
+      {league.isCommissioner ? (
+        <Button
+          variant="contained"
+          size="small"
+          sx={{ mt: 1, minHeight: 44 }}
+          disabled={startSeason.isPending}
+          onClick={() =>
+            startSeason.mutate(undefined, {
+              onSuccess: () => navigate(seasonPaths(league.id, nextYear).home),
+            })
+          }
+        >
+          Start {nextYear} season
+        </Button>
+      ) : (
+        <Typography variant="body2" color="text.secondary">
+          Your commissioner starts the {nextYear} season.
+        </Typography>
+      )}
+      {failure && (
+        <Typography variant="body2" color="error" role="alert">
+          {failure}
+        </Typography>
+      )}
+    </Box>
+  );
+};
+
 const LeagueWidget = ({ league }: { league: LeagueByUser }) => {
-  const standings = useStandings(league.id);
-  const draft = useDraft(league.id);
+  const standings = useStandings(league.seasonId);
+  const draft = useDraft(league.seasonId);
+  const pastSeasons = league.seasons.filter((season) => season.id !== league.seasonId);
   const loaded = !standings.isLoading && !draft.isLoading && !standings.isError;
   const rows = standings.data?.teams ?? [];
   const snapshot = loaded
@@ -73,7 +138,8 @@ const LeagueWidget = ({ league }: { league: LeagueByUser }) => {
             color={snapshot.rank ? "primary" : "default"}
             label={snapshot.rank ? `Rank #${snapshot.rank} of ${snapshot.teams}` : "Unranked"}
           />
-          {league.finished && <Chip size="small" variant="outlined" label="Archived" />}
+          <Chip size="small" variant="outlined" label={`${league.season} season`} />
+          {league.finished && <Chip size="small" variant="outlined" label="Season over" />}
           <Chip
             size="small"
             variant="outlined"
@@ -92,14 +158,41 @@ const LeagueWidget = ({ league }: { league: LeagueByUser }) => {
         <Skeleton width="70%" sx={{ my: 1.5 }} />
       )}
       <Box sx={{ display: "flex", gap: 1 }}>
-        <Button size="small" component={Link} to={`/league/${league.id}`}>
+        <Button size="small" component={Link} to={leaguePath(league.id)}>
           League
         </Button>
-        <Button size="small" component={Link} to={`/league/${league.id}/draft`}>
+        <Button size="small" component={Link} to={seasonPaths(league.id, league.season).draft}>
           Draft room
         </Button>
       </Box>
+      {league.finished && <SeasonOver league={league} />}
+      {pastSeasons.length > 0 && <PastSeasons leagueId={league.id} seasons={pastSeasons} />}
     </Card>
+  );
+};
+
+/** Leagues the member left: the finished seasons they played in stay readable. */
+const PastLeagues = () => {
+  const { data: pastLeagues = [] } = usePastLeagues(true);
+  if (pastLeagues.length === 0) return null;
+  return (
+    <Box sx={{ mt: 6 }}>
+      <Typography variant="h5" component="h2" sx={{ mb: 2 }}>
+        Leagues you left
+      </Typography>
+      <Grid container spacing={2}>
+        {pastLeagues.map((league) => (
+          <Grid size={{ xs: 12, sm: 6, md: 4 }} key={league.id}>
+            <Card sx={{ p: 2.5, height: "100%" }}>
+              <Typography variant="h6" noWrap>
+                {league.name}
+              </Typography>
+              <PastSeasons leagueId={league.id} seasons={league.seasons} />
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
+    </Box>
   );
 };
 
@@ -164,7 +257,7 @@ const LandingPage = ({
                     size="large"
                     color="inherit"
                     component={Link}
-                    to={`/league/${leagues[0]?.id}`}
+                    to={leaguePath(leagues[0]?.id ?? "")}
                   >
                     View your leagues
                   </Button>
@@ -185,22 +278,17 @@ const LandingPage = ({
           <Typography variant="h5" sx={{ mb: 2 }}>
             Your leagues
           </Typography>
-          {groupBySeason(leagues).map((group, index) => (
-            <Box key={group.season} sx={{ mt: index === 0 ? 0 : 4 }}>
-              <Typography variant="h6" component="h3" color="text.secondary" sx={{ mb: 1.5 }}>
-                {group.season} season
-              </Typography>
-              <Grid container spacing={2}>
-                {group.leagues.map((league) => (
-                  <Grid size={{ xs: 12, sm: 6, md: 4 }} key={league.id}>
-                    <LeagueWidget league={league} />
-                  </Grid>
-                ))}
+          <Grid container spacing={2}>
+            {leagues.map((league) => (
+              <Grid size={{ xs: 12, sm: 6, md: 4 }} key={league.id}>
+                <LeagueWidget league={league} />
               </Grid>
-            </Box>
-          ))}
+            ))}
+          </Grid>
         </Box>
       )}
+
+      {user && <PastLeagues />}
 
       <Box sx={{ mt: 8 }}>
         <Typography variant="h5" component="h2" sx={{ mb: 2 }}>

@@ -150,11 +150,13 @@ PostSznFantasy/
     ├── biome.json              # Biome linter, formatter & import sorting config
     └── src/
         ├── App.tsx             # Routes, league list state, wires NavBar
+        ├── routes.ts           # Path builders: `leaguePath`, `seasonPaths(leagueId, year)` (home, draft, settings, players, team, teamPoints)
         ├── theme.ts            # Dark-first MUI theme + design tokens
         ├── main.tsx            # Vite DOM mount point
         ├── content/
         │   └── rules.ts        # Every plain-language rule string: How to play, pre-draft roster, lock note, setting tooltips, notes copy
         ├── contexts/
+        │   ├── SeasonContext.tsx # The route's season (`useSeasonContext`: ids, year, `season` with `canEdit` / `canCommission`, `paths`), provided by SeasonLayout
         │   └── UserContext.tsx # Authentication & current user context
         ├── hooks/
         │   ├── useWebSocket.ts # Native RFC 6455 WebSocket hook
@@ -165,7 +167,9 @@ PostSznFantasy/
         │   ├── CreateLeaguePage.tsx # Multi-step league creation wizard
         │   ├── DraftPage.tsx   # Live synchronized draft room
         │   ├── HowToPlayPage.tsx # Plain-language rules page (nav link), copy from src/content/rules.ts
-        │   ├── LeaguePage.tsx  # Standings display, league notes
+        │   ├── LeagueHomePage.tsx # `/leagues/:leagueId` redirects to the latest season
+        │   ├── SeasonLayout.tsx # `/leagues/:leagueId/seasons/:year` resolves the year to a season and provides SeasonContext to the pages below
+        │   ├── LeaguePage.tsx  # A season's home: standings, notes, recap and start-next-season, empty-state notices
         │   ├── PlayersPage.tsx # Player directory with TanStack Table
         │   ├── SettingsPage.tsx# League configuration viewer
         │   ├── TeamPage.tsx    # Roster management view
@@ -175,9 +179,9 @@ PostSznFantasy/
         │   ├── activity/       # ActivityFeed (collapsed, new dot), SlotMarker (override / asterisk), ChangedScore tooltip, describeEvent
         │   ├── layout/         # NavBar (blurred header, league switcher, drawer)
         │   ├── draft/          # DraftBoard, Countdown, PlayerSelector
-        │   ├── league/         # StandingsTable (desktop), StandingsCards (phone), ProgressCounts, RankCell (tie tooltip), ArchivedNotice (shown where an archived league hides write controls; the `finished` flag comes from `useLeagueArchived`), `groupBySeason` (season headings in the landing page and league switcher)
+        │   ├── league/         # StandingsTable (desktop), StandingsCards (phone), ProgressCounts, RankCell (tie tooltip), ArchivedNotice (shown where a finished season hides write controls; write controls follow the season's `canEdit` / `canCommission` from `useSeasonContext`)
         │   ├── players/        # PlayersTable (TanStack Table v8)
-        │   ├── recap/          # SeasonRecap: champion card, awards grid, start next season
+        │   ├── recap/          # SeasonRecap: champion card, awards grid, start the next season
         │   ├── team/           # LineupList (tap/drag lineup), OverrideDialog (commissioner confirm), BreakdownRounds (round-by-round points)
         │   └── settings/       # SettingsSection/ScoringForm/RosterForm generated from src/settings schemas
         ├── utils/
@@ -222,10 +226,12 @@ make format     # auto-fix Ruff and Biome
 
 ## 3b. Route Map (Phase 20)
 
+SPA routes: `/leagues/:leagueId` opens the latest season; every season page lives under `/leagues/:leagueId/seasons/:year` (index = standings and recap, `draft`, `settings`, `players`, `teams/:teamId`, `teams/:teamId/points`). `SeasonLayout` resolves the year through `GET /api/leagues/{id}/seasons`, loads `GET /api/seasons/{id}` and provides it as `SeasonContext`; the pages read `canEdit` / `canCommission` / `isFormerMember` from it instead of looking at the league list. `/players` (no league) stays as a global page with a scoring-league picker. Build links with `routes.ts`, never by string.
+
 | Area | Endpoints |
 | :--- | :--- |
 | Config | `GET /api/config` (season) |
-| Leagues | `POST /api/leagues/create-league` (creates the league and its first season for the configured year; 201 `{leagueId, seasonId}`; 409 once that season's Super Bowl is final), `GET /api/leagues/user-leagues` (each league with its latest season: `id`, `seasonId`, `season` (year), `finished`, `userTeamId`, `hasNewActivity`), `GET/PATCH /api/leagues/{id}` (overview: `notes`, members, `seasons[]`, `currentSeasonId`, `canStartSeason`, `nextYear`; PATCH: `name` and `notes`, free text up to 5000 characters shown to every member, commissioner-only edit), `DELETE /api/leagues/{id}` (any commissioner; body `{leagueName}` must equal the league name, else 422; 409 while a draft in any season is in progress or paused; 204. Soft delete: sets `deleted_at`/`deleted_by`, revokes the invite, keeps every row. Every route behind the member guards then answers 404 `{detail, code: "leagueDeleted", leagueName, deletedAt}` to current and former members and a plain 404 to others. All league queries go through `services/live_leagues.py`; `tests/test_live_league_filter.py` fails on a direct read. The owner restores with `python -m api.scripts.restore_league <id>`, see docs/owner/league-restore.md), `PATCH/DELETE /api/leagues/{id}/members/{userId}` (DELETE sets `left_at`, it never deletes the row), `POST /api/leagues/{id}/seasons` (commissioner starts next year's season once the latest is finished; 201 `{leagueId, seasonId}`; 409 if the season is not over or the next one already exists). A league is never read-only. |
+| Leagues | `POST /api/leagues/create-league` (creates the league and its first season for the configured year; 201 `{leagueId, seasonId}`; 409 once that season's Super Bowl is final), `GET /api/leagues/user-leagues` (each league with its latest season: `id`, `seasonId`, `season` (year), `finished`, `draftStatus`, `userTeamId`, `hasNewActivity`, and `seasons[]` of every season), `GET /api/leagues/past-leagues` (leagues the caller left, each with the finished seasons they owned a team in), `GET /api/leagues/{id}/seasons` (the seasons the caller may open: all for a member, only those finished seasons after leaving; 403 for a stranger; each has `id`, `year`, `finished`, `draftStatus`, `myTeamId`), `GET/PATCH /api/leagues/{id}` (overview: `notes`, members, `seasons[]`, `currentSeasonId`, `canStartSeason`, `nextYear`; PATCH: `name` and `notes`, free text up to 5000 characters shown to every member, commissioner-only edit), `DELETE /api/leagues/{id}` (any commissioner; body `{leagueName}` must equal the league name, else 422; 409 while a draft in any season is in progress or paused; 204. Soft delete: sets `deleted_at`/`deleted_by`, revokes the invite, keeps every row. Every route behind the member guards then answers 404 `{detail, code: "leagueDeleted", leagueName, deletedAt}` to current and former members and a plain 404 to others. All league queries go through `services/live_leagues.py`; `tests/test_live_league_filter.py` fails on a direct read. The owner restores with `python -m api.scripts.restore_league <id>`, see docs/owner/league-restore.md), `PATCH/DELETE /api/leagues/{id}/members/{userId}` (DELETE sets `left_at`, it never deletes the row), `POST /api/leagues/{id}/seasons` (commissioner starts next year's season once the latest is finished; 201 `{leagueId, seasonId}`; 409 if the season is not over or the next one already exists). A league is never read-only. |
 | Seasons | `GET /api/seasons/{id}` (overview: teams, members, draft status, `finished`, `canEdit`, `canCommission`), `PATCH /api/seasons/{id}` (`numberTeams`, locks at draft start), `GET/PATCH /api/seasons/{id}/settings` (roster/scoring/postseason; roster shape locks once the draft starts), `GET /api/seasons/{id}/teams`, `GET /api/seasons/{id}/standings` (`{round, gamesInProgress, playersLeft, teams[]}`; each team has `rank`, round points, `tieReason`, `progress`; ranked by the tiebreaker chain, ties for the title share a rank), `PUT /api/seasons/{id}/teams/{teamId}/owner` (commissioner assigns/unassigns a team). A former member may read these for a finished season they owned a team in; every write to a finished season answers 409 "read-only archive". |
 | Recap | `GET /api/seasons/{id}/recap` (`{seasonId, leagueId, year, finished, champions[], standings, nextSeasonId, awards[]}`; no champion or awards until the Super Bowl is final; awards computed on read; the per-position draft awards `best_value_<pos>` / `bust_<pos>` carry `draftedAs`, `finishedAs`, `points`, with `value` = places gained) |
 | Invites | `GET/POST/DELETE /api/leagues/{id}/invite` (commissioner), `GET /api/invites/{code}` (public preview), `POST /api/invites/{code}/join` |

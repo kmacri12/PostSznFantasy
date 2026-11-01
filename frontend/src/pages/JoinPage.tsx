@@ -6,6 +6,7 @@ import ErrorState from "../components/common/ErrorState";
 import { friendlyError } from "../components/common/friendlyError";
 import LoadingState from "../components/common/LoadingState";
 import { useUser } from "../contexts/UserContext";
+import { leaguePath } from "../routes";
 
 /** Shareable /join/:code link. Signed-out visitors log in, come back here and auto-join. */
 const JoinPage = () => {
@@ -21,7 +22,7 @@ const JoinPage = () => {
   useEffect(() => {
     if (!code || userId === null || !joinable || attempted.current) return;
     attempted.current = true;
-    join.mutate(code, { onSuccess: (result) => navigate(`/league/${result.seasonId}`) });
+    join.mutate(code, { onSuccess: (result) => navigate(leaguePath(result.leagueId)) });
   }, [code, userId, joinable]);
 
   if (preview.isLoading || loading) {
