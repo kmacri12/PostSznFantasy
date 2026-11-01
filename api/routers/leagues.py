@@ -25,13 +25,18 @@ from api.models.league_models import (
     LeaguesByUser,
     LeagueUpdate,
     MemberRoleUpdate,
-    MemberSummary,
     ScoringSettings,
     SeasonSummary,
 )
 from api.services.activity import leagues_with_new_activity
 from api.services.draft_picks import DraftPickError
-from api.services.league_members import LeagueRuleError, remove_member, set_role
+from api.services.league_members import (
+    LeagueRuleError,
+    member_summaries,
+    remove_member,
+    rule_error,
+    set_role,
+)
 from api.services.playoff_field import require_draft_window_open
 from api.services.round_status import season_is_finished
 from api.services.seasons import current_season, start_season
@@ -228,7 +233,6 @@ async def _league_overview(db: DbSession, league: League, role: str) -> LeagueOv
         .scalars()
         .all()
     )
-    team_by_owner = {team.owner_id: team for team in teams if team.owner_id}
     summaries = [
         SeasonSummary(
             id=s.id, year=s.year, finished=await season_is_finished(db, s.year)
@@ -245,25 +249,8 @@ async def _league_overview(db: DbSession, league: League, role: str) -> LeagueOv
         can_start_season=latest_finished,
         next_year=season.year + 1,
         seasons=summaries,
-        members=[
-            MemberSummary(
-                user_id=m.user_id,
-                username=m.user.username,
-                role=LeagueRole(m.role),
-                team_id=team_by_owner[m.user_id].id
-                if m.user_id in team_by_owner
-                else None,
-                team_name=team_by_owner[m.user_id].name
-                if m.user_id in team_by_owner
-                else None,
-            )
-            for m in members
-        ],
+        members=member_summaries(members, list(teams)),
     )
-
-
-def _rule_error(exc: LeagueRuleError) -> HTTPException:
-    return HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
 
 
 @router.get("/{league_id}", response_model=LeagueOverview)
@@ -302,7 +289,7 @@ async def update_member_role(
     try:
         await set_role(db, league_id, user_id, payload.role)
     except LeagueRuleError as exc:
-        raise _rule_error(exc) from exc
+        raise rule_error(exc) from exc
     await db.flush()
     return await get_league(league_id, membership, db)
 
@@ -318,7 +305,7 @@ async def delete_member(
     try:
         await remove_member(db, league_id, user_id)
     except LeagueRuleError as exc:
-        raise _rule_error(exc) from exc
+        raise rule_error(exc) from exc
     await db.flush()
     return await get_league(league_id, membership, db)
 
@@ -335,7 +322,7 @@ async def start_next_season(
     try:
         season = await start_season(db, membership.league)
     except LeagueRuleError as exc:
-        raise _rule_error(exc) from exc
+        raise rule_error(exc) from exc
     await db.commit()
     return LeagueCreateResponse(
         message=f"The {season.year} season of '{membership.league.name}' has started",

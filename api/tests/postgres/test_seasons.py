@@ -3,6 +3,7 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from api.core.config import get_settings
 from api.db.models import (
     Draft,
     LeagueInvite,
@@ -11,9 +12,10 @@ from api.db.models import (
     SeasonSettings,
     Team,
     TeamPlayer,
+    User,
 )
 from api.tests.postgres.conftest import ClientFactory
-from api.tests.postgres.recap_support import finished_league
+from api.tests.postgres.recap_support import add_season_games, finished_league
 
 SETTINGS_SKIPPED = ("id", "season_id")
 
@@ -224,3 +226,35 @@ async def test_a_former_member_can_rejoin_with_the_invite(
         )
     ).scalar_one()
     assert member.left_at is None
+
+
+async def test_a_former_member_does_not_see_the_current_member_list(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    season, teams, _ = await finished_league(db)
+    async with client_as("uid-0") as commissioner:
+        await commissioner.delete(
+            f"/api/leagues/{season.league_id}/members/{teams[1].owner_id}"
+        )
+    async with client_as("uid-1") as former:
+        body = (await former.get(f"/api/seasons/{season.id}")).json()
+    assert body["members"] == []
+    assert len(body["teams"]) == 2
+
+
+async def test_a_league_cannot_be_created_for_a_finished_season(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    await add_season_games(db, year=get_settings().season_year)
+    db.add(User(supabase_uid="creator", username="creator", email="c@x.co"))
+    await db.flush()
+    async with client_as("creator") as creator:
+        response = await creator.post(
+            "/api/leagues/create-league",
+            json={
+                "leagueName": "Late",
+                "rosterSettings": {"numberTeams": 4},
+                "teamUnitSettings": {"teamQb": False, "teamK": False},
+            },
+        )
+    assert response.status_code == 409

@@ -13,7 +13,6 @@ from api.db.session import DbSession
 from api.dependencies.league import SeasonCommissioner, SeasonMember
 from api.models.enums import DraftStatus, LeagueRole
 from api.models.league_models import (
-    MemberSummary,
     SeasonOverview,
     SeasonSettingsPatch,
     SeasonSettingsResponse,
@@ -30,7 +29,11 @@ from api.services.league_admin import (
     draft_has_started,
     set_team_count,
 )
-from api.services.league_members import LeagueRuleError
+from api.services.league_members import (
+    LeagueRuleError,
+    member_summaries,
+    rule_error,
+)
 from api.services.season_recap import build_recap
 from api.services.settings_changes import (
     on_editable_settings_changed,
@@ -42,15 +45,12 @@ from api.services.team_units import newly_enabled, require_no_same_team_conflict
 router = APIRouter()
 
 
-def _rule_error(exc: LeagueRuleError) -> HTTPException:
-    return HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
-
-
 @router.get("/{season_id}", response_model=SeasonOverview)
 async def get_season(
     season_id: int, membership: SeasonMember, db: DbSession
 ) -> SeasonOverview:
     """Everything a season's home page needs in one call: teams, members, draft."""
+    # A former member sees the season's teams but not who is in the league now.
     members = (
         (
             await db.execute(
@@ -77,7 +77,6 @@ async def get_season(
         .scalars()
         .all()
     )
-    team_by_owner = {team.owner_id: team for team in teams if team.owner_id}
     draft = (
         await db.execute(select(Draft).where(Draft.season_id == season_id))
     ).scalar_one_or_none()
@@ -104,20 +103,7 @@ async def get_season(
             )
             for team in sorted(teams, key=lambda t: t.id)
         ],
-        members=[
-            MemberSummary(
-                user_id=m.user_id,
-                username=m.user.username,
-                role=LeagueRole(m.role),
-                team_id=team_by_owner[m.user_id].id
-                if m.user_id in team_by_owner
-                else None,
-                team_name=team_by_owner[m.user_id].name
-                if m.user_id in team_by_owner
-                else None,
-            )
-            for m in members
-        ],
+        members=[] if membership.left else member_summaries(members, list(teams)),
     )
 
 
@@ -138,7 +124,7 @@ async def update_season(
         try:
             await set_team_count(db, season_id, payload.number_teams)
         except LeagueRuleError as exc:
-            raise _rule_error(exc) from exc
+            raise rule_error(exc) from exc
         await record_settings_change(
             db,
             season_id,
@@ -246,14 +232,14 @@ async def update_season_settings(
             db, season_id, newly_enabled(settings, updates)
         )
     except LeagueRuleError as exc:
-        raise _rule_error(exc) from exc
+        raise rule_error(exc) from exc
 
     team_count = updates.pop("number_teams", None)
     if team_count is not None and team_count != settings.number_teams:
         try:
             await set_team_count(db, season_id, team_count)
         except LeagueRuleError as exc:
-            raise _rule_error(exc) from exc
+            raise rule_error(exc) from exc
     for field, value in updates.items():
         setattr(settings, field, value)
     if "roster_total" in updates:

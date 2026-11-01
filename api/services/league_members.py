@@ -1,10 +1,13 @@
+from collections.abc import Sequence
 from datetime import UTC, datetime
 
+from fastapi import HTTPException, status
 from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.db.models.league import LeagueMember, Season, Team
 from api.models.enums import LeagueRole
+from api.models.league_models import MemberSummary
 from api.services.round_status import season_is_finished
 
 
@@ -65,3 +68,27 @@ async def remove_member(db: AsyncSession, league_id: int, user_id: int) -> None:
                 .values(owner_id=None)
             )
     member.left_at = datetime.now(UTC)
+
+
+def rule_error(exc: LeagueRuleError) -> HTTPException:
+    return HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
+
+
+def member_summaries(
+    members: Sequence[LeagueMember], teams: Sequence[Team]
+) -> list[MemberSummary]:
+    """Each member with the team they own in the given season's teams, if any."""
+    team_by_owner = {team.owner_id: team for team in teams if team.owner_id}
+    summaries = []
+    for m in members:
+        team = team_by_owner.get(m.user_id)
+        summaries.append(
+            MemberSummary(
+                user_id=m.user_id,
+                username=m.user.username,
+                role=LeagueRole(m.role),
+                team_id=team.id if team else None,
+                team_name=team.name if team else None,
+            )
+        )
+    return summaries
