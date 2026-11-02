@@ -130,7 +130,8 @@ async def test_a_cycle_polls_one_box_score_per_live_game(
     await run_poll_cycle(db, 2025, client=client, now=NOW)  # type: ignore[arg-type]
 
     assert client.list_calls == 1
-    assert "RapidAPI calls today: 7" in caplog.text
+    assert "calls today 7/700" in caplog.text
+    assert "plan requests remaining 900" in caplog.text
     assert client.box_calls == ["live", "done"]  # the Final one: its last fetch
     assert (await db.get(NFLGame, "live")).home_pts == 10  # type: ignore[union-attr]
 
