@@ -28,6 +28,7 @@ const season = (id: number, year: number, finished: boolean): SeasonSummary => (
   id,
   year,
   finished,
+  current: false,
   draftStatus: "completed",
   myTeamId: null,
 });
@@ -75,7 +76,7 @@ describe("LandingPage league list", () => {
     renderLanding([league({ finished: true })]);
     expect(screen.getByText("Season over: start 2027")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Start 2027 season" }));
-    expect(mocks.navigate).toHaveBeenCalledWith("/leagues/3/seasons/2027");
+    expect(mocks.navigate).toHaveBeenCalledWith("/leagues/3");
   });
 
   it("tells a member their commissioner starts it", () => {

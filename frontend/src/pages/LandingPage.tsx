@@ -62,7 +62,7 @@ const PastSeasons = ({ leagueId, seasons }: { leagueId: number; seasons: SeasonS
             key={season.id}
             size="small"
             component={Link}
-            to={seasonPaths(leagueId, season.year).home}
+            to={seasonPaths(leagueId, season.year, season.current).home}
             sx={{ minHeight: 44 }}
           >
             {season.year}
@@ -91,7 +91,7 @@ const SeasonOver = ({ league }: { league: LeagueByUser }) => {
           disabled={startSeason.isPending}
           onClick={() =>
             startSeason.mutate(undefined, {
-              onSuccess: () => navigate(seasonPaths(league.id, nextYear).home),
+              onSuccess: () => navigate(seasonPaths(league.id, nextYear, true).home),
             })
           }
         >
@@ -161,7 +161,11 @@ const LeagueWidget = ({ league }: { league: LeagueByUser }) => {
         <Button size="small" component={Link} to={leaguePath(league.id)}>
           League
         </Button>
-        <Button size="small" component={Link} to={seasonPaths(league.id, league.season).draft}>
+        <Button
+          size="small"
+          component={Link}
+          to={seasonPaths(league.id, league.season, true).draft}
+        >
           Draft room
         </Button>
       </Box>

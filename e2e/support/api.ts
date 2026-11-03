@@ -90,8 +90,12 @@ export interface LeagueRef {
   year: number;
 }
 
-/** A page of the season in the SPA, e.g. `seasonUrl(league, "/draft")`. */
-export const seasonUrl = ({ leagueId, year }: LeagueRef, rest = ""): string =>
+/** A page of the league's current season in the SPA, e.g. `seasonUrl(league, "/draft")`. */
+export const seasonUrl = ({ leagueId }: LeagueRef, rest = ""): string =>
+  `/leagues/${leagueId}${rest}`;
+
+/** A page of a season that is not the current one: the year is in the address. */
+export const pastSeasonUrl = ({ leagueId, year }: LeagueRef, rest = ""): string =>
   `/leagues/${leagueId}/seasons/${year}${rest}`;
 
 let counter = 0;

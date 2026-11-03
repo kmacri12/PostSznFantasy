@@ -150,7 +150,7 @@ PostSznFantasy/
     ├── biome.json              # Biome linter, formatter & import sorting config
     └── src/
         ├── App.tsx             # Routes, league list state, wires NavBar
-        ├── routes.ts           # Path builders: `leaguePath`, `seasonPaths(leagueId, year)` (home, draft, settings, players, team, teamPoints)
+        ├── routes.ts           # Path builders: `leaguePath`, `seasonPaths(leagueId, year, current)` (clean paths for the current season, `/seasons/<year>` otherwise; home, draft, settings, players, team, teamPoints)
         ├── theme.ts            # Dark-first MUI theme + design tokens
         ├── main.tsx            # Vite DOM mount point
         ├── content/
@@ -170,8 +170,7 @@ PostSznFantasy/
         │   ├── CreateLeaguePage.tsx # Multi-step league creation wizard
         │   ├── DraftPage.tsx   # Live synchronized draft room
         │   ├── HowToPlayPage.tsx # Plain-language rules page (nav link), copy from src/content/rules.ts
-        │   ├── LeagueHomePage.tsx # `/leagues/:leagueId` redirects to the latest season
-        │   ├── SeasonLayout.tsx # `/leagues/:leagueId/seasons/:year` resolves the year to a season and provides SeasonContext to the pages below
+        │   ├── SeasonLayout.tsx # `/leagues/:leagueId` (the current season) and `/leagues/:leagueId/seasons/:year` resolve to a season and provide SeasonContext to the pages below; the long form of the current season redirects (`replace`) to the clean one
         │   ├── LeaguePage.tsx  # A season's home: standings, notes, recap and start-next-season, empty-state notices
         │   ├── PlayersPage.tsx # Player directory with TanStack Table
         │   ├── SettingsPage.tsx# League configuration viewer
@@ -229,7 +228,7 @@ make format     # auto-fix Ruff and Biome
 
 ## 3b. Route Map (Phase 20)
 
-SPA routes: `/leagues/:leagueId` opens the latest season; every season page lives under `/leagues/:leagueId/seasons/:year` (index = standings and recap, `draft`, `settings`, `players`, `teams/:teamId`, `teams/:teamId/points`). `SeasonLayout` resolves the year through `GET /api/leagues/{id}/seasons`, loads `GET /api/seasons/{id}` and provides it as `SeasonContext`; the pages read `canEdit` / `canCommission` / `isFormerMember` from it instead of looking at the league list. `/players` (no league) stays as a global page with a scoring-league picker. Build links with `routes.ts`, never by string.
+SPA routes: the league's current season (`current: true` on its entry of `GET /api/leagues/{id}/seasons`, the latest season, even for a former member who may open only older ones) has no year in its addresses: `/leagues/:leagueId` (index = standings and recap), `/draft`, `/settings`, `/players`, `/teams/:teamId`, `/teams/:teamId/points`. Any other season lives under `/leagues/:leagueId/seasons/:year` with the same pages (index = standings and recap, `draft`, `settings`, `players`, `teams/:teamId`, `teams/:teamId/points`). `SeasonLayout` resolves the year through `GET /api/leagues/{id}/seasons`, loads `GET /api/seasons/{id}` and provides it as `SeasonContext`; the pages read `canEdit` / `canCommission` / `isFormerMember` from it instead of looking at the league list. `/players` (no league) stays as a global page with a scoring-league picker. `/seasons/<current year>/...` still works and redirects with `replace`; starting the next season moves the clean addresses to it and last year's pages to `/seasons/<last year>/...`. Build links with `routes.ts`, never by string (`src/routes.test.ts` fails on a hand-built season link).
 
 | Area | Endpoints |
 | :--- | :--- |

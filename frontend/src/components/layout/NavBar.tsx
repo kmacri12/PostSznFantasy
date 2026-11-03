@@ -66,7 +66,7 @@ const NavBar = ({
   const [profileAnchor, setProfileAnchor] = useState<HTMLElement | null>(null);
 
   const selected = leagues.find((league) => String(league.id) === selectedLeagueId);
-  const paths = seasonPaths(selected?.id ?? "", selected?.season ?? "");
+  const paths = seasonPaths(selected?.id ?? "", selected?.season ?? "", true);
   const links: { label: string; to: string; dot?: boolean }[] = dormant
     ? []
     : selected

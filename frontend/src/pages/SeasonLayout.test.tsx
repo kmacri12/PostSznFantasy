@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useSeasonContext } from "../contexts/SeasonContext";
 import { testSeason } from "../test/season";
@@ -24,14 +24,23 @@ const Page = () => {
   return <div>{`season ${seasonId} at ${paths.draft}`}</div>;
 };
 
+const Where = () => {
+  const { pathname, search, hash } = useLocation();
+  return <span data-testid="where">{pathname + search + hash}</span>;
+};
+
 const renderAt = (path: string) =>
   render(
     <MemoryRouter initialEntries={[path]}>
       <Routes>
-        <Route path="/leagues/:leagueId/seasons/:year" element={<SeasonLayout />}>
-          <Route index element={<Page />} />
-        </Route>
+        {["/leagues/:leagueId", "/leagues/:leagueId/seasons/:year"].map((path) => (
+          <Route key={path} path={path} element={<SeasonLayout />}>
+            <Route index element={<Page />} />
+            <Route path="draft" element={<Page />} />
+          </Route>
+        ))}
       </Routes>
+      <Where />
     </MemoryRouter>,
   );
 
@@ -39,8 +48,15 @@ beforeEach(() => {
   mocks.requested = [];
   mocks.seasons = {
     data: [
-      { id: 5, year: 2025, finished: true, draftStatus: "completed", myTeamId: 1 },
-      { id: 9, year: 2026, finished: false, draftStatus: "unscheduled", myTeamId: null },
+      { id: 5, year: 2025, finished: true, draftStatus: "completed", current: false, myTeamId: 1 },
+      {
+        id: 9,
+        year: 2026,
+        finished: false,
+        draftStatus: "unscheduled",
+        current: true,
+        myTeamId: null,
+      },
     ],
     isLoading: false,
     isError: false,
@@ -54,6 +70,19 @@ describe("SeasonLayout", () => {
     renderAt("/leagues/3/seasons/2025");
     expect(screen.getByText("season 5 at /leagues/3/seasons/2025/draft")).toBeInTheDocument();
     expect(mocks.requested).toContain(5);
+  });
+
+  it("opens the current season at the clean address", () => {
+    renderAt("/leagues/3");
+    expect(screen.getByText("season 5 at /leagues/3/draft")).toBeInTheDocument();
+    expect(mocks.requested).toContain(9);
+  });
+
+  it("redirects the long form of the current season to the clean one, keeping the rest", () => {
+    renderAt("/leagues/3/seasons/2026/draft?x=1#top");
+    expect(screen.getByText("season 5 at /leagues/3/draft")).toBeInTheDocument();
+    expect(screen.getByTestId("where")).toHaveTextContent("/leagues/3/draft?x=1#top");
+    expect(mocks.requested).toContain(9);
   });
 
   it("says so when the league has no season that year", () => {

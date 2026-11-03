@@ -13,15 +13,18 @@ export interface SeasonContextValue {
 
 export const SeasonContext = createContext<SeasonContextValue | null>(null);
 
-export const buildSeasonContext = (season: SeasonOverview): SeasonContextValue => ({
+export const buildSeasonContext = (
+  season: SeasonOverview,
+  current: boolean,
+): SeasonContextValue => ({
   leagueId: season.leagueId,
   year: season.year,
   seasonId: season.id,
   season,
-  paths: seasonPaths(season.leagueId, season.year),
+  paths: seasonPaths(season.leagueId, season.year, current),
 });
 
-/** The season the current `/leagues/:leagueId/seasons/:year/...` route shows. */
+/** The season the route under `SeasonLayout` shows. */
 export const useSeasonContext = (): SeasonContextValue => {
   const value = useContext(SeasonContext);
   if (value === null) throw new Error("useSeasonContext needs a SeasonLayout above it");

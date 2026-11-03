@@ -142,6 +142,9 @@ class SeasonSummary(BaseSchema):
     year: int
     # The Super Bowl is final: the season is a read-only archive.
     finished: bool
+    # The league's latest season, whether or not the caller may open it: its pages
+    # get the clean URLs without the year.
+    current: bool
     draft_status: DraftStatus
     # The caller's team that year; None when they had none.
     my_team_id: int | None = None

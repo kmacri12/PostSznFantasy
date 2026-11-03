@@ -81,7 +81,7 @@ describe("SeasonRecap", () => {
     show(false, 7);
     expect(screen.queryByRole("button", { name: "Start 2026 season" })).toBeNull();
     expect(screen.getByRole("link", { name: /2026 season/ }).getAttribute("href")).toBe(
-      "/leagues/1/seasons/2026",
+      "/leagues/1",
     );
   });
 });
