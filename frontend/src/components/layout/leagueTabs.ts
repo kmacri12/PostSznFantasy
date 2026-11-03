@@ -12,27 +12,34 @@ export interface LeagueTab {
 
 /** Tabs open the league's latest season. */
 export function leagueTabs(league: LeagueByUser): LeagueTab[] {
-  const paths = seasonPaths(league.id, league.season);
-  const season = new RegExp(`^${leaguePath(league.id)}/seasons/\\d+`);
-  const inSeason = (pathname: string, rest: RegExp) => season.test(pathname) && rest.test(pathname);
+  const paths = seasonPaths(league.id, league.season, true);
+  const base = leaguePath(league.id);
+  /** The page under the league, whichever season it shows; null outside this league. */
+  const page = (pathname: string) => {
+    if (pathname !== base && !pathname.startsWith(`${base}/`)) return null;
+    return pathname
+      .slice(base.length)
+      .replace(/^\/seasons\/\d+/, "")
+      .replace(/\/$/, "");
+  };
   return [
     {
       label: "League",
       to: paths.home,
-      matches: (p) => inSeason(p, /\/seasons\/\d+\/?$/) || p === leaguePath(league.id),
+      matches: (p) => page(p) === "",
       dot: league.hasNewActivity,
     },
     {
       label: "Team",
       to: league.userTeamId === null ? paths.home : paths.team(league.userTeamId),
-      matches: (p) => inSeason(p, /\/teams\//),
+      matches: (p) => page(p)?.startsWith("/teams/") ?? false,
       dot: false,
     },
-    { label: "Draft", to: paths.draft, matches: (p) => inSeason(p, /\/draft$/), dot: false },
+    { label: "Draft", to: paths.draft, matches: (p) => page(p) === "/draft", dot: false },
     {
       label: "Players",
       to: paths.players,
-      matches: (p) => inSeason(p, /\/players$/) || p === "/players",
+      matches: (p) => page(p) === "/players" || p === "/players",
       dot: false,
     },
   ];

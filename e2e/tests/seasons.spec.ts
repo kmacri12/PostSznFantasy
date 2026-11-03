@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { Api, seasonUrl, unique } from "../support/api";
+import { Api, pastSeasonUrl, seasonUrl, unique } from "../support/api";
 import { signInAs } from "../support/auth";
 
 test.describe("season routes", () => {
@@ -14,11 +14,61 @@ test.describe("season routes", () => {
     await signInAs(context, host.uid);
 
     await page.goto(`/leagues/${league.leagueId}`);
-    await expect(page).toHaveURL(new RegExp(`${seasonUrl(league)}$`));
+    await expect(page).toHaveURL(seasonUrl(league));
     await expect(page.getByText(`${league.year} season`, { exact: true })).toBeVisible();
 
-    await page.goto(seasonUrl({ ...league, year: 2031 }));
+    await page.goto(pastSeasonUrl({ ...league, year: 2031 }));
     await expect(page.getByText("The 2031 season not found")).toBeVisible();
+  });
+
+  test("the current season never shows its year, and its long form redirects", async ({
+    page,
+    context,
+    request,
+  }) => {
+    const host = new Api(request, unique("clean"));
+    await host.signUp("clean");
+    const league = await host.createLeague(unique("Clean League"));
+    await signInAs(context, host.uid);
+
+    await page.goto("/");
+    await page.goto(pastSeasonUrl(league, "/settings"));
+    await expect(page).toHaveURL(seasonUrl(league, "/settings"));
+    await page.goBack();
+    await expect(page).toHaveURL("/");
+
+    await page.goto(seasonUrl(league));
+    await page.getByRole("link", { name: "Settings" }).first().click();
+    await expect(page).toHaveURL(seasonUrl(league, "/settings"));
+    await page.getByRole("link", { name: "Players" }).first().click();
+    await expect(page).toHaveURL(seasonUrl(league, "/players"));
+    expect(page.url()).not.toContain("/seasons/");
+  });
+
+  test("a season that is not the current one keeps its year in the address", async ({
+    page,
+    context,
+    request,
+  }) => {
+    const host = new Api(request, unique("past"));
+    await host.signUp("past");
+    const league = await host.createLeague(unique("Past League"));
+    await signInAs(context, host.uid);
+    // Stands in for a league that has rolled over: its listed season is no longer the latest.
+    await page.route(`**/api/leagues/${league.leagueId}/seasons`, async (route) => {
+      const response = await route.fetch();
+      const seasons = (await response.json()) as { current: boolean }[];
+      await route.fulfill({ response, json: seasons.map((s) => ({ ...s, current: false })) });
+    });
+
+    await page.goto(pastSeasonUrl(league, "/players"));
+    await expect(page).toHaveURL(pastSeasonUrl(league, "/players"));
+    await expect(
+      page.getByRole("table").or(page.getByRole("list", { name: "Players" })),
+    ).toBeVisible();
+    await page.goto("/");
+    await page.goBack();
+    await expect(page).toHaveURL(pastSeasonUrl(league, "/players"));
   });
 
   test("a stranger to the league cannot open its seasons", async ({ page, context, request }) => {

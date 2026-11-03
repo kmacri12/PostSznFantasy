@@ -16,7 +16,6 @@ import LandingPage from "./pages/LandingPage";
 const CreateLeaguePage = lazy(() => import("./pages/CreateLeaguePage"));
 const DraftPage = lazy(() => import("./pages/DraftPage"));
 const JoinPage = lazy(() => import("./pages/JoinPage"));
-const LeagueHomePage = lazy(() => import("./pages/LeagueHomePage"));
 const LeaguePage = lazy(() => import("./pages/LeaguePage"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
@@ -91,15 +90,16 @@ function App() {
           ) : (
             <Routes>
               <Route path="/" element={<LandingPage leagues={leagues} />} />
-              <Route path="/leagues/:leagueId" element={<LeagueHomePage />} />
-              <Route path="/leagues/:leagueId/seasons/:year" element={<SeasonLayout />}>
-                <Route index element={<LeaguePage />} />
-                <Route path="draft" element={<DraftPage />} />
-                <Route path="settings" element={<SettingsPage />} />
-                <Route path="players" element={<PlayersPage />} />
-                <Route path="teams/:teamId" element={<TeamPage />} />
-                <Route path="teams/:teamId/points" element={<TeamPointsPage />} />
-              </Route>
+              {["/leagues/:leagueId", "/leagues/:leagueId/seasons/:year"].map((path) => (
+                <Route key={path} path={path} element={<SeasonLayout />}>
+                  <Route index element={<LeaguePage />} />
+                  <Route path="draft" element={<DraftPage />} />
+                  <Route path="settings" element={<SettingsPage />} />
+                  <Route path="players" element={<PlayersPage />} />
+                  <Route path="teams/:teamId" element={<TeamPage />} />
+                  <Route path="teams/:teamId/points" element={<TeamPointsPage />} />
+                </Route>
+              ))}
               <Route path="/sign-in" element={<SignInPage />} />
               <Route path="/how-to-play" element={<HowToPlayPage />} />
               <Route path="/privacy" element={<PrivacyPage />} />

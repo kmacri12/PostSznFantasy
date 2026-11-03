@@ -6,6 +6,8 @@ export interface SeasonSummary {
   year: number;
   /** The Super Bowl is final: the season is a read-only archive. */
   finished: boolean;
+  /** The league's latest season: its addresses carry no year. */
+  current: boolean;
   draftStatus: DraftStatus;
   /** The caller's team that year; null when they had none. */
   myTeamId: number | null;

@@ -117,7 +117,7 @@ const StartSeason = ({ leagueId, year }: { leagueId: number; year: number }) => 
         disabled={startSeason.isPending}
         onClick={() =>
           startSeason.mutate(undefined, {
-            onSuccess: () => navigate(seasonPaths(leagueId, year).home),
+            onSuccess: () => navigate(seasonPaths(leagueId, year, true).home),
           })
         }
       >
@@ -177,7 +177,7 @@ const SeasonRecap = ({
       recap.nextSeasonId !== null && (
         <Button
           component={Link}
-          to={seasonPaths(recap.leagueId, recap.year + 1).home}
+          to={seasonPaths(recap.leagueId, recap.year + 1, true).home}
           sx={{ minHeight: 44 }}
         >
           Go to the {recap.year + 1} season

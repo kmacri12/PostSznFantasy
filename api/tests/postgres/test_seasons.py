@@ -228,6 +228,8 @@ async def test_a_former_member_lists_their_finished_seasons_and_leagues(
     ]
     assert active == [] and past_for_member == []
     assert [s["year"] for s in member_seasons] == [2025, 2026]
+    assert [s["current"] for s in member_seasons] == [False, True]
+    assert [s["current"] for s in seasons] == [False]
     (entry,) = member_leagues
     assert entry["seasonId"] == new_id
     assert [s["year"] for s in entry["seasons"]] == [2025, 2026]

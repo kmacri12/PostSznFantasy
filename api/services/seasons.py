@@ -92,6 +92,7 @@ async def season_summaries(
                 id=season.id,
                 year=season.year,
                 finished=finished,
+                current=season is seasons[-1],
                 draft_status=DraftStatus(status or DraftStatus.UNSCHEDULED),
                 my_team_id=team_id,
             )
