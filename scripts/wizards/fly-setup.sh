@@ -290,13 +290,13 @@ fi
 note "PROD_DATABASE_URL is set by supabase-prod.sh; BACKUP_GPG_PUBLIC_KEY by the backup setup in docs/deploy/backup.md."
 
 stage "First deploy"
-say "Deploys go only through the 'Deploy API' GitHub workflow (it checks for live drafts and runs migrations first)."
+say "Deploys go only through the 'Deploy' GitHub workflow (it checks for live drafts, deploys the API and runs migrations, then triggers the frontend build)."
 say "The workflow must be on the default branch, so merge the deploy PR first."
-if confirm "Trigger the Deploy API workflow now (no live drafts exist)?"; then
-  gh workflow run deploy-api.yml -f confirm_no_live_draft=true && say "Started. Watch it: gh run watch"
+if confirm "Trigger the Deploy workflow now (no live drafts exist)?"; then
+  gh workflow run deploy.yml -f confirm_no_live_draft=true && say "Started. Watch it: gh run watch"
   pause "Press Enter once the run has finished green"
 else
-  SKIPPED+=("Run the Deploy API workflow from the GitHub Actions tab")
+  SKIPPED+=("Run the Deploy workflow from the GitHub Actions tab")
 fi
 
 stage "Verify"

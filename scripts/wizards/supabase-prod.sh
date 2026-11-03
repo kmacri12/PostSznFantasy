@@ -269,7 +269,7 @@ if command -v psql >/dev/null 2>&1; then
 else
   SKIPPED+=("Verify the session pooler string connects (psql not installed)")
 fi
-set_secret PROD_DATABASE_URL "$SESSION_POOLER_URL"   # backup.yml and deploy-api.yml (GitHub runners have no IPv6)
+set_secret PROD_DATABASE_URL "$SESSION_POOLER_URL"   # backup.yml and deploy.yml (GitHub runners have no IPv6)
 
 stage "Initial migration: alembic upgrade head"
 say "This creates the schemas and tables in the PRODUCTION database (additive, in one transaction)."

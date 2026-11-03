@@ -56,14 +56,15 @@ Narrower targets: `make lint`, `make typecheck`, `make test`, each with `-api` /
 
 ### Migrations must be additive
 
-Production runs `alembic upgrade head` as the host's release command while the previous version is still serving traffic, and a failed migration aborts the deploy. So every migration has to work with both the old and the new code:
+Production runs `alembic upgrade head` as the host's release command while the previous version is still serving traffic, and a failed migration aborts the deploy. The merge to `main` deploys the API first and the frontend a few minutes later ([docs/deploy/fly.md](docs/deploy/fly.md#how-a-deploy-works)), so the old UI also talks to the new API. Every migration and API change has to work with both the old and the new code:
 
 - Add columns as nullable or with a server default; backfill in the same migration or a later one.
 - Never drop or rename a column, table or enum value that the currently deployed code reads or writes. Ship the code that stops using it first, then drop it in a **later** release.
+- Never remove or rename an endpoint, request field or response field in the same PR that stops the frontend using it. Ship the frontend change first and remove it from the API one release later. New required request fields break the old UI the same way; make them optional until the next release.
 - Avoid long locks (index builds on large tables: `CREATE INDEX CONCURRENTLY` in an autocommit block).
 - Never edit a migration that has been merged; add a new one.
 
-See [docs/deploy/cutover-runbook.md](docs/deploy/cutover-runbook.md) for the deploy flow.
+A live draft holds back deployment of everything merged to `main` until it ends (the 15-minute catch-up then ships it). See [docs/deploy/fly.md](docs/deploy/fly.md#how-a-deploy-works) for the deploy flow and [docs/deploy/cutover-runbook.md](docs/deploy/cutover-runbook.md) for the launch.
 
 ---
 

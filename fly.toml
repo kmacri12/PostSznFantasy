@@ -1,5 +1,5 @@
-# Fly.io config for the API. Runbook: docs/deploy/fly.md. Deploy only through the manual
-# "Deploy API" workflow, and never during a live draft.
+# Fly.io config for the API. Runbook: docs/deploy/fly.md. Deploy only through the
+# "Deploy" workflow (push to main), and never during a live draft.
 app = "postszn-api"
 
 # Pick the Fly region closest to the Supabase project region (Supabase us-east-1 -> iad,

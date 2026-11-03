@@ -6,13 +6,17 @@ The SPA is a static Vite build served by Cloudflare Pages at `postsznfantasy.com
 
 | Setting | Value |
 | :-- | :-- |
-| Production branch | `main` (every push deploys) |
+| Production branch | `main`; **automatic production deployments off** once the ordered deploy works, the **Deploy** workflow triggers the build (below) |
 | Root directory | `frontend` |
 | Build command | `npm ci && npm run build` |
 | Build output directory | `dist` |
 | `NODE_VERSION` (build variable) | `22.12` (matches `frontend/.nvmrc`) |
 
 Pushes to other branches get a per-branch preview URL (`<branch>.<project>.pages.dev`). That replaces a staging environment, but previews talk to the same production API and database, and the API only allows the production origin in `CORS_ORIGINS`, so a preview can load but not call the API.
+
+## Ordered deploys (deploy hook)
+
+Pushing to `main` does not build production by itself. The **Deploy** workflow ([fly.md](fly.md#how-a-deploy-works)) deploys the API first and then `curl -X POST`s the Pages **deploy hook** (Settings, Builds, Deploy hooks, branch `main`; stored as the GitHub secret `CLOUDFLARE_PAGES_DEPLOY_HOOK`), so the UI never goes live before the API it needs. The hook builds the head of `main` with the project's own variables. It is triggered only when `frontend/` changed since the last successful run. A frontend rebuild by hand (Deployments, Retry deployment) still works. Preview deployments for other branches stay on. Owner steps, including the order for turning automatic deployments off: [step 17](../owner/17-ordered-deploy.md). The hook URL is a secret: anyone who has it can trigger builds, so delete and recreate it if it leaks.
 
 ## Files in `frontend/public/`
 

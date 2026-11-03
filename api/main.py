@@ -133,4 +133,4 @@ async def health(db: DbSession) -> dict[str, str]:
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Database unavailable",
         ) from exc
-    return {"status": "healthy"}
+    return {"status": "healthy", "version": get_settings().git_sha}
