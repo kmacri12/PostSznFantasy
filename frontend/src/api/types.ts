@@ -143,9 +143,12 @@ export interface StandingTieReason {
 
 export interface StandingsRow {
   teamId: number;
-  rank: number;
+  /** Null before the draft, when the rows are the team slots. */
+  rank: number | null;
   teamName: string;
-  owner: string;
+  /** Null for an open slot. */
+  owner: string | null;
+  isCommissioner: boolean;
   playersLeft: number;
   wildCard: number;
   divisional: number;
@@ -158,6 +161,8 @@ export interface StandingsRow {
 }
 
 export interface Standings {
+  /** `pre_draft`: no standings yet, rows are the season's team slots (points and ranks unset). */
+  phase: "pre_draft" | "live";
   /** The round the live counts describe (1-4). */
   round: number;
   gamesInProgress: number;

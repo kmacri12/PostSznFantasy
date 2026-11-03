@@ -55,6 +55,7 @@ Two independent league settings, each a required explicit commissioner choice wi
 
 - One cumulative leaderboard; no head-to-head.
 - Rank order uses the tiebreaker chain, starting with the latest completed round: the higher score in that round wins, then the previous round, back to the Wild Card. If every round ties, the team with more rostered players (starters and bench) on the Super Bowl winner ranks higher; if that ties, they share the title.
+- Before the draft has produced standings, the league home lists every team slot of the season instead (`phase: pre_draft`): filled rows with team, owner and a commissioner badge, "Open spot" rows, a dash instead of points and rank, and the line "Waiting for the draft: X of N teams filled." Rows fill in as people join. The commissioner's invite panel sits directly above while the league is open. Once the snapshot exists (`phase: live`) the normal standings take over.
 - Wherever a tie decided the order, a tooltip says why one team is above the other.
 - Players left is the number of players on the roster, starters or not, whose NFL team is still alive. A league-wide total is shown too and updates as soon as a team is eliminated.
 - The home page updates live during games. Each team shows its points, plus nine starters (or however many) as finished, live, to-play and not-playing (colour-coded), and the number of games in progress. Six teams must be visible at once on a phone: rank, team and total in the collapsed row, with the round breakdown, players left and live counts on expand.

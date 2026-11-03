@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from api.db.models.league import (
+    LeagueMember,
     LineupSlot,
     Season,
     SeasonSettings,
@@ -20,9 +21,10 @@ from api.db.models.league import (
     Team,
 )
 from api.db.models.nfl import NFLPlayer
-from api.models.enums import TieRule
+from api.models.enums import LeagueRole, TieRule
 from api.models.league_models import (
     Standings,
+    StandingsPhase,
     StandingTieReason,
     TeamStanding,
 )
@@ -65,6 +67,60 @@ def _tie_reason(reason: TieReason, over_team_name: str) -> StandingTieReason:
     )
 
 
+async def _commissioner_ids(db: AsyncSession, season_id: int) -> set[int]:
+    return set(
+        await db.scalars(
+            select(LeagueMember.user_id)
+            .join(Season, Season.league_id == LeagueMember.league_id)
+            .where(
+                Season.id == season_id,
+                LeagueMember.role == LeagueRole.COMMISSIONER.value,
+                LeagueMember.left_at.is_(None),
+            )
+        )
+    )
+
+
+async def _team_slots(db: AsyncSession, season_id: int, round_: int) -> Standings:
+    """Every team slot of a season whose standings do not exist yet."""
+    teams = (
+        (
+            await db.execute(
+                select(Team)
+                .options(selectinload(Team.owner))
+                .where(Team.season_id == season_id)
+                .order_by(Team.id)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    commissioners = await _commissioner_ids(db, season_id)
+    return Standings(
+        phase=StandingsPhase.PRE_DRAFT,
+        round=round_,
+        games_in_progress=0,
+        players_left=0,
+        teams=[
+            TeamStanding(
+                team_id=team.id,
+                rank=None,
+                team_name=team.name or f"Team {team.id}",
+                owner=team.owner.username if team.owner else None,
+                is_commissioner=team.owner_id in commissioners,
+                players_left=0,
+                wild_card=0,
+                divisional=0,
+                conf_champ=0,
+                super_bowl=0,
+                total=0,
+                progress=starter_progress([], round_, [], 0),
+            )
+            for team in teams
+        ],
+    )
+
+
 async def season_standings(db: AsyncSession, season_id: int) -> Standings:
     year = await db.scalar(select(Season.year).where(Season.id == season_id))
     rows = (
@@ -81,6 +137,8 @@ async def season_standings(db: AsyncSession, season_id: int) -> Standings:
     )
     games = await load_games(db, year) if year is not None else []
     round_ = current_round(games)
+    if not rows:
+        return await _team_slots(db, season_id, round_)
 
     settings = (
         await db.execute(
@@ -118,7 +176,9 @@ async def season_standings(db: AsyncSession, season_id: int) -> Standings:
         row.team_id: row.team.owner.username if row.team.owner else "Unclaimed"
         for row in rows
     }
+    commissioners = await _commissioner_ids(db, season_id)
     return Standings(
+        phase=StandingsPhase.LIVE,
         round=round_,
         games_in_progress=games_in_progress(games),
         players_left=sum(row.players_left or 0 for row in rows),
@@ -128,6 +188,7 @@ async def season_standings(db: AsyncSession, season_id: int) -> Standings:
                 rank=team.rank,
                 team_name=names[team.team_id],
                 owner=owners[team.team_id],
+                is_commissioner=by_team[team.team_id].team.owner_id in commissioners,
                 players_left=by_team[team.team_id].players_left or 0,
                 wild_card=float(round_points[team.team_id][0]),
                 divisional=float(round_points[team.team_id][1]),

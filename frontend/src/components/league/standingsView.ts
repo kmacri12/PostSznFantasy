@@ -3,6 +3,7 @@ import type { StandingsRow, StarterProgress } from "../../api/types";
 /** "T2" when another team shares the rank, so a shared title is never read as a win. */
 export const rankLabel = (rows: StandingsRow[], index: number): string => {
   const rank = rows[index]?.rank;
+  if (rank == null) return "–";
   const shared = rows.some((row, other) => other !== index && row.rank === rank);
   return shared ? `T${rank}` : String(rank);
 };
@@ -19,6 +20,14 @@ export const tieNote = (rows: StandingsRow[], index: number): string | null => {
     return `Behind ${above.teamName} on the tiebreaker: ${above.tieReason.detail}`;
   }
   return null;
+};
+
+/** An open team slot before the draft. */
+export const isOpenSpot = (row: StandingsRow): boolean => row.owner === null;
+
+export const preDraftLine = (rows: StandingsRow[]): string => {
+  const filled = rows.filter((row) => !isOpenSpot(row)).length;
+  return `Waiting for the draft: ${filled} of ${rows.length} teams filled.`;
 };
 
 export type ProgressKey = keyof StarterProgress;

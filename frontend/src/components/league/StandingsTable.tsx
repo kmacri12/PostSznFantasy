@@ -27,7 +27,7 @@ import LiveSummary from "./LiveSummary";
 import ProgressCounts from "./ProgressCounts";
 import RankCell from "./RankCell";
 import StandingsCards from "./StandingsCards";
-import { PROGRESS_ITEMS, rankLabel, tieNote } from "./standingsView";
+import { isOpenSpot, PROGRESS_ITEMS, preDraftLine, rankLabel, tieNote } from "./standingsView";
 
 const RANK_COLORS = [tokens.gold, "#cbd5e1", "#d97706"];
 
@@ -99,7 +99,7 @@ const TableRows = ({ rows, round }: { rows: StandingsRow[]; round: number }) => 
                 <RankCell
                   label={rankLabel(rows, index)}
                   note={tieNote(rows, index)}
-                  color={RANK_COLORS[row.rank - 1] ?? tokens.muted}
+                  color={RANK_COLORS[(row.rank ?? 0) - 1] ?? tokens.muted}
                 />
               </TableCell>
               <TableCell>
@@ -175,8 +175,71 @@ const TableRows = ({ rows, round }: { rows: StandingsRow[]; round: number }) => 
   );
 };
 
+const SlotRows = ({ rows }: { rows: StandingsRow[] }) => {
+  const { paths } = useSeasonContext();
+  return (
+    <TableContainer component={Paper}>
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell width={72}>#</TableCell>
+            <TableCell>Team</TableCell>
+            <TableCell align="right">Total</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {rows.map((row, index) => (
+            <TableRow key={row.teamId}>
+              <TableCell sx={{ p: 0 }}>
+                <RankCell label={rankLabel(rows, index)} note={null} />
+              </TableCell>
+              <TableCell>
+                {isOpenSpot(row) ? (
+                  <Typography color="text.secondary" sx={{ fontStyle: "italic" }}>
+                    Open spot
+                  </Typography>
+                ) : (
+                  <Box
+                    component={Link}
+                    to={paths.team(row.teamId)}
+                    sx={{ color: "inherit", textDecoration: "none" }}
+                  >
+                    <Typography sx={{ fontWeight: 600, lineHeight: 1.2 }}>
+                      {row.teamName}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {row.owner}
+                      {row.isCommissioner && " · Commissioner"}
+                    </Typography>
+                  </Box>
+                )}
+              </TableCell>
+              <TableCell align="right" sx={{ color: "text.secondary" }}>
+                –
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  );
+};
+
+const PreDraftRows = ({ standings }: { standings: Standings }) => (
+  <>
+    <Typography sx={{ fontWeight: 700, mb: 1 }}>{preDraftLine(standings.teams)}</Typography>
+    <Box sx={{ display: { xs: "block", md: "none" } }}>
+      <StandingsCards rows={standings.teams} round={standings.round} preDraft />
+    </Box>
+    <Box sx={{ display: { xs: "none", md: "block" } }}>
+      <SlotRows rows={standings.teams} />
+    </Box>
+  </>
+);
+
 const StandingsRows = ({ standings }: { standings: Standings }) => {
-  const rows = [...standings.teams].sort((a, b) => a.rank - b.rank);
+  if (standings.phase === "pre_draft") return <PreDraftRows standings={standings} />;
+  const rows = [...standings.teams].sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0));
   return (
     <>
       <LiveSummary standings={standings} />
