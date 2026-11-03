@@ -21,6 +21,7 @@ from api.dependencies.league import (
     LeagueMember,
     deleted_league_error,
 )
+from api.models.activity_models import LeagueCreatedPayload, MembershipJoinedPayload
 from api.models.enums import DraftStatus, DraftType, LeagueRole
 from api.models.league_models import (
     LeagueCreate,
@@ -34,6 +35,7 @@ from api.models.league_models import (
     ScoringSettings,
     SeasonSummary,
 )
+from api.services import activity
 from api.services.activity import leagues_with_new_activity
 from api.services.draft_picks import DraftPickError
 from api.services.league_members import (
@@ -156,6 +158,19 @@ async def create_league(
             time_per_pick_seconds=payload.time_per_pick_seconds,
             draft_order_team_ids=[],
         )
+    )
+    creator = activity.Actor.of(user)
+    await activity.append(
+        db,
+        season.id,
+        LeagueCreatedPayload(league_name=new_league.name),
+        actor=creator,
+    )
+    await activity.append(
+        db,
+        season.id,
+        MembershipJoinedPayload(role=LeagueRole.COMMISSIONER, team_name="Team 1"),
+        actor=creator,
     )
     # The client refetches the league list as soon as this responds, and get_db
     # would only commit after the response is sent.
@@ -376,7 +391,7 @@ async def update_member_role(
     db: DbSession,
 ) -> LeagueOverview:
     try:
-        await set_role(db, league_id, user_id, payload.role)
+        await set_role(db, league_id, user_id, payload.role, membership.user)
     except LeagueRuleError as exc:
         raise rule_error(exc) from exc
     await db.flush()
@@ -392,7 +407,7 @@ async def delete_member(
 ) -> LeagueOverview:
     """Remove a member (or leave); the row stays as history with `left_at` set."""
     try:
-        await remove_member(db, league_id, user_id)
+        await remove_member(db, league_id, user_id, membership.user)
     except LeagueRuleError as exc:
         raise rule_error(exc) from exc
     await db.flush()

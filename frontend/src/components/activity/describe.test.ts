@@ -107,3 +107,58 @@ describe("settings changes", () => {
     expect(settingLabel("multiplierSuperBowl")).toBe("Multiplier super bowl");
   });
 });
+
+describe("describeEvent for membership", () => {
+  const league = { ...base, teamId: null, teamName: null };
+
+  it("describes league creation", () => {
+    const event: ActivityEvent = {
+      ...league,
+      kind: "league_created",
+      payload: { leagueName: "Sunday Gang" },
+    };
+    expect(describeEvent(event)).toBe("ann created the league Sunday Gang");
+  });
+
+  it("describes a creator and a later member joining", () => {
+    const creator: ActivityEvent = {
+      ...league,
+      kind: "membership_joined",
+      payload: { role: "commissioner", teamName: "Team 1" },
+    };
+    const member: ActivityEvent = {
+      ...league,
+      kind: "membership_joined",
+      payload: { role: "member", teamName: null },
+    };
+    expect(describeEvent(creator)).toBe("ann joined as commissioner and took Team 1");
+    expect(describeEvent(member)).toBe("ann joined");
+  });
+
+  it("tells leaving from being removed", () => {
+    const left: ActivityEvent = {
+      ...league,
+      kind: "membership_left",
+      payload: { userId: 2, userName: "ann" },
+    };
+    expect(describeEvent(left)).toBe("ann left the league");
+    expect(describeEvent({ ...left, actorUserId: 9, actorName: "cy" })).toBe(
+      "ann was removed from the league by cy",
+    );
+  });
+
+  it("describes promotions, demotions and backfilled promotions", () => {
+    const promoted: ActivityEvent = {
+      ...league,
+      kind: "role_changed",
+      payload: { userId: 5, userName: "bob", role: "commissioner" },
+    };
+    expect(describeEvent(promoted)).toBe("ann made bob a commissioner");
+    expect(describeEvent({ ...promoted, payload: { ...promoted.payload, role: "member" } })).toBe(
+      "ann made bob a regular member, no longer a commissioner",
+    );
+    expect(describeEvent({ ...promoted, actorUserId: null, actorName: null })).toBe(
+      "bob became commissioner",
+    );
+  });
+});

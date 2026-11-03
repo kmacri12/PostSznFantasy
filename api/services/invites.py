@@ -13,7 +13,9 @@ from api.db.models.league import (
     Team,
 )
 from api.db.models.user import User
+from api.models.activity_models import MembershipJoinedPayload
 from api.models.enums import LeagueRole
+from api.services import activity
 from api.services.league_admin import draft_has_started
 from api.services.league_members import LeagueRuleError
 from api.services.live_leagues import live_league_ids
@@ -194,6 +196,14 @@ async def join_league(
         )
     invite.uses += 1
     await db.flush()
+    await activity.append_to_league(
+        db,
+        invite.league_id,
+        MembershipJoinedPayload(
+            role=LeagueRole.MEMBER, team_name=team.name if team else None
+        ),
+        actor=activity.Actor.of(user),
+    )
     return league, team, False
 
 

@@ -1,11 +1,14 @@
 from collections.abc import Sequence
 from datetime import UTC, datetime
+from types import ModuleType
 
 from fastapi import HTTPException, status
 from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.db.models.league import LeagueMember, Season, Team
+from api.db.models.user import User
+from api.models.activity_models import MembershipLeftPayload, RoleChangedPayload
 from api.models.enums import LeagueRole
 from api.models.league_models import MemberSummary
 from api.services.round_status import season_is_finished
@@ -37,7 +40,7 @@ async def _member(db: AsyncSession, league_id: int, user_id: int) -> LeagueMembe
 
 
 async def set_role(
-    db: AsyncSession, league_id: int, user_id: int, role: LeagueRole
+    db: AsyncSession, league_id: int, user_id: int, role: LeagueRole, actor: User
 ) -> LeagueMember:
     """Promote or demote a member; a league must always keep a commissioner."""
     member = await _member(db, league_id, user_id)
@@ -47,11 +50,35 @@ async def set_role(
         and await commissioner_count(db, league_id) <= 1
     ):
         raise LeagueRuleError("A league needs at least one commissioner")
+    if member.role == role.value:
+        return member
     member.role = role.value
+    await _activity().append_to_league(
+        db,
+        league_id,
+        RoleChangedPayload(
+            user_id=user_id, user_name=await _username(db, user_id), role=role
+        ),
+        actor=_activity().Actor.of(actor),
+    )
     return member
 
 
-async def remove_member(db: AsyncSession, league_id: int, user_id: int) -> None:
+def _activity() -> ModuleType:
+    # live_leagues imports this module for LeagueRuleError and activity imports
+    # live_leagues, so a top-level import would be circular.
+    from api.services import activity
+
+    return activity
+
+
+async def _username(db: AsyncSession, user_id: int) -> str:
+    return (await db.scalar(select(User.username).where(User.id == user_id))) or ""
+
+
+async def remove_member(
+    db: AsyncSession, league_id: int, user_id: int, actor: User
+) -> None:
     """Mark a member as left. Their team in an open season stays unclaimed with its
     roster; teams of finished seasons keep their owner for good."""
     member = await _member(db, league_id, user_id)
@@ -68,6 +95,12 @@ async def remove_member(db: AsyncSession, league_id: int, user_id: int) -> None:
                 .values(owner_id=None)
             )
     member.left_at = datetime.now(UTC)
+    await _activity().append_to_league(
+        db,
+        league_id,
+        MembershipLeftPayload(user_id=user_id, user_name=await _username(db, user_id)),
+        actor=_activity().Actor.of(actor),
+    )
 
 
 def rule_error(exc: LeagueRuleError) -> HTTPException:

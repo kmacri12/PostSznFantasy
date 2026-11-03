@@ -51,6 +51,28 @@ export const describeEvent = (event: ActivityEvent): string => {
     }
     case "settings_change":
       return `${who} changed ${event.payload.changes.length === 1 ? "a setting" : `${event.payload.changes.length} settings`}`;
+    case "league_created":
+      return `${who} created the league ${event.payload.leagueName}`;
+    case "membership_joined": {
+      const { role, teamName } = event.payload;
+      const team = teamName ? ` and took ${teamName}` : "";
+      return role === "commissioner"
+        ? `${who} joined as commissioner${team}`
+        : `${who} joined${team}`;
+    }
+    case "membership_left": {
+      const { userId, userName } = event.payload;
+      return event.actorUserId === userId || event.actorName === null
+        ? `${userName} left the league`
+        : `${userName} was removed from the league by ${who}`;
+    }
+    case "role_changed": {
+      const { userName, role } = event.payload;
+      if (event.actorName === null) return `${userName} became commissioner`;
+      return role === "commissioner"
+        ? `${who} made ${userName} a commissioner`
+        : `${who} made ${userName} a regular member, no longer a commissioner`;
+    }
   }
 };
 
