@@ -380,7 +380,11 @@ export type ActivityKind =
   | "lineup_move"
   | "commissioner_override"
   | "stat_correction"
-  | "settings_change";
+  | "settings_change"
+  | "league_created"
+  | "membership_joined"
+  | "membership_left"
+  | "role_changed";
 
 interface ActivityBase {
   id: number;
@@ -421,6 +425,16 @@ export type ActivityEvent = ActivityBase &
     | {
         kind: "settings_change";
         payload: { changes: { field: string; before: unknown; after: unknown }[] };
+      }
+    | { kind: "league_created"; payload: { leagueName: string } }
+    | {
+        kind: "membership_joined";
+        payload: { role: "commissioner" | "member"; teamName: string | null };
+      }
+    | { kind: "membership_left"; payload: { userId: number; userName: string } }
+    | {
+        kind: "role_changed";
+        payload: { userId: number; userName: string; role: "commissioner" | "member" };
       }
   );
 

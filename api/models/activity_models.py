@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Any, ClassVar, Literal
 
 from api.models.base import BaseSchema
-from api.models.enums import ActivityKind
+from api.models.enums import ActivityKind, LeagueRole
 
 
 class DisplacedPlayer(BaseSchema):
@@ -62,11 +62,49 @@ class SettingsChangePayload(BaseSchema):
     changes: list[SettingChange]
 
 
+class LeagueCreatedPayload(BaseSchema):
+    kind: ClassVar[ActivityKind] = ActivityKind.LEAGUE_CREATED
+
+    league_name: str
+
+
+class MembershipJoinedPayload(BaseSchema):
+    """The actor joined the league (or created it) and took a team, if one was open."""
+
+    kind: ClassVar[ActivityKind] = ActivityKind.MEMBERSHIP_JOINED
+
+    role: LeagueRole
+    team_name: str | None
+
+
+class MembershipLeftPayload(BaseSchema):
+    """`user_name` left; the actor is that member or the commissioner who removed them."""
+
+    kind: ClassVar[ActivityKind] = ActivityKind.MEMBERSHIP_LEFT
+
+    user_id: int
+    user_name: str
+
+
+class RoleChangedPayload(BaseSchema):
+    """`user_name` now has `role`, set by the actor."""
+
+    kind: ClassVar[ActivityKind] = ActivityKind.ROLE_CHANGED
+
+    user_id: int
+    user_name: str
+    role: LeagueRole
+
+
 ActivityPayload = (
     LineupMovePayload
     | CommissionerOverridePayload
     | StatCorrectionPayload
     | SettingsChangePayload
+    | LeagueCreatedPayload
+    | MembershipJoinedPayload
+    | MembershipLeftPayload
+    | RoleChangedPayload
 )
 
 

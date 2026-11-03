@@ -62,6 +62,10 @@ class ActivityKind(StrEnum):
     COMMISSIONER_OVERRIDE = "commissioner_override"
     STAT_CORRECTION = "stat_correction"
     SETTINGS_CHANGE = "settings_change"
+    LEAGUE_CREATED = "league_created"
+    MEMBERSHIP_JOINED = "membership_joined"
+    MEMBERSHIP_LEFT = "membership_left"
+    ROLE_CHANGED = "role_changed"
 
 
 class TieRule(StrEnum):

@@ -34,6 +34,16 @@ LEAGUE_DOT_KINDS = [
     ActivityKind.COMMISSIONER_OVERRIDE.value,
     ActivityKind.STAT_CORRECTION.value,
     ActivityKind.SETTINGS_CHANGE.value,
+    ActivityKind.MEMBERSHIP_JOINED.value,
+    ActivityKind.MEMBERSHIP_LEFT.value,
+    ActivityKind.ROLE_CHANGED.value,
+]
+# Who is in the league is news to a newcomer too, so these ignore the "before they
+# joined" rule that hides older overrides and corrections.
+MEMBERSHIP_KINDS = [
+    ActivityKind.MEMBERSHIP_JOINED.value,
+    ActivityKind.MEMBERSHIP_LEFT.value,
+    ActivityKind.ROLE_CHANGED.value,
 ]
 DEFAULT_PAGE_SIZE = 20
 MAX_PAGE_SIZE = 100
@@ -74,6 +84,26 @@ async def append(
     return event
 
 
+async def append_to_league(
+    db: AsyncSession,
+    league_id: int,
+    payload: ActivityPayload,
+    *,
+    actor: Actor,
+) -> ActivityEvent | None:
+    """Post a league-level event to the current season's feed (membership belongs to
+    the league, the feed to a season); a league without a season has no feed yet."""
+    season_id = await db.scalar(
+        select(Season.id)
+        .where(Season.league_id == league_id)
+        .order_by(Season.year.desc())
+        .limit(1)
+    )
+    if season_id is None:
+        return None
+    return await append(db, season_id, payload, actor=actor)
+
+
 def _scope(season_id: int, team_id: int | None) -> ColumnElement[bool]:
     in_league = ActivityEvent.season_id == season_id
     if team_id is None:
@@ -92,7 +122,7 @@ class _Baseline:
     def is_new(self, event: ActivityEvent) -> bool:
         return (
             event.id > self.last_event_id
-            and event.created_at > self.joined_at
+            and (event.created_at > self.joined_at or event.kind in MEMBERSHIP_KINDS)
             and event.actor_user_id != self.viewer_id
         )
 
@@ -100,7 +130,10 @@ class _Baseline:
     def is_new_clause(self) -> ColumnElement[bool]:
         return and_(
             ActivityEvent.id > self.last_event_id,
-            ActivityEvent.created_at > self.joined_at,
+            or_(
+                ActivityEvent.created_at > self.joined_at,
+                ActivityEvent.kind.in_(MEMBERSHIP_KINDS),
+            ),
             or_(
                 ActivityEvent.actor_user_id.is_(None),
                 ActivityEvent.actor_user_id != self.viewer_id,
@@ -144,11 +177,22 @@ async def feed(
         select(ActivityEvent, Team.name)
         .outerjoin(Team, Team.id == ActivityEvent.team_id)
         .where(_scope(season_id, team_id))
-        .order_by(ActivityEvent.id.desc())
+        .order_by(ActivityEvent.created_at.desc(), ActivityEvent.id.desc())
         .limit(limit + 1)
     )
     if before is not None:
-        query = query.where(ActivityEvent.id < before)
+        # Newest first by time, not id: backfilled history gets ids after newer events.
+        cursor_at = (
+            select(ActivityEvent.created_at)
+            .where(ActivityEvent.id == before)
+            .scalar_subquery()
+        )
+        query = query.where(
+            or_(
+                ActivityEvent.created_at < cursor_at,
+                and_(ActivityEvent.created_at == cursor_at, ActivityEvent.id < before),
+            )
+        )
     rows = (await db.execute(query)).all()
     page = rows[:limit]
     lights_dot = baseline.is_new_clause
@@ -239,7 +283,10 @@ async def leagues_with_new_activity(db: AsyncSession, viewer_id: int) -> set[int
         .where(
             ActivityEvent.kind.in_(LEAGUE_DOT_KINDS),
             ActivityEvent.id > func.coalesce(ActivityView.last_event_id, 0),
-            ActivityEvent.created_at > LeagueMember.joined_at,
+            or_(
+                ActivityEvent.created_at > LeagueMember.joined_at,
+                ActivityEvent.kind.in_(MEMBERSHIP_KINDS),
+            ),
             or_(
                 ActivityEvent.actor_user_id.is_(None),
                 ActivityEvent.actor_user_id != viewer_id,
