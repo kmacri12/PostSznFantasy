@@ -63,7 +63,9 @@ test.describe("season routes", () => {
 
     await page.goto(pastSeasonUrl(league, "/players"));
     await expect(page).toHaveURL(pastSeasonUrl(league, "/players"));
-    await expect(page.getByRole("table").or(page.getByRole("list", { name: "Players" }))).toBeVisible();
+    await expect(
+      page.getByRole("table").or(page.getByRole("list", { name: "Players" })),
+    ).toBeVisible();
     await page.goto("/");
     await page.goBack();
     await expect(page).toHaveURL(pastSeasonUrl(league, "/players"));
