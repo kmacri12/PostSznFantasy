@@ -13,6 +13,7 @@ const row = (teamId: number, rank: number, extra: Partial<StandingsRow> = {}): S
   rank,
   teamName: `Team ${teamId}`,
   owner: "ann",
+  isCommissioner: false,
   playersLeft: 7,
   wildCard: 10,
   divisional: 20,
@@ -40,6 +41,15 @@ const tied = [
   row(2, 2),
   row(3, 3, { total: 5 }),
 ];
+
+const renderSlots = (rows: StandingsRow[]) =>
+  render(
+    <MemoryRouter>
+      <SeasonContext.Provider value={season}>
+        <StandingsCards rows={rows} round={1} preDraft />
+      </SeasonContext.Provider>
+    </MemoryRouter>,
+  );
 
 const renderCards = (rows: StandingsRow[]) =>
   render(
@@ -113,5 +123,18 @@ describe("StandingsCards", () => {
     expect(
       screen.getByText("Ahead of Team 2 on the tiebreaker: higher Divisional score (20 to 10)"),
     ).toBeTruthy();
+  });
+
+  it("lists filled and open slots before the draft, with dashes instead of points", () => {
+    renderSlots([
+      row(1, 0, { rank: null, owner: "ann", isCommissioner: true }),
+      row(2, 0, { rank: null, owner: null }),
+    ]);
+    expect(screen.getByText("Team 1")).toBeTruthy();
+    expect(screen.getByText(/ann · Commissioner/)).toBeTruthy();
+    expect(screen.getByText("Open spot")).toBeTruthy();
+    expect(screen.getAllByLabelText("No points yet")).toHaveLength(2);
+    expect(screen.queryByRole("button")).toBeNull();
+    expect(screen.queryByText("0")).toBeNull();
   });
 });

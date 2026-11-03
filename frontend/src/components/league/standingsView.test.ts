@@ -1,12 +1,13 @@
 import { describe, expect, it } from "vitest";
 import type { StandingsRow } from "../../api/types";
-import { rankLabel, tieNote } from "./standingsView";
+import { isOpenSpot, preDraftLine, rankLabel, tieNote } from "./standingsView";
 
 const row = (teamId: number, rank: number, extra: Partial<StandingsRow> = {}): StandingsRow => ({
   teamId,
   rank,
   teamName: `Team ${teamId}`,
   owner: "ann",
+  isCommissioner: false,
   playersLeft: 3,
   wildCard: 0,
   divisional: 0,
@@ -51,5 +52,18 @@ describe("tieNote", () => {
 
   it("is empty where no tie decided the order", () => {
     expect(tieNote(rows, 2)).toBeNull();
+  });
+});
+
+describe("pre-draft slots", () => {
+  const slots = [row(1, 0, { rank: null }), row(2, 0, { rank: null, owner: null })];
+
+  it("labels an unset rank with a dash", () => {
+    expect(rankLabel(slots, 0)).toBe("–");
+  });
+
+  it("counts filled slots in the phase line", () => {
+    expect(isOpenSpot(slots[1] as StandingsRow)).toBe(true);
+    expect(preDraftLine(slots)).toBe("Waiting for the draft: 1 of 2 teams filled.");
   });
 });

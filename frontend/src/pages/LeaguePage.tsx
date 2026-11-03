@@ -156,14 +156,14 @@ const LeagueContent = () => {
       </Box>
 
       <Grid container spacing={3}>
-        {isCommissioner && !archived && (
-          <Grid size={{ xs: 12 }}>
-            <InvitePanel leagueId={leagueId} />
-          </Grid>
-        )}
         {info && (
           <Grid size={{ xs: 12 }}>
             <LeagueNotes league={info} />
+          </Grid>
+        )}
+        {isCommissioner && !archived && (
+          <Grid size={{ xs: 12 }}>
+            <InvitePanel leagueId={leagueId} />
           </Grid>
         )}
         <Grid size={{ xs: 12 }} sx={{ minWidth: 0 }}>

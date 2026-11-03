@@ -8,7 +8,7 @@ import { tokens } from "../../theme";
 import { ROUND_LABELS } from "../team/lineup";
 import ProgressCounts from "./ProgressCounts";
 import RankCell from "./RankCell";
-import { rankLabel, tieNote } from "./standingsView";
+import { isOpenSpot, rankLabel, tieNote } from "./standingsView";
 
 const ROUNDS = [
   { key: "wildCard", label: "Wild Card" },
@@ -23,6 +23,50 @@ interface StandingsCardProps {
   note: string | null;
   round: number;
 }
+
+/** A team slot before the draft: nothing to expand, points are a dash. */
+const SlotCard = ({ row, rank }: { row: StandingsRow; rank: string }) => {
+  const { paths } = useSeasonContext();
+  const open = isOpenSpot(row);
+  return (
+    <Card sx={{ p: 0 }}>
+      <Box
+        {...(open ? {} : { component: Link, to: paths.team(row.teamId) })}
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          minHeight: 64,
+          color: "inherit",
+          textDecoration: "none",
+        }}
+      >
+        <Box sx={{ pl: 0.5 }}>
+          <RankCell label={rank} note={null} />
+        </Box>
+        <Box sx={{ flexGrow: 1, minWidth: 0, py: 1.5, pl: 0.5 }}>
+          {open ? (
+            <Typography color="text.secondary" sx={{ fontStyle: "italic" }}>
+              Open spot
+            </Typography>
+          ) : (
+            <>
+              <Typography noWrap sx={{ fontWeight: 700 }}>
+                {row.teamName}
+              </Typography>
+              <Typography variant="caption" color="text.secondary" noWrap component="div">
+                {row.owner}
+                {row.isCommissioner && " · Commissioner"}
+              </Typography>
+            </>
+          )}
+        </Box>
+        <Typography color="text.secondary" sx={{ pr: 2 }} aria-label="No points yet">
+          –
+        </Typography>
+      </Box>
+    </Card>
+  );
+};
 
 const StandingsCard = ({ row, rank, note, round }: StandingsCardProps) => {
   const { paths } = useSeasonContext();
@@ -122,16 +166,27 @@ const StandingsCard = ({ row, rank, note, round }: StandingsCardProps) => {
   );
 };
 
-const StandingsCards = ({ rows, round }: { rows: StandingsRow[]; round: number }) => (
+interface StandingsCardsProps {
+  rows: StandingsRow[];
+  round: number;
+  /** Before the draft the rows are team slots, some of them open. */
+  preDraft?: boolean;
+}
+
+const StandingsCards = ({ rows, round, preDraft = false }: StandingsCardsProps) => (
   <Box component="ol" aria-label="Standings" sx={{ display: "grid", gap: 1, m: 0, p: 0 }}>
     {rows.map((row, index) => (
       <Box component="li" key={row.teamId} sx={{ listStyle: "none" }}>
-        <StandingsCard
-          row={row}
-          rank={rankLabel(rows, index)}
-          note={tieNote(rows, index)}
-          round={round}
-        />
+        {preDraft ? (
+          <SlotCard row={row} rank={rankLabel(rows, index)} />
+        ) : (
+          <StandingsCard
+            row={row}
+            rank={rankLabel(rows, index)}
+            note={tieNote(rows, index)}
+            round={round}
+          />
+        )}
       </Box>
     ))}
   </Box>

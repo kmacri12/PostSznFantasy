@@ -1,4 +1,5 @@
 from datetime import datetime
+from enum import StrEnum
 from typing import Any
 
 from pydantic import Field, StrictBool, create_model
@@ -301,11 +302,20 @@ class StandingTieReason(BaseSchema):
     message: str
 
 
+class StandingsPhase(StrEnum):
+    # No standings snapshot yet: rows are the season's team slots, points are zero.
+    PRE_DRAFT = "pre_draft"
+    LIVE = "live"
+
+
 class TeamStanding(BaseSchema):
     team_id: int
-    rank: int
+    # None before the draft.
+    rank: int | None
     team_name: str
-    owner: str
+    # None for an open slot.
+    owner: str | None
+    is_commissioner: bool = False
     players_left: int
     wild_card: float
     divisional: float
@@ -317,6 +327,7 @@ class TeamStanding(BaseSchema):
 
 
 class Standings(BaseSchema):
+    phase: StandingsPhase
     # The round the live counts describe (1-4).
     round: int
     # NFL games being played right now.

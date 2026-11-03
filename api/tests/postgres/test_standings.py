@@ -288,3 +288,37 @@ async def test_lineup_moves_and_settings_changes_recompute_standings(
             json={"round": 1, "playerId": qb.id, "slotIndex": None},
         )
         assert (await _stored(db, season.id))[teams[0].id].total == 0
+
+
+async def test_before_the_draft_standings_list_every_team_slot(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    season, _, teams, _ = await make_season(db, teams=3, draft_status="unscheduled")
+    teams[2].owner_id = None
+    await db.flush()
+
+    async with client_as("uid-0") as client:
+        response = await client.get(f"/api/seasons/{season.id}/standings")
+
+    body = response.json()
+    assert body["phase"] == "pre_draft"
+    rows = body["teams"]
+    assert [r["teamId"] for r in rows] == [t.id for t in teams]
+    assert [r["owner"] for r in rows] == ["user0", "user1", None]
+    assert [r["isCommissioner"] for r in rows] == [True, False, False]
+    assert all(r["rank"] is None and r["total"] == 0 for r in rows)
+
+
+async def test_once_standings_exist_the_phase_is_live(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    season, _, _, _ = await make_season(db, draft_status="completed")
+    await recompute_standings(db, season.year)
+
+    async with client_as("uid-0") as client:
+        response = await client.get(f"/api/seasons/{season.id}/standings")
+
+    body = response.json()
+    assert body["phase"] == "live"
+    assert [r["isCommissioner"] for r in body["teams"]].count(True) == 1
+    assert all(r["rank"] is not None for r in body["teams"])
