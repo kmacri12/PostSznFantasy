@@ -66,7 +66,7 @@ fly machine list --app "$FLY_APP"          # copy the machine ID
 fly machine stop <machine-id> --app "$FLY_APP"
 ```
 
-`fly.toml` has `auto_start_machines = false`, so no request wakes it. Do not run **Deploy API** while dormant: a deploy replaces and starts the machine.
+`fly.toml` has `auto_start_machines = false`, so no request wakes it. Do not deploy while dormant: a deploy replaces and starts the machine, and a push to `main` or the 15-minute catch-up would trigger one. Disable the **Deploy** workflow first (`gh workflow disable deploy.yml`), and enable it again when you wake up.
 
 **Verify:** `scripts/dormancy-check.sh dormant` shows `PASS no machine running`. (The same script covers step 6.)
 

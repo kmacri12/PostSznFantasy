@@ -1,0 +1,110 @@
+name: Deploy
+
+# Ordered production deploy of main: gate on live drafts, API (when it changed), health check,
+# then the Cloudflare Pages build. Runbook: docs/deploy/fly.md. A newer push replaces a queued
+# older run without cancelling the one that is deploying.
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "*/15 * * * *" # catch-up: ship main once a blocking draft has ended
+  workflow_dispatch:
+    inputs:
+      confirm_no_live_draft:
+        description: "I checked: no draft is in the lobby, running or paused"
+        type: boolean
+        required: true
+        default: false
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: write # moves the `deployed` tag
+
+env:
+  API_URL: https://api.postsznfantasy.com
+
+jobs:
+  deploy:
+    name: Deploy main
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Require the live-draft confirmation
+        if: github.event_name == 'workflow_dispatch' && !inputs.confirm_no_live_draft
+        run: |
+          echo "::error::Tick 'I checked' after confirming there are no live drafts (docs/deploy/fly.md)."
+          exit 1
+
+      - name: Only main deploys
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "::error::Run this workflow on main."
+          exit 1
+
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Decide what ships
+        id: plan
+        run: scripts/deploy-plan.sh | tee -a "$GITHUB_OUTPUT"
+        env:
+          TARGET_SHA: ${{ github.sha }}
+
+      - name: Nothing to ship
+        if: steps.plan.outputs.behind != 'true'
+        run: echo "::notice::${{ steps.plan.outputs.skip_reason }}"
+
+      # GitHub runners have no IPv6, so this uses the Supabase session pooler string.
+      - name: Stop while a draft is live
+        id: gate
+        if: steps.plan.outputs.behind == 'true'
+        env:
+          DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+        run: |
+          if ! scripts/check-live-drafts.sh; then
+            msg="A draft is live. Nothing was deployed; production keeps one consistent version. The 15-minute catch-up deploys main once the draft ends."
+            # The catch-up retries every 15 minutes, so it must not turn main red for hours.
+            if [[ "${{ github.event_name }}" == schedule ]]; then echo "::warning::$msg"; echo "blocked=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+            echo "::error::$msg"
+            exit 1
+          fi
+
+      - uses: superfly/flyctl-actions/setup-flyctl@1.5
+        if: steps.plan.outputs.api == 'true' && steps.gate.outputs.blocked != 'true'
+
+      # --ha=false: the first deploy would otherwise create two machines, and two processes
+      # means two draft clocks. Never use bluegreen for the same reason.
+      - name: Deploy API (release command runs alembic first)
+        if: steps.plan.outputs.api == 'true' && steps.gate.outputs.blocked != 'true'
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: flyctl deploy --config fly.toml --ha=false --strategy rolling --build-arg "GIT_SHA=${{ github.sha }}"
+
+      - name: Wait for a healthy API
+        if: steps.plan.outputs.behind == 'true' && steps.gate.outputs.blocked != 'true'
+        env:
+          EXPECT_VERSION: ${{ steps.plan.outputs.api == 'true' && github.sha || '' }}
+        run: scripts/wait-for-api.sh
+
+      - name: Trigger the Cloudflare Pages build
+        if: steps.plan.outputs.frontend == 'true' && steps.gate.outputs.blocked != 'true'
+        env:
+          HOOK: ${{ secrets.CLOUDFLARE_PAGES_DEPLOY_HOOK }}
+        run: |
+          if [[ -z "$HOOK" ]]; then
+            echo "::error::Secret CLOUDFLARE_PAGES_DEPLOY_HOOK is not set (docs/owner/17-ordered-deploy.md)."
+            exit 1
+          fi
+          curl -fsS --max-time 30 -X POST "$HOOK" > /dev/null
+          echo "Pages build triggered."
+
+      - name: Record what is deployed
+        if: steps.plan.outputs.behind == 'true' && steps.gate.outputs.blocked != 'true'
+        run: |
+          git tag -f deployed "${{ github.sha }}"
+          git push -f origin refs/tags/deployed

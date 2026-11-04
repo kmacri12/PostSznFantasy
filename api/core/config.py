@@ -99,6 +99,10 @@ class Settings(BaseSettings):
     sentry_dsn: str = ""
     sentry_release: str = ""
 
+    # Commit the image was built from (Dockerfile build arg GIT_SHA); the deploy workflow
+    # reads it from GET /api to learn what production runs. Empty outside Fly builds.
+    git_sha: str = ""
+
     # E2E only: accept `e2e-user:<uid>` bearer tokens instead of Supabase JWTs. Off by
     # default and refused outright outside the environments in TEST_AUTH_ENVIRONMENTS.
     test_auth_stub: bool = False

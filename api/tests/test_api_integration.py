@@ -200,6 +200,8 @@ async def test_health_checks_database(
 ) -> None:
     response = await async_client.get("/api")
     assert response.status_code == 200
+    assert response.json()["status"] == "healthy"
+    assert "version" in response.json()
     mock_db_session.execute.assert_awaited()
 
     mock_db_session.execute.side_effect = OperationalError("SELECT 1", {}, Exception())

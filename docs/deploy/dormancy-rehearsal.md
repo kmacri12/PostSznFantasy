@@ -48,7 +48,7 @@ Minutes, with notes:
 - Shutdown, scheduler off and machine stopped:
 - Shutdown, dormant page verified:
 - Wake, machine started and health green:
-- Wake, Deploy API with the new SEASON_YEAR:
+- Wake, re-enable the Deploy workflow and run it with the new SEASON_YEAR:
 - Wake, seed NFL data:
 - Wake, smoke test (mock draft):
 - **Total dark time (API down to API back):**

@@ -15,8 +15,12 @@ RUN useradd --system --uid 10001 --home-dir /app --shell /usr/sbin/nologin app
 WORKDIR /app
 COPY --from=builder /app/api/.venv /app/api/.venv
 COPY --chown=app:app api ./api
+# Declared after the COPYs so a new commit invalidates nothing above. Set by the deploy
+# workflow (`flyctl deploy --build-arg`) and reported by GET /api.
+ARG GIT_SHA=""
 # PYTHONPATH: `fly ssh console -C "python -m api.scripts..."` need not start in /app.
-ENV PATH="/app/api/.venv/bin:$PATH" \
+ENV GIT_SHA=$GIT_SHA \
+    PATH="/app/api/.venv/bin:$PATH" \
     PYTHONPATH=/app \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \

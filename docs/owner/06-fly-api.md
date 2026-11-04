@@ -16,7 +16,7 @@ cd ~/code/PostSznFantasy
    - the **Supabase direct URL** from your password manager (host `db.<ref>.supabase.co`, port 5432). The script refuses port 6543.
    - the **RapidAPI Tank01 key**.
 5. **GitHub token**: automatic. It stores a deploy-only token as the GitHub secret `FLY_API_TOKEN`.
-6. **First deploy**: answer **y** to start the **Deploy API** workflow. Watch it with `gh run watch`. It must finish green.
+6. **First deploy**: answer **y** to start the **Deploy** workflow. Watch it with `gh run watch`. It must finish green.
 7. It then prints `fly status` and the health check.
 
 ## Verify

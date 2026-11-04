@@ -4,11 +4,24 @@ One always-on 1 GB machine runs `uvicorn api.main:app --workers 1 --proxy-header
 
 ## How a deploy works
 
-1. Run the **Deploy API** workflow by hand (Actions tab, "Run workflow"). It only exists as `workflow_dispatch`: nothing deploys on push.
-2. The workflow refuses to run unless you tick "I checked", and it runs `scripts/check-live-drafts.sh` itself and fails if any draft is in `lobby`, `in_progress` or `paused`.
-3. `flyctl deploy --ha=false --strategy rolling` builds the image on Fly's builder.
-4. Fly starts a temporary machine from the new image and runs the release command `alembic -c api/alembic.ini upgrade head`. **If it exits non-zero the deploy stops here and the current machine keeps serving the old version.** Migrations run in one transaction, so a failed one leaves the schema untouched.
-5. Fly stops the old machine, starts the new one, and waits for the `/api` health check (database round trip) to pass. Expect a few seconds of downtime: WebSocket clients reconnect on their own and receive a full state snapshot.
+Every push to `main` runs the **Deploy** workflow ([`deploy.yml`](../../.github/workflows/deploy.yml)). The frontend is last, so a PR that changes the database, API and UI together never shows the new UI in front of the old API.
+
+1. **Plan** (`scripts/deploy-plan.sh`). The API reports the commit it was built from in `GET /api` (`{"status":"healthy","version":"<sha>"}`; the Dockerfile `GIT_SHA` build arg, set by `flyctl deploy --build-arg`). The workflow compares it with `main` to decide whether the API changed (`api/`, `Dockerfile`, `fly.toml`, `deploy.yml`). The frontend has no such endpoint, so every successful run moves the git tag `deployed` to the commit it shipped; the frontend changed when `frontend/` differs from that tag. No tag or an unreadable version means "ship it". A run whose commit is no longer the head of `main` stops (a newer run owns the deploy), and so does one where production already runs `main`.
+2. **Gate** (`scripts/check-live-drafts.sh`). A draft in `lobby`, `in_progress` or `paused` stops the run, red on `main`; nothing was deployed, so production stays on one consistent old version. The scheduled catch-up only warns, so it does not turn `main` red every 15 minutes.
+3. **API**, only when it changed: `flyctl deploy --ha=false --strategy rolling` builds the image on Fly's builder.
+4. Fly starts a temporary machine from the new image and runs the release command `alembic -c api/alembic.ini upgrade head`. **If it exits non-zero the deploy stops here, the run is red, the frontend is not built and the current machine keeps serving the old version.** Migrations run in one transaction, so a failed one leaves the schema untouched.
+5. Fly stops the old machine, starts the new one, and waits for the `/api` health check to pass. Expect a few seconds of downtime: WebSocket clients reconnect on their own and receive a full state snapshot.
+6. **Smoke check** (`scripts/wait-for-api.sh`): polls `GET /api` for up to 5 minutes until it is healthy and, after an API deploy, reports the new commit. Otherwise the run fails before the frontend step.
+7. **Frontend**, only when `frontend/` changed: `curl -X POST` to the Cloudflare Pages deploy hook (secret `CLOUDFLARE_PAGES_DEPLOY_HOOK`); the build and its `VITE_*` variables stay in Cloudflare ([frontend-hosting.md](frontend-hosting.md)).
+8. The `deployed` tag moves.
+
+Other triggers: a **schedule** (every 15 minutes) re-runs the same logic, so `main` ships once a blocking draft ends (it does nothing when production is current). **Run workflow** on `main` is the manual re-run; it still asks you to tick "I checked" (no live draft) and runs the gate anyway. Runs share one `concurrency` group without cancelling: a newer push replaces a queued older run but never interrupts one that is deploying.
+
+Rules this puts on every PR:
+
+- **Backward compatible for the minutes between steps 5 and 7**: the old UI talks to the new API and database. Migrations are additive, and an endpoint or response field is never removed or renamed in the same PR that stops using it; do that one release later ([CONTRIBUTING.md](../../CONTRIBUTING.md)).
+- **A draft could start in the seconds between the gate and the restart.** Accepted: WebSocket clients reconnect and the draft state is persisted server-side.
+- A live draft holds back everything merged to `main`, API and UI alike, until it ends.
 
 Why `--ha=false` and `rolling`: `fly deploy` normally creates two machines for high availability, and blue-green runs old and new side by side. Both put two draft clocks on one database, so picks could fire twice. Verify after any deploy that exactly one machine exists:
 
@@ -49,7 +62,7 @@ Set once with `fly secrets set` (the wizard does this without putting values in 
 | `SENTRY_DSN`, `SENTRY_RELEASE` | Optional error tracking, see [sentry.md](sentry.md); empty disables it |
 | `SCHEDULER_ENABLED` and `SCHEDULER_*` | Keep `SCHEDULER_ENABLED=false` until games are near. `SCHEDULER_LIVE_POLL_SECONDS` (default 180) has a 60 s floor and `SCHEDULER_ROSTER_SYNC_HOURS` (24) a 1 h floor; the API refuses to start below them, and refuses `SCHEDULER_REPLAY_FILE` when `ENVIRONMENT=production` |
 
-Non-secret settings (`ENVIRONMENT`, `SEASON_YEAR`, `PORT`, `FORWARDED_ALLOW_IPS`, pool sizes) live in `fly.toml`. GitHub repository secrets used by workflows: `FLY_API_TOKEN`, `PROD_DATABASE_URL`, `BACKUP_GPG_PUBLIC_KEY`.
+Non-secret settings (`ENVIRONMENT`, `SEASON_YEAR`, `PORT`, `FORWARDED_ALLOW_IPS`, pool sizes) live in `fly.toml`. GitHub repository secrets used by workflows: `FLY_API_TOKEN`, `PROD_DATABASE_URL`, `BACKUP_GPG_PUBLIC_KEY`, `CLOUDFLARE_PAGES_DEPLOY_HOOK` ([owner step 17](../owner/17-ordered-deploy.md)).
 
 ## Verify outbound IPv6 to Supabase (once, #104)
 
@@ -61,7 +74,7 @@ fly logs --app postszn-api          # no "connection refused" / "network is unre
 curl -s https://api.postsznfantasy.com/api   # {"status":"healthy"} (this endpoint queries the database)
 ```
 
-If the direct connection fails from Fly, switch `PG_URI` to the session pooler string (port 5432) and redeploy. GitHub Actions runners have **no** IPv6, so the CI workflows (`backup.yml`, `deploy-api.yml`) always use the session pooler string in `PROD_DATABASE_URL`.
+If the direct connection fails from Fly, switch `PG_URI` to the session pooler string (port 5432) and redeploy. GitHub Actions runners have **no** IPv6, so the CI workflows (`backup.yml`, `deploy.yml`) always use the session pooler string in `PROD_DATABASE_URL`.
 
 ## Scheduler logs (#78)
 
@@ -92,4 +105,4 @@ The alternative `fly deploy --image <image> --ha=false` also re-runs the release
 
 ## Not validated without a Fly account
 
-`fly.toml` and the workflow were parsed as TOML/YAML only (flyctl was not available when this was written). Check on the first real deploy: `fly config validate`, that the release command runs from `/app` (it expects `api/alembic.ini` relative to the working directory), that `--strategy rolling` leaves a single machine, the health check, outbound IPv6, and the `fly machine update --image` rollback command (try it once on a throwaway release before you need it).
+`fly.toml` and the workflow were parsed as TOML/YAML (the workflow also passes `actionlint`, and its scripts were run against stubs and a scratch database; flyctl was not available when this was written). Check on the first real deploy: the `GIT_SHA` build arg reaching `GET /api`, the `deployed` tag push, a blocked run with a live draft,  `fly config validate`, that the release command runs from `/app` (it expects `api/alembic.ini` relative to the working directory), that `--strategy rolling` leaves a single machine, the health check, outbound IPv6, and the `fly machine update --image` rollback command (try it once on a throwaway release before you need it).

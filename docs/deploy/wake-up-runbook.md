@@ -50,7 +50,7 @@ Secrets stay stored while the machine is stopped. Check these names exist: `PG_U
 
 ## 3. Run migrations and confirm the Postgres version (OWNER)
 
-Migrations run by themselves as the release step of **Deploy API**, so this happens in step 4. If a restore or version bump needs them earlier:
+Migrations run by themselves as the release step of **Deploy**, so this happens in step 4. If a restore or version bump needs them earlier:
 
 ```bash
 cd api
@@ -65,7 +65,7 @@ PG_URI="$DATABASE_URL" SUPABASE_URL='https://<ref>.supabase.co' \
 The roster endpoint only serves the current season, so refresh everything for the new year.
 
 1. Change `SEASON_YEAR` in [`fly.toml`](../../fly.toml) (and the default in `api/.env.example`), open a pull request, merge it.
-2. GitHub, Actions, **Deploy API**, Run workflow, tick "I checked". It refuses to run if a draft is live, applies migrations, and swaps in the new image.
+2. GitHub, Actions, **Deploy**, **Enable workflow** (it was disabled when you shut down), Run workflow, tick "I checked". It refuses to run if a draft is live, applies migrations, and swaps in the new image.
 3. Seed teams, players, depth charts and season stats. This **spends RapidAPI quota**; a full seed is about 35 calls ([rapidapi-quota.md](../research/rapidapi-quota.md)), which fits the free Basic cap, so it does not need step 5 first:
 
 ```bash

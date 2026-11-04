@@ -76,7 +76,7 @@ psql '<production connection string>' -c 'select version_num from public.alembic
 - Create the app named in `fly.toml`: `fly apps create postszn-api`.
 - Set the secrets listed in [fly.md](fly.md) and `api/.env.example` (`PG_URI`, `SUPABASE_URL`, `RAPIDAPI_*`, `CORS_ORIGINS=https://postsznfantasy.com`, `SCHEDULER_ENABLED=false`). Leave `ADMIN_SUPABASE_UIDS` empty for now.
 - Add GitHub repository secrets `FLY_API_TOKEN` and `PROD_DATABASE_URL` (session pooler string).
-- In GitHub, Actions, **Deploy API**, Run workflow, tick the "I checked" box. It checks for live drafts, runs the release migration, then starts the machine.
+- In GitHub, Actions, **Deploy**, Run workflow on `main`, tick the "I checked" box. It checks for live drafts, runs the release migration, then starts the machine.
 - Confirm exactly one machine: `fly status --app postszn-api`.
 
 **Go / no-go**
@@ -191,6 +191,6 @@ Do this with at least two real accounts (two browsers or a phone and a laptop). 
 
 ## After launch: standing rules
 
-- Before any deploy or secret change: `scripts/check-live-drafts.sh`. Only deploy through the **Deploy API** workflow.
+- Before any deploy or secret change: `scripts/check-live-drafts.sh`. Only deploy through the **Deploy** workflow.
 - Off-season: [shutdown-runbook.md](shutdown-runbook.md) after the playoffs, [wake-up-runbook.md](wake-up-runbook.md) about a month before the next postseason, and [dormancy-rehearsal.md](dormancy-rehearsal.md) to practise both. The final shutdown dump is stored outside GitHub artifacts.
 - If anything here turned out wrong or unclear for you, fix this file in the same pull request as your change.
