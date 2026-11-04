@@ -8,7 +8,7 @@ A draft only starts when exactly 14 NFL teams are marked as playoff teams. Befor
 
 ## B. The mock draft
 
-1. Get 3 or more friends (or 2 plus a second phone). Everyone opens https://postsznfantasy.com and signs in (Google, or magic link).
+1. Get 3 or more friends (or 2 plus a second phone). Everyone opens https://postsznfantasy.com and signs in (Google, or an emailed code).
 2. Create a league and send the invite link. Everyone joins.
 3. Start a draft with a 30-second pick timer. Pick from different phones.
 4. Try these on purpose:

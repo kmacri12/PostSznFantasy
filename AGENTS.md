@@ -22,7 +22,7 @@
 | **ORM & Database** | SQLAlchemy 2.0 (`asyncpg` async session) + PostgreSQL 17 |
 | **DB Migrations** | **Alembic** migrations (`alembic upgrade head`) |
 | **Configuration** | **Pydantic Settings** (`api/core/config.py` cached singleton) |
-| **Auth** | Supabase Auth (JWT verification via FastAPI `Depends(get_current_user)`) |
+| **Auth** | Supabase Auth (Google or an emailed one-time code; JWT verification via FastAPI `Depends(get_current_user)`) |
 | **NFL Data Ingestion** | Async HTTP client (`httpx.AsyncClient`) with `tenacity` retries |
 | **Frontend Runtime** | React 19, Vite 8, strict TypeScript |
 | **Frontend Linter & Formatter** | **Biome** (`@biomejs/biome`, `biome.json`) |

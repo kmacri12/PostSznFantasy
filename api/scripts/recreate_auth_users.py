@@ -3,7 +3,7 @@
 Run it AFTER restoring the backup into the database the API will use (PG_URI), against
 the NEW Supabase project (SUPABASE_URL). Each user is created with the same id as
 `fantasy.users.supabase_uid`, so leagues and teams still point at them. No passwords
-or hashes are involved: sign-in is Google or magic link only.
+or hashes are involved: sign-in is Google or an emailed code only.
 
     python -m api.scripts.recreate_auth_users             # dry run: print the plan
     SUPABASE_SERVICE_ROLE_KEY=... python -m api.scripts.recreate_auth_users --apply
@@ -11,7 +11,7 @@ or hashes are involved: sign-in is Google or magic link only.
 
 The service-role key is read from the environment only; keep it out of Fly secrets and CI.
 Emails are created as confirmed (you vouch for addresses the app already stored), which
-lets Google sign-in link to the user and a magic link work at once.
+lets Google sign-in link to the user and an emailed code work at once.
 """
 
 import argparse

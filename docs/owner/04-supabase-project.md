@@ -31,7 +31,7 @@ What the script asks, and what to do:
 7. **First migration**: answer **y** to run `alembic upgrade head`. It prints the database version.
 8. **Size**: it opens the usage page. A few MB is normal. The Free limit is 500 MB.
 
-Good to know: until Step 9 is done, Supabase's built-in email only sends to members of your Supabase organization, at most 2 an hour. So magic links work for you but not for friends until then.
+Good to know: until Step 9 is done, Supabase's built-in email only sends to members of your Supabase organization, at most 2 an hour. So the emailed sign-in code works for you but not for friends until then.
 
 ## Verify
 

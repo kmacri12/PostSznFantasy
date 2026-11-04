@@ -13,7 +13,7 @@ export const safeNextPath = (raw: string | null | undefined): string => {
 export const signInPath = (next: string): string =>
   next === DEFAULT_NEXT ? SIGN_IN_PATH : `${SIGN_IN_PATH}?next=${encodeURIComponent(next)}`;
 
-/** Magic links usually open in a different browser than the one that asked, so the destination rides in the URL rather than storage. */
+/** The destination rides in the URL rather than storage so it survives the OAuth round trip. */
 export const authCallbackUrl = (origin: string, next: string): string =>
   `${origin}${signInPath(next)}`;
 
@@ -22,7 +22,7 @@ export interface AuthCallbackError {
   message: string;
 }
 
-/** Supabase reports failed email links as error params in the hash (implicit flow) or query (PKCE). */
+/** Supabase reports a failed OAuth callback as error params in the hash (implicit flow) or query (PKCE). */
 export const parseAuthCallbackError = (locationPart: string): AuthCallbackError | null => {
   const params = new URLSearchParams(locationPart.replace(/^[#?]/, ""));
   const error = params.get("error_code") ?? params.get("error");

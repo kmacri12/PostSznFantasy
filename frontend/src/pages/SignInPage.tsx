@@ -11,24 +11,21 @@ import {
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import MagicLinkForm from "../components/auth/MagicLinkForm";
+import EmailCodeForm from "../components/auth/EmailCodeForm";
 import PostSignInRedirect from "../components/auth/PostSignInRedirect";
 import LoadingState from "../components/common/LoadingState";
 import { useUser } from "../contexts/UserContext";
 import { safeNextPath } from "../utils/authRedirect";
 import { initialCallbackError } from "../utils/supabase";
 
-const callbackErrorMessage = (code: string): string =>
-  code === "otp_expired"
-    ? "That sign-in link expired or was already used. Request a new one below."
-    : "We couldn't finish signing you in. Try again below.";
+const CALLBACK_ERROR_MESSAGE = "We couldn't finish signing you in. Try again below.";
 
 const SignInPage = () => {
-  const { user, loading, signInWithGoogle, signInWithEmail } = useUser();
+  const { user, loading, signInWithGoogle, sendEmailCode, verifyEmailCode } = useUser();
   const [params] = useSearchParams();
   const next = safeNextPath(params.get("next"));
   const [googleError, setGoogleError] = useState<string | null>(null);
-  // Captured once: the URL error is stale after the visitor requests a new link.
+  // Captured once: the URL error is stale after the visitor tries again.
   const [callbackError] = useState(initialCallbackError);
   useEffect(() => {
     if (callbackError)
@@ -58,11 +55,9 @@ const SignInPage = () => {
           </Typography>
         </Box>
 
-        {callbackError && (
-          <Alert severity="warning">{callbackErrorMessage(callbackError.code)}</Alert>
-        )}
+        {callbackError && <Alert severity="warning">{CALLBACK_ERROR_MESSAGE}</Alert>}
 
-        <MagicLinkForm onSend={(email) => signInWithEmail(email, next)} />
+        <EmailCodeForm onSend={sendEmailCode} onVerify={verifyEmailCode} />
 
         <Divider>or</Divider>
 
