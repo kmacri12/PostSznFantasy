@@ -1,5 +1,7 @@
 """Starting a season, and what membership history lets a former member read."""
 
+from datetime import UTC, date, datetime
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -8,12 +10,15 @@ from api.db.models import (
     Draft,
     LeagueInvite,
     LeagueMember,
+    NFLGame,
     Season,
     SeasonSettings,
     Team,
     TeamPlayer,
     User,
 )
+from api.dependencies.clock import get_today
+from api.main import app
 from api.tests.postgres.conftest import ClientFactory
 from api.tests.postgres.recap_support import add_season_games, finished_league
 
@@ -32,7 +37,7 @@ async def test_starting_a_season_copies_teams_and_settings(
 
     response = await _start(client_as, season.league_id)
 
-    assert response.status_code == 201
+    assert response.status_code == 201, response.text
     new_id = response.json()["seasonId"]
     assert response.json()["leagueId"] == season.league_id
     new = await db.get(Season, new_id)
@@ -117,6 +122,41 @@ async def test_only_a_commissioner_can_start_a_season_and_only_once(
     again = await _start(client_as, season.league_id)
     assert again.status_code == 409
     assert "not over" in again.json()["detail"]
+
+
+async def test_the_next_season_opens_on_december_first_after_the_super_bowl(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    season, _, _ = await finished_league(db)
+    url = f"/api/leagues/{season.league_id}"
+    app.dependency_overrides[get_today] = lambda: date(2026, 11, 30)
+    async with client_as("uid-0") as commissioner:
+        app.dependency_overrides[get_today] = lambda: date(2026, 11, 30)
+        early = await commissioner.post(f"{url}/seasons")
+        assert early.status_code == 409
+        assert "December 1, 2026" in early.json()["detail"]
+        assert (await commissioner.get(url)).json()["canStartSeason"] is False
+
+        app.dependency_overrides[get_today] = lambda: date(2026, 12, 1)
+        assert (await commissioner.get(url)).json()["canStartSeason"] is True
+        assert (await commissioner.post(f"{url}/seasons")).status_code == 201
+
+
+async def test_the_gate_follows_the_super_bowls_calendar_year(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    season, _, _ = await finished_league(db)
+    # A kickoff in February 2027 puts the gate at December 1, 2027.
+    super_bowl = await db.get(NFLGame, "g4")
+    assert super_bowl is not None
+    super_bowl.game_time_epoch = str(datetime(2027, 2, 14, 23, tzinfo=UTC).timestamp())
+    await db.flush()
+    url = f"/api/leagues/{season.league_id}"
+    async with client_as("uid-0") as commissioner:
+        app.dependency_overrides[get_today] = lambda: date(2027, 11, 30)
+        assert (await commissioner.post(f"{url}/seasons")).status_code == 409
+        app.dependency_overrides[get_today] = lambda: date(2027, 12, 1)
+        assert (await commissioner.post(f"{url}/seasons")).status_code == 201
 
 
 async def test_a_season_still_playing_cannot_be_followed(

@@ -5,6 +5,8 @@ ended with; rosters, lineups, picks, standings and the activity feed start empty
 the draft is unscheduled again. The league's members and invite do not change.
 """
 
+from datetime import date
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import class_mapper
@@ -14,7 +16,7 @@ from api.db.models.league import League, LeagueMember, Season, SeasonSettings, T
 from api.models.enums import DraftStatus
 from api.models.league_models import SeasonSummary
 from api.services.league_members import LeagueRuleError
-from api.services.round_status import season_is_finished
+from api.services.round_status import SUPER_BOWL, load_games, season_is_finished
 
 # Draft columns that describe this draft's progress rather than how it is set up.
 _DRAFT_STATE = {
@@ -100,12 +102,34 @@ async def season_summaries(
     return summaries
 
 
-async def start_season(db: AsyncSession, league: League) -> Season:
+async def next_season_opens_on(db: AsyncSession, year: int) -> date:
+    """December 1 of the calendar year the season's Super Bowl is played in.
+
+    The Super Bowl is played in February of `year + 1`, which is also the fallback
+    when its kickoff time is not known.
+    """
+    kickoffs = [g.kickoff for g in await load_games(db, year) if g.round == SUPER_BOWL]
+    super_bowl_year = max((k.year for k in kickoffs if k), default=year + 1)
+    return date(super_bowl_year, 12, 1)
+
+
+async def can_start_season(db: AsyncSession, season: Season, today: date) -> bool:
+    return await season_is_finished(
+        db, season.year
+    ) and today >= await next_season_opens_on(db, season.year)
+
+
+async def start_season(db: AsyncSession, league: League, today: date) -> Season:
     previous = await current_season(db, league.id)
     if previous is None:
         raise LeagueRuleError("This league has no season to follow")
     if not await season_is_finished(db, previous.year):
         raise LeagueRuleError("The current season is not over yet")
+    opens = await next_season_opens_on(db, previous.year)
+    if today < opens:
+        raise LeagueRuleError(
+            f"The next season can be started from {opens:%B} {opens.day}, {opens.year}"
+        )
     # Serializes concurrent starts, so the check above cannot race the unique
     # (league, year) constraint into a 500 on a double click.
     await db.execute(select(League.id).where(League.id == league.id).with_for_update())
