@@ -210,6 +210,19 @@ async def test_health_checks_database(
 
 
 @pytest.mark.asyncio
+async def test_health_answers_head_without_body(
+    async_client: AsyncClient, mock_db_session: AsyncMock
+) -> None:
+    response = await async_client.head("/api")
+    assert response.status_code == 200
+    assert response.content == b""
+    mock_db_session.execute.assert_awaited()
+
+    mock_db_session.execute.side_effect = OperationalError("SELECT 1", {}, Exception())
+    assert (await async_client.head("/api")).status_code == 503
+
+
+@pytest.mark.asyncio
 async def test_create_league_uses_requested_draft_timing(
     async_client: AsyncClient, mock_db_session: AsyncMock
 ) -> None:

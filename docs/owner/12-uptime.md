@@ -10,6 +10,7 @@ UptimeRobot (free: 50 monitors, checks every 5 minutes, email alerts, no card) p
    - Friendly name `PostSzn API`
    - URL `https://api.postsznfantasy.com/api`
    - Interval **5 minutes**
+   - Leave the request method as it is: the free plan checks with HEAD (choosing GET is a paid feature) and the API answers HEAD on that URL
    - Notify: your email, on **down** and **up** (if your email is not listed, add it under **My Settings**, **Alert Contacts** first)
 3. **Create monitor**.
 
