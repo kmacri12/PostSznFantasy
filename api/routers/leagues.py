@@ -1,3 +1,5 @@
+from datetime import date
+
 from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
@@ -16,6 +18,7 @@ from api.db.models.league import (
 from api.db.models.user import User
 from api.db.session import DbSession
 from api.dependencies.auth import CurrentUser
+from api.dependencies.clock import Today
 from api.dependencies.league import (
     LeagueCommissioner,
     LeagueMember,
@@ -48,7 +51,12 @@ from api.services.league_members import (
 from api.services.live_leagues import delete_league, live_league_ids
 from api.services.playoff_field import require_draft_window_open
 from api.services.round_status import season_is_finished
-from api.services.seasons import current_season, season_summaries, start_season
+from api.services.seasons import (
+    can_start_season,
+    current_season,
+    season_summaries,
+    start_season,
+)
 
 router = APIRouter()
 
@@ -271,7 +279,7 @@ async def get_past_leagues(
 
 
 async def _league_overview(
-    db: DbSession, league: League, role: str, user_id: int
+    db: DbSession, league: League, role: str, user_id: int, today: date
 ) -> LeagueOverview:
     season = await current_season(db, league.id)
     assert season is not None
@@ -296,14 +304,13 @@ async def _league_overview(
         .all()
     )
     summaries = await season_summaries(db, league.id, user_id)
-    latest_finished = summaries[-1].finished
     return LeagueOverview(
         id=league.id,
         name=league.name,
         notes=league.notes,
         my_role=LeagueRole(role),
         current_season_id=season.id,
-        can_start_season=latest_finished,
+        can_start_season=await can_start_season(db, season, today),
         next_year=season.year + 1,
         seasons=summaries,
         members=member_summaries(members, list(teams)),
@@ -312,11 +319,11 @@ async def _league_overview(
 
 @router.get("/{league_id}", response_model=LeagueOverview)
 async def get_league(
-    league_id: int, membership: LeagueMember, db: DbSession
+    league_id: int, membership: LeagueMember, db: DbSession, today: Today
 ) -> LeagueOverview:
     """The League page in one call: notes, members and the list of seasons."""
     return await _league_overview(
-        db, membership.league, membership.role, membership.user.id
+        db, membership.league, membership.role, membership.user.id, today
     )
 
 
@@ -353,6 +360,7 @@ async def update_league(
     payload: LeagueUpdate,
     membership: LeagueCommissioner,
     db: DbSession,
+    today: Today,
 ) -> LeagueOverview:
     """Rename the league or edit its notes."""
     if payload.name is not None:
@@ -360,7 +368,7 @@ async def update_league(
     if payload.notes is not None:
         membership.league.notes = payload.notes
     await db.flush()
-    return await get_league(league_id, membership, db)
+    return await get_league(league_id, membership, db, today)
 
 
 @router.delete("/{league_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -389,13 +397,14 @@ async def update_member_role(
     payload: MemberRoleUpdate,
     membership: LeagueCommissioner,
     db: DbSession,
+    today: Today,
 ) -> LeagueOverview:
     try:
         await set_role(db, league_id, user_id, payload.role, membership.user)
     except LeagueRuleError as exc:
         raise rule_error(exc) from exc
     await db.flush()
-    return await get_league(league_id, membership, db)
+    return await get_league(league_id, membership, db, today)
 
 
 @router.delete("/{league_id}/members/{user_id}", response_model=LeagueOverview)
@@ -404,6 +413,7 @@ async def delete_member(
     user_id: int,
     membership: LeagueCommissioner,
     db: DbSession,
+    today: Today,
 ) -> LeagueOverview:
     """Remove a member (or leave); the row stays as history with `left_at` set."""
     try:
@@ -411,7 +421,7 @@ async def delete_member(
     except LeagueRuleError as exc:
         raise rule_error(exc) from exc
     await db.flush()
-    return await get_league(league_id, membership, db)
+    return await get_league(league_id, membership, db, today)
 
 
 @router.post(
@@ -420,11 +430,11 @@ async def delete_member(
     status_code=status.HTTP_201_CREATED,
 )
 async def start_next_season(
-    league_id: int, membership: LeagueCommissioner, db: DbSession
+    league_id: int, membership: LeagueCommissioner, db: DbSession, today: Today
 ) -> LeagueCreateResponse:
     """Start next year's season: same teams, owners and settings, fresh rosters."""
     try:
-        season = await start_season(db, membership.league)
+        season = await start_season(db, membership.league, today)
     except LeagueRuleError as exc:
         raise rule_error(exc) from exc
     await db.commit()

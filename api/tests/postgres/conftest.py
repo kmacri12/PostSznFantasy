@@ -8,6 +8,7 @@ when it is unreachable, except in CI where a missing database must fail loudly.
 import asyncio
 import os
 from collections.abc import AsyncGenerator, Callable
+from datetime import date
 
 import pytest
 from httpx import ASGITransport, AsyncClient
@@ -18,6 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from api.db.models import Base
 from api.db.session import get_db
 from api.dependencies.auth import get_current_user
+from api.dependencies.clock import get_today
 from api.main import app
 
 TEST_DATABASE_URL = os.environ.get(
@@ -67,6 +69,9 @@ async def db() -> AsyncGenerator[AsyncSession]:
     await engine.dispose()
 
 
+# The day after the 2025 season's start-next-season gate opens (December 1, 2026).
+TEST_TODAY = date(2026, 12, 1)
+
 ClientFactory = Callable[[str], AsyncClient]
 
 
@@ -76,6 +81,7 @@ async def client_as(db: AsyncSession) -> AsyncGenerator[ClientFactory]:
         yield db
 
     app.dependency_overrides[get_db] = override_db
+    app.dependency_overrides[get_today] = lambda: TEST_TODAY
 
     def build(uid: str) -> AsyncClient:
         app.dependency_overrides[get_current_user] = lambda: uid
