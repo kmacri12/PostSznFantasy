@@ -471,11 +471,18 @@ class InviteResponse(BaseSchema):
     revoked: bool
 
 
+class InviteMember(BaseSchema):
+    display_name: str
+    is_commissioner: bool
+
+
 class InvitePreview(BaseSchema):
     code: str
     league_name: str
     season: int
     open_spots: int
+    full: bool
+    members: list[InviteMember]
     joinable: bool
     reason: str | None = None
 

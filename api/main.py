@@ -122,7 +122,8 @@ async def public_config() -> dict[str, int]:
     return {"season": get_settings().season_year}
 
 
-@app.get("/api", tags=["health"])
+# HEAD because UptimeRobot's free plan cannot send GET.
+@app.api_route("/api", methods=["GET", "HEAD"], tags=["health"])
 async def health(db: DbSession) -> dict[str, str]:
     """Liveness plus a database round trip, so deploy checks catch a dead pool."""
     try:

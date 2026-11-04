@@ -21,8 +21,14 @@ test.describe("delete a league", () => {
 
     await signInAs(context, host.uid);
     await page.goto(seasonUrl(league, "/settings"));
-    await page.getByRole("button", { name: "Delete league", exact: true }).first().click();
-    await page.getByRole("button", { name: "Delete league", exact: true }).last().click();
+    await page.getByRole("button", { name: "Delete league", exact: true }).click();
+    await expect(
+      page.getByRole("button", { name: "Delete league", exact: true, expanded: true }),
+    ).toBeVisible();
+    await page
+      .getByRole("button", { name: "Delete league", exact: true })
+      .and(page.locator(":not([aria-expanded])"))
+      .click();
 
     const dialog = page.getByRole("dialog");
     await expect(dialog.getByText("permanent and cannot be undone")).toBeVisible();

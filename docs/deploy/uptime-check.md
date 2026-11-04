@@ -6,7 +6,7 @@ Do this after Stage 3 of the [cutover runbook](cutover-runbook.md); the API must
 
 ## Setting it up
 
-Click-by-click: [docs/owner/12-uptime.md](../owner/12-uptime.md) (UptimeRobot free plan: 50 monitors, 5-minute checks, email alerts). The endpoint returns 503 when the database is unreachable, so a plain HTTP check is enough; a keyword check for `healthy` is optional. Any equivalent free service works (Better Stack, Cloudflare health checks): same URL, same alert.
+Click-by-click: [docs/owner/12-uptime.md](../owner/12-uptime.md) (UptimeRobot free plan: 50 monitors, 5-minute checks, email alerts). The free plan can only send HEAD requests (GET is a paid feature), so do not change the method; `/api` answers HEAD with the same status and headers as GET, no body. The endpoint returns 503 when the database is unreachable, so a plain HTTP check is enough; a keyword check for `healthy` is optional. Any equivalent free service works (Better Stack, Cloudflare health checks): same URL, same alert.
 
 ## Reading an alert
 

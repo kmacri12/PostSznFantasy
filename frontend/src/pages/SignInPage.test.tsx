@@ -1,11 +1,12 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import SignInPage from "./SignInPage";
 
 const mocks = vi.hoisted(() => ({
   user: null as unknown,
-  signInWithEmail: vi.fn(),
+  sendEmailCode: vi.fn(),
+  verifyEmailCode: vi.fn(),
   signInWithGoogle: vi.fn(),
   callbackError: null as unknown,
 }));
@@ -14,7 +15,8 @@ vi.mock("../contexts/UserContext", () => ({
   useUser: () => ({
     user: mocks.user,
     loading: false,
-    signInWithEmail: mocks.signInWithEmail,
+    sendEmailCode: mocks.sendEmailCode,
+    verifyEmailCode: mocks.verifyEmailCode,
     signInWithGoogle: mocks.signInWithGoogle,
   }),
 }));
@@ -41,26 +43,34 @@ const renderAt = (url: string) =>
 beforeEach(() => {
   mocks.user = null;
   mocks.callbackError = null;
-  mocks.signInWithEmail.mockReset().mockResolvedValue(null);
+  mocks.sendEmailCode.mockReset().mockResolvedValue(null);
+  mocks.verifyEmailCode.mockReset().mockResolvedValue(null);
   mocks.signInWithGoogle.mockReset().mockResolvedValue(null);
 });
 
 describe("SignInPage", () => {
-  it("offers magic link and Google", () => {
+  it("offers an emailed code and Google", () => {
     renderAt("/sign-in");
-    expect(screen.getByRole("button", { name: /email me a sign-in link/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /email me a sign-in code/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /continue with google/i })).toBeInTheDocument();
   });
 
-  it("passes the requested destination to both providers", async () => {
+  it("passes the requested destination to Google", () => {
     renderAt("/sign-in?next=%2Fjoin%2FABC");
     fireEvent.click(screen.getByRole("button", { name: /continue with google/i }));
     expect(mocks.signInWithGoogle).toHaveBeenCalledWith("/join/ABC");
+  });
 
+  it("sends the code request and then verifies the typed code", async () => {
+    renderAt("/sign-in");
     fireEvent.change(screen.getByLabelText(/email/i), { target: { value: "a@b.co" } });
     fireEvent.click(screen.getByRole("button", { name: /email me/i }));
-    await screen.findByText(/check your email/i);
-    expect(mocks.signInWithEmail).toHaveBeenCalledWith("a@b.co", "/join/ABC");
+    fireEvent.change(await screen.findByLabelText(/sign-in code/i), {
+      target: { value: "123456" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
+    await waitFor(() => expect(mocks.verifyEmailCode).toHaveBeenCalledWith("a@b.co", "123456"));
+    expect(mocks.sendEmailCode).toHaveBeenCalledWith("a@b.co");
   });
 
   it("ignores an off-site next target", () => {
@@ -69,10 +79,10 @@ describe("SignInPage", () => {
     expect(mocks.signInWithGoogle).toHaveBeenCalledWith("/");
   });
 
-  it("explains an expired link", () => {
-    mocks.callbackError = { code: "otp_expired", message: "expired" };
+  it("explains a failed Google callback", () => {
+    mocks.callbackError = { code: "access_denied", message: "denied" };
     renderAt("/sign-in");
-    expect(screen.getByText(/expired or was already used/i)).toBeInTheDocument();
+    expect(screen.getByText(/couldn't finish signing you in/i)).toBeInTheDocument();
   });
 
   it("hands a signed-in visitor to the post-sign-in redirect", () => {

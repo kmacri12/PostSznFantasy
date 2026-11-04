@@ -58,7 +58,7 @@ test.describe("invite and join", () => {
     await page.getByRole("button", { name: "Sign in to join" }).click();
     await expect(page).toHaveURL(/sign-in\?next=%2Fjoin%2F/);
 
-    // The magic-link round trip is covered in sign-in.spec; here the session just arrives.
+    // The emailed-code round trip is covered in sign-in.spec; here the session just arrives.
     await signInAs(context, unique("guest"));
     await page.goto(`/join/${code}`);
     await expect(page).toHaveURL(new RegExp(`${seasonUrl(league)}$`));

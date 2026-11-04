@@ -28,7 +28,7 @@ Put the app online
 8. [Test Google sign-in on the live site](08-test-google-sign-in.md), 5 min (#91)
 
 Email, monitoring, backups
-9. [Email so magic links reach inboxes](09-email-smtp.md), 30 min (#67)
+9. [Email so sign-in codes reach inboxes](09-email-smtp.md), 30 min (#67)
 10. [Sentry error tracking and alerts](10-sentry.md), 40 min (#85, #88)
 11. [Weekly encrypted backup](11-backups.md), 40 min (#107)
 12. [Uptime monitor](12-uptime.md), 10 min (#108)

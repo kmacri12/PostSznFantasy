@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, status
+from fastapi.responses import JSONResponse
 from sqlalchemy import select
 
 from api.db.models.league import League, LeagueInvite
@@ -8,6 +9,7 @@ from api.dependencies.auth import CurrentUser
 from api.dependencies.league import LeagueCommissioner
 from api.models.league_models import (
     InviteCreate,
+    InviteMember,
     InvitePreview,
     InviteResponse,
     JoinResponse,
@@ -74,11 +76,18 @@ async def preview_invite(code: str, db: DbSession) -> InvitePreview:
     ).scalar_one()
     season = await current_season(db, league.id)
     problem = await invite_service.join_problem(db, invite)
+    open_spots = await invite_service.open_team_count(db, league.id)
+    members = await invite_service.current_member_names(db, league.id)
     return InvitePreview(
         code=invite.code,
         league_name=league.name,
         season=season.year if season else 0,
-        open_spots=await invite_service.open_team_count(db, league.id),
+        open_spots=open_spots,
+        full=open_spots == 0,
+        members=[
+            InviteMember(display_name=name, is_commissioner=is_commissioner)
+            for name, is_commissioner in members
+        ],
         joinable=problem is None,
         reason=problem,
     )
@@ -87,7 +96,7 @@ async def preview_invite(code: str, db: DbSession) -> InvitePreview:
 @router.post("/invites/{code}/join", response_model=JoinResponse)
 async def join_with_invite(
     code: str, supabase_uid: CurrentUser, db: DbSession
-) -> JoinResponse:
+) -> JoinResponse | JSONResponse:
     """Idempotent: joining a league you are already in just returns it."""
     invite = await invite_service.find_invite(db, code)
     if invite is None:
@@ -106,6 +115,13 @@ async def join_with_invite(
             db, invite, user
         )
     except LeagueRuleError as exc:
+        if exc.code:
+            # `detail` stays a string like every other error; `code` lets the
+            # client show the full-league state instead of a generic failure.
+            return JSONResponse(
+                status_code=status.HTTP_409_CONFLICT,
+                content={"detail": str(exc), "code": exc.code},
+            )
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail=str(exc)
         ) from exc
