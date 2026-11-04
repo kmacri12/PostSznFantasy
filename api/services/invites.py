@@ -17,7 +17,7 @@ from api.models.activity_models import MembershipJoinedPayload
 from api.models.enums import LeagueRole
 from api.services import activity
 from api.services.league_admin import draft_has_started
-from api.services.league_members import LeagueRuleError
+from api.services.league_members import LeagueFullError, LeagueRuleError
 from api.services.live_leagues import live_league_ids
 from api.services.round_status import season_is_finished
 from api.services.seasons import current_season
@@ -122,6 +122,22 @@ async def open_team_count(db: AsyncSession, league_id: int) -> int:
     ) or 0
 
 
+LEAGUE_FULL_MESSAGE = "This league is full"
+
+
+async def current_member_names(
+    db: AsyncSession, league_id: int
+) -> list[tuple[str, bool]]:
+    """(display name, is commissioner) of every active member; names only, no PII."""
+    rows = await db.execute(
+        select(User.username, LeagueMember.role)
+        .join(User, User.id == LeagueMember.user_id)
+        .where(LeagueMember.league_id == league_id, LeagueMember.left_at.is_(None))
+        .order_by(LeagueMember.joined_at, User.id)
+    )
+    return [(name, role == LeagueRole.COMMISSIONER.value) for name, role in rows.all()]
+
+
 async def join_problem(db: AsyncSession, invite: LeagueInvite) -> str | None:
     problem = invite_problem(invite, datetime.now(UTC))
     if problem:
@@ -132,7 +148,7 @@ async def join_problem(db: AsyncSession, invite: LeagueInvite) -> str | None:
         # once the next season starts.
         return None
     if await open_team_count(db, invite.league_id) == 0:
-        return "This league is full"
+        return LEAGUE_FULL_MESSAGE
     settings = (
         await db.execute(
             select(SeasonSettings).where(SeasonSettings.season_id == season.id)
@@ -161,6 +177,8 @@ async def join_league(
         return league, await _owned_team(db, season, user), True
 
     problem = await join_problem(db, invite)
+    if problem == LEAGUE_FULL_MESSAGE:
+        raise LeagueFullError(problem)
     if problem:
         raise LeagueRuleError(problem)
 
@@ -180,7 +198,7 @@ async def join_league(
             .first()
         )
         if team is None:
-            raise LeagueRuleError("This league is full")
+            raise LeagueFullError(LEAGUE_FULL_MESSAGE)
         team.owner_id = user.id
     if existing is not None:
         existing.left_at = None

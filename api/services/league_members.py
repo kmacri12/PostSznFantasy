@@ -15,7 +15,16 @@ from api.services.round_status import season_is_finished
 
 
 class LeagueRuleError(Exception):
-    """A league rule blocked the change; the message is safe to show to the user."""
+    """A league rule blocked the change; the message is safe to show to the user.
+
+    `code` is a stable machine-readable reason for the rules a client reacts to.
+    """
+
+    code: str | None = None
+
+
+class LeagueFullError(LeagueRuleError):
+    code = "league_full"
 
 
 async def commissioner_count(db: AsyncSession, league_id: int) -> int:

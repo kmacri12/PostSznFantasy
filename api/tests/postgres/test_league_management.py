@@ -1,5 +1,6 @@
 from datetime import UTC, datetime, timedelta
 
+from httpx import AsyncClient
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -348,3 +349,99 @@ async def test_notes_can_be_cleared_and_are_length_limited(
         )
     assert cleared.json()["notes"] == ""
     assert too_long.status_code == 422
+
+
+async def _invite_code(client: AsyncClient, league_id: int) -> str:
+    created = await client.post(f"/api/leagues/{league_id}/invite", json={})
+    code: str = created.json()["code"]
+    return code
+
+
+async def test_join_claims_the_lowest_numbered_open_team(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    season, _, _, _ = await make_season(db, teams=2, draft_status="scheduled")
+    first = Team(name="Open 1", season_id=season.id)
+    second = Team(name="Open 2", season_id=season.id)
+    db.add_all([first, second])
+    db.add(User(supabase_uid="newbie", username="newbie", email="n@x.co"))
+    await db.flush()
+    async with client_as("uid-0") as commissioner:
+        code = await _invite_code(commissioner, season.league_id)
+    async with client_as("newbie") as newbie:
+        joined = (await newbie.post(f"/api/invites/{code}/join")).json()
+    assert joined["teamId"] == first.id
+
+
+async def test_full_league_answers_league_full_until_the_team_count_grows(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    season, _, _, _ = await make_season(db, draft_status="scheduled")
+    db.add(User(supabase_uid="late", username="late", email="l@x.co"))
+    await db.flush()
+    async with client_as("uid-0") as commissioner:
+        code = await _invite_code(commissioner, season.league_id)
+    async with client_as("late") as late:
+        refused = await late.post(f"/api/invites/{code}/join")
+        preview = (await late.get(f"/api/invites/{code}")).json()
+    assert refused.status_code == 409
+    assert refused.json()["code"] == "league_full"
+    assert refused.json()["detail"] == "This league is full"
+    assert preview["full"] is True
+    assert preview["openSpots"] == 0
+    assert preview["joinable"] is False
+
+    async with client_as("uid-0") as commissioner:
+        grown = await commissioner.patch(
+            f"/api/seasons/{season.id}", json={"numberTeams": 3}
+        )
+    assert grown.status_code == 200
+    async with client_as("late") as late:
+        preview = (await late.get(f"/api/invites/{code}")).json()
+        joined = await late.post(f"/api/invites/{code}/join")
+    assert preview["full"] is False
+    assert joined.status_code == 200
+    assert joined.json()["teamId"] is not None
+
+
+async def test_rejoining_after_leaving_takes_one_team_only(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    league_id, _ = await _join_setup(db, draft_status="scheduled")
+    async with client_as("uid-0") as commissioner:
+        code = await _invite_code(commissioner, league_id)
+    async with client_as("newbie") as newbie:
+        first = (await newbie.post(f"/api/invites/{code}/join")).json()
+    newbie_user = await db.scalar(select(User).where(User.supabase_uid == "newbie"))
+    assert newbie_user is not None
+    async with client_as("uid-0") as commissioner:
+        removed = await commissioner.delete(
+            f"/api/leagues/{league_id}/members/{newbie_user.id}"
+        )
+    assert removed.status_code == 200
+    async with client_as("newbie") as newbie:
+        second = (await newbie.post(f"/api/invites/{code}/join")).json()
+    assert second["alreadyMember"] is False
+    assert second["teamId"] == first["teamId"]
+    owned = (
+        await db.execute(select(Team).where(Team.owner_id == newbie_user.id))
+    ).scalars()
+    assert len(list(owned)) == 1
+
+
+async def test_preview_lists_member_names_and_no_emails(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    league_id, _ = await _join_setup(db, draft_status="scheduled")
+    async with client_as("uid-0") as commissioner:
+        code = await _invite_code(commissioner, league_id)
+    async with client_as("newbie") as newbie:
+        response = await newbie.get(f"/api/invites/{code}")
+    preview = response.json()
+    assert preview["members"] == [
+        {"displayName": "user0", "isCommissioner": True},
+        {"displayName": "user1", "isCommissioner": False},
+    ]
+    assert preview["openSpots"] == 1
+    assert preview["full"] is False
+    assert "@" not in response.text
