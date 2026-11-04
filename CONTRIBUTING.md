@@ -54,6 +54,8 @@ make format     # auto-fix Ruff and Biome findings
 
 Narrower targets: `make lint`, `make typecheck`, `make test`, each with `-api` / `-web` variants. The backend is FastAPI on Python 3.13 managed by `uv` (Ruff, strict Mypy, pytest); the frontend is React 19 + TypeScript + Vite checked with Biome and Vitest. A pre-commit hook runs Ruff and Biome on staged files (`pre-commit install`).
 
+The CI "End-to-end (make e2e)" job always reports a result, but on a pull request whose files are all on the allowlist in `scripts/e2e-needed.sh` (docs, Markdown, deploy/backup/docker-build workflows, `scripts/`, `Dockerfile`, `fly.toml`) its steps are skipped. Pushes to `main`, scheduled runs and everything else run it in full. To skip more or fewer paths, edit that allowlist; unlisted paths run e2e by default.
+
 ### Migrations must be additive
 
 Production runs `alembic upgrade head` as the host's release command while the previous version is still serving traffic, and a failed migration aborts the deploy. The merge to `main` deploys the API first and the frontend a few minutes later ([docs/deploy/fly.md](docs/deploy/fly.md#how-a-deploy-works)), so the old UI also talks to the new API. Every migration and API change has to work with both the old and the new code:
