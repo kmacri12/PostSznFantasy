@@ -44,7 +44,7 @@ PostSznFantasy/
 ├── ROADMAP.md                  # Active roadmap (phases 15+)
 ├── REWRITE_ROADMAP.md          # Archived modernization history (phases 1-14)
 ├── docs/owner/                 # Owner launch guide: one page per step, in launch order
-├── docs/ui/                    # Approved UI redesign decisions (#232): navigation, pages, information placement
+├── docs/ui/                    # Approved UI redesign decisions (#232) and the link to the final Claude Design canvas: navigation, pages, information placement
 ├── api/                        # Backend service (Python 3.13 + FastAPI)
 │   ├── alembic/                # Database migrations
 │   │   ├── versions/           # Migration revisions
