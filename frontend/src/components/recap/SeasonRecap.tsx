@@ -146,8 +146,8 @@ const SeasonRecap = ({
   canStartSeason: boolean;
 }) => (
   <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-    <Card sx={{ p: { xs: 2.5, md: 4 }, textAlign: "center", border: `1px solid ${tokens.gold}` }}>
-      <EmojiEventsIcon sx={{ fontSize: 48, color: tokens.gold }} />
+    <Card sx={{ p: { xs: 2.5, md: 4 }, textAlign: "center", border: `1px solid ${tokens.accent}` }}>
+      <EmojiEventsIcon sx={{ fontSize: 48, color: tokens.accent }} />
       <Typography variant="overline" color="text.secondary" sx={{ display: "block" }}>
         {recap.year} champion{recap.champions.length > 1 ? "s" : ""}
       </Typography>

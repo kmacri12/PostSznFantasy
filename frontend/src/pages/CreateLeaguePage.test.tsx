@@ -18,14 +18,12 @@ vi.setConfig({ testTimeout: 20_000 });
 
 const defaults = { scoring_passing_yard: 0.04, scoring_passing_td: 4 };
 
-const onLeagueCreated = vi.fn().mockResolvedValue(undefined);
-
 async function renderWizard() {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   render(
     <QueryClientProvider client={queryClient}>
       <MemoryRouter>
-        <CreateLeaguePage onLeagueCreated={onLeagueCreated} />
+        <CreateLeaguePage />
       </MemoryRouter>
     </QueryClientProvider>,
   );
@@ -88,17 +86,12 @@ describe("CreateLeaguePage submit", () => {
     mockGet.mockResolvedValue({ data: defaults });
     mockPost.mockReset();
     mockNavigate.mockReset();
-    onLeagueCreated.mockClear();
   });
 
-  it("refreshes the league list before navigating to the new league", async () => {
+  it("opens the new league", async () => {
     mockPost.mockResolvedValue({ status: 201, data: { leagueId: 70, seasonId: 7 } });
     await submitWizard();
     await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith("/leagues/70"));
-    expect(onLeagueCreated).toHaveBeenCalledWith(70);
-    expect(onLeagueCreated.mock.invocationCallOrder[0] ?? Number.NaN).toBeLessThan(
-      mockNavigate.mock.invocationCallOrder[0] ?? Number.NaN,
-    );
   });
 
   it("sends the explicit team QB and team K choices", async () => {
@@ -115,7 +108,6 @@ describe("CreateLeaguePage submit", () => {
     await submitWizard();
     expect(await screen.findByText(/couldn.t create the league/i)).toBeTruthy();
     expect(mockNavigate).not.toHaveBeenCalled();
-    expect(onLeagueCreated).not.toHaveBeenCalled();
   });
 });
 
