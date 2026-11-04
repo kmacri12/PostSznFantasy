@@ -62,6 +62,7 @@ PostSznFantasy/
 │   │       ├── draft.py        # Draft and DraftPick models
 │   │       └── nfl.py          # NFLTeam, NFLPlayer, Stats, Game models
 │   ├── dependencies/           # FastAPI dependency providers
+│   │   ├── clock.py            # `Today`: the current date, overridable in tests
 │   │   ├── auth.py             # Supabase JWT validation (verify_token, get_current_user)
 │   │   └── league.py           # LeagueMember (league routes, never read-only) and SeasonMember/DraftMember/TeamMember guards (403 for non-members and former members, except reads of a finished season they owned a team in; 409 on writes to a finished season))
 │   ├── models/                 # Pydantic v2 DTO schemas (camelCase serialization)
