@@ -69,6 +69,8 @@ test.describe("season routes", () => {
     await page.goto("/");
     await page.goBack();
     await expect(page).toHaveURL(pastSeasonUrl(league, "/players"));
+    // Lets an in-flight intercepted fetch finish before the page closes (else "Response has been disposed").
+    await page.unrouteAll({ behavior: "wait" });
   });
 
   test("a stranger to the league cannot open its seasons", async ({ page, context, request }) => {
