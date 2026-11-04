@@ -54,7 +54,7 @@ make format     # auto-fix Ruff and Biome findings
 
 Narrower targets: `make lint`, `make typecheck`, `make test`, each with `-api` / `-web` variants. The backend is FastAPI on Python 3.13 managed by `uv` (Ruff, strict Mypy, pytest); the frontend is React 19 + TypeScript + Vite checked with Biome and Vitest. A pre-commit hook runs Ruff and Biome on staged files (`pre-commit install`).
 
-The CI "End-to-end (make e2e)" job always reports a result, but on a pull request whose files are all on the allowlist in `scripts/e2e-needed.sh` (docs, Markdown, deploy/backup/docker-build workflows, `scripts/`, `Dockerfile`, `fly.toml`) its steps are skipped. Pushes to `main`, scheduled runs and everything else run it in full. To skip more or fewer paths, edit that allowlist; unlisted paths run e2e by default.
+The CI "End-to-end (make e2e)" job always reports a result, but on a pull request whose files are all on the allowlist in `scripts/e2e-needed.sh` (docs, Markdown, deploy/backup/docker-build workflows, `scripts/`, `Dockerfile`, `fly.toml`, and backend-only changes under `api/`) its steps are skipped. Backend-only PRs skip on purpose, with the full run on every push to `main` as the safety net; `api/scripts/seed_e2e.py`, `api/alembic/**`, `api/dependencies/auth.py`, `api/core/config.py`, `api/pyproject.toml` and `api/uv.lock` still run it. Pushes to `main`, scheduled runs and everything else run it in full. Unlisted paths run e2e by default.
 
 ### Migrations must be additive
 
