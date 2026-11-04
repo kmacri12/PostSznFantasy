@@ -45,6 +45,7 @@ describe("StandingsTable before the draft", () => {
       phase: "pre_draft",
       round: 1,
       gamesInProgress: 0,
+      gamesFinal: 0,
       playersLeft: 0,
       teams: [
         slot(1, { isCommissioner: true }),

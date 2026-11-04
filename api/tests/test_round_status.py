@@ -6,6 +6,7 @@ from api.services.round_status import (
     GameFacts,
     completed_rounds,
     current_round,
+    games_final,
     games_in_progress,
     round_status,
     super_bowl_winner,
@@ -130,6 +131,17 @@ def test_games_in_progress_counts_live_games_only() -> None:
     ]
     assert games_in_progress(games) == 2
     assert games_in_progress([]) == 0
+
+
+def test_games_final_counts_completed_games_of_that_round() -> None:
+    games = [
+        game(2, KC, BUF, score=(27, 24)),
+        game(2, DEN, MIA, score=(3, 0)),
+        live(2, 5, 6),
+        game(1, 7, 8, score=(3, 0)),
+    ]
+    assert games_final(games, 2) == 2
+    assert games_final(games, 3) == 0
 
 
 def test_current_round_ignores_rounds_before_the_first_one_with_games() -> None:

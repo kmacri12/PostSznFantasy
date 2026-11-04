@@ -15,7 +15,7 @@ const recap: Recap = {
   year: 2025,
   finished: true,
   champions: [{ teamId: 1, teamName: "Gridiron Gang", owner: "kyle", total: 123.5 }],
-  standings: { phase: "live", round: 4, gamesInProgress: 0, playersLeft: 0, teams: [] },
+  standings: { phase: "live", round: 4, gamesInProgress: 0, gamesFinal: 0, playersLeft: 0, teams: [] },
   nextSeasonId: null,
   awards: [
     {

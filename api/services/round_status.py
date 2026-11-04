@@ -109,6 +109,10 @@ def games_in_progress(games: list[GameFacts]) -> int:
     return sum(1 for g in games if g.in_progress)
 
 
+def games_final(games: list[GameFacts], round_: int) -> int:
+    return sum(1 for g in games if g.round == round_ and g.completed)
+
+
 def _kickoff(game_time_epoch: str | None) -> datetime | None:
     try:
         return (
