@@ -8,7 +8,7 @@ const farFuture = () => Math.floor(Date.now() / 1000) + 10 * 365 * 24 * 3600;
 
 /**
  * Seeds the Supabase client's stored session so the app boots signed in as `uid`,
- * without a magic link. Written once per tab (sessionStorage flag) so a deliberate
+ * without an emailed code. Written once per tab (sessionStorage flag) so a deliberate
  * sign-out in a test is not undone by the next navigation.
  */
 export const signInAs = async (

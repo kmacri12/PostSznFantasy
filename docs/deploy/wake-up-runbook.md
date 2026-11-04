@@ -28,7 +28,7 @@ read -rsp 'Session pooler string: ' DATABASE_URL && export DATABASE_URL   # keep
      ```
      Users without a stored email are listed as `SKIP`; they sign up again and a commissioner reassigns their team. Safe to run twice.
      Practise it first with `make rehearse-auth-restore` ([backup.md](backup.md#recreating-sign-in-accounts)).
-  **Verify:** the restore printed `restored, alembic revision <latest>`, the script printed `created N, already present 0, failed 0`, and signing in with a magic link at the new project lands on your old leagues.
+  **Verify:** the restore printed `restored, alembic revision <latest>`, the script printed `created N, already present 0, failed 0`, and signing in with an emailed code at the new project lands on your old leagues.
 
 **Verify:** `psql "$DATABASE_URL" -tAc 'select version_num from public.alembic_version'` prints the revision, and `show server_version` is a 17.x.
 

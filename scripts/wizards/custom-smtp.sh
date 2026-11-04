@@ -267,7 +267,7 @@ step "Raise 'Rate limit for sending emails' from the default if the launch needs
 pause "Settings saved? Press Enter"
 
 stage "Test deliverability"
-step "On the prod app, request a magic link to a Gmail address you own."
+step "On the prod app, request a sign-in code to a Gmail address you own."
 step "Gmail: open the message > ⋮ > Show original. Confirm SPF: PASS, DKIM: PASS, DMARC: PASS."
 step "Check it arrived in the inbox, not spam. Repeat with an Outlook address if you have one."
 open_url "https://www.mail-tester.com"

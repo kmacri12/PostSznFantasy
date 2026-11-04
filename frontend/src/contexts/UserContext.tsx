@@ -30,8 +30,10 @@ interface UserContextType {
   /** Opens the sign-in screen and returns here afterwards. */
   signIn: () => void;
   signInWithGoogle: (next: string) => Promise<string | null>;
-  /** Sends a magic link; resolves to an error message, or null when the email went out. */
-  signInWithEmail: (email: string, next: string) => Promise<string | null>;
+  /** Emails a one-time code; resolves to an error message, or null when the email went out. */
+  sendEmailCode: (email: string) => Promise<string | null>;
+  /** Checks the emailed code; resolves to an error message, or null once signed in. */
+  verifyEmailCode: (email: string, code: string) => Promise<string | null>;
   signOutUser: () => Promise<void>;
   getIdToken: () => Promise<string | null>;
 }
@@ -44,10 +46,17 @@ const displayName = (user: SupabaseUser): string =>
   user.email?.split("@")[0] ||
   "User";
 
-const magicLinkErrorMessage = (error: { status?: number; code?: string }): string =>
+const sendCodeErrorMessage = (error: { status?: number; code?: string }): string =>
   error.status === 429 || error.code === "over_email_send_rate_limit"
     ? "Too many emails sent. Wait a minute and try again."
-    : "Couldn't send the sign-in link. Check the address and try again.";
+    : "Couldn't send the sign-in code. Check the address and try again.";
+
+const verifyCodeErrorMessage = (error: { status?: number; code?: string }): string =>
+  error.status === 429
+    ? "Too many attempts. Wait a few minutes and try again."
+    : error.code === "otp_expired"
+      ? "That code is wrong or has expired. Check it or request a new one."
+      : "Couldn't verify the code. Try again.";
 
 export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
@@ -133,13 +142,16 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return error ? "Couldn't start Google sign-in. Try again." : null;
   }, []);
 
-  const signInWithEmail = useCallback(async (email: string, next: string) => {
-    const { error } = await supabaseAuth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: authCallbackUrl(window.location.origin, next) },
-    });
-    if (error) logger.error("Error sending magic link:", error);
-    return error ? magicLinkErrorMessage(error) : null;
+  const sendEmailCode = useCallback(async (email: string) => {
+    const { error } = await supabaseAuth.signInWithOtp({ email });
+    if (error) logger.error("Error sending sign-in code:", error);
+    return error ? sendCodeErrorMessage(error) : null;
+  }, []);
+
+  const verifyEmailCode = useCallback(async (email: string, code: string) => {
+    const { error } = await supabaseAuth.verifyOtp({ email, token: code, type: "email" });
+    if (error) logger.warn("Error verifying sign-in code:", error);
+    return error ? verifyCodeErrorMessage(error) : null;
   }, []);
 
   const signOutUser = useCallback(async () => {
@@ -169,7 +181,8 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       syncError,
       signIn,
       signInWithGoogle,
-      signInWithEmail,
+      sendEmailCode,
+      verifyEmailCode,
       signOutUser,
       getIdToken,
     }),
@@ -181,7 +194,8 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       syncError,
       signIn,
       signInWithGoogle,
-      signInWithEmail,
+      sendEmailCode,
+      verifyEmailCode,
       signOutUser,
       getIdToken,
     ],

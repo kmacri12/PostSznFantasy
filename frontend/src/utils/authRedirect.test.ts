@@ -42,7 +42,7 @@ describe("signInPath / authCallbackUrl", () => {
 });
 
 describe("parseAuthCallbackError", () => {
-  it("reads an expired magic link from the hash", () => {
+  it("reads a failed callback from the hash", () => {
     const parsed = parseAuthCallbackError(
       "#error=access_denied&error_code=otp_expired&error_description=Email+link+is+invalid+or+has+expired",
     );
