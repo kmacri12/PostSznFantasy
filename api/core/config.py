@@ -99,6 +99,14 @@ class Settings(BaseSettings):
     sentry_dsn: str = ""
     sentry_release: str = ""
 
+    # Web push (#266) stays off while the keys are empty: the endpoints answer "not
+    # configured" and nothing is sent. Generate a pair with
+    # `python -m api.scripts.generate_vapid_keys`.
+    vapid_public_key: str = ""
+    vapid_private_key: str = ""
+    # Contact the push services may use, `mailto:you@example.com` or an https URL.
+    vapid_subject: str = ""
+
     # Commit the image was built from (Dockerfile build arg GIT_SHA); the deploy workflow
     # reads it from GET /api to learn what production runs. Empty outside Fly builds.
     git_sha: str = ""
@@ -115,6 +123,20 @@ class Settings(BaseSettings):
                 f"{sorted(TEST_AUTH_ENVIRONMENTS)}, got {self.environment!r}"
             )
         return self
+
+    @model_validator(mode="after")
+    def _require_complete_vapid_config(self) -> "Settings":
+        configured = [self.vapid_public_key, self.vapid_private_key, self.vapid_subject]
+        if any(configured) and not all(configured):
+            raise ValueError(
+                "Web push needs VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY and VAPID_SUBJECT "
+                "together; set all three or none"
+            )
+        return self
+
+    @property
+    def push_enabled(self) -> bool:
+        return bool(self.vapid_public_key)
 
     @model_validator(mode="after")
     def _refuse_replay_in_production(self) -> "Settings":

@@ -22,6 +22,7 @@ from api.routers import (
     invites,
     leagues,
     players,
+    push,
     seasons,
     teams,
 )
@@ -113,6 +114,7 @@ app.include_router(invites.router, prefix="/api", tags=["invites"])
 app.include_router(activity.router, prefix="/api", tags=["activity"])
 app.include_router(drafts.router, prefix="/api/drafts", tags=["drafts"])
 app.include_router(players.router, prefix="/api/players", tags=["players"])
+app.include_router(push.router, prefix="/api/push", tags=["push"])
 app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
 
 

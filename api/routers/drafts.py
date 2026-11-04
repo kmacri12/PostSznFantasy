@@ -27,7 +27,7 @@ from api.models.draft_models import (
     QueueUpdate,
 )
 from api.services import draft_flow
-from api.services.draft_events import pick_events, state_event
+from api.services.draft_events import announce, pick_events, state_event
 from api.services.draft_picks import DraftPickError, PickResult, make_pick
 from api.services.season_recap import ARCHIVED_MESSAGE, season_is_archived
 from api.ws.draft_manager import draft_manager
@@ -75,7 +75,7 @@ async def _broadcast_state(db: DbSession, draft: Draft) -> DraftStateResponse:
     """Commit first so clients refetching on the broadcast see the new state."""
     await db.commit()
     event = await state_event(db, draft)
-    await draft_manager.broadcast(draft.season_id, event)
+    await announce(draft.season_id, [event])
     return DraftStateResponse.model_validate(event["data"])
 
 
@@ -157,8 +157,7 @@ async def _commit_and_announce(
     draft = await _draft_for(db, season_id)
     events = await pick_events(db, draft, result)
     await db.commit()
-    for event in events:
-        await draft_manager.broadcast(season_id, event)
+    await announce(season_id, events)
     return DraftStateResponse.model_validate(events[1]["data"])
 
 
@@ -380,5 +379,4 @@ async def _handle_make_pick(
             await _send_error(websocket, str(exc), exc.code)
             return
 
-    for event in events:
-        await draft_manager.broadcast(season_id, event)
+    await announce(season_id, events)
