@@ -335,6 +335,8 @@ class Standings(BaseSchema):
     round: int
     # NFL games being played right now.
     games_in_progress: int
+    # Games of that round that are over.
+    games_final: int = 0
     # Players left summed over every fantasy team in the league.
     players_left: int
     teams: list[TeamStanding]

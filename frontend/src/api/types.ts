@@ -176,6 +176,8 @@ export interface Standings {
   /** The round the live counts describe (1-4). */
   round: number;
   gamesInProgress: number;
+  /** Games of that round that are over. */
+  gamesFinal: number;
   /** Players left summed over the whole league. */
   playersLeft: number;
   teams: StandingsRow[];
@@ -482,6 +484,8 @@ export interface AwardWinner {
   /** Per-position draft awards only: order drafted and finish by counted points within the position. */
   draftedAs: number | null;
   finishedAs: number | null;
+  /** Overall pick number the player was taken at; draft awards only. */
+  pickNumber: number | null;
   points: number | null;
 }
 

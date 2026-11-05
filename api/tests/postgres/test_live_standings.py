@@ -185,7 +185,7 @@ async def test_progress_counts_follow_games_from_scheduled_to_live_to_final(
     den.game_status = "Live - In Progress"
     await db.flush()
     body = await w.standings()
-    assert body["gamesInProgress"] == 1
+    assert (body["gamesInProgress"], body["gamesFinal"]) == (1, 1)
     assert progress(body) == (1, 1, 0, 7)
 
     den.game_status, den.home_pts, den.away_pts = "Completed", 3, 0

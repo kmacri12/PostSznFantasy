@@ -1,106 +1,210 @@
-import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
-  Alert,
-  Box,
-  Button,
-  Card,
-  Typography,
-  useMediaQuery,
-  useTheme,
-} from "@mui/material";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import { Alert, alpha, Box, Button, ButtonBase, Card, Tooltip, Typography } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import { useStartSeason } from "../../api/queries";
 import type { AwardWinner, SeasonRecap as Recap } from "../../api/types";
 import { seasonPaths } from "../../routes";
 import { tokens } from "../../theme";
 import { mutationError } from "../common/friendlyError";
+import { formatPoints } from "../league/standingsView";
 
-const ROUND_NAMES = ["Wild Card", "Divisional", "Conference Championship", "Super Bowl"];
-
-const points = (value: number) => `${Number(value.toFixed(2))} pts`;
+const points = (value: number) => `${formatPoints(value)} pts`;
 
 const POSITIONS = ["QB", "RB", "WR", "TE", "K", "DST"];
 
-const isDraftAward = (award: AwardWinner) => award.draftedAs !== null;
+const POSITION_ROWS = [
+  {
+    prefix: "top",
+    label: "Highest scoring",
+    help: "Highest scoring: the player who scored the most fantasy points at his position this season.",
+  },
+  {
+    prefix: "best_value",
+    label: "Best value",
+    help: "Best value: the player who finished furthest above where he was drafted, compared with the others at his position.",
+  },
+  {
+    prefix: "bust",
+    label: "Biggest bust",
+    help: "Biggest bust: the player who finished furthest below where he was drafted, compared with the others at his position.",
+  },
+] as const;
 
-const awardValue = (award: AwardWinner): string => {
-  if (isDraftAward(award)) {
-    const places = Math.abs(award.value);
-    const verb = award.value >= 0 ? "+" : "-";
-    return `Drafted as ${award.position}${award.draftedAs}, finished ${award.position}${award.finishedAs}, ${verb}${places} ${places === 1 ? "place" : "places"} · ${points(award.points ?? 0)}`;
-  }
-  const round = award.round ? ` · ${ROUND_NAMES[award.round - 1]}` : "";
-  return `${points(award.value)}${round}`;
+const awardLine = (award: AwardWinner): string => {
+  const pick = award.pickNumber !== null ? ` · Pick ${award.pickNumber}` : "";
+  return `${award.playerName}${pick} · ${points(award.points ?? award.value)}`;
 };
 
-const AwardCard = ({ award }: { award: AwardWinner }) => (
-  <Card sx={{ p: 2 }} component="li" aria-label={award.title}>
-    <Typography variant="overline" color="text.secondary">
-      {award.title}
-    </Typography>
-    <Typography variant="h6" sx={{ overflowWrap: "anywhere" }}>
-      {award.playerName ?? award.teamName}
-      {award.position && (
-        <Typography component="span" color="text.secondary">
-          {" "}
-          · {award.position}
+const ChampionCard = ({ recap }: { recap: Recap }) => (
+  <Card
+    sx={{
+      p: 2,
+      display: "flex",
+      flexDirection: "column",
+      gap: 1.5,
+      border: `1px solid ${tokens.gold}`,
+      bgcolor: alpha(tokens.gold, 0.1),
+    }}
+  >
+    {recap.champions.map((champion) => (
+      <Box
+        key={champion.teamId}
+        sx={{
+          display: "grid",
+          gridTemplateColumns: "1fr auto",
+          columnGap: 1.5,
+          alignItems: "center",
+        }}
+      >
+        <Typography variant="caption" sx={{ color: tokens.gold }}>
+          {recap.year} champion
         </Typography>
-      )}
+        <Typography
+          sx={{
+            gridColumn: 2,
+            gridRow: "1 / span 3",
+            fontSize: 30,
+            fontWeight: 700,
+            lineHeight: 1.1,
+          }}
+        >
+          {formatPoints(champion.total)}
+        </Typography>
+        <Typography component="h2" sx={{ fontSize: 22, fontWeight: 700, overflowWrap: "anywhere" }}>
+          {champion.teamName}
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          {champion.owner}
+        </Typography>
+      </Box>
+    ))}
+  </Card>
+);
+
+const HeadlineAward = ({ title, award }: { title: string; award: AwardWinner }) => (
+  <Card sx={{ p: 1.5 }} component="li" aria-label={title}>
+    <Typography variant="caption" color="text.secondary" component="div">
+      {title}
     </Typography>
-    <Typography variant="body2" color="text.secondary" sx={{ overflowWrap: "anywhere" }}>
-      {award.playerName ? `${award.teamName} (${award.owner}) · ` : `${award.owner} · `}
-      {awardValue(award)}
+    <Typography sx={{ fontWeight: 600, overflowWrap: "anywhere" }}>{award.playerName}</Typography>
+    <Typography variant="caption" sx={{ color: tokens.accent }}>
+      {points(award.value)}
     </Typography>
   </Card>
 );
 
-const AwardGrid = ({ awards }: { awards: AwardWinner[] }) => (
-  <Box
-    component="ul"
-    sx={{
-      listStyle: "none",
-      m: 0,
-      p: 0,
-      display: "grid",
-      gap: 1.5,
-      gridTemplateColumns: { xs: "1fr", md: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" },
-    }}
-  >
-    {awards.map((award) => (
-      <AwardCard key={award.key} award={award} />
-    ))}
-  </Box>
-);
+/** A row label that opens its explanation on a tap, hover or focus. */
+const RowLabel = ({ label, help }: { label: string; help: string | null }) =>
+  help ? (
+    <Tooltip title={help} arrow enterTouchDelay={0} leaveTouchDelay={8000}>
+      <ButtonBase
+        aria-label={`${label}: what does this mean?`}
+        sx={{
+          minHeight: 44,
+          gap: 0.75,
+          color: "text.secondary",
+          fontSize: 13,
+          justifyContent: "flex-start",
+        }}
+      >
+        {label}
+        <InfoOutlinedIcon aria-hidden sx={{ fontSize: 16 }} />
+      </ButtonBase>
+    </Tooltip>
+  ) : (
+    <Typography
+      color="text.secondary"
+      sx={{ fontSize: 13, minHeight: 44, display: "flex", alignItems: "center" }}
+    >
+      {label}
+    </Typography>
+  );
 
-/** Best value and bust per position; open by default on desktop, collapsed on a phone. */
-const DraftAwards = ({ awards }: { awards: AwardWinner[] }) => {
-  const theme = useTheme();
-  const wide = useMediaQuery(theme.breakpoints.up("md"));
+const PositionAwards = ({ awards }: { awards: AwardWinner[] }) => {
+  const groups = POSITIONS.map((position) => ({
+    position,
+    rows: POSITION_ROWS.map((row) => ({
+      ...row,
+      award: awards.find((a) => a.key === `${row.prefix}_${position.toLowerCase()}`),
+    })),
+  })).filter((group) => group.rows.some((row) => row.award));
+  if (groups.length === 0) return null;
   return (
-    <Accordion defaultExpanded={wide} disableGutters>
-      <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: 48 }}>
-        <Typography variant="h6">Draft value by position</Typography>
-      </AccordionSummary>
-      <AccordionDetails sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-        {POSITIONS.map((position) => {
-          const group = awards.filter((a) => a.key.endsWith(`_${position.toLowerCase()}`));
-          return (
-            group.length > 0 && (
-              <Box key={position}>
-                <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-                  {position}
-                </Typography>
-                <AwardGrid awards={group} />
-              </Box>
-            )
-          );
-        })}
-      </AccordionDetails>
-    </Accordion>
+    <Card sx={{ p: 2, display: "flex", flexDirection: "column", gap: 1 }}>
+      <Typography component="h3" sx={{ fontSize: 14, fontWeight: 700 }}>
+        By position
+      </Typography>
+      {groups.map(({ position, rows }, groupIndex) => (
+        <Box
+          key={position}
+          component="section"
+          aria-label={position}
+          sx={{ borderTop: 1, borderColor: "divider", pt: 1 }}
+        >
+          <Typography
+            sx={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, color: tokens.accent }}
+          >
+            {position}
+          </Typography>
+          {rows.map(({ label, help, award }) => (
+            <Box
+              key={label}
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: 1,
+              }}
+            >
+              <RowLabel label={label} help={groupIndex === 0 ? help : null} />
+              <Typography
+                sx={{ fontSize: 13, fontWeight: 600, textAlign: "right", overflowWrap: "anywhere" }}
+              >
+                {award ? awardLine(award) : "-"}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
+      ))}
+    </Card>
+  );
+};
+
+const Awards = ({ recap }: { recap: Recap }) => {
+  const mvp = recap.awards.find((a) => a.key === "playoff_mvp");
+  const championsMvp = recap.awards.find((a) => a.key === "champions_mvp");
+  return (
+    <Box
+      component="section"
+      aria-label="Awards"
+      sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}
+    >
+      <Box sx={{ display: "flex", justifyContent: "space-between", px: 0.5 }}>
+        <Typography component="h2" sx={{ fontSize: 14, fontWeight: 700 }}>
+          Awards
+        </Typography>
+        <Typography variant="caption" color="text.secondary">
+          {recap.year} season
+        </Typography>
+      </Box>
+      <Box
+        component="ul"
+        sx={{
+          listStyle: "none",
+          m: 0,
+          p: 0,
+          display: "grid",
+          gap: 1,
+          gridTemplateColumns: "1fr 1fr",
+        }}
+      >
+        {mvp && <HeadlineAward title="Playoff MVP" award={mvp} />}
+        {championsMvp && (
+          <HeadlineAward title={`${championsMvp.teamName} MVP`} award={championsMvp} />
+        )}
+      </Box>
+      <PositionAwards awards={recap.awards} />
+    </Box>
   );
 };
 
@@ -136,7 +240,7 @@ const StartSeason = ({ leagueId, year }: { leagueId: number; year: number }) => 
   );
 };
 
-/** A finished season's top: champion(s), awards, and the way on to the next season. */
+/** A finished season's top: the champion, the awards, and the way on to the next season. */
 const SeasonRecap = ({
   recap,
   canStartSeason,
@@ -145,32 +249,13 @@ const SeasonRecap = ({
   /** The caller is a commissioner and no later season exists yet. */
   canStartSeason: boolean;
 }) => (
-  <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-    <Card sx={{ p: { xs: 2.5, md: 4 }, textAlign: "center", border: `1px solid ${tokens.accent}` }}>
-      <EmojiEventsIcon sx={{ fontSize: 48, color: tokens.accent }} />
-      <Typography variant="overline" color="text.secondary" sx={{ display: "block" }}>
-        {recap.year} champion{recap.champions.length > 1 ? "s" : ""}
-      </Typography>
-      {recap.champions.map((champion) => (
-        <Box key={champion.teamId} sx={{ my: 1 }}>
-          <Typography variant="h4" sx={{ overflowWrap: "anywhere" }}>
-            {champion.teamName}
-          </Typography>
-          <Typography color="text.secondary">
-            {champion.owner} · {points(champion.total)}
-          </Typography>
-        </Box>
-      ))}
-    </Card>
-    {recap.awards.length > 0 && (
-      <Box>
-        <Typography variant="h6" sx={{ mb: 1 }}>
-          Season awards
-        </Typography>
-        <AwardGrid awards={recap.awards.filter((a) => !isDraftAward(a))} />
-      </Box>
+  <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+    {recap.champions.length > 0 ? (
+      <ChampionCard recap={recap} />
+    ) : (
+      <Alert severity="info">The {recap.year} season is over, and this league never drafted.</Alert>
     )}
-    {recap.awards.some(isDraftAward) && <DraftAwards awards={recap.awards.filter(isDraftAward)} />}
+    {recap.awards.length > 0 && <Awards recap={recap} />}
     {canStartSeason ? (
       <StartSeason leagueId={recap.leagueId} year={recap.year + 1} />
     ) : (

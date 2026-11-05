@@ -31,7 +31,12 @@ from api.models.league_models import (
 from api.services.lineups import BENCH, slot_layout
 from api.services.ranking import RoundPoints, TieReason, rank_teams
 from api.services.round_progress import starter_progress
-from api.services.round_status import current_round, games_in_progress, load_games
+from api.services.round_status import (
+    current_round,
+    games_final,
+    games_in_progress,
+    load_games,
+)
 from api.services.standings import load_ranking_facts
 
 ROUND_NAMES = {
@@ -181,6 +186,7 @@ async def season_standings(db: AsyncSession, season_id: int) -> Standings:
         phase=StandingsPhase.LIVE,
         round=round_,
         games_in_progress=games_in_progress(games),
+        games_final=games_final(games, round_),
         players_left=sum(row.players_left or 0 for row in rows),
         teams=[
             TeamStanding(

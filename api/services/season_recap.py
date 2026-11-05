@@ -78,6 +78,7 @@ async def _awards(
             round=a.round,
             value=float(a.value),
             drafted_as=a.draft.drafted_as if a.draft else None,
+            pick_number=a.pick_number,
             finished_as=a.draft.finished_as if a.draft else None,
             points=float(a.draft.points) if a.draft else None,
         )

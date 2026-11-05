@@ -80,6 +80,7 @@ def test_draft_value_compares_draft_order_with_finish_within_the_position() -> N
     assert (bo.player_id, bo.value) == (3, Decimal(-1))
     assert ray.draft == DraftValue(2, 1, 1, Decimal("45"))
     assert bo.draft == DraftValue(1, 2, -1, Decimal("0"))
+    assert (ray.pick_number, bo.pick_number) == (3, 1)
 
 
 def test_a_lone_player_at_a_position_gets_both_awards_at_zero() -> None:

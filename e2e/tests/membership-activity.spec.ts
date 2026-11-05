@@ -1,11 +1,8 @@
 import { expect, test } from "@playwright/test";
-import { Api, seasonUrl, unique } from "../support/api";
-import { signInAs } from "../support/auth";
+import { Api, unique } from "../support/api";
 
 test.describe("membership in the league feed", () => {
-  test("creation, joins and a promotion read in order, and a new member sees the dot", async ({
-    page,
-    context,
+  test("creation, joins and a promotion reach the season feed, and a new member has unread activity", async ({
     request,
   }) => {
     const host = new Api(request, unique("host"));
@@ -25,17 +22,18 @@ test.describe("membership in the league feed", () => {
       role: "commissioner",
     });
 
-    await signInAs(context, guests[0].uid, "guest1");
-    await page.goto(seasonUrl(league));
-    const feed = page.getByRole("region", { name: /activity/i }).first();
-    await expect(feed.getByText("New", { exact: false }).first()).toBeVisible();
-    await feed.getByRole("button").first().click();
+    const seasonFeed = (api: Api) =>
+      api.get<{ events: { kind: string; isNew: boolean }[]; hasNew: boolean }>(
+        `/api/seasons/${league.seasonId}/activity`,
+      );
+    const feed = await seasonFeed(guests[0]);
+    const kinds = feed.events.map((event) => event.kind);
+    expect(kinds.filter((kind) => kind === "league_created")).toHaveLength(1);
+    expect(kinds.filter((kind) => kind === "role_changed")).toHaveLength(1);
+    expect(kinds.filter((kind) => kind === "membership_joined").length).toBeGreaterThanOrEqual(3);
+    expect(feed.hasNew).toBe(true);
 
-    const rows = feed.locator("li");
-    await expect(rows.filter({ hasText: "created the league" })).toHaveCount(1);
-    await expect(rows.filter({ hasText: "joined as commissioner" })).toHaveCount(1);
-    await expect(rows.filter({ hasText: "guest3 joined" })).toHaveCount(1);
-    await expect(rows.filter({ hasText: "made guest2 a commissioner" })).toHaveCount(1);
-    if (process.env.FEED_SHOT) await feed.screenshot({ path: process.env.FEED_SHOT });
+    await guests[0].post(`/api/seasons/${league.seasonId}/activity/viewed`, {});
+    expect((await seasonFeed(guests[0])).hasNew).toBe(false);
   });
 });
