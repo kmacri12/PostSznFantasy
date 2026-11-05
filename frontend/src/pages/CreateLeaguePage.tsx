@@ -1,17 +1,16 @@
+import AddIcon from "@mui/icons-material/Add";
+import RemoveIcon from "@mui/icons-material/Remove";
 import {
   Alert,
   Box,
   Button,
   Card,
   Container,
-  FormControl,
-  FormHelperText,
-  Grid,
-  InputLabel,
-  OutlinedInput,
+  IconButton,
   Step,
   StepLabel,
   Stepper,
+  TextField,
   Typography,
 } from "@mui/material";
 import type React from "react";
@@ -34,7 +33,38 @@ import {
 
 const logger = createLogger("CreateLeaguePage");
 
-const STEPS = ["League", "Roster", "Scoring", "Review"];
+/** "Customize rules" walks these; the short path creates with the defaults. */
+const STEPS = ["Roster", "Scoring", "Review"];
+const MIN_TEAMS = 2;
+const MAX_TEAMS = 14;
+
+const DEFAULT_ROSTER = {
+  number_teams: 6,
+  roster_total: 18,
+  roster_num_qb: 1,
+  roster_num_rb: 2,
+  roster_num_wr: 2,
+  roster_num_te: 1,
+  roster_num_flex_wr_rb_te: 1,
+  roster_num_flex_wr_rb: 0,
+  roster_num_flex_wr_te: 0,
+  roster_num_flex_qb_wr_rb_te: 0,
+  roster_num_k: 1,
+  roster_num_dst: 1,
+  roster_num_bench: 9,
+  roster_max_qb: 2,
+  roster_max_rb: 99,
+  roster_max_wr: 99,
+  roster_max_te: 99,
+  roster_max_k: 2,
+  roster_max_dst: 2,
+};
+
+/** Standard individual QB and K: the short path never asks, Customize rules does. */
+const DEFAULT_TEAM_UNITS: TeamUnitValues = { team_qb: false, team_k: false };
+
+const defaultRulesSummary = (roster: typeof DEFAULT_ROSTER): string =>
+  `${roster.roster_num_qb} QB, ${roster.roster_num_rb} RB, ${roster.roster_num_wr} WR, ${roster.roster_num_te} TE, ${roster.roster_num_flex_wr_rb_te} FLEX, ${roster.roster_num_k} K, ${roster.roster_num_dst} DST, bench of ${roster.roster_num_bench}. Full PPR scoring. Every round counts the same (1x).`;
 
 const CreateLeaguePage = ({
   onLeagueCreated,
@@ -42,33 +72,12 @@ const CreateLeaguePage = ({
   onLeagueCreated: (leagueId: number) => Promise<void>;
 }) => {
   const navigate = useNavigate();
-  const [leagueName, setLeagueName] = useState("MyLeague");
+  const [leagueName, setLeagueName] = useState("");
+  const [customizing, setCustomizing] = useState(false);
   const [step, setStep] = useState(0);
+  const [rosterSettings, setRosterSettings] = useState(DEFAULT_ROSTER);
 
-  // Roster Settings
-  const [rosterSettings, setRosterSettings] = useState({
-    number_teams: 6,
-    roster_total: 18,
-    roster_num_qb: 1,
-    roster_num_rb: 2,
-    roster_num_wr: 2,
-    roster_num_te: 1,
-    roster_num_flex_wr_rb_te: 1,
-    roster_num_flex_wr_rb: 0,
-    roster_num_flex_wr_te: 0,
-    roster_num_flex_qb_wr_rb_te: 0,
-    roster_num_k: 1,
-    roster_num_dst: 1,
-    roster_num_bench: 9,
-    roster_max_qb: 2,
-    roster_max_rb: 99,
-    roster_max_wr: 99,
-    roster_max_te: 99,
-    roster_max_k: 2,
-    roster_max_dst: 2,
-  });
-
-  const [teamUnits, setTeamUnits] = useState<TeamUnitValues>({ team_qb: null, team_k: null });
+  const [teamUnits, setTeamUnits] = useState<TeamUnitValues>(DEFAULT_TEAM_UNITS);
   const [scoringSettings, setScoringSettings] = useState<ScoringSettingsState>({});
   const defaultsQuery = useScoringDefaults();
   const createLeague = useCreateLeague();
@@ -86,9 +95,9 @@ const CreateLeaguePage = ({
 
     try {
       const response = await createLeague.mutateAsync({
-        leagueName,
+        leagueName: leagueName.trim(),
         rosterSettings,
-        scoringSettings: toNumericScoring(scoringSettings),
+        ...(customizing && { scoringSettings: toNumericScoring(scoringSettings) }),
         teamUnitSettings: { teamQb: teamUnits.team_qb, teamK: teamUnits.team_k },
       });
 
@@ -111,17 +120,117 @@ const CreateLeaguePage = ({
     ? countChangedFromDefaults(scoringSettings, scoringDefaults)
     : 0;
   const isLastStep = step === STEPS.length - 1;
-  const leagueStepValid =
-    leagueName.trim() !== "" &&
-    rosterSettings.number_teams >= 2 &&
-    rosterSettings.number_teams <= 14;
-  const teamUnitsChosen = teamUnits.team_qb !== null && teamUnits.team_k !== null;
-  const canAdvance = (step !== 0 || leagueStepValid) && (step !== 1 || teamUnitsChosen);
+  const leagueValid = leagueName.trim() !== "";
+  const setTeams = (count: number) =>
+    setRosterSettings((previous) => ({
+      ...previous,
+      number_teams: Math.min(MAX_TEAMS, Math.max(MIN_TEAMS, count)),
+    }));
+
+  if (!customizing) {
+    return (
+      <Container maxWidth="sm" sx={{ py: { xs: 2.5, sm: 4 } }}>
+        <Box
+          component="form"
+          onSubmit={handleSubmit}
+          sx={{ display: "grid", gap: 2, minHeight: { xs: "calc(100dvh - 120px)", sm: "auto" } }}
+        >
+          <Box>
+            <Typography variant="h5" component="h1">
+              Create a league
+            </Typography>
+            <Typography color="text.secondary" sx={{ mt: 0.5 }}>
+              Two details and you're in. Everything else has playoff-ready defaults.
+            </Typography>
+          </Box>
+          {submitError && <Alert severity="error">{submitError}</Alert>}
+          <TextField
+            label="League name"
+            value={leagueName}
+            onChange={(event) => setLeagueName(event.target.value)}
+            slotProps={{ htmlInput: { maxLength: 100 } }}
+            required
+            fullWidth
+          />
+          <Box>
+            <Typography id="number-teams-label" variant="body2" color="text.secondary">
+              Number of teams
+            </Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1.25, mt: 0.75 }}>
+              <IconButton
+                aria-label="Fewer teams"
+                disabled={rosterSettings.number_teams <= MIN_TEAMS}
+                onClick={() => setTeams(rosterSettings.number_teams - 1)}
+                sx={{ width: 52, height: 52, border: 1, borderColor: "divider", borderRadius: 2 }}
+              >
+                <RemoveIcon />
+              </IconButton>
+              <Typography
+                role="status"
+                aria-labelledby="number-teams-label"
+                sx={{
+                  flex: 1,
+                  textAlign: "center",
+                  fontSize: 20,
+                  fontWeight: 700,
+                  border: 1,
+                  borderColor: "divider",
+                  borderRadius: 2,
+                  lineHeight: "50px",
+                }}
+              >
+                {rosterSettings.number_teams}
+              </Typography>
+              <IconButton
+                aria-label="More teams"
+                disabled={rosterSettings.number_teams >= MAX_TEAMS}
+                onClick={() => setTeams(rosterSettings.number_teams + 1)}
+                sx={{ width: 52, height: 52, border: 1, borderColor: "divider", borderRadius: 2 }}
+              >
+                <AddIcon />
+              </IconButton>
+            </Box>
+            <Typography variant="caption" color="text.secondary">
+              {MIN_TEAMS} to {MAX_TEAMS} teams. You can change this until the draft starts.
+            </Typography>
+          </Box>
+          <ExhaustionWarning settings={rosterSettings} />
+          <Card sx={{ p: 1.75 }}>
+            <Typography variant="subtitle2">Default rules</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+              {defaultRulesSummary(rosterSettings)}
+            </Typography>
+          </Card>
+          <Button
+            type="button"
+            color="primary"
+            sx={{ justifyContent: "flex-start" }}
+            onClick={() => {
+              setStep(0);
+              setCustomizing(true);
+            }}
+          >
+            Customize rules
+          </Button>
+          <Box sx={{ flex: 1 }} />
+          <Button
+            type="submit"
+            variant="contained"
+            size="large"
+            sx={{ minHeight: 52 }}
+            disabled={!leagueValid || createLeague.isPending}
+          >
+            Create league
+          </Button>
+        </Box>
+      </Container>
+    );
+  }
 
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
-      <Typography variant="h4" sx={{ mb: 3 }}>
-        Create a league
+      <Typography variant="h4" component="h1" sx={{ mb: 3 }}>
+        Customize rules
       </Typography>
       {submitError && (
         <Alert severity="error" sx={{ mb: 3 }}>
@@ -145,47 +254,6 @@ const CreateLeaguePage = ({
         }}
       >
         {step === 0 && (
-          <Card sx={{ p: 3 }}>
-            <Grid container spacing={2}>
-              <Grid size={{ xs: 12, sm: 8 }}>
-                <FormControl fullWidth>
-                  <InputLabel htmlFor="league-name">League name</InputLabel>
-                  <OutlinedInput
-                    id="league-name"
-                    value={leagueName}
-                    onChange={(e) => setLeagueName(e.target.value)}
-                    label="League name"
-                    required
-                  />
-                </FormControl>
-              </Grid>
-              <Grid size={{ xs: 12, sm: 4 }}>
-                <FormControl fullWidth>
-                  <InputLabel htmlFor="number-teams">Teams</InputLabel>
-                  <OutlinedInput
-                    id="number-teams"
-                    type="number"
-                    inputProps={{ min: 2, max: 14 }}
-                    value={rosterSettings.number_teams || ""}
-                    onChange={(e) =>
-                      setRosterSettings({
-                        ...rosterSettings,
-                        number_teams: Number.parseInt(e.target.value, 10) || 0,
-                      })
-                    }
-                    label="Teams"
-                  />
-                  <FormHelperText>2 to 14 teams</FormHelperText>
-                </FormControl>
-              </Grid>
-            </Grid>
-            <Box sx={{ mt: 2 }}>
-              <ExhaustionWarning settings={rosterSettings} />
-            </Box>
-          </Card>
-        )}
-
-        {step === 1 && (
           <>
             <DraftLockNotice />
             <ExhaustionWarning settings={rosterSettings} />
@@ -200,14 +268,14 @@ const CreateLeaguePage = ({
           </>
         )}
 
-        {step === 2 && defaultsFailed && (
+        {step === 1 && defaultsFailed && (
           <ErrorState
             message="Couldn't load the default scoring settings. Check your connection and try again."
             onRetry={() => defaultsQuery.refetch()}
           />
         )}
 
-        {step === 2 && scoringDefaults && (
+        {step === 1 && scoringDefaults && (
           <>
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <Typography color="text.secondary">
@@ -230,7 +298,7 @@ const CreateLeaguePage = ({
           </>
         )}
 
-        {step === 3 && (
+        {step === 2 && (
           <Card sx={{ p: 3 }}>
             <DraftLockNotice />
             <ExhaustionWarning settings={rosterSettings} />
@@ -269,15 +337,14 @@ const CreateLeaguePage = ({
           <Button
             type="button"
             color="inherit"
-            disabled={step === 0}
-            onClick={() => setStep((current) => current - 1)}
+            onClick={() => (step === 0 ? setCustomizing(false) : setStep((current) => current - 1))}
           >
             Back
           </Button>
           <Button
             type="submit"
             variant="contained"
-            disabled={!canAdvance || (isLastStep && !scoringDefaults)}
+            disabled={isLastStep && (!scoringDefaults || createLeague.isPending)}
           >
             {isLastStep ? "Create league" : "Next"}
           </Button>

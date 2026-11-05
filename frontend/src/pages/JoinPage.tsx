@@ -1,40 +1,38 @@
-import { Alert, Button, Card, CircularProgress, Container, Typography } from "@mui/material";
-import { useEffect, useRef } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Alert, Box, Button, Container, Typography } from "@mui/material";
+import { useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { isLeagueFullError } from "../api/inviteErrors";
 import { useInvitePreview, useJoinWithCode } from "../api/queries";
 import ErrorState from "../components/common/ErrorState";
 import { friendlyError } from "../components/common/friendlyError";
 import LoadingState from "../components/common/LoadingState";
+import InviteMembers from "../components/invite/InviteMembers";
+import { commissionerName, inviteView } from "../components/invite/inviteView";
 import { useUser } from "../contexts/UserContext";
 import { leaguePath } from "../routes";
+import { signInPath } from "../utils/authRedirect";
 
-/** Shareable /join/:code link. Signed-out visitors log in, come back here and auto-join. */
+const FULL_HELP = "Ask your commissioner to add a team, then try again.";
+
+/** Shareable /join/:code link: preview the league, sign in if needed, then press Join. */
 const JoinPage = () => {
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
-  const { user, userId, loading, signIn, syncError } = useUser();
+  const { user, userId, loading, syncError } = useUser();
   const preview = useInvitePreview(code);
   const join = useJoinWithCode();
-  const attempted = useRef(false);
-
-  const joinable = preview.data?.joinable === true;
-  // biome-ignore lint/correctness/useExhaustiveDependencies: join.mutate is stable and the ref guards repeats
-  useEffect(() => {
-    if (!code || userId === null || !joinable || attempted.current) return;
-    attempted.current = true;
-    join.mutate(code, { onSuccess: (result) => navigate(leaguePath(result.leagueId)) });
-  }, [code, userId, joinable]);
+  const [filledMeanwhile, setFilledMeanwhile] = useState(false);
 
   if (preview.isLoading || loading) {
     return (
-      <Container maxWidth="sm" sx={{ py: 6 }}>
+      <Container maxWidth="sm" sx={{ py: 4 }}>
         <LoadingState what="invite" rows={2} />
       </Container>
     );
   }
   if (preview.isError || !preview.data) {
     return (
-      <Container maxWidth="sm" sx={{ py: 6 }}>
+      <Container maxWidth="sm" sx={{ py: 4 }}>
         <ErrorState
           message={friendlyError(preview.error, "Check the invite link and try again.")}
           onRetry={() => preview.refetch()}
@@ -43,34 +41,81 @@ const JoinPage = () => {
     );
   }
 
-  const { leagueName, season, openSpots, reason } = preview.data;
-  return (
-    <Container maxWidth="sm" sx={{ py: 6 }}>
-      <Card sx={{ p: 4, textAlign: "center" }}>
-        <Typography variant="overline" color="text.secondary">
-          You're invited to join
-        </Typography>
-        <Typography variant="h4" sx={{ my: 1 }}>
-          {leagueName}
-        </Typography>
-        <Typography color="text.secondary" sx={{ mb: 3 }}>
-          {season} postseason · {openSpots} open {openSpots === 1 ? "spot" : "spots"}
-        </Typography>
+  const data = preview.data;
+  const view = filledMeanwhile ? { kind: "full" as const } : inviteView(data, user !== null);
+  const commissioner = commissionerName(data);
+  const joinNow = () =>
+    code &&
+    join.mutate(code, {
+      onSuccess: (result) => navigate(leaguePath(result.leagueId)),
+      onError: (error) => {
+        if (isLeagueFullError(error)) {
+          setFilledMeanwhile(true);
+          void preview.refetch();
+        }
+      },
+    });
+  const failure =
+    join.isError && !isLeagueFullError(join.error)
+      ? friendlyError(join.error, "Couldn't join this league. Try again.")
+      : null;
 
-        {reason && <Alert severity="warning">{reason}</Alert>}
-        {!reason && !user && (
-          <Button variant="contained" size="large" onClick={signIn}>
-            Sign in to join
+  return (
+    <Container maxWidth="sm" sx={{ py: { xs: 3, sm: 6 }, display: "grid", gap: 2 }}>
+      <Box>
+        <Typography variant="body2" sx={{ color: "primary.main", fontWeight: 600 }}>
+          You're invited
+        </Typography>
+        <Typography variant="h4" component="h1" sx={{ mt: 0.5 }}>
+          {data.leagueName}
+        </Typography>
+        <Typography color="text.secondary">
+          {commissioner ? `${commissioner} is the commissioner · ` : ""}
+          {data.season} playoffs
+        </Typography>
+      </Box>
+
+      <InviteMembers preview={data} />
+
+      {view.kind === "full" && (
+        <Alert severity="warning">
+          <Typography sx={{ fontWeight: 700 }}>This league is full</Typography>
+          {FULL_HELP}
+        </Alert>
+      )}
+      {view.kind === "unavailable" && <Alert severity="warning">{view.reason}</Alert>}
+      {failure && <Alert severity="error">{failure}</Alert>}
+      {syncError && <Alert severity="error">{syncError}</Alert>}
+
+      {view.kind === "sign-in" && (
+        <Button
+          component={Link}
+          to={signInPath(`/join/${code ?? ""}`)}
+          variant="contained"
+          size="large"
+          sx={{ minHeight: 52 }}
+        >
+          Sign in to join
+        </Button>
+      )}
+      {(view.kind === "join" || view.kind === "full") && (
+        <>
+          <Button
+            variant="contained"
+            size="large"
+            sx={{ minHeight: 52 }}
+            disabled={view.kind === "full" || join.isPending || userId === null}
+            onClick={joinNow}
+          >
+            Join league
           </Button>
-        )}
-        {!reason && user && join.isPending && <CircularProgress size={28} />}
-        {join.isError && (
-          <Alert severity="error">
-            {friendlyError(join.error, "Couldn't join this league. Try again.")}
-          </Alert>
-        )}
-        {syncError && <Alert severity="error">{syncError}</Alert>}
-      </Card>
+          {user?.email && (
+            <Typography variant="caption" color="text.secondary" sx={{ textAlign: "center" }}>
+              Signed in as {user.email}
+            </Typography>
+          )}
+        </>
+      )}
     </Container>
   );
 };

@@ -2,8 +2,8 @@ import { Box, Button, TextField } from "@mui/material";
 import { type FormEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-/** Accepts the same code the invite link carries (case-insensitive) and opens /join/:code. */
-const JoinCodeBox = () => {
+/** Accepts the code an invite link carries (case-insensitive) and opens /join/:code. */
+const InviteCodeForm = () => {
   const [code, setCode] = useState("");
   const navigate = useNavigate();
 
@@ -14,34 +14,25 @@ const JoinCodeBox = () => {
   };
 
   return (
-    <Box
-      component="form"
-      onSubmit={submit}
-      sx={{
-        display: "flex",
-        flexDirection: { xs: "column", sm: "row" },
-        gap: 1,
-        width: "100%",
-        maxWidth: 420,
-      }}
-    >
+    <Box component="form" onSubmit={submit} sx={{ display: "flex", gap: 1 }}>
       <TextField
-        label="Join code"
+        fullWidth
+        placeholder="Invite code"
         value={code}
         onChange={(event) => setCode(event.target.value)}
-        slotProps={{ htmlInput: { maxLength: 16, "aria-label": "Join code" } }}
+        slotProps={{ htmlInput: { maxLength: 16, "aria-label": "Invite code" } }}
       />
       <Button
         type="submit"
-        sx={{ flexShrink: 0 }}
         variant="outlined"
-        color="inherit"
+        color="primary"
         disabled={!code.trim()}
+        sx={{ flexShrink: 0, minWidth: 80 }}
       >
-        Join with code
+        Join
       </Button>
     </Box>
   );
 };
 
-export default JoinCodeBox;
+export default InviteCodeForm;

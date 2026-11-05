@@ -54,13 +54,14 @@ test.describe("invite and join", () => {
 
     await page.goto(`/join/${code}`);
     await expect(page.getByRole("heading", { name: leagueName })).toBeVisible();
-    await expect(page.getByText(/1 open spot/)).toBeVisible();
-    await page.getByRole("button", { name: "Sign in to join" }).click();
+    await expect(page.getByText("Open slot")).toBeVisible();
+    await page.getByRole("link", { name: "Sign in to join" }).click();
     await expect(page).toHaveURL(/sign-in\?next=%2Fjoin%2F/);
 
     // The emailed-code round trip is covered in sign-in.spec; here the session just arrives.
     await signInAs(context, unique("guest"));
     await page.goto(`/join/${code}`);
+    await page.getByRole("button", { name: "Join league" }).click();
     await expect(page).toHaveURL(new RegExp(`${seasonUrl(league)}$`));
     await expect(page.getByRole("heading", { name: leagueName, level: 4 })).toBeVisible();
     await expect(page.getByText("Member", { exact: true })).toBeVisible();
@@ -79,9 +80,10 @@ test.describe("invite and join", () => {
 
     await signInAs(context, unique("guest"));
     await page.goto("/");
-    await page.getByRole("textbox", { name: "Join code" }).fill(code);
-    await page.getByRole("button", { name: "Join with code" }).click();
-    await expect(page.getByRole("heading", { name: leagueName, level: 4 })).toBeVisible();
+    await page.getByRole("textbox", { name: "Invite code" }).fill(code);
+    await page.getByRole("button", { name: "Join", exact: true }).click();
+    await expect(page).toHaveURL(new RegExp(`/join/${code}$`));
+    await expect(page.getByRole("heading", { name: leagueName, level: 1 })).toBeVisible();
   });
 
   test("a full league explains why it cannot be joined", async ({ page, context, request }) => {
@@ -95,6 +97,8 @@ test.describe("invite and join", () => {
 
     await signInAs(context, unique("late"));
     await page.goto(`/join/${code}`);
-    await expect(page.getByText(/league is full/i)).toBeVisible();
+    await expect(page.getByText("This league is full")).toBeVisible();
+    await expect(page.getByText(/ask your commissioner/i)).toBeVisible();
+    await expect(page.getByRole("button", { name: "Join league" })).toBeDisabled();
   });
 });

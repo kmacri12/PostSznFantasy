@@ -167,9 +167,10 @@ PostSznFantasy/
         │   ├── useWebSocket.ts # Native RFC 6455 WebSocket hook
         │   └── useWebSocket.test.ts # Hook test suite
         ├── pages/
-        │   ├── LandingPage.tsx # Root route: hero, round explainer, user's leagues (`dormant` swaps the hero for the off-season notice)
+        │   ├── LandingPage.tsx # Root route: signed out = hero with Sign in and How to play plus the privacy/terms footer; signed in = `YourLeagues` (no redirect, so the logo always reaches it; `dormant` swaps the hero for the off-season notice)
         │   ├── DormantPage.tsx # Dormant-mode notice and fallback for every route except landing, How to play, privacy, terms
-        │   ├── CreateLeaguePage.tsx # Multi-step league creation wizard
+        │   ├── CreateLeaguePage.tsx # Short path (name + team count stepper, default rules, Team QB/K off) and an optional "Customize rules" Roster, Scoring, Review wizard
+        │   ├── JoinPage.tsx    # `/join/:code` invite preview (members, open slots), Sign in to join / Join league, full-league state and the 409 `league_full` answer
         │   ├── DraftPage.tsx   # Live synchronized draft room
         │   ├── HowToPlayPage.tsx # Plain-language rules page (nav link), copy from src/content/rules.ts
         │   ├── SeasonLayout.tsx # `/leagues/:leagueId` (the current season) and `/leagues/:leagueId/seasons/:year` resolve to a season and provide SeasonContext to the pages below; the long form of the current season redirects (`replace`) to the clean one
@@ -180,6 +181,8 @@ PostSznFantasy/
         │   ├── TeamPointsPage.tsx # Round-by-round points and bench points
         │   └── NotFoundPage.tsx# 404 handler
         ├── components/
+        │   ├── home/           # YourLeagues (league cards, Create, invite code, How to play), LeagueCard, leagueSummary (phase tag, rank), PastLeagues, InviteCodeForm
+        │   ├── invite/         # InviteMembers (members plus open slots), `inviteView` (sign-in / join / full / unavailable)
         │   ├── activity/       # ActivityFeed (collapsed, new dot), SlotMarker (override / asterisk), ChangedScore tooltip, describeEvent
         │   ├── layout/         # NavBar (blurred header, league switcher, drawer)
         │   ├── draft/          # DraftBoard, Countdown, PlayerSelector
