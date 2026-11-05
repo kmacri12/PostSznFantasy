@@ -13,19 +13,17 @@ vi.mock("react-router-dom", async (importOriginal) => ({
   useNavigate: () => mockNavigate,
 }));
 
-// The wizard renders every scoring group, which is slow enough to hit 5s on a busy machine.
+// Customize rules renders every scoring group, which is slow enough to hit 5s on a busy machine.
 vi.setConfig({ testTimeout: 20_000 });
 
 const defaults = { scoring_passing_yard: 0.04, scoring_passing_td: 4 };
-
-const onLeagueCreated = vi.fn().mockResolvedValue(undefined);
 
 async function renderWizard() {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   render(
     <QueryClientProvider client={queryClient}>
       <MemoryRouter>
-        <CreateLeaguePage onLeagueCreated={onLeagueCreated} />
+        <CreateLeaguePage />
       </MemoryRouter>
     </QueryClientProvider>,
   );
@@ -40,20 +38,97 @@ function chooseTeamUnits(qb: "On" | "Off", k: "On" | "Off") {
   fireEvent.click(within(kGroup as HTMLElement).getByRole("radio", { name: new RegExp(`^${k}`) }));
 }
 
-async function openScoringStep() {
+const nameInput = () => screen.getByLabelText(/League name/) as HTMLInputElement;
+
+async function openCustomize() {
   await renderWizard();
-  fireEvent.click(screen.getByRole("button", { name: "Next" }));
-  chooseTeamUnits("Off", "Off");
+  fireEvent.change(nameInput(), { target: { value: "Pals" } });
+  fireEvent.click(screen.getByRole("button", { name: "Customize rules" }));
+}
+
+async function openScoringStep() {
+  await openCustomize();
   fireEvent.click(screen.getByRole("button", { name: "Next" }));
 }
 
-describe("CreateLeaguePage scoring step", () => {
-  beforeEach(() => {
-    mockGet.mockReset();
-    mockGet.mockResolvedValue({ data: defaults });
+beforeEach(() => {
+  mockGet.mockReset();
+  mockGet.mockResolvedValue({ data: defaults });
+  mockPost.mockReset();
+  mockNavigate.mockReset();
+});
+
+describe("CreateLeaguePage short path", () => {
+  it("asks only for a name and a team count, and needs the name", async () => {
+    await renderWizard();
+    const create = screen.getByRole("button", { name: "Create league" }) as HTMLButtonElement;
+    expect(create.disabled).toBe(true);
+    fireEvent.change(nameInput(), { target: { value: "Pals" } });
+    expect(create.disabled).toBe(false);
+    expect(screen.getByText("6")).toBeTruthy();
+    expect(screen.getByText(/Every round counts the same/)).toBeTruthy();
   });
 
-  it("starts from the defaults served by the API", async () => {
+  it("steps the team count within 2 to 14", async () => {
+    await renderWizard();
+    const fewer = screen.getByRole("button", { name: "Fewer teams" }) as HTMLButtonElement;
+    for (let i = 0; i < 10; i++) fireEvent.click(fewer);
+    expect(screen.getByRole("status").textContent).toBe("2");
+    expect(fewer.disabled).toBe(true);
+    const more = screen.getByRole("button", { name: "More teams" });
+    for (let i = 0; i < 20; i++) fireEvent.click(more);
+    expect(screen.getByRole("status").textContent).toBe("14");
+  });
+
+  it("creates with the defaults, team QB and K off, and opens the new league", async () => {
+    mockPost.mockResolvedValue({ status: 201, data: { leagueId: 70, seasonId: 7 } });
+    await renderWizard();
+    fireEvent.change(nameInput(), { target: { value: "Pals" } });
+    fireEvent.click(screen.getByRole("button", { name: "More teams" }));
+    fireEvent.click(screen.getByRole("button", { name: "Create league" }));
+
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith("/leagues/70"));
+    const body = mockPost.mock.calls[0]?.[1];
+    expect(body).toMatchObject({
+      leagueName: "Pals",
+      rosterSettings: { number_teams: 7 },
+      teamUnitSettings: { teamQb: false, teamK: false },
+    });
+    expect(body).not.toHaveProperty("scoringSettings");
+  });
+
+  it("stays put and shows an error when the request fails", async () => {
+    mockPost.mockRejectedValue(new Error("boom"));
+    await renderWizard();
+    fireEvent.change(nameInput(), { target: { value: "Pals" } });
+    fireEvent.click(screen.getByRole("button", { name: "Create league" }));
+    expect(await screen.findByText(/couldn.t create the league/i)).toBeTruthy();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+});
+
+describe("CreateLeaguePage customize rules", () => {
+  it("shows both team QB and team K choices, off by default", async () => {
+    await openCustomize();
+    const [qbGroup, kGroup] = screen.getAllByRole("radiogroup");
+    expect(within(qbGroup as HTMLElement).getByRole("radio", { name: /^Off/ })).toHaveProperty(
+      "checked",
+      true,
+    );
+    expect(within(kGroup as HTMLElement).getByRole("radio", { name: /^Off/ })).toHaveProperty(
+      "checked",
+      true,
+    );
+  });
+
+  it("goes back to the short form from the first step", async () => {
+    await openCustomize();
+    fireEvent.click(screen.getByRole("button", { name: "Back" }));
+    expect(screen.getByRole("button", { name: "Customize rules" })).toBeTruthy();
+    expect(nameInput().value).toBe("Pals");
+  });
+
+  it("starts scoring from the defaults served by the API", async () => {
     await openScoringStep();
     const yard = (await screen.findByLabelText("Yard", {
       selector: "#scoring-passing-yard",
@@ -68,102 +143,39 @@ describe("CreateLeaguePage scoring step", () => {
     })) as HTMLInputElement;
     fireEvent.change(td, { target: { value: "6" } });
     expect(td.value).toBe("6");
-
     fireEvent.click(screen.getByRole("button", { name: "Reset to defaults" }));
     await waitFor(() => expect(td.value).toBe("4"));
   });
-});
 
-describe("CreateLeaguePage submit", () => {
-  async function submitWizard() {
-    await renderWizard();
-    fireEvent.click(screen.getByRole("button", { name: "Next" }));
+  it("sends the chosen team QB with the customised scoring", async () => {
+    mockPost.mockResolvedValue({ status: 201, data: { leagueId: 70, seasonId: 7 } });
+    await openCustomize();
     chooseTeamUnits("On", "Off");
-    for (let i = 0; i < 2; i++) fireEvent.click(screen.getByRole("button", { name: "Next" }));
-    fireEvent.click(screen.getByRole("button", { name: /create/i }));
-  }
-
-  beforeEach(() => {
-    mockGet.mockReset();
-    mockGet.mockResolvedValue({ data: defaults });
-    mockPost.mockReset();
-    mockNavigate.mockReset();
-    onLeagueCreated.mockClear();
-  });
-
-  it("refreshes the league list before navigating to the new league", async () => {
-    mockPost.mockResolvedValue({ status: 201, data: { leagueId: 70, seasonId: 7 } });
-    await submitWizard();
-    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith("/leagues/70"));
-    expect(onLeagueCreated).toHaveBeenCalledWith(70);
-    expect(onLeagueCreated.mock.invocationCallOrder[0] ?? Number.NaN).toBeLessThan(
-      mockNavigate.mock.invocationCallOrder[0] ?? Number.NaN,
-    );
-  });
-
-  it("sends the explicit team QB and team K choices", async () => {
-    mockPost.mockResolvedValue({ status: 201, data: { leagueId: 70, seasonId: 7 } });
-    await submitWizard();
+    fireEvent.click(screen.getByRole("button", { name: "Next" }));
+    await screen.findByLabelText("TD", { selector: "#scoring-passing-td" });
+    fireEvent.click(screen.getByRole("button", { name: "Next" }));
+    fireEvent.click(screen.getByRole("button", { name: "Create league" }));
     await waitFor(() => expect(mockPost).toHaveBeenCalled());
     expect(mockPost.mock.calls[0]?.[1]).toMatchObject({
+      leagueName: "Pals",
+      scoringSettings: expect.any(Object),
       teamUnitSettings: { teamQb: true, teamK: false },
     });
   });
 
-  it("stays on the wizard and shows an error when the request fails", async () => {
-    mockPost.mockRejectedValue(new Error("boom"));
-    await submitWizard();
-    expect(await screen.findByText(/couldn.t create the league/i)).toBeTruthy();
-    expect(mockNavigate).not.toHaveBeenCalled();
-    expect(onLeagueCreated).not.toHaveBeenCalled();
-  });
-});
-
-describe("CreateLeaguePage exhaustion warning", () => {
-  beforeEach(() => {
-    mockGet.mockReset();
-    mockGet.mockResolvedValue({ data: defaults });
-  });
-
-  it("starts at 6 teams with no warning, and warns at 8 teams with a cap of 2 kickers", async () => {
-    await renderWizard();
-    const teams = screen.getByLabelText("Teams") as HTMLInputElement;
-    expect(teams.value).toBe("6");
-    expect(screen.queryByText(/can run out/)).toBeNull();
-
-    fireEvent.change(teams, { target: { value: "8" } });
-    expect(screen.getAllByText(/8 teams × up to 2 K is 16/).length).toBeGreaterThan(0);
-  });
-});
-
-describe("CreateLeaguePage team QB and team K", () => {
-  beforeEach(() => {
-    mockGet.mockReset();
-    mockGet.mockResolvedValue({ data: defaults });
-  });
-
-  it("makes the commissioner choose both before continuing, with nothing preselected", async () => {
-    await renderWizard();
-    fireEvent.click(screen.getByRole("button", { name: "Next" }));
-    const next = screen.getByRole("button", { name: "Next" }) as HTMLButtonElement;
-    expect(screen.queryAllByRole("radio", { checked: true })).toHaveLength(0);
-    expect(next.disabled).toBe(true);
-
-    const [qbGroup] = screen.getAllByRole("radiogroup");
-    fireEvent.click(within(qbGroup as HTMLElement).getByRole("radio", { name: /^On/ }));
-    expect(next.disabled).toBe(true);
-
-    chooseTeamUnits("On", "Off");
-    expect(next.disabled).toBe(false);
-  });
-
   it("explains each rule in a tooltip that opens on tap", async () => {
-    await renderWizard();
-    fireEvent.click(screen.getByRole("button", { name: "Next" }));
+    await openCustomize();
     fireEvent.touchStart(screen.getByRole("button", { name: "About Team QB" }));
     expect(await screen.findByRole("tooltip")).toHaveProperty(
       "textContent",
       expect.stringMatching(/every QB on his NFL team/),
     );
+  });
+
+  it("warns at 8 teams with a cap of 2 kickers", async () => {
+    await renderWizard();
+    expect(screen.queryByText(/can run out/)).toBeNull();
+    for (let i = 0; i < 2; i++) fireEvent.click(screen.getByRole("button", { name: "More teams" }));
+    expect(screen.getAllByText(/8 teams × up to 2 K is 16/).length).toBeGreaterThan(0);
   });
 });

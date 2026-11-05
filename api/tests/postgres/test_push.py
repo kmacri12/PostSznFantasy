@@ -18,7 +18,7 @@ from api.db.models import (
     User,
 )
 from api.services import push
-from api.services.draft_events import announce
+from api.services.draft_events import announce_events
 from api.services.lineup_reminders import send_lock_reminders
 from api.tests.postgres.conftest import ClientFactory
 from api.tests.postgres.factories import make_players, make_season
@@ -185,8 +185,8 @@ async def test_only_a_running_drafts_clock_change_triggers_a_push(
             "data": {"status": status, "onTheClockTeamId": team},
         }
 
-    await announce(7, [{"eventType": "PICK_MADE", "data": {}}, state("in_progress", 3)])
-    await announce(7, [state("paused", 3), state("in_progress", None)])
+    await announce_events(7, [{"eventType": "PICK_MADE", "data": {}}, state("in_progress", 3)])
+    await announce_events(7, [state("paused", 3), state("in_progress", None)])
     assert spawned == [(7, 3)]
 
 

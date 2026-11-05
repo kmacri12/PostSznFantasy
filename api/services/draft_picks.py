@@ -9,7 +9,9 @@ from api.db.models.draft import Draft, DraftPick
 from api.db.models.league import SeasonSettings, Team, TeamPlayer
 from api.db.models.nfl import NFLPlayer, NFLTeam
 from api.db.models.user import User
+from api.models.activity_models import DraftCompletedPayload
 from api.models.enums import DraftStatus, DraftType, PlayerPosition
+from api.services import activity
 from api.services.standings import recompute_season_standings
 from api.services.team_units import unavailable_in_pool
 
@@ -220,6 +222,9 @@ async def record_pick(
         draft.current_pick_deadline = next_deadline(draft, now)
     await db.flush()
     if draft_complete:
+        await activity.append(
+            db, draft.season_id, DraftCompletedPayload(picks=pick_index + 1)
+        )
         await recompute_season_standings(db, draft.season_id)
 
     logger.info(

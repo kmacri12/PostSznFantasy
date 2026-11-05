@@ -3,8 +3,8 @@
 Web push (#266): one subscription per device, and a record of which lineup lock
 reminders were already sent so a restart cannot send one twice.
 
-Revision ID: 0017_push_notifications
-Revises: 0016_membership_activity
+Revision ID: 0018_push_notifications
+Revises: 0017_league_messages
 Create Date: 2026-11-04 10:00:00
 
 """
@@ -15,8 +15,8 @@ import sqlalchemy as sa
 
 from alembic import op
 
-revision: str = "0017_push_notifications"
-down_revision: str | Sequence[str] | None = "0016_membership_activity"
+revision: str = "0018_push_notifications"
+down_revision: str | Sequence[str] | None = "0017_league_messages"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

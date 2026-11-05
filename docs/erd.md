@@ -32,6 +32,9 @@ erDiagram
     seasons ||--o{ activity_events : "logs"
     teams |o--o{ activity_events : "about"
     users |o--o{ activity_events : "caused by"
+    leagues ||--o{ league_messages : "chat in"
+    seasons ||--o{ league_messages : "posted to"
+    users |o--o{ league_messages : "written by"
     users ||--o{ activity_views : "reads"
     seasons ||--o{ activity_views : "read in"
     users ||--o{ push_subscriptions : "subscribes"
@@ -170,6 +173,19 @@ erDiagram
         int season_id PK,FK
         int team_id PK
         bigint last_event_id
+        bigint last_message_id
+    }
+    league_messages {
+        bigint id PK
+        int league_id FK
+        int season_id FK
+        int author_user_id FK
+        string author_name
+        text body
+        string gif_url
+        datetime created_at
+        datetime deleted_at
+        int deleted_by FK
     }
     push_subscriptions {
         int id PK

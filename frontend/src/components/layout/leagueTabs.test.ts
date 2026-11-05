@@ -17,12 +17,14 @@ const league = {
 describe("leagueTabs", () => {
   const tabs = leagueTabs(league);
 
-  it("targets the league, own team, draft and players", () => {
+  it("targets the league, own team, draft, feed and more", () => {
+    expect(tabs.map((t) => t.label)).toEqual(["League", "Team", "Draft", "Feed", "More"]);
     expect(tabs.map((t) => t.to)).toEqual([
       "/leagues/7",
       "/leagues/7/teams/3",
       "/leagues/7/draft",
-      "/leagues/7/players",
+      "/leagues/7/feed",
+      "/leagues/7/more",
     ]);
   });
 
@@ -31,14 +33,18 @@ describe("leagueTabs", () => {
     expect(activeTabIndex(tabs, "/leagues/7/seasons/2025")).toBe(0);
     expect(activeTabIndex(tabs, "/leagues/7/teams/9/points")).toBe(1);
     expect(activeTabIndex(tabs, "/leagues/7/draft")).toBe(2);
-    expect(activeTabIndex(tabs, "/leagues/7/players")).toBe(3);
-    expect(activeTabIndex(tabs, "/players")).toBe(3);
-    expect(activeTabIndex(tabs, "/leagues/7/settings")).toBe(-1);
+    expect(activeTabIndex(tabs, "/leagues/7/players")).toBe(2);
+    expect(activeTabIndex(tabs, "/leagues/7/seasons/2025/draft")).toBe(2);
+    expect(activeTabIndex(tabs, "/leagues/7/feed")).toBe(3);
+    expect(activeTabIndex(tabs, "/leagues/7/more")).toBe(4);
+    expect(activeTabIndex(tabs, "/leagues/7/settings")).toBe(4);
+    expect(activeTabIndex(tabs, "/players")).toBe(-1);
+    expect(activeTabIndex(tabs, "/leagues/8")).toBe(-1);
   });
 
-  it("puts the new-activity dot on the League tab only", () => {
+  it("puts the new-activity dot on the Feed tab only", () => {
     const dots = leagueTabs({ ...league, hasNewActivity: true }).map((t) => t.dot);
-    expect(dots).toEqual([true, false, false, false]);
+    expect(dots).toEqual([false, false, false, true, false]);
     expect(tabs.some((t) => t.dot)).toBe(false);
   });
 

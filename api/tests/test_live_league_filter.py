@@ -30,6 +30,7 @@ GUARDED_BY_CALLER = {
     "services/standings_view.py": "standings route sits behind SeasonMember",
     "services/season_recap.py": "recap route sits behind SeasonMember",
     "services/activity.py": "feeds sit behind SeasonMember / TeamMember",
+    "services/feed.py": "the Feed routes sit behind SeasonMember",
     "services/stat_corrections.py": "filtered through live_season_ids",
     "services/push.py": "filtered through live_season_ids",
     "services/lineup_reminders.py": "filtered through live_season_ids",

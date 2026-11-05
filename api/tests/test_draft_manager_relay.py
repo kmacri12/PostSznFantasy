@@ -81,12 +81,14 @@ async def test_lifespan_wires_the_relay_only_while_running(
     await draft_manager.join(99, socket)  # type: ignore[arg-type]
     try:
         async with main.lifespan(main.app):
-            relay.start.assert_awaited_once()  # type: ignore[attr-defined]
+            # One relay for the draft room, one for the feed.
+            assert relay.start.await_count == 2  # type: ignore[attr-defined]
             await draft_manager.broadcast(99, {"eventType": "DURING"})
             assert relay.published == [(99, {"eventType": "DURING"})]
 
-        relay.stop.assert_awaited_once()  # type: ignore[attr-defined]
+        assert relay.stop.await_count == 2  # type: ignore[attr-defined]
         await draft_manager.broadcast(99, {"eventType": "AFTER"})
         assert socket.sent == ['{"eventType": "AFTER"}']
     finally:
+        draft_manager.use_relay(None)
         await draft_manager.disconnect(99, socket)  # type: ignore[arg-type]

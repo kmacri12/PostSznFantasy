@@ -8,6 +8,7 @@ from api.models.enums import DraftStatus
 from api.services import draft_flow, push
 from api.services.draft_picks import PickResult
 from api.ws.draft_manager import draft_manager
+from api.ws.feed_manager import announce_feed_change
 
 
 async def state_event(db: AsyncSession, draft: Draft) -> dict[str, Any]:
@@ -40,14 +41,17 @@ async def pick_events(
     return events
 
 
-async def announce(season_id: int, events: list[dict[str, Any]]) -> None:
-    """Broadcast committed events, then push to the owner now on the clock.
+async def announce_events(season_id: int, events: list[dict[str, Any]]) -> None:
+    """Send committed events to the draft room, push to the owner now on the clock,
+    and nudge the Feed when the last pick lands (its draft_completed event).
 
     Only a DRAFT_STATE of a running draft names someone to notify; a pause, a setup
     change or a finished draft does not.
     """
     for event in events:
         await draft_manager.broadcast(season_id, event)
+        if event["eventType"] == "DRAFT_COMPLETE":
+            await announce_feed_change(season_id, "event")
         if event["eventType"] != "DRAFT_STATE":
             continue
         data: dict[str, Any] = event["data"]

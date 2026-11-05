@@ -14,7 +14,7 @@ import { positionCaps, startingSlots } from "./preDraft";
 const Chips = ({ items }: { items: string[] }) => (
   <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.75, mt: 0.5 }}>
     {items.map((item) => (
-      <Chip key={item} label={item} variant="outlined" sx={{ color: tokens.gold, height: 32 }} />
+      <Chip key={item} label={item} variant="outlined" sx={{ color: tokens.accent, height: 32 }} />
     ))}
   </Box>
 );

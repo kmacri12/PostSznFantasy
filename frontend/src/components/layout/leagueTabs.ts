@@ -1,8 +1,10 @@
 import type { LeagueByUser } from "../../api/types";
 import { leaguePath, seasonPaths } from "../../routes";
 
+export type LeagueTabLabel = "League" | "Team" | "Draft" | "Feed" | "More";
+
 export interface LeagueTab {
-  label: "League" | "Team" | "Draft" | "Players";
+  label: LeagueTabLabel;
   to: string;
   /** Pathname test so each URL lights exactly one tab, whichever season it shows. */
   matches: (pathname: string) => boolean;
@@ -23,23 +25,30 @@ export function leagueTabs(league: LeagueByUser): LeagueTab[] {
       .replace(/\/$/, "");
   };
   return [
-    {
-      label: "League",
-      to: paths.home,
-      matches: (p) => page(p) === "",
-      dot: league.hasNewActivity,
-    },
+    { label: "League", to: paths.home, matches: (p) => page(p) === "", dot: false },
     {
       label: "Team",
       to: league.userTeamId === null ? paths.home : paths.team(league.userTeamId),
       matches: (p) => page(p)?.startsWith("/teams/") ?? false,
       dot: false,
     },
-    { label: "Draft", to: paths.draft, matches: (p) => page(p) === "/draft", dot: false },
     {
-      label: "Players",
-      to: paths.players,
-      matches: (p) => page(p) === "/players" || p === "/players",
+      label: "Draft",
+      to: paths.draft,
+      // The player list becomes the draft room's Players view, so it lights this tab too.
+      matches: (p) => page(p) === "/draft" || page(p) === "/players",
+      dot: false,
+    },
+    {
+      label: "Feed",
+      to: paths.feed,
+      matches: (p) => page(p) === "/feed",
+      dot: league.hasNewActivity,
+    },
+    {
+      label: "More",
+      to: paths.more,
+      matches: (p) => page(p) === "/more" || page(p) === "/settings",
       dot: false,
     },
   ];

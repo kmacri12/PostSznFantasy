@@ -33,6 +33,7 @@ from api.services.scheduler import run_scheduler
 from api.utils.rapidapi.rapidapi import close_rapidapi_client
 from api.ws.broadcast_relay import PostgresRelay
 from api.ws.draft_manager import draft_manager
+from api.ws.feed_manager import feed_manager
 
 logger = logging.getLogger(__name__)
 
@@ -44,11 +45,18 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     if settings.test_auth_stub:
         logger.warning("TEST_AUTH_STUB is on: e2e bearer tokens bypass Supabase")
     init_db()
-    relay = None
+    relays: list[PostgresRelay] = []
     if settings.draft_broadcast == "postgres":
-        relay = PostgresRelay(settings.async_database_url, draft_manager.deliver_local)
-        await relay.start()
-        draft_manager.use_relay(relay)
+        for manager, channel in (
+            (draft_manager, "draft_events"),
+            (feed_manager, "feed_events"),
+        ):
+            relay = PostgresRelay(
+                settings.async_database_url, manager.deliver_local, channel
+            )
+            await relay.start()
+            manager.use_relay(relay)
+            relays.append(relay)
     clock_task = asyncio.create_task(run_draft_clock())
     scheduler_task = (
         asyncio.create_task(run_scheduler()) if settings.scheduler_enabled else None
@@ -57,8 +65,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     clock_task.cancel()
     if scheduler_task:
         scheduler_task.cancel()
-    if relay is not None:
-        draft_manager.use_relay(None)
+    draft_manager.use_relay(None)
+    feed_manager.use_relay(None)
+    for relay in relays:
         await relay.stop()
     await close_rapidapi_client()
     await close_db()

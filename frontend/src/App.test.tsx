@@ -47,7 +47,7 @@ beforeEach(() => {
 describe("API up", () => {
   it("shows the signed-out landing page with its sign-in call to action", async () => {
     renderAt("/");
-    expect(await screen.findByRole("button", { name: "Sign in to play" })).toBeVisible();
+    expect(await screen.findByRole("link", { name: "Sign in" })).toBeVisible();
     expect(screen.queryByText(/back for the next postseason/i)).not.toBeInTheDocument();
   });
 
@@ -62,12 +62,11 @@ describe("API down (dormant mode)", () => {
     mocks.health = "down";
   });
 
-  it("shows the off-season notice on the landing page and keeps the marketing content", async () => {
+  it("shows the off-season notice on the landing page with the legal links", async () => {
     renderAt("/");
     expect(await screen.findByText(/back for the next postseason/i)).toBeVisible();
-    expect(screen.getByText("How it works")).toBeVisible();
-    expect(screen.getByText("Playoff rules you control")).toBeVisible();
-    expect(screen.queryByRole("button", { name: "Sign in to play" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Privacy" })).toBeVisible();
+    expect(screen.queryByRole("link", { name: "Sign in" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Sign in" })).not.toBeInTheDocument();
   });
 
@@ -105,7 +104,7 @@ describe("while the health check is pending", () => {
   it("renders the normal app rather than flashing the notice", async () => {
     mocks.health = "checking";
     renderAt("/");
-    expect(await screen.findByRole("button", { name: "Sign in to play" })).toBeVisible();
+    expect(await screen.findByRole("link", { name: "Sign in" })).toBeVisible();
     expect(screen.queryByText(/back for the next postseason/i)).not.toBeInTheDocument();
   });
 });

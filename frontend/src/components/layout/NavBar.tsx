@@ -1,202 +1,93 @@
-import AddIcon from "@mui/icons-material/Add";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import MenuIcon from "@mui/icons-material/Menu";
-import SportsFootballIcon from "@mui/icons-material/SportsFootball";
 import {
   AppBar,
   Avatar,
-  alpha,
-  Badge,
   Box,
   Button,
-  Chip,
-  Divider,
-  Drawer,
   IconButton,
-  List,
-  ListItemButton,
-  ListItemText,
   Menu,
   MenuItem,
   Toolbar,
-  Typography,
   useMediaQuery,
   useTheme,
 } from "@mui/material";
 import type { User as SupabaseUser } from "@supabase/auth-js";
 import { useState } from "react";
-import { Link, NavLink, useNavigate } from "react-router-dom";
 import type { LeagueByUser } from "../../api/types";
-import { HOW_TO_PLAY_LABEL } from "../../content/rules";
-import { leaguePath, seasonPaths } from "../../routes";
-import { tokens } from "../../theme";
+import { HEADER_HEIGHT, tokens } from "../../theme";
 import { DevQuickSync } from "../dev/DevQuickSync";
+import Brand from "./Brand";
+import LeagueSwitcher from "./LeagueSwitcher";
 
-const LeagueLabel = ({ league }: { league: LeagueByUser }) => (
-  <Box sx={{ display: "flex", alignItems: "center", gap: 1, minWidth: 0 }}>
-    <Typography noWrap>{league.name}</Typography>
-    {league.finished && <Chip size="small" variant="outlined" label="Season over" />}
-  </Box>
-);
+const initials = (user: SupabaseUser): string => {
+  const name: string = user.user_metadata?.full_name || user.email || "?";
+  const words = name.split(/[\s@.]+/).filter(Boolean);
+  return words
+    .slice(0, 2)
+    .map((word) => word[0]?.toUpperCase())
+    .join("");
+};
 
 interface NavBarProps {
   user: SupabaseUser | null;
+  /** All of the user's leagues, for the switcher. */
   leagues: LeagueByUser[];
-  selectedLeagueId: string;
-  onSelectLeague: (leagueId: string) => void;
+  /** The league the route shows; undefined outside a league. */
+  league?: LeagueByUser;
+  /** Desktop inside a league: the logo and switcher live in the rail, so the header only holds the account. */
+  railed?: boolean;
   onSignIn: () => void;
   onSignOut: () => void;
   dormant?: boolean;
 }
 
+/** The header: logo (wordmark outside a league), the league switcher, and the account menu. */
 const NavBar = ({
   user,
   leagues,
-  selectedLeagueId,
-  onSelectLeague,
+  league,
+  railed = false,
   onSignIn,
   onSignOut,
   dormant = false,
 }: NavBarProps) => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const navigate = useNavigate();
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [leagueAnchor, setLeagueAnchor] = useState<HTMLElement | null>(null);
+  const isMobile = useMediaQuery(useTheme().breakpoints.down("md"));
   const [profileAnchor, setProfileAnchor] = useState<HTMLElement | null>(null);
-
-  const selected = leagues.find((league) => String(league.id) === selectedLeagueId);
-  const paths = seasonPaths(selected?.id ?? "", selected?.season ?? "", true);
-  const links: { label: string; to: string; dot?: boolean }[] = dormant
-    ? []
-    : selected
-      ? [
-          { label: "League", to: paths.home, dot: selected.hasNewActivity },
-          ...(selected.userTeamId === null
-            ? []
-            : [{ label: "My Team", to: paths.team(selected.userTeamId) }]),
-          { label: "Draft", to: paths.draft },
-          { label: "Players", to: paths.players },
-          { label: "Settings", to: paths.settings },
-        ]
-      : [{ label: "Players", to: "/players" }];
-  links.push({ label: HOW_TO_PLAY_LABEL, to: "/how-to-play" });
-
-  const avatarLabel = (user?.user_metadata?.full_name || user?.email || "?")[0].toUpperCase();
 
   return (
     <AppBar
       position="sticky"
       color="transparent"
       elevation={0}
-      sx={{
-        backgroundColor: alpha(tokens.bg, 0.72),
-        backdropFilter: "blur(14px)",
-        borderBottom: `1px solid ${tokens.border}`,
-      }}
+      sx={{ bgcolor: tokens.bg, borderBottom: `1px solid ${tokens.border}` }}
     >
-      <Toolbar sx={{ gap: 1 }}>
-        {isMobile && (
-          <IconButton edge="start" aria-label="Open menu" onClick={() => setDrawerOpen(true)}>
-            <MenuIcon />
-          </IconButton>
+      <Toolbar sx={{ gap: 1.25, minHeight: HEADER_HEIGHT, px: { xs: 2, md: 3 } }}>
+        {!railed && (
+          <>
+            <Brand wide={!league} />
+            {league && <LeagueSwitcher league={league} leagues={leagues} />}
+          </>
         )}
-        <Box
-          component={Link}
-          to="/"
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 1,
-            color: "inherit",
-            textDecoration: "none",
-            mr: { xs: 0, md: 2 },
-            minWidth: 0,
-            minHeight: 44,
-          }}
-        >
-          <SportsFootballIcon sx={{ color: tokens.gold }} />
-          <Typography variant="h6" sx={{ letterSpacing: "-0.02em" }}>
-            PostSzn
-            <Box component="span" sx={{ color: tokens.gold }}>
-              Fantasy
-            </Box>
-          </Typography>
-        </Box>
-
-        {!isMobile &&
-          links.map((link) => (
-            <Button
-              key={link.to}
-              component={NavLink}
-              to={link.to}
-              color="inherit"
-              sx={{
-                color: tokens.muted,
-                "&.active": { color: tokens.text, backgroundColor: alpha(tokens.gold, 0.12) },
-              }}
-            >
-              <Badge
-                variant="dot"
-                color="primary"
-                invisible={!link.dot}
-                aria-label={link.dot ? "New activity" : undefined}
-              >
-                {link.label}
-              </Badge>
-            </Button>
-          ))}
-
         <Box sx={{ flexGrow: 1 }} />
         {!isMobile && <DevQuickSync />}
-
-        {user && !isMobile && !dormant && (
-          <Chip
-            clickable
-            onClick={(event) => setLeagueAnchor(event.currentTarget)}
-            label={selected?.name ?? "Select league"}
-            deleteIcon={<KeyboardArrowDownIcon />}
-            onDelete={(event) => setLeagueAnchor(event.currentTarget.closest("div"))}
-            variant="outlined"
-            sx={{ borderColor: tokens.borderStrong, maxWidth: 200 }}
-          />
-        )}
-        <Menu anchorEl={leagueAnchor} open={!!leagueAnchor} onClose={() => setLeagueAnchor(null)}>
-          {leagues.map((league) => (
-            <MenuItem
-              key={league.id}
-              selected={String(league.id) === selectedLeagueId}
-              onClick={() => {
-                onSelectLeague(String(league.id));
-                setLeagueAnchor(null);
-                navigate(leaguePath(league.id));
-              }}
-            >
-              <LeagueLabel league={league} />
-            </MenuItem>
-          ))}
-          {leagues.length > 0 && <Divider />}
-          <MenuItem
-            onClick={() => {
-              setLeagueAnchor(null);
-              navigate("/create-league");
-            }}
-          >
-            <AddIcon fontSize="small" sx={{ mr: 1 }} /> Create new league
-          </MenuItem>
-        </Menu>
 
         {user ? (
           <>
             <IconButton
               aria-label="Account menu"
-              onClick={(e) => setProfileAnchor(e.currentTarget)}
+              onClick={(event) => setProfileAnchor(event.currentTarget)}
             >
               <Avatar
                 src={user.user_metadata?.avatar_url}
-                sx={{ width: 34, height: 34, bgcolor: tokens.gold, color: "#1c1203" }}
+                sx={{
+                  width: 32,
+                  height: 32,
+                  bgcolor: tokens.border,
+                  color: tokens.text,
+                  fontSize: 12,
+                  fontWeight: 600,
+                }}
               >
-                {avatarLabel}
+                {initials(user)}
               </Avatar>
             </IconButton>
             <Menu
@@ -221,56 +112,6 @@ const NavBar = ({
           </Button>
         )}
       </Toolbar>
-
-      <Drawer anchor="left" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
-        <List sx={{ width: 280 }}>
-          {user && !dormant && (
-            <>
-              <ListItemText
-                primary="Your leagues"
-                slotProps={{ primary: { variant: "overline", color: "text.secondary" } }}
-                sx={{ px: 2, pt: 1 }}
-              />
-              {leagues.map((league) => (
-                <ListItemButton
-                  key={league.id}
-                  selected={String(league.id) === selectedLeagueId}
-                  onClick={() => {
-                    onSelectLeague(String(league.id));
-                    setDrawerOpen(false);
-                    navigate(leaguePath(league.id));
-                  }}
-                >
-                  <LeagueLabel league={league} />
-                </ListItemButton>
-              ))}
-              <ListItemButton
-                onClick={() => {
-                  setDrawerOpen(false);
-                  navigate("/create-league");
-                }}
-              >
-                <AddIcon fontSize="small" sx={{ mr: 1 }} />
-                <ListItemText primary="Create new league" />
-              </ListItemButton>
-              <Divider />
-            </>
-          )}
-          {(selected
-            ? links.filter((link) => ["Settings", HOW_TO_PLAY_LABEL].includes(link.label))
-            : links
-          ).map((link) => (
-            <ListItemButton
-              key={link.to}
-              component={Link}
-              to={link.to}
-              onClick={() => setDrawerOpen(false)}
-            >
-              <ListItemText primary={link.label} />
-            </ListItemButton>
-          ))}
-        </List>
-      </Drawer>
     </AppBar>
   );
 };

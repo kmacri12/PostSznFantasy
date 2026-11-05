@@ -83,7 +83,7 @@ const RoundSection = ({ round, expanded }: { round: BreakdownRound; expanded: bo
           </Typography>
         )}
       </Typography>
-      <Typography sx={{ color: tokens.gold, fontWeight: 800, whiteSpace: "nowrap" }}>
+      <Typography sx={{ color: tokens.accent, fontWeight: 800, whiteSpace: "nowrap" }}>
         {points(round.counted)} pts
       </Typography>
     </AccordionSummary>
@@ -145,7 +145,7 @@ const BreakdownRounds = ({ breakdown }: { breakdown: TeamBreakdown }) => {
           <Typography variant="caption" color="text.secondary" component="div">
             Total points
           </Typography>
-          <Typography variant="h5" sx={{ color: tokens.gold }}>
+          <Typography variant="h5" sx={{ color: tokens.accent }}>
             {points(breakdown.total)}
           </Typography>
         </Box>

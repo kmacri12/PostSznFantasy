@@ -10,7 +10,7 @@ interface Props {
 const InjuryTag = ({ status }: Props) => {
   if (!status) return null;
   const serious = status === "Out" || status === "Injured Reserve";
-  const color = serious ? tokens.red : tokens.gold;
+  const color = serious ? tokens.red : tokens.warning;
   return (
     <Chip
       size="small"
