@@ -181,7 +181,7 @@ PostSznFantasy/
         │   ├── TeamPointsPage.tsx # Round-by-round points and bench points
         │   └── NotFoundPage.tsx# 404 handler
         ├── components/
-        │   ├── home/           # YourLeagues (league cards, Create, invite code, How to play), LeagueCard, leagueSummary (phase tag, rank), PastLeagues, InviteCodeForm
+        │   ├── home/           # YourLeagues (league cards, Create, invite code, How to play), LeagueCard, leagueSummary (phase tag, rank), PastLeagues, InviteCodeForm, LegalFooter (privacy and terms)
         │   ├── invite/         # InviteMembers (members plus open slots), `inviteView` (sign-in / join / full / unavailable)
         │   ├── activity/       # ActivityFeed (collapsed, new dot), SlotMarker (override / asterisk), ChangedScore tooltip, describeEvent
         │   ├── layout/         # NavBar (blurred header, league switcher, drawer)

@@ -7,6 +7,7 @@ import { friendlyError } from "../common/friendlyError";
 import LoadingState from "../common/LoadingState";
 import InviteCodeForm from "./InviteCodeForm";
 import LeagueCard from "./LeagueCard";
+import LegalFooter from "./LegalFooter";
 import PastLeagues from "./PastLeagues";
 
 /** The signed-in home: league cards first, then Create / Join / How to play. */
@@ -41,7 +42,15 @@ const YourLeagues = () => {
   const none = leagues.data.length === 0;
 
   return (
-    <Container maxWidth="sm" sx={{ py: { xs: 2.5, sm: 4 } }}>
+    <Container
+      maxWidth="sm"
+      sx={{
+        py: { xs: 2.5, sm: 4 },
+        display: "flex",
+        flexDirection: "column",
+        minHeight: "calc(100dvh - 64px)",
+      }}
+    >
       <Typography variant="h5" component="h1" sx={{ mb: 2 }}>
         {none ? "Welcome to PostSzn" : "Your leagues"}
       </Typography>
@@ -76,6 +85,8 @@ const YourLeagues = () => {
         </MuiLink>
       </Box>
       <PastLeagues />
+      <Box sx={{ mt: 3 }} />
+      <LegalFooter />
     </Container>
   );
 };

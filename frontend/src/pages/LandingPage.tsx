@@ -1,30 +1,11 @@
-import { Box, Button, Container, Link as MuiLink, Typography } from "@mui/material";
+import { Box, Button, Container, Typography } from "@mui/material";
 import { Link } from "react-router-dom";
 import LoadingState from "../components/common/LoadingState";
+import LegalFooter from "../components/home/LegalFooter";
 import YourLeagues from "../components/home/YourLeagues";
 import { useUser } from "../contexts/UserContext";
 import { signInPath } from "../utils/authRedirect";
 import { DormantNotice } from "./DormantPage";
-
-const LandingFooter = () => (
-  <Box
-    component="footer"
-    sx={{ display: "flex", gap: 3, justifyContent: "center", py: 1, mt: "auto" }}
-  >
-    <MuiLink
-      component={Link}
-      to="/privacy"
-      color="text.secondary"
-      underline="none"
-      sx={{ py: 1.5 }}
-    >
-      Privacy
-    </MuiLink>
-    <MuiLink component={Link} to="/terms" color="text.secondary" underline="none" sx={{ py: 1.5 }}>
-      Terms
-    </MuiLink>
-  </Box>
-);
 
 const Hero = () => (
   <Box sx={{ textAlign: { xs: "left", md: "center" }, maxWidth: 760, mx: "auto" }}>
@@ -82,7 +63,7 @@ const LandingPage = ({ dormant = false }: { dormant?: boolean }) => {
     return (
       <Container maxWidth="md" sx={{ py: { xs: 4, md: 8 }, textAlign: "center" }}>
         <DormantNotice />
-        <LandingFooter />
+        <LegalFooter />
       </Container>
     );
   }
@@ -108,7 +89,7 @@ const LandingPage = ({ dormant = false }: { dormant?: boolean }) => {
       <Box sx={{ my: "auto", py: { xs: 2, md: 6 } }}>
         <Hero />
       </Box>
-      <LandingFooter />
+      <LegalFooter />
     </Container>
   );
 };
