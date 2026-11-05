@@ -37,6 +37,8 @@ erDiagram
     users |o--o{ league_messages : "written by"
     users ||--o{ activity_views : "reads"
     seasons ||--o{ activity_views : "read in"
+    users ||--o{ push_subscriptions : "subscribes"
+    teams ||--o{ lineup_reminders : "reminded"
     nfl_teams ||--o{ nfl_players : "employs"
     nfl_teams ||--o{ nfl_games : "plays home"
     nfl_teams ||--o{ nfl_games : "plays away"
@@ -184,6 +186,21 @@ erDiagram
         datetime created_at
         datetime deleted_at
         int deleted_by FK
+    }
+    push_subscriptions {
+        int id PK
+        int user_id FK
+        string endpoint UK
+        string p256dh
+        string auth
+        string user_agent
+        datetime created_at
+        datetime last_seen
+    }
+    lineup_reminders {
+        int team_id PK,FK
+        int round PK
+        datetime sent_at
     }
     nfl_teams {
         int id PK

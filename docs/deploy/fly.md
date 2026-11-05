@@ -59,6 +59,7 @@ Set once with `fly secrets set` (the wizard does this without putting values in 
 | `ADMIN_SUPABASE_UIDS` | Comma-separated user ids; set after the first admin signs in (cutover step 6) |
 | `RAPIDAPI_APIKEY`, `RAPIDAPI_BASEURL`, `RAPIDAPI_APIHOST` | Tank01 on RapidAPI |
 | `CORS_ORIGINS` | `https://postsznfantasy.com` |
+| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | Optional web push, all three or none; see [Step 18](../owner/18-push-notifications.md) |
 | `SENTRY_DSN`, `SENTRY_RELEASE` | Optional error tracking, see [sentry.md](sentry.md); empty disables it |
 | `SCHEDULER_ENABLED` and `SCHEDULER_*` | Keep `SCHEDULER_ENABLED=false` until games are near. `SCHEDULER_LIVE_POLL_SECONDS` (default 180) has a 60 s floor and `SCHEDULER_ROSTER_SYNC_HOURS` (24) a 1 h floor; the API refuses to start below them, and refuses `SCHEDULER_REPLAY_FILE` when `ENVIRONMENT=production` |
 

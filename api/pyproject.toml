@@ -12,6 +12,7 @@ dependencies = [
     "pydantic>=2.11.2",
     "pydantic-settings>=2.16.1",
     "pyjwt[crypto]>=2.10.1",
+    "pywebpush>=2.5.0",
     "sentry-sdk[fastapi]>=2.73.0",
     "sqlalchemy[asyncio]>=2.0.40",
     "tenacity>=9.0.0",
@@ -52,6 +53,7 @@ plugins = ["pydantic.mypy"]
 module = [
     "requests_cache.*",
     "asyncpg.*",
+    "pywebpush.*",
 ]
 ignore_missing_imports = true
 

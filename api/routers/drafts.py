@@ -75,7 +75,7 @@ async def _broadcast_state(
     """Commit first so clients refetching on the broadcast see the new state."""
     await db.commit()
     event = await state_event(db, draft)
-    await draft_manager.broadcast(draft.season_id, event)
+    await announce_events(draft.season_id, [event])
     if feed_event:
         await announce_feed_change(draft.season_id, "event")
     return DraftStateResponse.model_validate(event["data"])
