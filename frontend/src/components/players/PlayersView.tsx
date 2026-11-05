@@ -14,6 +14,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useDraftPool, useLeagueSettings, usePlayerSeasonStats } from "../../api/queries";
 import type { DraftPick } from "../../api/types";
 import { radii, tokens } from "../../theme";
+import { E2E_BUILD } from "../../utils/e2e";
 import EmptyState from "../common/EmptyState";
 import ErrorState from "../common/ErrorState";
 import InjuryTag from "../common/InjuryTag";
@@ -35,7 +36,7 @@ import {
 } from "./playerRows";
 
 const MAX_ROWS = 200;
-const CONFIRM_WINDOW_MS = 3000;
+const CONFIRM_WINDOW_MS = E2E_BUILD ? 10 * 60_000 : 3000;
 
 /** What the draft room adds to the list: the Draft and queue buttons and the availability filter. */
 export interface DraftActions {

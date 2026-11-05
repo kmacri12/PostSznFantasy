@@ -26,6 +26,7 @@ test.describe("league player list", () => {
     await openPlayers(page, context, request);
     const rows = page.getByRole("list", { name: "Players" }).getByRole("listitem");
     await expect(rows).toHaveCount(64);
+    // The list is sorted by points from fixed fixtures, so the top row is the same on every run.
     await expect(rows.first()).toContainText(/\d+\.\d\s*20\d\d pts/);
   });
 
@@ -44,6 +45,8 @@ test.describe("league player list", () => {
     await expect(rows).toHaveCount(16);
     await page.getByRole("searchbox", { name: "Search players" }).fill("Hale");
     await expect(rows).toHaveCount(2);
+    // Two Hales match the search (the fixture has two), both on SFO; the first is enough.
+    // Two Hales are left, sorted by points from fixed fixtures; the top one is the same on every run.
     await expect(rows.first()).toContainText("SFO");
 
     await page.getByRole("searchbox", { name: "Search players" }).fill("zzzz-nobody");
@@ -54,7 +57,9 @@ test.describe("league player list", () => {
   test("fantasy points use this league's scoring", async ({ page, context, request }) => {
     const { host, league } = await openPlayers(page, context, request);
     await page.getByRole("button", { name: "QB", exact: true }).click();
+    // The list is sorted by points from fixed fixtures, so the top row is the top scorer.
     const top = page.getByRole("list", { name: "Players" }).getByRole("listitem").first();
+    await expect(top).toContainText(/\d+\.\d\s*20\d\d pts/);
     const before = (await top.textContent()) ?? "";
 
     // Double the passing TD value: the top quarterback's total must go up.
@@ -62,8 +67,7 @@ test.describe("league player list", () => {
     await page.reload();
     await showPlayers(page);
     await page.getByRole("button", { name: "QB", exact: true }).click();
-    await expect(
-      page.getByRole("list", { name: "Players" }).getByRole("listitem").first(),
-    ).not.toHaveText(before);
+    await expect(top).toContainText(/\d+\.\d\s*20\d\d pts/);
+    await expect(top).not.toHaveText(before);
   });
 });

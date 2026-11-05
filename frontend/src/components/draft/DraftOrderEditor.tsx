@@ -1,7 +1,7 @@
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import { Alert, Box, Button, IconButton, Typography } from "@mui/material";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useDraftOrder, useLeagueTeams } from "../../api/queries";
 import type { DraftState } from "../../api/types";
 import { radii, tokens } from "../../theme";
@@ -17,8 +17,17 @@ const DraftOrderEditor = ({ draft, onDone }: { draft: DraftState; onDone: () => 
     const rest = (teams ?? []).map((team) => team.id).filter((id) => !placed.includes(id));
     return [...placed, ...rest];
   }, [draft.order, teams]);
-  const [ids, setIds] = useState(saved);
-  useEffect(() => setIds(saved), [saved]);
+  const [edited, setEdited] = useState(saved);
+  // Local edits are replaced only when the server's order changes. A teams list that arrives
+  // late appends its teams below instead of wiping what the commissioner already moved.
+  const orderKey = JSON.stringify(draft.order.map((slot) => [slot.slot, slot.teamId]));
+  const [syncedKey, setSyncedKey] = useState(orderKey);
+  if (syncedKey !== orderKey) {
+    setSyncedKey(orderKey);
+    setEdited(saved);
+  }
+  const ids = [...edited, ...saved.filter((id) => !edited.includes(id))];
+  const setIds = setEdited;
 
   const nameOf = (id: number) =>
     draft.order.find((slot) => slot.teamId === id)?.teamName ??

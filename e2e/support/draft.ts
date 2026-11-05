@@ -105,17 +105,24 @@ export const openControls = async (page: Page) => {
   if ((await toggle.getAttribute("aria-expanded")) !== "true") await toggle.click();
 };
 
-/** Shows the Players view (a tab on phones, always on screen on wide screens). */
-export const showPlayers = async (page: Page) => {
-  const tab = page.getByRole("tab", { name: "Players" });
-  if (await tab.count()) await tab.click();
+/** The draft room shows every view at once from this width (the `lg` breakpoint) up. */
+const TWO_PANE_WIDTH = 1200;
+
+/** Shows one draft room view (a tab on phones, always on screen on wide screens). */
+export const showView = async (page: Page, view: "Players" | "Board" | "Roster" | "Queue") => {
+  if ((page.viewportSize()?.width ?? 0) < TWO_PANE_WIDTH)
+    await page.getByRole("tab", { name: view }).click();
 };
+
+export const showPlayers = (page: Page) => showView(page, "Players");
 
 /** Drafts the first available player at `position` through the Players view (tap, then confirm). */
 export const draftFirst = async (page: Page, position: string): Promise<string> => {
   await showPlayers(page);
   await page.getByRole("button", { name: position, exact: true }).click();
+  // The list is sorted by points from fixed fixtures, so the top row is the same on every run.
   const row = page.getByRole("list", { name: "Players" }).getByRole("listitem").first();
+  // A player row's first paragraph is the player's name.
   const name = (await row.locator("p").first().textContent()) ?? "";
   await row.getByRole("button", { name: `Draft ${name}`, exact: true }).click();
   await row.getByRole("button", { name: `Confirm ${name}`, exact: true }).click();

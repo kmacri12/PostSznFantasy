@@ -42,7 +42,7 @@ test.describe("signed in", () => {
     for (const url of pages) {
       await page.goto(url);
       await expect(page.getByRole("banner")).toBeVisible();
-      await page.waitForLoadState("networkidle");
+      await expect(page.getByRole("status", { name: /^Loading/ })).toHaveCount(0);
       const overflow = await page.evaluate(
         () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
       );

@@ -4,6 +4,7 @@ import { Link, Navigate, Outlet, useLocation, useParams } from "react-router-dom
 import { useLeagueSeasons, useSeason } from "../api/queries";
 import EmptyState from "../components/common/EmptyState";
 import QueryBoundary from "../components/common/QueryBoundary";
+import ArchivedBanner from "../components/league/ArchivedBanner";
 import { buildSeasonContext, SeasonContext } from "../contexts/SeasonContext";
 import { leaguePath } from "../routes";
 
@@ -29,6 +30,7 @@ const SeasonLoader = ({ seasonId, current }: { seasonId: number; current: boolea
     <QueryBoundary query={query} what="this season" page>
       {() => (
         <SeasonContext.Provider value={value}>
+          {query.data?.finished && <ArchivedBanner year={query.data.year} />}
           <Outlet />
         </SeasonContext.Provider>
       )}

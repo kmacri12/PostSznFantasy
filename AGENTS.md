@@ -174,6 +174,7 @@ PostSznFantasy/
         ├── hooks/
         │   ├── usePushNotifications.ts # Push state machine (unsupported / needs-install / denied / off / on); permission asked only from `enable()`, which must be called from a tap
         │   ├── useWebSocket.ts # Native RFC 6455 WebSocket hook
+        │   ├── useFeedLive.ts  # Feed socket: each content-free `FEED_CHANGED` refetches the feed; the page polls every 30s while it is down
         │   └── useWebSocket.test.ts # Hook test suite
         ├── pages/
         │   ├── LandingPage.tsx # Root route: signed out = hero with Sign in and How to play plus the privacy/terms footer; signed in = `YourLeagues` (no redirect, so the logo always reaches it; `dormant` swaps the hero for the off-season notice)
@@ -184,8 +185,8 @@ PostSznFantasy/
         │   ├── DraftBoardPage.tsx # `/draft/board`: the board on its own, linked from More at any time
         │   ├── HowToPlayPage.tsx # Plain-language rules page (nav link), copy from src/content/rules.ts
         │   ├── SeasonLayout.tsx # `/leagues/:leagueId` (the current season) and `/leagues/:leagueId/seasons/:year` resolve to a season and provide SeasonContext to the pages below; the long form of the current season redirects (`replace`) to the clean one
-        │   ├── FeedPage.tsx    # Feed tab (placeholder: the season's activity feed; chat comes with #265)
-        │   ├── MorePage.tsx    # More tab (placeholder list of destinations; Settings split is #267)
+        │   ├── FeedPage.tsx    # Feed tab: events and chat oldest-to-newest with the message box pinned above the tab bar, date rows, a "New" divider fixed when the page opens, read-only note in an archived season
+        │   ├── MorePage.tsx    # More tab: Settings, Players (the Draft tab, with the draft status line), Draft board, Past seasons (sheet, only if any), Invite members (sheet, commissioners), How to play, Sign out
         │   ├── LeaguePage.tsx  # A season's home: phase block (invite, draft countdown, set your lineup, round progress) or the champion and awards, standings in every phase, collapsible notes, empty-state notices
         │   ├── SettingsPage.tsx# Your settings (everyone) and Commissioner settings (commissioners): rows that open sheets, rules as accordions
         │   ├── TeamPage.tsx    # Roster management view
@@ -195,9 +196,10 @@ PostSznFantasy/
         │   ├── home/           # YourLeagues (league cards, Create, invite code, How to play), LeagueCard, leagueSummary (phase tag, rank), PastLeagues, InviteCodeForm, LegalFooter (privacy and terms)
         │   ├── invite/         # InviteMembers (members plus open slots), `inviteView` (sign-in / join / full / unavailable)
         │   ├── activity/       # ActivityFeed (collapsed, new dot), SlotMarker (override / asterisk), ChangedScore tooltip, describeEvent
+        │   ├── feed/           # Feed pieces: `feedView.ts` (timeline rows, "New" divider, event wording), FeedEventRow, MessageRow, Composer (Enter sends with a mouse only), GifPicker, DeleteMessageDialog
         │   ├── layout/         # AppShell (header + bottom tabs on phones / left rail from md up), NavBar (header: logo, account), Brand, LeagueSwitcher, BottomTabBar, LeagueRail, leagueTabs (League, Team, Draft, Feed, More)
         │   ├── draft/          # DraftClockBar + clockText (the sticky bar), CommissionerStrip (randomize, edit order, change date, start, pause/resume/undo/force pick), DraftOrderEditor + orderMoves (up/down, saved as one order change), DraftSetupDialogs (date, seconds per pick/type/timeout), DraftBoard, RosterView + rosterSlots (my picks in the league's slots), QueuePanel, PreDraftNotice
-        │   ├── league/         # PhaseBlock (top block by phase), Standings (phone rows that expand in place, desktop round columns, pre-draft team slots), RankCell (tie tooltip), LeagueNotes (collapsible card), InviteLinkButton (copy and share the invite link), phase.ts / countdown.ts / standingsView.ts helpers, ArchivedNotice (shown where a finished season hides write controls; write controls follow the season's `canEdit` / `canCommission` from `useSeasonContext`), LeagueDeletedNotice (the "deleted by a commissioner" page)
+        │   ├── league/         # PhaseBlock (top block by phase), Standings (phone rows that expand in place, desktop round columns, pre-draft team slots), RankCell (tie tooltip), LeagueNotes (collapsible card), InviteLinkButton (copy and share the invite link), phase.ts / countdown.ts / standingsView.ts helpers, ArchivedBanner (tops every page of a finished season from SeasonLayout), LiveIndicator ("Live, updated 20s ago" in the playoff phase block while a game is live; `useStandings` polls only then, otherwise on focus), ArchivedNotice (shown where a finished season hides write controls; write controls follow the season's `canEdit` / `canCommission` from `useSeasonContext`), LeagueDeletedNotice (the "deleted by a commissioner" page)
         │   ├── players/        # PlayersView (the league player list: search, position / NFL team / fantasy team filters, sort, owner chip; with a `draft` prop it adds Draft and queue buttons and All / Available / Drafted), FilterMenu, playerRows.ts (pool + season stats rows, stat line, filters, sorts)
         │   ├── recap/          # SeasonRecap: champion card, Playoff MVP and champion's MVP, awards by position, start the next season (gated by `canStartSeason`)
         │   ├── team/           # LineupList (tap/drag lineup), OverrideDialog (commissioner confirm), BreakdownRounds (round-by-round points)
@@ -205,6 +207,7 @@ PostSznFantasy/
         ├── utils/
         │   ├── draftCue.ts     # Web Audio on-deck beep
         │   ├── scoring.ts      # Numeric coercion + defaults diff for league forms
+        │   ├── gifProvider.ts  # `GifProvider` interface plus the GIPHY adapter; `gifProvider()` is null without `VITE_GIPHY_API_KEY`, which hides the GIF button
         │   ├── logger.ts       # Leveled client logger (debug/info dev-only)
         │   ├── pushSetup.ts    # `registerServiceWorker()` (call once at startup) and browser feature detection
         │   └── supabase.ts     # Supabase auth-only client (@supabase/auth-js), storage key "postszn-auth"
@@ -240,6 +243,8 @@ make format     # auto-fix Ruff and Biome
 ### End-to-end tests (`e2e/`)
 
 `make e2e-install` (once), then `make e2e` (needs `make db-up`; `E2E_ARGS="--project=mobile -g draft"` filters). Playwright starts its own API (:8100) and Vite (:5273) against a throwaway `postszn_e2e` database that `python -m api.scripts.seed_e2e` rebuilds from the committed fixtures in `e2e/fixtures/` (regenerate with `python3 e2e/fixtures/build_fixtures.py`). Tests sign in through the **test-auth stub**: `Bearer e2e-user:<uid>` is accepted only when `TEST_AUTH_STUB=true` *and* `ENVIRONMENT` is `development` or `test` (Settings refuses to start otherwise; proven in `api/tests/test_test_auth_stub.py`). Never set it outside local/CI runs. The main project also lists `e2e-admin` in `ADMIN_SUPABASE_UIDS`/`VITE_ADMIN_SUPABASE_UIDS` so tests can exercise the admin-only "Refresh now" button.
+
+**Writing stable e2e specs** (full list in [CONTRIBUTING.md](CONTRIBUTING.md#writing-stable-e2e-specs)): `retries` stay 0. When you change UI, grep `e2e/` for the selectors you affected and run those specs before opening a PR. Select by role and exact name (`exact: true`; unique test data can collide with UI strings), wait for loaded state before acting, finish `page.route` specs with `unrouteAll({ behavior: "wait" })`, and never race a timer: the e2e build (`VITE_E2E`, `frontend/src/utils/e2e.ts`) makes MUI transitions instant and freezes the draft confirm window and the refresh toast, so gate any new timer-driven UI on `E2E_BUILD`. `scripts/lint-e2e.sh` (`make lint-e2e`, in CI) fails on `waitForTimeout`, `networkidle`, `page.pause`, `test.only` and `.first()` / `.last()` / `.nth()` without a justifying `//` comment. `make e2e-stress` repeats the suite (`E2E_STRESS_REPEAT=5`); `.github/workflows/e2e-stress.yml` runs it nightly.
 
 `e2e/live/` is the replay suite (`playwright.live.config.ts`, run by `make e2e` after the main suite): it starts its own API on :8101 with the scheduler in replay mode (`e2e/fixtures/replay.json`, 2000x) against `postszn_e2e_live`, and asserts eliminations land as each replayed game finishes.
 
@@ -302,6 +307,7 @@ Authorization (`api/dependencies/league.py`): `LeagueMember` / `LeagueCommission
 - **Environment Configuration**: Runtime variables use Vite conventions (`import.meta.env.VITE_*`).
   - `VITE_API_URL`: Backend HTTP origin; optional locally because the Vite dev server proxies `/api` to `http://localhost:8000`.
   - `VITE_WS_URL`: WebSocket origin; optional for the same reason (defaults to the page origin). Both are required in production builds (Cloudflare Pages build vars). Full contract: `api/.env.example`, `frontend/.env.example`.
+  - `VITE_GIPHY_API_KEY`: optional public GIPHY key for the Feed's GIF button (unset hides it); the API still only stores GIF links from `GIF_ALLOWED_HOSTS`.
   - `VITE_SUPABASE_URL`: Supabase project URL.
   - `VITE_SUPABASE_PUBLISHABLE_KEY`: Supabase project publishable API key (`sb_publishable_...`, with fallback to legacy `VITE_SUPABASE_ANON_KEY`).
 - **Component Styling**: Material-UI (MUI v9) styled components and `sx` prop.

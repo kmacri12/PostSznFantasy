@@ -38,9 +38,12 @@ test.describe("season routes", () => {
     await expect(page).toHaveURL("/");
 
     await page.goto(seasonUrl(league));
+    // The bottom bar and the desktop rail both render this link and go to the same place.
     await page.getByRole("link", { name: "Feed" }).first().click();
     await expect(page).toHaveURL(seasonUrl(league, "/feed"));
+    // The bottom bar and the desktop rail both render this link and go to the same place.
     await page.getByRole("link", { name: "More" }).first().click();
+    // The More page and the account menu both link to Settings, to the same place.
     await page.getByRole("link", { name: "Settings" }).first().click();
     await expect(page).toHaveURL(seasonUrl(league, "/settings"));
     expect(page.url()).not.toContain("/seasons/");

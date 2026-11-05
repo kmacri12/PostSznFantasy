@@ -91,7 +91,7 @@ const CommissionerStrip = ({ draft, editingOrder, onEditOrder }: Props) => {
           {error && <Alert severity="error">{error}</Alert>}
           {preDraft ? (
             <>
-              <Action disabled={draft.orderLocked} onClick={run("randomize")}>
+              <Action disabled={draft.orderLocked || control.isPending} onClick={run("randomize")}>
                 Randomize draft order
               </Action>
               <Action disabled={draft.orderLocked} onClick={onEditOrder}>
@@ -103,7 +103,9 @@ const CommissionerStrip = ({ draft, editingOrder, onEditOrder }: Props) => {
               >
                 Change date
               </Action>
-              <Action onClick={run("start")}>Start draft</Action>
+              <Action disabled={control.isPending} onClick={run("start")}>
+                Start draft
+              </Action>
               <Button
                 onClick={() => setRulesOpen(true)}
                 sx={{ color: tokens.textSoft, fontSize: 13, minHeight: 44 }}
@@ -131,12 +133,22 @@ const CommissionerStrip = ({ draft, editingOrder, onEditOrder }: Props) => {
             <>
               {status === "in_progress" && (
                 <>
-                  <Action onClick={run("pause")}>Pause</Action>
-                  <Action onClick={run("force-pick")}>Auto-pick now</Action>
+                  <Action disabled={control.isPending} onClick={run("pause")}>
+                    Pause
+                  </Action>
+                  <Action disabled={control.isPending} onClick={run("force-pick")}>
+                    Auto-pick now
+                  </Action>
                 </>
               )}
-              {status === "paused" && <Action onClick={run("resume")}>Resume</Action>}
-              <Action onClick={run("undo")}>Undo last pick</Action>
+              {status === "paused" && (
+                <Action disabled={control.isPending} onClick={run("resume")}>
+                  Resume
+                </Action>
+              )}
+              <Action disabled={control.isPending} onClick={run("undo")}>
+                Undo last pick
+              </Action>
             </>
           )}
         </Box>

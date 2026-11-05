@@ -92,7 +92,7 @@ The old overall "best draft value", "biggest bust", "best bench" and "best game"
 - One newest-first stream with a message box at the bottom ("Message the league" and a GIF button); the tab dot covers new events and new messages. A "New" divider marks the first unseen item.
 - Dates are small separator rows ("Tue, Jan 6"); each item carries its time next to it.
 - Events kept: commissioner overrides, stat corrections, settings changes, joins, leaves and role changes, league created, draft started and completed (with the pick count), and **draft order changes**: "randomized the draft order" followed by the full resulting order, and manual changes say who moved where ("Sam's Squad moved from 2 to 4"). Lineup moves are not shown.
-- Chat v1: text and GIFs (a GIF search provider is needed; see Open items). Members delete their own messages, commissioners delete any. No threads, edits or reactions yet.
+- Chat v1: text and GIFs. GIFs come from GIPHY (`utils/gifProvider.ts`, a small interface so another provider can replace it; enabled by `VITE_GIPHY_API_KEY`, hidden without it; the picker says "Powered by GIPHY"). The page reads the feed over a live socket (a content-free nudge refetches it) and polls every 30 seconds while the socket is down. On screen the newest item sits at the bottom above the message box, as on the canvas; the API order is newest first. Members delete their own messages, commissioners delete any. No threads, edits or reactions yet.
 - Chat posting is for the current season only; an archived season's feed is read-only.
 - Push notifications (own epic, before release, iPhone and Android): web push through a manifest, service worker and stored subscriptions. iPhone needs the site added to the Home Screen (iOS 16.4+), so onboarding includes an explainer (also a tap-help on the Notifications setting). First triggers: your pick is on the clock, new chat message (mutable), lineups about to lock.
 
@@ -129,7 +129,7 @@ The old overall "best draft value", "biggest bust", "best bench" and "best game"
   - Team: the round cells and lineup side by side in the wider column.
   - Draft room: the queue sits above the player list on the left; the board and a vertical roster (every slot on its own row, bench included) are always on screen on the right, with no Roster or Board buttons and no separate Queue tab.
   - Landing: the same hero with Sign in and How to play side by side, centered.
-- Live: scores and standings refresh automatically while games are on with a "Live, updated 20s ago" indicator; nothing refreshes outside game windows.
+- Live: scores and standings refresh automatically while games are on with a "Live, updated 20s ago" indicator; nothing refreshes outside game windows. In code the standings poll every 20 seconds only while the standings report a live game, and refresh when the page regains focus otherwise; the indicator appears in the playoff phase block of the League tab. The team breakdown still polls on its own timer.
 
 ## Behavior changes this implies
 
@@ -154,7 +154,7 @@ Frontend:
 ## Open items
 
 - The logo (square mark and wide wordmark) is a placeholder.
-- GIF provider for chat is not chosen (check which are open to new apps).
+- GIF provider for chat: GIPHY is wired because its API shape is documented and open to new apps; Tenor is closed to new apps and Klipy is the free alternative (add an adapter next to `giphyProvider`). A production GIPHY key needs their approval and the "Powered by" credit.
 - The Team page does not say how the DST is described when stats are missing; the boards show `[TEAM] D/ST` placeholders.
 - Player sheet: the round's scoring breakdown (each stat and its points) was on the old plan but is not on the board; decide whether it appears once the player's game has started.
 - Decided (#264): More keeps a **Draft board** row (`/draft/board`) next to **Players** (the Draft tab), so the board is reachable before, during and after the draft; the Draft tab after the draft shows only the player list.

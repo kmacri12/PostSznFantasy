@@ -38,6 +38,7 @@ These are read by Vite at **build time** and baked into the JavaScript bundle, s
 | `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` | `src/utils/supabase.ts` | from the Supabase production project | sign-in fails |
 | `VITE_SENTRY_DSN`, `VITE_SENTRY_ENVIRONMENT` | `src/utils/sentry.ts` | optional, see [sentry.md](sentry.md) | error tracking off |
 | `VITE_ADMIN_SUPABASE_UIDS` | `DataFreshness.tsx` | optional admin hint | the admin refresh button stays hidden |
+| `VITE_GIPHY_API_KEY` | `src/utils/gifProvider.ts` | optional; a public GIPHY key (developers.giphy.com), see [Feed chat](../ui/README.md#feed-tab-chat-plus-league-events) | the Feed has no GIF button |
 
 **The build fails loudly when they are missing.** On Cloudflare Pages (which sets `CF_PAGES`) or with `REQUIRE_PRODUCTION_ENV=1`, `vite build` (`requireProductionEnv` in `vite.config.ts`) stops with the names of any missing `VITE_API_URL`, `VITE_WS_URL`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, and also if the API URL is not `https://` or the WebSocket URL not `wss://`. A plain local `npm run build` (and `make check`) needs no `.env`.
 
