@@ -1,7 +1,6 @@
 import { Box, Typography } from "@mui/material";
-import { alpha } from "@mui/material/styles";
 import type { FeedEventItem } from "../../api/types";
-import { tokens } from "../../theme";
+import { tint, tokens } from "../../theme";
 import { eventLine, timeLabel } from "./feedView";
 
 const pillSx = {
@@ -35,7 +34,7 @@ const Lead = ({ children }: { children: string }) => (
 const FeedEventRow = ({ event }: { event: FeedEventItem }) => {
   const line = eventLine(event);
   const warnSx = line.warn
-    ? { color: tokens.warning, borderColor: alpha(tokens.warning, 0.4) }
+    ? { color: tokens.warning, borderColor: tint(tokens.warning, 40) }
     : undefined;
 
   if (line.order) {

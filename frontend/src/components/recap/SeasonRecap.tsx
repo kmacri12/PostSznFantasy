@@ -1,10 +1,10 @@
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
-import { Alert, alpha, Box, Button, ButtonBase, Card, Tooltip, Typography } from "@mui/material";
+import { Alert, Box, Button, ButtonBase, Card, Tooltip, Typography } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import { useStartSeason } from "../../api/queries";
 import type { AwardWinner, SeasonRecap as Recap } from "../../api/types";
 import { seasonPaths } from "../../routes";
-import { tokens } from "../../theme";
+import { tint, tokens } from "../../theme";
 import { mutationError } from "../common/friendlyError";
 import { formatPoints } from "../league/standingsView";
 
@@ -43,7 +43,7 @@ const ChampionCard = ({ recap }: { recap: Recap }) => (
       flexDirection: "column",
       gap: 1.5,
       border: `1px solid ${tokens.gold}`,
-      bgcolor: alpha(tokens.gold, 0.1),
+      bgcolor: tint(tokens.gold, 10),
     }}
   >
     {recap.champions.map((champion) => (

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { tokens } from "./theme";
+import { modeVariables, palettes, type ThemeMode, tokens } from "./theme";
 
 const luminance = (hex: string): number => {
   const linear = (start: number): number => {
@@ -14,19 +14,73 @@ const contrast = (a: string, b: string): number => {
   return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
 };
 
-describe("palette contrast (WCAG AA)", () => {
-  it.each([
-    ["text on accent", tokens.accentInk, tokens.accent, 4.5],
-    ["accent on the page", tokens.accent, tokens.bg, 4.5],
-    ["accent on a card", tokens.accent, tokens.surface, 4.5],
-    ["accent on its tint", tokens.accent, tokens.accentSurface, 4.5],
-    ["soft accent on its tint", tokens.accentSoft, tokens.accentSurface, 4.5],
-    ["body text on a card", tokens.text, tokens.surface, 4.5],
-    ["muted text on a card", tokens.muted, tokens.surface, 4.5],
-    ["muted text on a raised surface", tokens.muted, tokens.surfaceRaised, 4.5],
-    ["live green on a card", tokens.live, tokens.surface, 4.5],
-    ["input border on a card", tokens.inputBorder, tokens.surface, 3],
-  ])("%s", (_name, foreground, background, minimum) => {
-    expect(contrast(foreground, background)).toBeGreaterThanOrEqual(minimum);
+type Key = keyof typeof palettes.dark;
+
+// [foreground, background, minimum]: 4.5 for body text, 3 for large text and UI components.
+const PAIRS: [Key, Key, number][] = [
+  ["accentInk", "accentFill", 4.5],
+  ["accent", "bg", 4.5],
+  ["accent", "surface", 4.5],
+  ["accent", "accentSurface", 4.5],
+  ["accentSoft", "accentSurface", 4.5],
+  ["accentSoft", "bg", 4.5],
+  ["text", "bg", 4.5],
+  ["text", "surface", 4.5],
+  ["text", "accentSurface", 4.5],
+  ["textSoft", "surface", 4.5],
+  ["muted", "bg", 4.5],
+  ["muted", "surface", 4.5],
+  ["muted", "surfaceRaised", 4.5],
+  ["live", "bg", 4.5],
+  ["live", "surface", 4.5],
+  ["liveSoft", "bg", 4.5],
+  ["green", "surface", 3],
+  ["red", "bg", 4.5],
+  ["red", "surface", 4.5],
+  ["redSoft", "bg", 4.5],
+  ["warning", "bg", 4.5],
+  ["warning", "surface", 4.5],
+  ["gold", "bg", 4.5],
+  ["gold", "surface", 4.5],
+  ["redSoft", "dangerSurface", 4.5],
+  ["dangerMuted", "dangerSurface", 4.5],
+  ["text", "dangerHeader", 4.5],
+  ["inputBorder", "bg", 3],
+  ["inputBorder", "surface", 3],
+  ["accent", "bg", 3],
+  ["text", "posQB", 4.5],
+  ["text", "posRB", 4.5],
+  ["text", "posWR", 4.5],
+  ["text", "posTE", 4.5],
+  ["text", "posK", 4.5],
+  ["text", "posDST", 4.5],
+  ["textSoft", "posQB", 4.5],
+  ["textSoft", "posRB", 4.5],
+  ["textSoft", "posWR", 4.5],
+  ["textSoft", "posTE", 4.5],
+  ["textSoft", "posK", 4.5],
+  ["textSoft", "posDST", 4.5],
+  ["accentInk", "accentFill", 4.5],
+];
+
+describe.each(["dark", "light"] as ThemeMode[])("%s palette contrast (WCAG AA)", (mode) => {
+  const palette = palettes[mode];
+  it.each(PAIRS)("%s on %s is at least %f:1", (foreground, background, minimum) => {
+    expect(contrast(palette[foreground], palette[background])).toBeGreaterThanOrEqual(minimum);
+  });
+});
+
+describe("token variables", () => {
+  it("defines every token for both modes", () => {
+    expect(Object.keys(palettes.light).sort()).toEqual(Object.keys(palettes.dark).sort());
+    for (const key of Object.keys(palettes.dark)) {
+      expect(tokens[key as Key]).toBe(`var(--ps-${key})`);
+      expect(modeVariables).toContain(`--ps-${key}: ${palettes.dark[key as Key]};`);
+      expect(modeVariables).toContain(`--ps-${key}: ${palettes.light[key as Key]};`);
+    }
+  });
+
+  it("keeps the sky-blue fill identical in both modes", () => {
+    expect(palettes.light.accentFill).toBe(palettes.dark.accentFill);
   });
 });

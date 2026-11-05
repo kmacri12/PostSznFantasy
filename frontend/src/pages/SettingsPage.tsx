@@ -26,6 +26,7 @@ import ScoringForm from "../components/settings/ScoringForm";
 import SettingsCard from "../components/settings/SettingsCard";
 import SettingsGroup from "../components/settings/SettingsGroup";
 import SettingsRow from "../components/settings/SettingsRow";
+import ThemeModeRow from "../components/settings/ThemeModeRow";
 import { NOTES_HINT, NOTES_MAX_LENGTH, SETTING_HELP } from "../content/rules";
 import { useSeasonContext } from "../contexts/SeasonContext";
 import { useUser } from "../contexts/UserContext";
@@ -170,6 +171,7 @@ function SettingsPage() {
             onClick={archived ? undefined : () => setSheet("teamName")}
           />
         )}
+        <ThemeModeRow />
         <NotificationsToggle />
         <SettingsRow label="Sign out" centered onClick={() => void signOutUser()} />
       </SettingsCard>

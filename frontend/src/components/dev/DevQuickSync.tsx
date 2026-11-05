@@ -14,6 +14,7 @@ import type React from "react";
 import { useState } from "react";
 import { useAdminSync } from "../../api/queries";
 import { useUser } from "../../contexts/UserContext";
+import { tint, tokens } from "../../theme";
 import { createLogger } from "../../utils/logger";
 
 const logger = createLogger("DevQuickSync");
@@ -67,12 +68,12 @@ export const DevQuickSync: React.FC = () => {
         sx={{
           ml: 2,
           textTransform: "none",
-          borderColor: "rgba(255, 255, 255, 0.4)",
-          color: "#ffc107",
+          borderColor: tokens.borderStrong,
+          color: tokens.warning,
           fontSize: "0.75rem",
           "&:hover": {
-            borderColor: "#ffc107",
-            backgroundColor: "rgba(255, 193, 7, 0.08)",
+            borderColor: tokens.warning,
+            backgroundColor: tint(tokens.warning, 8),
           },
         }}
       >

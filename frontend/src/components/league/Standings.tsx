@@ -1,6 +1,5 @@
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {
-  alpha,
   Box,
   Button,
   Collapse,
@@ -17,7 +16,7 @@ import { Link } from "react-router-dom";
 import { useStandings } from "../../api/queries";
 import type { SeasonOverview, Standings as StandingsData, StandingsRow } from "../../api/types";
 import { useSeasonContext } from "../../contexts/SeasonContext";
-import { tokens } from "../../theme";
+import { tint, tokens } from "../../theme";
 import QueryBoundary from "../common/QueryBoundary";
 import RankCell from "./RankCell";
 import { formatPoints, isOpenSpot, ROUNDS, rankLabel, rowDetail, tieNote } from "./standingsView";
@@ -40,8 +39,8 @@ const Badge = ({ children }: { children: string }) => (
       fontSize: 12,
       fontWeight: 600,
       color: currentRoundColor,
-      bgcolor: alpha(tokens.accent, 0.12),
-      border: `1px solid ${alpha(tokens.accent, 0.45)}`,
+      bgcolor: tint(tokens.accent, 12),
+      border: `1px solid ${tint(tokens.accent, 45)}`,
     }}
   >
     {children}
