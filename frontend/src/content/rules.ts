@@ -147,3 +147,15 @@ export const SETTING_HELP = {
     "Points per stat. Under each value you see what it means in plain words. Scoring stays editable after the draft and every score recomputes.",
   lockedAtDraftStart: "Locked: the draft has started, so this can no longer change.",
 } as const;
+
+// Settings page copy.
+export const NOTIFICATIONS_BLURB =
+  "Your pick on the clock, lineup locks, and chat. On iPhone, add the site to your Home Screen first.";
+export const NOTIFICATIONS_IPHONE_STEPS = [
+  "Open this site in Safari.",
+  "Tap the Share button, then Add to Home Screen.",
+  "Open the site from your Home Screen icon.",
+  "Come back here and switch Notifications on.",
+] as const;
+export const LAST_COMMISSIONER_NOTE =
+  "A league always keeps at least one commissioner. Removing a member frees their team in an unfinished season; finished seasons keep their name on it.";

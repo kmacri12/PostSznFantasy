@@ -2,23 +2,13 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { Accordion, AccordionDetails, AccordionSummary, Typography } from "@mui/material";
 import type { ReactNode } from "react";
 
-/** A top-level settings block that collapses so the page stays short on a phone. */
-const SettingsGroup = ({
-  title,
-  defaultExpanded = false,
-  children,
-}: {
-  title: string;
-  defaultExpanded?: boolean;
-  children: ReactNode;
-}) => (
-  <Accordion defaultExpanded={defaultExpanded} disableGutters sx={{ mb: 1.5 }}>
-    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-      <Typography variant="h6" component="h2">
-        {title}
-      </Typography>
+/** A settings row that opens in place, so the page stays short on a phone; sits inside a SettingsCard. */
+const SettingsGroup = ({ title, children }: { title: string; children: ReactNode }) => (
+  <Accordion disableGutters square sx={{ border: 0, "&::before": { display: "none" } }}>
+    <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: 52, px: 2 }}>
+      <Typography sx={{ fontWeight: 600 }}>{title}</Typography>
     </AccordionSummary>
-    <AccordionDetails>{children}</AccordionDetails>
+    <AccordionDetails sx={{ px: 1.5 }}>{children}</AccordionDetails>
   </Accordion>
 );
 
