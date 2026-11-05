@@ -8,3 +8,7 @@ export function resolveWsOrigin(
   if (apiUrl) return apiUrl.replace(/^http/, "ws");
   return `${page.protocol === "https:" ? "wss" : "ws"}://${page.host}`;
 }
+
+/** The WebSocket origin for this build and page. */
+export const currentWsOrigin = (): string =>
+  resolveWsOrigin(import.meta.env.VITE_WS_URL, import.meta.env.VITE_API_URL, window.location);
