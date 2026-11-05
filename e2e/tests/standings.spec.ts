@@ -16,18 +16,16 @@ test.describe("standings", () => {
     await signInAs(context, host.uid);
     await page.goto(seasonUrl(league));
 
-    // Phone cards and the desktop table are both in the DOM; only one is visible.
-    const visible = (text: string) => page.getByText(text).locator("visible=true");
-    await expect(visible("Waiting for the draft: 1 of 2 teams filled.")).toBeVisible();
-    await expect(visible("Open spot")).toHaveCount(1);
-    await expect(page.getByRole("heading", { name: "No standings yet" })).toHaveCount(0);
+    await expect(page.getByText("1 of 2 teams filled. Draft date not set yet.")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Copy invite link" })).toBeVisible();
+    await expect(page.getByText("Open slot", { exact: true })).toHaveCount(1);
 
     const guest = new Api(request, unique("guest"));
     await guest.signUp("guest");
     await guest.joinWith(code);
     await page.reload();
-    await expect(visible("Waiting for the draft: 2 of 2 teams filled.")).toBeVisible();
-    await expect(visible("Open spot")).toHaveCount(0);
+    await expect(page.getByText("2 of 2 teams filled. Draft date not set yet.")).toBeVisible();
+    await expect(page.getByText("Open slot", { exact: true })).toHaveCount(0);
   });
 
   test("when the draft completes every team is listed at zero points", async ({
@@ -41,16 +39,19 @@ test.describe("standings", () => {
     await signInAs(context, league.host.uid);
     await page.goto(seasonUrl(league.league));
 
-    await expect(page.getByText(/Waiting for the draft/)).toHaveCount(0);
+    await expect(page.getByText("Open slot", { exact: true })).toHaveCount(0);
     const standings = page.getByRole("list", { name: "Standings" });
     await expect(standings.getByRole("listitem")).toHaveCount(2);
     // Level on points and every tiebreaker, so both teams share first place.
     await expect(standings.getByText("T1", { exact: true })).toHaveCount(2);
-    await expect(standings.getByText("0", { exact: true })).toHaveCount(2);
+    // Each row shows its total and its current-round points.
+    await expect(standings.getByText("0.0", { exact: true })).toHaveCount(4);
 
     await standings.getByRole("listitem").first().getByRole("button").click();
-    await expect(standings.getByText(/Players left\s*4/)).toBeVisible();
-    await expect(page.getByLabel("Starters this round").getByRole("listitem")).toHaveCount(4);
+    await expect(standings.getByRole("link", { name: "Open team page" })).toBeVisible();
+    for (const round of ["Wild Card", "Divisional", "Conf. champ", "Super Bowl"]) {
+      await expect(standings.getByText(round, { exact: true })).toBeVisible();
+    }
   });
 
   test("a team's points page lists every round and what is left on the bench", async ({

@@ -23,9 +23,9 @@ test("a new user creates a league from just a name and a team count", async ({
   await page.getByRole("button", { name: "Create league" }).click();
 
   await expect(page).toHaveURL(/\/leagues\/\d+$/);
-  await expect(page.getByRole("heading", { name, level: 4 })).toBeVisible();
-  await expect(page.getByText("4 teams · 3 open")).toBeVisible();
-  await expect(page.getByText("Commissioner", { exact: true })).toBeVisible();
+  await expect(page.getByText("Invite your friends")).toBeVisible();
+  await expect(page.getByText("1 of 4 teams filled. Draft date not set yet.")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Create invite link" })).toBeVisible();
 
   await page.goto("/");
   await expect(page.getByRole("link", { name: new RegExp(name) })).toBeVisible();
@@ -54,7 +54,7 @@ test("Customize rules walks the roster, scoring and review steps", async ({
   await page.getByRole("button", { name: "Create league" }).click();
 
   await expect(page).toHaveURL(/\/leagues\/\d+$/);
-  await expect(page.getByRole("heading", { name, level: 4 })).toBeVisible();
+  await expect(page.getByText("Invite your friends")).toBeVisible();
 });
 
 test("the form needs a name before it lets you create", async ({ page, context, request }) => {

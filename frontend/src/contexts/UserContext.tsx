@@ -34,6 +34,8 @@ interface UserContextType {
   sendEmailCode: (email: string) => Promise<string | null>;
   /** Checks the emailed code; resolves to an error message, or null once signed in. */
   verifyEmailCode: (email: string, code: string) => Promise<string | null>;
+  /** Renames the signed-in user everywhere; resolves to an error message, or null once saved. */
+  updateDisplayName: (name: string) => Promise<string | null>;
   signOutUser: () => Promise<void>;
   getIdToken: () => Promise<string | null>;
 }
@@ -165,6 +167,27 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     navigate("/");
   }, [navigate]);
 
+  // The login sync above resends the Supabase name on every sign-in, so the name has to change
+  // there too or the next sign-in would overwrite it.
+  const updateDisplayName = useCallback(
+    async (name: string) => {
+      const { error } = await supabaseAuth.updateUser({ data: { full_name: name } });
+      if (error) {
+        logger.error("Error updating the display name:", error);
+        return "Couldn't save your name. Try again.";
+      }
+      try {
+        await api.post("/api/auth/login", { username: name });
+      } catch (syncError) {
+        logger.error("Error syncing the display name:", syncError);
+        return "Couldn't save your name. Try again.";
+      }
+      await queryClient.invalidateQueries();
+      return null;
+    },
+    [queryClient],
+  );
+
   const getIdToken = useCallback(async () => {
     const {
       data: { session: current },
@@ -183,6 +206,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       signInWithGoogle,
       sendEmailCode,
       verifyEmailCode,
+      updateDisplayName,
       signOutUser,
       getIdToken,
     }),
@@ -196,6 +220,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       signInWithGoogle,
       sendEmailCode,
       verifyEmailCode,
+      updateDisplayName,
       signOutUser,
       getIdToken,
     ],

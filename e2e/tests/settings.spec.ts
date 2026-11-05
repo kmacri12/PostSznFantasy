@@ -14,7 +14,7 @@ test.describe("league settings", () => {
     await signInAs(context, host.uid);
 
     await page.goto(seasonUrl(league, "/settings"));
-    await expect(page.getByRole("heading", { name: "League Settings" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Settings", exact: true })).toBeVisible();
     await expect(page.getByRole("region", { name: "Unsaved changes" })).toHaveCount(0);
 
     await page.getByRole("button", { name: "Scoring" }).click();
@@ -44,21 +44,23 @@ test.describe("league settings", () => {
     await expect(page.getByRole("region", { name: "Unsaved changes" })).toHaveCount(0);
   });
 
-  test("renaming the league from the league page sticks", async ({ page, context, request }) => {
+  test("renaming the league in settings sticks", async ({ page, context, request }) => {
     const host = new Api(request, unique("host"));
     await host.signUp("host");
     const league = await host.createLeague(unique("Old Name"));
     await signInAs(context, host.uid);
 
-    await page.goto(seasonUrl(league));
-    await page.getByRole("button", { name: "Rename league" }).click();
+    await page.goto(seasonUrl(league, "/settings"));
     const renamed = unique("New Name");
     await page.getByLabel("League name").fill(renamed);
-    await page.getByRole("button", { name: "Save" }).click();
-    await expect(page.getByRole("heading", { name: renamed, level: 4 })).toBeVisible();
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await expect(page.getByText("Settings saved.")).toBeVisible();
+
+    await page.reload();
+    await expect(page.getByLabel("League name")).toHaveValue(renamed);
   });
 
-  test("a member sees the settings read-only", async ({ page, context, request }) => {
+  test("a member sees only their own settings", async ({ page, context, request }) => {
     const host = new Api(request, unique("host"));
     await host.signUp("host");
     const league = await host.createLeague(unique("Readonly League"));
@@ -69,9 +71,10 @@ test.describe("league settings", () => {
     await signInAs(context, member.uid);
 
     await page.goto(seasonUrl(league, "/settings"));
-    await expect(page.getByText("Only commissioners can change settings.")).toBeVisible();
-    await page.getByRole("button", { name: "Scoring" }).click();
-    await expect(page.locator("#scoring-passing-td")).toHaveJSProperty("readOnly", true);
+    await expect(page.getByText("Your settings")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Sign out" })).toBeVisible();
+    await expect(page.getByText("Commissioner settings")).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Scoring" })).toHaveCount(0);
   });
 
   test("the commissioner shuffles and saves the draft order", async ({
@@ -85,6 +88,7 @@ test.describe("league settings", () => {
     await signInAs(context, host.uid);
 
     await page.goto(seasonUrl(league, "/settings"));
+    await page.getByRole("button", { name: "Draft setup" }).click();
     await page.getByRole("button", { name: "Randomize" }).click();
     await page.getByRole("button", { name: "Save order" }).click();
     await expect
@@ -102,6 +106,7 @@ test.describe("league settings", () => {
     await signInAs(context, host.uid);
 
     await page.goto(seasonUrl(league, "/settings"));
+    await page.getByRole("button", { name: "Draft setup" }).click();
     await page.getByLabel("Seconds per pick").fill("45");
     await page.getByRole("button", { name: "Save draft setup" }).click();
     await expect

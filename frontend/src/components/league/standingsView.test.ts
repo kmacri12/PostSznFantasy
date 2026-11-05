@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { StandingsRow } from "../../api/types";
-import { isOpenSpot, preDraftLine, rankLabel, tieNote } from "./standingsView";
+import { formatPoints, isOpenSpot, rankLabel, rowDetail, tieNote } from "./standingsView";
 
 const row = (teamId: number, rank: number, extra: Partial<StandingsRow> = {}): StandingsRow => ({
   teamId,
@@ -62,8 +62,38 @@ describe("pre-draft slots", () => {
     expect(rankLabel(slots, 0)).toBe("–");
   });
 
-  it("counts filled slots in the phase line", () => {
+  it("tells an open slot from a filled one", () => {
+    expect(isOpenSpot(slots[0] as StandingsRow)).toBe(false);
     expect(isOpenSpot(slots[1] as StandingsRow)).toBe(true);
-    expect(preDraftLine(slots)).toBe("Waiting for the draft: 1 of 2 teams filled.");
+  });
+});
+
+describe("formatPoints", () => {
+  it("keeps one decimal and up to two", () => {
+    expect(formatPoints(84.2)).toBe("84.2");
+    expect(formatPoints(7)).toBe("7.0");
+    expect(formatPoints(12.65)).toBe("12.65");
+    expect(formatPoints(-3.5)).toBe("-3.5");
+  });
+});
+
+describe("rowDetail", () => {
+  const lead = row(1, 1, {
+    owner: "Dave",
+    isCommissioner: true,
+    playersLeft: 5,
+    progress: { finished: 0, live: 3, toPlay: 1, notPlaying: 5 },
+  });
+
+  it("names the owner, the commissioner mark, players left and live", () => {
+    expect(rowDetail(lead, true)).toBe("Dave · commissioner · 5 left · 3 live");
+  });
+
+  it("stops at the owner once the season is over", () => {
+    expect(rowDetail(lead, false)).toBe("Dave · commissioner");
+  });
+
+  it("says an open slot is waiting", () => {
+    expect(rowDetail(row(2, 0, { owner: null }), false)).toBe("Waiting for a player");
   });
 });

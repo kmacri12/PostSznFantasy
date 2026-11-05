@@ -27,6 +27,8 @@ class AwardWinner(BaseSchema):
     # Set for the per-position draft awards.
     drafted_as: int | None = None
     finished_as: int | None = None
+    # Overall pick number the player was taken at, for the draft awards.
+    pick_number: int | None = None
     points: float | None = None
 
 
