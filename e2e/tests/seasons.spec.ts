@@ -40,8 +40,8 @@ test.describe("season routes", () => {
     await page.goto(seasonUrl(league));
     await page.getByRole("link", { name: "Settings" }).first().click();
     await expect(page).toHaveURL(seasonUrl(league, "/settings"));
-    await page.getByRole("link", { name: "Players" }).first().click();
-    await expect(page).toHaveURL(seasonUrl(league, "/players"));
+    await page.getByRole("link", { name: "Feed" }).first().click();
+    await expect(page).toHaveURL(seasonUrl(league, "/feed"));
     expect(page.url()).not.toContain("/seasons/");
   });
 

@@ -36,6 +36,8 @@ test.describe("signed in", () => {
       seasonUrl(league, `/teams/${teamId}`),
       seasonUrl(league, "/settings"),
       seasonUrl(league, "/players"),
+      seasonUrl(league, "/feed"),
+      seasonUrl(league, "/more"),
     ];
     for (const url of pages) {
       await page.goto(url);
