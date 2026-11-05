@@ -27,7 +27,7 @@ vi.mock("./contexts/UserContext", () => ({
 }));
 vi.mock("./components/auth/SessionExpiredBanner", () => ({ default: () => null }));
 vi.mock("./components/dev/DevQuickSync", () => ({ DevQuickSync: () => null }));
-vi.mock("./pages/PlayersPage", () => ({ default: () => <div>players page</div> }));
+vi.mock("./pages/NotFoundPage", () => ({ default: () => <div>not found page</div> }));
 vi.mock("./pages/LeaguePage", () => ({ default: () => <div>league page</div> }));
 
 const renderAt = (url: string) =>
@@ -51,9 +51,9 @@ describe("API up", () => {
     expect(screen.queryByText(/back for the next postseason/i)).not.toBeInTheDocument();
   });
 
-  it("renders app routes normally", async () => {
+  it("has no global players page any more", async () => {
     renderAt("/players");
-    expect(await screen.findByText("players page")).toBeVisible();
+    expect(await screen.findByText("not found page")).toBeVisible();
   });
 });
 

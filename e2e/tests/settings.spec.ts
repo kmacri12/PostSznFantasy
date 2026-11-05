@@ -78,48 +78,4 @@ test.describe("league settings", () => {
     await expect(page.getByText("Commissioner settings")).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Scoring" })).toHaveCount(0);
   });
-
-  test("the commissioner shuffles and saves the draft order", async ({
-    page,
-    context,
-    request,
-  }) => {
-    const host = new Api(request, unique("host"));
-    await host.signUp("host");
-    const league = await host.createLeague(unique("Order League"));
-    await signInAs(context, host.uid);
-
-    await page.goto(seasonUrl(league, "/settings"));
-    await page.getByRole("button", { name: "Draft setup" }).click();
-    await page.getByRole("button", { name: "Randomize" }).click();
-    await page.getByRole("button", { name: "Save order" }).click();
-    await expect
-      .poll(
-        async () =>
-          (await host.get<{ order: unknown[] }>(`/api/drafts/draft-info/${league.seasonId}`)).order,
-      )
-      .toHaveLength(2);
-  });
-
-  test("seconds per pick are saved with the draft setup", async ({ page, context, request }) => {
-    const host = new Api(request, unique("host"));
-    await host.signUp("host");
-    const league = await host.createLeague(unique("Clock League"));
-    await signInAs(context, host.uid);
-
-    await page.goto(seasonUrl(league, "/settings"));
-    await page.getByRole("button", { name: "Draft setup" }).click();
-    await page.getByLabel("Seconds per pick").fill("45");
-    await page.getByRole("button", { name: "Save draft setup" }).click();
-    await expect
-      .poll(
-        async () =>
-          (
-            await host.get<{ timePerPickSeconds: number }>(
-              `/api/drafts/draft-info/${league.seasonId}`,
-            )
-          ).timePerPickSeconds,
-      )
-      .toBe(45);
-  });
 });

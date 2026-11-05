@@ -62,14 +62,12 @@ test.describe("season routes", () => {
       await route.fulfill({ response, json: seasons.map((s) => ({ ...s, current: false })) });
     });
 
-    await page.goto(pastSeasonUrl(league, "/players"));
-    await expect(page).toHaveURL(pastSeasonUrl(league, "/players"));
-    await expect(
-      page.getByRole("table").or(page.getByRole("list", { name: "Players" })),
-    ).toBeVisible();
+    await page.goto(pastSeasonUrl(league, "/draft/board"));
+    await expect(page).toHaveURL(pastSeasonUrl(league, "/draft/board"));
+    await expect(page.getByRole("heading", { name: "Draft board" })).toBeVisible();
     await page.goto("/");
     await page.goBack();
-    await expect(page).toHaveURL(pastSeasonUrl(league, "/players"));
+    await expect(page).toHaveURL(pastSeasonUrl(league, "/draft/board"));
     // Lets an in-flight intercepted fetch finish before the page closes (else "Response has been disposed").
     await page.unrouteAll({ behavior: "wait" });
   });

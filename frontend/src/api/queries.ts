@@ -148,12 +148,14 @@ export const useLeagueSettings = (seasonId: Id | undefined) =>
     enabled: seasonId !== undefined,
   });
 
-export const useDraft = (seasonId: Id | undefined) =>
+/** `pollMs` keeps a read-only view (the standalone board) current without the draft socket. */
+export const useDraft = (seasonId: Id | undefined, pollMs?: number) =>
   useQuery({
     queryKey: keys.draft(seasonId ?? ""),
     queryFn: ({ signal }) => get<DraftState>(`/api/drafts/draft-info/${seasonId}`, signal),
     enabled: seasonId !== undefined,
     retry: false,
+    refetchInterval: pollMs,
   });
 
 export const usePlayerList = () =>

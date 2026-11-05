@@ -52,8 +52,8 @@ describe("DraftBoard", () => {
       "Alpha",
       "Bravo",
     ]);
-    expect(screen.getByTestId("pick-1").textContent).toContain("Pat QB");
-    expect(screen.getByTestId("pick-2").textContent).toBe("#2");
+    expect(screen.getByTestId("pick-1").textContent).toContain("P. QB");
+    expect(screen.getByTestId("pick-2").textContent).toContain("On the clock");
   });
 
   it("reverses odd rounds for snake drafts", () => {
@@ -83,7 +83,7 @@ describe("DraftBoard team QB / team K", () => {
 
   it("badges a drafted team QB while still showing his name", () => {
     render(<DraftBoard state={withFlag(true)} myTeamId={null} />);
-    expect(screen.getByText("Pat QB")).toBeTruthy();
+    expect(screen.getByText("P. QB")).toBeTruthy();
     expect(screen.getByRole("note", { name: /Scores all PHI QBs/ })).toBeTruthy();
   });
 

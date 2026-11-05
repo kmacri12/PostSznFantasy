@@ -1,8 +1,9 @@
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
-import DeleteIcon from "@mui/icons-material/Delete";
-import { IconButton, List, ListItem, ListItemText, Typography } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
+import { Box, IconButton, Typography } from "@mui/material";
 import type { PlayerSummary } from "../../api/types";
+import { radii, tokens } from "../../theme";
 
 interface Props {
   queue: number[];
@@ -24,51 +25,77 @@ const QueuePanel = ({ queue, players, draftedIds, onChange }: Props) => {
     onChange(next);
   };
 
-  if (available.length === 0) {
-    return (
-      <Typography color="text.secondary" sx={{ p: 2 }}>
-        Your queue is empty. Add players from the Players tab and they'll be drafted for you if your
-        clock runs out.
-      </Typography>
-    );
-  }
   return (
-    <List dense aria-label="Pick queue">
-      {available.map((id, index) => (
-        <ListItem
-          key={id}
-          secondaryAction={
-            <>
-              <IconButton
-                aria-label="Move up"
-                disabled={index === 0}
-                onClick={() => move(index, -1)}
+    <Box
+      component="section"
+      aria-label="Your queue"
+      sx={{
+        bgcolor: tokens.surface,
+        border: `1px solid ${tokens.border}`,
+        borderRadius: `${radii.card}px`,
+        overflow: "hidden",
+      }}
+    >
+      <Typography sx={{ px: 2, py: 1.5, fontSize: 13, color: tokens.textSoft }}>
+        <b style={{ color: tokens.text }}>Your queue</b> · used if your clock runs out
+      </Typography>
+      {available.length === 0 ? (
+        <Typography sx={{ px: 2, pb: 2, fontSize: 13, color: tokens.muted }}>
+          Your queue is empty. Tap the star on a player in the Players view and they'll be drafted
+          for you if your clock runs out.
+        </Typography>
+      ) : (
+        <Box component="ol" aria-label="Pick queue" sx={{ m: 0, p: 0, listStyle: "none" }}>
+          {available.map((id, index) => {
+            const player = players.get(id);
+            return (
+              <Box
+                component="li"
+                key={id}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 0.5,
+                  pl: 2,
+                  pr: 0.5,
+                  minHeight: 52,
+                  borderTop: `1px solid ${tokens.border}`,
+                }}
               >
-                <ArrowUpwardIcon fontSize="small" />
-              </IconButton>
-              <IconButton
-                aria-label="Move down"
-                disabled={index === available.length - 1}
-                onClick={() => move(index, 1)}
-              >
-                <ArrowDownwardIcon fontSize="small" />
-              </IconButton>
-              <IconButton
-                aria-label="Remove from queue"
-                onClick={() => onChange(available.filter((other) => other !== id))}
-              >
-                <DeleteIcon fontSize="small" />
-              </IconButton>
-            </>
-          }
-        >
-          <ListItemText
-            primary={`${index + 1}. ${players.get(id)?.name ?? `Player ${id}`}`}
-            secondary={players.get(id)?.position}
-          />
-        </ListItem>
-      ))}
-    </List>
+                <Box sx={{ flex: 1, minWidth: 0, fontSize: 14 }}>
+                  <b>
+                    {index + 1}. {player?.name ?? `Player ${id}`}
+                  </b>
+                  <Box component="span" sx={{ ml: 1, fontSize: 12, color: tokens.muted }}>
+                    {player?.position} {player?.team?.teamAbv ?? player?.teamAbv}
+                  </Box>
+                </Box>
+                <IconButton
+                  aria-label={`Move ${player?.name ?? "player"} up`}
+                  disabled={index === 0}
+                  onClick={() => move(index, -1)}
+                >
+                  <ArrowUpwardIcon fontSize="small" />
+                </IconButton>
+                <IconButton
+                  aria-label={`Move ${player?.name ?? "player"} down`}
+                  disabled={index === available.length - 1}
+                  onClick={() => move(index, 1)}
+                >
+                  <ArrowDownwardIcon fontSize="small" />
+                </IconButton>
+                <IconButton
+                  aria-label={`Remove ${player?.name ?? "player"} from queue`}
+                  onClick={() => onChange(available.filter((other) => other !== id))}
+                >
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              </Box>
+            );
+          })}
+        </Box>
+      )}
+    </Box>
   );
 };
 

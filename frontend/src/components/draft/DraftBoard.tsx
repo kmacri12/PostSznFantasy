@@ -1,4 +1,5 @@
 import { Box, Paper, Typography } from "@mui/material";
+import type { SxProps, Theme } from "@mui/material/styles";
 import type React from "react";
 import { useEffect, useRef } from "react";
 import type { DraftPick, DraftState } from "../../api/types";
@@ -10,24 +11,39 @@ import { positionColor } from "./positions";
 interface Props {
   state: DraftState;
   myTeamId: number | null;
+  /** Frame size overrides: the page decides how tall the board may be. */
+  sx?: SxProps<Theme>;
 }
 
-const ROUND_COL = 52;
-const TEAM_COL = 120;
-const HEADER_ROW = 56;
+const ROUND_COL = 44;
+const TEAM_COL = 104;
+const HEADER_ROW = 44;
+const CELL_HEIGHT = 64;
 
-const pinned = { position: "sticky", bgcolor: "background.paper" } as const;
+/** "Christian McCaffrey" reads "C. McCaffrey"; team defenses keep their name. */
+export const shortName = (name: string | null, position: string | null): string => {
+  if (!name) return "";
+  const [first, ...rest] = name.split(" ");
+  if (position === "DST" || !first || rest.length === 0) return name;
+  return `${first.charAt(0)}. ${rest.join(" ")}`;
+};
+
+const pinned = { position: "sticky", bgcolor: tokens.surface } as const;
+const gridLine = {
+  borderRight: `1px solid ${tokens.border}`,
+  borderBottom: `1px solid ${tokens.border}`,
+} as const;
 
 /**
  * Teams as columns in assigned order, rounds as rows; snake direction is shown per row.
  * The grid scrolls both ways inside its own frame with the round and team headers pinned,
  * and follows the pick on the clock.
  */
-const DraftBoard: React.FC<Props> = ({ state, myTeamId }) => {
-  const columns = `${ROUND_COL}px repeat(${state.order.length || 1}, ${TEAM_COL}px)`;
+const DraftBoard: React.FC<Props> = ({ state, myTeamId, sx }) => {
+  const teamCount = state.order.length;
+  const columns = `${ROUND_COL}px repeat(${teamCount || 1}, minmax(${TEAM_COL}px, 1fr))`;
   const frameRef = useRef<HTMLDivElement>(null);
   const byOverall = new Map<number, DraftPick>(state.picks.map((p) => [p.numberPickOverall, p]));
-  const teamCount = state.order.length;
 
   // Overall pick number for a team's cell in a round, honouring the draft type's direction.
   const overallFor = (round: number, slotIndex: number): number => {
@@ -84,26 +100,43 @@ const DraftBoard: React.FC<Props> = ({ state, myTeamId }) => {
         position: "relative",
         overflow: "auto",
         overscrollBehavior: "contain",
-        maxHeight: { xs: "calc(100dvh - 300px)", md: "calc(100dvh - 240px)" },
         minHeight: 240,
+        maxHeight: "calc(100dvh - 330px)",
+        ...sx,
       }}
     >
-      <Box sx={{ display: "grid", gridTemplateColumns: columns, width: "max-content" }}>
-        <Box sx={{ ...pinned, top: 0, left: 0, zIndex: 3, height: HEADER_ROW }} />
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: columns,
+          minWidth: ROUND_COL + teamCount * TEAM_COL,
+        }}
+      >
+        <Box sx={{ ...pinned, ...gridLine, top: 0, left: 0, zIndex: 3, height: HEADER_ROW }} />
         {state.order.map((slot) => (
           <Box
             key={slot.teamId}
-            sx={{ ...pinned, top: 0, zIndex: 2, height: HEADER_ROW, px: 1, py: 0.5 }}
+            sx={{
+              ...pinned,
+              ...gridLine,
+              top: 0,
+              zIndex: 2,
+              height: HEADER_ROW,
+              px: 1,
+              display: "flex",
+              alignItems: "center",
+              minWidth: 0,
+            }}
           >
             <Typography
-              variant="subtitle2"
               noWrap
-              sx={{ color: slot.teamId === myTeamId ? tokens.accent : "inherit" }}
+              sx={{
+                fontSize: 12,
+                fontWeight: 600,
+                color: slot.teamId === myTeamId ? tokens.accent : tokens.text,
+              }}
             >
               {slot.teamName}
-            </Typography>
-            <Typography variant="caption" color="text.secondary" noWrap component="div">
-              {slot.ownerName ?? "Unclaimed"}
             </Typography>
           </Box>
         ))}
@@ -112,45 +145,59 @@ const DraftBoard: React.FC<Props> = ({ state, myTeamId }) => {
             <Box
               sx={{
                 ...pinned,
+                ...gridLine,
                 left: 0,
                 zIndex: 1,
+                height: CELL_HEIGHT,
                 display: "flex",
                 alignItems: "center",
-                pl: 1,
+                justifyContent: "center",
                 color: tokens.muted,
+                fontSize: 12,
+                fontWeight: 600,
               }}
             >
-              <Typography variant="caption">R{round + 1}</Typography>
+              {round + 1}
             </Box>
             {state.order.map((slot, slotIndex) => {
               const overall = overallFor(round, slotIndex);
               const pick = byOverall.get(overall);
-              const onClock = overall === state.currentPickOverall;
+              const onClock = overall === onClockOverall && state.status !== "completed";
+              const mine = slot.teamId === myTeamId;
               return (
                 <Box
                   key={`${round}-${slot.teamId}`}
                   data-testid={`pick-${overall}`}
                   sx={{
-                    minHeight: 54,
-                    m: 0.375,
-                    p: 0.75,
+                    ...gridLine,
+                    height: CELL_HEIGHT,
                     minWidth: 0,
-                    borderRadius: 1,
-                    bgcolor: pick ? positionColor(pick.position) : "rgba(255,255,255,.03)",
-                    border: onClock
-                      ? `2px solid ${tokens.accent}`
-                      : "1px solid rgba(255,255,255,.08)",
+                    px: 0.875,
+                    py: 0.75,
+                    fontSize: 11,
+                    lineHeight: 1.3,
+                    color: onClock ? tokens.accentInk : tokens.textSoft,
+                    fontWeight: onClock ? 700 : 400,
+                    bgcolor: onClock
+                      ? tokens.accent
+                      : pick
+                        ? positionColor(pick.position)
+                        : tokens.bg,
+                    boxShadow: mine ? `inset 0 0 0 2px ${tokens.accent}` : undefined,
                   }}
                 >
-                  {pick ? (
+                  {onClock && "On the clock"}
+                  {pick && (
                     <>
-                      <Typography variant="body2" noWrap sx={{ fontWeight: 600 }}>
-                        {pick.playerName}
+                      <Typography
+                        noWrap
+                        component="b"
+                        sx={{ display: "block", fontSize: 12, fontWeight: 600, color: tokens.text }}
+                      >
+                        {shortName(pick.playerName, pick.position)}
                       </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {pick.position} · #{overall}
-                        {pick.autopick ? " · auto" : ""}
-                      </Typography>
+                      {pick.position} {pick.teamAbv}
+                      {pick.autopick ? " · auto" : ""}
                       {pick.scoresWholeTeam && (
                         <Box component="span" sx={{ ml: 0.5 }}>
                           <TeamUnitBadge
@@ -161,11 +208,10 @@ const DraftBoard: React.FC<Props> = ({ state, myTeamId }) => {
                         </Box>
                       )}
                     </>
-                  ) : (
-                    <Typography variant="caption" color="text.secondary">
-                      #{overall}
-                    </Typography>
                   )}
+                  <Box component="span" sx={visuallyHidden}>
+                    {`Pick ${overall}`}
+                  </Box>
                 </Box>
               );
             })}
@@ -175,5 +221,14 @@ const DraftBoard: React.FC<Props> = ({ state, myTeamId }) => {
     </Paper>
   );
 };
+
+const visuallyHidden = {
+  position: "absolute",
+  width: 1,
+  height: 1,
+  overflow: "hidden",
+  clip: "rect(0 0 0 0)",
+  whiteSpace: "nowrap",
+} as const;
 
 export default DraftBoard;

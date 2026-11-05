@@ -9,7 +9,7 @@ describe("seasonPaths", () => {
     expect(paths.home).toBe("/leagues/3");
     expect(paths.draft).toBe("/leagues/3/draft");
     expect(paths.settings).toBe("/leagues/3/settings");
-    expect(paths.players).toBe("/leagues/3/players");
+    expect(paths.draftBoard).toBe("/leagues/3/draft/board");
     expect(paths.feed).toBe("/leagues/3/feed");
     expect(paths.more).toBe("/leagues/3/more");
     expect(paths.team(7)).toBe("/leagues/3/teams/7");

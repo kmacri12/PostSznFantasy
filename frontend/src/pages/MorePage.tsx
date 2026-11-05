@@ -65,7 +65,7 @@ const Group = ({ label, children }: { label: string; children: ReactNode }) => (
 
 /**
  * The More tab. Placeholder list of destinations; Settings and the rest are redesigned
- * in #267. Players sits here until the draft room carries the player list.
+ * in #267. Players is the Draft tab's league player list; the board has its own row.
  */
 const MorePage = () => {
   const { leagueId, season, paths } = useSeasonContext();
@@ -77,8 +77,8 @@ const MorePage = () => {
     <Container maxWidth="sm" sx={{ pt: 2, pb: 3 }}>
       <Group label="League">
         {!season.isFormerMember && <Row to={paths.settings} title="Settings" />}
-        <Row to={paths.players} title="Players" />
-        <Row to={paths.draft} title="Draft board" />
+        <Row to={paths.draft} title="Players" hint="The league player list" />
+        <Row to={paths.draftBoard} title="Draft board" />
         {season.canCommission && !season.finished && (
           <Row to={paths.home} title="Invite members" hint="Commissioner" />
         )}

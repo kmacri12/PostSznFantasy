@@ -13,7 +13,6 @@ import {
 import ErrorState from "../components/common/ErrorState";
 import { mutationError } from "../components/common/friendlyError";
 import LoadingState from "../components/common/LoadingState";
-import DraftSetupPanel from "../components/draft/DraftSetupPanel";
 import ArchivedNotice from "../components/league/ArchivedNotice";
 import DeleteLeagueDialog from "../components/settings/DeleteLeagueDialog";
 import { valuesEqual } from "../components/settings/dirty";
@@ -226,11 +225,6 @@ function SettingsPage() {
                 }
               />
             </SettingsGroup>
-            {draft.data && (
-              <SettingsGroup title="Draft setup">
-                <DraftSetupPanel draft={draft.data} canEdit={canEdit} />
-              </SettingsGroup>
-            )}
             <SettingsRow
               label="Invite link"
               value={activeInvite ? "Active" : "None"}

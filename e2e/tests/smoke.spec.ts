@@ -21,7 +21,7 @@ test.describe("signed in", () => {
     page,
     context,
     request,
-  }, testInfo) => {
+  }) => {
     const host = new Api(request, unique("smoke"));
     await host.signUp("smoke");
     const league = await host.createLeague(unique("Smoke League"));
@@ -35,7 +35,7 @@ test.describe("signed in", () => {
       seasonUrl(league, "/draft"),
       seasonUrl(league, `/teams/${teamId}`),
       seasonUrl(league, "/settings"),
-      seasonUrl(league, "/players"),
+      seasonUrl(league, "/draft/board"),
       seasonUrl(league, "/feed"),
       seasonUrl(league, "/more"),
     ];
@@ -49,11 +49,7 @@ test.describe("signed in", () => {
       expect(overflow, `${url} scrolls sideways by ${overflow}px`).toBeLessThanOrEqual(0);
     }
 
-    await page.goto("/players");
-    if (testInfo.project.name === "desktop") {
-      await expect(page.getByRole("table")).toBeVisible();
-    } else {
-      await expect(page.getByRole("list", { name: "Players" })).toBeVisible();
-    }
+    await page.goto(seasonUrl(league, "/draft"));
+    await expect(page.getByRole("list", { name: "Players" })).toBeVisible();
   });
 });

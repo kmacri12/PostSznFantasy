@@ -99,14 +99,26 @@ export const dropSockets = (page: Page) =>
     }),
   );
 
-/** Drafts the first available player at `position` through the Players tab (tap, then confirm). */
+/** Opens the commissioner strip when it is closed. */
+export const openControls = async (page: Page) => {
+  const toggle = page.getByRole("button", { name: "Commissioner controls" });
+  if ((await toggle.getAttribute("aria-expanded")) !== "true") await toggle.click();
+};
+
+/** Shows the Players view (a tab on phones, always on screen on wide screens). */
+export const showPlayers = async (page: Page) => {
+  const tab = page.getByRole("tab", { name: "Players" });
+  if (await tab.count()) await tab.click();
+};
+
+/** Drafts the first available player at `position` through the Players view (tap, then confirm). */
 export const draftFirst = async (page: Page, position: string): Promise<string> => {
-  await page.getByRole("tab", { name: "Players" }).click();
+  await showPlayers(page);
   await page.getByRole("button", { name: position, exact: true }).click();
-  const row = page.getByRole("list", { name: "Available players" }).getByRole("listitem").first();
+  const row = page.getByRole("list", { name: "Players" }).getByRole("listitem").first();
   const name = (await row.locator("p").first().textContent()) ?? "";
-  await row.getByRole("button", { name: "Draft", exact: true }).click();
-  await row.getByRole("button", { name: `Confirm ${name}` }).click();
+  await row.getByRole("button", { name: `Draft ${name}`, exact: true }).click();
+  await row.getByRole("button", { name: `Confirm ${name}`, exact: true }).click();
   return name;
 };
 
