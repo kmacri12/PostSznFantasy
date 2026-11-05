@@ -58,6 +58,7 @@ test.describe("team page", () => {
 
     await page.getByRole("button", { name: /^RB Bryce Archer/ }).click();
     await page.getByTestId("slot-0").click();
+    // The owner banner is the first alert; the move error is appended after it.
     await expect(page.getByRole("alert").last()).toContainText("can't play");
     await expect(page.getByTestId("slot-0")).toContainText("Empty");
   });

@@ -56,6 +56,20 @@ Narrower targets: `make lint`, `make typecheck`, `make test`, each with `-api` /
 
 The CI "End-to-end (make e2e)" job always reports a result, but on a pull request whose files are all on the allowlist in `scripts/e2e-needed.sh` (docs, Markdown, deploy/backup/docker-build workflows, `scripts/`, `Dockerfile`, `fly.toml`, and backend-only changes under `api/`) its steps are skipped. Backend-only PRs skip on purpose, with the full run on every push to `main` as the safety net; `api/scripts/seed_e2e.py`, `api/alembic/**`, `api/dependencies/auth.py`, `api/core/config.py`, `api/pyproject.toml` and `api/uv.lock` still run it. Pushes to `main`, scheduled runs and everything else run it in full. Unlisted paths run e2e by default.
 
+### Writing stable e2e specs
+
+The suite has `retries: 0` on purpose: a spec that needs a retry is a bug in the spec or in the app, and a retry hides it. Every failure that has ever shown up on CI came from one of the causes below, so check your spec against them.
+
+- **When you change UI, grep `e2e/` for the labels, button names and text you touched and run those specs before opening the PR** (`E2E_ARGS="--project=mobile -g settings" make e2e`). Another PR can rewrite a spec against the old UI while yours merges (the settings rename spec broke on `main` that way).
+- **Select by role and exact accessible name**: `getByRole("button", { name: "Discard", exact: true })`. A bare substring also matches rows whose label contains your test data (a league called "Discard League" matched "Edit league name Discard League"), and a MUI dialog or drawer can carry the same `aria-label` as its field, so prefer `getByRole("textbox", { name })` over `getByLabel`. Use `data-testid` only where role and label are inherently ambiguous.
+- **No positional selectors without a reason**: `scripts/lint-e2e.sh` (`make lint-e2e`, also in CI) fails on `.first()`, `.last()` and `.nth()` without a `//` comment on the same or previous line saying why the match order is stable, and on `waitForTimeout`, `page.pause`, `test.only` and `networkidle`.
+- **Assert the loaded state before you act on it.** Wait for the data you are about to use (`await expect(slot).not.toContainText("Empty")`), not for a click to have returned. If a screen keeps local form state seeded from a query, hold the query's route in a spec (`page.route` plus a promise you resolve) to prove a late response cannot overwrite what the user typed or send stale data. See the draft setup specs in `settings.spec.ts`.
+- **Never race a wall-clock timer.** The e2e build (`VITE_E2E=true`, set in the Playwright configs) makes MUI transitions instant, the "tap again to confirm" draft window and the refresh toast static (`frontend/src/utils/e2e.ts`). If you add a timer-driven piece of UI, gate it on `E2E_BUILD` the same way instead of lengthening a Playwright timeout.
+- **Await in-flight intercepted requests**: finish a spec that uses `page.route` with `await page.unrouteAll({ behavior: "wait" })`.
+- **Use `unique("name")` for every league, user and team name** so data from other specs or earlier runs cannot collide with UI text.
+- **Live replay specs assert what holds at any speed** (eliminations only accumulate and follow a fixed order), never an exact mid-replay state.
+- **Prove a new spec is stable before you push**: `cd e2e && npx playwright test tests/your.spec.ts --repeat-each=10`. `make e2e-stress` repeats the whole suite (`E2E_STRESS_REPEAT=5`), and the "E2E stress" workflow runs it nightly and on demand. On CI failures, the report, traces, screenshots and video are uploaded as the `playwright-report` artifact.
+
 ### Migrations must be additive
 
 Production runs `alembic upgrade head` as the host's release command while the previous version is still serving traffic, and a failed migration aborts the deploy. The merge to `main` deploys the API first and the frontend a few minutes later ([docs/deploy/fly.md](docs/deploy/fly.md#how-a-deploy-works)), so the old UI also talks to the new API. Every migration and API change has to work with both the old and the new code:

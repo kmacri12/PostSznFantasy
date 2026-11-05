@@ -1,11 +1,12 @@
 import { Button } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
 import type { PlayerSummary } from "../../api/types";
+import { E2E_BUILD } from "../../utils/e2e";
 import PlayerCardList from "../players/PlayerCardList";
 import { CARD_POSITIONS, filterPlayerCards, type PlayerCardData } from "../players/playerCards";
 
 const MAX_ROWS = 200;
-const CONFIRM_WINDOW_MS = 3000;
+const CONFIRM_WINDOW_MS = E2E_BUILD ? 10 * 60_000 : 3000;
 
 interface Props {
   players: PlayerSummary[];

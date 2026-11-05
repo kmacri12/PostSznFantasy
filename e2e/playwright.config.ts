@@ -21,8 +21,10 @@ export default defineConfig({
     baseURL: WEB_URL,
     timezoneId: "UTC",
     locale: "en-US",
+    reducedMotion: "reduce",
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
+    video: "retain-on-failure",
   },
   projects: [
     { name: "mobile", use: { ...iphone } },
@@ -67,6 +69,8 @@ export default defineConfig({
         VITE_WS_URL: `ws://localhost:${API_PORT}`,
         VITE_SUPABASE_URL: SUPABASE_URL,
         VITE_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_e2e",
+        // Instant MUI transitions (frontend/src/theme.ts), so no spec races an animation.
+        VITE_E2E: "true",
         VITE_ADMIN_SUPABASE_UIDS: ADMIN_UID,
       },
     },
