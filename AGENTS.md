@@ -111,7 +111,7 @@ PostSznFantasy/
 │   │   ├── stat_corrections.py # Snapshots a final game's stats before ingest overwrites them; posts stat_correction events (team QB/K unit members' corrections post against the drafted player)
 │   │   ├── settings_changes.py # record_settings_change (old/new diff to the feed) + the recompute hook; Epic 13 calls it too
 │   │   ├── draft_clock.py      # 1s loop auto-picking expired server-side deadlines
-│   │   ├── push.py             # Web push sender (pywebpush, best-effort, prunes 404/410 subscriptions) and the on-the-clock trigger; `notify_league_message` pushes a new chat message to the other active members (author and league name only, never the text; no per-member mute yet)
+│   │   ├── push.py             # Web push sender (pywebpush, best-effort, prunes 404/410 subscriptions) and the on-the-clock trigger (`PushMessage.urgency`: on-the-clock and lineup-lock reminders go out `Urgency: high` so Android delivers them while idle, chat stays normal); `notify_league_message` pushes a new chat message to the other active members (author and league name only, never the text; no per-member mute yet)
 │   │   ├── support.py          # Problem reports: image limits and content sniffing, diagnostics scrubbing, per-user rate limit (5 an hour, in memory), the Resend HTTP call (`_transport` is where tests stub the provider)
 │   │   ├── lineup_reminders.py # Push an hour before a round's first kickoff to owners with a fillable empty starter slot, once per team and round; runs inside the scheduler tick
 │   │   ├── draft_events.py     # PICK_MADE / DRAFT_STATE broadcast payloads

@@ -81,6 +81,7 @@ async def send_lock_reminders(db: AsyncSession, year: int, now: datetime) -> int
                     body=f"You have an empty starter slot in {league_name}.",
                     url=f"/leagues/{league_id}/teams/{team.id}",
                     tag=f"lineup-lock-{team.id}-{round_}",
+                    urgency="high",
                 ),
             )
             reminded += 1

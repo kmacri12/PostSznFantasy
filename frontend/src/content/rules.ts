@@ -163,7 +163,9 @@ export const NOTIFICATIONS_ANDROID_STEPS = [
 ] as const;
 const numbered = (steps: readonly string[]) =>
   steps.map((step, index) => `${index + 1}. ${step}`).join(" ");
-export const NOTIFICATIONS_TIP = `On iPhone (iOS 16.4 or later): ${numbered(NOTIFICATIONS_IPHONE_STEPS)} On Android: ${numbered(NOTIFICATIONS_ANDROID_STEPS)}`;
+export const NOTIFICATIONS_ANDROID_HELP =
+  "If notifications arrive late: Android Settings, Apps, Chrome, Battery, set to Unrestricted. Also turn off Battery Saver during the draft.";
+export const NOTIFICATIONS_TIP = `On iPhone (iOS 16.4 or later): ${numbered(NOTIFICATIONS_IPHONE_STEPS)} On Android: ${numbered(NOTIFICATIONS_ANDROID_STEPS)} ${NOTIFICATIONS_ANDROID_HELP}`;
 export const NOTIFICATIONS_STATUS_NOTE = {
   unsupported: "This browser can't show notifications.",
   unconfigured: "Notifications aren't available yet.",
