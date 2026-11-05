@@ -20,6 +20,7 @@ from api.services.ingestion import (
     run_full_ingestion_pipeline,
 )
 from api.services.ingestion.guard import IngestionBusy, IngestionKind
+from api.services.lineup_reminders import send_lock_reminders
 from api.services.replay import ReplayClient, load_replay, virtual_clock
 from api.services.standings import recompute_standings
 from api.utils.rapidapi.rapidapi import RapidApiClient, get_rapidapi_client
@@ -274,6 +275,12 @@ async def run_poll_cycle(
         await recompute_standings(db, season)
         await db.commit()
         logger.info("Polled %d live games; %d eliminations applied", polled, eliminated)
+    try:
+        await send_lock_reminders(db, season, datetime.fromtimestamp(now, UTC))
+    except Exception:
+        await db.rollback()
+        logger.exception("Lineup lock reminders failed")
+        sentry_sdk.capture_exception()
     limit = get_settings().rapidapi_daily_request_limit
     logger.info(
         "Scheduler cycle: %d polled, %d reconciled; RapidAPI calls today %d/%s, "

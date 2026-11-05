@@ -48,10 +48,9 @@ async def announce(season_id: int, events: list[dict[str, Any]]) -> None:
     """
     for event in events:
         await draft_manager.broadcast(season_id, event)
-        data = event.get("data")
-        if (
-            event["eventType"] == "DRAFT_STATE"
-            and data["status"] == DraftStatus.IN_PROGRESS.value
-            and data["onTheClockTeamId"] is not None
-        ):
-            push.spawn(push.notify_on_the_clock(season_id, data["onTheClockTeamId"]))
+        if event["eventType"] != "DRAFT_STATE":
+            continue
+        data: dict[str, Any] = event["data"]
+        team_id = data["onTheClockTeamId"]
+        if data["status"] == DraftStatus.IN_PROGRESS.value and team_id is not None:
+            push.spawn(push.notify_on_the_clock, season_id, team_id)

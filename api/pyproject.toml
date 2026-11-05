@@ -53,6 +53,7 @@ plugins = ["pydantic.mypy"]
 module = [
     "requests_cache.*",
     "asyncpg.*",
+    "pywebpush.*",
 ]
 ignore_missing_imports = true
 

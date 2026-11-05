@@ -60,6 +60,7 @@ PostSznFantasy/
 │   │       ├── user.py         # User model
 │   │       ├── league.py       # League, Season, LeagueMember, SeasonSettings, Team, Roster, SeasonStanding models
 │   │       ├── draft.py        # Draft and DraftPick models
+│   │       ├── push.py         # PushSubscription (one row per device endpoint), LineupReminder (a lock reminder already sent per team and round)
 │   │       └── nfl.py          # NFLTeam, NFLPlayer, Stats, Game models
 │   ├── dependencies/           # FastAPI dependency providers
 │   │   ├── clock.py            # `Today`: the current date, overridable in tests
@@ -82,8 +83,10 @@ PostSznFantasy/
 │   │   ├── leagues.py          # League create/list/overview/rename+notes, members/roles, start a season
 │   │   ├── seasons.py          # Season overview, team count, team owners, settings, teams, standings, recap
 │   │   ├── teams.py            # Team page: per-round lineups, rename, lineup moves
+│   │   ├── push.py             # VAPID public key, subscribe / unsubscribe a device
 │   │   └── players.py          # Player database & stats endpoints
 │   ├── scripts/                # Database seeding & administrative CLI scripts
+│   │   ├── generate_vapid_keys.py # Prints a VAPID key pair for web push (docs/owner/18-push-notifications.md)
 │   │   ├── restore_league.py   # Owner-only: clears deleted_at on a deleted league (docs/owner/league-restore.md)
 │   │   ├── recreate_auth_users.py # Rebuild Supabase Auth users (same ids) from fantasy.users after a lost project; dry run by default, --rehearse for a fake Auth server
 │   │   ├── seed_nfl_data.py    # Unified on-demand NFL data seeder
@@ -105,6 +108,8 @@ PostSznFantasy/
 │   │   ├── stat_corrections.py # Snapshots a final game's stats before ingest overwrites them; posts stat_correction events (team QB/K unit members' corrections post against the drafted player)
 │   │   ├── settings_changes.py # record_settings_change (old/new diff to the feed) + the recompute hook; Epic 13 calls it too
 │   │   ├── draft_clock.py      # 1s loop auto-picking expired server-side deadlines
+│   │   ├── push.py             # Web push sender (pywebpush, best-effort, prunes 404/410 subscriptions) and the on-the-clock trigger; `notify_league_message` is an unwired hook for chat
+│   │   ├── lineup_reminders.py # Push an hour before a round's first kickoff to owners with a fillable empty starter slot, once per team and round; runs inside the scheduler tick
 │   │   ├── draft_events.py     # PICK_MADE / DRAFT_STATE broadcast payloads
 │   │   ├── live_leagues.py     # Soft-deleted leagues: live_league_ids/live_season_ids filter every league query, delete_league, restore_league, LeagueDeletedError
 │   │   ├── invites.py          # Invite codes and joining
@@ -164,6 +169,7 @@ PostSznFantasy/
         │   ├── queries.ts      # React Query hooks for every endpoint (`useDeleteLeague` leaves for `/` before refreshing the league list)
         │   └── leagueDeleted.ts # Reads the `leagueDeleted` 404; QueryBoundary renders LeagueDeletedNotice for it, and the query/mutation caches (main.tsx) plus the draft socket's 1008 close refetch `league-seasons` so the season layout shows that page from any guarded call
         ├── hooks/
+        │   ├── usePushNotifications.ts # Push state machine (unsupported / needs-install / denied / off / on); permission asked only from `enable()`, which must be called from a tap
         │   ├── useWebSocket.ts # Native RFC 6455 WebSocket hook
         │   └── useWebSocket.test.ts # Hook test suite
         ├── pages/
@@ -187,11 +193,12 @@ PostSznFantasy/
         │   ├── players/        # PlayersTable (TanStack Table v8)
         │   ├── recap/          # SeasonRecap: champion card, awards grid, start the next season
         │   ├── team/           # LineupList (tap/drag lineup), OverrideDialog (commissioner confirm), BreakdownRounds (round-by-round points)
-        │   └── settings/       # SettingsSection/ScoringForm/RosterForm generated from src/settings schemas; DeleteLeagueDialog (three-step confirm: warning with season count, type the exact name, final "Are you sure?")
+        │   └── settings/       # NotificationsToggle (push switch with the iPhone Home Screen explainer); SettingsSection/ScoringForm/RosterForm generated from src/settings schemas; DeleteLeagueDialog (three-step confirm: warning with season count, type the exact name, final "Are you sure?")
         ├── utils/
         │   ├── draftCue.ts     # Web Audio on-deck beep
         │   ├── scoring.ts      # Numeric coercion + defaults diff for league forms
         │   ├── logger.ts       # Leveled client logger (debug/info dev-only)
+        │   ├── pushSetup.ts    # `registerServiceWorker()` (call once at startup) and browser feature detection
         │   └── supabase.ts     # Supabase auth-only client (@supabase/auth-js), storage key "postszn-auth"
         └── test/               # Vitest environment setup
 ```
@@ -241,6 +248,7 @@ SPA routes: the league's current season (`current: true` on its entry of `GET /a
 | Invites | `GET/POST/DELETE /api/leagues/{id}/invite` (commissioner), `GET /api/invites/{code}` (public preview, no login: `{code, leagueName, season, openSpots, full, members[{displayName, isCommissioner}], joinable, reason}`; member names only, never emails), `POST /api/invites/{code}/join` (idempotent; claims the lowest-numbered open team of the current season in the same transaction as the membership, and a former member rejoins onto a free team without ever holding two; a league with no open team answers 409 `{detail: "This league is full", code: "league_full"}` until a commissioner raises `numberTeams`) |
 | Teams | `GET /api/teams/{id}/breakdown` (each round's counted points per starter slot and the bench's points, computed on read; round scores equal the standings; each starter slot's `mark` and each player's `scoreChange`, restated in counted points after the round multiplier), `GET/PATCH /api/teams/{id}` (the GET carries all four rounds' lineups: slots, unassigned and eliminated players, lock times, empty-starter count), `POST /api/teams/{id}/lineup` (`{round, playerId, slotIndex, confirmOverride?}`; `slotIndex: null` takes a player out; 409 when any player involved is locked or eliminated; the owner or a commissioner. A commissioner moving a locked player gets 409 `{detail, code: "override_confirmation_required"}` until the request repeats with `confirmOverride: true`; there is no add/drop in v1) |
 | Activity | `GET /api/seasons/{id}/activity`, `GET /api/teams/{id}/activity` (`?limit=&before=` keyset pages, newest first, members only; each event has `isNew`, the feed has `hasNew`), `POST .../activity/viewed` (`{upToEventId?}`, 204). The season feed is every event of the season; a team's feed is the events with its `team_id` (settings changes have none). `GET /api/leagues/user-leagues` carries `hasNewActivity` for the nav dot, which (like the season feed's `hasNew`) counts only overrides, stat corrections, settings changes and membership joins, leaves and role changes; the team feed counts every event. Events: `lineup_move`, `commissioner_override`, `stat_correction`, `settings_change`, and league-level `league_created`, `membership_joined`, `membership_left`, `role_changed` (written in the same transaction by the create route, `services/invites.py` and `services/league_members.py` through `activity.append_to_league`, posted to the league's current season feed; migration 0016 backfills them for existing leagues; the last three also light the nav dot and ignore the "before they joined" rule); the lineup slot `mark` (override or commissioner-set) is derived from them, and lineup players carry `points` and `scoreChange` |
+| Push | `GET /api/push/vapid-key` (`{publicKey}`, null while unconfigured; no sign-in), `POST /api/push/subscriptions` (`{endpoint, keys:{p256dh, auth}}` as `PushSubscription.toJSON()`; 204; upserts by endpoint, so a device moves to whoever signed in last; 422 unless the endpoint is https on a known push service; 409 while unconfigured), `DELETE /api/push/subscriptions` (`{endpoint}`; 204; only the caller's own). Triggers: your draft pick is on the clock (`draft_events.announce`), lineup lock reminder 60 minutes before a round's first kickoff (scheduler tick, so needs `SCHEDULER_ENABLED`). Inert without `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY`/`VAPID_SUBJECT` (all three or none). iPhone only receives push from the Home Screen app. The SPA must call `registerServiceWorker()` once at startup; `public/sw.js` handles `push` and `notificationclick` |
 | Admin | `PUT /api/admin/playoff-field` (exactly 14 known NFL team ids, else 422; drafts need the field set; the owner uses `python -m api.scripts.set_playoff_field BUF KC ...`, same service), other ingest triggers |
 | Players | `GET /api/players/draft-pool` (draftable positions on playoff teams; `?seasonId=` applies that season's team QB / team K settings and flags `scoresWholeTeam`), `GET /api/players/player-list`, `GET /api/players/player-season-stats?season=&leagueId=` (`fantasyPoints` scored under that season's settings; draftable positions only unless `position` is given), `GET /api/players/sync-status` (last successful sync per ingestion type, plus `budgetExhausted` when the daily Tank01 cap has stopped polling); players carry `eliminated` (their NFL team is out) and `injuryStatus` (`Out`, `Doubtful`, `Questionable`, `Injured Reserve` or null; roster and lineup players carry it too) |
 | Draft | `GET /api/drafts/draft-info/{seasonId}`, `PATCH /api/drafts/{seasonId}` (setup), `PUT .../order` (`teamIds` may contain `null` for unfilled slots; starting requires a full order), `POST .../order/randomize`, `POST .../control/{lobby,start,pause,resume,undo}`, `POST .../force-pick`, `POST .../picks`, `GET/PUT .../queue`, `WS /api/drafts/ws/{seasonId}` |

@@ -8,17 +8,19 @@ service says is gone (404 or 410) is deleted. Without VAPID keys every call is a
 import asyncio
 import json
 import logging
-from collections.abc import Coroutine, Iterable
+from collections.abc import Awaitable, Callable, Iterable
 from dataclasses import asdict, dataclass
-from typing import Any
+from typing import Concatenate
 
 from pywebpush import WebPushException, webpush
 from sqlalchemy import delete, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.core.config import get_settings
 from api.db.models.league import League, Season, Team
 from api.db.models.push import PushSubscription
 from api.db.session import get_session_factory
+from api.services.live_leagues import live_season_ids
 
 logger = logging.getLogger(__name__)
 
@@ -64,9 +66,22 @@ def _deliver(subscription: PushSubscription, message: PushMessage) -> int:
     return int(getattr(response, "status_code", 201))
 
 
-def spawn(work: Coroutine[Any, Any, None]) -> None:
-    """Run a notification in the background so a pick or a poll never waits on it."""
-    task = asyncio.create_task(work)
+def spawn[**P](
+    notify: Callable[Concatenate[AsyncSession, P], Awaitable[None]],
+    *args: P.args,
+    **kwargs: P.kwargs,
+) -> None:
+    """Run a notification in the background, on its own session, so the pick or poll
+    that triggered it never waits on the push services."""
+
+    async def run() -> None:
+        try:
+            async with get_session_factory()() as db:
+                await notify(db, *args, **kwargs)
+        except Exception:
+            logger.exception("Push notification failed")
+
+    task = asyncio.create_task(run())
     _pending.add(task)
     task.add_done_callback(_pending.discard)
 
@@ -77,71 +92,64 @@ async def wait_for_pending() -> None:
         await asyncio.gather(*_pending, return_exceptions=True)
 
 
-async def send_to_users(user_ids: Iterable[int], message: PushMessage) -> int:
+async def send_to_users(
+    db: AsyncSession, user_ids: Iterable[int], message: PushMessage
+) -> int:
     """Push to every device of the given users; returns how many accepted it."""
     ids = set(user_ids)
     if not ids or not get_settings().push_enabled:
         return 0
-    try:
-        async with get_session_factory()() as db:
-            subscriptions = list(
-                (
-                    await db.execute(
-                        select(PushSubscription).where(
-                            PushSubscription.user_id.in_(ids)
-                        )
-                    )
-                )
-                .scalars()
-                .all()
+    subscriptions = list(
+        (
+            await db.execute(
+                select(PushSubscription).where(PushSubscription.user_id.in_(ids))
             )
-            statuses = await asyncio.gather(
-                *(asyncio.to_thread(_deliver, s, message) for s in subscriptions)
+        )
+        .scalars()
+        .all()
+    )
+    statuses = await asyncio.gather(
+        *(asyncio.to_thread(_deliver, s, message) for s in subscriptions)
+    )
+    gone: list[int] = []
+    delivered = 0
+    for subscription, code in zip(subscriptions, statuses, strict=True):
+        if 200 <= code < 300:
+            delivered += 1
+        elif code in GONE_STATUSES:
+            gone.append(subscription.id)
+        else:
+            logger.warning(
+                "Push not delivered",
+                extra={"subscription_id": subscription.id, "status": code},
             )
-            gone = [
-                s.id
-                for s, code in zip(subscriptions, statuses, strict=True)
-                if code in GONE_STATUSES
-            ]
-            delivered = 0
-            for subscription, code in zip(subscriptions, statuses, strict=True):
-                if 200 <= code < 300:
-                    delivered += 1
-                elif code not in GONE_STATUSES:
-                    logger.warning(
-                        "Push not delivered",
-                        extra={"subscription_id": subscription.id, "status": code},
-                    )
-            if gone:
-                await db.execute(
-                    delete(PushSubscription).where(PushSubscription.id.in_(gone))
-                )
-                await db.commit()
-                logger.info(
-                    "Removed dead push subscriptions", extra={"count": len(gone)}
-                )
-            return delivered
-    except Exception:
-        logger.exception("Push send failed")
-        return 0
+    if gone:
+        await db.execute(delete(PushSubscription).where(PushSubscription.id.in_(gone)))
+        await db.commit()
+        logger.info("Removed dead push subscriptions", extra={"count": len(gone)})
+    return delivered
 
 
-async def notify_on_the_clock(season_id: int, team_id: int) -> None:
+async def notify_on_the_clock(db: AsyncSession, season_id: int, team_id: int) -> None:
     """Tell the owner of the team that is now picking."""
     if not get_settings().push_enabled:
         return
-    async with get_session_factory()() as db:
-        row = (
-            await db.execute(
-                select(Team.owner_id, League.id, League.name)
-                .join(Season, Season.id == Team.season_id)
-                .join(League, League.id == Season.league_id)
-                .where(Team.id == team_id, Team.season_id == season_id)
+    row = (
+        await db.execute(
+            select(Team.owner_id, League.id, League.name)
+            .join(Season, Season.id == Team.season_id)
+            .join(League, League.id == Season.league_id)
+            .where(
+                Team.id == team_id,
+                Team.season_id == season_id,
+                Season.id.in_(live_season_ids()),
             )
-        ).one_or_none()
+        )
+    ).one_or_none()
     if row is None or row.owner_id is None:
         return
     await send_to_users(
+        db,
         [row.owner_id],
         PushMessage(
             title="You're on the clock",
