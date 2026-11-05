@@ -5,10 +5,11 @@ import { useUser } from "../../contexts/UserContext";
 import ErrorState from "../common/ErrorState";
 import { friendlyError } from "../common/friendlyError";
 import LoadingState from "../common/LoadingState";
+import { signInDestination } from "./signInDestination";
 
 /**
  * Where a freshly signed-in visitor lands. An explicit destination (invite link, the page
- * they were on) always wins; otherwise a user with no leagues is sent to onboarding.
+ * they were on) always wins; otherwise see `signInDestination`.
  */
 const PostSignInRedirect = ({ next }: { next: string }) => {
   const { userId, syncError } = useUser();
@@ -39,7 +40,7 @@ const PostSignInRedirect = ({ next }: { next: string }) => {
       </Container>
     );
   }
-  return <Navigate to={leagues.data.length === 0 ? "/welcome" : "/"} replace />;
+  return <Navigate to={signInDestination(leagues.data)} replace />;
 };
 
 export default PostSignInRedirect;

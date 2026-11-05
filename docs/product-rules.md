@@ -32,7 +32,7 @@ Each league drafts once, before the Wild Card round, from players on the 14 play
 
 ## 4. Team QB and team K
 
-Two independent league settings, each a required explicit commissioner choice with no default and a tooltip.
+Two independent league settings with a tooltip. The "Customize rules" path of create league shows both choices (off preselected). The short create path (league name and team count only) sets both off, standard individual QB and K; a commissioner can change them in settings at any time. The off default for the short path is a product decision awaiting the owner's confirmation.
 
 - When on, the owner drafts a QB (or K) by name, but the slot scores every player whose official roster position is QB (or K) on that NFL team in that game. A WR who throws a touchdown pass scores as a WR.
 - The draft pool lists one QB (or K) per NFL team, the starter; the whole team's QBs (or Ks) leave the pool when one is drafted. The starter is the first name on the NFL team's depth chart (QB1, PK1 from Tank01's `getNFLDepthCharts`); if a team has no usable entry the player with the most pass attempts (or kicks) in the latest season stats starts, and a warning is logged. The roster, lineup and draft board show the drafted name with a tooltip such as "scores all PHI QBs".

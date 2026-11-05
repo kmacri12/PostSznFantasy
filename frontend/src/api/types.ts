@@ -107,11 +107,19 @@ export interface Invite {
   revoked: boolean;
 }
 
+export interface InviteMember {
+  displayName: string;
+  isCommissioner: boolean;
+}
+
 export interface InvitePreview {
   code: string;
   leagueName: string;
   season: number;
   openSpots: number;
+  /** No open team: joining is refused until a commissioner raises the team count. */
+  full: boolean;
+  members: InviteMember[];
   joinable: boolean;
   reason: string | null;
 }
