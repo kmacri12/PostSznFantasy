@@ -162,7 +162,7 @@ PostSznFantasy/
         │   └── rules.ts        # Every plain-language rule string: How to play, pre-draft roster, lock note, setting tooltips, notes copy
         ├── contexts/
         │   ├── SeasonContext.tsx # The route's season (`useSeasonContext`: ids, year, `season` with `canEdit` / `canCommission`, `paths`), provided by SeasonLayout
-        │   └── UserContext.tsx # Authentication & current user context
+        │   └── UserContext.tsx # Authentication & current user context (`updateDisplayName` changes the Supabase name and the backend username together)
         ├── api/
         │   ├── queries.ts      # React Query hooks for every endpoint (`useDeleteLeague` leaves for `/` before refreshing the league list)
         │   └── leagueDeleted.ts # Reads the `leagueDeleted` 404; QueryBoundary renders LeagueDeletedNotice for it, and the query/mutation caches (main.tsx) plus the draft socket's 1008 close refetch `league-seasons` so the season layout shows that page from any guarded call
@@ -181,7 +181,7 @@ PostSznFantasy/
         │   ├── MorePage.tsx    # More tab (placeholder list of destinations; Settings split is #267)
         │   ├── LeaguePage.tsx  # A season's home: standings, notes, recap and start-next-season, empty-state notices
         │   ├── PlayersPage.tsx # Player directory with TanStack Table
-        │   ├── SettingsPage.tsx# League configuration viewer
+        │   ├── SettingsPage.tsx# Your settings (everyone) and Commissioner settings (commissioners): rows that open sheets, rules as accordions
         │   ├── TeamPage.tsx    # Roster management view
         │   ├── TeamPointsPage.tsx # Round-by-round points and bench points
         │   └── NotFoundPage.tsx# 404 handler
@@ -195,7 +195,7 @@ PostSznFantasy/
         │   ├── players/        # PlayersTable (TanStack Table v8)
         │   ├── recap/          # SeasonRecap: champion card, awards grid, start the next season
         │   ├── team/           # LineupList (tap/drag lineup), OverrideDialog (commissioner confirm), BreakdownRounds (round-by-round points)
-        │   └── settings/       # SettingsSection/ScoringForm/RosterForm generated from src/settings schemas; DeleteLeagueDialog (three-step confirm: warning with season count, type the exact name, final "Are you sure?")
+        │   └── settings/       # SettingsCard/SettingsRow (row primitives), SettingsSheet (bottom sheet on phones, dialog on desktop), EditTextSheet (one-field edits), MembersSheet + members.ts (commissioner toggle per member; the only commissioner's toggle is locked; removal confirms), InviteSheet, NotificationsRow (placeholder until push ships), SettingsGroup (accordion row), SettingsSection/ScoringForm/RosterForm generated from src/settings schemas; DeleteLeagueDialog (three-step confirm: warning with season count, type the exact name, final "Are you sure?")
         ├── utils/
         │   ├── draftCue.ts     # Web Audio on-deck beep
         │   ├── scoring.ts      # Numeric coercion + defaults diff for league forms
