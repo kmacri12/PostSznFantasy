@@ -27,7 +27,7 @@ const LeagueCard = ({ league }: { league: LeagueByUser }) => {
         <Chip
           size="small"
           label={tag.label}
-          color={tag.live ? "warning" : "success"}
+          color={tag.live ? "success" : "primary"}
           variant="outlined"
           sx={{ mt: 0.5 }}
         />

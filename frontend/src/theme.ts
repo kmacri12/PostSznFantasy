@@ -1,30 +1,34 @@
 import { alpha, createTheme } from "@mui/material/styles";
 import { E2E_BUILD } from "./utils/e2e";
 
-/** The Claude Design mockup palette (#258): dark surfaces with one green accent. */
+/** The Claude Design mockup palette (#258, #297): sky blue on graphite. */
 export const tokens = {
-  bg: "#0f1218",
-  surface: "#171b23",
-  surfaceRaised: "#1c212b",
-  border: "#232834",
-  borderStrong: "#2f3643",
-  text: "#e8eaf0",
+  bg: "#121416",
+  surface: "#1b1e21",
+  surfaceRaised: "#202427",
+  border: "#2a2e33",
+  borderStrong: "#353a40",
+  text: "#eceff1",
   /** Secondary body text, between `text` and `muted`. */
-  textSoft: "#a7afbd",
-  muted: "#8b94a5",
+  textSoft: "#aab2b9",
+  muted: "#8d969e",
   /** 3.7:1 on bg, the WCAG 1.4.11 minimum for form control boundaries. */
-  inputBorder: "#667085",
-  accent: "#34d399",
+  inputBorder: "#69737b",
+  accent: "#5cb8ff",
   /** Text and icons on an accent fill. */
-  accentInk: "#06281c",
-  accentSurface: "#12302a",
-  accentBorder: "#1f5a49",
-  accentSoft: "#a8d9c8",
+  accentInk: "#04233d",
+  accentSurface: "#12293d",
+  accentBorder: "#1f4f78",
+  accentSoft: "#a9d4f5",
   /** Medal colour for first place. */
   gold: "#fbbf24",
   /** Cautions such as injury tags, and live-game tags. */
   warning: "#d9c36a",
   green: "#22c55e",
+  /** Live games and live scores: green is a status color, not the brand accent (#297). */
+  live: "#34d399",
+  /** Secondary text beside a live indicator. */
+  liveSoft: "#a8d9c8",
   /** Errors and the new-activity dot. */
   red: "#f0626b",
   /** Destructive rows such as Sign out. */

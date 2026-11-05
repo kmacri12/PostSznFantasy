@@ -14,6 +14,24 @@ This doc records behavior and decisions: what each page shows and why it sits wh
 - A non-member sees nothing of a league.
 - Standings are always visible, even before the draft, so they double as the member list. The commissioner is labeled "commissioner" in every standings row in every League tab state.
 
+## Palette
+
+Sky blue on graphite (#297). The tokens live in `frontend/src/theme.ts`; components use the tokens or the MUI palette, never a hex value. `src/theme.test.ts` fails if a text pair drops below WCAG AA.
+
+| Role | Token | Hex |
+| --- | --- | --- |
+| Page background | `bg` | `#121416` |
+| Card / surface | `surface` | `#1b1e21` |
+| Border | `border` | `#2a2e33` |
+| Text | `text` | `#eceff1` |
+| Muted text | `muted` | `#8d969e` |
+| Accent (primary buttons, active tab, links, logo mark, current round) | `accent` | `#5cb8ff` |
+| Text on accent | `accentInk` | `#04233d` |
+| Accent tint (pills, selected rows) | `accentSurface` | `#12293d` |
+| Live | `live` | `#34d399` |
+
+Green is a status color only: live games and live scores (the live dot, the live indicator, an in-progress player row). Red is for eliminations, errors and the new-activity dot; amber for cautions. Contrast: ink on accent 7.4:1, accent on the page 8.6:1, muted on a card 5.6:1.
+
 ## Navigation and header
 
 - Header, always: a square logo mark top-left (links to the leagues page); inside a league, the league name with a chevron (switcher) next to it; the avatar top-right (account, sign out). No hamburger.
@@ -38,7 +56,7 @@ Phase block:
 | Playoffs | Current round, "N games live, N final", "Your lineup: N live, N to play". Eliminated players are not counted here |
 | Finished | Champion card, then the awards shown directly, then final standings pushed down |
 
-Standings header names the two figures: **Total** and **This rd** (the latter in the same green outline as the current round cell below). Rows: rank, team and owner ("commissioner" marked), **total points** (prominent), current round points as a small outlined badge in the current-round color (no "+"), "N left, N live", tie marker. Tapping a row expands it (one at a time) to a four-round points table (current round outlined, future rounds a dash) and an **Open team page** button. Before the draft every team slot shows with its owner or "Open slot, waiting for a player"; there is no per-row invite action because the invite block above is the one obvious place. While the draft is only scheduled, every team shows 0.0 and shares rank 1.
+Standings header names the two figures: **Total** and **This rd** (the latter in the same accent outline as the current round cell below). Rows: rank, team and owner ("commissioner" marked), **total points** (prominent), current round points as a small outlined badge in the current-round color (no "+"), "N left, N live", tie marker. Tapping a row expands it (one at a time) to a four-round points table (current round outlined, future rounds a dash) and an **Open team page** button. Before the draft every team slot shows with its owner or "Open slot, waiting for a player"; there is no per-row invite action because the invite block above is the one obvious place. While the draft is only scheduled, every team shows 0.0 and shares rank 1.
 
 Finished season, top to bottom:
 
@@ -99,7 +117,7 @@ The old overall "best draft value", "biggest bust", "best bench" and "best game"
 ## Draft room
 
 - It lives under the Draft tab and keeps the tab bar.
-- Sticky bar: round and pick, team on the clock, countdown (green "You're on the clock" on your turn). Before the draft the bar says "Draft scheduled for <time>" with the time left, or "Draft not scheduled yet"; there is no clock.
+- Sticky bar: round and pick, team on the clock, countdown (accent-colored "You're on the clock" on your turn). Before the draft the bar says "Draft scheduled for <time>" with the time left, or "Draft not scheduled yet"; there is no clock.
 - Collapsed commissioner strip ("Commissioner controls", Hide). Before the draft its four actions are the same size and color: **Randomize draft order**, **Edit draft order**, **Change date** (shows the current date) and **Start draft**. Editing the order moves teams up and down. There is no "Open lobby": the lobby is always open. Every order change is posted to the Feed, with the full new order when randomized. During a live draft the strip holds pause, resume, undo and force pick.
 - Views: **Players** (default), Board, Roster, Queue. The Board shows picks colored by position with the player as "J. Allen" (first initial and last name) and position and NFL team; your column is outlined and the pick on the clock is highlighted.
 - Before the draft: Players browsable, empty Board with the draft order, no clock.
@@ -114,8 +132,8 @@ The old overall "best draft value", "biggest bust", "best bench" and "best game"
 
 ## Landing, create league, invite, small pages
 
-- Landing, signed out: a short hero ("Fantasy football for the playoffs only"), **Sign in** and a green-outlined **How to play** button the exact size of Sign in (to its right on desktop, centered), then Privacy and Terms footer links. No round explainer on the page.
-- Signed in with one league: sign-in goes straight to that league. Several leagues: league cards first (phase, your rank and points, or draft time and teams filled; feed dot); Create a league and Join with an invite code are secondary, then a **"Read how to play"** link in the same green as the landing page's How to play, then Privacy and Terms. No leagues: Create a league and Join with an invite code.
+- Landing, signed out: a short hero ("Fantasy football for the playoffs only"), **Sign in** and an accent-outlined **How to play** button the exact size of Sign in (to its right on desktop, centered), then Privacy and Terms footer links. No round explainer on the page.
+- Signed in with one league: sign-in goes straight to that league. Several leagues: league cards first (phase, your rank and points, or draft time and teams filled; feed dot); Create a league and Join with an invite code are secondary, then a **"Read how to play"** link in the same accent color as the landing page's How to play, then Privacy and Terms. No leagues: Create a league and Join with an invite code.
 - The logo always opens the leagues page; the redirect only follows sign-in.
 - Create league: league name and a number-of-teams stepper (changeable until the draft starts), a "Default rules" summary of the roster and reception scoring, optional "Customize rules" (the roster and scoring steps). Defaults do not make later rounds count for more: every round multiplier defaults to 1x, as in `docs/product-rules.md`. Then the new league's League tab with "Invite your friends".
 - Invite link: preview shows "You're invited", the league name, commissioner and year, "N of M teams filled", every current member (commissioner marked) and the open slots. Signed out: sign in with an emailed code, then join. Signed in: a **Join league** button and "Signed in as <email>". A joiner is auto-assigned an open team (no "this will be your team" text). Full league: "This league is full", join disabled, ask the commissioner.

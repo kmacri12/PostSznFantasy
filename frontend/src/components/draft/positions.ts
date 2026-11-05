@@ -1,7 +1,7 @@
 // Cell colours by position so the board reads at a glance (the Claude Design draft board).
 export const POSITION_COLORS: Record<string, string> = {
   QB: "#2a1f3d",
-  RB: "#12302a",
+  RB: "#143024",
   WR: "#1d2a45",
   TE: "#3a2a14",
   K: "#2b2b2b",
