@@ -22,7 +22,7 @@ const SlotMarker = ({ mark, empty }: Props) => {
       <Typography
         variant="caption"
         data-testid="commissioner-set-mark"
-        sx={{ display: "block", px: 1, pb: 0.5, color: tokens.gold }}
+        sx={{ display: "block", px: 1, pb: 0.5, color: tokens.accent }}
       >
         * Set by {who}
       </Typography>

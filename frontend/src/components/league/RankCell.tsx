@@ -35,7 +35,7 @@ const RankCell = ({ label, note, color = tokens.muted }: RankCellProps) =>
           cursor: "help",
           color,
           gap: 0.25,
-          "&:focus-visible": { outline: `2px solid ${tokens.gold}`, outlineOffset: -2 },
+          "&:focus-visible": { outline: `2px solid ${tokens.accent}`, outlineOffset: -2 },
         }}
       >
         <span aria-hidden>{label}</span>

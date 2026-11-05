@@ -152,7 +152,7 @@ PostSznFantasy/
     ├── biome.json              # Biome linter, formatter & import sorting config
     └── src/
         ├── App.tsx             # Routes, league list state, wires NavBar
-        ├── routes.ts           # Path builders: `leaguePath`, `seasonPaths(leagueId, year, current)` (clean paths for the current season, `/seasons/<year>` otherwise; home, draft, settings, players, team, teamPoints)
+        ├── routes.ts           # Path builders: `leaguePath`, `seasonPaths(leagueId, year, current)` (clean paths for the current season, `/seasons/<year>` otherwise; home, draft, settings, players, feed, more, team, teamPoints)
         ├── theme.ts            # Dark-first MUI theme + design tokens
         ├── main.tsx            # Vite DOM mount point
         ├── content/
@@ -174,6 +174,8 @@ PostSznFantasy/
         │   ├── DraftPage.tsx   # Live synchronized draft room
         │   ├── HowToPlayPage.tsx # Plain-language rules page (nav link), copy from src/content/rules.ts
         │   ├── SeasonLayout.tsx # `/leagues/:leagueId` (the current season) and `/leagues/:leagueId/seasons/:year` resolve to a season and provide SeasonContext to the pages below; the long form of the current season redirects (`replace`) to the clean one
+        │   ├── FeedPage.tsx    # Feed tab (placeholder: the season's activity feed; chat comes with #265)
+        │   ├── MorePage.tsx    # More tab (placeholder list of destinations; Settings split is #267)
         │   ├── LeaguePage.tsx  # A season's home: standings, notes, recap and start-next-season, empty-state notices
         │   ├── PlayersPage.tsx # Player directory with TanStack Table
         │   ├── SettingsPage.tsx# League configuration viewer
@@ -184,7 +186,7 @@ PostSznFantasy/
         │   ├── home/           # YourLeagues (league cards, Create, invite code, How to play), LeagueCard, leagueSummary (phase tag, rank), PastLeagues, InviteCodeForm, LegalFooter (privacy and terms)
         │   ├── invite/         # InviteMembers (members plus open slots), `inviteView` (sign-in / join / full / unavailable)
         │   ├── activity/       # ActivityFeed (collapsed, new dot), SlotMarker (override / asterisk), ChangedScore tooltip, describeEvent
-        │   ├── layout/         # NavBar (blurred header, league switcher, drawer)
+        │   ├── layout/         # AppShell (header + bottom tabs on phones / left rail from md up), NavBar (header: logo, account), Brand, LeagueSwitcher, BottomTabBar, LeagueRail, leagueTabs (League, Team, Draft, Feed, More)
         │   ├── draft/          # DraftBoard, Countdown, PlayerSelector
         │   ├── league/         # StandingsTable (desktop), StandingsCards (phone), ProgressCounts, RankCell (tie tooltip), ArchivedNotice (shown where a finished season hides write controls; write controls follow the season's `canEdit` / `canCommission` from `useSeasonContext`), LeagueDeletedNotice (the "deleted by a commissioner" page)
         │   ├── players/        # PlayersTable (TanStack Table v8)
@@ -233,7 +235,7 @@ make format     # auto-fix Ruff and Biome
 
 ## 3b. Route Map (Phase 20)
 
-SPA routes: the league's current season (`current: true` on its entry of `GET /api/leagues/{id}/seasons`, the latest season, even for a former member who may open only older ones) has no year in its addresses: `/leagues/:leagueId` (index = standings and recap), `/draft`, `/settings`, `/players`, `/teams/:teamId`, `/teams/:teamId/points`. Any other season lives under `/leagues/:leagueId/seasons/:year` with the same pages (index = standings and recap, `draft`, `settings`, `players`, `teams/:teamId`, `teams/:teamId/points`). `SeasonLayout` resolves the year through `GET /api/leagues/{id}/seasons`, loads `GET /api/seasons/{id}` and provides it as `SeasonContext`; the pages read `canEdit` / `canCommission` / `isFormerMember` from it instead of looking at the league list. `/players` (no league) stays as a global page with a scoring-league picker. `/seasons/<current year>/...` still works and redirects with `replace`; starting the next season moves the clean addresses to it and last year's pages to `/seasons/<last year>/...`. Build links with `routes.ts`, never by string (`src/routes.test.ts` fails on a hand-built season link).
+SPA routes: the league's current season (`current: true` on its entry of `GET /api/leagues/{id}/seasons`, the latest season, even for a former member who may open only older ones) has no year in its addresses: `/leagues/:leagueId` (index = standings and recap), `/draft`, `/feed`, `/more`, `/settings`, `/players`, `/teams/:teamId`, `/teams/:teamId/points`. Navigation inside a league is five destinations (League, Team = your own team, Draft, Feed with the new-activity dot, More): bottom tabs on phones, a left rail from `md` up, no drawer; the logo always opens `/`, and outside a league there is no tab bar and the logo is the wordmark. Any other season lives under `/leagues/:leagueId/seasons/:year` with the same pages (index = standings and recap, `draft`, `settings`, `players`, `teams/:teamId`, `teams/:teamId/points`). `SeasonLayout` resolves the year through `GET /api/leagues/{id}/seasons`, loads `GET /api/seasons/{id}` and provides it as `SeasonContext`; the pages read `canEdit` / `canCommission` / `isFormerMember` from it instead of looking at the league list. `/players` (no league) stays as a global page with a scoring-league picker. `/seasons/<current year>/...` still works and redirects with `replace`; starting the next season moves the clean addresses to it and last year's pages to `/seasons/<last year>/...`. Build links with `routes.ts`, never by string (`src/routes.test.ts` fails on a hand-built season link).
 
 | Area | Endpoints |
 | :--- | :--- |

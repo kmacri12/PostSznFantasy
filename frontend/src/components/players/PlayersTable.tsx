@@ -270,7 +270,7 @@ const PlayersTable = () => {
                   </TableCell>
                   <TableCell>{teamOf(row)}</TableCell>
                   {hasPoints && (
-                    <TableCell align="right" sx={{ color: tokens.gold, fontWeight: 700 }}>
+                    <TableCell align="right" sx={{ color: tokens.accent, fontWeight: 700 }}>
                       {formatPoints(row.fantasyPoints)}
                     </TableCell>
                   )}

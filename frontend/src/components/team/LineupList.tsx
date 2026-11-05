@@ -81,7 +81,7 @@ const PlayerRow = ({
       data-testid={slotIndex === null ? undefined : `slot-${slotIndex}`}
       sx={{
         borderRadius: 1,
-        outline: isOver ? `2px solid ${tokens.gold}` : "2px solid transparent",
+        outline: isOver ? `2px solid ${tokens.accent}` : "2px solid transparent",
         bgcolor: isOver ? "rgba(251,191,36,.08)" : "transparent",
       }}
     >
@@ -102,7 +102,7 @@ const PlayerRow = ({
           touchAction: "pan-y",
           cursor: interactive ? "pointer" : "default",
           opacity: eliminated ? 0.55 : 1,
-          outline: selected ? `2px solid ${tokens.gold}` : "none",
+          outline: selected ? `2px solid ${tokens.accent}` : "none",
           zIndex: isDragging ? 10 : "auto",
           position: "relative",
           bgcolor: isDragging
@@ -118,7 +118,7 @@ const PlayerRow = ({
         <Chip
           size="small"
           label={label}
-          sx={{ width: 58, color: label === "BN" ? tokens.muted : tokens.gold }}
+          sx={{ width: 58, color: label === "BN" ? tokens.muted : tokens.accent }}
         />
         {player ? (
           <>
@@ -172,7 +172,7 @@ const UnassignedDrop = ({ children }: { children: React.ReactNode }) => {
   return (
     <Box
       ref={setNodeRef}
-      sx={{ borderRadius: 1, outline: isOver ? `2px solid ${tokens.gold}` : "none" }}
+      sx={{ borderRadius: 1, outline: isOver ? `2px solid ${tokens.accent}` : "none" }}
     >
       {children}
     </Box>

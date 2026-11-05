@@ -98,7 +98,7 @@ const DraftBoard: React.FC<Props> = ({ state, myTeamId }) => {
             <Typography
               variant="subtitle2"
               noWrap
-              sx={{ color: slot.teamId === myTeamId ? tokens.gold : "inherit" }}
+              sx={{ color: slot.teamId === myTeamId ? tokens.accent : "inherit" }}
             >
               {slot.teamName}
             </Typography>
@@ -138,7 +138,7 @@ const DraftBoard: React.FC<Props> = ({ state, myTeamId }) => {
                     borderRadius: 1,
                     bgcolor: pick ? positionColor(pick.position) : "rgba(255,255,255,.03)",
                     border: onClock
-                      ? `2px solid ${tokens.gold}`
+                      ? `2px solid ${tokens.accent}`
                       : "1px solid rgba(255,255,255,.08)",
                   }}
                 >

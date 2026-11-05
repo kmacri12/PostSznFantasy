@@ -9,6 +9,7 @@ interface Props {
   scope: "seasons" | "teams";
   id: number;
   title: string;
+  defaultOpen?: boolean;
 }
 
 /** The new-activity dot: a shape plus words, so it never relies on colour. */
@@ -22,15 +23,15 @@ const NewDot = ({ label }: { label: string }) => (
       width: 10,
       height: 10,
       borderRadius: "50%",
-      bgcolor: tokens.gold,
-      border: "1px solid #1c1203",
+      bgcolor: tokens.accent,
+      border: `1px solid ${tokens.bg}`,
     }}
   />
 );
 
 /** One feed, collapsed until opened. Opening it marks everything shown as seen. */
-const ActivityFeed = ({ scope, id, title }: Props) => {
-  const [open, setOpen] = useState(false);
+const ActivityFeed = ({ scope, id, title, defaultOpen = false }: Props) => {
+  const [open, setOpen] = useState(defaultOpen);
   // Rows that were new when the feed opened keep their tag until it closes.
   const [freshIds, setFreshIds] = useState<Set<number>>(new Set());
   const feed = useActivityFeed(scope, id);
@@ -72,7 +73,7 @@ const ActivityFeed = ({ scope, id, title }: Props) => {
           alignItems: "center",
           gap: 1,
           cursor: "pointer",
-          "&:focus-visible": { outline: `2px solid ${tokens.gold}`, outlineOffset: 2 },
+          "&:focus-visible": { outline: `2px solid ${tokens.accent}`, outlineOffset: 2 },
         }}
       >
         <Typography variant="h6" sx={{ flexGrow: 0 }}>

@@ -1,28 +1,19 @@
-import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
-import GroupsIcon from "@mui/icons-material/Groups";
-import PersonSearchIcon from "@mui/icons-material/PersonSearch";
-import SportsFootballIcon from "@mui/icons-material/SportsFootball";
-import { Badge, BottomNavigation, BottomNavigationAction, Paper } from "@mui/material";
+import { Box } from "@mui/material";
 import { Link, useLocation } from "react-router-dom";
 import type { LeagueByUser } from "../../api/types";
+import { TAB_BAR_HEIGHT, tokens } from "../../theme";
 import { activeTabIndex, leagueTabs } from "./leagueTabs";
+import { NewActivityDot } from "./NewActivityDot";
+import { TAB_ICONS } from "./TabIcons";
 
-const ICONS = {
-  League: <EmojiEventsIcon />,
-  Team: <GroupsIcon />,
-  Draft: <SportsFootballIcon />,
-  Players: <PersonSearchIcon />,
-};
-
-export const TAB_BAR_HEIGHT = 64;
-
+/** Phone navigation inside a league: five destinations, fixed to the bottom edge. */
 const BottomTabBar = ({ league }: { league: LeagueByUser }) => {
   const { pathname } = useLocation();
   const tabs = leagueTabs(league);
   const active = activeTabIndex(tabs, pathname);
 
   return (
-    <Paper
+    <Box
       component="nav"
       aria-label="League sections"
       sx={{
@@ -31,29 +22,49 @@ const BottomTabBar = ({ league }: { league: LeagueByUser }) => {
         right: 0,
         bottom: 0,
         zIndex: (theme) => theme.zIndex.appBar,
-        borderRadius: 0,
-        borderWidth: "1px 0 0",
+        display: "flex",
+        height: `calc(${TAB_BAR_HEIGHT}px + env(safe-area-inset-bottom))`,
         paddingBottom: "env(safe-area-inset-bottom)",
+        bgcolor: tokens.bg,
+        borderTop: `1px solid ${tokens.border}`,
       }}
     >
-      <BottomNavigation value={active} showLabels sx={{ height: TAB_BAR_HEIGHT }}>
-        {tabs.map((tab) => (
-          <BottomNavigationAction
+      {tabs.map((tab, index) => {
+        const Icon = TAB_ICONS[tab.label];
+        const selected = index === active;
+        return (
+          <Box
             key={tab.label}
             component={Link}
             to={tab.to}
-            label={tab.label}
-            aria-label={tab.dot ? `${tab.label}, new activity` : undefined}
-            icon={
-              <Badge variant="dot" color="primary" invisible={!tab.dot}>
-                {ICONS[tab.label]}
-              </Badge>
-            }
-            sx={{ minWidth: 0, minHeight: 44 }}
-          />
-        ))}
-      </BottomNavigation>
-    </Paper>
+            aria-current={selected ? "page" : undefined}
+            sx={{
+              flex: 1,
+              minWidth: 0,
+              minHeight: 44,
+              position: "relative",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "3px",
+              fontSize: 11,
+              textDecoration: "none",
+              color: selected ? tokens.accent : tokens.muted,
+            }}
+          >
+            <Icon />
+            <span>{tab.label}</span>
+            {tab.dot && (
+              <NewActivityDot
+                sx={{ position: "absolute", top: 10, left: "calc(50% + 6px)" }}
+                label="New activity"
+              />
+            )}
+          </Box>
+        );
+      })}
+    </Box>
   );
 };
 

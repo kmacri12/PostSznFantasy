@@ -13,7 +13,6 @@ import { mutationError } from "../components/common/friendlyError";
 import HelpTip from "../components/common/HelpTip";
 import LoadingState from "../components/common/LoadingState";
 import DraftSetupPanel from "../components/draft/DraftSetupPanel";
-import { TAB_BAR_HEIGHT } from "../components/layout/BottomTabBar";
 import ArchivedNotice from "../components/league/ArchivedNotice";
 import DeleteLeagueDialog from "../components/settings/DeleteLeagueDialog";
 import { valuesEqual } from "../components/settings/dirty";
@@ -27,6 +26,7 @@ import { useSeasonContext } from "../contexts/SeasonContext";
 import { fromApi, postseasonFromApi, ROSTER_KEYS, SCORING_KEYS } from "../settings/convert";
 import { POSTSEASON_KEYS, type PostseasonValues } from "../settings/postseasonFields";
 import type { SettingsValues } from "../settings/types";
+import { TAB_BAR_HEIGHT } from "../theme";
 
 /** One page, grouped sections: League, Roster, Scoring, Draft, Postseason. */
 function SettingsPage() {

@@ -66,11 +66,7 @@ const DEFAULT_TEAM_UNITS: TeamUnitValues = { team_qb: false, team_k: false };
 const defaultRulesSummary = (roster: typeof DEFAULT_ROSTER): string =>
   `${roster.roster_num_qb} QB, ${roster.roster_num_rb} RB, ${roster.roster_num_wr} WR, ${roster.roster_num_te} TE, ${roster.roster_num_flex_wr_rb_te} FLEX, ${roster.roster_num_k} K, ${roster.roster_num_dst} DST, bench of ${roster.roster_num_bench}. Full PPR scoring. Every round counts the same (1x).`;
 
-const CreateLeaguePage = ({
-  onLeagueCreated,
-}: {
-  onLeagueCreated: (leagueId: number) => Promise<void>;
-}) => {
+const CreateLeaguePage = () => {
   const navigate = useNavigate();
   const [leagueName, setLeagueName] = useState("");
   const [customizing, setCustomizing] = useState(false);
@@ -108,7 +104,6 @@ const CreateLeaguePage = ({
         );
         return;
       }
-      await onLeagueCreated(createdLeagueId);
       navigate(leaguePath(createdLeagueId));
     } catch (error) {
       logger.error("Error creating league:", error);

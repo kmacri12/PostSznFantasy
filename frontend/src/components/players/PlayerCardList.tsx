@@ -102,7 +102,7 @@ const PlayerCardList = ({
                 </Box>
                 {player.points !== undefined && (
                   <Box sx={{ textAlign: "right" }}>
-                    <Typography variant="h6" sx={{ color: tokens.gold, lineHeight: 1 }}>
+                    <Typography variant="h6" sx={{ color: tokens.accent, lineHeight: 1 }}>
                       {formatPoints(player.points)}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
