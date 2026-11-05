@@ -103,7 +103,9 @@ export const dropSockets = (page: Page) =>
 export const draftFirst = async (page: Page, position: string): Promise<string> => {
   await page.getByRole("tab", { name: "Players" }).click();
   await page.getByRole("button", { name: position, exact: true }).click();
+  // The list is sorted by points from fixed fixtures, so the top row is the same on every run.
   const row = page.getByRole("list", { name: "Available players" }).getByRole("listitem").first();
+  // A player card's first paragraph is the player's name.
   const name = (await row.locator("p").first().textContent()) ?? "";
   await row.getByRole("button", { name: "Draft", exact: true }).click();
   await row.getByRole("button", { name: `Confirm ${name}` }).click();

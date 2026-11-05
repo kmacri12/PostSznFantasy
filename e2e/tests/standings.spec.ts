@@ -47,6 +47,7 @@ test.describe("standings", () => {
     // Each row shows its total and its current-round points.
     await expect(standings.getByText("0.0", { exact: true })).toHaveCount(4);
 
+    // Both teams are tied at zero, so either row's details prove the expand control works.
     await standings.getByRole("listitem").first().getByRole("button").click();
     await expect(standings.getByRole("link", { name: "Open team page" })).toBeVisible();
     for (const round of ["Wild Card", "Divisional", "Conf. champ", "Super Bowl"]) {

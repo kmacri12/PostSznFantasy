@@ -1,4 +1,5 @@
 import { alpha, createTheme } from "@mui/material/styles";
+import { E2E_BUILD } from "./utils/e2e";
 
 /** The Claude Design mockup palette (#258): dark surfaces with one green accent. */
 export const tokens = {
@@ -50,7 +51,26 @@ export const glassCard = {
   borderRadius: `${radii.card}px`,
 };
 
+// Playwright cannot tell a mid-animation element from a settled one, so the e2e build makes every
+// transition instant: dialogs, drawers and accordions are final as soon as React renders them.
+const instantMotion = E2E_BUILD;
+
 const theme = createTheme({
+  ...(instantMotion && {
+    transitions: {
+      duration: {
+        shortest: 0,
+        shorter: 0,
+        short: 0,
+        standard: 0,
+        complex: 0,
+        enteringScreen: 0,
+        leavingScreen: 0,
+      },
+      create: () => "none",
+      getAutoHeightDuration: () => 0,
+    },
+  }),
   palette: {
     mode: "dark",
     primary: { main: tokens.accent, contrastText: tokens.accentInk },
@@ -73,6 +93,12 @@ const theme = createTheme({
     button: { textTransform: "none", fontWeight: 600 },
   },
   components: {
+    ...(instantMotion && {
+      MuiCssBaseline: {
+        styleOverrides:
+          "*, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }",
+      },
+    }),
     MuiPaper: {
       defaultProps: { elevation: 0 },
       styleOverrides: {
