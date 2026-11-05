@@ -250,7 +250,11 @@ const SeasonRecap = ({
   canStartSeason: boolean;
 }) => (
   <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-    <ChampionCard recap={recap} />
+    {recap.champions.length > 0 ? (
+      <ChampionCard recap={recap} />
+    ) : (
+      <Alert severity="info">The {recap.year} season is over, and this league never drafted.</Alert>
+    )}
     {recap.awards.length > 0 && <Awards recap={recap} />}
     {canStartSeason ? (
       <StartSeason leagueId={recap.leagueId} year={recap.year + 1} />

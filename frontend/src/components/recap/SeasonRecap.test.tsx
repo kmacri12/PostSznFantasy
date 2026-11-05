@@ -79,6 +79,20 @@ describe("SeasonRecap", () => {
     expect(screen.getByText("Pick One · Pick 41 · 0.0 pts")).toBeTruthy();
   });
 
+  it("says so when nobody drafted instead of crowning an empty card", () => {
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <MemoryRouter>
+          <SeasonRecap recap={{ ...recap, champions: [], awards: [] }} canStartSeason={false} />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+    expect(
+      screen.getByText("The 2025 season is over, and this league never drafted."),
+    ).toBeTruthy();
+    expect(screen.queryByText("2025 champion")).toBeNull();
+  });
+
   it("offers to start the next season only when the caller may", () => {
     const { unmount } = show(false);
     expect(screen.queryByRole("button", { name: "Start 2026 season" })).toBeNull();
