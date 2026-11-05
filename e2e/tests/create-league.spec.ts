@@ -54,7 +54,7 @@ test("Customize rules walks the roster, scoring and review steps", async ({
   await page.getByRole("button", { name: "Create league" }).click();
 
   await expect(page).toHaveURL(/\/leagues\/\d+$/);
-  await expect(page.getByRole("heading", { name, level: 4 })).toBeVisible();
+  await expect(page.getByText("Invite your friends")).toBeVisible();
 });
 
 test("the form needs a name before it lets you create", async ({ page, context, request }) => {
