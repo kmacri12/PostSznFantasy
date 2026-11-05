@@ -1,69 +1,88 @@
-import {
-  Box,
-  Chip,
-  Container,
-  Dialog,
-  DialogContent,
-  Paper,
-  Tab,
-  Tabs,
-  Typography,
-} from "@mui/material";
+import { Box, Button, Container, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
-import { useDraftPool, useRecheckLeague, useSaveQueue } from "../api/queries";
+import {
+  useDraft,
+  useDraftPool,
+  useLeagueTeams,
+  useRecheckLeague,
+  useSaveQueue,
+} from "../api/queries";
+import type { DraftSnapshot, DraftState } from "../api/types";
 import LoadingState from "../components/common/LoadingState";
-import AvailablePlayers from "../components/draft/AvailablePlayers";
-import CommissionerControls from "../components/draft/CommissionerControls";
+import CommissionerStrip from "../components/draft/CommissionerStrip";
 import { cappedPositions } from "../components/draft/caps";
 import DraftBoard from "../components/draft/DraftBoard";
-import DraftSetupPanel from "../components/draft/DraftSetupPanel";
-import DraftStatusBar from "../components/draft/DraftStatusBar";
+import DraftClockBar from "../components/draft/DraftClockBar";
+import DraftOrderEditor from "../components/draft/DraftOrderEditor";
 import DraftToast from "../components/draft/DraftToast";
-import MyRosterPanel from "../components/draft/MyRosterPanel";
-import OnTheClockBanner from "../components/draft/OnTheClockBanner";
-import PausedBanner from "../components/draft/PausedBanner";
-import PickFeed from "../components/draft/PickFeed";
-import PreDraftNotice from "../components/draft/PreDraftNotice";
 import QueuePanel from "../components/draft/QueuePanel";
+import RosterView from "../components/draft/RosterView";
 import ArchivedNotice from "../components/league/ArchivedNotice";
+import PlayersView, { type DraftActions } from "../components/players/PlayersView";
 import { useSeasonContext } from "../contexts/SeasonContext";
 import { useDraftRoom } from "../hooks/useDraftRoom";
+import { HEADER_HEIGHT, radii, tokens } from "../theme";
 import { playOnDeckCue, vibrateOnTurn } from "../utils/draftCue";
 
-type TabKey = "board" | "players" | "queue" | "roster" | "feed";
+type ViewKey = "players" | "board" | "roster" | "queue";
 
+/** The sticky clock bar is about this tall; the board column sticks below it. */
+const CLOCK_BAR_HEIGHT = 64;
+const PRE_DRAFT = ["unscheduled", "scheduled", "lobby"];
+
+/**
+ * The Draft tab. A finished draft is just the league's player list; before and during the
+ * draft it is the room: sticky clock, commissioner strip, and Players / Board / Roster /
+ * Queue (all on screen at once from `lg` up).
+ */
 const DraftPage = () => {
   const { seasonId, season } = useSeasonContext();
-  const room = useDraftRoom(seasonId, useRecheckLeague());
-  const playersQuery = useDraftPool(seasonId);
+  const info = useDraft(seasonId);
+  const finishedOnLoad = info.data?.status === "completed";
+  const room = useDraftRoom(finishedOnLoad ? undefined : seasonId, useRecheckLeague());
+  const pool = useDraftPool(seasonId);
+  const leagueTeams = useLeagueTeams(seasonId).data;
   const saveQueue = useSaveQueue(seasonId);
-  const [tab, setTab] = useState<TabKey>("board");
-  const [showSetup, setShowSetup] = useState(false);
+  const wide = useMediaQuery(useTheme().breakpoints.up("lg"));
+  const [view, setView] = useState<ViewKey>("players");
+  const [editingOrder, setEditingOrder] = useState(false);
 
-  const state = room.state;
-  const myTeamId = state?.myTeamId ?? null;
+  const snapshot: DraftSnapshot | null = room.state;
+  const state: DraftState | null = snapshot ?? info.data ?? null;
+  const myTeamId = snapshot?.myTeamId ?? season.myTeamId;
   const archived = season.finished;
-  const isCommissioner = season.canCommission;
+  const live = state?.status === "in_progress" || state?.status === "paused";
   const myTurn =
     state?.status === "in_progress" && myTeamId !== null && state.onTheClockTeamId === myTeamId;
   const onDeck =
     state?.status === "in_progress" && myTeamId !== null && state.onDeckTeamId === myTeamId;
+  const queue = snapshot?.queue ?? [];
 
+  const teams = useMemo(
+    () =>
+      leagueTeams?.map((team) => ({ id: team.id, name: team.name })) ??
+      (state?.order ?? []).map((slot) => ({ id: slot.teamId, name: slot.teamName })),
+    [leagueTeams, state?.order],
+  );
   const players = useMemo(
-    () => new Map((playersQuery.data ?? []).map((p) => [p.id, p])),
-    [playersQuery.data],
+    () => new Map((pool.data ?? []).map((player) => [player.id, player])),
+    [pool.data],
+  );
+  const draftedIds = useMemo(
+    () => new Set([...(state?.picks.map((p) => p.playerId) ?? []), ...room.takenPlayerIds]),
+    [state?.picks, room.takenPlayerIds],
+  );
+  const myPicks = useMemo(
+    () => (state?.picks ?? []).filter((pick) => pick.teamId === myTeamId),
+    [state?.picks, myTeamId],
   );
   const capped = useMemo(
     () =>
       cappedPositions(
         state?.positionCaps ?? {},
-        (state?.picks ?? []).filter((p) => p.teamId === myTeamId).map((p) => p.position ?? ""),
+        myPicks.map((p) => p.position ?? ""),
       ),
-    [state?.positionCaps, state?.picks, myTeamId],
-  );
-  const draftedIds = useMemo(
-    () => new Set([...(state?.picks.map((p) => p.playerId) ?? []), ...room.takenPlayerIds]),
-    [state?.picks, room.takenPlayerIds],
+    [state?.positionCaps, myPicks],
   );
 
   useEffect(() => {
@@ -85,88 +104,171 @@ const DraftPage = () => {
     );
   }
 
+  if (state.status === "completed") {
+    return (
+      <Container maxWidth="md" sx={{ py: 2 }}>
+        {archived && <ArchivedNotice what="picks and the queue" />}
+        <PlayersView
+          seasonId={seasonId}
+          year={season.year}
+          picks={state.picks}
+          teams={teams}
+          myTeamId={myTeamId}
+        />
+      </Container>
+    );
+  }
+
   const updateQueue = (next: number[]) => {
     room.setQueueLocal(next);
     saveQueue.mutate(next);
   };
+  const toggleQueue = (playerId: number) =>
+    updateQueue(
+      queue.includes(playerId) ? queue.filter((id) => id !== playerId) : [...queue, playerId],
+    );
+  const actions: DraftActions | undefined = archived
+    ? undefined
+    : {
+        live,
+        canPick: myTurn,
+        isConnected: room.isConnected,
+        pendingPlayerId: room.pendingPlayerId,
+        capped,
+        queue,
+        takenIds: room.takenPlayerIds,
+        onPick: room.makePick,
+        onToggleQueue: toggleQueue,
+      };
+  const playersView = (
+    <PlayersView
+      seasonId={seasonId}
+      year={season.year}
+      picks={state.picks}
+      teams={teams}
+      myTeamId={myTeamId}
+      draft={actions}
+    />
+  );
+  const queuePanel = (
+    <QueuePanel queue={queue} players={players} draftedIds={draftedIds} onChange={updateQueue} />
+  );
+  const orderEditor = <DraftOrderEditor draft={state} onDone={() => setEditingOrder(false)} />;
+  const showEditor = editingOrder && PRE_DRAFT.includes(state.status);
+  const queued = queue.filter((id) => !draftedIds.has(id)).length;
+  const views: { key: ViewKey; label: string }[] = [
+    { key: "players", label: "Players" },
+    { key: "board", label: "Board" },
+    { key: "roster", label: "Roster" },
+    { key: "queue", label: queued > 0 ? `Queue ${queued}` : "Queue" },
+  ];
 
   return (
-    <Container maxWidth={false} sx={{ py: 3 }}>
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2, flexWrap: "wrap" }}>
-        <Typography variant="h4" sx={{ flexGrow: 1 }}>
-          Draft room
-        </Typography>
-        <Chip
-          size="small"
-          color={room.isConnected ? "success" : "warning"}
-          label={room.isConnected ? "Live" : "Reconnecting…"}
-        />
-        <Chip size="small" variant="outlined" label={`${state.presence.length} here`} />
-        {isCommissioner && (
-          <Chip clickable label="Draft setup" onClick={() => setShowSetup(true)} />
-        )}
-        {isCommissioner && <CommissionerControls draft={state} />}
-      </Box>
-
-      {archived && <ArchivedNotice what="picks and the queue" />}
-      <DraftStatusBar
+    <Box sx={{ mx: "auto", maxWidth: wide ? 1200 : 640 }}>
+      <DraftClockBar
         state={state}
+        myTeamId={myTeamId}
         secondsLeft={room.secondsLeft}
         secondsToStart={room.secondsToStart}
         isConnected={room.isConnected}
-        myTeamId={myTeamId}
       />
-      <PreDraftNotice state={state} />
-      <PausedBanner status={state.status} />
-      <OnTheClockBanner
-        active={myTurn}
-        secondsLeft={room.secondsLeft}
-        isConnected={room.isConnected}
-      />
+      {season.canCommission && !archived && (
+        <CommissionerStrip
+          draft={state}
+          editingOrder={editingOrder}
+          onEditOrder={() => setEditingOrder(!editingOrder)}
+        />
+      )}
       <DraftToast toast={room.toast} onClose={room.dismissToast} />
-
-      <Paper sx={{ mt: 2 }}>
-        <Tabs value={tab} onChange={(_, value: TabKey) => setTab(value)} variant="scrollable">
-          <Tab value="board" label="Board" />
-          {!archived && <Tab value="players" label="Players" />}
-          {!archived && <Tab value="queue" label={`Queue (${state.queue.length})`} />}
-          <Tab value="roster" label="My roster" />
-          <Tab value="feed" label="Pick feed" />
-        </Tabs>
-        <Box sx={{ p: 2 }}>
-          {tab === "board" && <DraftBoard state={state} myTeamId={myTeamId} />}
-          {tab === "players" && (
-            <AvailablePlayers
-              players={playersQuery.data ?? []}
-              draftedIds={draftedIds}
-              cappedPositions={capped}
-              queue={state.queue}
-              canPick={myTurn}
-              isConnected={room.isConnected}
-              pendingPlayerId={room.pendingPlayerId}
-              onPick={(player) => room.makePick(player.id)}
-              onQueue={(id) => updateQueue([...state.queue, id])}
-            />
-          )}
-          {tab === "queue" && (
-            <QueuePanel
-              queue={state.queue}
-              players={players}
-              draftedIds={draftedIds}
-              onChange={updateQueue}
-            />
-          )}
-          {tab === "roster" && <MyRosterPanel state={state} myTeamId={myTeamId} />}
-          {tab === "feed" && <PickFeed state={state} />}
+      {archived && (
+        <Box sx={{ px: 2, pt: 2 }}>
+          <ArchivedNotice what="picks and the queue" />
         </Box>
-      </Paper>
+      )}
 
-      <Dialog open={showSetup} onClose={() => setShowSetup(false)} fullWidth maxWidth="md">
-        <DialogContent>
-          <DraftSetupPanel draft={state} canEdit={isCommissioner} />
-        </DialogContent>
-      </Dialog>
-    </Container>
+      {wide ? (
+        <Box sx={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 520px", gap: 3, p: 3 }}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5, minWidth: 0 }}>
+            {showEditor ? (
+              orderEditor
+            ) : (
+              <>
+                {!archived && queuePanel}
+                {playersView}
+              </>
+            )}
+          </Box>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 2,
+              minWidth: 0,
+              position: "sticky",
+              top: HEADER_HEIGHT + CLOCK_BAR_HEIGHT + 16,
+              alignSelf: "start",
+              maxHeight: `calc(100dvh - ${HEADER_HEIGHT + CLOCK_BAR_HEIGHT + 32}px)`,
+              overflowY: "auto",
+            }}
+          >
+            <DraftBoard state={state} myTeamId={myTeamId} sx={{ maxHeight: 440 }} />
+            <RosterView seasonId={seasonId} picks={myPicks} />
+          </Box>
+        </Box>
+      ) : (
+        <>
+          <Box
+            role="tablist"
+            aria-label="Draft room views"
+            sx={{
+              display: "grid",
+              gridTemplateColumns: `repeat(${archived ? 2 : 4}, 1fr)`,
+              gap: 0.75,
+              px: 2,
+              pt: 1.5,
+              pb: 1,
+            }}
+          >
+            {views
+              .filter((item) => !archived || item.key === "board" || item.key === "roster")
+              .map((item) => {
+                const selected = view === item.key;
+                return (
+                  <Button
+                    key={item.key}
+                    role="tab"
+                    aria-selected={selected}
+                    onClick={() => setView(item.key)}
+                    sx={{
+                      border: `${selected ? 2 : 1}px solid ${selected ? tokens.accent : tokens.borderStrong}`,
+                      borderRadius: `${radii.button - 2}px`,
+                      bgcolor: selected ? tokens.accentSurface : "transparent",
+                      color: selected ? tokens.accent : tokens.textSoft,
+                      fontSize: 13,
+                      fontWeight: selected ? 600 : 400,
+                      px: 0.5,
+                    }}
+                  >
+                    {item.label}
+                  </Button>
+                );
+              })}
+          </Box>
+          <Box sx={{ px: view === "board" ? 0 : 2, pb: 2 }}>
+            {showEditor ? (
+              <Box sx={{ px: view === "board" ? 2 : 0 }}>{orderEditor}</Box>
+            ) : (
+              <>
+                {view === "players" && !archived && playersView}
+                {view === "board" && <DraftBoard state={state} myTeamId={myTeamId} />}
+                {view === "roster" && <RosterView seasonId={seasonId} picks={myPicks} />}
+                {view === "queue" && !archived && queuePanel}
+              </>
+            )}
+          </Box>
+        </>
+      )}
+    </Box>
   );
 };
 

@@ -35,8 +35,7 @@ export function leagueTabs(league: LeagueByUser): LeagueTab[] {
     {
       label: "Draft",
       to: paths.draft,
-      // The player list becomes the draft room's Players view, so it lights this tab too.
-      matches: (p) => page(p) === "/draft" || page(p) === "/players",
+      matches: (p) => page(p)?.startsWith("/draft") ?? false,
       dot: false,
     },
     {

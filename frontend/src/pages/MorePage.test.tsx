@@ -36,7 +36,10 @@ describe("MorePage", () => {
     expect(screen.getByText("Your settings and commissioner settings")).toBeInTheDocument();
     expect(screen.getByText("Draft not scheduled")).toBeInTheDocument();
     expect(screen.getByText("How to play")).toBeInTheDocument();
-    expect(screen.queryByText("Draft board")).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Draft board" })).toHaveAttribute(
+      "href",
+      "/leagues/3/draft/board",
+    );
   });
 
   it("offers Past seasons only when the league has any, and opens them in a sheet", () => {

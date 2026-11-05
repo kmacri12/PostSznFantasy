@@ -157,7 +157,8 @@ Frontend:
 - GIF provider for chat: GIPHY is wired because its API shape is documented and open to new apps; Tenor is closed to new apps and Klipy is the free alternative (add an adapter next to `giphyProvider`). A production GIPHY key needs their approval and the "Powered by" credit.
 - The Team page does not say how the DST is described when stats are missing; the boards show `[TEAM] D/ST` placeholders.
 - Player sheet: the round's scoring breakdown (each stat and its points) was on the old plan but is not on the board; decide whether it appears once the player's game has started.
-- More lists "Players" in place of the old "Draft board" row, and the Draft tab after the draft shows only the player list; decide where the final draft board is opened (a Board view on the Draft tab, or this More row).
+- Decided (#264): More keeps a **Draft board** row (`/draft/board`) next to **Players** (the Draft tab), so the board is reachable before, during and after the draft; the Draft tab after the draft shows only the player list.
+- Draft room details the canvas leaves open: the date, seconds per pick, draft type and clock-expiry rules live behind "Draft settings" in the commissioner strip (they left Settings); "Edit draft order" saves with one button so a reshuffle is one Feed event.
 - Awards: DST has no per-position section on the board; the awards boards show `[PLAYER]` placeholders for values to be computed.
 - The desktop Team page board still shows older wording ("BN", "Ravens out in Divisional", `[TEAM] D/ST`); the phone Team boards and the rules above apply to desktop too.
 - Whether Sign out also appears inside Settings (the board has it only in More and the avatar menu).

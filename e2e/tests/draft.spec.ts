@@ -1,11 +1,14 @@
 import { expect, test } from "@playwright/test";
-import { seasonUrl } from "../support/api";
+import { Api, seasonUrl, unique } from "../support/api";
 import { signInAs } from "../support/auth";
 import {
   createDraftLeague,
   draftFirst,
   dropSockets,
   newUserContext,
+  openControls,
+  showPlayers,
+  showView,
   trackSockets,
 } from "../support/draft";
 
@@ -19,20 +22,18 @@ test.describe("draft room", () => {
     await signInAs(context, league.host.uid);
 
     await page.goto(seasonUrl(league.league, "/draft"));
-    await page.getByRole("button", { name: "Draft controls" }).click();
-    await page.getByRole("button", { name: /open lobby/i }).click();
-    await expect(page.getByRole("heading", { name: "Lobby open" })).toBeVisible();
-    await page.getByRole("button", { name: "Draft controls" }).click();
+    await expect(page.getByText("Draft not scheduled yet")).toBeVisible();
+    await openControls(page);
     await page.getByRole("button", { name: "Start draft" }).click();
-    await expect(page.getByText("Pick 1 of 8: Team 1 on the clock")).toBeVisible();
-    // The banner and the status bar both say it; either one proves it is this manager's turn.
-    await expect(page.getByText("You're on the clock").first()).toBeVisible();
+    await expect(page.getByText("Round 1, pick 1")).toBeVisible();
+    await expect(page.getByText("You're on the clock")).toBeVisible();
 
     const drafted = await draftFirst(page, "QB");
-    await expect(page.getByText(/Pick 2 of 8/)).toBeVisible();
-    await page.getByRole("tab", { name: "Pick feed" }).click();
-    // The pick feed and the board both show the name; either one proves the pick landed.
-    await expect(page.getByText(drafted).first()).toBeVisible();
+    await expect(page.getByText("Round 1, pick 2")).toBeVisible();
+    await showView(page, "Board");
+    await expect(
+      page.getByLabel("Draft board").getByText(drafted.split(" ").pop() ?? ""),
+    ).toBeVisible();
     expect((await league.state()).picks).toHaveLength(1);
   });
 
@@ -55,14 +56,15 @@ test.describe("draft room", () => {
       const state = await league.state();
       const hostTurn = state.onTheClockTeamId === league.hostTeamId;
       const turnPage = hostTurn ? page : guestPage;
-      // The banner and the status bar both say it; either one proves it is this manager's turn.
-      await expect(turnPage.getByText("You're on the clock").first()).toBeVisible();
+      await expect(turnPage.getByText("You're on the clock")).toBeVisible();
       await draftFirst(turnPage, positions[Math.ceil(overall / 2) - 1]);
       await expect.poll(async () => (await league.state()).picks.length).toBe(overall);
     }
 
     for (const view of [page, guestPage]) {
-      await expect(view.getByRole("heading", { name: /draft complete/i })).toBeVisible();
+      await expect(view.getByRole("list", { name: "Players" })).toBeVisible();
+      await expect(view.getByRole("button", { name: "Commissioner controls" })).toHaveCount(0);
+      await expect(view.getByText("Draft complete")).toHaveCount(0);
     }
     const final = await league.state();
     expect(final.status).toBe("completed");
@@ -83,18 +85,16 @@ test.describe("draft room", () => {
     await page.goto(seasonUrl(league.league, "/draft"));
     await guestPage.goto(seasonUrl(league.league, "/draft"));
 
-    await page.getByRole("button", { name: "Draft controls" }).click();
+    await openControls(page);
     await page.getByRole("button", { name: "Pause" }).click();
     await expect.poll(async () => (await league.state()).status).toBe("paused");
     for (const view of [page, guestPage]) {
-      // The banner and the status bar both say "paused"; either one proves the pause reached this tab.
-      await expect(view.getByText(/paused/i).first()).toBeVisible();
+      await expect(view.getByText(/paused/i)).toBeVisible();
     }
 
-    await page.getByRole("button", { name: "Draft controls" }).click();
     await page.getByRole("button", { name: "Resume" }).click();
     await expect.poll(async () => (await league.state()).status).toBe("in_progress");
-    await expect(guestPage.getByText(/Pick 1 of 8/)).toBeVisible();
+    await expect(guestPage.getByText("Round 1, pick 1")).toBeVisible();
     await expect(guestPage.getByText(/paused/i)).toHaveCount(0);
     await guestContext.close();
   });
@@ -108,11 +108,11 @@ test.describe("draft room", () => {
     await signInAs(context, league.host.uid);
     await page.goto(seasonUrl(league.league, "/draft"));
     await draftFirst(page, "QB");
-    await expect(page.getByText(/Pick 2 of 8/)).toBeVisible();
+    await expect(page.getByText("Round 1, pick 2")).toBeVisible();
 
-    await page.getByRole("button", { name: "Draft controls" }).click();
+    await openControls(page);
     await page.getByRole("button", { name: "Undo last pick" }).click();
-    await expect(page.getByText(/Pick 1 of 8/)).toBeVisible();
+    await expect(page.getByText("Round 1, pick 1")).toBeVisible();
     const state = await league.state();
     expect(state.picks).toHaveLength(0);
     expect(state.onTheClockTeamId).toBe(league.hostTeamId);
@@ -123,9 +123,9 @@ test.describe("draft room", () => {
     await signInAs(context, league.host.uid);
     await page.goto(seasonUrl(league.league, "/draft"));
 
-    await page.getByRole("button", { name: "Draft controls" }).click();
+    await openControls(page);
     await page.getByRole("button", { name: "Auto-pick now" }).click();
-    await expect(page.getByText(/Pick 2 of 8/)).toBeVisible();
+    await expect(page.getByText("Round 1, pick 2")).toBeVisible();
     const [pick] = (await league.state()).picks;
     expect(pick.teamId).toBe(league.hostTeamId);
     expect(pick.autopick).toBe(true);
@@ -143,7 +143,7 @@ test.describe("draft room", () => {
     await expect.poll(async () => (await league.state()).picks.length, { timeout: 25_000 }).toBe(1);
     const [pick] = (await league.state()).picks;
     expect(pick.autopick).toBe(true);
-    await expect(page.getByText(/Pick 2 of 8/)).toBeVisible();
+    await expect(page.getByText("Round 1, pick 2")).toBeVisible();
   });
 
   test("auto-pick takes the queued player first", async ({ browser, page, context, request }) => {
@@ -151,19 +151,20 @@ test.describe("draft room", () => {
     await signInAs(context, league.host.uid);
     await page.goto(seasonUrl(league.league, "/draft"));
 
-    await page.getByRole("tab", { name: "Players" }).click();
+    await showPlayers(page);
     await page.getByRole("button", { name: "WR", exact: true }).click();
     // Third row of the fixed-order WR list: deliberately not the best available, so queueing it is what makes auto-pick choose it.
-    const row = page.getByRole("list", { name: "Available players" }).getByRole("listitem").nth(2);
-    // A player card's first paragraph is the player's name.
+    const row = page.getByRole("list", { name: "Players" }).getByRole("listitem").nth(2);
+    // A player row's first paragraph is the player's name.
     const queued = (await row.locator("p").first().textContent()) ?? "";
-    await row.getByRole("button", { name: "Queue" }).click();
-    await expect(page.getByRole("tab", { name: "Queue (1)" })).toBeVisible();
+    await row.getByRole("button", { name: `Add ${queued} to queue` }).click();
+    await expect(page.getByRole("button", { name: `Remove ${queued} from queue` })).toBeVisible();
 
-    await page.getByRole("button", { name: "Draft controls" }).click();
+    await openControls(page);
     await page.getByRole("button", { name: "Auto-pick now" }).click();
-    await page.getByRole("tab", { name: "My roster" }).click();
-    await expect(page.getByText(queued, { exact: true })).toBeVisible();
+    await expect(page.getByText("Round 1, pick 2")).toBeVisible();
+    await showView(page, "Roster");
+    await expect(page.getByLabel("Your roster").getByText(queued)).toBeVisible();
     void browser;
   });
 
@@ -178,7 +179,8 @@ test.describe("draft room", () => {
     await trackSockets(guestContext);
     const guestPage = await guestContext.newPage();
     await guestPage.goto(seasonUrl(league.league, "/draft"));
-    await expect(guestPage.getByText("Live", { exact: true })).toBeVisible();
+    await expect(guestPage.getByText("Round 1, pick 1")).toBeVisible();
+    await expect(guestPage.getByText("Reconnecting…")).toHaveCount(0);
 
     await signInAs(context, league.host.uid);
     await page.goto(seasonUrl(league.league, "/draft"));
@@ -187,14 +189,13 @@ test.describe("draft room", () => {
     await guestContext.setOffline(true);
     await dropSockets(guestPage);
     await draftFirst(page, "QB");
-    await expect(guestPage.getByText(/Pick 1 of 8/)).toBeVisible();
-    await expect(guestPage.getByText("Live", { exact: true })).toHaveCount(0);
+    await expect(guestPage.getByText("Round 1, pick 1")).toBeVisible();
+    await expect(guestPage.getByText("Reconnecting…")).toBeVisible();
 
     await guestContext.setOffline(false);
-    await expect(guestPage.getByText(/Pick 2 of 8/)).toBeVisible({ timeout: 20_000 });
-    // The banner and the status bar both say it; either one proves it is this manager's turn.
-    await expect(guestPage.getByText("You're on the clock").first()).toBeVisible();
-    await expect(guestPage.getByText("Live", { exact: true })).toBeVisible();
+    await expect(guestPage.getByText("Round 1, pick 2")).toBeVisible({ timeout: 20_000 });
+    await expect(guestPage.getByText("You're on the clock")).toBeVisible();
+    await expect(guestPage.getByText("Reconnecting…")).toHaveCount(0);
     await guestContext.close();
   });
 
@@ -203,8 +204,8 @@ test.describe("draft room", () => {
     const guestContext = await newUserContext(browser, league.guest.uid);
     const guestPage = await guestContext.newPage();
     await guestPage.goto(seasonUrl(league.league, "/draft"));
-    await expect(guestPage.getByRole("heading", { name: "Draft in progress" })).toBeVisible();
-    await expect(guestPage.getByRole("button", { name: "Draft controls" })).toHaveCount(0);
+    await expect(guestPage.getByText("Round 1, pick 1")).toBeVisible();
+    await expect(guestPage.getByRole("button", { name: "Commissioner controls" })).toHaveCount(0);
     await guestContext.close();
   });
 });
@@ -230,18 +231,135 @@ test.describe("position caps", () => {
       await league.guest.post(`/api/drafts/${league.league.seasonId}/picks`, { playerId: rb.id });
     }
     await draftFirst(page, "QB");
-    await expect(page.getByText("Pick 5 of 8")).toBeVisible();
+    await expect(page.getByText("Round 3, pick 1")).toBeVisible();
 
-    await page.getByRole("tab", { name: "Players" }).click();
+    await showPlayers(page);
     await page.getByRole("button", { name: "QB", exact: true }).click();
-    const first = page
-      .getByRole("list", { name: "Available players" })
-      .getByRole("listitem")
-      .first(); // The list is sorted from fixed fixtures; the top QB row is the same on every run.
+    const first = page.getByRole("list", { name: "Players" }).getByRole("listitem").first(); // The list is sorted from fixed fixtures; the top QB row is the same on every run.
     await expect(
       first.getByText("You already have 2 QBs, the most your league allows"),
     ).toBeVisible();
     await expect(first.getByRole("button", { name: "Position full" })).toBeDisabled();
     if (process.env.SHOT_DIR) await page.screenshot({ path: `${process.env.SHOT_DIR}/capped.png` });
+  });
+});
+
+test.describe("commissioner draft setup", () => {
+  test("randomizing and moving teams posts the order to the Feed", async ({
+    page,
+    context,
+    request,
+  }) => {
+    const host = new Api(request, unique("host"));
+    await host.signUp("host");
+    const league = await host.createLeague(unique("Order League"));
+    await signInAs(context, host.uid);
+    const order = async () =>
+      (await host.get<{ order: { teamId: number }[] }>(`/api/drafts/draft-info/${league.seasonId}`))
+        .order;
+
+    await page.goto(seasonUrl(league, "/draft"));
+    await openControls(page);
+    await page.getByRole("button", { name: "Randomize draft order" }).click();
+    await expect.poll(async () => (await order()).length).toBe(2);
+    const randomized = (await order()).map((slot) => slot.teamId);
+
+    await page.getByRole("button", { name: "Edit draft order" }).click();
+    const list = page.getByRole("list", { name: "Draft order" });
+    await list
+      .getByRole("button", { name: /^Move .* down$/ })
+      .first() // The first team in the order list; moving it down is the same swap whichever team it is.
+      .click();
+    await page.getByRole("button", { name: "Save order" }).click();
+    await expect
+      .poll(async () => (await order()).map((slot) => slot.teamId))
+      .toEqual([...randomized].reverse());
+
+    const feed = await host.get<{ items: { type: string; kind?: string }[] }>(
+      `/api/seasons/${league.seasonId}/feed`,
+    );
+    const kinds = feed.items.map((item) => item.kind);
+    expect(kinds).toContain("draft_order_randomized");
+    expect(kinds).toContain("draft_order_changed");
+  });
+
+  test("Randomize stays disabled until the shuffle has landed, so Edit order never starts from a stale order", async ({
+    page,
+    context,
+    request,
+  }) => {
+    const host = new Api(request, unique("host"));
+    await host.signUp("host");
+    const league = await host.createLeague(unique("Slow Shuffle League"));
+    await signInAs(context, host.uid);
+
+    let landShuffle!: () => void;
+    const shuffleHeld = new Promise<void>((resolve) => {
+      landShuffle = resolve;
+    });
+    await page.route("**/api/drafts/*/order/randomize", async (route) => {
+      await shuffleHeld;
+      await route.continue();
+    });
+
+    await page.goto(seasonUrl(league, "/draft"));
+    await openControls(page);
+    const randomize = page.getByRole("button", { name: "Randomize draft order" });
+    await randomize.click();
+    await expect(randomize).toBeDisabled();
+
+    landShuffle();
+    await expect(randomize).toBeEnabled();
+    await page.getByRole("button", { name: "Edit draft order" }).click();
+    await expect(page.getByRole("list", { name: "Draft order" }).getByRole("listitem")).toHaveCount(
+      2,
+    );
+    await page.unrouteAll({ behavior: "wait" });
+  });
+
+  test("seconds per pick are saved with the draft settings", async ({ page, context, request }) => {
+    const host = new Api(request, unique("host"));
+    await host.signUp("host");
+    const league = await host.createLeague(unique("Clock League"));
+    await signInAs(context, host.uid);
+
+    await page.goto(seasonUrl(league, "/draft"));
+    await openControls(page);
+    await page.getByRole("button", { name: "Draft settings" }).click();
+    await page.getByLabel("Seconds per pick").fill("45");
+    await page.getByRole("button", { name: "Save settings" }).click();
+    await expect
+      .poll(
+        async () =>
+          (
+            await host.get<{ timePerPickSeconds: number }>(
+              `/api/drafts/draft-info/${league.seasonId}`,
+            )
+          ).timePerPickSeconds,
+      )
+      .toBe(45);
+  });
+
+  test("the draft date is set from Change date and shown in the bar", async ({
+    page,
+    context,
+    request,
+  }) => {
+    const host = new Api(request, unique("host"));
+    await host.signUp("host");
+    const league = await host.createLeague(unique("Date League"));
+    await signInAs(context, host.uid);
+
+    await page.goto(seasonUrl(league, "/draft"));
+    await expect(page.getByText("Draft not scheduled yet")).toBeVisible();
+    await openControls(page);
+    await page.getByRole("button", { name: "Change date" }).click();
+    const soon = new Date(Date.now() + 2 * 24 * 3600_000);
+    const pad = (n: number) => String(n).padStart(2, "0");
+    await page
+      .getByLabel("Draft date & time")
+      .fill(`${soon.getFullYear()}-${pad(soon.getMonth() + 1)}-${pad(soon.getDate())}T19:00`);
+    await page.getByRole("button", { name: "Save date" }).click();
+    await expect(page.getByText(/^Draft scheduled for /)).toBeVisible();
   });
 });
