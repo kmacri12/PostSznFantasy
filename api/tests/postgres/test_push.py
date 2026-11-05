@@ -5,11 +5,13 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import pytest
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.core.config import get_settings
 from api.db.models import (
+    LeagueMember,
+    LeagueMessage,
     LineupReminder,
     NFLGame,
     NFLTeam,
@@ -185,9 +187,45 @@ async def test_only_a_running_drafts_clock_change_triggers_a_push(
             "data": {"status": status, "onTheClockTeamId": team},
         }
 
-    await announce_events(7, [{"eventType": "PICK_MADE", "data": {}}, state("in_progress", 3)])
+    await announce_events(
+        7, [{"eventType": "PICK_MADE", "data": {}}, state("in_progress", 3)]
+    )
     await announce_events(7, [state("paused", 3), state("in_progress", None)])
     assert spawned == [(7, 3)]
+
+
+async def test_a_chat_message_notifies_the_other_members_without_its_text(
+    db: AsyncSession, sender: FakeSender
+) -> None:
+    season, users, _, _ = await make_season(db, teams=3)
+    await _subscribe(db, users[0], "https://fcm.googleapis.com/send/author")
+    await _subscribe(db, users[1], "https://fcm.googleapis.com/send/other")
+    await _subscribe(db, users[2], "https://fcm.googleapis.com/send/gone")
+    await db.execute(
+        update(LeagueMember)
+        .where(LeagueMember.user_id == users[2].id)
+        .values(left_at=datetime.now(UTC))
+    )
+    message = LeagueMessage(
+        league_id=season.league_id,
+        season_id=season.id,
+        author_user_id=users[0].id,
+        author_name="Ann",
+        body="secret trade talk",
+    )
+    db.add(message)
+    await db.flush()
+
+    await push.notify_league_message(db, message.id)
+
+    [(endpoint, sent)] = sender.sent
+    assert endpoint.endswith("/other")
+    assert sent.url == f"/leagues/{season.league_id}/feed"
+    assert "secret" not in sent.title + sent.body
+
+    message.deleted_at = datetime.now(UTC)
+    await push.notify_league_message(db, message.id)
+    assert len(sender.sent) == 1
 
 
 async def _lock_setup(

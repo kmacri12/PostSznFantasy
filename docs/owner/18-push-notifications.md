@@ -22,6 +22,8 @@ Use a league where you own a team and the draft is running or the field is set.
 
 **Android (Chrome):** open the site, sign in, go to Settings, **Turn on notifications**, allow. Start a draft where you are next on the clock (or have someone else pick before you): a "You're on the clock" notification arrives, and tapping it opens the draft room.
 
+**Chat:** with two accounts in one league, both with notifications on, post a message in the Feed from one; the other gets a notification naming the league and the author (not the text) that opens the Feed.
+
 **iPhone (iOS 16.4 or later):** in Safari tap Share, **Add to Home Screen**, then open PostSzn **from the new icon** (a Safari tab cannot receive notifications). Sign in, Settings, **Turn on notifications**, allow. Repeat the draft test.
 
 **Lineup reminder:** needs a drafted league with an empty starter slot and the first kickoff of a round about an hour away, with `SCHEDULER_ENABLED=true`. You get "Lineup locks in about an hour" once per round.

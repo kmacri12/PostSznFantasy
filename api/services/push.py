@@ -13,11 +13,12 @@ from dataclasses import asdict, dataclass
 from typing import Concatenate
 
 from pywebpush import WebPushException, webpush
-from sqlalchemy import delete, select
+from sqlalchemy import delete, select, true
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.core.config import get_settings
-from api.db.models.league import League, Season, Team
+from api.db.models.activity import LeagueMessage
+from api.db.models.league import League, LeagueMember, Season, Team
 from api.db.models.push import PushSubscription
 from api.db.session import get_session_factory
 from api.services.live_leagues import live_season_ids
@@ -160,10 +161,56 @@ async def notify_on_the_clock(db: AsyncSession, season_id: int, team_id: int) ->
     )
 
 
-async def notify_league_message(league_id: int, sender_user_id: int) -> None:
-    """Hook for a new chat message; deliberately unwired until the chat backend exists.
+async def notify_league_message(db: AsyncSession, message_id: int) -> None:
+    """Tell the league's other active members about a new chat message.
 
-    TODO(#265, #266): call this from the chat post path via `spawn`. It must notify the
-    league's members except the sender and anyone who muted chat, with a title and body
-    that carry no message text.
+    The text carries the author's name and the league's, never the message itself, since
+    it shows on lock screens. There is no per-member chat mute yet; add the filter here
+    when the notification settings (#267) gain one.
     """
+    if not get_settings().push_enabled:
+        return
+    row = (
+        await db.execute(
+            select(
+                LeagueMessage.league_id,
+                LeagueMessage.season_id,
+                LeagueMessage.author_user_id,
+                LeagueMessage.author_name,
+                League.name,
+            )
+            .join(League, League.id == LeagueMessage.league_id)
+            .where(
+                LeagueMessage.id == message_id,
+                LeagueMessage.deleted_at.is_(None),
+                LeagueMessage.season_id.in_(live_season_ids()),
+            )
+        )
+    ).one_or_none()
+    if row is None:
+        return
+    recipients = (
+        (
+            await db.execute(
+                select(LeagueMember.user_id).where(
+                    LeagueMember.league_id == row.league_id,
+                    LeagueMember.left_at.is_(None),
+                    LeagueMember.user_id != row.author_user_id
+                    if row.author_user_id is not None
+                    else true(),
+                )
+            )
+        )
+        .scalars()
+        .all()
+    )
+    await send_to_users(
+        db,
+        recipients,
+        PushMessage(
+            title=row.name,
+            body=f"{row.author_name or 'Someone'} posted in the chat.",
+            url=f"/leagues/{row.league_id}/feed",
+            tag=f"chat-{row.season_id}",
+        ),
+    )
