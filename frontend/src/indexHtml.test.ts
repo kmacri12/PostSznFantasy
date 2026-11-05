@@ -30,3 +30,18 @@ describe("index.html and the manifests follow the palette", () => {
     }
   });
 });
+
+describe("icons", () => {
+  it("links the SVG tile favicon with a PNG fallback and the touch icon", () => {
+    expect(html).toContain('href="/favicon.svg"');
+    expect(html).toContain('href="/icons/favicon-32.png"');
+    expect(html).toContain('rel="apple-touch-icon" href="/icons/icon-180.png"');
+  });
+
+  it("lists a maskable icon in both manifests", () => {
+    for (const file of ["manifest.webmanifest", "manifest-light.webmanifest"]) {
+      const icons: { purpose: string }[] = manifest(file).icons;
+      expect(icons.map((icon) => icon.purpose)).toContain("maskable");
+    }
+  });
+});

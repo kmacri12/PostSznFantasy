@@ -14,6 +14,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import EmailCodeForm from "../components/auth/EmailCodeForm";
 import PostSignInRedirect from "../components/auth/PostSignInRedirect";
 import LoadingState from "../components/common/LoadingState";
+import Logo from "../components/common/Logo";
 import { useUser } from "../contexts/UserContext";
 import { safeNextPath } from "../utils/authRedirect";
 import { initialCallbackError } from "../utils/supabase";
@@ -44,6 +45,9 @@ const SignInPage = () => {
   return (
     <Container maxWidth="xs" sx={{ py: { xs: 3, sm: 8 } }}>
       <Card sx={{ p: { xs: 2.5, sm: 4 }, display: "grid", gap: 2.5 }}>
+        <Box sx={{ display: "flex", justifyContent: "center" }}>
+          <Logo variant="stacked" size={72} />
+        </Box>
         <Box>
           <Typography variant="h5" component="h1">
             Sign in to PostSzn

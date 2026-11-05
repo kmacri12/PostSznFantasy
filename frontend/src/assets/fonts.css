@@ -1,0 +1,13 @@
+/* The wordmark face, self-hosted. `block` holds the text invisible for a moment instead of swapping fonts, so the lockup never reflows. */
+@font-face {
+  font-family: "Space Grotesk";
+  font-weight: 500;
+  font-display: block;
+  src: url("@fontsource/space-grotesk/files/space-grotesk-latin-500-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Space Grotesk";
+  font-weight: 700;
+  font-display: block;
+  src: url("@fontsource/space-grotesk/files/space-grotesk-latin-700-normal.woff2") format("woff2");
+}
