@@ -162,7 +162,7 @@ PostSznFantasy/
         ├── App.tsx             # Routes, league list state, wires NavBar
         ├── routes.ts           # Path builders: `leaguePath`, `seasonPaths(leagueId, year, current)` (clean paths for the current season, `/seasons/<year>` otherwise; home, draft, settings, players, feed, more, team, teamPoints)
         ├── theme.ts            # Dark-first MUI theme + design tokens
-        ├── main.tsx            # Vite DOM mount point
+        ├── main.tsx            # Vite DOM mount point; calls `registerServiceWorker()` once at startup
         ├── content/
         │   └── rules.ts        # Every plain-language rule string: How to play, pre-draft roster, lock note, setting tooltips, notes copy
         ├── contexts/
@@ -201,7 +201,7 @@ PostSznFantasy/
         │   ├── players/        # PlayersTable (TanStack Table v8)
         │   ├── recap/          # SeasonRecap: champion card, Playoff MVP and champion's MVP, awards by position, start the next season (gated by `canStartSeason`)
         │   ├── team/           # LineupList (tap/drag lineup), OverrideDialog (commissioner confirm), BreakdownRounds (round-by-round points)
-        │   └── settings/       # NotificationsToggle (push switch with the iPhone Home Screen explainer); SettingsCard/SettingsRow (row primitives), SettingsSheet (bottom sheet on phones, dialog on desktop), EditTextSheet (one-field edits), MembersSheet + members.ts (commissioner toggle per member; the only commissioner's toggle is locked; removal confirms), InviteSheet, NotificationsRow (placeholder until push ships), SettingsGroup (accordion row), SettingsSection/ScoringForm/RosterForm generated from src/settings schemas; DeleteLeagueDialog (three-step confirm: warning with season count, type the exact name, final "Are you sure?")
+        │   └── settings/       # NotificationsToggle (the "Your settings" push switch, with the iPhone Home Screen tip); SettingsCard/SettingsRow (row primitives), SettingsSheet (bottom sheet on phones, dialog on desktop), EditTextSheet (one-field edits), MembersSheet + members.ts (commissioner toggle per member; the only commissioner's toggle is locked; removal confirms), InviteSheet, NotificationsRow (placeholder until push ships), SettingsGroup (accordion row), SettingsSection/ScoringForm/RosterForm generated from src/settings schemas; DeleteLeagueDialog (three-step confirm: warning with season count, type the exact name, final "Are you sure?")
         ├── utils/
         │   ├── draftCue.ts     # Web Audio on-deck beep
         │   ├── scoring.ts      # Numeric coercion + defaults diff for league forms

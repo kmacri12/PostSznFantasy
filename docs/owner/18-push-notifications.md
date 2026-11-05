@@ -20,17 +20,17 @@ Notifications come from the API using a key pair (VAPID keys) that you generate 
 
 Use a league where you own a team and the draft is running or the field is set.
 
-**Android (Chrome):** open the site, sign in, go to Settings, **Turn on notifications**, allow. Start a draft where you are next on the clock (or have someone else pick before you): a "You're on the clock" notification arrives, and tapping it opens the draft room.
+**Android (Chrome):** open the site, sign in, go to Settings, switch **Notifications** on under Your settings, allow. Start a draft where you are next on the clock (or have someone else pick before you): a "You're on the clock" notification arrives, and tapping it opens the draft room.
 
 **Chat:** with two accounts in one league, both with notifications on, post a message in the Feed from one; the other gets a notification naming the league and the author (not the text) that opens the Feed.
 
-**iPhone (iOS 16.4 or later):** in Safari tap Share, **Add to Home Screen**, then open PostSzn **from the new icon** (a Safari tab cannot receive notifications). Sign in, Settings, **Turn on notifications**, allow. Repeat the draft test.
+**iPhone (iOS 16.4 or later):** in Safari tap Share, **Add to Home Screen**, then open PostSzn **from the new icon** (a Safari tab cannot receive notifications). Sign in, Settings, switch **Notifications** on, allow. Repeat the draft test.
 
 **Lineup reminder:** needs a drafted league with an empty starter slot and the first kickoff of a round about an hour away, with `SCHEDULER_ENABLED=true`. You get "Lineup locks in about an hour" once per round.
 
 ## If it goes wrong
 
-- No switch in Settings: the secrets are missing; `fly secrets list --app postszn-api` must list the three `VAPID_` names.
+- The Notifications switch is off and greyed out in Settings: the secrets are missing; `fly secrets list --app postszn-api` must list the three `VAPID_` names.
 - The switch says to add the site to the Home Screen: on iPhone you opened it in Safari instead of from the icon.
 - Notifications blocked: re-allow them for the site in the phone's settings.
 - Nothing arrives: `fly logs --app postszn-api` shows `Push not delivered` with an HTTP status; paste it to the coordinator. Devices that unsubscribed are cleaned up automatically.
