@@ -9,10 +9,9 @@ from api.db.models.draft import Draft
 from api.db.session import get_session_factory
 from api.models.enums import DraftStatus
 from api.services import draft_flow
-from api.services.draft_events import pick_events
+from api.services.draft_events import announce_events, pick_events
 from api.services.draft_picks import DraftPickError, PickNotDue, next_deadline
 from api.services.live_leagues import live_season_ids
-from api.ws.draft_manager import draft_manager
 
 logger = logging.getLogger(__name__)
 
@@ -58,8 +57,7 @@ async def expire_overdue_picks() -> int:
                     extra={"season_id": season_id, "error": str(exc)},
                 )
                 continue
-        for event in events:
-            await draft_manager.broadcast(season_id, event)
+        await announce_events(season_id, events)
         handled += 1
     return handled
 

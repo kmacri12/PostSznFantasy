@@ -8,6 +8,13 @@ from api.core.config import get_settings
 from api.db.models.draft import Draft, DraftPick, DraftQueueItem
 from api.db.models.league import Season, SeasonSettings, Team, TeamPlayer
 from api.db.models.nfl import NFLPlayer, NFLPlayerSeasonStats, NFLTeam
+from api.models.activity_models import (
+    DraftOrderChangedPayload,
+    DraftOrderMove,
+    DraftOrderRandomizedPayload,
+    DraftOrderSlot,
+    DraftStartedPayload,
+)
 from api.models.draft_models import (
     DraftPickResponse,
     DraftSetup,
@@ -21,6 +28,7 @@ from api.models.enums import (
     PickTimeoutAction,
     PlayerPosition,
 )
+from api.services import activity
 from api.services.draft_picks import (
     DraftPickError,
     PickNotDue,
@@ -208,9 +216,17 @@ async def apply_setup(db: AsyncSession, season_id: int, setup: DraftSetup) -> Dr
     return draft
 
 
-async def set_order(
+async def _team_names(db: AsyncSession, season_id: int) -> dict[int, str]:
+    rows = await db.execute(
+        select(Team.id, Team.name).where(Team.season_id == season_id)
+    )
+    return {team_id: name or "" for team_id, name in rows.all()}
+
+
+async def _apply_order(
     db: AsyncSession, season_id: int, team_ids: list[int | None]
-) -> Draft:
+) -> tuple[Draft, list[int | None]]:
+    """Store the order; also returns the one it replaced."""
     draft = await load_draft_for_update(db, season_id)
     _require_pre_draft(draft)
     league_team_ids = set(
@@ -227,19 +243,58 @@ async def set_order(
         raise DraftPickError(
             "Draft order must list each team of this league at most once"
         )
+    previous = list(draft.draft_order_team_ids)
     draft.draft_order_team_ids = list(team_ids)
     await db.flush()
+    return draft, previous
+
+
+async def set_order(
+    db: AsyncSession,
+    season_id: int,
+    team_ids: list[int | None],
+    actor: activity.Actor,
+) -> Draft:
+    draft, previous = await _apply_order(db, season_id, team_ids)
+    names = await _team_names(db, season_id)
+    before = {team: i + 1 for i, team in enumerate(previous) if team is not None}
+    after = {team: i + 1 for i, team in enumerate(team_ids) if team is not None}
+    moves = [
+        DraftOrderMove(
+            team_id=team,
+            team_name=names[team],
+            from_position=before.get(team),
+            to_position=after.get(team),
+        )
+        for team in sorted(before.keys() | after.keys(), key=lambda t: after.get(t, 0))
+        if before.get(team) != after.get(team)
+    ]
+    if moves:
+        await activity.append(
+            db, season_id, DraftOrderChangedPayload(moves=moves), actor=actor
+        )
     return draft
 
 
-async def randomize_order(db: AsyncSession, season_id: int) -> Draft:
+async def randomize_order(
+    db: AsyncSession, season_id: int, actor: activity.Actor
+) -> Draft:
     team_ids = list(
         (await db.execute(select(Team.id).where(Team.season_id == season_id)))
         .scalars()
         .all()
     )
     random.shuffle(team_ids)
-    return await set_order(db, season_id, [*team_ids])
+    draft, _ = await _apply_order(db, season_id, [*team_ids])
+    names = await _team_names(db, season_id)
+    order = [
+        DraftOrderSlot(position=i, team_id=team, team_name=names[team])
+        for i, team in enumerate(team_ids, start=1)
+    ]
+    await activity.append(
+        db, season_id, DraftOrderRandomizedPayload(order=order), actor=actor
+    )
+    return draft
 
 
 async def open_lobby(db: AsyncSession, season_id: int) -> Draft:
@@ -254,7 +309,7 @@ async def open_lobby(db: AsyncSession, season_id: int) -> Draft:
     return draft
 
 
-async def start_draft(db: AsyncSession, season_id: int) -> Draft:
+async def start_draft(db: AsyncSession, season_id: int, actor: activity.Actor) -> Draft:
     """The only way a draft starts: an explicit commissioner action, never a page visit."""
     draft = await load_draft_for_update(db, season_id)
     _require_pre_draft(draft)
@@ -272,6 +327,12 @@ async def start_draft(db: AsyncSession, season_id: int) -> Draft:
     draft.current_pick_deadline = next_deadline(draft, now)
     draft.paused_remaining_seconds = None
     await db.flush()
+    await activity.append(
+        db,
+        season_id,
+        DraftStartedPayload(team_count=team_count, rounds=draft.rounds),
+        actor=actor,
+    )
     return draft
 
 

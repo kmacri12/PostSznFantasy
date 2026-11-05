@@ -28,6 +28,7 @@ def patched_session_factory(db: AsyncMock) -> Iterator[None]:
 
     with (
         patch("api.routers.drafts.get_session_factory", return_value=session),
+        patch("api.ws.auth.get_session_factory", return_value=session),
         patch(
             "api.routers.drafts.season_is_archived", new=AsyncMock(return_value=False)
         ),
@@ -57,9 +58,9 @@ def as_member(uid: str = "uid-1") -> Any:
     )
     snapshot = {"eventType": "SNAPSHOT", "data": {"status": "in_progress"}}
     return (
-        patch("api.routers.drafts.verify_token", return_value=uid),
+        patch("api.ws.auth.verify_token", return_value=uid),
         patch(
-            "api.routers.drafts.find_season_membership",
+            "api.ws.auth.find_season_membership",
             new=AsyncMock(return_value=membership),
         ),
         patch("api.routers.drafts._snapshot", new=AsyncMock(return_value=snapshot)),
@@ -78,7 +79,7 @@ def test_unauthenticated_socket_is_closed_on_bad_first_message(
 
 def test_forged_token_is_rejected(client: TestClient) -> None:
     with patch(
-        "api.routers.drafts.verify_token",
+        "api.ws.auth.verify_token",
         side_effect=HTTPException(status_code=401, detail="bad"),
     ):
         with client.websocket_connect(WS_URL) as ws:
@@ -90,9 +91,9 @@ def test_forged_token_is_rejected(client: TestClient) -> None:
 
 def test_non_member_is_rejected(client: TestClient) -> None:
     with (
-        patch("api.routers.drafts.verify_token", return_value="outsider"),
+        patch("api.ws.auth.verify_token", return_value="outsider"),
         patch(
-            "api.routers.drafts.find_season_membership",
+            "api.ws.auth.find_season_membership",
             new=AsyncMock(return_value=None),
         ),
     ):

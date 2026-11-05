@@ -6,6 +6,8 @@ from api.db.models.draft import Draft
 from api.models.draft_models import DraftPickResponse
 from api.services import draft_flow
 from api.services.draft_picks import PickResult
+from api.ws.draft_manager import draft_manager
+from api.ws.feed_manager import announce_feed_change
 
 
 async def state_event(db: AsyncSession, draft: Draft) -> dict[str, Any]:
@@ -36,3 +38,12 @@ async def pick_events(
     if result.draft_complete:
         events.append({"eventType": "DRAFT_COMPLETE"})
     return events
+
+
+async def announce_events(season_id: int, events: list[dict[str, Any]]) -> None:
+    """Send committed pick events to the draft room; the last pick also nudges the
+    Feed, where the draft_completed event just landed."""
+    for event in events:
+        await draft_manager.broadcast(season_id, event)
+        if event["eventType"] == "DRAFT_COMPLETE":
+            await announce_feed_change(season_id, "event")

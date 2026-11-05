@@ -66,6 +66,10 @@ class ActivityKind(StrEnum):
     MEMBERSHIP_JOINED = "membership_joined"
     MEMBERSHIP_LEFT = "membership_left"
     ROLE_CHANGED = "role_changed"
+    DRAFT_ORDER_RANDOMIZED = "draft_order_randomized"
+    DRAFT_ORDER_CHANGED = "draft_order_changed"
+    DRAFT_STARTED = "draft_started"
+    DRAFT_COMPLETED = "draft_completed"
 
 
 class TieRule(StrEnum):

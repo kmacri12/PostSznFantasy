@@ -1,5 +1,3 @@
-import asyncio
-import contextlib
 import json
 import logging
 from typing import Any
@@ -10,12 +8,10 @@ from sqlalchemy import select
 from api.db.models.draft import Draft
 from api.db.models.user import User
 from api.db.session import DbSession, get_session_factory
-from api.dependencies.auth import verify_token
 from api.dependencies.league import (
     DraftMember,
     SeasonCommissioner,
     SeasonMember,
-    find_season_membership,
 )
 from api.models.draft_models import (
     DraftOrderUpdate,
@@ -27,16 +23,18 @@ from api.models.draft_models import (
     QueueUpdate,
 )
 from api.services import draft_flow
-from api.services.draft_events import pick_events, state_event
+from api.services.activity import Actor
+from api.services.draft_events import announce_events, pick_events, state_event
 from api.services.draft_picks import DraftPickError, PickResult, make_pick
 from api.services.season_recap import ARCHIVED_MESSAGE, season_is_archived
+from api.ws.auth import authenticate_socket
 from api.ws.draft_manager import draft_manager
+from api.ws.feed_manager import announce_feed_change
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-AUTH_TIMEOUT_SECONDS = 10
 INBOUND_EVENTS = {"PING", "SYNC_REQUEST", "MAKE_PICK"}
 
 
@@ -71,11 +69,15 @@ async def get_draft_picks(
     return (await draft_flow.build_state(db, draft)).picks
 
 
-async def _broadcast_state(db: DbSession, draft: Draft) -> DraftStateResponse:
+async def _broadcast_state(
+    db: DbSession, draft: Draft, *, feed_event: bool = False
+) -> DraftStateResponse:
     """Commit first so clients refetching on the broadcast see the new state."""
     await db.commit()
     event = await state_event(db, draft)
     await draft_manager.broadcast(draft.season_id, event)
+    if feed_event:
+        await announce_feed_change(draft.season_id, "event")
     return DraftStateResponse.model_validate(event["data"])
 
 
@@ -93,29 +95,35 @@ async def update_setup(
 
 @router.put("/{season_id}/order", response_model=DraftStateResponse)
 async def update_order(
-    season_id: int, payload: DraftOrderUpdate, _: SeasonCommissioner, db: DbSession
+    season_id: int,
+    payload: DraftOrderUpdate,
+    membership: SeasonCommissioner,
+    db: DbSession,
 ) -> DraftStateResponse:
     try:
-        draft = await draft_flow.set_order(db, season_id, payload.team_ids)
+        draft = await draft_flow.set_order(
+            db, season_id, payload.team_ids, Actor.of(membership.user)
+        )
     except DraftPickError as exc:
         raise _conflict(exc) from exc
-    return await _broadcast_state(db, draft)
+    return await _broadcast_state(db, draft, feed_event=True)
 
 
 @router.post("/{season_id}/order/randomize", response_model=DraftStateResponse)
 async def randomize_order(
-    season_id: int, _: SeasonCommissioner, db: DbSession
+    season_id: int, membership: SeasonCommissioner, db: DbSession
 ) -> DraftStateResponse:
     try:
-        draft = await draft_flow.randomize_order(db, season_id)
+        draft = await draft_flow.randomize_order(
+            db, season_id, Actor.of(membership.user)
+        )
     except DraftPickError as exc:
         raise _conflict(exc) from exc
-    return await _broadcast_state(db, draft)
+    return await _broadcast_state(db, draft, feed_event=True)
 
 
 CONTROLS = {
     "lobby": draft_flow.open_lobby,
-    "start": draft_flow.start_draft,
     "pause": draft_flow.pause_draft,
     "resume": draft_flow.resume_draft,
     "undo": draft_flow.undo_last_pick,
@@ -124,19 +132,23 @@ CONTROLS = {
 
 @router.post("/{season_id}/control/{action}", response_model=DraftStateResponse)
 async def control(
-    season_id: int, action: str, _: SeasonCommissioner, db: DbSession
+    season_id: int, action: str, membership: SeasonCommissioner, db: DbSession
 ) -> DraftStateResponse:
     """Commissioner controls: lobby, start, pause, resume and undo of the last pick."""
-    handler = CONTROLS.get(action)
-    if handler is None:
+    if action != "start" and action not in CONTROLS:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Unknown draft action"
         )
     try:
-        draft = await handler(db, season_id)
+        if action == "start":
+            draft = await draft_flow.start_draft(
+                db, season_id, Actor.of(membership.user)
+            )
+        else:
+            draft = await CONTROLS[action](db, season_id)
     except DraftPickError as exc:
         raise _conflict(exc) from exc
-    return await _broadcast_state(db, draft)
+    return await _broadcast_state(db, draft, feed_event=action == "start")
 
 
 @router.post("/{season_id}/force-pick", response_model=DraftStateResponse)
@@ -157,8 +169,7 @@ async def _commit_and_announce(
     draft = await _draft_for(db, season_id)
     events = await pick_events(db, draft, result)
     await db.commit()
-    for event in events:
-        await draft_manager.broadcast(season_id, event)
+    await announce_events(season_id, events)
     return DraftStateResponse.model_validate(events[1]["data"])
 
 
@@ -251,10 +262,11 @@ async def websocket_draft_endpoint(websocket: WebSocket, season_id: int) -> None
     receive a full SNAPSHOT on connect (so reconnects resync) and then live events.
     """
     await websocket.accept()
-    member = await _authenticate(websocket, season_id)
-    if member is None:
+    membership = await authenticate_socket(websocket, season_id)
+    if membership is None:
         return
-    user, team_id = member
+    user = membership.user
+    team_id = membership.team.id if membership.team else None
 
     await draft_manager.join(season_id, websocket, user.id)
     try:
@@ -318,44 +330,6 @@ async def _send_error(
     )
 
 
-async def _authenticate(
-    websocket: WebSocket, season_id: int
-) -> tuple[User, int | None] | None:
-    """Return (user, team id), or close the socket and return None."""
-    try:
-        raw_text = await asyncio.wait_for(
-            websocket.receive_text(), timeout=AUTH_TIMEOUT_SECONDS
-        )
-        message = json.loads(raw_text)
-        token = message["token"] if message.get("eventType") == "AUTH" else None
-        supabase_uid = await asyncio.to_thread(verify_token, token) if token else None
-    except (TimeoutError, WebSocketDisconnect):
-        await _close_quietly(websocket, "Authentication required")
-        return None
-    except (HTTPException, ValueError, KeyError, AttributeError, TypeError):
-        supabase_uid = None
-
-    if supabase_uid is None:
-        await _close_quietly(websocket, "Authentication failed")
-        return None
-
-    async with get_session_factory()() as db:
-        try:
-            membership = await find_season_membership(db, season_id, supabase_uid)
-        except HTTPException:  # the league was deleted
-            membership = None
-    if membership is None:
-        await _close_quietly(websocket, "Not a member of this league")
-        return None
-    return membership.user, membership.team.id if membership.team else None
-
-
-async def _close_quietly(websocket: WebSocket, reason: str) -> None:
-    logger.warning("Draft websocket rejected: %s", reason)
-    with contextlib.suppress(RuntimeError):
-        await websocket.close(code=status.WS_1008_POLICY_VIOLATION, reason=reason)
-
-
 async def _handle_make_pick(
     websocket: WebSocket, season_id: int, user: User, message: dict[str, Any]
 ) -> None:
@@ -380,5 +354,4 @@ async def _handle_make_pick(
             await _send_error(websocket, str(exc), exc.code)
             return
 
-    for event in events:
-        await draft_manager.broadcast(season_id, event)
+    await announce_events(season_id, events)
