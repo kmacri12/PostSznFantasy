@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useReducer, useState } from "react";
 import { useUser } from "../contexts/UserContext";
-import { resolveWsOrigin } from "../utils/wsOrigin";
+import { currentWsOrigin } from "../utils/wsOrigin";
 import {
   applyDraftEvent,
   type DraftRoom,
@@ -9,9 +9,6 @@ import {
   secondsUntilStart,
 } from "./draftRoomState";
 import { type DraftMessage, useWebSocket } from "./useWebSocket";
-
-const wsOrigin = () =>
-  resolveWsOrigin(import.meta.env.VITE_WS_URL, import.meta.env.VITE_API_URL, window.location);
 
 /** Live draft room: full snapshot on every (re)connect, then incremental events. */
 export function useDraftRoom(seasonId: number | undefined, onRejected?: () => void) {
@@ -23,7 +20,7 @@ export function useDraftRoom(seasonId: number | undefined, onRejected?: () => vo
   const [now, setNow] = useState(() => Date.now());
 
   const { isConnected, sendMessage } = useWebSocket(
-    seasonId ? `${wsOrigin()}/api/drafts/ws/${seasonId}` : "",
+    seasonId ? `${currentWsOrigin()}/api/drafts/ws/${seasonId}` : "",
     { getToken: getIdToken, onMessage: dispatch, onRejected },
   );
 

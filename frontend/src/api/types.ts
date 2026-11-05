@@ -401,7 +401,11 @@ export type ActivityKind =
   | "league_created"
   | "membership_joined"
   | "membership_left"
-  | "role_changed";
+  | "role_changed"
+  | "draft_order_randomized"
+  | "draft_order_changed"
+  | "draft_started"
+  | "draft_completed";
 
 interface ActivityBase {
   id: number;
@@ -453,6 +457,23 @@ export type ActivityEvent = ActivityBase &
         kind: "role_changed";
         payload: { userId: number; userName: string; role: "commissioner" | "member" };
       }
+    | {
+        kind: "draft_order_randomized";
+        payload: { order: { position: number; teamId: number; teamName: string }[] };
+      }
+    | {
+        kind: "draft_order_changed";
+        payload: {
+          moves: {
+            teamId: number;
+            teamName: string;
+            fromPosition: number | null;
+            toPosition: number | null;
+          }[];
+        };
+      }
+    | { kind: "draft_started"; payload: { teamCount: number; rounds: number } }
+    | { kind: "draft_completed"; payload: { picks: number } }
   );
 
 export interface ActivityFeed {
@@ -460,6 +481,32 @@ export interface ActivityFeed {
   /** Pass as `before` for the next older page; null on the last page. */
   nextBefore: number | null;
   hasNew: boolean;
+}
+
+export type FeedEventItem = ActivityEvent & { type: "event" };
+
+export interface FeedMessageItem {
+  type: "message";
+  id: number;
+  createdAt: string;
+  authorUserId: number | null;
+  authorName: string | null;
+  body: string;
+  gifUrl: string | null;
+  /** The author, or a commissioner. */
+  canDelete: boolean;
+  isNew: boolean;
+}
+
+export type FeedItem = FeedEventItem | FeedMessageItem;
+
+/** Events and chat merged, newest first; `nextBefore` is an opaque cursor. */
+export interface Feed {
+  items: FeedItem[];
+  nextBefore: string | null;
+  hasNew: boolean;
+  /** False in an archived season and for a former member. */
+  canPost: boolean;
 }
 
 export interface RecapTeam {

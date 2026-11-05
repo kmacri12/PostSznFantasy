@@ -4,6 +4,8 @@ import { api } from "./client";
 import type {
   ActivityFeed,
   DraftState,
+  Feed,
+  FeedMessageItem,
   Invite,
   InvitePreview,
   JoinResult,
@@ -46,6 +48,7 @@ export const keys = {
   seasonStats: ["player-season-stats"] as const,
   scoringDefaults: ["scoring-defaults"] as const,
   syncStatus: ["sync-status"] as const,
+  feed: (seasonId: Id) => ["feed", String(seasonId)] as const,
   activity: (scope: "seasons" | "teams", id: Id) => ["activity", scope, String(id)] as const,
 };
 
@@ -101,15 +104,20 @@ export const useLeagueInfo = (leagueId: Id | undefined, enabled = true) =>
     enabled: enabled && leagueId !== undefined,
   });
 
-/** Seconds between standings refetches while the page is visible; scores land every poll cycle. */
+/** Milliseconds between standings refetches while a game is live; scores land every poll cycle. */
 export const STANDINGS_REFRESH_MS = 20_000;
+
+/** Polling runs only inside a game window; at other times the page refreshes when it regains focus. */
+export const standingsRefetchInterval = (standings: Standings | undefined): number | false =>
+  standings && standings.gamesInProgress > 0 ? STANDINGS_REFRESH_MS : false;
 
 export const useStandings = (seasonId: Id | undefined) =>
   useQuery({
     queryKey: keys.standings(seasonId ?? ""),
     queryFn: ({ signal }) => get<Standings>(`/api/seasons/${seasonId}/standings`, signal),
     enabled: seasonId !== undefined,
-    refetchInterval: STANDINGS_REFRESH_MS,
+    refetchInterval: (query) => standingsRefetchInterval(query.state.data),
+    refetchOnWindowFocus: true,
   });
 
 export const useRecap = (seasonId: Id | undefined) =>
@@ -409,6 +417,61 @@ export const useMarkActivityViewed = (scope: "seasons" | "teams", id: Id | undef
       queryClient.invalidateQueries({ queryKey: keys.activity(scope, id ?? "") });
       queryClient.invalidateQueries({ queryKey: keys.userLeagues });
     },
+  });
+};
+
+/** Seconds between feed refetches while the live socket is down. */
+const FEED_FALLBACK_POLL_MS = 30_000;
+
+/** Events and chat merged, newest first, a page at a time. */
+export const useFeed = (seasonId: Id | undefined, socketConnected: boolean) =>
+  useInfiniteQuery({
+    queryKey: keys.feed(seasonId ?? ""),
+    queryFn: ({ signal, pageParam }) => {
+      const before = pageParam ? `?before=${encodeURIComponent(pageParam)}` : "";
+      return get<Feed>(`/api/seasons/${seasonId}/feed${before}`, signal);
+    },
+    initialPageParam: "",
+    getNextPageParam: (last) => last.nextBefore ?? undefined,
+    enabled: seasonId !== undefined,
+    refetchInterval: socketConnected ? false : FEED_FALLBACK_POLL_MS,
+  });
+
+/** The Feed was shown: clear its dot for the newest event and message on screen. */
+export const useMarkFeedViewed = (seasonId: Id | undefined) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (upTo: { upToEventId?: number; upToMessageId?: number }) => {
+      await api.post(`/api/seasons/${seasonId}/feed/viewed`, upTo);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: keys.feed(seasonId ?? "") });
+      queryClient.invalidateQueries({ queryKey: keys.userLeagues });
+    },
+  });
+};
+
+export interface MessageDraft {
+  body: string;
+  gifUrl?: string;
+}
+
+export const usePostMessage = (seasonId: Id | undefined) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (draft: MessageDraft) =>
+      (await api.post<FeedMessageItem>(`/api/seasons/${seasonId}/messages`, draft)).data,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: keys.feed(seasonId ?? "") }),
+  });
+};
+
+export const useDeleteMessage = (seasonId: Id | undefined) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (messageId: number) => {
+      await api.delete(`/api/seasons/${seasonId}/messages/${messageId}`);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: keys.feed(seasonId ?? "") }),
   });
 };
 

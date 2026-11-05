@@ -73,8 +73,27 @@ export const describeEvent = (event: ActivityEvent): string => {
         ? `${who} made ${userName} a commissioner`
         : `${who} made ${userName} a regular member, no longer a commissioner`;
     }
+    case "draft_order_randomized":
+      return `${who} randomized the draft order`;
+    case "draft_order_changed":
+      return `${who} changed the draft order: ${event.payload.moves.map(moveLine).join("; ")}`;
+    case "draft_started":
+      return `${who} started the draft`;
+    case "draft_completed":
+      return `The draft is complete after ${event.payload.picks} picks`;
   }
 };
+
+const moveLine = (move: {
+  teamName: string;
+  fromPosition: number | null;
+  toPosition: number | null;
+}): string =>
+  move.fromPosition === null
+    ? `${move.teamName} was placed at ${move.toPosition}`
+    : move.toPosition === null
+      ? `${move.teamName} was taken out of slot ${move.fromPosition}`
+      : `${move.teamName} moved from ${move.fromPosition} to ${move.toPosition}`;
 
 export const detailLines = (event: ActivityEvent): string[] =>
   event.kind === "settings_change"
