@@ -38,18 +38,27 @@ const Mark = ({ size, tile }: { size: number; tile: boolean }) =>
     </Box>
   );
 
-const Wordmark = ({ fontSize, center }: { fontSize: number; center: boolean }) => (
+/** FANTASY's letter-spacing; the trailing gap after the Y is cancelled by `FANTASY_SHIFT` so the ink centers. */
+const FANTASY_TRACKING = 0.34;
+/** Moves FANTASY right by this many tracking widths: the trailing gap (1x, halved by centering) and the glyphs' side bearings. */
+const FANTASY_SHIFT = 1.2;
+
+const Wordmark = ({ fontSize }: { fontSize: number }) => (
   <Box
     sx={{
       fontFamily: WORDMARK_FONT,
       lineHeight: 1,
-      textAlign: center ? "center" : "left",
+      // Both lines are centered on each other in every lockup, not left-aligned.
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
       color: tokens.text,
       whiteSpace: "nowrap",
     }}
   >
     <Box
       component="span"
+      data-logo-line="name"
       sx={{ display: "block", fontSize, fontWeight: 700, letterSpacing: "-0.04em" }}
     >
       Post
@@ -59,14 +68,14 @@ const Wordmark = ({ fontSize, center }: { fontSize: number; center: boolean }) =
     </Box>
     <Box
       component="span"
+      data-logo-line="fantasy"
       sx={{
         display: "block",
         mt: `${Math.round(fontSize * 0.18)}px`,
         fontSize: Math.max(8, Math.round(fontSize * 0.3)),
         fontWeight: 500,
-        letterSpacing: "0.28em",
-        // The trailing tracking would otherwise push a centered line off-center.
-        mr: center ? "-0.28em" : 0,
+        letterSpacing: `${FANTASY_TRACKING}em`,
+        ml: `${FANTASY_TRACKING * FANTASY_SHIFT}em`,
       }}
     >
       FANTASY
@@ -93,7 +102,7 @@ const Logo = ({ variant = "mark", size, tile = false }: Props) => {
         sx={{ display: "flex", alignItems: "center", gap: `${Math.round(markSize * 0.25)}px` }}
       >
         <Mark size={markSize} tile={tile} />
-        <Wordmark fontSize={Math.round(markSize * 0.7)} center={false} />
+        <Wordmark fontSize={Math.round(markSize * 0.7)} />
       </Box>
     );
   }
@@ -110,7 +119,7 @@ const Logo = ({ variant = "mark", size, tile = false }: Props) => {
       }}
     >
       <Mark size={markSize} tile={tile} />
-      <Wordmark fontSize={Math.round(markSize * 0.5)} center />
+      <Wordmark fontSize={Math.round(markSize * 0.5)} />
     </Box>
   );
 };
