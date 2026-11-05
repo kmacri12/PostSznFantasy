@@ -61,7 +61,7 @@ test.describe("sign in", () => {
   }) => {
     await signInAs(context, unique("signin"));
     await page.goto("/sign-in");
-    await expect(page).toHaveURL(/\/(welcome)?$/);
+    await expect(page).toHaveURL(/\/$/);
 
     await page.getByRole("button", { name: "Account menu" }).click();
     await page.getByRole("menuitem", { name: "Sign out" }).click();

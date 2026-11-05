@@ -21,7 +21,6 @@ const MorePage = lazy(() => import("./pages/MorePage"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
 const PlayersPage = lazy(() => import("./pages/PlayersPage"));
-const WelcomePage = lazy(() => import("./pages/WelcomePage"));
 const SignInPage = lazy(() => import("./pages/SignInPage"));
 const SeasonLayout = lazy(() => import("./pages/SeasonLayout"));
 const SettingsPage = lazy(() => import("./pages/SettingsPage"));
@@ -64,7 +63,7 @@ function App() {
         >
           {dormant ? (
             <Routes>
-              <Route path="/" element={<LandingPage leagues={[]} dormant />} />
+              <Route path="/" element={<LandingPage dormant />} />
               <Route path="/how-to-play" element={<HowToPlayPage />} />
               <Route path="/privacy" element={<PrivacyPage />} />
               <Route path="/terms" element={<TermsPage />} />
@@ -72,7 +71,7 @@ function App() {
             </Routes>
           ) : (
             <Routes>
-              <Route path="/" element={<LandingPage leagues={leagues} />} />
+              <Route path="/" element={<LandingPage />} />
               {["/leagues/:leagueId", "/leagues/:leagueId/seasons/:year"].map((path) => (
                 <Route key={path} path={path} element={<SeasonLayout />}>
                   <Route index element={<LeaguePage />} />
@@ -89,7 +88,6 @@ function App() {
               <Route path="/how-to-play" element={<HowToPlayPage />} />
               <Route path="/privacy" element={<PrivacyPage />} />
               <Route path="/terms" element={<TermsPage />} />
-              <Route path="/welcome" element={<WelcomePage />} />
               <Route path="/join/:code" element={<JoinPage />} />
               <Route path="/players" element={<PlayersPage />} />
               <Route

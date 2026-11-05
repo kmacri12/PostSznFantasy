@@ -21,7 +21,7 @@ const renderRedirect = (next: string) =>
         <Routes>
           <Route path="/sign-in" element={<PostSignInRedirect next={next} />} />
           <Route path="/" element={<div>home</div>} />
-          <Route path="/welcome" element={<div>welcome</div>} />
+          <Route path="/leagues/:id" element={<div>league</div>} />
           <Route path="/join/:code" element={<div>join</div>} />
         </Routes>
       </MemoryRouter>
@@ -34,13 +34,19 @@ beforeEach(() => {
 });
 
 describe("PostSignInRedirect", () => {
-  it("sends a first-time user with no leagues to onboarding", () => {
+  it("sends a user with no leagues to the leagues page", () => {
     renderRedirect("/");
-    expect(screen.getByText("welcome")).toBeInTheDocument();
+    expect(screen.getByText("home")).toBeInTheDocument();
   });
 
-  it("sends a returning user home", () => {
+  it("sends a user with exactly one league straight into it", () => {
     mocks.leagues = { data: [{ id: 1 }], isError: false };
+    renderRedirect("/");
+    expect(screen.getByText("league")).toBeInTheDocument();
+  });
+
+  it("sends a user with several leagues to the leagues page", () => {
+    mocks.leagues = { data: [{ id: 1 }, { id: 2 }], isError: false };
     renderRedirect("/");
     expect(screen.getByText("home")).toBeInTheDocument();
   });
