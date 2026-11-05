@@ -1,15 +1,22 @@
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import { Box, Container, Typography } from "@mui/material";
+import { Alert, Box, Container, Snackbar, Typography } from "@mui/material";
 import { type ReactNode, useState } from "react";
 import { Link } from "react-router-dom";
 import { useUserLeagues } from "../api/queries";
 import { draftStatusLine } from "../components/league/draftStatusLine";
 import InviteSheet from "../components/settings/InviteSheet";
 import PastSeasonsSheet from "../components/settings/PastSeasonsSheet";
-import { HOW_TO_PLAY_LABEL } from "../content/rules";
+import ReportProblemSheet from "../components/support/ReportProblemSheet";
+import {
+  HOW_TO_PLAY_LABEL,
+  REPORT_PROBLEM_HINT,
+  REPORT_PROBLEM_LABEL,
+  REPORT_PROBLEM_SENT,
+} from "../content/rules";
 import { useSeasonContext } from "../contexts/SeasonContext";
 import { useUser } from "../contexts/UserContext";
 import { radii, tokens } from "../theme";
+import { E2E_BUILD } from "../utils/e2e";
 
 const rowSx = {
   display: "flex",
@@ -82,7 +89,8 @@ const MorePage = () => {
   const { signOutUser } = useUser();
   const league = useUserLeagues(true).data?.find((item) => item.id === leagueId);
   const pastSeasons = (league?.seasons ?? []).filter((item) => !item.current).reverse();
-  const [sheet, setSheet] = useState<"past" | "invite" | null>(null);
+  const [sheet, setSheet] = useState<"past" | "invite" | "report" | null>(null);
+  const [sent, setSent] = useState(false);
 
   return (
     <Container maxWidth="sm" sx={{ pt: 2, pb: 3 }}>
@@ -109,6 +117,11 @@ const MorePage = () => {
       </Group>
       <Group label="Help">
         <Row to="/how-to-play" title={HOW_TO_PLAY_LABEL} />
+        <Row
+          title={REPORT_PROBLEM_LABEL}
+          hint={REPORT_PROBLEM_HINT}
+          onClick={() => setSheet("report")}
+        />
       </Group>
       <Group label="Account">
         <Box
@@ -128,6 +141,30 @@ const MorePage = () => {
         />
       )}
       {sheet === "invite" && <InviteSheet leagueId={leagueId} onClose={() => setSheet(null)} />}
+      {sheet === "report" && (
+        <ReportProblemSheet
+          onClose={() => setSheet(null)}
+          onSent={() => {
+            setSheet(null);
+            setSent(true);
+          }}
+        />
+      )}
+      <Snackbar
+        open={sent}
+        autoHideDuration={E2E_BUILD ? null : 6000}
+        onClose={(_, reason) => reason !== "clickaway" && setSent(false)}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          severity="success"
+          variant="filled"
+          onClose={() => setSent(false)}
+          sx={{ width: "100%" }}
+        >
+          {REPORT_PROBLEM_SENT}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };

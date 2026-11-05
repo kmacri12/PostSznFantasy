@@ -2,6 +2,10 @@ export const API_PORT = 8100;
 export const WEB_PORT = 5273;
 export const WEB_URL = `http://localhost:${WEB_PORT}`;
 
+// Stands in for Resend (support/resend-stub.mjs); the API reaches it through RESEND_API_URL.
+export const RESEND_STUB_PORT = 8102;
+export const RESEND_STUB_URL = `http://localhost:${RESEND_STUB_PORT}`;
+
 // The replay suite runs its own API (scheduler on) and web build, on separate ports and
 // a separate database, because replaying rewrites the shared NFL data as it goes.
 export const LIVE_API_PORT = 8101;

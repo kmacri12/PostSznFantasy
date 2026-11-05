@@ -1,5 +1,6 @@
 import axios from "axios";
 import { supabaseAuth } from "../utils/supabase";
+import { recordFailedRequest } from "./failedRequests";
 
 // An empty base keeps requests same-origin so the Vite dev proxy can forward /api.
 export const api = axios.create({ baseURL: import.meta.env.VITE_API_URL ?? "" });
@@ -24,4 +25,10 @@ api.interceptors.response.use(undefined, async (error) => {
   if (!data.session) throw error;
   config.retriedAfterRefresh = true;
   return api.request(config);
+});
+
+// After the refresh interceptor, so a request it retries successfully is never recorded.
+api.interceptors.response.use(undefined, (error) => {
+  recordFailedRequest(error);
+  throw error;
 });

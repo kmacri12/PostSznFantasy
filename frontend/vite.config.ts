@@ -38,6 +38,12 @@ function requireProductionEnv(): Plugin {
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react(), requireProductionEnv()],
+  define: {
+    // The commit this bundle was built from (Cloudflare Pages or GitHub Actions), for support reports.
+    __WEB_VERSION__: JSON.stringify(
+      process.env.CF_PAGES_COMMIT_SHA ?? process.env.GITHUB_SHA ?? "",
+    ),
+  },
   server: {
     // Same-origin /api (including the draft WebSocket) so VITE_API_URL, VITE_WS_URL and
     // CORS are optional in local development.

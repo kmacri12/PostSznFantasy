@@ -1,4 +1,4 @@
-import { captureError } from "./sentry";
+import { captureError, scrubText } from "./sentry";
 
 type LogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR";
 
@@ -14,6 +14,29 @@ const CONSOLE_METHOD = {
   ERROR: "error",
 } as const;
 
+export interface LogEntry {
+  time: string;
+  level: LogLevel;
+  scope: string;
+  message: string;
+}
+
+// What "Report a problem" attaches. Every level is kept, even those the console hides, but only
+// the scrubbed message: context objects could hold chat text or other members' data.
+const MAX_BUFFERED_ENTRIES = 50;
+const buffer: LogEntry[] = [];
+
+const remember = (level: LogLevel, scope: string, message: string): void => {
+  buffer.push({ time: new Date().toISOString(), level, scope, message: scrubText(message) });
+  if (buffer.length > MAX_BUFFERED_ENTRIES) buffer.shift();
+};
+
+export const recentLogEntries = (): LogEntry[] => buffer.map((entry) => ({ ...entry }));
+
+export const clearLogBuffer = (): void => {
+  buffer.length = 0;
+};
+
 export interface Logger {
   debug: (message: string, ...context: unknown[]) => void;
   info: (message: string, ...context: unknown[]) => void;
@@ -25,6 +48,7 @@ export const createLogger = (scope: string): Logger => {
   const log =
     (level: LogLevel) =>
     (message: string, ...context: unknown[]) => {
+      remember(level, scope, message);
       if (LEVEL_ORDER[level] < LEVEL_ORDER[MIN_LEVEL]) return;
       console[CONSOLE_METHOD[level]](`[${scope}] ${message}`, ...context);
     };

@@ -159,3 +159,9 @@ export const NOTIFICATIONS_IPHONE_STEPS = [
 ] as const;
 export const LAST_COMMISSIONER_NOTE =
   "A league always keeps at least one commissioner. Removing a member frees their team in an unfinished season; finished seasons keep their name on it.";
+
+export const REPORT_PROBLEM_LABEL = "Report a problem";
+export const REPORT_PROBLEM_HINT = "Something broken or confusing? Tell us";
+export const REPORT_PROBLEM_ATTACH_NOTE =
+  "A screenshot and the diagnostic info each help. Including both gets it fixed faster.";
+export const REPORT_PROBLEM_SENT = "Sent. We'll reply by email.";

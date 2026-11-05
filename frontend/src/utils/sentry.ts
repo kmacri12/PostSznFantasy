@@ -57,6 +57,17 @@ export const scrubEvent = (event: ErrorEvent): ErrorEvent => {
 const keepBreadcrumb = (crumb: Breadcrumb, _hint?: BreadcrumbHint): Breadcrumb | null =>
   crumb.category === "console" ? null : scrubBreadcrumb(crumb);
 
+let latestEventId: string | null = null;
+
+/** The id of the last error Sentry was sent, which support can look up. */
+export const latestSentryEventId = (): string | null => latestEventId;
+
+const scrubAndRemember = (event: ErrorEvent): ErrorEvent => {
+  const scrubbed = scrubEvent(event);
+  latestEventId = scrubbed.event_id ?? null;
+  return scrubbed;
+};
+
 export const initSentry = (): void => {
   const dsn = import.meta.env.VITE_SENTRY_DSN;
   if (!dsn || sdk) return;
@@ -72,7 +83,7 @@ export const initSentry = (): void => {
         httpBodies: [],
         urlQueryParams: false,
       },
-      beforeSend: scrubEvent,
+      beforeSend: scrubAndRemember,
       beforeBreadcrumb: keepBreadcrumb,
     });
     return Sentry;

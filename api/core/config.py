@@ -18,6 +18,9 @@ ENV_FILE = Path(__file__).resolve().parents[1] / ".env"
 TEST_AUTH_ENVIRONMENTS = frozenset({"development", "test"})
 
 
+DEFAULT_RESEND_API_URL = "https://api.resend.com/emails"
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,
@@ -117,6 +120,16 @@ class Settings(BaseSettings):
     # Contact the push services may use, `mailto:you@example.com` or an https URL.
     vapid_subject: str = ""
 
+    # "Report a problem" (#296) emails support through Resend and answers "not set up"
+    # while either value is empty. The key is its own Resend key (`api-support`, Sending
+    # access), separate from the one Supabase uses for sign-in codes.
+    resend_api_key: str = ""
+    support_email: str = ""
+    # Must be an address on the domain verified in Resend.
+    support_from_email: str = "PostSzn Support <no-reply@postsznfantasy.com>"
+    # E2E only: a local stand-in for Resend. Refused when ENVIRONMENT is production.
+    resend_api_url: str = DEFAULT_RESEND_API_URL
+
     # Commit the image was built from (Dockerfile build arg GIT_SHA); the deploy workflow
     # reads it from GET /api to learn what production runs. Empty outside Fly builds.
     git_sha: str = ""
@@ -145,6 +158,10 @@ class Settings(BaseSettings):
         return self
 
     @property
+    def support_enabled(self) -> bool:
+        return bool(self.resend_api_key and self.support_email)
+
+    @property
     def push_enabled(self) -> bool:
         return bool(self.vapid_public_key)
 
@@ -153,6 +170,18 @@ class Settings(BaseSettings):
         if self.scheduler_replay_file and self.environment == "production":
             raise ValueError(
                 "SCHEDULER_REPLAY_FILE replaces live scores with a recording; "
+                "it is refused when ENVIRONMENT is production"
+            )
+        return self
+
+    @model_validator(mode="after")
+    def _refuse_resend_override_in_production(self) -> "Settings":
+        if (
+            self.resend_api_url != DEFAULT_RESEND_API_URL
+            and self.environment == "production"
+        ):
+            raise ValueError(
+                "RESEND_API_URL redirects support reports; "
                 "it is refused when ENVIRONMENT is production"
             )
         return self

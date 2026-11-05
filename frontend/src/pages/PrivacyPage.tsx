@@ -15,9 +15,15 @@ const SECTIONS: LegalSection[] = [
     ],
   },
   {
+    heading: "Reporting a problem",
+    body: [
+      "More, Report a problem emails your message, any screenshots you attach and your account email to support@postsznfantasy.com, so we can reply. Diagnostic info (the page you were on, league, season and team ids, your device and browser, recent app errors and failed requests) is included only while its box is ticked, and you can read it before sending. It never includes passwords, sign-in tokens or chat messages. We do not keep the files on our servers; they live in the support inbox and in the email provider (Resend) that delivers it. You can also write to support@postsznfantasy.com directly.",
+    ],
+  },
+  {
     heading: "What we do not do",
     body: [
-      "We do not sell your data, share it with advertisers, or show ads. We only share it with the services that run the app (sign-in, hosting and error reporting).",
+      "We do not sell your data, share it with advertisers, or show ads. We only share it with the services that run the app (sign-in, hosting, error reporting and support email).",
     ],
   },
   {

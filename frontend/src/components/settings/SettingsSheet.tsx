@@ -36,9 +36,9 @@ const SettingsSheet = ({ title, onClose, closeLabel = "Done", children }: Props)
       anchor="bottom"
       open
       onClose={onClose}
-      aria-label={title}
       slotProps={{
         paper: {
+          "aria-label": title,
           sx: {
             borderRadius: "20px 20px 0 0",
             maxHeight: "90dvh",
@@ -51,7 +51,13 @@ const SettingsSheet = ({ title, onClose, closeLabel = "Done", children }: Props)
       {content}
     </Drawer>
   ) : (
-    <Dialog open onClose={onClose} fullWidth maxWidth="sm" aria-label={title}>
+    <Dialog
+      open
+      onClose={onClose}
+      fullWidth
+      maxWidth="sm"
+      slotProps={{ paper: { "aria-label": title } }}
+    >
       {content}
     </Dialog>
   );
