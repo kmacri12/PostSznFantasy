@@ -168,7 +168,7 @@ The frontend application is now accessible at `http://localhost:5173`.
 - Production hosting (Cloudflare Pages, Fly.io, Supabase) and the launch checklist: [docs/deploy/cutover-runbook.md](docs/deploy/cutover-runbook.md). The owner's step-by-step version (accounts, dashboards, keys): [docs/owner/README.md](docs/owner/README.md). Off-season: [shutdown](docs/deploy/shutdown-runbook.md), [wake-up](docs/deploy/wake-up-runbook.md) and [rehearsal](docs/deploy/dormancy-rehearsal.md) runbooks (`scripts/dormancy-check.sh`).
 - User requests never call Tank01; only `/api/admin/*` and the opt-in scheduler spend RapidAPI quota.
 - Open work is tracked in [GitHub Issues](https://github.com/kmacri12/PostSznFantasy/issues) (labels `draft`, `ingestion`, `deploy`, `scaling`). Design decisions: [docs/api-decisions.md](docs/api-decisions.md).
-- UI redesign decisions (navigation, page contents, behavior changes): [docs/ui/README.md](docs/ui/README.md).
+- UI redesign decisions (navigation, page contents, behavior changes) and the link to the final design canvas: [docs/ui/README.md](docs/ui/README.md).
 
 ## Verification & Testing
 
