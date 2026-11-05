@@ -23,7 +23,7 @@ const NewDot = ({ label }: { label: string }) => (
       width: 10,
       height: 10,
       borderRadius: "50%",
-      bgcolor: tokens.accent,
+      bgcolor: tokens.red,
       border: `1px solid ${tokens.bg}`,
     }}
   />

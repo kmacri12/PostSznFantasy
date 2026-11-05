@@ -163,7 +163,7 @@ const PlayerSheet = ({
         },
       }}
     >
-      <Box sx={{ width: 40, height: 4, borderRadius: 1, bgcolor: "#3a4252", mx: "auto" }} />
+      <Box sx={{ width: 40, height: 4, borderRadius: 1, bgcolor: "#3a4046", mx: "auto" }} />
       <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
         <Box sx={{ minWidth: 0 }}>
           <Typography

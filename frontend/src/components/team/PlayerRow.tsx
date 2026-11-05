@@ -11,10 +11,10 @@ import { playerDetail, type RowState, rowState } from "./lineupView";
 const COLORS: Record<RowState, { label: string; name: string; detail: string; points: string }> = {
   ready: { label: "#fff", name: tokens.text, detail: tokens.muted, points: tokens.text },
   live: {
-    label: tokens.accent,
-    name: tokens.accent,
-    detail: tokens.accent,
-    points: tokens.accent,
+    label: tokens.live,
+    name: tokens.live,
+    detail: tokens.live,
+    points: tokens.live,
   },
   done: { label: tokens.muted, name: tokens.text, detail: tokens.muted, points: tokens.text },
   eliminated: {

@@ -19,9 +19,9 @@ const LiveIndicator = ({ seasonId }: { seasonId: number }) => {
     <Box role="status" sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
       <Box
         aria-hidden
-        sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: tokens.accent, flex: "none" }}
+        sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: tokens.live, flex: "none" }}
       />
-      <Typography variant="body2" sx={{ color: tokens.accentSoft }}>
+      <Typography variant="body2" sx={{ color: tokens.liveSoft }}>
         Live, updated {liveAgo(standings.dataUpdatedAt, now)}
       </Typography>
     </Box>
