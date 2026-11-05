@@ -57,9 +57,9 @@ const NewDivider = () => (
       color: tokens.red,
     }}
   >
-    <Box sx={{ flex: 1, height: "1px", bgcolor: "#5a2a2f" }} />
+    <Box sx={{ flex: 1, height: "1px", bgcolor: tokens.dangerBorder }} />
     New
-    <Box sx={{ flex: 1, height: "1px", bgcolor: "#5a2a2f" }} />
+    <Box sx={{ flex: 1, height: "1px", bgcolor: tokens.dangerBorder }} />
   </Box>
 );
 

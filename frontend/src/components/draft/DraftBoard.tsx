@@ -179,7 +179,7 @@ const DraftBoard: React.FC<Props> = ({ state, myTeamId, sx }) => {
                     color: onClock ? tokens.accentInk : tokens.textSoft,
                     fontWeight: onClock ? 700 : 400,
                     bgcolor: onClock
-                      ? tokens.accent
+                      ? tokens.accentFill
                       : pick
                         ? positionColor(pick.position)
                         : tokens.bg,

@@ -102,10 +102,10 @@ const Composer = ({ seasonId }: { seasonId: number }) => {
           disabled={post.isPending || !body}
           sx={{
             ...roundButtonSx,
-            bgcolor: tokens.accent,
-            borderColor: tokens.accent,
+            bgcolor: tokens.accentFill,
+            borderColor: tokens.accentFill,
             color: tokens.accentInk,
-            "&:hover": { bgcolor: tokens.accent },
+            "&:hover": { bgcolor: tokens.accentFill },
             "&.Mui-disabled": {
               bgcolor: tokens.surfaceRaised,
               borderColor: tokens.borderStrong,

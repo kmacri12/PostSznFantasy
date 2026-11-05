@@ -12,6 +12,17 @@
     <meta name="theme-color" content="#121416" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="apple-touch-icon" href="/icons/icon-180.png" />
+    <!-- Sets the saved theme before first paint so there is no dark flash. Keep in step with src/utils/themeMode.ts (index.test.ts checks). -->
+    <script>
+      (function () {
+        try {
+          if (localStorage.getItem("postszn-theme") !== "light") return;
+          document.documentElement.dataset.theme = "light";
+          document.querySelector('meta[name="theme-color"]').setAttribute("content", "#ffffff");
+          document.querySelector('link[rel="manifest"]').setAttribute("href", "/manifest-light.webmanifest");
+        } catch (e) {}
+      })();
+    </script>
     <!-- Inline so first paint is not blocked on a stylesheet request (and the dark background never flashes white). -->
     <style>
       html, body, #root {
@@ -25,10 +36,13 @@
       :root {
         color-scheme: dark;
       }
+      :root[data-theme="light"] {
+        color-scheme: light;
+      }
 
       /* MUI draws its own ring on buttons; this covers links and native controls. */
       :focus-visible {
-        outline: 2px solid #fbbf24;
+        outline: 2px solid var(--ps-accent, #5cb8ff);
         outline-offset: 2px;
       }
 
@@ -38,6 +52,12 @@
         background:
           radial-gradient(900px 500px at 85% -10%, rgba(92, 184, 255, 0.06), transparent),
           radial-gradient(700px 400px at -10% 10%, rgba(92, 184, 255, 0.05), transparent), #121416;
+        background-attachment: fixed;
+      }
+      :root[data-theme="light"] body {
+        background:
+          radial-gradient(900px 500px at 85% -10%, rgba(92, 184, 255, 0.12), transparent),
+          radial-gradient(700px 400px at -10% 10%, rgba(92, 184, 255, 0.1), transparent), #ffffff;
         background-attachment: fixed;
       }
 

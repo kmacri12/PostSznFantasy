@@ -17,7 +17,7 @@ const Brand = ({ wide = false }: { wide?: boolean }) => (
       alignItems: "center",
       justifyContent: "center",
       borderRadius: `${radii.mark}px`,
-      bgcolor: tokens.accent,
+      bgcolor: tokens.accentFill,
       color: tokens.accentInk,
       fontSize: wide ? 14 : 13,
       fontWeight: 700,
