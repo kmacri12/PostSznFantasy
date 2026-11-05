@@ -5,6 +5,8 @@ import {
   API_PORT,
   API_URL,
   E2E_DATABASE_URL,
+  RESEND_STUB_PORT,
+  RESEND_STUB_URL,
   SUPABASE_URL,
   WEB_PORT,
   WEB_URL,
@@ -30,11 +32,18 @@ export default defineConfig({
     { name: "mobile", use: { ...iphone } },
     {
       name: "desktop",
-      testMatch: /smoke\.spec\.ts/,
+      testMatch: /(smoke|support)\.spec\.ts/,
       use: { viewport: { width: 1280, height: 800 } },
     },
   ],
   webServer: [
+    {
+      command: "node e2e/support/resend-stub.mjs",
+      cwd: "..",
+      url: `${RESEND_STUB_URL}/sent`,
+      reuseExistingServer: false,
+      env: { RESEND_STUB_PORT: String(RESEND_STUB_PORT) },
+    },
     {
       // Rebuilds the throwaway database on every start, so reuse would hide stale data.
       command:
@@ -53,6 +62,9 @@ export default defineConfig({
         PLAYOFF_FIELD_SIZE: "8",
         ADMIN_SUPABASE_UIDS: ADMIN_UID,
         LOG_FORMAT: "console",
+        RESEND_API_KEY: "re_e2e_stub",
+        SUPPORT_EMAIL: "support@e2e.test",
+        RESEND_API_URL: `${RESEND_STUB_URL}/emails`,
       },
     },
     {

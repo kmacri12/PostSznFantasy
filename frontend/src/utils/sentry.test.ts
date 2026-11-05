@@ -60,6 +60,18 @@ describe("with VITE_SENTRY_DSN", () => {
     expect(options?.tracesSampleRate).toBeUndefined();
   });
 
+  it("remembers the id of the latest event for support reports", async () => {
+    vi.stubEnv("VITE_SENTRY_DSN", "https://key@o1.ingest.sentry.io/1");
+    const sentry = await load();
+    sentry.initSentry();
+    await flush();
+    expect(sentry.latestSentryEventId()).toBeNull();
+
+    sdk.init.mock.calls[0]?.[0].beforeSend({ event_id: "abc123", type: undefined });
+
+    expect(sentry.latestSentryEventId()).toBe("abc123");
+  });
+
   it("forwards errors and breadcrumbs after init", async () => {
     vi.stubEnv("VITE_SENTRY_DSN", "https://key@o1.ingest.sentry.io/1");
     const sentry = await load();

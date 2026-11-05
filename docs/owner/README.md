@@ -42,6 +42,7 @@ Data and launch
 16. [Turn on live scoring before game day](16-scheduler.md), 10 min (#78)
 17. [Ordered deploys: API first, then the website](17-ordered-deploy.md), 10 min, in two sittings (#249)
 18. [Turn on push notifications](18-push-notifications.md), 15 min plus a phone test (#266)
+19. [Turn on "Report a problem" email](19-support-email.md), 20 min (#296)
 
 After the season (engineering runbooks, written for you too)
 - [Shut down after the Super Bowl](../deploy/shutdown-runbook.md)

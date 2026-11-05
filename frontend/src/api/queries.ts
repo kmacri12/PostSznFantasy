@@ -549,3 +549,30 @@ export const useSaveQueue = (seasonId: Id | undefined) =>
       (await api.put<{ playerIds: number[] }>(`/api/drafts/${seasonId}/queue`, { playerIds })).data
         .playerIds,
   });
+
+export interface SupportReport {
+  message: string;
+  images: File[];
+  /** Already scrubbed client-side; null when the member left it out. */
+  diagnostics: object | null;
+}
+
+export const useReportProblem = () =>
+  useMutation({
+    mutationFn: async ({ message, images, diagnostics }: SupportReport) => {
+      const form = new FormData();
+      form.append("message", message);
+      if (diagnostics) form.append("diagnostics", JSON.stringify(diagnostics));
+      for (const image of images) form.append("images", image);
+      await api.post("/api/support", form);
+    },
+  });
+
+/** The API's build commit, for support reports; null while unknown or unreachable. */
+export const useApiVersion = () =>
+  useQuery({
+    queryKey: ["api-version"],
+    queryFn: async () => (await api.get<{ version?: string }>("/api")).data.version ?? null,
+    staleTime: Number.POSITIVE_INFINITY,
+    retry: false,
+  });

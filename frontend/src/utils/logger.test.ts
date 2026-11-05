@@ -2,7 +2,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createLogger } from "./logger";
 import { captureError } from "./sentry";
 
-vi.mock("./sentry", () => ({ captureError: vi.fn() }));
+vi.mock("./sentry", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("./sentry")>()),
+  captureError: vi.fn(),
+}));
 
 beforeEach(() => {
   vi.clearAllMocks();

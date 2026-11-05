@@ -18,6 +18,8 @@ vi.mock("../api/queries", () => ({
   useInvite: () => ({ data: undefined, isError: false }),
   useRegenerateInvite: () => ({ mutate: vi.fn(), isPending: false }),
   useRevokeInvite: () => ({ mutate: vi.fn(), isPending: false }),
+  useReportProblem: () => ({ mutate: vi.fn(), isPending: false, isError: false, error: null }),
+  useApiVersion: () => ({ data: null }),
 }));
 vi.mock("../contexts/UserContext", () => ({ useUser: () => ({ signOutUser: vi.fn() }) }));
 
@@ -40,6 +42,12 @@ describe("MorePage", () => {
       "href",
       "/leagues/3/draft/board",
     );
+  });
+
+  it("opens the problem report from the Help group, for every member", () => {
+    renderMore({ isFormerMember: true });
+    fireEvent.click(screen.getByRole("button", { name: /Report a problem/ }));
+    expect(screen.getByRole("textbox", { name: /What went wrong/ })).toBeInTheDocument();
   });
 
   it("offers Past seasons only when the league has any, and opens them in a sheet", () => {

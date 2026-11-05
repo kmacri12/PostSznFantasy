@@ -24,6 +24,7 @@ from api.routers import (
     players,
     push,
     seasons,
+    support,
     teams,
 )
 from api.services.draft_clock import run_draft_clock
@@ -89,6 +90,8 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    # The support report quotes the id of a failed request so its log line can be found.
+    expose_headers=["X-Request-ID"],
 )
 
 app.add_middleware(GZipMiddleware, minimum_size=1000)
@@ -124,6 +127,7 @@ app.include_router(activity.router, prefix="/api", tags=["activity"])
 app.include_router(drafts.router, prefix="/api/drafts", tags=["drafts"])
 app.include_router(players.router, prefix="/api/players", tags=["players"])
 app.include_router(push.router, prefix="/api/push", tags=["push"])
+app.include_router(support.router, prefix="/api/support", tags=["support"])
 app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
 
 
