@@ -1,5 +1,9 @@
 import { Alert, Box, Switch, Typography } from "@mui/material";
-import { NOTIFICATIONS_BLURB, NOTIFICATIONS_IPHONE_STEPS } from "../../content/rules";
+import {
+  NOTIFICATIONS_ANDROID_HELP,
+  NOTIFICATIONS_BLURB,
+  NOTIFICATIONS_IPHONE_STEPS,
+} from "../../content/rules";
 import { usePushNotifications } from "../../hooks/usePushNotifications";
 import HelpTip from "../common/HelpTip";
 
@@ -43,8 +47,8 @@ const NotificationsToggle = () => {
           {note ?? NOTIFICATIONS_BLURB}
         </Typography>
         <HelpTip
-          label="notifications on iPhone"
-          text={`How to get notifications on iPhone: ${NOTIFICATIONS_IPHONE_STEPS.map((step, index) => `${index + 1}. ${step}`).join(" ")}`}
+          label="notification help"
+          text={`How to get notifications on iPhone: ${NOTIFICATIONS_IPHONE_STEPS.map((step, index) => `${index + 1}. ${step}`).join(" ")} ${NOTIFICATIONS_ANDROID_HELP}`}
         />
       </Box>
       {error && (
