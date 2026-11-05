@@ -297,12 +297,11 @@ async def test_starting_and_completing_the_draft_post_to_the_feed(
 ) -> None:
     season, _, _, _ = await make_season(db, roster_total=1, draft_status="scheduled")
     await make_playoff_field(db)
-    kc = NFLTeam(id=1, team_abv="KC", is_active=True, in_playoffs=True)
-    db.add(kc)
-    await db.flush()
+    kc = await db.get(NFLTeam, 9000)
     await make_players(db, ["QB", "RB"], nfl_team=kc)
     async with client_as("uid-0") as commissioner:
-        await commissioner.post(f"/api/drafts/{season.id}/control/start")
+        started = await commissioner.post(f"/api/drafts/{season.id}/control/start")
+        assert started.status_code == 200, started.text
         await draft_flow.auto_pick(db, season.id)
         last = await draft_flow.auto_pick(db, season.id)
         feed = await _feed(commissioner, season.id)
