@@ -94,7 +94,8 @@ const MorePage = () => {
             hint="Your settings and commissioner settings"
           />
         )}
-        <Row to={paths.players} title="Players" hint={draftStatusLine(season)} />
+        <Row to={paths.draft} title="Players" hint={draftStatusLine(season)} />
+        <Row to={paths.draftBoard} title="Draft board" />
         {pastSeasons.length > 0 && (
           <Row
             title="Past seasons"

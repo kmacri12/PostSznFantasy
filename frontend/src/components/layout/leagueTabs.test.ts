@@ -33,7 +33,7 @@ describe("leagueTabs", () => {
     expect(activeTabIndex(tabs, "/leagues/7/seasons/2025")).toBe(0);
     expect(activeTabIndex(tabs, "/leagues/7/teams/9/points")).toBe(1);
     expect(activeTabIndex(tabs, "/leagues/7/draft")).toBe(2);
-    expect(activeTabIndex(tabs, "/leagues/7/players")).toBe(2);
+    expect(activeTabIndex(tabs, "/leagues/7/draft/board")).toBe(2);
     expect(activeTabIndex(tabs, "/leagues/7/seasons/2025/draft")).toBe(2);
     expect(activeTabIndex(tabs, "/leagues/7/feed")).toBe(3);
     expect(activeTabIndex(tabs, "/leagues/7/more")).toBe(4);

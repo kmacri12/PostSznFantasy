@@ -1,6 +1,5 @@
 import { Alert } from "@mui/material";
 import type { DraftState } from "../../api/types";
-import DraftLockNotice from "../league/DraftLockNotice";
 
 const PRE_DRAFT = ["unscheduled", "scheduled", "lobby"];
 
@@ -24,7 +23,6 @@ const PreDraftNotice = ({ state }: { state: DraftState }) => {
           .
         </Alert>
       )}
-      <DraftLockNotice spacing="top" />
     </>
   );
 };
