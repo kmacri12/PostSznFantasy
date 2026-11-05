@@ -178,7 +178,7 @@ test.describe("draft room", () => {
     await trackSockets(guestContext);
     const guestPage = await guestContext.newPage();
     await guestPage.goto(seasonUrl(league.league, "/draft"));
-    await expect(guestPage.getByText("You're on the clock")).toHaveCount(0);
+    await expect(guestPage.getByText("Round 1, pick 1")).toBeVisible();
     await expect(guestPage.getByText("Reconnecting…")).toHaveCount(0);
 
     await signInAs(context, league.host.uid);
