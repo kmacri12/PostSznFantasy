@@ -171,6 +171,7 @@ async def test_the_owner_on_the_clock_is_notified(
     assert endpoint == BODY["endpoint"]
     assert message.title == "You're on the clock"
     assert message.url == f"/leagues/{season.league_id}/draft"
+    assert message.urgency == "high"
     await push.notify_on_the_clock(db, season.id, teams[0].id)  # owner has no device
     assert len(sender.sent) == 1
 
@@ -222,6 +223,7 @@ async def test_a_chat_message_notifies_the_other_members_without_its_text(
     assert endpoint.endswith("/other")
     assert sent.url == f"/leagues/{season.league_id}/feed"
     assert "secret" not in sent.title + sent.body
+    assert sent.urgency == "normal"
 
     message.deleted_at = datetime.now(UTC)
     await push.notify_league_message(db, message.id)
@@ -269,6 +271,7 @@ async def test_lock_reminder_goes_once_to_owners_with_an_open_starter_slot(
     [(endpoint, message)] = sender.sent
     assert endpoint == CHROME + users[0].username  # team 1 has no players to place
     assert "Lineup locks" in message.title
+    assert message.urgency == "high"
     assert await send_lock_reminders(db, 2027, NOW + timedelta(minutes=5)) == 0
     assert len(sender.sent) == 1
     assert len((await db.execute(select(LineupReminder))).scalars().all()) == 1

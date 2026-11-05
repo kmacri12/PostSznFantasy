@@ -157,6 +157,8 @@ export const NOTIFICATIONS_IPHONE_STEPS = [
   "Open the site from your Home Screen icon.",
   "Come back here and switch Notifications on.",
 ] as const;
+export const NOTIFICATIONS_ANDROID_HELP =
+  "If notifications arrive late: Android Settings, Apps, Chrome, Battery, set to Unrestricted. Also turn off Battery Saver during the draft.";
 export const LAST_COMMISSIONER_NOTE =
   "A league always keeps at least one commissioner. Removing a member frees their team in an unfinished season; finished seasons keep their name on it.";
 

@@ -10,7 +10,7 @@ import json
 import logging
 from collections.abc import Awaitable, Callable, Iterable
 from dataclasses import asdict, dataclass
-from typing import Concatenate
+from typing import Concatenate, Literal
 
 from pywebpush import WebPushException, webpush
 from sqlalchemy import delete, select, true
@@ -30,6 +30,8 @@ GONE_STATUSES = frozenset({404, 410})
 TTL_SECONDS = 15 * 60
 REQUEST_TIMEOUT_SECONDS = 10
 
+Urgency = Literal["very-low", "low", "normal", "high"]
+
 _pending: set[asyncio.Task[None]] = set()
 
 
@@ -40,21 +42,31 @@ class PushMessage:
     # In-app path the notification opens; a later message with the same tag replaces it.
     url: str
     tag: str
+    # RFC 8030 Urgency. Android holds "normal" pushes while the phone dozes, so anything
+    # that is useless a minute late (the clock, a lineup lock) goes out "high"; chat does
+    # not, because high priority wakes the phone and chat is not worth the battery.
+    urgency: Urgency = "normal"
+
+    def payload(self) -> str:
+        """What the service worker receives; the urgency is a header, not content."""
+        return json.dumps({k: v for k, v in asdict(self).items() if k != "urgency"})
 
 
 def _deliver(subscription: PushSubscription, message: PushMessage) -> int:
     """Send one message; returns the push service's HTTP status (0 when none arrived)."""
     settings = get_settings()
+    logger.debug("Sending push", extra={"tag": message.tag, "urgency": message.urgency})
     try:
         response = webpush(
             subscription_info={
                 "endpoint": subscription.endpoint,
                 "keys": {"p256dh": subscription.p256dh, "auth": subscription.auth},
             },
-            data=json.dumps(asdict(message)),
+            data=message.payload(),
             vapid_private_key=settings.vapid_private_key,
             vapid_claims={"sub": settings.vapid_subject},
             ttl=TTL_SECONDS,
+            headers={"Urgency": message.urgency},
             timeout=REQUEST_TIMEOUT_SECONDS,
         )
     except WebPushException as exc:
@@ -157,6 +169,7 @@ async def notify_on_the_clock(db: AsyncSession, season_id: int, team_id: int) ->
             body=f"Your pick is up in {row.name}.",
             url=f"/leagues/{row.id}/draft",
             tag=f"on-the-clock-{season_id}",
+            urgency="high",
         ),
     )
 
