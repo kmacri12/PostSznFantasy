@@ -11,6 +11,7 @@ import { commissionerName, inviteView } from "../components/invite/inviteView";
 import { useUser } from "../contexts/UserContext";
 import { leaguePath } from "../routes";
 import { signInPath } from "../utils/authRedirect";
+import { JOINED_LEAGUE_STATE } from "../utils/notificationPrompt";
 
 const FULL_HELP = "Ask your commissioner to add a team, then try again.";
 
@@ -47,7 +48,7 @@ const JoinPage = () => {
   const joinNow = () =>
     code &&
     join.mutate(code, {
-      onSuccess: (result) => navigate(leaguePath(result.leagueId)),
+      onSuccess: (result) => navigate(leaguePath(result.leagueId), { state: JOINED_LEAGUE_STATE }),
       onError: (error) => {
         if (isLeagueFullError(error)) {
           setFilledMeanwhile(true);

@@ -37,3 +37,7 @@ Use a league where you own a team and the draft is running or the field is set.
 - Notifications blocked: re-allow them for the site in the phone's settings.
 - Notifications arrive late or only when the phone wakes (Android): on each phone, Android Settings, Apps, Chrome, Battery, set to **Unrestricted** (not Optimized), and turn off **Battery Saver** during the draft. The same advice is in the help next to the Notifications switch in Settings. If a locked phone still gets the alert late after that, send the phone model to the coordinator: some makers add their own battery limits.
 - Nothing arrives: `fly logs --app postszn-api` shows `Push not delivered` with an HTTP status; paste it to the coordinator. Devices that unsubscribed are cleaned up automatically.
+
+## The prompt members see
+
+Members are asked once, in a sheet titled "Get notified when it matters", right after their first sign-in and right after they join a league (not after creating one). It never shows if notifications are already on, blocked, unsupported or not set up on the server (no VAPID keys), nor on a draft screen. Each device is asked at most twice ever: the second time only if they chose "Not now", and only on a different day. After that, the only place is More, Settings, Notifications. If a member says they never got asked, that is probably why (they were already on, they blocked it in the browser, or the keys are missing).

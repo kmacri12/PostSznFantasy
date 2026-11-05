@@ -7,6 +7,7 @@ import RequireSignIn from "./components/auth/RequireSignIn";
 import SessionExpiredBanner from "./components/auth/SessionExpiredBanner";
 import LoadingState from "./components/common/LoadingState";
 import AppShell from "./components/layout/AppShell";
+import NotificationOptIn from "./components/notifications/NotificationOptIn";
 import { useUser } from "./contexts/UserContext";
 import DormantPage from "./pages/DormantPage";
 import HowToPlayPage from "./pages/HowToPlayPage";
@@ -52,6 +53,7 @@ function App() {
       dormant={dormant}
     >
       <SessionExpiredBanner />
+      {!dormant && <NotificationOptIn />}
       <Box component="main">
         <Suspense
           fallback={

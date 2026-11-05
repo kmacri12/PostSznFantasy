@@ -199,6 +199,7 @@ PostSznFantasy/
         ├── components/
         │   ├── home/           # YourLeagues (league cards, Create, invite code, How to play), LeagueCard, leagueSummary (phase tag, rank), PastLeagues, InviteCodeForm, LegalFooter (privacy and terms)
         │   ├── invite/         # InviteMembers (members plus open slots), `inviteView` (sign-in / join / full / unavailable)
+        │   ├── notifications/  # NotificationOptIn: the one-time push prompt after first sign-in and joining a league (bottom sheet / dialog), mounted once in App
         │   ├── activity/       # ActivityFeed (collapsed, new dot), SlotMarker (override / asterisk), ChangedScore tooltip, describeEvent
         │   ├── feed/           # Feed pieces: `feedView.ts` (timeline rows, "New" divider, event wording), FeedEventRow, MessageRow, Composer (Enter sends with a mouse only), GifPicker, DeleteMessageDialog
         │   ├── layout/         # AppShell (header + bottom tabs on phones / left rail from md up), NavBar (header: logo, account), Brand, LeagueSwitcher, BottomTabBar, LeagueRail, leagueTabs (League, Team, Draft, Feed, More)
@@ -216,6 +217,7 @@ PostSznFantasy/
         │   ├── logger.ts       # Leveled client logger (debug/info dev-only on the console) plus a 50-entry ring buffer of scrubbed messages, `recentLogEntries()`
         │   ├── diagnostics.ts  # `collectDiagnostics`: the optional, scrubbed diagnostic info for a problem report (versions, route, ids, device, time, logs, failed requests, latest Sentry event id)
         │   ├── pushSetup.ts    # `registerServiceWorker()` (call once at startup) and browser feature detection
+        │   ├── notificationPrompt.ts # When the opt-in may show: at most two prompts per device ever (second only after Not now, on another day), fails closed without localStorage; routes where it never shows
         │   └── supabase.ts     # Supabase auth-only client (@supabase/auth-js), storage key "postszn-auth"
         └── test/               # Vitest environment setup
 ```

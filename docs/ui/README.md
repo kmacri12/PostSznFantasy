@@ -117,6 +117,16 @@ The old overall "best draft value", "biggest bust", "best bench" and "best game"
 - Chat posting is for the current season only; an archived season's feed is read-only.
 - Push notifications (own epic, before release, iPhone and Android): web push through a manifest, service worker and stored subscriptions. iPhone needs the site added to the Home Screen (iOS 16.4+), so onboarding includes an explainer (also a tap-help on the Notifications setting). First triggers: your pick is on the clock, new chat message (mutable), lineups about to lock.
 
+### Notification opt-in prompt
+
+Offered right after a member's first sign-in and right after they join a league (never after creating one), so the Settings switch is not the only way to find notifications. A bottom sheet on phones, a centered dialog on desktop, in both themes, colors from the theme tokens only.
+
+- Title "Get notified when it matters", one line on why (your pick is on the clock, lineups about to lock, league chat), primary **Turn on notifications** (it asks the browser for permission from that tap, never on page load), secondary **Not now**, and a footer line "You can change this any time in More, Settings, Notifications." Closing the sheet counts as Not now. After success the sheet says "Notifications are on" with a Done button.
+- Steps match the device: Android ("Tap Turn on notifications, then Allow when Chrome asks."), desktop ("Click Turn on notifications, then Allow in the browser popup."), and iPhone in a normal Safari tab (Share, Add to Home Screen, open from the icon; no main button there, iOS 16.4 or later). If the browser blocks the permission from the sheet, it switches to the steps for unblocking it for that platform.
+- **Never pepper members.** At most two prompts per device, ever: the second only after Not now and on a different calendar day. Never when notifications are on, blocked, unsupported or not configured on the server; never on a draft screen, the sign-in page, the invite page or while creating a league (it waits and shows once they land somewhere else); never more than once per visit. The count lives in `localStorage` (`postszn-notification-prompt`); a device that cannot remember it shows nothing. Rules in `utils/notificationPrompt.ts`, copy in `content/rules.ts`.
+- The Settings row stays the place to manage it. Its tap-help has iPhone and Android sections, and the blocked note says how to re-allow on each platform.
+- Claude Design canvas: still to add (phone sheet in the Android, iPhone-needs-install and blocked variants; desktop dialog; light theme versions). The screens are implemented in `components/notifications/NotificationOptIn.tsx`.
+
 ## Draft room
 
 - It lives under the Draft tab and keeps the tab bar.
