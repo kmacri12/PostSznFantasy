@@ -164,12 +164,13 @@ PostSznFantasy/
     └── src/
         ├── App.tsx             # Routes, league list state, wires NavBar
         ├── routes.ts           # Path builders: `leaguePath`, `seasonPaths(leagueId, year, current)` (clean paths for the current season, `/seasons/<year>` otherwise; home, draft, settings, players, feed, more, team)
-        ├── theme.ts            # Dark-first MUI theme + design tokens
+        ├── theme.ts            # `palettes` (dark, light), `tokens` (CSS variables `--ps-*`; components use these, never hex), `createAppTheme(mode)`, `tint`
         ├── main.tsx            # Vite DOM mount point; calls `registerServiceWorker()` once at startup
         ├── content/
         │   └── rules.ts        # Every plain-language rule string: How to play, pre-draft roster, lock note, setting tooltips, notes copy
         ├── contexts/
         │   ├── SeasonContext.tsx # The route's season (`useSeasonContext`: ids, year, `season` with `canEdit` / `canCommission`, `paths`), provided by SeasonLayout
+        │   ├── ThemeModeContext.tsx # `ThemeModeProvider` / `useThemeMode`: Dark or Light, remembered per device (`utils/themeMode.ts`; the inline script in index.html applies it before first paint)
         │   └── UserContext.tsx # Authentication & current user context (`updateDisplayName` changes the Supabase name and the backend username together)
         ├── api/
         │   ├── failedRequests.ts # Ring buffer of the last 10 failed API calls (method, scrubbed path, status, `X-Request-ID`; never bodies), fed by an axios response interceptor in client.ts; read by the support diagnostics

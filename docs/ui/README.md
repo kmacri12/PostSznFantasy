@@ -16,21 +16,24 @@ This doc records behavior and decisions: what each page shows and why it sits wh
 
 ## Palette
 
-Sky blue on graphite (#297). The tokens live in `frontend/src/theme.ts`; components use the tokens or the MUI palette, never a hex value. `src/theme.test.ts` fails if a text pair drops below WCAG AA.
+Sky blue on graphite (dark, the default) or on white (light, #297 and #298). The member picks in Settings > Your settings > **Theme** (Dark or Light, no "match my device" in v1); it applies at once and is remembered per device. The tokens live in `frontend/src/theme.ts` (`palettes`); components use the tokens or the MUI palette, never a hex value. Each token is a CSS variable (`--ps-<name>`) switched by `data-theme` on `<html>`; `ThemeModeContext` holds the mode, and an inline script in `index.html` sets it before first paint so there is no dark flash. The same switch moves `<meta name="theme-color">` and the manifest (`manifest.webmanifest` dark, `manifest-light.webmanifest` light). `src/theme.test.ts` fails if a pair drops below WCAG AA in either mode, and `src/indexHtml.test.ts` fails if the inline script, page background or manifests drift from the palette.
 
-| Role | Token | Hex |
-| --- | --- | --- |
-| Page background | `bg` | `#121416` |
-| Card / surface | `surface` | `#1b1e21` |
-| Border | `border` | `#2a2e33` |
-| Text | `text` | `#eceff1` |
-| Muted text | `muted` | `#8d969e` |
-| Accent (primary buttons, active tab, links, logo mark, current round) | `accent` | `#5cb8ff` |
-| Text on accent | `accentInk` | `#04233d` |
-| Accent tint (pills, selected rows) | `accentSurface` | `#12293d` |
-| Live | `live` | `#34d399` |
+| Role | Token | Dark | Light |
+| --- | --- | --- | --- |
+| Page background | `bg` | `#121416` | `#ffffff` |
+| Card / surface | `surface` | `#1b1e21` | `#f4f6f8` |
+| Border | `border` | `#2a2e33` | `#dfe3e8` |
+| Text | `text` | `#eceff1` | `#14181c` |
+| Muted text | `muted` | `#8d969e` | `#5b6670` |
+| Accent fill (buttons, logo mark, on-the-clock cell) | `accentFill` | `#5cb8ff` | `#5cb8ff` |
+| Text on accent fill | `accentInk` | `#04233d` | `#04233d` |
+| Accent as text, links, icons, borders, focus ring | `accent` | `#5cb8ff` | `#0868b4` |
+| Accent tint (pills, selected rows) | `accentSurface` | `#12293d` | `#e3f2ff` |
+| Live | `live` | `#34d399` | `#0b7a4b` |
 
-Green is a status color only: live games and live scores (the live dot, the live indicator, an in-progress player row). Red is for eliminations, errors and the new-activity dot; amber for cautions. Contrast: ink on accent 7.4:1, accent on the page 8.6:1, muted on a card 5.6:1.
+Sky blue `#5cb8ff` on white is only about 2.1:1, so in light mode it is a fill with dark text on it and never small text or a thin icon; those use the darker `accent`. Contained buttons keep the sky-blue fill in both modes.
+
+Green is a status color only: live games and live scores (the live dot, the live indicator, an in-progress player row). Red is for eliminations, errors and the new-activity dot; amber for cautions. Each has its own light shade that passes on white.
 
 ## Navigation and header
 
@@ -126,7 +129,7 @@ The old overall "best draft value", "biggest bust", "best bench" and "best game"
 
 - More: Settings ("Your settings and commissioner settings"), Players (the league player list, with the draft status line), Past seasons (**only if the league has any**), Invite members (commissioners), Help: How to play and **Report a problem** (opens the modal below), Account: Sign out. No privacy and terms (landing footer only).
 - **Report a problem** (#296) is a modal, a bottom sheet on phones and a dialog on desktop, opened only from this More row (no other entry point). Fields: **What went wrong?** (required, multiline), **Screenshots (optional)** (images only, up to 5, 5 MB each, 15 MB together; the phone picker accepts `image/*`; one line says a screenshot and the diagnostic info each help and both together get it fixed faster; an inline warning next to the picker explains any image or file that was not attached, for example "That image is 7.2 MB. The limit is 5.0 MB per image."; a running line "3 of 5 images, 9.1 MB of 15.0 MB"), and an **Include diagnostic info** checkbox (on by default) with an expandable **What's included** preview that shows exactly what is sent. States: empty (Send disabled), filled, with images, too-large image message, sending ("Sending…"), error (inline, the message stays), sent (the sheet closes and a toast says "Sent. We'll reply by email."). Colors come from theme tokens only. The Claude Design canvas still needs this board added.
-- Settings page, two sections: **Your settings** (display name, team name, notifications with a tap-help on iPhone setup) for everyone; **Commissioner settings** for commissioners, in this order: Edit league name (shows the current name), Edit league note (shows an abbreviated preview, "Hello all and welco..."), **Number of teams** (locks at draft start), **Edit members**, Scoring, Invite link, Delete league.
+- Settings page, two sections: **Your settings** (display name, team name, **Theme** (Dark / Light), notifications with a tap-help on iPhone setup) for everyone; **Commissioner settings** for commissioners, in this order: Edit league name (shows the current name), Edit league note (shows an abbreviated preview, "Hello all and welco..."), **Number of teams** (locks at draft start), **Edit members**, Scoring, Invite link, Delete league.
 - **Edit members** opens a modal: each member with a Commissioner toggle and **Remove from league**. A league always keeps at least one commissioner (the only commissioner's toggle is locked on). Removing a member frees their team slot; their picks stay in the draft history.
 - Scoring is a section of subsections (Passing, Rushing, Receiving and so on), each with its own rows.
 - Delete league is one row with a warning; the confirmations happen in the dialog, not described on the row.

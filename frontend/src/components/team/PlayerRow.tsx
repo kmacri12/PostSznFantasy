@@ -9,7 +9,7 @@ import { formatPoints } from "../league/standingsView";
 import { playerDetail, type RowState, rowState } from "./lineupView";
 
 const COLORS: Record<RowState, { label: string; name: string; detail: string; points: string }> = {
-  ready: { label: "#fff", name: tokens.text, detail: tokens.muted, points: tokens.text },
+  ready: { label: tokens.text, name: tokens.text, detail: tokens.muted, points: tokens.text },
   live: {
     label: tokens.live,
     name: tokens.live,
