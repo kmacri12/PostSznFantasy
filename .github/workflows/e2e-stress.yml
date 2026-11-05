@@ -1,0 +1,80 @@
+name: E2E stress
+
+# Runs every end-to-end spec several times in a row. A spec that fails even once here is flaky
+# and gets fixed at the root (see "Writing stable e2e specs" in CONTRIBUTING.md), not retried.
+on:
+  schedule:
+    - cron: "17 5 * * *"
+  workflow_dispatch:
+    inputs:
+      repeat:
+        description: "Times to run each spec"
+        default: "5"
+
+permissions:
+  contents: read
+
+jobs:
+  stress:
+    name: End-to-end stress (make e2e-stress)
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      E2E_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postszn_e2e
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          cache-dependency-glob: api/uv.lock
+
+      - name: Set up Python
+        run: uv python install
+
+      - name: Install backend dependencies
+        run: cd api && uv sync --frozen
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: frontend/.nvmrc
+          cache: "npm"
+          cache-dependency-path: |
+            frontend/package-lock.json
+            e2e/package-lock.json
+
+      - name: Install frontend dependencies
+        run: cd frontend && npm ci
+
+      - name: Install Playwright and Chromium
+        run: cd e2e && npm ci && npx playwright install --with-deps chromium
+
+      - name: Run the suite repeatedly
+        run: make e2e-stress E2E_STRESS_REPEAT=${{ inputs.repeat || '5' }}
+
+      - name: Upload Playwright report and traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-stress-report
+          path: |
+            e2e/playwright-report
+            e2e/test-results
+            e2e/playwright-report-live
+            e2e/test-results-live
+          retention-days: 14

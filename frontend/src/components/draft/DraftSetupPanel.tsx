@@ -22,7 +22,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { type ReactNode, useEffect, useMemo, useState } from "react";
+import { type ReactNode, useMemo, useState } from "react";
 import { useDraftControl, useDraftOrder, useDraftSetup, useLeagueTeams } from "../../api/queries";
 import type { DraftSlot, DraftState, DraftType, PickTimeoutAction } from "../../api/types";
 import { tokens } from "../../theme";
@@ -175,15 +175,37 @@ const DraftSetupPanel = ({ draft, canEdit }: { draft: DraftState; canEdit: boole
   const [timePerPick, setTimePerPick] = useState(String(draft.timePerPickSeconds));
   const [draftType, setDraftType] = useState<DraftType>(draft.draftType);
   const [timeout, setTimeoutAction] = useState<PickTimeoutAction>(draft.pickTimeoutAction);
-  const [slots, setSlots] = useState<(number | null)[]>([]);
+  const [slots, setSlots] = useState<(number | null)[]>(() =>
+    initialSlots(draft.order, allTeamIds.length),
+  );
 
-  useEffect(() => {
+  // Local edits are replaced only when the server's values change. Keying on the values, not on
+  // the `draft` object, keeps an unrelated refetch (or the teams list arriving late) from wiping
+  // what the commissioner is typing or dragging.
+  const setupKey = JSON.stringify([
+    draft.startTime,
+    draft.timePerPickSeconds,
+    draft.draftType,
+    draft.pickTimeoutAction,
+  ]);
+  const [syncedSetupKey, setSyncedSetupKey] = useState(setupKey);
+  if (syncedSetupKey !== setupKey) {
+    setSyncedSetupKey(setupKey);
     setStartTime(toLocalInput(draft.startTime));
     setTimePerPick(String(draft.timePerPickSeconds));
     setDraftType(draft.draftType);
     setTimeoutAction(draft.pickTimeoutAction);
+  }
+
+  const orderKey = JSON.stringify([
+    draft.order.map((slot) => [slot.slot, slot.teamId]),
+    allTeamIds,
+  ]);
+  const [syncedOrderKey, setSyncedOrderKey] = useState(orderKey);
+  if (syncedOrderKey !== orderKey) {
+    setSyncedOrderKey(orderKey);
     setSlots(initialSlots(draft.order, allTeamIds.length));
-  }, [draft, allTeamIds]);
+  }
 
   const locked = draft.orderLocked || !canEdit;
   const teamName = (id: number) =>
@@ -333,12 +355,16 @@ const DraftSetupPanel = ({ draft, canEdit }: { draft: DraftState; canEdit: boole
       </DndContext>
       {!locked && (
         <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-          <Button variant="outlined" onClick={() => control.mutate("randomize")}>
+          <Button
+            variant="outlined"
+            disabled={control.isPending}
+            onClick={() => control.mutate("randomize")}
+          >
             Randomize
           </Button>
           <Button
             variant="contained"
-            disabled={saveOrder.isPending}
+            disabled={saveOrder.isPending || control.isPending}
             onClick={() => saveOrder.mutate(slots)}
           >
             Save order

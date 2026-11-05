@@ -90,4 +90,19 @@ describe("SeasonLayout", () => {
     expect(screen.getByText("The 2031 season not found")).toBeInTheDocument();
     expect(mocks.requested).not.toContain(undefined);
   });
+
+  it("tops a finished season's pages with the archived banner, and an open season's with none", () => {
+    mocks.season = {
+      data: testSeason({ finished: true }).season,
+      isLoading: false,
+      isError: false,
+      error: null,
+    };
+    const { unmount } = renderAt("/leagues/3/seasons/2025");
+    expect(screen.getByRole("status")).toHaveTextContent("2025 season · archived");
+    unmount();
+    mocks.season = { data: testSeason().season, isLoading: false, isError: false, error: null };
+    renderAt("/leagues/3/seasons/2025");
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  });
 });

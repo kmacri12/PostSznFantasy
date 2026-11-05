@@ -1,12 +1,13 @@
 .DEFAULT_GOAL := help
 .PHONY: help setup db-up db-down db-reset migrate migration api web dev seed \
 	lint lint-api lint-web format typecheck typecheck-api typecheck-web \
-	test test-api test-web build-web check check-api check-web e2e e2e-install
+	test test-api test-web build-web check check-api check-web e2e e2e-install e2e-stress lint-e2e
 
 UV := uv run --project api
 API_RUN := cd api && uv run
 SEED_ARGS ?=
 E2E_ARGS ?=
+E2E_STRESS_REPEAT ?= 5
 
 help: ## List available targets
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
@@ -57,7 +58,7 @@ lint-api:
 lint-web:
 	cd frontend && npx @biomejs/biome check src/
 
-lint: lint-api lint-web ## Ruff + Biome checks
+lint: lint-api lint-web lint-e2e ## Ruff + Biome checks, plus the e2e flakiness lint
 
 format: ## Auto-format and fix lint issues in both apps
 	$(API_RUN) ruff check --fix .
@@ -84,7 +85,7 @@ build-web:
 	cd frontend && npm run build
 
 check-api: lint-api typecheck-api test-api
-check-web: lint-web typecheck-web test-web build-web
+check-web: lint-web lint-e2e typecheck-web test-web build-web
 
 check: check-api check-web ## Everything CI runs
 
@@ -94,3 +95,14 @@ e2e-install: ## Install the Playwright project and its Chromium
 e2e: ## Playwright end-to-end tests (mobile first) plus the replay suite; needs Postgres (make db-up)
 	cd e2e && npx playwright test --pass-with-no-tests $(E2E_ARGS)
 	cd e2e && npx playwright test -c playwright.live.config.ts --pass-with-no-tests $(E2E_ARGS)
+
+lint-e2e: ## Fail on fixed sleeps, test.only and unjustified .first()/.last() in the e2e specs
+	scripts/lint-e2e.sh
+
+e2e-stress: ## Run the whole e2e suite E2E_STRESS_REPEAT (5) times to expose flaky specs; needs Postgres
+	cd e2e && npx playwright test --pass-with-no-tests --repeat-each=$(E2E_STRESS_REPEAT) $(E2E_ARGS)
+	@# A replay changes the NFL data it runs on, so each run starts from a freshly seeded database.
+	for run in $$(seq $(E2E_STRESS_REPEAT)); do \
+		PG_URI="$${E2E_DATABASE_URL:-postgresql://postgres:postgres@localhost:5433/postszn_e2e}" $(UV) python -m api.scripts.seed_e2e || exit 1; \
+		(cd e2e && npx playwright test -c playwright.live.config.ts --pass-with-no-tests $(E2E_ARGS)) || exit 1; \
+	done

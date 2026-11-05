@@ -8,6 +8,7 @@ import { tokens } from "../../theme";
 import { ROUND_LABELS } from "../team/lineup";
 import { formatCountdown, formatDraftTime, ordinal, useNow } from "./countdown";
 import InviteLinkButton from "./InviteLinkButton";
+import LiveIndicator from "./LiveIndicator";
 import { afterDraftPhase } from "./phase";
 
 const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? "" : "s"}`;
@@ -155,6 +156,7 @@ const PlayoffBlock = ({ season, standings }: { season: SeasonOverview; standings
       <Title>{ROUND_LABELS[standings.round]}</Title>
       <Detail>{gamesLine(standings)}</Detail>
       {mine && <Detail>{mine}</Detail>}
+      <LiveIndicator seasonId={season.id} />
     </Block>
   );
 };

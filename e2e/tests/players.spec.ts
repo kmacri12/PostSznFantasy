@@ -15,6 +15,7 @@ test.describe("players page", () => {
 
     const rows = page.getByRole("list", { name: "Players" }).getByRole("listitem");
     await expect(rows).toHaveCount(8);
+    // The list is sorted by points from fixed fixtures, so the top row is the same on every run.
     await expect(rows.first()).toContainText("QB");
   });
 
@@ -27,12 +28,14 @@ test.describe("players page", () => {
 
     await page.getByRole("button", { name: "K", exact: true }).click();
     await expect(rows).toHaveCount(8);
+    // The list is sorted by points from fixed fixtures, so the top row is the same on every run.
     await expect(rows.first()).toContainText("K ·");
 
     await page.getByRole("button", { name: "WR", exact: true }).click();
     await expect(rows).toHaveCount(16);
     await page.getByRole("searchbox", { name: "Search players" }).fill("Hale");
     await expect(rows).toHaveCount(2);
+    // Two Hales match the search (the fixture has two), both on SFO; the first is enough.
     await expect(rows.first()).toContainText("SFO");
 
     await page.getByRole("searchbox", { name: "Search players" }).fill("zzzz-nobody");
@@ -51,15 +54,16 @@ test.describe("players page", () => {
 
     await page.goto(seasonUrl(league, "/players"));
     await expect(page.getByText("Fantasy points use")).toBeVisible();
+    // The list is sorted by points, so the first heading is the top scorer.
     const topPoints = page.getByRole("list", { name: "Players" }).getByRole("heading").first();
-    const before = Number(await topPoints.textContent());
-    expect(before).toBeGreaterThan(0);
+    const scored = /^[1-9]\d*(\.\d+)?$/;
+    await expect(topPoints).toHaveText(scored);
+    const before = (await topPoints.textContent()) ?? "";
 
     // Double the passing TD value: every quarterback's total must go up.
     await host.patch(`/api/seasons/${league.seasonId}/settings`, { scoringPassingTd: 8 });
     await page.reload();
-    await expect(
-      page.getByRole("list", { name: "Players" }).getByRole("heading").first(),
-    ).not.toHaveText(String(before));
+    await expect(topPoints).toHaveText(scored);
+    await expect(topPoints).not.toHaveText(before);
   });
 });

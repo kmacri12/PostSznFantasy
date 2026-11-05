@@ -25,11 +25,13 @@ test.describe("draft room", () => {
     await page.getByRole("button", { name: "Draft controls" }).click();
     await page.getByRole("button", { name: "Start draft" }).click();
     await expect(page.getByText("Pick 1 of 8: Team 1 on the clock")).toBeVisible();
+    // The banner and the status bar both say it; either one proves it is this manager's turn.
     await expect(page.getByText("You're on the clock").first()).toBeVisible();
 
     const drafted = await draftFirst(page, "QB");
     await expect(page.getByText(/Pick 2 of 8/)).toBeVisible();
     await page.getByRole("tab", { name: "Pick feed" }).click();
+    // The pick feed and the board both show the name; either one proves the pick landed.
     await expect(page.getByText(drafted).first()).toBeVisible();
     expect((await league.state()).picks).toHaveLength(1);
   });
@@ -53,6 +55,7 @@ test.describe("draft room", () => {
       const state = await league.state();
       const hostTurn = state.onTheClockTeamId === league.hostTeamId;
       const turnPage = hostTurn ? page : guestPage;
+      // The banner and the status bar both say it; either one proves it is this manager's turn.
       await expect(turnPage.getByText("You're on the clock").first()).toBeVisible();
       await draftFirst(turnPage, positions[Math.ceil(overall / 2) - 1]);
       await expect.poll(async () => (await league.state()).picks.length).toBe(overall);
@@ -84,6 +87,7 @@ test.describe("draft room", () => {
     await page.getByRole("button", { name: "Pause" }).click();
     await expect.poll(async () => (await league.state()).status).toBe("paused");
     for (const view of [page, guestPage]) {
+      // The banner and the status bar both say "paused"; either one proves the pause reached this tab.
       await expect(view.getByText(/paused/i).first()).toBeVisible();
     }
 
@@ -149,7 +153,9 @@ test.describe("draft room", () => {
 
     await page.getByRole("tab", { name: "Players" }).click();
     await page.getByRole("button", { name: "WR", exact: true }).click();
+    // Third row of the fixed-order WR list: deliberately not the best available, so queueing it is what makes auto-pick choose it.
     const row = page.getByRole("list", { name: "Available players" }).getByRole("listitem").nth(2);
+    // A player card's first paragraph is the player's name.
     const queued = (await row.locator("p").first().textContent()) ?? "";
     await row.getByRole("button", { name: "Queue" }).click();
     await expect(page.getByRole("tab", { name: "Queue (1)" })).toBeVisible();
@@ -186,6 +192,7 @@ test.describe("draft room", () => {
 
     await guestContext.setOffline(false);
     await expect(guestPage.getByText(/Pick 2 of 8/)).toBeVisible({ timeout: 20_000 });
+    // The banner and the status bar both say it; either one proves it is this manager's turn.
     await expect(guestPage.getByText("You're on the clock").first()).toBeVisible();
     await expect(guestPage.getByText("Live", { exact: true })).toBeVisible();
     await guestContext.close();
@@ -230,7 +237,7 @@ test.describe("position caps", () => {
     const first = page
       .getByRole("list", { name: "Available players" })
       .getByRole("listitem")
-      .first();
+      .first(); // The list is sorted from fixed fixtures; the top QB row is the same on every run.
     await expect(
       first.getByText("You already have 2 QBs, the most your league allows"),
     ).toBeVisible();

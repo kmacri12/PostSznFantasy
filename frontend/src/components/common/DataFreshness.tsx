@@ -3,6 +3,7 @@ import { Alert, Box, Button, CircularProgress, Snackbar, Typography } from "@mui
 import { useState } from "react";
 import { useRefreshLive, useSyncStatus } from "../../api/queries";
 import { useUser } from "../../contexts/UserContext";
+import { E2E_BUILD } from "../../utils/e2e";
 import { friendlyError } from "./friendlyError";
 
 interface Toast {
@@ -94,7 +95,7 @@ const DataFreshness = () => {
       <Snackbar
         key={toast?.message}
         open={toast !== null}
-        autoHideDuration={6000}
+        autoHideDuration={E2E_BUILD ? null : 6000}
         onClose={(_, reason) => reason !== "clickaway" && setToast(null)}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >

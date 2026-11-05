@@ -1,12 +1,14 @@
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { Box, Container, Typography } from "@mui/material";
-import type { ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 import { Link } from "react-router-dom";
 import { useUserLeagues } from "../api/queries";
+import { draftStatusLine } from "../components/league/draftStatusLine";
+import InviteSheet from "../components/settings/InviteSheet";
+import PastSeasonsSheet from "../components/settings/PastSeasonsSheet";
 import { HOW_TO_PLAY_LABEL } from "../content/rules";
 import { useSeasonContext } from "../contexts/SeasonContext";
 import { useUser } from "../contexts/UserContext";
-import { seasonPaths } from "../routes";
 import { radii, tokens } from "../theme";
 
 const rowSx = {
@@ -31,8 +33,19 @@ const rowSx = {
   cursor: "pointer",
 } as const;
 
-const Row = ({ to, title, hint }: { to: string; title: string; hint?: string }) => (
-  <Box component={Link} to={to} sx={rowSx}>
+interface RowProps {
+  title: string;
+  hint?: string;
+  /** A page to open; without it the row is a button that runs `onClick`. */
+  to?: string;
+  onClick?: () => void;
+}
+
+const Row = ({ to, title, hint, onClick }: RowProps) => (
+  <Box
+    {...(to ? { component: Link, to } : { component: "button", type: "button", onClick })}
+    sx={rowSx}
+  >
     <span>
       {title}
       {hint && (
@@ -63,37 +76,36 @@ const Group = ({ label, children }: { label: string; children: ReactNode }) => (
   </>
 );
 
-/**
- * The More tab. Placeholder list of destinations; Settings and the rest are redesigned
- * in #267. Players sits here until the draft room carries the player list.
- */
+/** The More tab: where the rest of the league lives, then help and the account. */
 const MorePage = () => {
   const { leagueId, season, paths } = useSeasonContext();
   const { signOutUser } = useUser();
   const league = useUserLeagues(true).data?.find((item) => item.id === leagueId);
   const pastSeasons = (league?.seasons ?? []).filter((item) => !item.current).reverse();
+  const [sheet, setSheet] = useState<"past" | "invite" | null>(null);
 
   return (
     <Container maxWidth="sm" sx={{ pt: 2, pb: 3 }}>
       <Group label="League">
-        {!season.isFormerMember && <Row to={paths.settings} title="Settings" />}
-        <Row to={paths.players} title="Players" />
-        <Row to={paths.draft} title="Draft board" />
+        {!season.isFormerMember && (
+          <Row
+            to={paths.settings}
+            title="Settings"
+            hint="Your settings and commissioner settings"
+          />
+        )}
+        <Row to={paths.players} title="Players" hint={draftStatusLine(season)} />
+        {pastSeasons.length > 0 && (
+          <Row
+            title="Past seasons"
+            hint={pastSeasons.map((item) => item.year).join(", ")}
+            onClick={() => setSheet("past")}
+          />
+        )}
         {season.canCommission && !season.finished && (
-          <Row to={paths.home} title="Invite members" hint="Commissioner" />
+          <Row title="Invite members" hint="Commissioner" onClick={() => setSheet("invite")} />
         )}
       </Group>
-      {pastSeasons.length > 0 && (
-        <Group label="Past seasons">
-          {pastSeasons.map((item) => (
-            <Row
-              key={item.id}
-              to={seasonPaths(leagueId, item.year, false).home}
-              title={`${item.year} season`}
-            />
-          ))}
-        </Group>
-      )}
       <Group label="Help">
         <Row to="/how-to-play" title={HOW_TO_PLAY_LABEL} />
       </Group>
@@ -107,6 +119,14 @@ const MorePage = () => {
           Sign out
         </Box>
       </Group>
+      {sheet === "past" && (
+        <PastSeasonsSheet
+          leagueId={leagueId}
+          seasons={pastSeasons}
+          onClose={() => setSheet(null)}
+        />
+      )}
+      {sheet === "invite" && <InviteSheet leagueId={leagueId} onClose={() => setSheet(null)} />}
     </Container>
   );
 };
