@@ -182,6 +182,26 @@ def _eliminated_ids(
     }
 
 
+def fillable_starter_slots(
+    specs: list[SlotSpec],
+    players: list[NFLPlayer],
+    games: list[GameFacts],
+    stored: dict[int, int],
+    round_: int,
+) -> int:
+    """Empty starter slots the owner could still fill: capped by the players not yet placed."""
+    eliminated = _eliminated_ids(players, games, round_)
+    roster = {p.id for p in players}
+    placed = {pid for pid in stored.values() if pid in roster and pid not in eliminated}
+    placed_slots = {i for i, pid in stored.items() if pid in placed}
+    empty = sum(
+        1
+        for i, spec in enumerate(specs)
+        if spec.slot != BENCH and i not in placed_slots
+    )
+    return min(empty, len(roster - eliminated - placed))
+
+
 async def _placements(db: AsyncSession, team_id: int) -> dict[int, dict[int, int]]:
     """round -> slot index -> player id, straight from the stored rows."""
     rows = await db.execute(

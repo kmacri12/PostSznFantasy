@@ -20,7 +20,7 @@ import { valuesEqual } from "../components/settings/dirty";
 import EditTextSheet from "../components/settings/EditTextSheet";
 import InviteSheet from "../components/settings/InviteSheet";
 import MembersSheet from "../components/settings/MembersSheet";
-import NotificationsRow from "../components/settings/NotificationsRow";
+import NotificationsToggle from "../components/settings/NotificationsToggle";
 import PostseasonForm from "../components/settings/PostseasonForm";
 import RosterForm from "../components/settings/RosterForm";
 import ScoringForm from "../components/settings/ScoringForm";
@@ -171,7 +171,7 @@ function SettingsPage() {
             onClick={archived ? undefined : () => setSheet("teamName")}
           />
         )}
-        <NotificationsRow />
+        <NotificationsToggle />
         <SettingsRow label="Sign out" centered onClick={() => void signOutUser()} />
       </SettingsCard>
 

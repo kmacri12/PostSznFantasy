@@ -16,7 +16,7 @@ from api.db.session import DbSession
 from api.dependencies.league import SeasonMember, TeamMember
 from api.models.activity_models import ActivityFeed, ActivityViewed
 from api.models.feed_models import Feed, FeedMessageItem, FeedViewed, MessageCreate
-from api.services import activity, feed
+from api.services import activity, feed, push
 from api.services.season_recap import ARCHIVED_MESSAGE
 from api.ws.auth import authenticate_socket
 from api.ws.feed_manager import announce_feed_change, feed_manager
@@ -137,6 +137,7 @@ async def post_message(
         raise HTTPException(status_code, str(exc)) from exc
     await db.commit()
     await announce_feed_change(season_id, "message", message.id)
+    push.spawn(push.notify_league_message, message.id)
     return FeedMessageItem(
         id=message.id,
         created_at=message.created_at,

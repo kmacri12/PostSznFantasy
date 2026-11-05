@@ -4,7 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.db.models.draft import Draft
 from api.models.draft_models import DraftPickResponse
-from api.services import draft_flow
+from api.models.enums import DraftStatus
+from api.services import draft_flow, push
 from api.services.draft_picks import PickResult
 from api.ws.draft_manager import draft_manager
 from api.ws.feed_manager import announce_feed_change
@@ -41,9 +42,19 @@ async def pick_events(
 
 
 async def announce_events(season_id: int, events: list[dict[str, Any]]) -> None:
-    """Send committed pick events to the draft room; the last pick also nudges the
-    Feed, where the draft_completed event just landed."""
+    """Send committed events to the draft room, push to the owner now on the clock,
+    and nudge the Feed when the last pick lands (its draft_completed event).
+
+    Only a DRAFT_STATE of a running draft names someone to notify; a pause, a setup
+    change or a finished draft does not.
+    """
     for event in events:
         await draft_manager.broadcast(season_id, event)
         if event["eventType"] == "DRAFT_COMPLETE":
             await announce_feed_change(season_id, "event")
+        if event["eventType"] != "DRAFT_STATE":
+            continue
+        data: dict[str, Any] = event["data"]
+        team_id = data["onTheClockTeamId"]
+        if data["status"] == DraftStatus.IN_PROGRESS.value and team_id is not None:
+            push.spawn(push.notify_on_the_clock, season_id, team_id)

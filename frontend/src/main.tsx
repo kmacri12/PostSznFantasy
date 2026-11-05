@@ -8,9 +8,11 @@ import { recheckLeagueOnDeleted } from "./api/leagueDeleted";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { UserProvider } from "./contexts/UserContext";
 import theme from "./theme";
+import { registerServiceWorker } from "./utils/pushSetup";
 import { initSentry } from "./utils/sentry";
 
 initSentry();
+registerServiceWorker();
 
 const queryClient: QueryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } },
