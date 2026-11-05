@@ -34,3 +34,7 @@ Use a league where you own a team and the draft is running or the field is set.
 - The switch says to add the site to the Home Screen: on iPhone you opened it in Safari instead of from the icon.
 - Notifications blocked: re-allow them for the site in the phone's settings.
 - Nothing arrives: `fly logs --app postszn-api` shows `Push not delivered` with an HTTP status; paste it to the coordinator. Devices that unsubscribed are cleaned up automatically.
+
+## The prompt members see
+
+Members are asked once, in a sheet titled "Get notified when it matters", right after their first sign-in and right after they join a league (not after creating one). It never shows if notifications are already on, blocked, unsupported or not set up on the server (no VAPID keys), nor on a draft screen. Each device is asked at most twice ever: the second time only if they chose "Not now", and only on a different day. After that, the only place is More, Settings, Notifications. If a member says they never got asked, that is probably why (they were already on, they blocked it in the browser, or the keys are missing).

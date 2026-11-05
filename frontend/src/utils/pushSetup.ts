@@ -17,6 +17,14 @@ export const isIosDevice = (): boolean =>
   /iPad|iPhone|iPod/.test(navigator.userAgent) ||
   (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 
+export const isAndroidDevice = (): boolean => /Android/i.test(navigator.userAgent);
+
+/** Which set of instructions fits this device: each platform allows notifications differently. */
+export type PushDevice = "android" | "ios" | "desktop";
+
+export const pushDevice = (): PushDevice =>
+  isIosDevice() ? "ios" : isAndroidDevice() ? "android" : "desktop";
+
 export const isStandalone = (): boolean =>
   window.matchMedia?.("(display-mode: standalone)").matches === true ||
   (navigator as Navigator & { standalone?: boolean }).standalone === true;

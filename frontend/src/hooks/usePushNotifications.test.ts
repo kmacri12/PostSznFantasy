@@ -76,10 +76,18 @@ describe("usePushNotifications", () => {
 
   it("asks an iPhone tab to add the site to the Home Screen first", async () => {
     installBrowser();
+    mocks.get.mockResolvedValue({ data: { publicKey: "BKey" } });
     setUserAgent(IPHONE_UA);
     const { result } = renderHook(() => usePushNotifications());
     await waitFor(() => expect(result.current.status).toBe("needs-install"));
-    expect(mocks.get).not.toHaveBeenCalled();
+  });
+
+  it("does not send an iPhone tab to the Home Screen when the server has no push keys", async () => {
+    installBrowser();
+    mocks.get.mockResolvedValue({ data: { publicKey: null } });
+    setUserAgent(IPHONE_UA);
+    const { result } = renderHook(() => usePushNotifications());
+    await waitFor(() => expect(result.current.status).toBe("unconfigured"));
   });
 
   it("works on an iPhone once installed to the Home Screen", async () => {

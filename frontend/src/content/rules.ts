@@ -157,6 +157,43 @@ export const NOTIFICATIONS_IPHONE_STEPS = [
   "Open the site from your Home Screen icon.",
   "Come back here and switch Notifications on.",
 ] as const;
+export const NOTIFICATIONS_ANDROID_STEPS = [
+  "Tap the switch, then Allow when Chrome asks.",
+  "If you blocked it: Chrome menu, Settings, Site settings, Notifications, allow postsznfantasy.com; or long-press the app icon, App info, Notifications.",
+] as const;
+const numbered = (steps: readonly string[]) =>
+  steps.map((step, index) => `${index + 1}. ${step}`).join(" ");
+export const NOTIFICATIONS_TIP = `On iPhone (iOS 16.4 or later): ${numbered(NOTIFICATIONS_IPHONE_STEPS)} On Android: ${numbered(NOTIFICATIONS_ANDROID_STEPS)}`;
+export const NOTIFICATIONS_STATUS_NOTE = {
+  unsupported: "This browser can't show notifications.",
+  unconfigured: "Notifications aren't available yet.",
+  "needs-install":
+    "On iPhone, add the site to your Home Screen and open it from the icon, then switch this on.",
+} as const;
+/** Only the person can unblock notifications, so each platform says where. */
+export const NOTIFICATIONS_DENIED_HELP = {
+  android:
+    "Notifications are blocked. In Chrome open the menu, Settings, Site settings, Notifications and allow this site; or long-press the app icon, App info, Notifications.",
+  ios: "Notifications are blocked. Open the iPhone Settings app, then Notifications, then PostSzn, and turn on Allow Notifications.",
+  desktop:
+    "Notifications are blocked. Click the icon at the left of the address bar and allow Notifications for this site.",
+} as const;
+
+// The one-time prompt offered after first sign-in and after joining a league.
+export const OPT_IN_TITLE = "Get notified when it matters";
+export const OPT_IN_WHY =
+  "We'll tell you when your pick is on the clock, when lineups are about to lock, and when your league chats.";
+export const OPT_IN_TURN_ON = "Turn on notifications";
+export const OPT_IN_NOT_NOW = "Not now";
+export const OPT_IN_DONE = "Notifications are on";
+export const OPT_IN_STEPS = {
+  android: "Tap Turn on notifications, then Allow when Chrome asks.",
+  ios: "Tap Turn on notifications, then Allow when your iPhone asks.",
+  desktop: "Click Turn on notifications, then Allow in the browser popup.",
+} as const;
+export const OPT_IN_IPHONE_INSTALL =
+  "On iPhone (iOS 16.4 or later), notifications work from the Home Screen app. In Safari tap Share, Add to Home Screen, open PostSzn from the new icon, then turn notifications on.";
+export const OPT_IN_MANAGE = "You can change this any time in More, Settings, Notifications.";
 export const LAST_COMMISSIONER_NOTE =
   "A league always keeps at least one commissioner. Removing a member frees their team in an unfinished season; finished seasons keep their name on it.";
 

@@ -46,7 +46,10 @@ export const usePushNotifications = (): PushNotifications => {
   useEffect(() => {
     let cancelled = false;
     const detect = async (): Promise<PushStatus> => {
-      if (isIosDevice() && !isStandalone()) return "needs-install";
+      if (isIosDevice() && !isStandalone()) {
+        // No point sending an iPhone to the Home Screen when the server can't push anyway.
+        return (await readVapidKey()) === null ? "unconfigured" : "needs-install";
+      }
       if (!pushApisAvailable()) return "unsupported";
       if ((await readVapidKey()) === null) return "unconfigured";
       if (Notification.permission === "denied") return "denied";
