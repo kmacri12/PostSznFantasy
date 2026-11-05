@@ -38,6 +38,8 @@ class Award:
     value: Decimal
     # Set for the per-position draft awards, whose value is `draft.places`.
     draft: DraftValue | None = None
+    # Overall draft pick number, set with `draft`.
+    pick_number: int | None = None
 
 
 def _best[T](
@@ -188,6 +190,7 @@ def compute_awards(
                         None,
                         found[1],
                         values[found[0]],
+                        picked[found[0]],
                     )
                 )
     return awards

@@ -1,4 +1,4 @@
-import type { StandingsRow, StarterProgress } from "../../api/types";
+import type { StandingsRow } from "../../api/types";
 
 /** "T2" when another team shares the rank, so a shared title is never read as a win. */
 export const rankLabel = (rows: StandingsRow[], index: number): string => {
@@ -25,17 +25,23 @@ export const tieNote = (rows: StandingsRow[], index: number): string | null => {
 /** An open team slot before the draft. */
 export const isOpenSpot = (row: StandingsRow): boolean => row.owner === null;
 
-export const preDraftLine = (rows: StandingsRow[]): string => {
-  const filled = rows.filter((row) => !isOpenSpot(row)).length;
-  return `Waiting for the draft: ${filled} of ${rows.length} teams filled.`;
-};
+/** Up to two decimals, at least one: 84.2, 7.0, 12.65. */
+export const formatPoints = (value: number): string => value.toFixed(2).replace(/0$/, "");
 
-export type ProgressKey = keyof StarterProgress;
+export const ROUNDS = [
+  { key: "wildCard", label: "Wild Card", short: "Wild Card" },
+  { key: "divisional", label: "Divisional", short: "Divisional" },
+  { key: "confChamp", label: "Conf. champ", short: "Conf." },
+  { key: "superBowl", label: "Super Bowl", short: "Super Bowl" },
+] as const;
 
-/** Each count has an icon and a word as well as a colour, so none relies on colour alone. */
-export const PROGRESS_ITEMS: { key: ProgressKey; label: string; hint: string }[] = [
-  { key: "finished", label: "Finished", hint: "Game over" },
-  { key: "live", label: "Live", hint: "Game in progress" },
-  { key: "toPlay", label: "To play", hint: "Not kicked off yet" },
-  { key: "notPlaying", label: "Not playing", hint: "Empty slot, eliminated or on a bye" },
-];
+/** One-line detail under a team name: owner, commissioner mark and, while live, players left. */
+export const rowDetail = (row: StandingsRow, live: boolean): string =>
+  [
+    row.owner ?? "Waiting for a player",
+    row.isCommissioner ? "commissioner" : null,
+    live ? `${row.playersLeft} left` : null,
+    live ? `${row.progress.live} live` : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");

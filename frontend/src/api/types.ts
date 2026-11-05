@@ -476,6 +476,8 @@ export interface AwardWinner {
   /** Per-position draft awards only: order drafted and finish by counted points within the position. */
   draftedAs: number | null;
   finishedAs: number | null;
+  /** Overall pick number the player was taken at; draft awards only. */
+  pickNumber: number | null;
   points: number | null;
 }
 

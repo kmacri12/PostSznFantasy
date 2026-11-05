@@ -15,7 +15,14 @@ const recap: Recap = {
   year: 2025,
   finished: true,
   champions: [{ teamId: 1, teamName: "Gridiron Gang", owner: "kyle", total: 123.5 }],
-  standings: { phase: "live", round: 4, gamesInProgress: 0, gamesFinal: 0, playersLeft: 0, teams: [] },
+  standings: {
+    phase: "live",
+    round: 4,
+    gamesInProgress: 0,
+    gamesFinal: 0,
+    playersLeft: 0,
+    teams: [],
+  },
   nextSeasonId: null,
   awards: [
     {
@@ -30,6 +37,7 @@ const recap: Recap = {
       round: null,
       value: 61.2,
       draftedAs: null,
+      pickNumber: null,
       finishedAs: null,
       points: null,
     },
@@ -45,6 +53,7 @@ const recap: Recap = {
       round: null,
       value: -24,
       draftedAs: 6,
+      pickNumber: 41,
       finishedAs: 30,
       points: 0,
     },
@@ -63,9 +72,11 @@ const show = (canStartSeason: boolean, nextSeasonId: number | null = null) =>
 describe("SeasonRecap", () => {
   it("crowns the champion and lists the awards", () => {
     show(false);
-    expect(screen.getByText("Gridiron Gang", { selector: "h4" })).toBeTruthy();
-    expect(screen.getByText(/Josh Allen/)).toBeTruthy();
-    expect(screen.getByText(/Drafted as WR6, finished WR30, -24 places/)).toBeTruthy();
+    expect(screen.getByText("2025 champion")).toBeTruthy();
+    expect(screen.getByText("Gridiron Gang", { selector: "h2" })).toBeTruthy();
+    expect(screen.getByText("123.5")).toBeTruthy();
+    expect(screen.getByText("Josh Allen")).toBeTruthy();
+    expect(screen.getByText("Pick One · Pick 41 · 0.0 pts")).toBeTruthy();
   });
 
   it("offers to start the next season only when the caller may", () => {

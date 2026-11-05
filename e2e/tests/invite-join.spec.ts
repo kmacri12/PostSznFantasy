@@ -1,41 +1,37 @@
 import { expect, test } from "@playwright/test";
 import { Api, seasonUrl, unique } from "../support/api";
-import { signInAs } from "../support/auth";
+import { authHeaders, signInAs } from "../support/auth";
+import { API_URL } from "../support/env";
 
 test.describe("invite and join", () => {
-  test("a commissioner regenerates the code and the old one stops working", async ({
-    page,
-    context,
-    request,
-  }) => {
+  // The invite controls (regenerate, revoke) live in Settings; these cover what they call.
+  test("regenerating the code retires the old one", async ({ request }) => {
     const host = new Api(request, unique("host"));
     await host.signUp("host");
     const league = await host.createLeague(unique("Invite League"));
-    await host.invite(league);
-    await signInAs(context, host.uid);
+    const first = await host.invite(league);
+    const second = await host.invite(league);
+    expect(second).not.toBe(first);
 
-    await page.goto(seasonUrl(league));
-    const codeBox = page.locator('[aria-label="Invite code"]');
-    const first = (await codeBox.textContent()) ?? "";
-    expect(first).toMatch(/^[A-Z0-9]{8}$/);
-
-    await page.getByRole("button", { name: "Regenerate" }).click();
-    await expect(codeBox).not.toHaveText(first);
-
-    const stale = await request.get(`http://localhost:8100/api/invites/${first}`);
-    expect((await stale.json()).joinable).toBe(false);
+    const preview = async (code: string) =>
+      (
+        (await (await request.get(`${API_URL}/api/invites/${code}`)).json()) as {
+          joinable: boolean;
+        }
+      ).joinable;
+    expect(await preview(first)).toBe(false);
+    expect(await preview(second)).toBe(true);
   });
 
-  test("a revoked invite can no longer be used", async ({ page, context, request }) => {
+  test("a revoked invite can no longer be used", async ({ page, request }) => {
     const host = new Api(request, unique("host"));
     await host.signUp("host");
     const league = await host.createLeague(unique("Revoke League"));
     const code = await host.invite(league);
-    await signInAs(context, host.uid);
-
-    await page.goto(seasonUrl(league));
-    await page.getByRole("button", { name: "Revoke" }).click();
-    await expect(page.getByRole("button", { name: "Revoke" })).toHaveCount(0);
+    const revoked = await request.delete(`${API_URL}/api/leagues/${league.leagueId}/invite`, {
+      headers: authHeaders(host.uid),
+    });
+    expect(revoked.ok()).toBe(true);
 
     await page.goto(`/join/${code}`);
     await expect(page.getByRole("alert")).toBeVisible();
@@ -62,9 +58,8 @@ test.describe("invite and join", () => {
     await signInAs(context, unique("guest"));
     await page.goto(`/join/${code}`);
     await expect(page).toHaveURL(new RegExp(`${seasonUrl(league)}$`));
-    await expect(page.getByRole("heading", { name: leagueName, level: 4 })).toBeVisible();
-    await expect(page.getByText("Member", { exact: true })).toBeVisible();
-    await expect(page.getByText("2 teams · 0 open")).toBeVisible();
+    await expect(page.getByText("Draft not yet scheduled by your commissioner")).toBeVisible();
+    await expect(page.getByText("2 of 2 teams filled.")).toBeVisible();
   });
 
   test("the join code box on the home page opens the invite", async ({
@@ -81,7 +76,7 @@ test.describe("invite and join", () => {
     await page.goto("/");
     await page.getByRole("textbox", { name: "Join code" }).fill(code);
     await page.getByRole("button", { name: "Join with code" }).click();
-    await expect(page.getByRole("heading", { name: leagueName, level: 4 })).toBeVisible();
+    await expect(page.getByText("Draft not yet scheduled by your commissioner")).toBeVisible();
   });
 
   test("a full league explains why it cannot be joined", async ({ page, context, request }) => {

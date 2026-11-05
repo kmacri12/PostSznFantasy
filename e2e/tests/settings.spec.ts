@@ -44,18 +44,20 @@ test.describe("league settings", () => {
     await expect(page.getByRole("region", { name: "Unsaved changes" })).toHaveCount(0);
   });
 
-  test("renaming the league from the league page sticks", async ({ page, context, request }) => {
+  test("renaming the league in settings sticks", async ({ page, context, request }) => {
     const host = new Api(request, unique("host"));
     await host.signUp("host");
     const league = await host.createLeague(unique("Old Name"));
     await signInAs(context, host.uid);
 
-    await page.goto(seasonUrl(league));
-    await page.getByRole("button", { name: "Rename league" }).click();
+    await page.goto(seasonUrl(league, "/settings"));
     const renamed = unique("New Name");
     await page.getByLabel("League name").fill(renamed);
-    await page.getByRole("button", { name: "Save" }).click();
-    await expect(page.getByRole("heading", { name: renamed, level: 4 })).toBeVisible();
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await expect(page.getByText("Settings saved.")).toBeVisible();
+
+    await page.reload();
+    await expect(page.getByLabel("League name")).toHaveValue(renamed);
   });
 
   test("a member sees the settings read-only", async ({ page, context, request }) => {

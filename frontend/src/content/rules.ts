@@ -117,7 +117,7 @@ export const PRE_DRAFT_UNLIMITED = "No limit";
 export const TEAM_QB_ON_NOTE = "Team QB is on: your QB scores every QB on his NFL team.";
 export const TEAM_K_ON_NOTE = "Team K is on: your K scores every K on his NFL team.";
 
-export const NOTES_TITLE = "League notes";
+export const NOTES_TITLE = "Commissioner notes";
 export const NOTES_EMPTY_MEMBER = "No notes yet.";
 export const NOTES_EMPTY_COMMISSIONER =
   "Add buy-in, prizes or house rules for your league. The app does not handle any money.";

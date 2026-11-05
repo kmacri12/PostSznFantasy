@@ -15,7 +15,7 @@ test.describe("season routes", () => {
 
     await page.goto(`/leagues/${league.leagueId}`);
     await expect(page).toHaveURL(seasonUrl(league));
-    await expect(page.getByText(`${league.year} season`, { exact: true })).toBeVisible();
+    await expect(page.getByText("Invite your friends")).toBeVisible();
 
     await page.goto(pastSeasonUrl({ ...league, year: 2031 }));
     await expect(page.getByText("The 2031 season not found")).toBeVisible();
@@ -38,8 +38,6 @@ test.describe("season routes", () => {
     await expect(page).toHaveURL("/");
 
     await page.goto(seasonUrl(league));
-    await page.getByRole("link", { name: "Settings" }).first().click();
-    await expect(page).toHaveURL(seasonUrl(league, "/settings"));
     await page.getByRole("link", { name: "Players" }).first().click();
     await expect(page).toHaveURL(seasonUrl(league, "/players"));
     expect(page.url()).not.toContain("/seasons/");

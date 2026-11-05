@@ -25,10 +25,9 @@ test("a new user creates a league through the wizard", async ({ page, context, r
   await page.getByRole("button", { name: "Create league" }).click();
 
   await expect(page).toHaveURL(/\/leagues\/\d+$/);
-  await expect(page.getByRole("heading", { name, level: 4 })).toBeVisible();
-  await expect(page.getByText("4 teams · 3 open")).toBeVisible();
-  await expect(page.getByText("Commissioner", { exact: true })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Invite friends" })).toBeVisible();
+  await expect(page.getByText("Invite your friends")).toBeVisible();
+  await expect(page.getByText("1 of 4 teams filled. Draft date not set yet.")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Create invite link" })).toBeVisible();
 
   await page.goto("/");
   await expect(page.getByRole("heading", { name })).toBeVisible();
