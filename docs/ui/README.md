@@ -44,7 +44,7 @@ One component, `components/common/Logo`: `variant` mark | lockup | stacked, `siz
 - **Tile** (sky blue `#5cb8ff`, `#04233d` lines, rx 22): the league header and the desktop rail at 32px, the app icons and the favicon. Use it under 40px; bare lines go faint there.
 - **Bare mark**: lines only, in the `accent` token (`#5cb8ff` dark, `#0868b4` light; the issue's about `#0a74c4` failed AA on the accent tint). 40px and up.
 - **Lockup** (mark + wordmark): the header with no league switcher (home, signed out, invite and sign-in pages) at a 40px mark.
-- **Stacked** (large mark above the wordmark): the landing hero and the sign-in card.
+- **Stacked** (large mark above the wordmark): the sign-in card. The landing hero shows only the bare mark (72px phone, 96px desktop) because the top bar already carries the lockup.
 - **Wordmark**: "PostSzn" in Space Grotesk 700 with "Szn" in `accent`, tight tracking, the rest in `text`; "FANTASY" beneath in Space Grotesk 500 at about 0.28em tracking. The font is self-hosted (`@fontsource/space-grotesk`, `assets/fonts.css`, `font-display: block` so the lockup does not reflow).
 - **App icons** (`public/icons/`): `icon-180` (full-bleed, iOS masks it), `icon-192`, `icon-512`, `icon-maskable-512` (mark inside the central 80% safe zone), `favicon-32`; `public/favicon.svg` is the tile. Both manifests list the maskable icon. To regenerate, render `logo-tile.svg` with Playwright's chromium.
 
