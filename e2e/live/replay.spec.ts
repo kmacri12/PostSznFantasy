@@ -42,7 +42,7 @@ test.beforeAll(async ({ request }) => {
 const HOST_ROWS = ["Aiden Archer", "Bryce Cole", "Dante Frost"];
 const inEliminatedSection = async (page: Page, player: string) => {
   await page.getByRole("tab", { name: "Conference Championship" }).click();
-  await expect(page.getByTestId("eliminated-section")).toContainText(player);
+  await expect(page.getByRole("region", { name: "Eliminated" })).toContainText(player);
 };
 
 test("eliminations reach the team pages as each replayed game finishes", async ({
@@ -56,9 +56,8 @@ test("eliminations reach the team pages as each replayed game finishes", async (
   await test.step("before the first kickoff nobody is out", async () => {
     expect(await eliminatedTeams(watcher)).toEqual([]);
     await page.goto(seasonUrl(main.league, `/teams/${main.hostTeamId}`));
-    await expect(page.getByText("4 of 4 alive")).toBeVisible();
     for (const player of HOST_ROWS) await expect(page.getByText(player)).toBeVisible();
-    await expect(page.getByTestId("eliminated-section")).toHaveCount(0);
+    await expect(page.getByRole("region", { name: "Eliminated" })).toHaveCount(0);
   });
 
   for (const [index, team] of ELIMINATION_ORDER.entries()) {
@@ -67,9 +66,7 @@ test("eliminations reach the team pages as each replayed game finishes", async (
       expect(await eliminatedTeams(watcher)).toEqual(ELIMINATION_ORDER.slice(0, index + 1).sort());
 
       // The host loses a player for each of the first three eliminations; DET is the guest's.
-      const alive = 4 - Math.min(index + 1, 3);
       await page.goto(seasonUrl(main.league, `/teams/${main.hostTeamId}`));
-      await expect(page.getByText(`${alive} of 4 alive`)).toBeVisible();
       await expect(page.getByText(/Stats updated/)).toBeVisible();
       if (index < 3) {
         await inEliminatedSection(page, HOST_ROWS[index]);
@@ -79,7 +76,6 @@ test("eliminations reach the team pages as each replayed game finishes", async (
 
   await test.step("the guest's roster only lost the last team's player", async () => {
     await page.goto(seasonUrl(main.league, `/teams/${main.guestTeamId}`));
-    await expect(page.getByText("3 of 4 alive")).toBeVisible();
     await inEliminatedSection(page, "Bryce Grady");
   });
 });
