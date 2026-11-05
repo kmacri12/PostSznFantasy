@@ -51,7 +51,9 @@ test.describe("team page", () => {
 
     await page.reload();
     await expect(
-      page.getByRole("region", { name: "Starters" }).getByRole("button", { name: /^RB Bryce Archer/ }),
+      page
+        .getByRole("region", { name: "Starters" })
+        .getByRole("button", { name: /^RB Bryce Archer/ }),
     ).toBeVisible();
     await page.getByRole("tab", { name: "Super Bowl" }).click();
     await expect(
