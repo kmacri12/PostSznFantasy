@@ -60,12 +60,12 @@ describe("NavBar", () => {
   it("shows the wordmark outside a league and the square mark inside one", () => {
     const { unmount } = renderBar({ league: undefined });
     expect(screen.getByRole("link", { name: "PostSzn Fantasy" }).textContent).toBe(
-      "PostSzn Fantasy",
+      "PostSznFANTASY",
     );
     expect(screen.queryByRole("button", { name: /League/ })).toBeNull();
     unmount();
     renderBar();
-    expect(screen.getByRole("link", { name: /your leagues/ }).textContent).toBe("PS");
+    expect(screen.getByRole("link", { name: /your leagues/ }).textContent).toBe("");
     expect(screen.getByRole("link", { name: /your leagues/ }).getAttribute("href")).toBe("/");
   });
 

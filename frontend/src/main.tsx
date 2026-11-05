@@ -3,6 +3,7 @@ import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App.tsx";
+import "./assets/fonts.css";
 import { recheckLeagueOnDeleted } from "./api/leagueDeleted";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { ThemeModeProvider } from "./contexts/ThemeModeContext";

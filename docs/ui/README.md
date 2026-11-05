@@ -35,6 +35,19 @@ Sky blue `#5cb8ff` on white is only about 2.1:1, so in light mode it is a fill w
 
 Green is a status color only: live games and live scores (the live dot, the live indicator, an in-progress player row). Red is for eliminations, errors and the new-activity dot; amber for cautions. Each has its own light shade that passes on white.
 
+## Logo
+
+An eight-team playoff bracket meeting in the middle: rounded corners, line weight growing toward the center, round outer leaf ends, flat inner joints (butt caps, so nothing pokes out), one bold line joining the two halves. No dot, checks or X's. Do not redesign it. The strokes live in `frontend/src/assets/logoGeometry.ts`; `logo-tile.svg` is the same paths on the sky-blue tile (`src/assets/logoGeometry.test.ts` keeps them identical).
+
+One component, `components/common/Logo`: `variant` mark | lockup | stacked, `size` (mark height in px), `tile`.
+
+- **Tile** (sky blue `#5cb8ff`, `#04233d` lines, rx 22): the league header and the desktop rail at 32px, the app icons and the favicon. Use it under 40px; bare lines go faint there.
+- **Bare mark**: lines only, in the `accent` token (`#5cb8ff` dark, `#0868b4` light; the issue's about `#0a74c4` failed AA on the accent tint). 40px and up.
+- **Lockup** (mark + wordmark): the header with no league switcher (home, signed out, invite and sign-in pages) at a 40px mark.
+- **Stacked** (large mark above the wordmark): the sign-in card. The landing hero shows only the bare mark (72px phone, 96px desktop) because the top bar already carries the lockup.
+- **Wordmark**: "PostSzn" in Space Grotesk 700 with "Szn" in `accent`, tight tracking, the rest in `text`; "FANTASY" beneath in Space Grotesk 500 at about 0.28em tracking. The font is self-hosted (`@fontsource/space-grotesk`, `assets/fonts.css`, `font-display: block` so the lockup does not reflow).
+- **App icons** (`public/icons/`): `icon-180` (full-bleed, iOS masks it), `icon-192`, `icon-512`, `icon-maskable-512` (mark inside the central 80% safe zone), `favicon-32`; `public/favicon.svg` is the tile. Both manifests list the maskable icon. To regenerate, render `logo-tile.svg` with Playwright's chromium.
+
 ## Navigation and header
 
 - Header, always: a square logo mark top-left (links to the leagues page); inside a league, the league name with a chevron (switcher) next to it; the avatar top-right (account, sign out). No hamburger.

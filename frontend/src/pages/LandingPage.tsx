@@ -1,6 +1,7 @@
 import { Box, Button, Container, Typography } from "@mui/material";
 import { Link } from "react-router-dom";
 import LoadingState from "../components/common/LoadingState";
+import Logo from "../components/common/Logo";
 import LegalFooter from "../components/home/LegalFooter";
 import YourLeagues from "../components/home/YourLeagues";
 import { useUser } from "../contexts/UserContext";
@@ -9,6 +10,15 @@ import { DormantNotice } from "./DormantPage";
 
 const Hero = () => (
   <Box sx={{ textAlign: { xs: "left", md: "center" }, maxWidth: 760, mx: "auto" }}>
+    <Box sx={{ display: "flex", justifyContent: "center", mb: { xs: 3, md: 4 } }}>
+      {/* The top bar already carries the lockup, so the hero shows the bare mark alone. */}
+      <Box sx={{ display: { xs: "none", md: "block" } }}>
+        <Logo size={96} />
+      </Box>
+      <Box sx={{ display: { xs: "block", md: "none" } }}>
+        <Logo size={72} />
+      </Box>
+    </Box>
     <Typography variant="h1" sx={{ fontSize: { xs: 38, md: 64 }, lineHeight: 1.05 }}>
       Fantasy football for the{" "}
       <Box component="span" sx={{ color: "primary.main" }}>
