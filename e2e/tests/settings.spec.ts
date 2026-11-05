@@ -52,12 +52,14 @@ test.describe("league settings", () => {
 
     await page.goto(seasonUrl(league, "/settings"));
     const renamed = unique("New Name");
-    await page.getByLabel("League name").fill(renamed);
+    const row = page.getByRole("button", { name: /^Edit league name/ });
+    await row.click();
+    await page.getByRole("textbox", { name: "League name" }).fill(renamed);
     await page.getByRole("button", { name: "Save", exact: true }).click();
-    await expect(page.getByText("Settings saved.")).toBeVisible();
+    await expect(row).toContainText(renamed);
 
     await page.reload();
-    await expect(page.getByLabel("League name")).toHaveValue(renamed);
+    await expect(page.getByRole("button", { name: /^Edit league name/ })).toContainText(renamed);
   });
 
   test("a member sees only their own settings", async ({ page, context, request }) => {
