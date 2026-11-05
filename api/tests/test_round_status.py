@@ -1,7 +1,7 @@
 from dataclasses import replace
 from datetime import UTC, datetime
 
-from api.models.enums import PlayerRoundStatus
+from api.models.enums import GameState, PlayerRoundStatus
 from api.services.round_status import (
     GameFacts,
     completed_rounds,
@@ -148,3 +148,16 @@ def test_current_round_ignores_rounds_before_the_first_one_with_games() -> None:
     # A schedule that only has the Divisional so far: that is the round to show.
     assert current_round([game(2, KC, BUF)]) == 2
     assert current_round([game(3, KC, BUF)]) == 3
+
+
+def test_the_game_state_and_the_round_a_team_was_knocked_out_in() -> None:
+    final = game(1, KC, BUF, score=(27, 20))
+    live = replace(game(2, KC, DEN), in_progress=True, clock="8:42")
+    games = [final, live]
+    assert round_status(games, KC, 1).game_state is GameState.FINAL
+    ongoing = round_status(games, KC, 2)
+    assert (ongoing.game_state, ongoing.game_clock) == (GameState.LIVE, "8:42")
+    assert round_status([game(2, DEN, MIA)], DEN, 2).game_state is GameState.SCHEDULED
+    knocked_out = round_status(games, BUF, 2)
+    assert knocked_out.status is PlayerRoundStatus.ELIMINATED
+    assert knocked_out.eliminated_in == 1

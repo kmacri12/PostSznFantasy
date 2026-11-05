@@ -155,12 +155,14 @@ async def get_player_season_stats(
     season: str | None = None,
     position: str | None = None,
     season_id: Annotated[int | None, Query(alias="seasonId")] = None,
+    player_id: Annotated[int | None, Query(alias="playerId")] = None,
 ) -> list[PlayerSeasonStatsResponse]:
     """Season stats joined with player and team; defaults to the latest season.
 
     Without `position`, only draftable positions (QB/RB/WR/TE/K/DST) are returned.
 
     With `season_id`, `fantasyPoints` is scored under that season's settings (members only).
+    With `player_id`, only that player's row (any position), which is what the player sheet needs.
     """
     settings: SeasonSettings | None = None
     if season_id is not None:
@@ -181,7 +183,9 @@ async def get_player_season_stats(
         .where(NFLPlayerSeasonStats.season == season)
         .order_by(NFLPlayer.name)
     )
-    if position:
+    if player_id is not None:
+        stmt = stmt.where(NFLPlayerSeasonStats.player_id == player_id)
+    elif position:
         stmt = stmt.where(NFLPlayer.position == position.upper())
     else:
         stmt = stmt.where(NFLPlayer.position.in_(DRAFTABLE_POSITION_VALUES))

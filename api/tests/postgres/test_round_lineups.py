@@ -1,4 +1,5 @@
 from datetime import UTC, datetime, timedelta
+from decimal import Decimal
 from typing import Any
 
 from sqlalchemy import select
@@ -9,6 +10,7 @@ from api.db.models import (
     LineupSlot,
     NFLGame,
     NFLPlayer,
+    NFLPlayerGameStats,
     NFLTeam,
     SeasonSettings,
     Team,
@@ -254,6 +256,7 @@ async def test_eliminated_is_per_round_and_cannot_be_moved(
     assert [p["id"] for p in divisional["eliminated"]] == [buf_player.id]
     assert buf_player.id not in [p["id"] for p in divisional["unassigned"]]
     assert divisional["eliminated"][0]["status"] == "eliminated"
+    assert divisional["eliminated"][0]["eliminatedRound"] == 1
     assert refused.status_code == 409
 
 
@@ -305,3 +308,34 @@ async def test_a_bye_team_is_alive_and_not_locked(
     assert statuses[kc_player.id] == "bye"
     assert statuses[s.players[3].id] == "alive"
     assert moved.status_code == 200
+
+
+async def test_a_live_game_shows_its_state_clock_stat_line_and_counted_points(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    live = game("g1", 1, 1, 3, datetime.now(UTC) - HOUR)
+    live.game_status = "Live - In Progress"
+    live.game_clock = "8:42"
+    s = await _setup(db, [live, game("g2", 1, 2, 3, FUTURE)])
+    runner, waiting = s.players[1], s.players[3]
+    settings = (await db.execute(select(SeasonSettings))).scalars().first()
+    assert settings is not None
+    settings.multiplier_wild_card = Decimal(2)
+    db.add(
+        NFLPlayerGameStats(
+            game_id="g1", player_id=runner.id,
+            rushing_carries=10, rushing_yards=50, receiving_receptions=2,
+            receiving_yards=10,
+        )
+    )  # fmt: skip
+    await db.flush()
+    async with client_as("uid-0") as owner:
+        body = (await owner.get(s.url)).json()
+    unassigned = {p["id"]: p for p in round_of(body, 1)["unassigned"]}
+    assert unassigned[runner.id]["gameState"] == "live"
+    assert unassigned[runner.id]["gameClock"] == "8:42"
+    assert unassigned[runner.id]["statLine"] == "10 car, 50 yds · 2 rec, 10 yds"
+    # 50 rush yds * 0.1 + 10 rec yds * 0.1 + 2 PPR = 8.0, doubled by the round's 2x.
+    assert unassigned[runner.id]["points"] == 16.0
+    assert unassigned[waiting.id]["gameState"] == "scheduled"
+    assert unassigned[waiting.id]["statLine"] is None

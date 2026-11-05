@@ -8,6 +8,7 @@ from api.models.activity_models import ScoreChange, SlotMark
 from api.models.base import BaseSchema
 from api.models.enums import (
     DraftStatus,
+    GameState,
     LeagueRole,
     PlayerRoundStatus,
     TieRule,
@@ -418,8 +419,16 @@ class LineupPlayer(RosterPlayer):
     # Scheduled kickoff of their game that round (None on a bye); the lock time.
     kickoff: datetime | None = None
     locked: bool
-    # Points in that round under the league's scoring; None before any stats exist.
+    # That round's game: scheduled, live or final; None on a bye or before it is set.
+    game_state: GameState | None = None
+    # The live game's clock as the upstream reports it; empty between plays.
+    game_clock: str | None = None
+    # Counted points in that round (league scoring, round multiplier); None before any stats.
     points: float | None = None
+    # The round's stats on one line ("14/21, 168 yds, 2 TD, 0 INT"); None before any stats.
+    stat_line: str | None = None
+    # For an eliminated player: the round his team lost in.
+    eliminated_round: int | None = None
     score_change: ScoreChange | None = None
 
 

@@ -25,13 +25,17 @@ from api.models.enums import PlayerPosition, PlayerRoundStatus
 from api.models.league_models import LineupPlayer, LineupSlotView, RoundLineup
 from api.services import activity
 from api.services.round_status import ROUNDS, GameFacts, load_games, round_status
+from api.services.stat_lines import stat_line
 from api.services.team_units import (
     combined_positions,
     scores_whole_team,
     scoring_members,
 )
 from api.utils.calculations.fantasy_points_utils import calculate_player_points
-from api.utils.calculations.standings_utils import postseason_round_index
+from api.utils.calculations.standings_utils import (
+    ROUND_MULTIPLIER_FIELDS,
+    postseason_round_index,
+)
 
 FLEX_SLOTS: dict[str, tuple[PlayerPosition, ...]] = {
     "FLEX": (PlayerPosition.WR, PlayerPosition.RB, PlayerPosition.TE),
@@ -167,6 +171,9 @@ def _view(
         injury_status=player.injury_status,
         status=standing.status,
         kickoff=standing.kickoff,
+        game_state=standing.game_state,
+        game_clock=standing.game_clock,
+        eliminated_round=standing.eliminated_in,
         locked=standing.kickoff is not None and now >= standing.kickoff,
         scores_whole_team=scores_whole_team(combined, player.position),
     )
@@ -233,12 +240,14 @@ def _round_lineup(
     now: datetime,
     marks: dict[int, SlotMark],
     points: dict[int, Decimal],
+    stat_lines: dict[int, str],
     changes: dict[int, ScoreChange],
     combined: frozenset[PlayerPosition],
 ) -> RoundLineup:
     views = {p.id: _view(p, games, round_, now, combined) for p in players}
     for pid, view in views.items():
         view.points = float(points[pid]) if pid in points else None
+        view.stat_line = stat_lines.get(pid)
         view.score_change = changes.get(pid)
     # Eliminated players drop out of any slot they were placed in early.
     placed = {
@@ -290,7 +299,9 @@ async def team_lineups(
     specs = slot_layout(settings)
     placements = await _placements(db, team.id)
     marks = await activity.slot_marks(db, team.id)
-    points = await _round_points(db, settings, players, season)
+    rows = await _round_rows(db, settings, players, season)
+    points = _round_points(settings, players, rows)
+    lines = _stat_lines(players, rows)
     changes = await activity.score_changes(db, team.id)
     return [
         _round_lineup(
@@ -302,27 +313,48 @@ async def team_lineups(
             now,
             {index: mark for (round_, index), mark in marks.items() if round_ == r},
             {pid: pts for (pid, round_), pts in points.items() if round_ == r},
-            {pid: change for (pid, round_), change in changes.items() if round_ == r},
+            {pid: line for (pid, round_), line in lines.items() if round_ == r},
+            {
+                pid: scaled_change(change, _multiplier(settings, r))
+                for (pid, round_), change in changes.items()
+                if round_ == r
+            },
             combined_positions(settings),
         )
         for r in ROUNDS
     ]
 
 
-async def _round_points(
+def _multiplier(settings: SeasonSettings, round_: int) -> float:
+    return float(getattr(settings, ROUND_MULTIPLIER_FIELDS[round_ - 1]))
+
+
+def scaled_change(change: ScoreChange, multiplier: float) -> ScoreChange:
+    """A correction in raw points, restated as counted points like the round's score."""
+    return ScoreChange(
+        previous_points=round(change.previous_points * multiplier, 2),
+        new_points=round(change.new_points * multiplier, 2),
+        changed_at=change.changed_at,
+    )
+
+
+# (rostered player id, round) -> the postseason game rows that score for the slot.
+RoundRows = dict[tuple[int, int], list[NFLPlayerGameStats]]
+
+
+async def _round_rows(
     db: AsyncSession,
     settings: SeasonSettings,
     players: list[NFLPlayer],
     season: int,
-) -> dict[tuple[int, int], Decimal]:
-    """Each rostered player's points per round under the league's scoring."""
-    by_id = {p.id: p for p in players}
-    # A team QB / team K shows the whole unit's points, as his slot scores them.
+) -> RoundRows:
+    """Each rostered player's game stats per round."""
+    # A team QB / team K shows the whole unit's stats, as his slot scores them.
     members = await scoring_members(db, settings, players)
     feeds: dict[int, list[int]] = {}
-    for rostered_id in by_id:
-        for scorer_id in members.get(rostered_id, [rostered_id]):
-            feeds.setdefault(scorer_id, []).append(rostered_id)
+    for rostered in players:
+        for scorer_id in members.get(rostered.id, [rostered.id]):
+            feeds.setdefault(scorer_id, []).append(rostered.id)
     rows = await db.execute(
         select(NFLPlayerGameStats, NFLGame.game_week)
         .join(NFLGame, NFLPlayerGameStats.game_id == NFLGame.id)
@@ -334,19 +366,43 @@ async def _round_points(
         )
         .execution_options(populate_existing=True)
     )
-    points: dict[tuple[int, int], Decimal] = {}
+    by_round: RoundRows = {}
     for stats, week in rows.all():
         index = postseason_round_index(week or 0)
         if index is None:
             continue
         for rostered_id in feeds[stats.player_id]:
-            key = (rostered_id, index + 1)
-            points[key] = points.get(key, Decimal(0)) + calculate_player_points(
-                stats,
-                settings,
-                PlayerPosition.from_str(by_id[rostered_id].position),
-            )
-    return {key: value.quantize(Decimal("0.01")) for key, value in points.items()}
+            by_round.setdefault((rostered_id, index + 1), []).append(stats)
+    return by_round
+
+
+def _round_points(
+    settings: SeasonSettings, players: list[NFLPlayer], rows: RoundRows
+) -> dict[tuple[int, int], Decimal]:
+    """Each rostered player's counted points per round: league scoring, round multiplier."""
+    by_id = {p.id: p for p in players}
+    points: dict[tuple[int, int], Decimal] = {}
+    for (player_id, round_), game_rows in rows.items():
+        position = PlayerPosition.from_str(by_id[player_id].position)
+        raw = sum(
+            (calculate_player_points(g, settings, position) for g in game_rows),
+            Decimal(0),
+        )
+        points[(player_id, round_)] = (
+            raw * Decimal(str(_multiplier(settings, round_)))
+        ).quantize(Decimal("0.01"))
+    return points
+
+
+def _stat_lines(
+    players: list[NFLPlayer], rows: RoundRows
+) -> dict[tuple[int, int], str]:
+    by_id = {p.id: p for p in players}
+    lines = {
+        key: stat_line(game_rows, PlayerPosition.from_str(by_id[key[0]].position))
+        for key, game_rows in rows.items()
+    }
+    return {key: line for key, line in lines.items() if line}
 
 
 async def move_in_lineup(

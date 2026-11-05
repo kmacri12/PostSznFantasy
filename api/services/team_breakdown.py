@@ -17,7 +17,7 @@ from api.models.league_models import (
     TeamBreakdown,
 )
 from api.services import activity
-from api.services.lineups import BENCH, slot_layout, team_lineups
+from api.services.lineups import BENCH, scaled_change, slot_layout, team_lineups
 from api.services.round_points import (
     PointsLine,
     postseason_stats,
@@ -29,14 +29,7 @@ from api.utils.calculations.standings_utils import ROUND_MULTIPLIER_FIELDS
 
 
 def _scaled(change: ScoreChange | None, multiplier: float) -> ScoreChange | None:
-    """A correction in raw points, restated as counted points like the breakdown's."""
-    if change is None:
-        return None
-    return ScoreChange(
-        previous_points=round(change.previous_points * multiplier, 2),
-        new_points=round(change.new_points * multiplier, 2),
-        changed_at=change.changed_at,
-    )
+    return scaled_change(change, multiplier) if change else None
 
 
 def _player(
