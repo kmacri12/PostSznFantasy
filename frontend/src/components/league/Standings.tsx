@@ -28,21 +28,21 @@ const placeColor = (row: StandingsRow, finished: boolean) =>
   finished ? PLACE_COLORS[(row.rank ?? 0) - 1] : undefined;
 
 /** The current-round color, shared by the header chip, the badge and the round cell. */
-const currentRoundColor = "success.main";
+const currentRoundColor = tokens.accent;
 
 const Badge = ({ children }: { children: string }) => (
   <Box
     component="span"
-    sx={(theme) => ({
+    sx={{
       display: "inline-block",
       px: 0.75,
       borderRadius: 1.5,
       fontSize: 12,
       fontWeight: 600,
       color: currentRoundColor,
-      bgcolor: alpha(theme.palette.success.main, 0.12),
-      border: `1px solid ${alpha(theme.palette.success.main, 0.45)}`,
-    })}
+      bgcolor: alpha(tokens.accent, 0.12),
+      border: `1px solid ${alpha(tokens.accent, 0.45)}`,
+    }}
   >
     {children}
   </Box>
@@ -138,7 +138,7 @@ const PhoneRow = ({
             pr: 1.5,
             pl: 0.5,
             cursor: "pointer",
-            "&:focus-visible": { outline: `2px solid ${tokens.gold}`, outlineOffset: -2 },
+            "&:focus-visible": { outline: `2px solid ${tokens.accent}`, outlineOffset: -2 },
           }}
         >
           <Box sx={{ flexGrow: 1, minWidth: 0 }}>

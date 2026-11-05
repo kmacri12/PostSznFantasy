@@ -1,9 +1,10 @@
-import { alpha, Box, Button, Typography } from "@mui/material";
+import { Box, Button, Typography } from "@mui/material";
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { useDraft, useStandings } from "../../api/queries";
 import type { SeasonOverview, Standings } from "../../api/types";
 import { useSeasonContext } from "../../contexts/SeasonContext";
+import { tokens } from "../../theme";
 import { ROUND_LABELS } from "../team/lineup";
 import { formatCountdown, formatDraftTime, ordinal, useNow } from "./countdown";
 import InviteLinkButton from "./InviteLinkButton";
@@ -13,15 +14,15 @@ const plural = (count: number, word: string) => `${count} ${word}${count === 1 ?
 
 const Block = ({ children }: { children: ReactNode }) => (
   <Box
-    sx={(theme) => ({
+    sx={{
       borderRadius: 2,
       p: 2,
-      bgcolor: alpha(theme.palette.success.main, 0.12),
-      border: `1px solid ${alpha(theme.palette.success.main, 0.4)}`,
+      bgcolor: tokens.accentSurface,
+      border: `1px solid ${tokens.accentBorder}`,
       display: "flex",
       flexDirection: "column",
       gap: 0.5,
-    })}
+    }}
   >
     {children}
   </Box>
@@ -34,7 +35,7 @@ const Title = ({ children }: { children: ReactNode }) => (
 );
 
 const Detail = ({ children }: { children: ReactNode }) => (
-  <Typography variant="body2" color="text.secondary">
+  <Typography variant="body2" sx={{ color: tokens.accentSoft }}>
     {children}
   </Typography>
 );

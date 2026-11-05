@@ -87,7 +87,7 @@ const HeadlineAward = ({ title, award }: { title: string; award: AwardWinner }) 
       {title}
     </Typography>
     <Typography sx={{ fontWeight: 600, overflowWrap: "anywhere" }}>{award.playerName}</Typography>
-    <Typography variant="caption" sx={{ color: "success.main" }}>
+    <Typography variant="caption" sx={{ color: tokens.accent }}>
       {points(award.value)}
     </Typography>
   </Card>
@@ -142,7 +142,7 @@ const PositionAwards = ({ awards }: { awards: AwardWinner[] }) => {
           sx={{ borderTop: 1, borderColor: "divider", pt: 1 }}
         >
           <Typography
-            sx={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, color: "success.main" }}
+            sx={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, color: tokens.accent }}
           >
             {position}
           </Typography>

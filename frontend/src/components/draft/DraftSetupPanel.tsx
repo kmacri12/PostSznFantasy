@@ -116,7 +116,7 @@ const OrderSlot = ({ index, children }: OrderSlotProps) => {
         height: 56,
         borderRadius: 1,
         border: "1px dashed",
-        borderColor: isOver ? tokens.gold : "divider",
+        borderColor: isOver ? tokens.accent : "divider",
         bgcolor: isOver ? "rgba(251,191,36,.08)" : "transparent",
       }}
     >
