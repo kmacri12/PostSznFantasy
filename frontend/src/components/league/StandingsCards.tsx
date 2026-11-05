@@ -97,7 +97,7 @@ const StandingsCard = ({ row, rank, note, round }: StandingsCardProps) => {
             pr: 1.5,
             pl: 0.5,
             cursor: "pointer",
-            "&:focus-visible": { outline: `2px solid ${tokens.gold}`, outlineOffset: -2 },
+            "&:focus-visible": { outline: `2px solid ${tokens.accent}`, outlineOffset: -2 },
           }}
         >
           <Box sx={{ flexGrow: 1, minWidth: 0 }}>
@@ -109,7 +109,7 @@ const StandingsCard = ({ row, rank, note, round }: StandingsCardProps) => {
             </Typography>
           </Box>
           <Box sx={{ textAlign: "right" }}>
-            <Typography variant="h6" sx={{ color: tokens.gold, lineHeight: 1 }}>
+            <Typography variant="h6" sx={{ color: tokens.accent, lineHeight: 1 }}>
               {row.total}
             </Typography>
             <Typography variant="caption" color="text.secondary">

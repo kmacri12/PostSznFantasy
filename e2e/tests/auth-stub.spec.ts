@@ -22,7 +22,7 @@ test("the API accepts a stub token and rejects everything else", async ({ reques
 test("the app boots signed in from a stub session", async ({ page, context }) => {
   await signInAs(context, "stub-ui-user");
   await page.goto("/");
-  await page.getByRole("button", { name: /open menu/i }).click();
-  await expect(page.getByText("Your leagues")).toBeVisible();
+  await page.getByRole("button", { name: "Account menu" }).click();
+  await expect(page.getByText("stub-ui-user@e2e.test")).toBeVisible();
   await expect(page.getByRole("button", { name: /sign in/i })).toHaveCount(0);
 });

@@ -36,11 +36,7 @@ const logger = createLogger("CreateLeaguePage");
 
 const STEPS = ["League", "Roster", "Scoring", "Review"];
 
-const CreateLeaguePage = ({
-  onLeagueCreated,
-}: {
-  onLeagueCreated: (leagueId: number) => Promise<void>;
-}) => {
+const CreateLeaguePage = () => {
   const navigate = useNavigate();
   const [leagueName, setLeagueName] = useState("MyLeague");
   const [step, setStep] = useState(0);
@@ -99,7 +95,6 @@ const CreateLeaguePage = ({
         );
         return;
       }
-      await onLeagueCreated(createdLeagueId);
       navigate(leaguePath(createdLeagueId));
     } catch (error) {
       logger.error("Error creating league:", error);

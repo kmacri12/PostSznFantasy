@@ -1,5 +1,6 @@
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import {
+  alpha,
   Box,
   Button,
   Card,
@@ -218,14 +219,14 @@ const LandingPage = ({
           <>
             <Chip
               label="NFL postseason only"
-              sx={{ mb: 3, bgcolor: "rgba(251,191,36,.12)", color: tokens.gold }}
+              sx={{ mb: 3, bgcolor: alpha(tokens.accent, 0.12), color: tokens.accent }}
             />
             <Typography variant="h2" sx={{ fontSize: { xs: 40, md: 64 }, lineHeight: 1.05 }}>
               Draft once. <br />
               <Box
                 component="span"
                 sx={{
-                  background: `linear-gradient(135deg, ${tokens.gold}, #f97316)`,
+                  background: `linear-gradient(135deg, ${tokens.accent}, ${tokens.cyan})`,
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
                 }}

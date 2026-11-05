@@ -1,19 +1,44 @@
 import { alpha, createTheme } from "@mui/material/styles";
 
+/** The Claude Design mockup palette (#258): dark surfaces with one green accent. */
 export const tokens = {
-  bg: "#0f172a",
-  surface: "#111c33",
-  border: "#1e293b",
-  borderStrong: "#334155",
-  text: "#e2e8f0",
-  muted: "#94a3b8",
+  bg: "#0f1218",
+  surface: "#171b23",
+  surfaceRaised: "#1c212b",
+  border: "#232834",
+  borderStrong: "#2f3643",
+  text: "#e8eaf0",
+  /** Secondary body text, between `text` and `muted`. */
+  textSoft: "#a7afbd",
+  muted: "#8b94a5",
   /** 3.7:1 on bg, the WCAG 1.4.11 minimum for form control boundaries. */
-  inputBorder: "#64748b",
+  inputBorder: "#667085",
+  accent: "#34d399",
+  /** Text and icons on an accent fill. */
+  accentInk: "#06281c",
+  accentSurface: "#12302a",
+  accentBorder: "#1f5a49",
+  accentSoft: "#a8d9c8",
+  /** Medal colour for first place. */
   gold: "#fbbf24",
+  /** Cautions such as injury tags, and live-game tags. */
+  warning: "#d9c36a",
   green: "#22c55e",
-  red: "#ef4444",
+  /** Errors and the new-activity dot. */
+  red: "#f0626b",
+  /** Destructive rows such as Sign out. */
+  redSoft: "#f0a0a5",
   cyan: "#22d3ee",
 };
+
+export const radii = { mark: 8, button: 12, card: 14 };
+
+/** Bottom tab bar height in px, without the iPhone safe-area inset. */
+export const TAB_BAR_HEIGHT = 64;
+/** Width of the desktop navigation rail in px. */
+export const RAIL_WIDTH = 232;
+/** Header height in px. */
+export const HEADER_HEIGHT = 56;
 
 /** Minimum touch target in px (WCAG 2.5.5 / mobile-first rule in AGENTS.md). */
 const TOUCH_TARGET = 44;
@@ -22,13 +47,13 @@ export const glassCard = {
   backgroundColor: alpha(tokens.surface, 0.7),
   backdropFilter: "blur(12px)",
   border: `1px solid ${tokens.border}`,
-  borderRadius: 2,
+  borderRadius: `${radii.card}px`,
 };
 
 const theme = createTheme({
   palette: {
     mode: "dark",
-    primary: { main: tokens.gold, contrastText: "#1c1203" },
+    primary: { main: tokens.accent, contrastText: tokens.accentInk },
     secondary: { main: tokens.cyan },
     success: { main: tokens.green },
     error: { main: tokens.red },
@@ -60,7 +85,7 @@ const theme = createTheme({
     MuiButtonBase: {
       styleOverrides: {
         root: {
-          "&.Mui-focusVisible": { outline: `2px solid ${tokens.gold}`, outlineOffset: 2 },
+          "&.Mui-focusVisible": { outline: `2px solid ${tokens.accent}`, outlineOffset: 2 },
         },
       },
     },
@@ -72,22 +97,9 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           minHeight: TOUCH_TARGET,
-          borderRadius: 8,
-          transition: "transform .15s, box-shadow .15s",
+          borderRadius: radii.button,
         },
       },
-      variants: [
-        {
-          props: { variant: "contained", color: "primary" },
-          style: {
-            background: `linear-gradient(135deg, ${tokens.gold}, #f97316)`,
-            "&:hover": {
-              transform: "translateY(-1px)",
-              boxShadow: `0 6px 20px ${alpha(tokens.gold, 0.35)}`,
-            },
-          },
-        },
-      ],
     },
     MuiChip: {
       styleOverrides: {

@@ -34,8 +34,8 @@ test.describe("invite and join", () => {
     await signInAs(context, host.uid);
 
     await page.goto(seasonUrl(league));
-    await page.getByRole("button", { name: "Revoke" }).click();
-    await expect(page.getByRole("button", { name: "Revoke" })).toHaveCount(0);
+    await page.getByRole("button", { name: "Revoke", exact: true }).click();
+    await expect(page.getByRole("button", { name: "Revoke", exact: true })).toHaveCount(0);
 
     await page.goto(`/join/${code}`);
     await expect(page.getByRole("alert")).toBeVisible();
