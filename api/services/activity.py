@@ -14,8 +14,14 @@ from typing import Any
 from sqlalchemy import ColumnElement, and_, func, or_, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import InstrumentedAttribute
 
-from api.db.models.activity import LEAGUE_FEED, ActivityEvent, ActivityView
+from api.db.models.activity import (
+    LEAGUE_FEED,
+    ActivityEvent,
+    ActivityView,
+    LeagueMessage,
+)
 from api.db.models.league import LeagueMember, Season, Team
 from api.db.models.user import User
 from api.models.activity_models import (
@@ -28,8 +34,8 @@ from api.models.activity_models import (
 from api.models.enums import ActivityKind
 from api.services.live_leagues import live_league_ids
 
-# What lights the dot on the league nav and the league feed. Ordinary lineup moves are
-# in the feed but happen too often to count as news; a team's own feed counts them.
+# What lights the dot on the league nav and the league feed, besides chat messages.
+# Ordinary lineup moves happen too often to count as news; a team's own feed counts them.
 LEAGUE_DOT_KINDS = [
     ActivityKind.COMMISSIONER_OVERRIDE.value,
     ActivityKind.STAT_CORRECTION.value,
@@ -37,6 +43,10 @@ LEAGUE_DOT_KINDS = [
     ActivityKind.MEMBERSHIP_JOINED.value,
     ActivityKind.MEMBERSHIP_LEFT.value,
     ActivityKind.ROLE_CHANGED.value,
+    ActivityKind.DRAFT_ORDER_RANDOMIZED.value,
+    ActivityKind.DRAFT_ORDER_CHANGED.value,
+    ActivityKind.DRAFT_STARTED.value,
+    ActivityKind.DRAFT_COMPLETED.value,
 ]
 # Who is in the league is news to a newcomer too, so these ignore the "before they
 # joined" rule that hides older overrides and corrections.
@@ -112,11 +122,12 @@ def _scope(season_id: int, team_id: int | None) -> ColumnElement[bool]:
 
 
 @dataclass(frozen=True)
-class _Baseline:
+class Baseline:
     """What a member counts as already seen in one feed."""
 
     viewer_id: int
     last_event_id: int
+    last_message_id: int
     joined_at: datetime
 
     def is_new(self, event: ActivityEvent) -> bool:
@@ -124,6 +135,13 @@ class _Baseline:
             event.id > self.last_event_id
             and (event.created_at > self.joined_at or event.kind in MEMBERSHIP_KINDS)
             and event.actor_user_id != self.viewer_id
+        )
+
+    def message_is_new(self, message: LeagueMessage) -> bool:
+        return (
+            message.id > self.last_message_id
+            and message.created_at > self.joined_at
+            and message.author_user_id != self.viewer_id
         )
 
     @property
@@ -140,24 +158,58 @@ class _Baseline:
             ),
         )
 
-
-async def _baseline(
-    db: AsyncSession, viewer_id: int, season_id: int, team_id: int | None
-) -> _Baseline:
-    last = await db.scalar(
-        select(ActivityView.last_event_id).where(
-            ActivityView.user_id == viewer_id,
-            ActivityView.season_id == season_id,
-            ActivityView.team_id == (team_id if team_id is not None else LEAGUE_FEED),
+    @property
+    def message_is_new_clause(self) -> ColumnElement[bool]:
+        return and_(
+            LeagueMessage.id > self.last_message_id,
+            LeagueMessage.created_at > self.joined_at,
+            LeagueMessage.deleted_at.is_(None),
+            or_(
+                LeagueMessage.author_user_id.is_(None),
+                LeagueMessage.author_user_id != self.viewer_id,
+            ),
         )
-    )
+
+
+async def load_baseline(
+    db: AsyncSession, viewer_id: int, season_id: int, team_id: int | None
+) -> Baseline:
+    seen = (
+        await db.execute(
+            select(ActivityView.last_event_id, ActivityView.last_message_id).where(
+                ActivityView.user_id == viewer_id,
+                ActivityView.season_id == season_id,
+                ActivityView.team_id
+                == (team_id if team_id is not None else LEAGUE_FEED),
+            )
+        )
+    ).one_or_none()
     joined_at = await db.scalar(
         select(LeagueMember.joined_at)
         .join(Season, Season.league_id == LeagueMember.league_id)
         .where(Season.id == season_id, LeagueMember.user_id == viewer_id)
     )
-    return _Baseline(
-        viewer_id, last or 0, joined_at or datetime.min.replace(tzinfo=UTC)
+    return Baseline(
+        viewer_id,
+        seen.last_event_id if seen else 0,
+        seen.last_message_id if seen else 0,
+        joined_at or datetime.min.replace(tzinfo=UTC),
+    )
+
+
+def event_out(
+    event: ActivityEvent, team_name: str | None, baseline: Baseline
+) -> ActivityEventOut:
+    return ActivityEventOut(
+        id=event.id,
+        kind=ActivityKind(event.kind),
+        created_at=event.created_at,
+        team_id=event.team_id,
+        team_name=team_name,
+        actor_user_id=event.actor_user_id,
+        actor_name=event.actor_name,
+        payload=event.payload,
+        is_new=baseline.is_new(event),
     )
 
 
@@ -172,7 +224,7 @@ async def feed(
 ) -> ActivityFeed:
     """A page of the league's feed, or of one team's, newest first."""
     limit = max(1, min(limit, MAX_PAGE_SIZE))
-    baseline = await _baseline(db, viewer_id, season_id, team_id)
+    baseline = await load_baseline(db, viewer_id, season_id, team_id)
     query = (
         select(ActivityEvent, Team.name)
         .outerjoin(Team, Team.id == ActivityEvent.team_id)
@@ -202,23 +254,14 @@ async def feed(
         select(ActivityEvent.id).where(_scope(season_id, team_id), lights_dot).limit(1)
     )
     return ActivityFeed(
-        events=[
-            ActivityEventOut(
-                id=event.id,
-                kind=ActivityKind(event.kind),
-                created_at=event.created_at,
-                team_id=event.team_id,
-                team_name=team_name,
-                actor_user_id=event.actor_user_id,
-                actor_name=event.actor_name,
-                payload=event.payload,
-                is_new=baseline.is_new(event),
-            )
-            for event, team_name in page
-        ],
+        events=[event_out(event, team_name, baseline) for event, team_name in page],
         next_before=page[-1][0].id if len(rows) > limit else None,
         has_new=has_new is not None,
     )
+
+
+def _seen(newest: int | None, up_to: int | None) -> int:
+    return (newest or 0) if up_to is None else min(up_to, newest or 0)
 
 
 async def mark_viewed(
@@ -228,20 +271,32 @@ async def mark_viewed(
     *,
     team_id: int | None = None,
     up_to: int | None = None,
+    up_to_message: int | None = None,
 ) -> None:
-    """Remember the viewer has seen the feed up to `up_to` (default: everything now)."""
+    """Remember the viewer has seen the feed up to `up_to` (default: everything now).
+    The league feed's one marker covers its chat messages too."""
     newest = await db.scalar(
         select(func.max(ActivityEvent.id)).where(_scope(season_id, team_id))
     )
-    if newest is None:
-        return
-    seen = newest if up_to is None else min(up_to, newest)
-    row = insert(ActivityView).values(
-        user_id=viewer_id,
-        season_id=season_id,
-        team_id=team_id if team_id is not None else LEAGUE_FEED,
-        last_event_id=seen,
+    newest_message = (
+        await db.scalar(
+            select(func.max(LeagueMessage.id)).where(
+                LeagueMessage.season_id == season_id
+            )
+        )
+        if team_id is None
+        else None
     )
+    if newest is None and newest_message is None:
+        return
+    values = {
+        "user_id": viewer_id,
+        "season_id": season_id,
+        "team_id": team_id if team_id is not None else LEAGUE_FEED,
+        "last_event_id": _seen(newest, up_to),
+        "last_message_id": _seen(newest_message, up_to_message),
+    }
+    row = insert(ActivityView).values(**values)
     await db.execute(
         row.on_conflict_do_update(
             index_elements=[
@@ -252,33 +307,41 @@ async def mark_viewed(
             set_={
                 "last_event_id": func.greatest(
                     ActivityView.last_event_id, row.excluded.last_event_id
-                )
+                ),
+                "last_message_id": func.greatest(
+                    ActivityView.last_message_id, row.excluded.last_message_id
+                ),
             },
         )
     )
 
 
+def _not_by(
+    column: InstrumentedAttribute[int | None], user_id: int
+) -> ColumnElement[bool]:
+    return or_(column.is_(None), column != user_id)
+
+
 async def leagues_with_new_activity(db: AsyncSession, viewer_id: int) -> set[int]:
-    """Leagues with a season feed holding events the member hasn't seen (nav dot)."""
-    rows = await db.execute(
+    """Leagues with a season feed holding events or messages the member hasn't seen
+    (nav dot)."""
+    member = and_(
+        LeagueMember.league_id == Season.league_id,
+        LeagueMember.user_id == viewer_id,
+        LeagueMember.left_at.is_(None),
+    )
+    seen = and_(
+        ActivityView.user_id == viewer_id,
+        ActivityView.team_id == LEAGUE_FEED,
+    )
+    events = (
         select(Season.league_id)
         .join(ActivityEvent, ActivityEvent.season_id == Season.id)
         .where(Season.league_id.in_(live_league_ids()))
-        .join(
-            LeagueMember,
-            and_(
-                LeagueMember.league_id == Season.league_id,
-                LeagueMember.user_id == viewer_id,
-                LeagueMember.left_at.is_(None),
-            ),
-        )
+        .join(LeagueMember, member)
         .outerjoin(
             ActivityView,
-            and_(
-                ActivityView.user_id == viewer_id,
-                ActivityView.season_id == ActivityEvent.season_id,
-                ActivityView.team_id == LEAGUE_FEED,
-            ),
+            and_(seen, ActivityView.season_id == ActivityEvent.season_id),
         )
         .where(
             ActivityEvent.kind.in_(LEAGUE_DOT_KINDS),
@@ -287,13 +350,26 @@ async def leagues_with_new_activity(db: AsyncSession, viewer_id: int) -> set[int
                 ActivityEvent.created_at > LeagueMember.joined_at,
                 ActivityEvent.kind.in_(MEMBERSHIP_KINDS),
             ),
-            or_(
-                ActivityEvent.actor_user_id.is_(None),
-                ActivityEvent.actor_user_id != viewer_id,
-            ),
+            _not_by(ActivityEvent.actor_user_id, viewer_id),
         )
-        .distinct()
     )
+    messages = (
+        select(Season.league_id)
+        .join(LeagueMessage, LeagueMessage.season_id == Season.id)
+        .where(Season.league_id.in_(live_league_ids()))
+        .join(LeagueMember, member)
+        .outerjoin(
+            ActivityView,
+            and_(seen, ActivityView.season_id == LeagueMessage.season_id),
+        )
+        .where(
+            LeagueMessage.deleted_at.is_(None),
+            LeagueMessage.id > func.coalesce(ActivityView.last_message_id, 0),
+            LeagueMessage.created_at > LeagueMember.joined_at,
+            _not_by(LeagueMessage.author_user_id, viewer_id),
+        )
+    )
+    rows = await db.execute(events.union(messages))
     return set(rows.scalars())
 
 

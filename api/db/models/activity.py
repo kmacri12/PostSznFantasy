@@ -9,6 +9,7 @@ from sqlalchemy import (
     Index,
     Integer,
     String,
+    Text,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
@@ -71,3 +72,48 @@ class ActivityView(Base):
     )
     team_id: Mapped[int] = mapped_column(Integer, primary_key=True, default=LEAGUE_FEED)
     last_event_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    # Chat messages share the feed's one dot, so the newest one seen is kept alongside.
+    last_message_id: Mapped[int] = mapped_column(
+        BigInteger, nullable=False, default=0, server_default="0"
+    )
+
+
+class LeagueMessage(Base):
+    """One chat message in a season's feed. Deleting is soft: the row stays, hidden.
+
+    `author_name` is snapshotted like an event's actor name. `gif_url` is stored as
+    given once its host passed the `GIF_ALLOWED_HOSTS` allowlist.
+    """
+
+    __tablename__ = "league_messages"
+    __table_args__ = (
+        CheckConstraint("char_length(body) <= 2000", name="ck_league_messages_body"),
+        CheckConstraint(
+            "body <> '' OR gif_url IS NOT NULL", name="ck_league_messages_not_empty"
+        ),
+        Index("ix_league_messages_season_id_id", "season_id", "id"),
+        {"schema": "fantasy"},
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    league_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("fantasy.leagues.id", ondelete="CASCADE"), nullable=False
+    )
+    season_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("fantasy.seasons.id", ondelete="CASCADE"), nullable=False
+    )
+    author_user_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("fantasy.users.id", ondelete="SET NULL"), nullable=True
+    )
+    author_name: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    body: Mapped[str] = mapped_column(Text, nullable=False)
+    gif_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC)
+    )
+    deleted_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    deleted_by: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("fantasy.users.id", ondelete="SET NULL"), nullable=True
+    )

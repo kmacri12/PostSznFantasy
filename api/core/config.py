@@ -55,7 +55,17 @@ class Settings(BaseSettings):
     # Comma-separated Supabase user ids allowed to call /api/admin/*; empty means nobody.
     admin_supabase_uids: Annotated[list[str], NoDecode] = []
 
-    @field_validator("admin_supabase_uids", "cors_origins", mode="before")
+    # Chat accepts a GIF only from these hosts (and their subdomains), stored as given.
+    # No provider API is wired in yet; the frontend picks one and extends this list.
+    gif_allowed_hosts: Annotated[list[str], NoDecode] = [
+        "giphy.com",
+        "tenor.com",
+        "klipy.com",
+    ]
+
+    @field_validator(
+        "admin_supabase_uids", "cors_origins", "gif_allowed_hosts", mode="before"
+    )
     @classmethod
     def _split_csv(cls, value: object) -> object:
         if isinstance(value, str):

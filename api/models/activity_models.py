@@ -96,6 +96,53 @@ class RoleChangedPayload(BaseSchema):
     role: LeagueRole
 
 
+class DraftOrderSlot(BaseSchema):
+    position: int
+    team_id: int
+    team_name: str
+
+
+class DraftOrderRandomizedPayload(BaseSchema):
+    """The commissioner shuffled the draft order; `order` is the result, first pick first."""
+
+    kind: ClassVar[ActivityKind] = ActivityKind.DRAFT_ORDER_RANDOMIZED
+
+    order: list[DraftOrderSlot]
+
+
+class DraftOrderMove(BaseSchema):
+    """One team's slot before and after a manual change; None is no slot."""
+
+    team_id: int
+    team_name: str
+    from_position: int | None
+    to_position: int | None
+
+
+class DraftOrderChangedPayload(BaseSchema):
+    """The commissioner changed the order by hand; `moves` lists every team whose slot
+    differs, positions counted from 1."""
+
+    kind: ClassVar[ActivityKind] = ActivityKind.DRAFT_ORDER_CHANGED
+
+    moves: list[DraftOrderMove]
+
+
+class DraftStartedPayload(BaseSchema):
+    kind: ClassVar[ActivityKind] = ActivityKind.DRAFT_STARTED
+
+    team_count: int
+    rounds: int
+
+
+class DraftCompletedPayload(BaseSchema):
+    """The last pick was made; the system's doing, so the event has no actor."""
+
+    kind: ClassVar[ActivityKind] = ActivityKind.DRAFT_COMPLETED
+
+    picks: int
+
+
 ActivityPayload = (
     LineupMovePayload
     | CommissionerOverridePayload
@@ -105,6 +152,10 @@ ActivityPayload = (
     | MembershipJoinedPayload
     | MembershipLeftPayload
     | RoleChangedPayload
+    | DraftOrderRandomizedPayload
+    | DraftOrderChangedPayload
+    | DraftStartedPayload
+    | DraftCompletedPayload
 )
 
 
