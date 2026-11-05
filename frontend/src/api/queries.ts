@@ -11,6 +11,7 @@ import type {
   LeagueInfo,
   LeagueSettings,
   PastLeague,
+  PlayerSeasonLine,
   PlayerSummary,
   SeasonOverview,
   SeasonRecap,
@@ -18,7 +19,6 @@ import type {
   Standings,
   SyncResult,
   SyncStatus,
-  TeamBreakdown,
   TeamDetails,
   TeamSummary,
 } from "./types";
@@ -36,7 +36,6 @@ export const keys = {
   standings: (seasonId: Id) => ["standings", String(seasonId)] as const,
   teams: (seasonId: Id) => ["teams", String(seasonId)] as const,
   team: (teamId: Id) => ["team", String(teamId)] as const,
-  breakdown: (teamId: Id) => ["breakdown", String(teamId)] as const,
   settings: (seasonId: Id) => ["settings", String(seasonId)] as const,
   draft: (seasonId: Id) => ["draft", String(seasonId)] as const,
   invite: (leagueId: Id) => ["invite", String(leagueId)] as const,
@@ -119,14 +118,6 @@ export const useRecap = (seasonId: Id | undefined) =>
     enabled: seasonId !== undefined,
   });
 
-export const useTeamBreakdown = (teamId: Id | undefined) =>
-  useQuery({
-    queryKey: keys.breakdown(teamId ?? ""),
-    queryFn: ({ signal }) => get<TeamBreakdown>(`/api/teams/${teamId}/breakdown`, signal),
-    enabled: teamId !== undefined,
-    refetchInterval: STANDINGS_REFRESH_MS,
-  });
-
 export const useLeagueTeams = (seasonId: Id | undefined) =>
   useQuery({
     queryKey: keys.teams(seasonId ?? ""),
@@ -186,6 +177,21 @@ export const usePlayerSeasonStats = <T>(season: string | undefined, seasonId: Id
       return get<T[]>(`/api/players/player-season-stats?${params}`, signal);
     },
     enabled: !!season,
+    staleTime: 5 * 60_000,
+  });
+
+/** One player's regular season stats (the player sheet); the latest season unless given. */
+export const usePlayerSeasonLine = (playerId: Id | undefined) =>
+  useQuery({
+    queryKey: [...keys.seasonStats, "line", playerId ?? "none"],
+    queryFn: async ({ signal }) =>
+      (
+        await get<PlayerSeasonLine[]>(
+          `/api/players/player-season-stats?playerId=${playerId}`,
+          signal,
+        )
+      )[0] ?? null,
+    enabled: playerId !== undefined,
     staleTime: 5 * 60_000,
   });
 
@@ -371,10 +377,8 @@ export const useMoveInLineup = (teamId: Id | undefined) => {
     onSuccess: (data) => {
       queryClient.setQueryData(keys.team(teamId ?? ""), data);
       queryClient.invalidateQueries({ queryKey: ["activity"] });
-      // Only starters score, so a move changes the standings and the breakdown.
-      for (const key of ["standings", "breakdown"]) {
-        queryClient.invalidateQueries({ queryKey: [key] });
-      }
+      // Only starters score, so a move changes the standings.
+      queryClient.invalidateQueries({ queryKey: ["standings"] });
     },
   });
 };
@@ -467,7 +471,7 @@ export const useRefreshLive = () => {
   return useMutation({
     mutationFn: async () => (await api.post<{ polled: number }>("/api/admin/refresh/live")).data,
     onSuccess: () => {
-      for (const key of ["sync-status", "standings", "team", "breakdown", "player-season-stats"]) {
+      for (const key of ["sync-status", "standings", "team", "player-season-stats"]) {
         queryClient.invalidateQueries({ queryKey: [key] });
       }
     },

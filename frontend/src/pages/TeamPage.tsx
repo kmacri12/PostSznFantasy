@@ -3,15 +3,12 @@ import {
   Alert,
   Box,
   Button,
-  Chip,
   Container,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   IconButton,
-  Tab,
-  Tabs,
   TextField,
   Typography,
 } from "@mui/material";
@@ -22,26 +19,29 @@ import {
   needsOverrideConfirmation,
   useMoveInLineup,
   useRenameTeam,
+  useStandings,
   useTeam,
 } from "../api/queries";
 import type { TeamDetails } from "../api/types";
-import ActivityFeed from "../components/activity/ActivityFeed";
 import DataFreshness from "../components/common/DataFreshness";
 import EmptyState from "../components/common/EmptyState";
 import { mutationError } from "../components/common/friendlyError";
 import QueryBoundary from "../components/common/QueryBoundary";
 import ArchivedNotice from "../components/league/ArchivedNotice";
-import LineupList from "../components/team/LineupList";
+import { formatPoints } from "../components/league/standingsView";
+import LineupRound from "../components/team/LineupRound";
 import {
   defaultRound,
   emptyLineupWarning,
   formatKickoff,
   ROUND_LABELS,
-  ROUND_TAB_LABELS,
 } from "../components/team/lineup";
 import OverrideDialog from "../components/team/OverrideDialog";
+import PlayerSheet from "../components/team/PlayerSheet";
 import PreDraftRoster from "../components/team/PreDraftRoster";
+import RoundStrip from "../components/team/RoundStrip";
 import { useSeasonContext } from "../contexts/SeasonContext";
+import { tokens } from "../theme";
 
 const RenameDialog = ({ team, onClose }: { team: TeamDetails; onClose: () => void }) => {
   const [name, setName] = useState(team.name);
@@ -76,7 +76,7 @@ const RenameDialog = ({ team, onClose }: { team: TeamDetails; onClose: () => voi
   );
 };
 
-/** Re-renders every 30s so the banner clears the moment a kickoff passes. */
+/** Re-renders every 30s so the banner clears the moment a game starts. */
 const useNow = () => {
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
@@ -94,12 +94,16 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
   const canSetLineup = team.canSetLineup && season.canEdit;
   const [renaming, setRenaming] = useState(false);
   const now = useNow();
-  const [round, setRound] = useState(() => defaultRound(team.lineups, now));
+  const standing = useStandings(seasonId).data?.teams.find((row) => row.teamId === teamId);
+  const currentRound = defaultRound(team.lineups, now);
+  const [round, setRound] = useState(currentRound);
+  const [sheetPlayerId, setSheetPlayerId] = useState<number | null>(null);
   const moveInLineup = useMoveInLineup(teamId);
   // A locked move the server wants confirmed first; held until the commissioner answers.
   const [pendingOverride, setPendingOverride] = useState<LineupMoveRequest | null>(null);
   const move = (request: LineupMoveRequest) =>
     moveInLineup.mutate(request, {
+      onSuccess: () => setSheetPlayerId(null),
       onError: (error) => {
         if (needsOverrideConfirmation(error)) setPendingOverride(request);
       },
@@ -110,93 +114,99 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
 
   const lineup = team.lineups.find((entry) => entry.round === round);
   const warning = emptyLineupWarning(team.lineups, team.roster.length, now);
-  const aliveCount = team.roster.filter((player) => player.isActive).length;
+  const sheetPlayer =
+    lineup && sheetPlayerId !== null
+      ? [
+          ...lineup.slots.map((slot) => slot.player),
+          ...lineup.unassigned,
+          ...lineup.eliminated,
+        ].find((player) => player?.id === sheetPlayerId)
+      : null;
+  const isMine = season.myTeamId === team.id;
+  const owner = isMine ? "You" : team.ownerName || "Unclaimed";
 
   return (
-    <Container maxWidth="md" sx={{ py: { xs: 2, sm: 4 } }}>
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-        <Typography variant="h4">{team.name}</Typography>
-        {canEdit && (
-          <IconButton aria-label="Rename team" onClick={() => setRenaming(true)}>
-            <EditIcon />
-          </IconButton>
-        )}
-      </Box>
-      <Box sx={{ display: "flex", gap: 1, alignItems: "center", mt: 0.5, mb: 2, flexWrap: "wrap" }}>
-        <Typography color="text.secondary">Owner: {team.ownerName || "Unclaimed"}</Typography>
-        <Button component={Link} to={paths.teamPoints(team.id)} size="small">
-          Points by round
-        </Button>
-        {team.roster.length > 0 && (
-          <Chip
-            size="small"
-            color="success"
-            variant="outlined"
-            label={`${aliveCount} of ${team.roster.length} alive`}
-          />
+    <Container
+      maxWidth="md"
+      sx={{ py: { xs: 2, sm: 3 }, display: "flex", flexDirection: "column", gap: 1.5 }}
+    >
+      <Box
+        sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: 2 }}
+      >
+        <Box sx={{ minWidth: 0 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+            <Typography
+              variant="h1"
+              sx={{ fontSize: { xs: 20, md: 26 }, fontWeight: 700, overflowWrap: "anywhere" }}
+            >
+              {team.name}
+            </Typography>
+            {canEdit && (
+              <IconButton aria-label="Rename team" onClick={() => setRenaming(true)} size="small">
+                <EditIcon fontSize="small" />
+              </IconButton>
+            )}
+          </Box>
+          <Typography component="span" sx={{ fontSize: { xs: 12, md: 13 }, color: tokens.muted }}>
+            {owner}
+            {standing?.rank != null && ` · rank ${standing.rank}`}
+          </Typography>
+        </Box>
+        {standing && (
+          <Box sx={{ textAlign: "right", flexShrink: 0 }}>
+            <Typography sx={{ fontSize: { xs: 20, md: 26 }, fontWeight: 700, lineHeight: 1.2 }}>
+              {formatPoints(standing.total)}
+            </Typography>
+            <Typography component="span" sx={{ fontSize: { xs: 12, md: 13 }, color: tokens.muted }}>
+              total
+            </Typography>
+          </Box>
         )}
       </Box>
 
-      <Box sx={{ mb: 2 }}>
-        <DataFreshness />
-      </Box>
+      <DataFreshness />
       {archived && <ArchivedNotice what="names and lineups" />}
       {team.roster.length === 0 && <PreDraftRoster seasonId={seasonId} />}
       {team.roster.length === 0 && (
-        <Box sx={{ mb: 2 }}>
-          <EmptyState
-            title="No players yet"
-            description="This lineup fills in as the draft happens."
-            action={
-              <Button component={Link} to={paths.draft} variant="outlined">
-                Open the draft room
-              </Button>
-            }
-          />
-        </Box>
+        <EmptyState
+          title="No players yet"
+          description="This lineup fills in as the draft happens."
+          action={
+            <Button component={Link} to={paths.draft} variant="outlined">
+              Open the draft room
+            </Button>
+          }
+        />
       )}
       {warning && canSetLineup && (
-        <Alert severity="warning" sx={{ mb: 2 }}>
+        <Alert severity="warning">
           {ROUND_LABELS[warning.round]}: {warning.emptyStarterSlots} empty starter{" "}
-          {warning.emptyStarterSlots === 1 ? "slot" : "slots"}. First kickoff{" "}
+          {warning.emptyStarterSlots === 1 ? "slot" : "slots"}. First game{" "}
           {formatKickoff(warning.firstKickoff)}.
         </Alert>
       )}
-      {lineup && (
+      {lineup && team.roster.length > 0 && (
         <>
-          <Tabs
-            value={round}
-            onChange={(_, value: number) => setRound(value)}
-            variant="fullWidth"
-            aria-label="Round"
-            sx={{ mb: 1.5, maxWidth: 760 }}
-          >
-            {team.lineups.map((entry) => (
-              <Tab
-                key={entry.round}
-                value={entry.round}
-                label={ROUND_TAB_LABELS[entry.round]}
-                aria-label={ROUND_LABELS[entry.round]}
-                sx={{ minWidth: 0, px: 0.5, fontSize: "0.8125rem" }}
-              />
-            ))}
-          </Tabs>
-          <LineupList
-            key={round}
-            lineup={lineup}
-            canEdit={canSetLineup}
-            canOverride={team.canOverride && season.canEdit}
-            onMove={(request) => move({ round, ...request })}
-          />
+          <RoundStrip lineups={team.lineups} round={round} onSelect={setRound} />
+          <LineupRound lineup={lineup} onOpenPlayer={(player) => setSheetPlayerId(player.id)} />
         </>
       )}
-      {moveError && (
-        <Alert severity="error" sx={{ mt: 1 }}>
-          {moveError}
-        </Alert>
+      {sheetPlayer && lineup && (
+        <PlayerSheet
+          player={sheetPlayer}
+          lineup={lineup}
+          canMove={canSetLineup && round >= currentRound}
+          canOverride={team.canOverride && season.canEdit}
+          ownTeam={isMine}
+          pending={moveInLineup.isPending}
+          error={moveError}
+          onMove={(request) => move({ round, ...request })}
+          onClose={() => {
+            moveInLineup.reset();
+            setSheetPlayerId(null);
+          }}
+        />
       )}
-
-      <ActivityFeed scope="teams" id={team.id} title="Team activity" />
 
       {pendingOverride && (
         <OverrideDialog

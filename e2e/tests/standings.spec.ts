@@ -53,21 +53,4 @@ test.describe("standings", () => {
       await expect(standings.getByText(round, { exact: true })).toBeVisible();
     }
   });
-
-  test("a team's points page lists every round and what is left on the bench", async ({
-    page,
-    context,
-    request,
-  }) => {
-    const league = await createDraftLeague(request, { seconds: 60, status: "in_progress" });
-    await completeDraft(league);
-
-    await signInAs(context, league.host.uid);
-    await page.goto(seasonUrl(league.league, `/teams/${league.hostTeamId}/points`));
-
-    await expect(page.getByText("Left on the bench", { exact: true })).toBeVisible();
-    for (const round of ["Wild Card", "Divisional", "Conference Championship", "Super Bowl"]) {
-      await expect(page.getByRole("button", { name: new RegExp(round) })).toBeVisible();
-    }
-  });
 });

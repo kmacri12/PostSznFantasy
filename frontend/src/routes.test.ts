@@ -13,14 +13,12 @@ describe("seasonPaths", () => {
     expect(paths.feed).toBe("/leagues/3/feed");
     expect(paths.more).toBe("/leagues/3/more");
     expect(paths.team(7)).toBe("/leagues/3/teams/7");
-    expect(paths.teamPoints(7)).toBe("/leagues/3/teams/7/points");
   });
 
   it("puts the year in any other season's addresses", () => {
     const paths = seasonPaths(3, 2025, false);
     expect(paths.home).toBe("/leagues/3/seasons/2025");
     expect(paths.team(7)).toBe("/leagues/3/seasons/2025/teams/7");
-    expect(paths.teamPoints(7)).toBe("/leagues/3/seasons/2025/teams/7/points");
   });
 });
 

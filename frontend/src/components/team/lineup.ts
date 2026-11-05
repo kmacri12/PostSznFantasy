@@ -1,7 +1,6 @@
-import type { LineupPlayer, RoundLineup } from "../../api/types";
+import type { RoundLineup } from "../../api/types";
 
 export const BENCH_SLOT = "BENCH";
-export const UNASSIGNED_DROP_ID = "unassigned";
 
 export const ROUND_LABELS: Record<number, string> = {
   1: "Wild Card",
@@ -9,15 +8,6 @@ export const ROUND_LABELS: Record<number, string> = {
   3: "Conference Championship",
   4: "Super Bowl",
 };
-export const ROUND_TAB_LABELS: Record<number, string> = {
-  1: "Wild Card",
-  2: "Divisional",
-  3: "Conf.",
-  4: "Super Bowl",
-};
-
-export const slotDropId = (index: number) => `slot-${index}`;
-export const playerDragId = (playerId: number) => `player-${playerId}`;
 
 export interface Move {
   playerId: number;
@@ -25,56 +15,18 @@ export interface Move {
   slotIndex: number | null;
 }
 
-/** Reads a finished drag back into a move request, or null when it isn't one. */
-export function parseMove(
-  activeId: string | number,
-  overId: string | number | null | undefined,
-): Move | null {
-  const player = /^player-(\d+)$/.exec(String(activeId));
-  if (!player?.[1]) return null;
-  if (overId === UNASSIGNED_DROP_ID) return { playerId: Number(player[1]), slotIndex: null };
-  const slot = /^slot-(\d+)$/.exec(String(overId ?? ""));
-  if (!slot?.[1]) return null;
-  return { playerId: Number(player[1]), slotIndex: Number(slot[1]) };
-}
-
-export const formatKickoff = (iso: string): string =>
-  new Date(iso).toLocaleString(undefined, { weekday: "short", hour: "numeric", minute: "2-digit" });
-
-/** One line under a player's name: why they can or cannot move, and when they lock. */
-export const lineupStatusText = (player: LineupPlayer): string => {
-  if (player.status === "eliminated") return "Eliminated";
-  if (player.status === "bye") return "Bye · scores 0";
-  if (!player.kickoff) return "Game not scheduled yet";
-  return player.locked
-    ? `Locked · kicked off ${formatKickoff(player.kickoff)}`
-    : `Locks at kickoff · ${formatKickoff(player.kickoff)}`;
+/** "Sun 6:30 pm": the day and time of a game, never the word "kickoff". */
+export const formatKickoff = (iso: string): string => {
+  const parts = new Intl.DateTimeFormat(undefined, {
+    weekday: "short",
+    hour: "numeric",
+    minute: "2-digit",
+  }).formatToParts(new Date(iso));
+  const part = (type: string) => parts.find((entry) => entry.type === type)?.value ?? "";
+  const clock = `${part("hour")}:${part("minute")}`;
+  const period = part("dayPeriod").toLowerCase();
+  return `${part("weekday")} ${clock}${period ? ` ${period}` : ""}`;
 };
-
-export interface TapResult {
-  selectedPlayerId: number | null;
-  move: Move | null;
-}
-
-/**
- * Tap-to-move: the first tap picks an unlocked player up, the next tap on any other slot
- * moves or swaps them there, and tapping the picked-up player again puts them back down.
- * A locked player is never picked up and a locked occupant is never swapped out, unless
- * the commissioner may override; the server enforces the rule either way.
- */
-export function applyTap(
-  selectedPlayerId: number | null,
-  slot: { index: number | null; playerId: number | null; locked: boolean },
-  canOverride = false,
-): TapResult {
-  const blocked = slot.locked && !canOverride;
-  if (selectedPlayerId === null) {
-    return { selectedPlayerId: blocked ? null : slot.playerId, move: null };
-  }
-  if (slot.playerId === selectedPlayerId) return { selectedPlayerId: null, move: null };
-  if (blocked) return { selectedPlayerId, move: null };
-  return { selectedPlayerId: null, move: { playerId: selectedPlayerId, slotIndex: slot.index } };
-}
 
 export interface EmptyLineupWarning {
   round: number;

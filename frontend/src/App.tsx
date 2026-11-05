@@ -25,7 +25,6 @@ const SignInPage = lazy(() => import("./pages/SignInPage"));
 const SeasonLayout = lazy(() => import("./pages/SeasonLayout"));
 const SettingsPage = lazy(() => import("./pages/SettingsPage"));
 const TeamPage = lazy(() => import("./pages/TeamPage"));
-const TeamPointsPage = lazy(() => import("./pages/TeamPointsPage"));
 const TermsPage = lazy(() => import("./pages/TermsPage"));
 
 function App() {
@@ -81,7 +80,6 @@ function App() {
                   <Route path="feed" element={<FeedPage />} />
                   <Route path="more" element={<MorePage />} />
                   <Route path="teams/:teamId" element={<TeamPage />} />
-                  <Route path="teams/:teamId/points" element={<TeamPointsPage />} />
                 </Route>
               ))}
               <Route path="/sign-in" element={<SignInPage />} />

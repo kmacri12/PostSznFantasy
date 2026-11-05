@@ -28,6 +28,11 @@ export const tokens = {
   red: "#f0626b",
   /** Destructive rows such as Sign out. */
   redSoft: "#f0a0a5",
+  /** The Eliminated group: card border, header, row fill and secondary text. */
+  dangerBorder: "#5a2a2f",
+  dangerHeader: "#3a1a1e",
+  dangerSurface: "#2a1417",
+  dangerMuted: "#d98a90",
   cyan: "#22d3ee",
 };
 

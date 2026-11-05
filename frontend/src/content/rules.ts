@@ -100,7 +100,7 @@ export const HOW_TO_PLAY_SECTIONS: HowToPlaySection[] = [
 
 /** One-line pointers shown on the pre-draft roster view and the lineup screen. */
 export const LOCK_NOTE =
-  "Players lock at their game's kickoff. A locked player can't be moved, swapped or dropped.";
+  "Players lock when their game starts. A locked player can't be moved, swapped or dropped.";
 export const LOCK_NOTE_OVERRIDE = " As commissioner you can move them, after you confirm.";
 
 export const PRE_DRAFT_TITLE = "Plan your draft";
