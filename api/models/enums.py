@@ -79,6 +79,12 @@ class TieRule(StrEnum):
     SUPER_BOWL_WINNER = "super_bowl_winner"
 
 
+class GameState(StrEnum):
+    SCHEDULED = "scheduled"
+    LIVE = "live"
+    FINAL = "final"
+
+
 class PlayerRoundStatus(StrEnum):
     ALIVE = "alive"
     ELIMINATED = "eliminated"

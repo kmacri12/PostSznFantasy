@@ -21,11 +21,6 @@ const expectOrderedPrefix = (eliminated: string[], atLeast: number) => {
   expect(eliminated.length).toBeGreaterThanOrEqual(atLeast);
 };
 
-const aliveCount = async (page: Page): Promise<number> => {
-  const text = (await page.getByText(/\d of 4 alive/).textContent()) ?? "";
-  return Number(/(\d) of 4 alive/.exec(text)?.[1]);
-};
-
 const waitForEliminations = async (api: Api, count: number) => {
   await expect
     .poll(async () => (await eliminatedTeams(api)).length, {
@@ -56,7 +51,7 @@ test.beforeAll(async ({ request }) => {
 const HOST_ROWS = ["Aiden Archer", "Bryce Cole", "Dante Frost"];
 const inEliminatedSection = async (page: Page, player: string) => {
   await page.getByRole("tab", { name: "Conference Championship" }).click();
-  await expect(page.getByTestId("eliminated-section")).toContainText(player);
+  await expect(page.getByRole("region", { name: "Eliminated" })).toContainText(player);
 };
 
 test("eliminations reach the team pages as each replayed game finishes", async ({
@@ -69,8 +64,8 @@ test("eliminations reach the team pages as each replayed game finishes", async (
 
   await test.step("the roster is on the team page", async () => {
     await page.goto(seasonUrl(main.league, `/teams/${main.hostTeamId}`));
-    await expect(page.getByText(/\d of 4 alive/)).toBeVisible();
     for (const player of HOST_ROWS) await expect(page.getByText(player)).toBeVisible();
+    await expect(page.getByRole("region", { name: "Eliminated" })).toHaveCount(0);
   });
 
   for (const [index, team] of ELIMINATION_ORDER.entries()) {
@@ -79,9 +74,7 @@ test("eliminations reach the team pages as each replayed game finishes", async (
       expectOrderedPrefix(await eliminatedTeams(watcher), index + 1);
 
       // The host loses a player for each of the first three eliminations; DET is the guest's.
-      const alive = 4 - Math.min(index + 1, 3);
       await page.goto(seasonUrl(main.league, `/teams/${main.hostTeamId}`));
-      await expect.poll(() => aliveCount(page)).toBeLessThanOrEqual(alive);
       await expect(page.getByText(/Stats updated/)).toBeVisible();
       if (index < 3) {
         await inEliminatedSection(page, HOST_ROWS[index]);
@@ -91,7 +84,6 @@ test("eliminations reach the team pages as each replayed game finishes", async (
 
   await test.step("the guest's roster only lost the last team's player", async () => {
     await page.goto(seasonUrl(main.league, `/teams/${main.guestTeamId}`));
-    await expect(page.getByText("3 of 4 alive")).toBeVisible();
     await inEliminatedSection(page, "Bryce Grady");
   });
 });

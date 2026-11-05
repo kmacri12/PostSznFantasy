@@ -183,44 +183,6 @@ export interface Standings {
   teams: StandingsRow[];
 }
 
-export interface BreakdownPlayer {
-  playerId: number;
-  name: string;
-  position: string;
-  teamAbv: string | null;
-  /** Lineup slot name; null when the owner never placed the player. */
-  slot: string | null;
-  points: number;
-  /** The latest stat correction, in the same (post-multiplier) points as `points`. */
-  scoreChange: ScoreChange | null;
-}
-
-export interface BreakdownSlot {
-  index: number;
-  slot: string;
-  player: BreakdownPlayer | null;
-  points: number;
-  mark: SlotMark | null;
-}
-
-export interface BreakdownRound {
-  round: number;
-  multiplier: number;
-  counted: number;
-  starters: BreakdownSlot[];
-  bench: BreakdownPlayer[];
-  benchPoints: number;
-}
-
-export interface TeamBreakdown {
-  teamId: number;
-  seasonId: number;
-  teamName: string;
-  total: number;
-  pointsLeftOnBench: number;
-  rounds: BreakdownRound[];
-}
-
 export interface TeamSummary {
   id: number;
   name: string;
@@ -249,14 +211,23 @@ export interface RosterPlayer {
 }
 
 export type PlayerRoundStatus = "alive" | "eliminated" | "bye";
+export type GameState = "scheduled" | "live" | "final";
 
 export interface LineupPlayer extends RosterPlayer {
   status: PlayerRoundStatus;
   /** Scheduled kickoff of their game that round (ISO), which is when they lock. */
   kickoff: string | null;
   locked: boolean;
-  /** Points in that round under the league's scoring; null before any stats. */
+  /** Their game that round; null on a bye or before it is scheduled. */
+  gameState: GameState | null;
+  /** The live game's clock as the upstream reports it; may be empty between plays. */
+  gameClock: string | null;
+  /** Counted points in that round (league scoring, round multiplier); null before any stats. */
   points: number | null;
+  /** The round's stats on one line, "14/21, 168 yds, 2 TD, 0 INT"; null before any stats. */
+  statLine: string | null;
+  /** For an eliminated player, the round his team lost in. */
+  eliminatedRound: number | null;
   scoreChange: ScoreChange | null;
 }
 
@@ -546,4 +517,11 @@ export interface SeasonRecap {
   standings: Standings;
   nextSeasonId: number | null;
   awards: AwardWinner[];
+}
+
+/** One player's regular season totals, by camelCase stat name (`passingYards`, ...). */
+export interface PlayerSeasonLine {
+  season: string;
+  playerId: number;
+  [stat: string]: unknown;
 }

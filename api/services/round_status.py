@@ -12,7 +12,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.db.models.nfl import NFLGame
-from api.models.enums import PlayerRoundStatus
+from api.models.enums import GameState, PlayerRoundStatus
 from api.utils.calculations.standings_utils import postseason_round_index
 
 ROUNDS = (1, 2, 3, 4)
@@ -32,6 +32,13 @@ class GameFacts:
     home_points: int | None
     away_points: int | None
     in_progress: bool = False
+    clock: str | None = None
+
+    @property
+    def state(self) -> GameState:
+        if self.completed:
+            return GameState.FINAL
+        return GameState.LIVE if self.in_progress else GameState.SCHEDULED
 
     @property
     def winner_id(self) -> int | None:
@@ -58,6 +65,10 @@ class TeamRound:
     status: PlayerRoundStatus
     # Scheduled start of the team's game that round; None on a bye or before it is set.
     kickoff: datetime | None
+    game_state: GameState | None = None
+    game_clock: str | None = None
+    # The round of the game that knocked the team out; set with ELIMINATED.
+    eliminated_in: int | None = None
 
 
 def round_status(
@@ -65,15 +76,21 @@ def round_status(
 ) -> TeamRound:
     if nfl_team_id is None:
         return TeamRound(PlayerRoundStatus.ALIVE, None)
-    if any(g.loser_id == nfl_team_id and g.round < round_ for g in games):
-        return TeamRound(PlayerRoundStatus.ELIMINATED, None)
+    lost = min(
+        (g.round for g in games if g.loser_id == nfl_team_id and g.round < round_),
+        default=None,
+    )
+    if lost is not None:
+        return TeamRound(PlayerRoundStatus.ELIMINATED, None, eliminated_in=lost)
     this_round = [g for g in games if g.round == round_]
     own = next(
         (g for g in this_round if nfl_team_id in (g.home_team_id, g.away_team_id)),
         None,
     )
     if own is not None:
-        return TeamRound(PlayerRoundStatus.ALIVE, own.kickoff)
+        return TeamRound(
+            PlayerRoundStatus.ALIVE, own.kickoff, own.state, own.clock or None
+        )
     # Only the Wild Card round has byes. Later, an alive team without a game is waiting
     # for its next game to be scheduled, which is not a bye.
     on_bye = round_ == 1 and bool(this_round)
@@ -147,6 +164,7 @@ async def load_games(db: AsyncSession, season: int) -> list[GameFacts]:
                 kickoff=_kickoff(game.game_time_epoch),
                 completed=game.game_status == GAME_COMPLETED,
                 in_progress=(game.game_status or "").startswith(GAME_LIVE_PREFIX),
+                clock=game.game_clock,
                 home_points=game.home_pts,
                 away_points=game.away_pts,
             )

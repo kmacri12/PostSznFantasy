@@ -11,18 +11,22 @@ interface Props {
   /** Show the unit after the number; off where a column heading already gives it. */
   unit?: boolean;
   bold?: boolean;
+  /** Overrides the default text colour, e.g. the live green. */
+  color?: string;
+  /** Font size in px for the default and changed forms. */
+  size?: number;
 }
 
 /** A player's round score; one that changed after the fact explains itself on tap/hover. */
-const ChangedScore = ({ points, change, unit = true, bold = false }: Props) => {
+const ChangedScore = ({ points, change, unit = true, bold = false, color, size }: Props) => {
   if (points === null) return null;
   const shown = unit ? pts(points) : String(Number(points.toFixed(2)));
   if (!change) {
     return (
       <Typography
         variant="body2"
-        color={bold ? "text.primary" : "text.secondary"}
-        sx={{ whiteSpace: "nowrap", fontWeight: bold ? 700 : 400 }}
+        color={color ?? (bold ? "text.primary" : "text.secondary")}
+        sx={{ whiteSpace: "nowrap", fontWeight: bold ? 700 : 400, fontSize: size }}
       >
         {shown}
       </Typography>
@@ -52,7 +56,8 @@ const ChangedScore = ({ points, change, unit = true, bold = false }: Props) => {
           justifyContent: "flex-end",
           cursor: "help",
           whiteSpace: "nowrap",
-          fontSize: 14,
+          fontSize: size ?? 14,
+          color,
           fontWeight: bold ? 700 : 400,
           textDecoration: "underline dotted",
           "&:focus-visible": { outline: "2px solid currentColor", outlineOffset: 2 },
