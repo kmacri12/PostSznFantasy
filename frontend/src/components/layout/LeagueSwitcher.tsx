@@ -8,7 +8,7 @@ import { leaguePath } from "../../routes";
 import { tokens } from "../../theme";
 import { NewActivityDot } from "./NewActivityDot";
 
-/** The current league's name with a chevron; opens the user's leagues and "Create a league". */
+/** The current league's name with a chevron, right-aligned beside the avatar; opens the user's leagues and "Create a league". */
 const LeagueSwitcher = ({ league, leagues }: { league: LeagueByUser; leagues: LeagueByUser[] }) => {
   const navigate = useNavigate();
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
@@ -24,15 +24,17 @@ const LeagueSwitcher = ({ league, leagues }: { league: LeagueByUser; leagues: Le
         aria-expanded={anchor !== null}
         onClick={(event) => setAnchor(event.currentTarget)}
         sx={{
-          flex: 1,
-          minWidth: 0,
+          // The name gives way first (64px to 140px with the chevron); the logo never truncates.
+          flex: "0 1 auto",
+          minWidth: 64,
+          maxWidth: 140,
           minHeight: 44,
-          justifyContent: "flex-start",
-          gap: 0.75,
-          fontSize: 16,
+          justifyContent: "flex-end",
+          gap: 0.5,
+          fontSize: 15,
           fontWeight: 600,
           color: tokens.text,
-          textAlign: "left",
+          textAlign: "right",
         }}
       >
         <Box

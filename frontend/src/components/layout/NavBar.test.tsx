@@ -57,7 +57,7 @@ describe("NavBar", () => {
     expect(screen.queryByRole("button", { name: "Open menu" })).toBeNull();
   });
 
-  it("shows the wordmark outside a league and the square mark inside one", () => {
+  it("shows the full logo on the left, in a league or not, and the switcher only inside one", () => {
     const { unmount } = renderBar({ league: undefined });
     expect(screen.getByRole("link", { name: "PostSzn Fantasy" }).textContent).toBe(
       "PostSznFANTASY",
@@ -65,8 +65,22 @@ describe("NavBar", () => {
     expect(screen.queryByRole("button", { name: /League/ })).toBeNull();
     unmount();
     renderBar();
-    expect(screen.getByRole("link", { name: /your leagues/ }).textContent).toBe("");
-    expect(screen.getByRole("link", { name: /your leagues/ }).getAttribute("href")).toBe("/");
+    const logo = screen.getByRole("link", { name: /your leagues/ });
+    expect(logo.textContent).toBe("PostSznFANTASY");
+    expect(logo.getAttribute("href")).toBe("/");
+    const switcher = screen.getByRole("button", { name: /League 2/ });
+    const account = screen.getByRole("button", { name: "Account menu" });
+    // Logo, then switcher, then the avatar furthest right.
+    expect(logo.compareDocumentPosition(switcher) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(
+      switcher.compareDocumentPosition(account) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  it("leaves the logo to the rail on desktop and keeps the switcher in the bar", () => {
+    renderBar({ railed: true });
+    expect(screen.queryByRole("link", { name: /your leagues/ })).toBeNull();
+    expect(screen.getByRole("button", { name: /League 2/ })).toBeInTheDocument();
   });
 
   it("lists each league once, with its dot and season-over tag, then Create a league", () => {

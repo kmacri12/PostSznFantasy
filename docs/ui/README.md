@@ -41,7 +41,7 @@ An eight-team playoff bracket meeting in the middle: rounded corners, line weigh
 
 One component, `components/common/Logo`: `variant` mark | lockup | stacked, `size` (mark height in px), `tile`.
 
-- **The app icon is always the tile**: sky blue `#5cb8ff` with the dark `#04233d` bracket (rx 22), in both themes, and never the bare lines on a dark or white background. That covers the home-screen icons (192, 512), the maskable icon (full-bleed blue, mark inside the central 80%), the apple-touch-icon (180, full-bleed), the favicon, the push notification icon, the 32px league-header corner and the desktop rail, and anywhere an install prompt shows an icon. Both manifests list the same icons. `src/appIcons.test.ts` reads the PNG pixels and fails if one is not the blue tile with the dark bar in the middle. Use the tile for any mark under 40px; bare lines go faint there.
+- **The app icon is always the tile**: sky blue `#5cb8ff` with the dark `#04233d` bracket (rx 22), in both themes, and never the bare lines on a dark or white background. That covers the home-screen icons (192, 512), the maskable icon (full-bleed blue, mark inside the central 80%), the apple-touch-icon (180, full-bleed), the favicon, the push notification icon, the tab-sized uses, and anywhere an install prompt shows an icon. Both manifests list the same icons. `src/appIcons.test.ts` reads the PNG pixels and fails if one is not the blue tile with the dark bar in the middle. Use the tile for any mark under 40px; bare lines go faint there.
 - **Bare mark** (large logo uses only: the landing hero and the lockups): lines only, in the `accent` token (`#5cb8ff` dark, `#0868b4` light; the issue's about `#0a74c4` failed AA on the accent tint). 40px and up.
 - **Lockup** (mark + wordmark): the header with no league switcher (home, signed out, invite and sign-in pages) at a 40px mark.
 - **Stacked** (large mark above the wordmark): the sign-in card. The landing hero shows only the bare mark (72px phone, 96px desktop) because the top bar already carries the lockup.
@@ -51,8 +51,9 @@ One component, `components/common/Logo`: `variant` mark | lockup | stacked, `siz
 
 ## Navigation and header
 
-- Header, always: a square logo mark top-left (links to the leagues page); inside a league, the league name with a chevron (switcher) next to it; the avatar top-right (account, sign out). No hamburger.
-- Outside a league the square mark becomes the wide "PostSzn Fantasy" logo. The logo is a placeholder (see Open items).
+- Header, always: the **full horizontal logo** top-left (bare bracket mark at 34px, "PostSzn" and the centered "FANTASY" line; links to the leagues page). It never truncates. Inside a league, the **league switcher** (league name plus chevron) sits on the right, just left of the avatar; the name truncates with an ellipsis (64px to about 140px, chevron always visible) and the switcher and avatar keep 44px tap targets. The avatar (account, sign out) is furthest right. No hamburger.
+- Outside a league (home, leagues page, signed out): the same logo, no switcher; the avatar, or Sign in, on the right.
+- Desktop: the same bar; inside a league the left rail's brand block shows the full logo (so the bar holds only the switcher and avatar on the right), and the draft room's top bar follows the same layout.
 - Switcher: the user's leagues with feed dots, then "Create a league". No "All leagues" (the logo does that) and no "Join with a code" (landing only).
 - Bottom tabs inside a league: **League**, **Team**, **Draft**, **Feed** (dot), **More**. The first tab is called League, not Home. The third tab is Draft in every state, before, during and after the draft; there is no Players tab.
 - The tab bar is also visible inside the draft room (Draft highlighted), so a member never loses the other tabs while drafting.
