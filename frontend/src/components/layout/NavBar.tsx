@@ -33,14 +33,14 @@ interface NavBarProps {
   leagues: LeagueByUser[];
   /** The league the route shows; undefined outside a league. */
   league?: LeagueByUser;
-  /** Desktop inside a league: the logo and switcher live in the rail, so the header only holds the account. */
+  /** Desktop inside a league: the rail carries the logo, so the header holds the switcher and the account. */
   railed?: boolean;
   onSignIn: () => void;
   onSignOut: () => void;
   dormant?: boolean;
 }
 
-/** The header: logo (wordmark outside a league), the league switcher, and the account menu. */
+/** The header: the full logo on the left; the league switcher and the account menu on the right. */
 const NavBar = ({
   user,
   leagues,
@@ -61,14 +61,10 @@ const NavBar = ({
       sx={{ bgcolor: tokens.bg, borderBottom: `1px solid ${tokens.border}` }}
     >
       <Toolbar sx={{ gap: 1.25, minHeight: HEADER_HEIGHT, px: { xs: 2, md: 3 } }}>
-        {!railed && (
-          <>
-            <Brand wide={!league} />
-            {league && <LeagueSwitcher league={league} leagues={leagues} />}
-          </>
-        )}
+        {!railed && <Brand inLeague={league !== undefined} />}
         <Box sx={{ flexGrow: 1 }} />
         {!isMobile && <DevQuickSync />}
+        {league && <LeagueSwitcher league={league} leagues={leagues} />}
 
         {user ? (
           <>

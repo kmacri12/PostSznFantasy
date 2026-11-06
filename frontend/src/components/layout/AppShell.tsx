@@ -33,7 +33,7 @@ const AppShell = ({ league, children, ...header }: AppShellProps) => {
   if (rail) {
     return (
       <Box sx={{ display: "flex" }}>
-        <LeagueRail league={league} leagues={header.leagues} />
+        <LeagueRail league={league} />
         <Box sx={{ flex: 1, minWidth: 0 }}>
           {navBar}
           {children}

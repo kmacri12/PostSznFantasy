@@ -3,13 +3,12 @@ import { Link, useLocation } from "react-router-dom";
 import type { LeagueByUser } from "../../api/types";
 import { RAIL_WIDTH, tokens } from "../../theme";
 import Brand from "./Brand";
-import LeagueSwitcher from "./LeagueSwitcher";
 import { activeTabIndex, leagueTabs } from "./leagueTabs";
 import { NewActivityDot } from "./NewActivityDot";
 import { TAB_ICONS } from "./TabIcons";
 
-/** Desktop navigation inside a league: the logo, the switcher and the five destinations. */
-const LeagueRail = ({ league, leagues }: { league: LeagueByUser; leagues: LeagueByUser[] }) => {
+/** Desktop navigation inside a league: the full logo and the five destinations. */
+const LeagueRail = ({ league }: { league: LeagueByUser }) => {
   const { pathname } = useLocation();
   const tabs = leagueTabs(league);
   const active = activeTabIndex(tabs, pathname);
@@ -33,9 +32,8 @@ const LeagueRail = ({ league, leagues }: { league: LeagueByUser; leagues: League
         borderRight: `1px solid ${tokens.border}`,
       }}
     >
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1.25, px: 1, pb: 2 }}>
-        <Brand />
-        <LeagueSwitcher league={league} leagues={leagues} />
+      <Box sx={{ px: 1, pb: 2 }}>
+        <Brand inLeague />
       </Box>
       {tabs.map((tab, index) => {
         const Icon = TAB_ICONS[tab.label];
