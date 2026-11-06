@@ -41,3 +41,7 @@ Use a league where you own a team and the draft is running or the field is set.
 ## The prompt members see
 
 Members are asked once, in a sheet titled "Get notified when it matters", right after their first sign-in and right after they join a league (not after creating one). It never shows if notifications are already on, blocked, unsupported or not set up on the server (no VAPID keys), nor on a draft screen. Each device is asked at most twice ever: the second time only if they chose "Not now", and only on a different day. After that, the only place is More, Settings, Notifications. If a member says they never got asked, that is probably why (they were already on, they blocked it in the browser, or the keys are missing).
+
+## Notification icons
+
+The large notification icon is the blue tile (`icon-192.png`); the small status-bar badge on Android is the white bracket on transparent (`badge-96.png`), because Android reads only a badge's outline. An installed web app keeps the icon it had at install time, so after changing icons remove the app from the Home Screen and add it again to see the new ones.
