@@ -17,6 +17,7 @@ export interface SeasonSummary {
 export interface LeagueByUser {
   id: number;
   name: string;
+  avatarUrl?: string | null;
   seasonId: number;
   /** The latest season's year. */
   season: number;
@@ -41,8 +42,10 @@ export interface MemberSummary {
   userId: number;
   username: string;
   role: LeagueRole;
+  avatarUrl?: string | null;
   teamId: number | null;
   teamName: string | null;
+  teamAvatarUrl?: string | null;
 }
 
 export type DraftStatus =
@@ -81,6 +84,7 @@ export interface SeasonOverview {
 export interface LeagueInfo {
   id: number;
   name: string;
+  avatarUrl?: string | null;
   notes: string;
   myRole: LeagueRole;
   currentSeasonId: number;
@@ -94,6 +98,7 @@ export interface LeagueInfo {
 export interface TeamBrief {
   id: number;
   name: string;
+  avatarUrl?: string | null;
   ownerUserId: number | null;
   ownerName: string | null;
 }
@@ -156,6 +161,7 @@ export interface StandingsRow {
   /** Null before the draft, when the rows are the team slots. */
   rank: number | null;
   teamName: string;
+  teamAvatarUrl?: string | null;
   /** Null for an open slot. */
   owner: string | null;
   isCommissioner: boolean;
@@ -264,6 +270,7 @@ export interface RoundLineup {
 export interface TeamDetails {
   id: number;
   name: string;
+  avatarUrl?: string | null;
   seasonId: number;
   ownerName: string | null;
   canEdit: boolean;
@@ -293,6 +300,7 @@ export interface DraftSlot {
   slot: number;
   teamId: number;
   teamName: string;
+  teamAvatarUrl?: string | null;
   ownerName: string | null;
 }
 

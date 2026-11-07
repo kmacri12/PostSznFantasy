@@ -16,6 +16,9 @@ export const LIVE_API_URL = `http://localhost:${LIVE_API_PORT}`;
 // The live config sets E2E_API_URL before workers start so shared helpers follow it.
 export const API_URL = process.env.E2E_API_URL ?? `http://localhost:${API_PORT}`;
 
+// Where the e2e API keeps uploaded pictures (AVATAR_LOCAL_DIR); outside the repo.
+export const AVATAR_DIR = `${process.env.TMPDIR ?? "/tmp"}/postszn-e2e-avatars`;
+
 // Listed in ADMIN_SUPABASE_UIDS (API) and VITE_ADMIN_SUPABASE_UIDS (button hint) of the main project.
 export const ADMIN_UID = "e2e-admin";
 

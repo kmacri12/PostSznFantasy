@@ -1,6 +1,5 @@
 import {
   Alert,
-  Avatar,
   Box,
   Button,
   Dialog,
@@ -16,7 +15,8 @@ import { useRemoveMember, useSetMemberRole } from "../../api/queries";
 import type { MemberSummary } from "../../api/types";
 import { LAST_COMMISSIONER_NOTE } from "../../content/rules";
 import { mutationError } from "../common/friendlyError";
-import { initials, isLastCommissioner, removalWarning, toggledRole } from "./members";
+import PictureAvatar from "../common/PictureAvatar";
+import { isLastCommissioner, removalWarning, toggledRole } from "./members";
 import SettingsSheet from "./SettingsSheet";
 
 interface Props {
@@ -59,9 +59,7 @@ const MembersSheet = ({ leagueId, members, currentUserId, onClose }: Props) => {
                 "& + &": { borderTop: 1, borderColor: "divider" },
               }}
             >
-              <Avatar sx={{ width: 36, height: 36, fontSize: 12 }}>
-                {initials(member.username)}
-              </Avatar>
+              <PictureAvatar url={member.avatarUrl} name={member.username} size={36} />
               <Box sx={{ flex: 1, minWidth: 0 }}>
                 <Typography noWrap sx={{ fontWeight: 600 }}>
                   {member.username}

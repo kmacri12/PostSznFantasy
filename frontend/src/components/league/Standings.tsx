@@ -17,6 +17,7 @@ import { useStandings } from "../../api/queries";
 import type { SeasonOverview, Standings as StandingsData, StandingsRow } from "../../api/types";
 import { useSeasonContext } from "../../contexts/SeasonContext";
 import { tint, tokens } from "../../theme";
+import PictureAvatar from "../common/PictureAvatar";
 import QueryBoundary from "../common/QueryBoundary";
 import RankCell from "./RankCell";
 import { formatPoints, isOpenSpot, ROUNDS, rankLabel, rowDetail, tieNote } from "./standingsView";
@@ -140,6 +141,7 @@ const PhoneRow = ({
             "&:focus-visible": { outline: `2px solid ${tokens.accent}`, outlineOffset: -2 },
           }}
         >
+          <PictureAvatar url={row.teamAvatarUrl} name={row.teamName} size={36} />
           <Box sx={{ flexGrow: 1, minWidth: 0 }}>
             <Typography noWrap sx={{ fontWeight: 600, color }}>
               {row.teamName}
@@ -243,12 +245,21 @@ const DesktopTable = ({ rows, round, finished }: Omit<RowProps, "row" | "index">
                 <Box
                   component={Link}
                   to={paths.team(row.teamId)}
-                  sx={{ color: "inherit", textDecoration: "none" }}
+                  sx={{
+                    color: "inherit",
+                    textDecoration: "none",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1.25,
+                  }}
                 >
-                  <Typography sx={{ fontWeight: 600, color }}>{row.teamName}</Typography>
-                  <Typography variant="caption" sx={{ color: color ?? "text.secondary" }}>
-                    {rowDetail(row, !finished)}
-                  </Typography>
+                  <PictureAvatar url={row.teamAvatarUrl} name={row.teamName} size={32} />
+                  <Box>
+                    <Typography sx={{ fontWeight: 600, color }}>{row.teamName}</Typography>
+                    <Typography variant="caption" sx={{ color: color ?? "text.secondary" }}>
+                      {rowDetail(row, !finished)}
+                    </Typography>
+                  </Box>
                 </Box>
               </TableCell>
               {ROUNDS.map(({ key }, i) => {
@@ -313,6 +324,11 @@ const SlotList = ({ rows, season }: { rows: StandingsRow[]; season: SeasonOvervi
               <Typography sx={{ width: 28, color: "text.secondary", fontSize: 13 }}>
                 {scheduled ? 1 : index + 1}
               </Typography>
+              <PictureAvatar
+                url={open ? null : row.teamAvatarUrl}
+                name={open ? "?" : row.teamName}
+                size={36}
+              />
               <Box
                 {...(open ? {} : { component: Link, to: paths.team(row.teamId) })}
                 sx={{ flexGrow: 1, minWidth: 0, color: "inherit", textDecoration: "none" }}

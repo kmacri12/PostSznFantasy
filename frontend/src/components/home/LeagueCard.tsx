@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useDraft, useStandings } from "../../api/queries";
 import type { LeagueByUser } from "../../api/types";
 import { leaguePath } from "../../routes";
+import PictureAvatar from "../common/PictureAvatar";
 import { phaseTag, rankText } from "./leagueSummary";
 
 const formatPoints = (points: number): string => (Math.round(points * 10) / 10).toFixed(1);
@@ -21,9 +22,12 @@ const LeagueCard = ({ league }: { league: LeagueByUser }) => {
   return (
     <Card sx={{ position: "relative" }}>
       <CardActionArea component={Link} to={leaguePath(league.id)} sx={{ p: 2, minHeight: 88 }}>
-        <Typography variant="h6" component="h2" noWrap sx={{ pr: league.hasNewActivity ? 3 : 0 }}>
-          {league.name}
-        </Typography>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.25, minWidth: 0 }}>
+          <PictureAvatar url={league.avatarUrl} name={league.name} size={36} fallback="tile" />
+          <Typography variant="h6" component="h2" noWrap sx={{ pr: league.hasNewActivity ? 3 : 0 }}>
+            {league.name}
+          </Typography>
+        </Box>
         <Chip
           size="small"
           label={tag.label}

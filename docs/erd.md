@@ -53,11 +53,13 @@ erDiagram
         string supabase_uid UK
         string username
         string email UK
+        string avatar_key
     }
     leagues {
         int id PK
         string name
         string notes
+        string avatar_key
         datetime deleted_at
         int deleted_by FK
     }
@@ -96,6 +98,7 @@ erDiagram
     teams {
         int id PK
         string name
+        string avatar_key
         int owner_id FK
         int season_id FK
     }

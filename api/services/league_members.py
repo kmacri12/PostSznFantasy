@@ -11,6 +11,7 @@ from api.db.models.user import User
 from api.models.activity_models import MembershipLeftPayload, RoleChangedPayload
 from api.models.enums import LeagueRole
 from api.models.league_models import MemberSummary
+from api.services.avatars import avatar_url
 from api.services.round_status import season_is_finished
 
 
@@ -129,8 +130,10 @@ def member_summaries(
                 user_id=m.user_id,
                 username=m.user.username,
                 role=LeagueRole(m.role),
+                avatar_url=avatar_url(m.user.avatar_key),
                 team_id=team.id if team else None,
                 team_name=team.name if team else None,
+                team_avatar_url=avatar_url(team.avatar_key) if team else None,
             )
         )
     return summaries

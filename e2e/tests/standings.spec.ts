@@ -43,7 +43,12 @@ test.describe("standings", () => {
     const standings = page.getByRole("list", { name: "Standings" });
     await expect(standings.getByRole("listitem")).toHaveCount(2);
     // Level on points and every tiebreaker, so both teams share first place.
-    await expect(standings.getByText("T1", { exact: true })).toHaveCount(2);
+    // The team pictures fall back to initials ("T1" for "Team 1"), so skip the avatars.
+    await expect(
+      standings.locator(
+        'xpath=.//*[not(contains(@class, "MuiAvatar-root")) and normalize-space(text()) = "T1"]',
+      ),
+    ).toHaveCount(2);
     // Each row shows its total and its current-round points.
     await expect(standings.getByText("0.0", { exact: true })).toHaveCount(4);
 
