@@ -20,31 +20,39 @@ async def test_auth_login_create_and_sync(
     payload = {"email": "player@example.com", "username": "playmaker"}
 
     # 1. First login inserts the user (Postgres reports xmax = 0 for fresh rows)
-    mock_db_session.execute.return_value = MagicMock(one=lambda: (42, True))
+    mock_db_session.execute.return_value = MagicMock(one=lambda: (42, None, True))
     response = await async_client.post(
         "/api/auth/login",
         json=payload,
         headers={"Authorization": "Bearer fake-token"},
     )
     assert response.status_code == 200
-    assert response.json() == {"message": "User created successfully", "userId": 42}
+    assert response.json() == {
+        "message": "User created successfully",
+        "userId": 42,
+        "avatarUrl": None,
+    }
 
     # 2. Later logins hit the conflict branch of the same statement
-    mock_db_session.execute.return_value = MagicMock(one=lambda: (42, False))
+    mock_db_session.execute.return_value = MagicMock(one=lambda: (42, None, False))
     response2 = await async_client.post(
         "/api/auth/login",
         json=payload,
         headers={"Authorization": "Bearer fake-token"},
     )
     assert response2.status_code == 200
-    assert response2.json() == {"message": "Login successful", "userId": 42}
+    assert response2.json() == {
+        "message": "Login successful",
+        "userId": 42,
+        "avatarUrl": None,
+    }
 
 
 @pytest.mark.asyncio
 async def test_auth_login_without_profile_fields(
     async_client: AsyncClient, mock_db_session: AsyncMock
 ) -> None:
-    mock_db_session.execute.return_value = MagicMock(one=lambda: (7, False))
+    mock_db_session.execute.return_value = MagicMock(one=lambda: (7, None, False))
     response = await async_client.post("/api/auth/login", json={})
     assert response.status_code == 200
     assert response.json()["userId"] == 7

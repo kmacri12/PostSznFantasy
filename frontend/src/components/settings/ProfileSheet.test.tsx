@@ -5,7 +5,14 @@ import ProfileSheet from "./ProfileSheet";
 const mocks = vi.hoisted(() => ({ updateDisplayName: vi.fn() }));
 
 vi.mock("../../contexts/UserContext", () => ({
-  useUser: () => ({ updateDisplayName: mocks.updateDisplayName }),
+  useUser: () => ({
+    updateDisplayName: mocks.updateDisplayName,
+    avatarUrl: null,
+    setAvatarUrl: vi.fn(),
+  }),
+}));
+vi.mock("../../api/queries", () => ({
+  useSetAvatar: () => ({ mutateAsync: vi.fn(), reset: vi.fn(), error: null }),
 }));
 vi.mock("./ThemeModeRow", () => ({ default: () => <div>Theme row</div> }));
 vi.mock("./NotificationsToggle", () => ({ default: () => <div>Notifications row</div> }));
@@ -26,6 +33,7 @@ describe("ProfileSheet", () => {
   it("holds display name, theme, notifications and sign out, and nothing about a league", () => {
     render(<ProfileSheet user={user} onSignOut={vi.fn()} onClose={vi.fn()} />);
     const sheet = screen.getByRole("dialog", { name: "Profile settings" });
+    expect(sheet).toHaveTextContent("Profile picture");
     expect(sheet).toHaveTextContent("Display name");
     expect(sheet).toHaveTextContent("Kyle");
     expect(sheet).toHaveTextContent("kyle@example.com");

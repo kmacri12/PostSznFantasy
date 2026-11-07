@@ -28,6 +28,7 @@ from api.models.league_models import (
     StandingTieReason,
     TeamStanding,
 )
+from api.services.avatars import avatar_url
 from api.services.lineups import BENCH, slot_layout
 from api.services.ranking import RoundPoints, TieReason, rank_teams
 from api.services.round_progress import starter_progress
@@ -111,6 +112,7 @@ async def _team_slots(db: AsyncSession, season_id: int, round_: int) -> Standing
                 team_id=team.id,
                 rank=None,
                 team_name=team.name or f"Team {team.id}",
+                team_avatar_url=avatar_url(team.avatar_key),
                 owner=team.owner.username if team.owner else None,
                 is_commissioner=team.owner_id in commissioners,
                 players_left=0,
@@ -193,6 +195,7 @@ async def season_standings(db: AsyncSession, season_id: int) -> Standings:
                 team_id=team.team_id,
                 rank=team.rank,
                 team_name=names[team.team_id],
+                team_avatar_url=avatar_url(by_team[team.team_id].team.avatar_key),
                 owner=owners[team.team_id],
                 is_commissioner=by_team[team.team_id].team.owner_id in commissioners,
                 players_left=by_team[team.team_id].players_left or 0,

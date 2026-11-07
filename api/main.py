@@ -18,6 +18,7 @@ from api.routers import (
     activity,
     admin,
     auth,
+    avatars,
     drafts,
     invites,
     leagues,
@@ -128,6 +129,7 @@ app.include_router(drafts.router, prefix="/api/drafts", tags=["drafts"])
 app.include_router(players.router, prefix="/api/players", tags=["players"])
 app.include_router(push.router, prefix="/api/push", tags=["push"])
 app.include_router(support.router, prefix="/api/support", tags=["support"])
+app.include_router(avatars.router, prefix="/api", tags=["avatars"])
 app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
 
 

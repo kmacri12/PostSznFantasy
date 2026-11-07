@@ -6,6 +6,7 @@ import { useDraftOrder, useLeagueTeams } from "../../api/queries";
 import type { DraftState } from "../../api/types";
 import { radii, tokens } from "../../theme";
 import { mutationError } from "../common/friendlyError";
+import PictureAvatar from "../common/PictureAvatar";
 import { moveTeam, sameOrder } from "./orderMoves";
 
 /** The pick order, one team per row with up and down buttons; saving posts the change to the Feed. */
@@ -77,6 +78,11 @@ const DraftOrderEditor = ({ draft, onDone }: { draft: DraftState; onDone: () => 
             <Typography sx={{ width: 20, color: tokens.muted, fontSize: 13 }}>
               {index + 1}
             </Typography>
+            <PictureAvatar
+              url={draft.order.find((slot) => slot.teamId === id)?.teamAvatarUrl}
+              name={nameOf(id)}
+              size={32}
+            />
             <Box component="b" sx={{ flex: 1, fontWeight: 600, overflowWrap: "anywhere" }}>
               {nameOf(id)}
             </Box>

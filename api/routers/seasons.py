@@ -24,6 +24,7 @@ from api.models.league_models import (
 )
 from api.models.recap_models import SeasonRecap
 from api.services.activity import Actor
+from api.services.avatars import avatar_url
 from api.services.league_admin import (
     ROSTER_LOCKED_FIELDS,
     draft_has_started,
@@ -99,6 +100,7 @@ async def get_season(
             TeamBrief(
                 id=team.id,
                 name=team.name or f"Team {team.id}",
+                avatar_url=avatar_url(team.avatar_key),
                 owner_user_id=team.owner_id,
                 owner_name=team.owner.username if team.owner else None,
             )
@@ -292,6 +294,7 @@ async def get_season_teams(
         TeamSimple(
             id=team.id,
             name=team.name or f"Team {team.id}",
+            avatar_url=avatar_url(team.avatar_key),
             owner_id=team.owner_id,
             owner_name=team.owner.username if team.owner else None,
             picks_made=pick_counts.get(team.id, 0),

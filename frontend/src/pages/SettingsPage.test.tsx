@@ -27,6 +27,7 @@ vi.mock("../api/queries", () => ({
   useLeagueSettings: () => ({ isLoading: false, isError: false, data: mocks.settings }),
   useDraft: () => ({ data: { status: "unscheduled" } }),
   useInvite: () => ({ data: { revoked: false } }),
+  useSetAvatar: () => ({ ...mutation, reset: vi.fn() }),
   useUpdateLeague: () => mutation,
   useUpdateSeason: () => mutation,
   useUpdateSettings: () => mutation,
@@ -88,8 +89,15 @@ describe("League settings", () => {
     expect(screen.getByRole("button", { name: "Scoring" })).toBeInTheDocument();
   });
 
+  it("lets a commissioner, and only a commissioner, change the league picture", () => {
+    renderPage("commissioner");
+    expect(screen.getByRole("button", { name: /^League picture/ })).toBeInTheDocument();
+  });
+
   it("shows a member the same information with nothing to change", () => {
     renderPage("member");
+    expect(screen.getByText("League picture")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^League picture/ })).toBeNull();
     expect(screen.getByText("Sunday League")).toBeInTheDocument();
     expect(screen.getByText("Buy-in is $20.")).toBeInTheDocument();
     expect(screen.getByText("3 teams")).toBeInTheDocument();

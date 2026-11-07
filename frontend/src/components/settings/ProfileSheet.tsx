@@ -1,6 +1,10 @@
 import type { User as SupabaseUser } from "@supabase/auth-js";
 import { useState } from "react";
+import { useSetAvatar } from "../../api/queries";
 import { useUser } from "../../contexts/UserContext";
+import AvatarSheet from "../avatar/AvatarSheet";
+import { mutationError } from "../common/friendlyError";
+import PictureAvatar from "../common/PictureAvatar";
 import EditTextSheet from "./EditTextSheet";
 import NotificationsToggle from "./NotificationsToggle";
 import SettingsCard from "./SettingsCard";
@@ -22,12 +26,33 @@ const nameOf = (user: SupabaseUser): string =>
 
 /** Profile settings, opened from the avatar: display name, theme, notifications, sign out. */
 const ProfileSheet = ({ user, onSignOut, onClose }: Props) => {
-  const { updateDisplayName } = useUser();
+  const { updateDisplayName, avatarUrl, setAvatarUrl } = useUser();
+  const picture = useSetAvatar({ kind: "me" });
   const [name, setName] = useState(nameOf(user));
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditing] = useState<"name" | "picture" | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
 
-  if (editing) {
+  if (editing === "picture") {
+    return (
+      <AvatarSheet
+        title="Profile picture"
+        name={name}
+        currentUrl={avatarUrl}
+        failure={mutationError(picture.error, "Couldn't save the picture. Try again.")}
+        onClose={() => {
+          picture.reset();
+          setEditing(null);
+        }}
+        onSave={async (blob) => setAvatarUrl(await picture.mutateAsync(blob))}
+        onRemove={async () => {
+          await picture.mutateAsync(null);
+          setAvatarUrl(null);
+        }}
+      />
+    );
+  }
+
+  if (editing === "name") {
     return (
       <EditTextSheet
         title="Display name"
@@ -36,7 +61,7 @@ const ProfileSheet = ({ user, onSignOut, onClose }: Props) => {
         maxLength={20}
         failure={failure}
         onClose={() => {
-          setEditing(false);
+          setEditing(null);
           setFailure(null);
         }}
         onSave={async (value) => {
@@ -52,7 +77,12 @@ const ProfileSheet = ({ user, onSignOut, onClose }: Props) => {
   return (
     <SettingsSheet title="Profile settings" onClose={onClose}>
       <SettingsCard>
-        <SettingsRow label="Display name" value={name} onClick={() => setEditing(true)} />
+        <SettingsRow
+          label="Profile picture"
+          value={<PictureAvatar url={avatarUrl} name={name} size={32} />}
+          onClick={() => setEditing("picture")}
+        />
+        <SettingsRow label="Display name" value={name} onClick={() => setEditing("name")} />
         {user.email && <SettingsRow label="Email" value={user.email} />}
         <ThemeModeRow />
         <NotificationsToggle />

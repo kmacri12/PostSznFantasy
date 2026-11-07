@@ -21,6 +21,12 @@ const SECTIONS: LegalSection[] = [
     ],
   },
   {
+    heading: "Pictures",
+    body: [
+      "If you set a profile, team or league picture, the cropped image is stored in a private storage bucket run for us by Supabase. Anyone in your leagues can see a picture that appears in a league (your profile picture, your team's picture and the league's picture); someone who is not in your leagues cannot find it without its address. Removing a picture deletes the file.",
+    ],
+  },
+  {
     heading: "What we do not do",
     body: [
       "We do not sell your data, share it with advertisers, or show ads. We only share it with the services that run the app (sign-in, hosting, error reporting and support email).",

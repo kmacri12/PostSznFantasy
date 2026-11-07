@@ -29,6 +29,7 @@ from api.models.enums import (
     PlayerPosition,
 )
 from api.services import activity
+from api.services.avatars import avatar_url
 from api.services.draft_picks import (
     DraftPickError,
     PickNotDue,
@@ -84,6 +85,7 @@ async def build_state(db: AsyncSession, draft: Draft) -> DraftStateResponse:
             slot=index + 1,
             team_id=team_id,
             team_name=by_id[team_id].name or f"Team {team_id}",
+            team_avatar_url=avatar_url(by_id[team_id].avatar_key),
             owner_name=owner_names.get(by_id[team_id].owner_id or -1),
         )
         for index, team_id in enumerate(draft.draft_order_team_ids)

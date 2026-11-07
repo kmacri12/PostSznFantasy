@@ -576,3 +576,40 @@ export const useApiVersion = () =>
     staleTime: Number.POSITIVE_INFINITY,
     retry: false,
   });
+
+export type AvatarTarget =
+  | { kind: "me" }
+  | { kind: "league"; id: Id | undefined }
+  | { kind: "team"; id: Id | undefined };
+
+const avatarPath = (target: AvatarTarget): string =>
+  target.kind === "me"
+    ? "/api/avatars/me"
+    : target.kind === "league"
+      ? `/api/leagues/${target.id}/avatar`
+      : `/api/teams/${target.id}/avatar`;
+
+// Everything that carries a picture: the league list and overview, members, teams, standings.
+const AVATAR_DATA_KEYS = ["league-info", "season", "teams", "team", "standings"] as const;
+
+/** Sets the picture (a cropped Blob) or removes it (null); resolves to the new `avatarUrl`. */
+export const useSetAvatar = (target: AvatarTarget) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (picture: Blob | null): Promise<string | null> => {
+      if (!picture) {
+        await api.delete(avatarPath(target));
+        return null;
+      }
+      const { data } = await api.put<{ avatarUrl: string | null }>(avatarPath(target), picture, {
+        headers: { "Content-Type": picture.type },
+      });
+      return data.avatarUrl;
+    },
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: keys.userLeagues }),
+        ...AVATAR_DATA_KEYS.map((key) => queryClient.invalidateQueries({ queryKey: [key] })),
+      ]),
+  });
+};

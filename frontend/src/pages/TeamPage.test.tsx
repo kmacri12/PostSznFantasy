@@ -55,6 +55,7 @@ vi.mock("../api/queries", () => ({
   usePlayerSeasonLine: () => ({ isPending: false, data: null }),
   useMoveInLineup: () => ({ mutate: vi.fn(), reset: vi.fn(), error: null, isPending: false }),
   useRenameTeam: () => ({ mutateAsync: vi.fn(), error: null, isPending: false }),
+  useSetAvatar: () => ({ mutateAsync: vi.fn(), reset: vi.fn(), error: null }),
 }));
 vi.mock("../components/common/DataFreshness", () => ({ default: () => null }));
 vi.mock("../components/team/PreDraftRoster", () => ({ default: () => null }));
@@ -125,6 +126,7 @@ describe("TeamPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Team settings" }));
     const sheet = screen.getByRole("dialog", { name: "Team settings" });
     expect(within(sheet).getByRole("button", { name: /Team name/ })).toBeInTheDocument();
+    expect(within(sheet).getByRole("button", { name: /Team picture/ })).toBeInTheDocument();
     expect(sheet).toHaveTextContent("Owner");
     expect(screen.queryByText(/archived/i)).toBeNull();
   });
@@ -136,6 +138,7 @@ describe("TeamPage", () => {
     const sheet = screen.getByRole("dialog", { name: "Team settings" });
     expect(sheet).toHaveTextContent("Gridiron");
     expect(within(sheet).queryByRole("button", { name: /Team name/ })).toBeNull();
+    expect(within(sheet).queryByRole("button", { name: /Team picture/ })).toBeNull();
     expect(screen.getByText(/archived/i)).toBeInTheDocument();
   });
 });

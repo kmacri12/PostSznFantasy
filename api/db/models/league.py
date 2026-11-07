@@ -33,6 +33,7 @@ class League(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     notes: Mapped[str] = mapped_column(Text, nullable=False, server_default="")
+    avatar_key: Mapped[str | None] = mapped_column(String(32), nullable=True)
     # Set by the league delete (rows are kept forever, #231).
     deleted_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
@@ -168,6 +169,7 @@ class Team(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str | None] = mapped_column(String(40))
+    avatar_key: Mapped[str | None] = mapped_column(String(32), nullable=True)
     owner_id: Mapped[int | None] = mapped_column(
         Integer,
         ForeignKey("fantasy.users.id", ondelete="SET NULL"),

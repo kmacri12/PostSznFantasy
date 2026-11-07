@@ -26,6 +26,7 @@ class DraftSlot(BaseSchema):
     slot: int
     team_id: int
     team_name: str
+    team_avatar_url: str | None = None
     owner_name: str | None = None
 
 

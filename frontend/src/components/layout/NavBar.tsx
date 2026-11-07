@@ -1,30 +1,14 @@
-import {
-  AppBar,
-  Avatar,
-  Box,
-  Button,
-  IconButton,
-  Toolbar,
-  useMediaQuery,
-  useTheme,
-} from "@mui/material";
+import { AppBar, Box, Button, IconButton, Toolbar, useMediaQuery, useTheme } from "@mui/material";
 import type { User as SupabaseUser } from "@supabase/auth-js";
 import { useState } from "react";
 import type { LeagueByUser } from "../../api/types";
+import { useUserAvatar } from "../../contexts/UserContext";
 import { HEADER_HEIGHT, tokens } from "../../theme";
+import PictureAvatar from "../common/PictureAvatar";
 import { DevQuickSync } from "../dev/DevQuickSync";
 import ProfileSheet from "../settings/ProfileSheet";
 import Brand from "./Brand";
 import LeagueSwitcher from "./LeagueSwitcher";
-
-const initials = (user: SupabaseUser): string => {
-  const name: string = user.user_metadata?.full_name || user.email || "?";
-  const words = name.split(/[\s@.]+/).filter(Boolean);
-  return words
-    .slice(0, 2)
-    .map((word) => word[0]?.toUpperCase())
-    .join("");
-};
 
 interface NavBarProps {
   user: SupabaseUser | null;
@@ -50,6 +34,7 @@ const NavBar = ({
   dormant = false,
 }: NavBarProps) => {
   const isMobile = useMediaQuery(useTheme().breakpoints.down("md"));
+  const avatarUrl = useUserAvatar();
   const [profileOpen, setProfileOpen] = useState(false);
 
   return (
@@ -72,19 +57,10 @@ const NavBar = ({
               aria-haspopup="dialog"
               onClick={() => setProfileOpen(true)}
             >
-              <Avatar
-                src={user.user_metadata?.avatar_url}
-                sx={{
-                  width: 32,
-                  height: 32,
-                  bgcolor: tokens.border,
-                  color: tokens.text,
-                  fontSize: 12,
-                  fontWeight: 600,
-                }}
-              >
-                {initials(user)}
-              </Avatar>
+              <PictureAvatar
+                url={avatarUrl}
+                name={user.user_metadata?.full_name || user.email || "?"}
+              />
             </IconButton>
             {profileOpen && (
               <ProfileSheet

@@ -12,6 +12,7 @@ import type { TeamDetails } from "../api/types";
 import DataFreshness from "../components/common/DataFreshness";
 import EmptyState from "../components/common/EmptyState";
 import { mutationError } from "../components/common/friendlyError";
+import PictureAvatar from "../components/common/PictureAvatar";
 import QueryBoundary from "../components/common/QueryBoundary";
 import ArchivedNotice from "../components/league/ArchivedNotice";
 import { formatPoints } from "../components/league/standingsView";
@@ -86,9 +87,10 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
       sx={{ py: { xs: 2, sm: 3 }, display: "flex", flexDirection: "column", gap: 1.5 }}
     >
       <Box
-        sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: 2 }}
+        sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 1.5 }}
       >
-        <Box sx={{ minWidth: 0 }}>
+        <PictureAvatar url={team.avatarUrl} name={team.name} size={48} />
+        <Box sx={{ minWidth: 0, flexGrow: 1 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
             <Typography
               variant="h1"

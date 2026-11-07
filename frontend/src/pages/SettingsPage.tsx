@@ -5,13 +5,16 @@ import {
   useInvite,
   useLeagueInfo,
   useLeagueSettings,
+  useSetAvatar,
   useUpdateLeague,
   useUpdateSeason,
   useUpdateSettings,
 } from "../api/queries";
+import AvatarSheet from "../components/avatar/AvatarSheet";
 import ErrorState from "../components/common/ErrorState";
 import { mutationError } from "../components/common/friendlyError";
 import LoadingState from "../components/common/LoadingState";
+import PictureAvatar from "../components/common/PictureAvatar";
 import ArchivedNotice from "../components/league/ArchivedNotice";
 import DeleteLeagueDialog from "../components/settings/DeleteLeagueDialog";
 import { valuesEqual } from "../components/settings/dirty";
@@ -32,7 +35,17 @@ import { POSTSEASON_KEYS, type PostseasonValues } from "../settings/postseasonFi
 import type { SettingsValues } from "../settings/types";
 import { TAB_BAR_HEIGHT } from "../theme";
 
-type Sheet = "leagueName" | "notes" | "teamCount" | "members" | "invite" | "delete" | null;
+type Sheet =
+  | "leaguePicture"
+  | "leagueName"
+  | "notes"
+  | "teamCount"
+  | "members"
+  | "invite"
+  | "delete"
+  | null;
+
+const PICTURE_FAILURE = "Couldn't save the picture. Try again.";
 
 const teamCountProblem = (value: string) => {
   const count = Number(value);
@@ -55,6 +68,7 @@ function SettingsPage() {
   const updateSettings = useUpdateSettings(seasonId);
   const updateLeague = useUpdateLeague(leagueId);
   const updateSeason = useUpdateSeason(seasonId);
+  const leaguePicture = useSetAvatar({ kind: "league", id: leagueId });
   const isCommissioner = info?.myRole === "commissioner";
   const canEdit = season.canCommission;
   const invite = useInvite(leagueId, isCommissioner);
@@ -152,6 +166,13 @@ function SettingsPage() {
           )}
           <SettingsCard>
             <SettingsRow
+              label="League picture"
+              value={
+                <PictureAvatar url={info.avatarUrl} name={info.name} size={32} fallback="tile" />
+              }
+              onClick={isCommissioner ? () => setSheet("leaguePicture") : undefined}
+            />
+            <SettingsRow
               label={isCommissioner ? "Edit league name" : "League name"}
               value={info.name}
               onClick={isCommissioner ? () => setSheet("leagueName") : undefined}
@@ -246,6 +267,22 @@ function SettingsPage() {
         </Paper>
       )}
 
+      {sheet === "leaguePicture" && info && (
+        <AvatarSheet
+          title="League picture"
+          name={info.name}
+          currentUrl={info.avatarUrl}
+          fallback="tile"
+          failure={mutationError(leaguePicture.error, PICTURE_FAILURE)}
+          onClose={close}
+          onSave={async (picture) => {
+            await leaguePicture.mutateAsync(picture);
+          }}
+          onRemove={async () => {
+            await leaguePicture.mutateAsync(null);
+          }}
+        />
+      )}
       {sheet === "leagueName" && info && (
         <EditTextSheet
           title="League name"

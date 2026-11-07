@@ -22,6 +22,9 @@ const logger = createLogger("UserContext");
 interface UserContextType {
   user: SupabaseUser | null;
   userId: number | null;
+  /** The signed-in member's profile picture path, if they set one. */
+  avatarUrl: string | null;
+  setAvatarUrl: (avatarUrl: string | null) => void;
   loading: boolean;
   /** True after Supabase ends the session without the user asking (refresh failed, other tab). */
   sessionExpired: boolean;
@@ -63,6 +66,7 @@ const verifyCodeErrorMessage = (error: { status?: number; code?: string }): stri
 export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [userId, setUserId] = useState<number | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [syncError, setSyncError] = useState<string | null>(null);
   const [sessionExpired, setSessionExpired] = useState(false);
@@ -98,6 +102,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     if (!user) {
       setUserId(null);
+      setAvatarUrl(null);
       setSyncError(null);
       if (hadUser.current) {
         hadUser.current = false;
@@ -111,13 +116,14 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setSessionExpired(false);
     let cancelled = false;
     api
-      .post<{ userId: number }>("/api/auth/login", {
+      .post<{ userId: number; avatarUrl?: string | null }>("/api/auth/login", {
         email: user.email,
         username: displayName(user).slice(0, 20),
       })
       .then((response) => {
         if (cancelled) return;
         setUserId(response.data.userId);
+        setAvatarUrl(response.data.avatarUrl ?? null);
         setSyncError(null);
       })
       .catch((error) => {
@@ -199,6 +205,8 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     () => ({
       user,
       userId,
+      avatarUrl,
+      setAvatarUrl,
       loading,
       sessionExpired,
       syncError,
@@ -213,6 +221,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     [
       user,
       userId,
+      avatarUrl,
       loading,
       sessionExpired,
       syncError,
@@ -236,3 +245,6 @@ export const useUser = (): UserContextType => {
   }
   return context;
 };
+
+/** The signed-in member's picture path, or null; safe outside a provider (header tests). */
+export const useUserAvatar = (): string | null => useContext(UserContext)?.avatarUrl ?? null;
