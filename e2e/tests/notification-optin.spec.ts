@@ -22,7 +22,7 @@ test.describe("notification opt-in", () => {
       await page.goto("/");
       const sheet = page.getByRole("dialog", { name: PROMPT });
       await expect(sheet.getByText("Allow when Chrome asks")).toBeVisible();
-      await expect(sheet.getByText("More, Settings, Notifications")).toBeVisible();
+      await expect(sheet.getByText(/your profile settings/)).toBeVisible();
       expect((await pushStubCalls(page)).asked).toBe(0);
 
       await sheet.getByRole("button", { name: "Turn on notifications" }).click();
@@ -32,7 +32,8 @@ test.describe("notification opt-in", () => {
       await expect(sheet).toBeHidden();
 
       const league = await new Api(request, uid).createLeague(unique("Opt In League"));
-      await page.goto(seasonUrl(league, "/settings"));
+      await page.goto(seasonUrl(league));
+      await page.getByRole("button", { name: "Profile settings" }).click();
       await expect(page.getByRole("switch", { name: "Notifications" })).toBeChecked();
       await page.unrouteAll({ behavior: "wait" });
     });

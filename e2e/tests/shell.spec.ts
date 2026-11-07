@@ -25,7 +25,8 @@ test("the shell shows five destinations and the league switcher inside a league"
 
   await sections.getByRole("link", { name: "More" }).click();
   await expect(page).toHaveURL(seasonUrl(league, "/more"));
-  await expect(page.getByRole("link", { name: "Settings" })).toBeVisible();
+  // Settings live behind cogs and the avatar now, not in More.
+  await expect(page.getByRole("link", { name: "Settings" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Sign out" })).toBeVisible();
 
   await sections.getByRole("link", { name: "Draft" }).click();

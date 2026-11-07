@@ -95,13 +95,6 @@ const MorePage = () => {
   return (
     <Container maxWidth="sm" sx={{ pt: 2, pb: 3 }}>
       <Group label="League">
-        {!season.isFormerMember && (
-          <Row
-            to={paths.settings}
-            title="Settings"
-            hint="Your settings and commissioner settings"
-          />
-        )}
         <Row to={paths.draft} title="Players" hint={draftStatusLine(season)} />
         <Row to={paths.draftBoard} title="Draft board" />
         {pastSeasons.length > 0 && (

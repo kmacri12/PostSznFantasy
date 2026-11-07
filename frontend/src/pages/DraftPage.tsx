@@ -14,11 +14,13 @@ import { cappedPositions } from "../components/draft/caps";
 import DraftBoard from "../components/draft/DraftBoard";
 import DraftClockBar from "../components/draft/DraftClockBar";
 import DraftOrderEditor from "../components/draft/DraftOrderEditor";
+import DraftSettingsSheet from "../components/draft/DraftSettingsSheet";
 import DraftToast from "../components/draft/DraftToast";
 import QueuePanel from "../components/draft/QueuePanel";
 import RosterView from "../components/draft/RosterView";
 import ArchivedNotice from "../components/league/ArchivedNotice";
 import PlayersView, { type DraftActions } from "../components/players/PlayersView";
+import CogButton from "../components/settings/CogButton";
 import { useSeasonContext } from "../contexts/SeasonContext";
 import { useDraftRoom } from "../hooks/useDraftRoom";
 import { HEADER_HEIGHT, radii, tokens } from "../theme";
@@ -46,6 +48,7 @@ const DraftPage = () => {
   const wide = useMediaQuery(useTheme().breakpoints.up("lg"));
   const [view, setView] = useState<ViewKey>("players");
   const [editingOrder, setEditingOrder] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const snapshot: DraftSnapshot | null = room.state;
   const state: DraftState | null = snapshot ?? info.data ?? null;
@@ -104,9 +107,20 @@ const DraftPage = () => {
     );
   }
 
+  const settingsSheet = settingsOpen && (
+    <DraftSettingsSheet
+      draft={state}
+      canEdit={season.canCommission && !archived}
+      onClose={() => setSettingsOpen(false)}
+    />
+  );
+
   if (state.status === "completed") {
     return (
       <Container maxWidth="md" sx={{ py: 2 }}>
+        <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+          <CogButton label="Draft settings" onClick={() => setSettingsOpen(true)} />
+        </Box>
         {archived && <ArchivedNotice what="picks and the queue" />}
         <PlayersView
           seasonId={seasonId}
@@ -115,6 +129,7 @@ const DraftPage = () => {
           teams={teams}
           myTeamId={myTeamId}
         />
+        {settingsSheet}
       </Container>
     );
   }
@@ -171,7 +186,9 @@ const DraftPage = () => {
         secondsLeft={room.secondsLeft}
         secondsToStart={room.secondsToStart}
         isConnected={room.isConnected}
+        onOpenSettings={() => setSettingsOpen(true)}
       />
+      {settingsSheet}
       {season.canCommission && !archived && (
         <CommissionerStrip
           draft={state}

@@ -25,7 +25,12 @@ export function leagueTabs(league: LeagueByUser): LeagueTab[] {
       .replace(/\/$/, "");
   };
   return [
-    { label: "League", to: paths.home, matches: (p) => page(p) === "", dot: false },
+    {
+      label: "League",
+      to: paths.home,
+      matches: (p) => page(p) === "" || page(p) === "/settings",
+      dot: false,
+    },
     {
       label: "Team",
       to: league.userTeamId === null ? paths.home : paths.team(league.userTeamId),
@@ -47,7 +52,7 @@ export function leagueTabs(league: LeagueByUser): LeagueTab[] {
     {
       label: "More",
       to: paths.more,
-      matches: (p) => page(p) === "/more" || page(p) === "/settings",
+      matches: (p) => page(p) === "/more",
       dot: false,
     },
   ];

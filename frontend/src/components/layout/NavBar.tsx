@@ -1,14 +1,4 @@
-import {
-  AppBar,
-  Box,
-  Button,
-  IconButton,
-  Menu,
-  MenuItem,
-  Toolbar,
-  useMediaQuery,
-  useTheme,
-} from "@mui/material";
+import { AppBar, Box, Button, IconButton, Toolbar, useMediaQuery, useTheme } from "@mui/material";
 import type { User as SupabaseUser } from "@supabase/auth-js";
 import { useState } from "react";
 import type { LeagueByUser } from "../../api/types";
@@ -16,6 +6,7 @@ import { useUserAvatar } from "../../contexts/UserContext";
 import { HEADER_HEIGHT, tokens } from "../../theme";
 import PictureAvatar from "../common/PictureAvatar";
 import { DevQuickSync } from "../dev/DevQuickSync";
+import ProfileSheet from "../settings/ProfileSheet";
 import Brand from "./Brand";
 import LeagueSwitcher from "./LeagueSwitcher";
 
@@ -32,7 +23,7 @@ interface NavBarProps {
   dormant?: boolean;
 }
 
-/** The header: the full logo on the left; the league switcher and the account menu on the right. */
+/** The header: the full logo on the left; the league switcher and the avatar (profile settings) on the right. */
 const NavBar = ({
   user,
   leagues,
@@ -44,7 +35,7 @@ const NavBar = ({
 }: NavBarProps) => {
   const isMobile = useMediaQuery(useTheme().breakpoints.down("md"));
   const avatarUrl = useUserAvatar();
-  const [profileAnchor, setProfileAnchor] = useState<HTMLElement | null>(null);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   return (
     <AppBar
@@ -62,29 +53,22 @@ const NavBar = ({
         {user ? (
           <>
             <IconButton
-              aria-label="Account menu"
-              onClick={(event) => setProfileAnchor(event.currentTarget)}
+              aria-label="Profile settings"
+              aria-haspopup="dialog"
+              onClick={() => setProfileOpen(true)}
             >
               <PictureAvatar
                 url={avatarUrl}
                 name={user.user_metadata?.full_name || user.email || "?"}
               />
             </IconButton>
-            <Menu
-              anchorEl={profileAnchor}
-              open={!!profileAnchor}
-              onClose={() => setProfileAnchor(null)}
-            >
-              <MenuItem disabled>{user.email}</MenuItem>
-              <MenuItem
-                onClick={() => {
-                  setProfileAnchor(null);
-                  onSignOut();
-                }}
-              >
-                Sign out
-              </MenuItem>
-            </Menu>
+            {profileOpen && (
+              <ProfileSheet
+                user={user}
+                onSignOut={onSignOut}
+                onClose={() => setProfileOpen(false)}
+              />
+            )}
           </>
         ) : dormant ? null : (
           <Button variant="contained" onClick={onSignIn}>

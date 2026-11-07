@@ -12,7 +12,16 @@ interface Props {
 const SettingsSheet = ({ title, onClose, closeLabel = "Done", children }: Props) => {
   const phone = useMediaQuery(useTheme().breakpoints.down("sm"));
   const content = (
-    <Box sx={{ p: 2, pt: phone ? 1 : 2, display: "grid", gap: 1.5 }}>
+    // minmax(0, 1fr): without it a long row value (an ellipsized setting) widens the whole sheet past the screen.
+    <Box
+      sx={{
+        p: 2,
+        pt: phone ? 1 : 2,
+        display: "grid",
+        gridTemplateColumns: "minmax(0, 1fr)",
+        gap: 1.5,
+      }}
+    >
       {phone && (
         <Box
           aria-hidden

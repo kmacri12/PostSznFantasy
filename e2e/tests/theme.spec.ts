@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { Api, seasonUrl, unique } from "../support/api";
 import { signInAs } from "../support/auth";
 
-test("the theme switches in Settings at once and survives a reload", async ({
+test("the theme switches in profile settings at once and survives a reload", async ({
   page,
   context,
   request,
@@ -12,7 +12,9 @@ test("the theme switches in Settings at once and survives a reload", async ({
   const league = await host.createLeague(unique("Theme League"));
   await signInAs(context, host.uid);
 
-  await page.goto(seasonUrl(league, "/settings"));
+  const openProfile = () => page.getByRole("button", { name: "Profile settings" }).click();
+  await page.goto(seasonUrl(league));
+  await openProfile();
   const html = page.locator("html");
   const dark = page.getByRole("button", { name: "Dark", exact: true });
   const light = page.getByRole("button", { name: "Light", exact: true });
@@ -31,6 +33,7 @@ test("the theme switches in Settings at once and survives a reload", async ({
 
   await page.reload();
   await expect(html).toHaveAttribute("data-theme", "light");
+  await openProfile();
   await expect(page.getByRole("button", { name: "Light", exact: true })).toHaveAttribute(
     "aria-pressed",
     "true",

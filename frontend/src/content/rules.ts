@@ -195,7 +195,8 @@ export const OPT_IN_STEPS = {
 } as const;
 export const OPT_IN_IPHONE_INSTALL =
   "On iPhone (iOS 16.4 or later), notifications work from the Home Screen app. In Safari tap Share, Add to Home Screen, open PostSzn from the new icon, then turn notifications on.";
-export const OPT_IN_MANAGE = "You can change this any time in More, Settings, Notifications.";
+export const OPT_IN_MANAGE =
+  "You can change this any time in your profile settings (tap your avatar, top right), Notifications.";
 export const LAST_COMMISSIONER_NOTE =
   "A league always keeps at least one commissioner. Removing a member frees their team in an unfinished season; finished seasons keep their name on it.";
 
