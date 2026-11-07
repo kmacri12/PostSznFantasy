@@ -43,6 +43,7 @@ Data and launch
 17. [Ordered deploys: API first, then the website](17-ordered-deploy.md), 10 min, in two sittings (#249)
 18. [Turn on push notifications](18-push-notifications.md), 15 min plus a phone test (#266)
 19. [Turn on "Report a problem" email](19-support-email.md), 20 min (#296)
+20. [Turn on profile, team and league pictures](20-avatars.md), 10 min (#316)
 
 After the season (engineering runbooks, written for you too)
 - [Shut down after the Super Bowl](../deploy/shutdown-runbook.md)

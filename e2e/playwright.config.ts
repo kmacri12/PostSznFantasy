@@ -4,6 +4,7 @@ import {
   ADMIN_UID,
   API_PORT,
   API_URL,
+  AVATAR_DIR,
   E2E_DATABASE_URL,
   RESEND_STUB_PORT,
   RESEND_STUB_URL,
@@ -62,6 +63,8 @@ export default defineConfig({
         PLAYOFF_FIELD_SIZE: "8",
         ADMIN_SUPABASE_UIDS: ADMIN_UID,
         LOG_FORMAT: "console",
+        // Pictures stay on disk here instead of Supabase Storage (refused in production).
+        AVATAR_LOCAL_DIR: AVATAR_DIR,
         RESEND_API_KEY: "re_e2e_stub",
         SUPPORT_EMAIL: "support@e2e.test",
         RESEND_API_URL: `${RESEND_STUB_URL}/emails`,

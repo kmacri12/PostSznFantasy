@@ -4,6 +4,7 @@ import type React from "react";
 import { useEffect, useRef } from "react";
 import type { DraftPick, DraftState } from "../../api/types";
 import { tokens } from "../../theme";
+import PictureAvatar from "../common/PictureAvatar";
 import TeamUnitBadge from "../common/TeamUnitBadge";
 import { centeredScroll } from "./boardScroll";
 import { positionColor } from "./positions";
@@ -128,16 +129,19 @@ const DraftBoard: React.FC<Props> = ({ state, myTeamId, sx }) => {
               minWidth: 0,
             }}
           >
-            <Typography
-              noWrap
-              sx={{
-                fontSize: 12,
-                fontWeight: 600,
-                color: slot.teamId === myTeamId ? tokens.accent : tokens.text,
-              }}
-            >
-              {slot.teamName}
-            </Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, minWidth: 0 }}>
+              <PictureAvatar url={slot.teamAvatarUrl} name={slot.teamName} size={22} />
+              <Typography
+                noWrap
+                sx={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: slot.teamId === myTeamId ? tokens.accent : tokens.text,
+                }}
+              >
+                {slot.teamName}
+              </Typography>
+            </Box>
           </Box>
         ))}
         {Array.from({ length: state.rounds }, (_, round) => (

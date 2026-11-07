@@ -24,6 +24,7 @@ vi.mock("./contexts/UserContext", () => ({
     signIn: vi.fn(),
     signOutUser: vi.fn(),
   }),
+  useUserAvatar: () => null,
 }));
 vi.mock("./components/auth/SessionExpiredBanner", () => ({ default: () => null }));
 vi.mock("./components/dev/DevQuickSync", () => ({ DevQuickSync: () => null }));

@@ -93,7 +93,11 @@ describe("Standings", () => {
 
   it("marks shared ranks as ties", () => {
     show({ ...live, teams: [row(1, 1), row(2, 1)] });
-    expect(within(phoneList()).getAllByText("T1")).toHaveLength(2);
+    // The picture fallback also reads "T1" (the initials of "Team 1"); only count the rank labels.
+    const ranks = within(phoneList())
+      .getAllByText("T1")
+      .filter((element) => !element.closest(".MuiAvatar-root"));
+    expect(ranks).toHaveLength(2);
   });
 
   it("lists every slot before the draft, open ones included, without points", () => {

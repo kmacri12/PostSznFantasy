@@ -6,13 +6,16 @@ import {
   useLeagueInfo,
   useLeagueSettings,
   useRenameTeam,
+  useSetAvatar,
   useUpdateLeague,
   useUpdateSeason,
   useUpdateSettings,
 } from "../api/queries";
+import AvatarSheet from "../components/avatar/AvatarSheet";
 import ErrorState from "../components/common/ErrorState";
 import { mutationError } from "../components/common/friendlyError";
 import LoadingState from "../components/common/LoadingState";
+import PictureAvatar from "../components/common/PictureAvatar";
 import ArchivedNotice from "../components/league/ArchivedNotice";
 import DeleteLeagueDialog from "../components/settings/DeleteLeagueDialog";
 import { valuesEqual } from "../components/settings/dirty";
@@ -36,6 +39,9 @@ import type { SettingsValues } from "../settings/types";
 import { TAB_BAR_HEIGHT } from "../theme";
 
 type Sheet =
+  | "myPicture"
+  | "teamPicture"
+  | "leaguePicture"
   | "displayName"
   | "teamName"
   | "leagueName"
@@ -45,6 +51,8 @@ type Sheet =
   | "invite"
   | "delete"
   | null;
+
+const PICTURE_FAILURE = "Couldn't save the picture. Try again.";
 
 const teamCountProblem = (value: string) => {
   const count = Number(value);
@@ -56,7 +64,7 @@ const teamCountProblem = (value: string) => {
 /** Your settings for everyone; Commissioner settings (rows that open sheets, rules as accordions) for commissioners. */
 function SettingsPage() {
   const { leagueId, seasonId, season } = useSeasonContext();
-  const { userId, user, signOutUser, updateDisplayName } = useUser();
+  const { userId, user, avatarUrl, setAvatarUrl, signOutUser, updateDisplayName } = useUser();
   const info = useLeagueInfo(leagueId, !season.isFormerMember).data;
   const archived = season.finished;
   const settingsQuery = useLeagueSettings(seasonId);
@@ -65,6 +73,9 @@ function SettingsPage() {
   const updateLeague = useUpdateLeague(leagueId);
   const updateSeason = useUpdateSeason(seasonId);
   const renameTeam = useRenameTeam(season.myTeamId ?? undefined);
+  const myPicture = useSetAvatar({ kind: "me" });
+  const teamPicture = useSetAvatar({ kind: "team", id: season.myTeamId ?? undefined });
+  const leaguePicture = useSetAvatar({ kind: "league", id: leagueId });
   const isCommissioner = info?.myRole === "commissioner";
   const canEdit = season.canCommission;
   const invite = useInvite(leagueId, isCommissioner);
@@ -160,10 +171,22 @@ function SettingsPage() {
 
       <SettingsCard title="Your settings">
         <SettingsRow
+          label="Profile picture"
+          value={<PictureAvatar url={avatarUrl} name={displayName} size={32} />}
+          onClick={() => setSheet("myPicture")}
+        />
+        <SettingsRow
           label="Display name"
           value={displayName}
           onClick={() => setSheet("displayName")}
         />
+        {myTeam && (
+          <SettingsRow
+            label="Team picture"
+            value={<PictureAvatar url={myTeam.avatarUrl} name={myTeam.name} size={32} />}
+            onClick={archived ? undefined : () => setSheet("teamPicture")}
+          />
+        )}
         {myTeam && (
           <SettingsRow
             label="Team name"
@@ -186,6 +209,13 @@ function SettingsPage() {
             </Alert>
           )}
           <SettingsCard title="Commissioner settings">
+            <SettingsRow
+              label="League picture"
+              value={
+                <PictureAvatar url={info.avatarUrl} name={info.name} size={32} fallback="tile" />
+              }
+              onClick={() => setSheet("leaguePicture")}
+            />
             <SettingsRow
               label="Edit league name"
               value={info.name}
@@ -272,6 +302,51 @@ function SettingsPage() {
         </Paper>
       )}
 
+      {sheet === "myPicture" && (
+        <AvatarSheet
+          title="Profile picture"
+          name={displayName}
+          currentUrl={avatarUrl}
+          failure={mutationError(myPicture.error, PICTURE_FAILURE)}
+          onClose={close}
+          onSave={async (picture) => setAvatarUrl(await myPicture.mutateAsync(picture))}
+          onRemove={async () => {
+            await myPicture.mutateAsync(null);
+            setAvatarUrl(null);
+          }}
+        />
+      )}
+      {sheet === "teamPicture" && myTeam && (
+        <AvatarSheet
+          title="Team picture"
+          name={myTeam.name}
+          currentUrl={myTeam.avatarUrl}
+          failure={mutationError(teamPicture.error, PICTURE_FAILURE)}
+          onClose={close}
+          onSave={async (picture) => {
+            await teamPicture.mutateAsync(picture);
+          }}
+          onRemove={async () => {
+            await teamPicture.mutateAsync(null);
+          }}
+        />
+      )}
+      {sheet === "leaguePicture" && info && (
+        <AvatarSheet
+          title="League picture"
+          name={info.name}
+          currentUrl={info.avatarUrl}
+          fallback="tile"
+          failure={mutationError(leaguePicture.error, PICTURE_FAILURE)}
+          onClose={close}
+          onSave={async (picture) => {
+            await leaguePicture.mutateAsync(picture);
+          }}
+          onRemove={async () => {
+            await leaguePicture.mutateAsync(null);
+          }}
+        />
+      )}
       {sheet === "displayName" && (
         <EditTextSheet
           title="Display name"
