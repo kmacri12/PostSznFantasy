@@ -74,7 +74,7 @@ jobs:
             exit 1
           fi
 
-      - uses: superfly/flyctl-actions/setup-flyctl@1.5
+      - uses: superfly/flyctl-actions/setup-flyctl@1.6
         if: steps.plan.outputs.api == 'true' && steps.gate.outputs.blocked != 'true'
 
       # --ha=false: the first deploy would otherwise create two machines, and two processes
