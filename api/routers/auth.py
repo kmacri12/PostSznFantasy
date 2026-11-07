@@ -11,6 +11,7 @@ from api.db.session import DbSession
 from api.dependencies.auth import CurrentUser
 from api.models.auth_models import LoginResponse
 from api.models.base import BaseSchema
+from api.services.avatars import avatar_url
 
 router = APIRouter()
 
@@ -41,10 +42,12 @@ async def login_or_register(
     }
     upsert_stmt = insert_stmt.on_conflict_do_update(
         index_elements=[User.supabase_uid], set_=updates
-    ).returning(User.id, literal_column("(xmax = 0)", Boolean).label("created"))
+    ).returning(
+        User.id, User.avatar_key, literal_column("(xmax = 0)", Boolean).label("created")
+    )
 
     try:
-        user_id, created = (await db.execute(upsert_stmt)).one()
+        user_id, avatar_key, created = (await db.execute(upsert_stmt)).one()
     except IntegrityError as exc:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -54,4 +57,5 @@ async def login_or_register(
     return LoginResponse(
         message="User created successfully" if created else "Login successful",
         user_id=user_id,
+        avatar_url=avatar_url(avatar_key),
     )

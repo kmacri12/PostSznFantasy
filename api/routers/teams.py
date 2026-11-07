@@ -17,6 +17,7 @@ from api.models.league_models import (
     TeamDetails,
     TeamRename,
 )
+from api.services.avatars import avatar_url
 from api.services.lineups import (
     LineupActor,
     LineupError,
@@ -131,6 +132,7 @@ async def build_team_details(
     return TeamDetails(
         id=team.id,
         name=team.name or f"Team {team.id}",
+        avatar_url=avatar_url(team.avatar_key),
         season_id=team.season_id,
         owner_name=team.owner.username if team.owner else None,
         can_edit=membership.can_edit and (is_owner or membership.is_commissioner),

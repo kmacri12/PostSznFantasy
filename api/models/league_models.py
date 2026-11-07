@@ -170,6 +170,7 @@ class LeaguesByUser(BaseSchema):
     user_team_id: int | None = None
     # Events in the season feed this member hasn't seen, for the nav dot.
     has_new_activity: bool = False
+    avatar_url: str | None = None
     # The latest season's Super Bowl is final: it is a read-only archive.
     finished: bool = False
     draft_status: DraftStatus = DraftStatus.UNSCHEDULED
@@ -215,8 +216,10 @@ class MemberSummary(BaseSchema):
     user_id: int
     username: str
     role: LeagueRole
+    avatar_url: str | None = None
     team_id: int | None = None
     team_name: str | None = None
+    team_avatar_url: str | None = None
 
 
 class MemberRoleUpdate(BaseSchema):
@@ -226,6 +229,7 @@ class MemberRoleUpdate(BaseSchema):
 class TeamBrief(BaseSchema):
     id: int
     name: str
+    avatar_url: str | None = None
     owner_user_id: int | None = None
     owner_name: str | None = None
 
@@ -248,6 +252,7 @@ class LeagueOverview(BaseSchema):
 
     id: int
     name: str
+    avatar_url: str | None = None
     notes: str
     my_role: LeagueRole
     current_season_id: int
@@ -317,6 +322,7 @@ class TeamStanding(BaseSchema):
     # None before the draft.
     rank: int | None
     team_name: str
+    team_avatar_url: str | None = None
     # None for an open slot.
     owner: str | None
     is_commissioner: bool = False
@@ -389,6 +395,7 @@ class TeamBreakdown(BaseSchema):
 class TeamSimple(BaseSchema):
     id: int
     name: str
+    avatar_url: str | None = None
     owner_id: int | None = None
     owner_name: str | None = None
     picks_made: int = 0
@@ -454,6 +461,7 @@ class RoundLineup(BaseSchema):
 class TeamDetails(BaseSchema):
     id: int
     name: str
+    avatar_url: str | None = None
     season_id: int
     owner_name: str | None = None
     can_edit: bool

@@ -130,6 +130,15 @@ class Settings(BaseSettings):
     # E2E only: a local stand-in for Resend. Refused when ENVIRONMENT is production.
     resend_api_url: str = DEFAULT_RESEND_API_URL
 
+    # Avatars (#316) live in a private Supabase Storage bucket, read and written only by
+    # this API with the service-role key; empty keeps pictures off (uploads answer
+    # "not set up"). Never give the key to the browser.
+    supabase_service_role_key: str = ""
+    avatar_bucket: str = "avatars"
+    # Dev and e2e only: keep the images in this directory instead of Supabase. Refused
+    # when ENVIRONMENT is production.
+    avatar_local_dir: str = ""
+
     # Commit the image was built from (Dockerfile build arg GIT_SHA); the deploy workflow
     # reads it from GET /api to learn what production runs. Empty outside Fly builds.
     git_sha: str = ""
@@ -185,6 +194,19 @@ class Settings(BaseSettings):
                 "it is refused when ENVIRONMENT is production"
             )
         return self
+
+    @model_validator(mode="after")
+    def _refuse_local_avatars_in_production(self) -> "Settings":
+        if self.avatar_local_dir and self.environment == "production":
+            raise ValueError(
+                "AVATAR_LOCAL_DIR keeps pictures on the API's disk; "
+                "it is refused when ENVIRONMENT is production"
+            )
+        return self
+
+    @property
+    def avatars_enabled(self) -> bool:
+        return bool(self.avatar_local_dir or self.supabase_service_role_key)
 
     @model_validator(mode="after")
     def _require_db_config(self) -> "Settings":

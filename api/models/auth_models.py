@@ -8,3 +8,4 @@ class LoginRequest(BaseSchema):
 class LoginResponse(BaseSchema):
     message: str
     user_id: int
+    avatar_url: str | None = None

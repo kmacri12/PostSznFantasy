@@ -40,6 +40,7 @@ from api.models.league_models import (
 )
 from api.services import activity
 from api.services.activity import leagues_with_new_activity
+from api.services.avatars import avatar_url
 from api.services.draft_picks import DraftPickError
 from api.services.league_members import (
     LeagueRuleError,
@@ -228,6 +229,7 @@ async def get_user_leagues(
             LeaguesByUser(
                 id=member.league.id,
                 name=member.league.name,
+                avatar_url=avatar_url(member.league.avatar_key),
                 season_id=latest.id,
                 season=latest.year,
                 is_commissioner=member.role == LeagueRole.COMMISSIONER.value,
@@ -307,6 +309,7 @@ async def _league_overview(
     return LeagueOverview(
         id=league.id,
         name=league.name,
+        avatar_url=avatar_url(league.avatar_key),
         notes=league.notes,
         my_role=LeagueRole(role),
         current_season_id=season.id,
