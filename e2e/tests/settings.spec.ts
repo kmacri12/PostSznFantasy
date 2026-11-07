@@ -14,7 +14,7 @@ test.describe("league settings", () => {
     await signInAs(context, host.uid);
 
     await page.goto(seasonUrl(league, "/settings"));
-    await expect(page.getByRole("heading", { name: "Settings", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "League settings", exact: true })).toBeVisible();
     await expect(page.getByRole("region", { name: "Unsaved changes" })).toHaveCount(0);
 
     await page.getByRole("button", { name: "Scoring" }).click();
@@ -62,7 +62,11 @@ test.describe("league settings", () => {
     await expect(page.getByRole("button", { name: /^Edit league name/ })).toContainText(renamed);
   });
 
-  test("a member sees only their own settings", async ({ page, context, request }) => {
+  test("a member sees the league settings from the cog, with nothing to change", async ({
+    page,
+    context,
+    request,
+  }) => {
     const host = new Api(request, unique("host"));
     await host.signUp("host");
     const league = await host.createLeague(unique("Readonly League"));
@@ -72,10 +76,21 @@ test.describe("league settings", () => {
     await member.joinWith(code);
     await signInAs(context, member.uid);
 
-    await page.goto(seasonUrl(league, "/settings"));
-    await expect(page.getByText("Your settings")).toBeVisible();
-    await expect(page.getByRole("button", { name: "Sign out" })).toBeVisible();
-    await expect(page.getByText("Commissioner settings")).toHaveCount(0);
-    await expect(page.getByRole("button", { name: "Scoring" })).toHaveCount(0);
+    await page.goto(seasonUrl(league));
+    await page.getByRole("link", { name: "League settings" }).click();
+    await expect(page.getByRole("heading", { name: "League settings", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: /^Edit league/ })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: /^Delete league/ })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: /^Invite link/ })).toHaveCount(0);
+
+    // The rules are there to read, but locked.
+    await page.getByRole("button", { name: "Scoring" }).click();
+    await expect(page.locator("#scoring-passing-td")).toHaveValue("4");
+    await expect(page.locator("#scoring-passing-td")).not.toBeEditable();
+
+    await page.getByRole("button", { name: /^Members/ }).click();
+    const members = page.getByRole("dialog", { name: "Members" });
+    await expect(members.getByText("Commissioner", { exact: true })).toBeVisible();
+    await expect(members.getByRole("switch")).toHaveCount(0);
   });
 });

@@ -6,7 +6,7 @@ import type { DraftState } from "../../api/types";
 import { radii, tokens } from "../../theme";
 import { mutationError } from "../common/friendlyError";
 import { formatDraftTime } from "../league/countdown";
-import { DraftDateDialog, DraftRulesDialog } from "./DraftSetupDialogs";
+import { DraftDateDialog } from "./DraftSetupDialogs";
 import PreDraftNotice from "./PreDraftNotice";
 
 interface Props {
@@ -47,7 +47,6 @@ const CommissionerStrip = ({ draft, editingOrder, onEditOrder }: Props) => {
   const control = useDraftControl(draft.seasonId);
   const [open, setOpen] = useState(false);
   const [dateOpen, setDateOpen] = useState(false);
-  const [rulesOpen, setRulesOpen] = useState(false);
   const status = draft.status;
   const preDraft = ["unscheduled", "scheduled", "lobby"].includes(status);
   const run = (action: Parameters<typeof control.mutate>[0]) => () => control.mutate(action);
@@ -106,12 +105,6 @@ const CommissionerStrip = ({ draft, editingOrder, onEditOrder }: Props) => {
               <Action disabled={control.isPending} onClick={run("start")}>
                 Start draft
               </Action>
-              <Button
-                onClick={() => setRulesOpen(true)}
-                sx={{ color: tokens.textSoft, fontSize: 13, minHeight: 44 }}
-              >
-                Draft settings
-              </Button>
               <Box
                 sx={{
                   px: 1.5,
@@ -154,7 +147,6 @@ const CommissionerStrip = ({ draft, editingOrder, onEditOrder }: Props) => {
         </Box>
       )}
       {dateOpen && <DraftDateDialog draft={draft} open onClose={() => setDateOpen(false)} />}
-      {rulesOpen && <DraftRulesDialog draft={draft} open onClose={() => setRulesOpen(false)} />}
     </Box>
   );
 };

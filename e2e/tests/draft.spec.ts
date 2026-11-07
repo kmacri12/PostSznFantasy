@@ -324,9 +324,9 @@ test.describe("commissioner draft setup", () => {
     await signInAs(context, host.uid);
 
     await page.goto(seasonUrl(league, "/draft"));
-    await openControls(page);
     await page.getByRole("button", { name: "Draft settings" }).click();
-    await page.getByLabel("Seconds per pick").fill("45");
+    await page.getByRole("button", { name: /^Seconds per pick/ }).click();
+    await page.getByRole("textbox", { name: "Seconds per pick" }).fill("45");
     await page.getByRole("button", { name: "Save settings" }).click();
     await expect
       .poll(
@@ -338,6 +338,24 @@ test.describe("commissioner draft setup", () => {
           ).timePerPickSeconds,
       )
       .toBe(45);
+  });
+
+  test("a member reads the same draft settings from the cog but cannot change them", async ({
+    browser,
+    request,
+  }) => {
+    const league = await createDraftLeague(request, { seconds: 45 });
+    const guestContext = await newUserContext(browser, league.guest.uid);
+    const guestPage = await guestContext.newPage();
+    await guestPage.goto(seasonUrl(league.league, "/draft"));
+
+    await guestPage.getByRole("button", { name: "Draft settings" }).click();
+    const sheet = guestPage.getByRole("dialog", { name: "Draft settings" });
+    await expect(sheet.getByText("Seconds per pick")).toBeVisible();
+    await expect(sheet.getByText("45", { exact: true })).toBeVisible();
+    await expect(sheet.getByText("Snake", { exact: true })).toBeVisible();
+    await expect(sheet.getByRole("button", { name: /^Seconds per pick/ })).toHaveCount(0);
+    await guestContext.close();
   });
 
   test("the draft date is set from Change date and shown in the bar", async ({

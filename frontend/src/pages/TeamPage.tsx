@@ -1,24 +1,10 @@
-import EditIcon from "@mui/icons-material/Edit";
-import {
-  Alert,
-  Box,
-  Button,
-  Container,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  IconButton,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Alert, Box, Button, Container, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
   type LineupMoveRequest,
   needsOverrideConfirmation,
   useMoveInLineup,
-  useRenameTeam,
   useStandings,
   useTeam,
 } from "../api/queries";
@@ -29,6 +15,8 @@ import { mutationError } from "../components/common/friendlyError";
 import QueryBoundary from "../components/common/QueryBoundary";
 import ArchivedNotice from "../components/league/ArchivedNotice";
 import { formatPoints } from "../components/league/standingsView";
+import CogButton from "../components/settings/CogButton";
+import TeamSettingsSheet from "../components/settings/TeamSettingsSheet";
 import LineupRound from "../components/team/LineupRound";
 import {
   defaultRound,
@@ -42,39 +30,6 @@ import PreDraftRoster from "../components/team/PreDraftRoster";
 import RoundStrip from "../components/team/RoundStrip";
 import { useSeasonContext } from "../contexts/SeasonContext";
 import { tokens } from "../theme";
-
-const RenameDialog = ({ team, onClose }: { team: TeamDetails; onClose: () => void }) => {
-  const [name, setName] = useState(team.name);
-  const rename = useRenameTeam(team.id);
-  const renameError = mutationError(rename.error, "Couldn't rename the team. Try again.");
-  return (
-    <Dialog open onClose={onClose} fullWidth maxWidth="xs">
-      <DialogTitle>Rename team</DialogTitle>
-      <DialogContent>
-        <TextField
-          autoFocus
-          fullWidth
-          margin="dense"
-          label="Team name"
-          value={name}
-          slotProps={{ htmlInput: { maxLength: 40 } }}
-          onChange={(event) => setName(event.target.value)}
-        />
-        {renameError && <Alert severity="error">{renameError}</Alert>}
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
-        <Button
-          variant="contained"
-          disabled={!name.trim() || rename.isPending}
-          onClick={() => rename.mutate(name.trim(), { onSuccess: onClose })}
-        >
-          Save
-        </Button>
-      </DialogActions>
-    </Dialog>
-  );
-};
 
 /** Re-renders every 30s so the banner clears the moment a game starts. */
 const useNow = () => {
@@ -92,7 +47,7 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
   const archived = season.finished;
   const canEdit = team.canEdit && season.canEdit;
   const canSetLineup = team.canSetLineup && season.canEdit;
-  const [renaming, setRenaming] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const now = useNow();
   const standing = useStandings(seasonId).data?.teams.find((row) => row.teamId === teamId);
   const currentRound = defaultRound(team.lineups, now);
@@ -141,11 +96,7 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
             >
               {team.name}
             </Typography>
-            {canEdit && (
-              <IconButton aria-label="Rename team" onClick={() => setRenaming(true)} size="small">
-                <EditIcon fontSize="small" />
-              </IconButton>
-            )}
+            <CogButton label="Team settings" onClick={() => setSettingsOpen(true)} />
           </Box>
           <Typography component="span" sx={{ fontSize: { xs: 12, md: 13 }, color: tokens.muted }}>
             {owner}
@@ -218,7 +169,14 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
           }}
         />
       )}
-      {renaming && <RenameDialog team={team} onClose={() => setRenaming(false)} />}
+      {settingsOpen && (
+        <TeamSettingsSheet
+          team={team}
+          owner={owner}
+          canRename={canEdit}
+          onClose={() => setSettingsOpen(false)}
+        />
+      )}
     </Container>
   );
 };

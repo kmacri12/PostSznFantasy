@@ -80,9 +80,15 @@ test.describe("team page", () => {
     await signInAs(context, league.host.uid);
     await page.goto(seasonUrl(league.league, `/teams/${league.hostTeamId}`));
 
-    await page.getByRole("button", { name: "Rename team" }).click();
-    await page.getByLabel(/team name/i).fill("Sunday Survivors");
-    await page.getByRole("button", { name: "Save" }).click();
+    await page.getByRole("button", { name: "Team settings" }).click();
+    await page.getByRole("button", { name: /^Team name/ }).click();
+    await page.getByRole("textbox", { name: "Team name" }).fill("Sunday Survivors");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    const sheet = page.getByRole("dialog", { name: "Team settings" });
+    await expect(sheet.getByRole("button", { name: /^Team name/ })).toContainText(
+      "Sunday Survivors",
+    );
+    await sheet.getByRole("button", { name: "Done" }).click();
     await expect(page.getByRole("heading", { name: "Sunday Survivors", level: 1 })).toBeVisible();
   });
 
@@ -96,7 +102,11 @@ test.describe("team page", () => {
     await page.goto(seasonUrl(league.league, `/teams/${league.hostTeamId}`));
 
     await expect(page.getByRole("alert")).toHaveCount(0);
-    await expect(page.getByRole("button", { name: "Rename team" })).toHaveCount(0);
+    await page.getByRole("button", { name: "Team settings" }).click();
+    const sheet = page.getByRole("dialog", { name: "Team settings" });
+    await expect(sheet.getByText("Owner")).toBeVisible();
+    await expect(sheet.getByRole("button", { name: /^Team name/ })).toHaveCount(0);
+    await sheet.getByRole("button", { name: "Done" }).click();
     await page.getByRole("button", { name: /^QB Aiden Archer/ }).click();
     await expect(page.getByRole("heading", { name: "Aiden Archer" })).toBeVisible();
     await expect(page.getByText(/Move in/)).toHaveCount(0);

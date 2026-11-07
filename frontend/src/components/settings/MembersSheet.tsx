@@ -23,11 +23,13 @@ interface Props {
   leagueId: number;
   members: MemberSummary[];
   currentUserId: number | null;
+  /** Members see who is in the league and who commissions it; only commissioners change it. */
+  readOnly?: boolean;
   onClose: () => void;
 }
 
 /** Commissioner toggle and removal per member; the only commissioner's toggle stays locked on. */
-const MembersSheet = ({ leagueId, members, currentUserId, onClose }: Props) => {
+const MembersSheet = ({ leagueId, members, currentUserId, readOnly = false, onClose }: Props) => {
   const setRole = useSetMemberRole(leagueId);
   const remove = useRemoveMember(leagueId);
   const [removing, setRemoving] = useState<MemberSummary | null>(null);
@@ -36,7 +38,7 @@ const MembersSheet = ({ leagueId, members, currentUserId, onClose }: Props) => {
     mutationError(remove.error, "Couldn't remove that member. Try again.");
 
   return (
-    <SettingsSheet title="Edit members" onClose={onClose}>
+    <SettingsSheet title={readOnly ? "Members" : "Edit members"} onClose={onClose}>
       {failure && <Alert severity="error">{failure}</Alert>}
       <Box
         component="ul"
@@ -70,41 +72,51 @@ const MembersSheet = ({ leagueId, members, currentUserId, onClose }: Props) => {
                   {isYou ? `You · ${team}` : team}
                 </Typography>
               </Box>
-              <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
-                <Box component="label" sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+              {readOnly ? (
+                member.role === "commissioner" && (
                   <Typography variant="caption" color="text.secondary">
                     Commissioner
                   </Typography>
-                  <Switch
-                    size="small"
-                    checked={member.role === "commissioner"}
-                    disabled={locked || setRole.isPending}
-                    onChange={() =>
-                      setRole.mutate({ userId: member.userId, role: toggledRole(member) })
-                    }
-                    slotProps={{
-                      input: { "aria-label": `Commissioner: ${member.username}` },
-                    }}
-                  />
+                )
+              ) : (
+                <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
+                  <Box component="label" sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                    <Typography variant="caption" color="text.secondary">
+                      Commissioner
+                    </Typography>
+                    <Switch
+                      size="small"
+                      checked={member.role === "commissioner"}
+                      disabled={locked || setRole.isPending}
+                      onChange={() =>
+                        setRole.mutate({ userId: member.userId, role: toggledRole(member) })
+                      }
+                      slotProps={{
+                        input: { "aria-label": `Commissioner: ${member.username}` },
+                      }}
+                    />
+                  </Box>
+                  {!isYou && (
+                    <Button
+                      size="small"
+                      color="error"
+                      sx={{ minHeight: 32 }}
+                      onClick={() => setRemoving(member)}
+                    >
+                      Remove from league
+                    </Button>
+                  )}
                 </Box>
-                {!isYou && (
-                  <Button
-                    size="small"
-                    color="error"
-                    sx={{ minHeight: 32 }}
-                    onClick={() => setRemoving(member)}
-                  >
-                    Remove from league
-                  </Button>
-                )}
-              </Box>
+              )}
             </Box>
           );
         })}
       </Box>
-      <Typography variant="caption" color="text.secondary">
-        {LAST_COMMISSIONER_NOTE}
-      </Typography>
+      {!readOnly && (
+        <Typography variant="caption" color="text.secondary">
+          {LAST_COMMISSIONER_NOTE}
+        </Typography>
+      )}
 
       {removing && (
         <Dialog open onClose={() => setRemoving(null)} aria-labelledby="remove-member-title">

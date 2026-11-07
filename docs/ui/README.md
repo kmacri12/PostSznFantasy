@@ -16,7 +16,7 @@ This doc records behavior and decisions: what each page shows and why it sits wh
 
 ## Palette
 
-Sky blue on graphite (dark, the default) or on white (light, #297 and #298). The member picks in Settings > Your settings > **Theme** (Dark or Light, no "match my device" in v1); it applies at once and is remembered per device. The tokens live in `frontend/src/theme.ts` (`palettes`); components use the tokens or the MUI palette, never a hex value. Each token is a CSS variable (`--ps-<name>`) switched by `data-theme` on `<html>`; `ThemeModeContext` holds the mode, and an inline script in `index.html` sets it before first paint so there is no dark flash. The same switch moves `<meta name="theme-color">` and the manifest (`manifest.webmanifest` dark, `manifest-light.webmanifest` light). `src/theme.test.ts` fails if a pair drops below WCAG AA in either mode, and `src/indexHtml.test.ts` fails if the inline script, page background or manifests drift from the palette.
+Sky blue on graphite (dark, the default) or on white (light, #297 and #298). The member picks in **Profile settings** (the avatar) > **Theme** (Dark or Light, no "match my device" in v1); it applies at once and is remembered per device. The tokens live in `frontend/src/theme.ts` (`palettes`); components use the tokens or the MUI palette, never a hex value. Each token is a CSS variable (`--ps-<name>`) switched by `data-theme` on `<html>`; `ThemeModeContext` holds the mode, and an inline script in `index.html` sets it before first paint so there is no dark flash. The same switch moves `<meta name="theme-color">` and the manifest (`manifest.webmanifest` dark, `manifest-light.webmanifest` light). `src/theme.test.ts` fails if a pair drops below WCAG AA in either mode, and `src/indexHtml.test.ts` fails if the inline script, page background or manifests drift from the palette.
 
 | Role | Token | Dark | Light |
 | --- | --- | --- | --- |
@@ -51,7 +51,7 @@ One component, `components/common/Logo`: `variant` mark | lockup | stacked, `siz
 
 ## Navigation and header
 
-- Header, always: the **full horizontal logo** top-left (bare bracket mark at 34px, "PostSzn" and the centered "FANTASY" line; links to the leagues page). It never truncates. Inside a league, the **league switcher** (league name plus chevron) sits on the right, just left of the avatar; the name truncates with an ellipsis (64px to about 140px, chevron always visible) and the switcher and avatar keep 44px tap targets. The avatar (account, sign out) is furthest right. No hamburger.
+- Header, always: the **full horizontal logo** top-left (bare bracket mark at 34px, "PostSzn" and the centered "FANTASY" line; links to the leagues page). It never truncates. Inside a league, the **league switcher** (league name plus chevron) sits on the right, just left of the avatar; the name truncates with an ellipsis (64px to about 140px, chevron always visible) and the switcher and avatar keep 44px tap targets. The avatar is furthest right: tapping it opens **Profile settings** (see Settings below). No hamburger.
 - Outside a league (home, leagues page, signed out): the same logo, no switcher; the avatar, or Sign in, on the right.
 - Desktop: the same bar; inside a league the left rail's brand block shows the full logo (so the bar holds only the switcher and avatar on the right), and the draft room's top bar follows the same layout.
 - Switcher: the user's leagues with feed dots, then "Create a league". No "All leagues" (the logo does that) and no "Join with a code" (landing only).
@@ -62,7 +62,7 @@ One component, `components/common/Logo`: `variant` mark | lockup | stacked, `siz
 
 ## League tab (a season's home)
 
-Order: phase block, standings, notes (collapsible card titled "Commissioner notes", collapsed, "Show"). No activity teaser.
+Header row: the league name with a **cog** at the right (league settings, see Settings below). Then: phase block, standings, notes (collapsible card titled "Commissioner notes", collapsed, "Show"). No activity teaser.
 
 Phase block:
 
@@ -89,7 +89,7 @@ The old overall "best draft value", "biggest bust", "best bench" and "best game"
 
 ## Team page (replaces the lineup page and the team points page)
 
-- Header: team name, "You" or owner and rank (no "read only" label on any team or round), total.
+- Header: team name with a **cog** (team settings), "You" or owner and rank (no "read only" label on any team or round), total.
 - Round strip, four cells wide (Wild Card, Divisional, Conference Championship, Super Bowl) with each round's team score; the current round is selected by default; tapping one shows that round's lineup. The round score is the sum of that round's starter scores and appears prominently in the Starters header; Bench has its own subtotal, the sum of its players.
 - Groups per round: **Starters**, **Bench**, **Eliminated** (red treatment), each with a subtotal. A finished round shows a "Final" pill on Starters. Every row shows the player's **position** (never "BN"; a bench player is a WR or RB), name, a one-line stat line and a score.
 - Starter slots are QB, RB, WR, TE, FLEX, K and **DST**; the league's roster settings decide which appear. The DST shows the team defense with its stat line and points.
@@ -134,27 +134,34 @@ The old overall "best draft value", "biggest bust", "best bench" and "best game"
 
 ### Notification opt-in prompt
 
-Offered right after a member's first sign-in and right after they join a league (never after creating one), so the Settings switch is not the only way to find notifications. A bottom sheet on phones, a centered dialog on desktop, in both themes, colors from the theme tokens only.
+Offered right after a member's first sign-in and right after they join a league (never after creating one), so the switch in profile settings is not the only way to find notifications. A bottom sheet on phones, a centered dialog on desktop, in both themes, colors from the theme tokens only.
 
-- Title "Get notified when it matters", one line on why (your pick is on the clock, lineups about to lock, league chat), primary **Turn on notifications** (it asks the browser for permission from that tap, never on page load), secondary **Not now**, and a footer line "You can change this any time in More, Settings, Notifications." Closing the sheet counts as Not now. After success the sheet says "Notifications are on" with a Done button.
+- Title "Get notified when it matters", one line on why (your pick is on the clock, lineups about to lock, league chat), primary **Turn on notifications** (it asks the browser for permission from that tap, never on page load), secondary **Not now**, and a footer line "You can change this any time in your profile settings (tap your avatar, top right), Notifications." Closing the sheet counts as Not now. After success the sheet says "Notifications are on" with a Done button.
 - Steps match the device: Android ("Tap Turn on notifications, then Allow when Chrome asks."), desktop ("Click Turn on notifications, then Allow in the browser popup."), and iPhone in a normal Safari tab (Share, Add to Home Screen, open from the icon; no main button there, iOS 16.4 or later). If the browser blocks the permission from the sheet, it switches to the steps for unblocking it for that platform.
 - **Never pepper members.** At most two prompts per device, ever: the second only after Not now and on a different calendar day. Never when notifications are on, blocked, unsupported or not configured on the server; never on a draft screen, the sign-in page, the invite page or while creating a league (it waits and shows once they land somewhere else); never more than once per visit. The count lives in `localStorage` (`postszn-notification-prompt`); a device that cannot remember it shows nothing. Rules in `utils/notificationPrompt.ts`, copy in `content/rules.ts`.
-- The Settings row stays the place to manage it. Its tap-help has iPhone and Android sections, and the blocked note says how to re-allow on each platform.
+- The Notifications row in profile settings (the avatar) stays the place to manage it. Its tap-help has iPhone and Android sections, and the blocked note says how to re-allow on each platform.
 - Claude Design canvas: still to add (phone sheet in the Android, iPhone-needs-install and blocked variants; desktop dialog; light theme versions). The screens are implemented in `components/notifications/NotificationOptIn.tsx`.
 
 ## Draft room
 
 - It lives under the Draft tab and keeps the tab bar.
-- Sticky bar: round and pick, team on the clock, countdown (accent-colored "You're on the clock" on your turn). Before the draft the bar says "Draft scheduled for <time>" with the time left, or "Draft not scheduled yet"; there is no clock.
-- Collapsed commissioner strip ("Commissioner controls", Hide). Before the draft its four actions are the same size and color: **Randomize draft order**, **Edit draft order**, **Change date** (shows the current date) and **Start draft**. Editing the order moves teams up and down. There is no "Open lobby": the lobby is always open. Every order change is posted to the Feed, with the full new order when randomized. During a live draft the strip holds pause, resume, undo and force pick.
+- Sticky bar: round and pick, team on the clock, countdown (accent-colored "You're on the clock" on your turn), and a **cog** at its right end (draft settings). Before the draft the bar says "Draft scheduled for <time>" with the time left, or "Draft not scheduled yet"; there is no clock.
+- Collapsed commissioner strip ("Commissioner controls", Hide). Before the draft its four actions are the same size and color: **Randomize draft order**, **Edit draft order**, **Change date** (shows the current date) and **Start draft**. Editing the order moves teams up and down. The date, seconds per pick, draft type and clock-expiry rule are in **draft settings** (the cog in the clock bar), not in this strip. There is no "Open lobby": the lobby is always open. Every order change is posted to the Feed, with the full new order when randomized. During a live draft the strip holds pause, resume, undo and force pick.
 - Views: **Players** (default), Board, Roster, Queue. The Board shows picks colored by position with the player as "J. Allen" (first initial and last name) and position and NFL team; your column is outlined and the pick on the clock is highlighted.
 - Before the draft: Players browsable, empty Board with the draft order, no clock.
 
-## More and Settings
+## More
 
-- More: Settings ("Your settings and commissioner settings"), Players (the league player list, with the draft status line), Past seasons (**only if the league has any**), Invite members (commissioners), Help: How to play and **Report a problem** (opens the modal below), Account: Sign out. No privacy and terms (landing footer only).
+- More: Players (the league player list, with the draft status line), Draft board, Past seasons (**only if the league has any**), Invite members (commissioners), Help: How to play and **Report a problem** (opens the modal below), Account: Sign out. **There is no Settings entry** (#315): settings live behind the avatar and the cogs below. No privacy and terms (landing footer only).
 - **Report a problem** (#296) is a modal, a bottom sheet on phones and a dialog on desktop, opened only from this More row (no other entry point). Fields: **What went wrong?** (required, multiline), **Screenshots (optional)** (images only, up to 5, 5 MB each, 15 MB together; the phone picker accepts `image/*`; one line says a screenshot and the diagnostic info each help and both together get it fixed faster; an inline warning next to the picker explains any image or file that was not attached, for example "That image is 7.2 MB. The limit is 5.0 MB per image."; a running line "3 of 5 images, 9.1 MB of 15.0 MB"), and an **Include diagnostic info** checkbox (on by default) with an expandable **What's included** preview that shows exactly what is sent. States: empty (Send disabled), filled, with images, too-large image message, sending ("Sending…"), error (inline, the message stays), sent (the sheet closes and a toast says "Sent. We'll reply by email."). Colors come from theme tokens only. The Claude Design canvas still needs this board added.
-- Settings page, two sections: **Your settings** (display name, team name, **Theme** (Dark / Light), notifications with a tap-help on iPhone setup) for everyone; **Commissioner settings** for commissioners, in this order: Edit league name (shows the current name), Edit league note (shows an abbreviated preview, "Hello all and welco..."), **Number of teams** (locks at draft start), **Edit members**, Scoring, Invite link, Delete league.
+## Settings (#315)
+
+Four places, each a cog or the avatar, none in More. A finished season keeps its read-only rules everywhere: rows stay visible, nothing opens an editor.
+
+- **Profile settings** (tap the avatar, top right; a bottom sheet on phones, a dialog on desktop, on every page including the landing page): **Display name** (opens its own edit sheet), **Email** (read-only), **Theme** (Dark / Light), **Notifications** (switch with a tap-help for iPhone and Android) and **Sign out**. Nothing about a league.
+- **League settings** (the cog beside the league name on the League tab, opens the league settings page): the same rows for every member, editable only by a commissioner. League name and league note, **Number of teams** (locks at draft start), **Members**, Roster, Scoring and Postseason (accordions), then for commissioners only the **Invite link** row and **Delete league** (red). A commissioner's rows read "Edit league name", "Edit league note" and "Edit members" and open editors; a member sees "League name", "League note" and "Members" as plain information (the members list opens read-only: names, teams, who commissions, no switches and no removal). The roster, scoring and postseason forms show the same values, locked, with no Save bar. No cog for a former member, who cannot read the league's information. The League tab stays highlighted on this page.
+- **Team settings** (the cog beside the team name on the Team page, a sheet): **Team name** (the owner renames it; everyone else, and every team in a finished season, just reads it) and **Owner**. The old pencil next to the team name is gone.
+- **Draft settings** (the cog at the right end of the draft room's clock bar, also on the finished draft's player list, a sheet): **Draft date**, **Seconds per pick**, **Draft type** and **When the clock runs out**, shown to everyone. Commissioners tap a row to edit; the date only before the draft starts, type and clock rule only until the order locks, and nothing once the draft is complete or the season archived. The commissioner strip keeps its actions (randomize, edit order, change date, start, pause, undo) but no longer has a "Draft settings" button.
 - **Edit members** opens a modal: each member with a Commissioner toggle and **Remove from league**. A league always keeps at least one commissioner (the only commissioner's toggle is locked on). Removing a member frees their team slot; their picks stay in the draft history.
 - Scoring is a section of subsections (Passing, Rushing, Receiving and so on), each with its own rows.
 - Delete league is one row with a warning; the confirmations happen in the dialog, not described on the row.
@@ -196,7 +203,7 @@ Frontend:
 
 - Draft tab replaces Players; the tab bar stays in the draft room; the global `/players` page goes away.
 - Team page: positions instead of "BN", DST slot, movable / live / done states, eliminated only from the previous round, day and time instead of "kickoff".
-- Settings: Number of teams row and an Edit members modal (replacing "Teams and roles").
+- Settings: profile sheet from the avatar, league settings from the League tab cog, team settings from the Team page cog, draft settings from the draft room cog; Number of teams row and an Edit members modal (replacing "Teams and roles"); More has no Settings row.
 
 ## Open items
 
@@ -206,12 +213,13 @@ Frontend:
 - Player sheet: the round's scoring breakdown (each stat and its points) is not on the board. The sheet shows the round's stat line ("This round") once the game has started, above the regular season line; a per-stat points breakdown is still open.
 - The live game clock is shown as the upstream reports it ("Live 8:42"); the quarter is not stored, so the board's "Q3" is not built yet.
 - Decided (#264): More keeps a **Draft board** row (`/draft/board`) next to **Players** (the Draft tab), so the board is reachable before, during and after the draft; the Draft tab after the draft shows only the player list.
-- Draft room details the canvas leaves open: the date, seconds per pick, draft type and clock-expiry rules live behind "Draft settings" in the commissioner strip (they left Settings); "Edit draft order" saves with one button so a reshuffle is one Feed event.
+- Draft room details the canvas leaves open: the date, seconds per pick, draft type and clock-expiry rules live behind the draft room's cog (#315); "Edit draft order" saves with one button so a reshuffle is one Feed event.
 - Awards: DST has no per-position section on the board; the awards boards show `[PLAYER]` placeholders for values to be computed.
 - The desktop Team page board still shows older wording ("BN", "Ravens out in Divisional", `[TEAM] D/ST`); the phone Team boards and the rules above apply to desktop too.
-- Whether Sign out also appears inside Settings (the board has it only in More and the avatar menu).
+- Decided (#315): Sign out is in the profile sheet and in More (Account).
+- The Claude Design canvas still shows the old Settings board and More's Settings row; add boards for Profile settings, League settings (commissioner and member), Team settings and Draft settings, and drop the Settings row from More.
 
-- The Settings board has no Roster row (the owner could not tell what "Locked after draft" meant, and a non-editable row was removed). Decide where roster shape is edited before the draft; today it is a Settings form.
+- The Settings board has no Roster row (the owner could not tell what "Locked after draft" meant, and a non-editable row was removed). Decide where roster shape is edited before the draft; today it is an accordion in league settings.
 
 ## Proposed follow-up issues
 
@@ -224,7 +232,7 @@ Frontend:
 7. Draft room restructure (tab bar kept, commissioner strip, desktop two-pane).
 8. Feed and chat (backend and UI), lineup moves hidden, draft-order events.
 9. Push notifications.
-10. More and Settings split (Number of teams, Edit members modal, scoring subsections).
+10. More and Settings split (Number of teams, Edit members modal, scoring subsections), then the cog reorg (#315).
 11. Landing, leagues page, create-league short path, invite flow, auto-assign team, full-league state.
 12. Start-next-season date gate.
 13. Archived banner and read-only chat; live refresh indicator.

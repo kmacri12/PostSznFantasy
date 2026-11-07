@@ -119,16 +119,23 @@ describe("TeamPage", () => {
     expect(screen.getByRole("heading", { name: "Puka Nacua" })).toBeInTheDocument();
   });
 
-  it("offers renaming while the season is open", () => {
+  it("opens team settings from the cog, where the owner can rename the team", () => {
     renderTeam();
-    expect(screen.getByRole("button", { name: "Rename team" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Rename team" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Team settings" }));
+    const sheet = screen.getByRole("dialog", { name: "Team settings" });
+    expect(within(sheet).getByRole("button", { name: /Team name/ })).toBeInTheDocument();
+    expect(sheet).toHaveTextContent("Owner");
     expect(screen.queryByText(/archived/i)).toBeNull();
   });
 
-  it("hides renaming and explains why once the season is over", () => {
+  it("shows the same team settings read-only, and explains why, once the season is over", () => {
     mocks.archived = true;
     renderTeam();
-    expect(screen.queryByRole("button", { name: "Rename team" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Team settings" }));
+    const sheet = screen.getByRole("dialog", { name: "Team settings" });
+    expect(sheet).toHaveTextContent("Gridiron");
+    expect(within(sheet).queryByRole("button", { name: /Team name/ })).toBeNull();
     expect(screen.getByText(/archived/i)).toBeInTheDocument();
   });
 });

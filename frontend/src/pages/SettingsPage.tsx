@@ -5,7 +5,6 @@ import {
   useInvite,
   useLeagueInfo,
   useLeagueSettings,
-  useRenameTeam,
   useUpdateLeague,
   useUpdateSeason,
   useUpdateSettings,
@@ -19,14 +18,12 @@ import { valuesEqual } from "../components/settings/dirty";
 import EditTextSheet from "../components/settings/EditTextSheet";
 import InviteSheet from "../components/settings/InviteSheet";
 import MembersSheet from "../components/settings/MembersSheet";
-import NotificationsToggle from "../components/settings/NotificationsToggle";
 import PostseasonForm from "../components/settings/PostseasonForm";
 import RosterForm from "../components/settings/RosterForm";
 import ScoringForm from "../components/settings/ScoringForm";
 import SettingsCard from "../components/settings/SettingsCard";
 import SettingsGroup from "../components/settings/SettingsGroup";
 import SettingsRow from "../components/settings/SettingsRow";
-import ThemeModeRow from "../components/settings/ThemeModeRow";
 import { NOTES_HINT, NOTES_MAX_LENGTH, SETTING_HELP } from "../content/rules";
 import { useSeasonContext } from "../contexts/SeasonContext";
 import { useUser } from "../contexts/UserContext";
@@ -35,16 +32,7 @@ import { POSTSEASON_KEYS, type PostseasonValues } from "../settings/postseasonFi
 import type { SettingsValues } from "../settings/types";
 import { TAB_BAR_HEIGHT } from "../theme";
 
-type Sheet =
-  | "displayName"
-  | "teamName"
-  | "leagueName"
-  | "notes"
-  | "teamCount"
-  | "members"
-  | "invite"
-  | "delete"
-  | null;
+type Sheet = "leagueName" | "notes" | "teamCount" | "members" | "invite" | "delete" | null;
 
 const teamCountProblem = (value: string) => {
   const count = Number(value);
@@ -53,10 +41,13 @@ const teamCountProblem = (value: string) => {
     : "Enter a number from 2 to 14.";
 };
 
-/** Your settings for everyone; Commissioner settings (rows that open sheets, rules as accordions) for commissioners. */
+/**
+ * League settings, opened from the cog on the League page. Everyone sees the same rows;
+ * commissioners edit them (rows that open sheets, rules as accordions), members only read.
+ */
 function SettingsPage() {
   const { leagueId, seasonId, season } = useSeasonContext();
-  const { userId, user, signOutUser, updateDisplayName } = useUser();
+  const { userId } = useUser();
   const info = useLeagueInfo(leagueId, !season.isFormerMember).data;
   const archived = season.finished;
   const settingsQuery = useLeagueSettings(seasonId);
@@ -64,13 +55,11 @@ function SettingsPage() {
   const updateSettings = useUpdateSettings(seasonId);
   const updateLeague = useUpdateLeague(leagueId);
   const updateSeason = useUpdateSeason(seasonId);
-  const renameTeam = useRenameTeam(season.myTeamId ?? undefined);
   const isCommissioner = info?.myRole === "commissioner";
   const canEdit = season.canCommission;
   const invite = useInvite(leagueId, isCommissioner);
 
   const [sheet, setSheet] = useState<Sheet>(null);
-  const [nameError, setNameError] = useState<string | null>(null);
   const [roster, setRoster] = useState<SettingsValues>({});
   const [scoring, setScoring] = useState<SettingsValues>({});
   const [postseason, setPostseason] = useState<PostseasonValues>({});
@@ -141,60 +130,36 @@ function SettingsPage() {
   }
 
   const started = ["in_progress", "paused", "completed"].includes(draft.data?.status ?? "");
-  const myMember = season.members.find((member) => member.userId === userId);
-  const displayName = myMember?.username ?? user?.email?.split("@")[0] ?? "";
-  const myTeam = season.teams.find((team) => team.id === season.myTeamId);
   const notes = info?.notes ?? "";
   const activeInvite = invite.data && !invite.data.revoked;
   const failure = mutationError(updateSettings.error, "Couldn't save the settings. Try again.");
-  const close = () => {
-    setSheet(null);
-    setNameError(null);
-  };
+  const close = () => setSheet(null);
 
   return (
     <Container maxWidth="sm" sx={{ py: 3 }}>
       <Typography variant="h4" component="h1" gutterBottom>
-        Settings
+        League settings
       </Typography>
 
-      <SettingsCard title="Your settings">
-        <SettingsRow
-          label="Display name"
-          value={displayName}
-          onClick={() => setSheet("displayName")}
-        />
-        {myTeam && (
-          <SettingsRow
-            label="Team name"
-            value={myTeam.name}
-            onClick={archived ? undefined : () => setSheet("teamName")}
-          />
-        )}
-        <ThemeModeRow />
-        <NotificationsToggle />
-        <SettingsRow label="Sign out" centered onClick={() => void signOutUser()} />
-      </SettingsCard>
-
-      {isCommissioner && info && (
+      {info && (
         <>
           {archived && <ArchivedNotice what="the roster, scoring and team count" />}
-          {started && !archived && (
+          {started && !archived && isCommissioner && (
             <Alert severity="warning" sx={{ mb: 2 }}>
               The draft has started, so team count, roster slots and position caps are locked.
               Scoring and round multipliers can still change.
             </Alert>
           )}
-          <SettingsCard title="Commissioner settings">
+          <SettingsCard>
             <SettingsRow
-              label="Edit league name"
+              label={isCommissioner ? "Edit league name" : "League name"}
               value={info.name}
-              onClick={() => setSheet("leagueName")}
+              onClick={isCommissioner ? () => setSheet("leagueName") : undefined}
             />
             <SettingsRow
-              label="Edit league note"
+              label={isCommissioner ? "Edit league note" : "League note"}
               value={notes || "No note yet"}
-              onClick={() => setSheet("notes")}
+              onClick={isCommissioner ? () => setSheet("notes") : undefined}
             />
             <SettingsRow
               label="Number of teams"
@@ -202,7 +167,7 @@ function SettingsPage() {
               onClick={canEdit && !started ? () => setSheet("teamCount") : undefined}
             />
             <SettingsRow
-              label="Edit members"
+              label={isCommissioner ? "Edit members" : "Members"}
               value={`${info.members.length} members`}
               onClick={() => setSheet("members")}
             />
@@ -227,16 +192,25 @@ function SettingsPage() {
                 }
               />
             </SettingsGroup>
-            <SettingsRow
-              label="Invite link"
-              value={activeInvite ? "Active" : "None"}
-              onClick={() => setSheet("invite")}
-            />
+            {isCommissioner && (
+              <SettingsRow
+                label="Invite link"
+                value={activeInvite ? "Active" : "None"}
+                onClick={() => setSheet("invite")}
+              />
+            )}
           </SettingsCard>
 
-          <SettingsCard danger>
-            <SettingsRow label="Delete league" danger centered onClick={() => setSheet("delete")} />
-          </SettingsCard>
+          {isCommissioner && (
+            <SettingsCard danger>
+              <SettingsRow
+                label="Delete league"
+                danger
+                centered
+                onClick={() => setSheet("delete")}
+              />
+            </SettingsCard>
+          )}
         </>
       )}
 
@@ -272,34 +246,6 @@ function SettingsPage() {
         </Paper>
       )}
 
-      {sheet === "displayName" && (
-        <EditTextSheet
-          title="Display name"
-          label="Display name"
-          initial={displayName}
-          maxLength={20}
-          failure={nameError}
-          onClose={close}
-          onSave={async (value) => {
-            const problem = await updateDisplayName(value);
-            setNameError(problem);
-            if (problem) throw new Error(problem);
-          }}
-        />
-      )}
-      {sheet === "teamName" && myTeam && (
-        <EditTextSheet
-          title="Team name"
-          label="Team name"
-          initial={myTeam.name}
-          maxLength={40}
-          failure={mutationError(renameTeam.error, "Couldn't rename your team. Try again.")}
-          onClose={close}
-          onSave={async (value) => {
-            await renameTeam.mutateAsync(value);
-          }}
-        />
-      )}
       {sheet === "leagueName" && info && (
         <EditTextSheet
           title="League name"
@@ -344,6 +290,7 @@ function SettingsPage() {
           leagueId={leagueId}
           members={info.members}
           currentUserId={userId}
+          readOnly={!isCommissioner}
           onClose={close}
         />
       )}
