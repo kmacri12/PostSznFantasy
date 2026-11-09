@@ -2,6 +2,7 @@ import asyncio
 import logging
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from typing import Any
 
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.exceptions import RequestValidationError
@@ -15,6 +16,7 @@ from api.core.body_limit import BodyLimitMiddleware
 from api.core.config import get_settings
 from api.core.logging import RequestLoggingMiddleware, setup_logging
 from api.core.observability import init_sentry
+from api.core.security_headers import SecurityHeadersMiddleware
 from api.db.session import DbSession, close_db, init_db
 from api.routers import (
     activity,
@@ -80,19 +82,31 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
 # Before the app exists so the FastAPI/Starlette integrations can patch it.
 init_sentry(get_settings())
 
+
+# The interactive docs and schema describe every route to anyone; keep them for dev.
+def docs_urls(environment: str) -> dict[str, Any]:
+    off = environment == "production"
+    return {
+        "docs_url": None if off else "/docs",
+        "redoc_url": None if off else "/redoc",
+        "openapi_url": None if off else "/openapi.json",
+    }
+
+
 app = FastAPI(
     title="PostSznFantasy API",
     description="Fantasy football platform for NFL postseason",
     version="0.1.0",
     lifespan=lifespan,
+    **docs_urls(get_settings().environment),
 )
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=get_settings().cors_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type"],
     # The support report quotes the id of a failed request so its log line can be found.
     expose_headers=["X-Request-ID"],
 )
@@ -100,6 +114,7 @@ app.add_middleware(
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.add_middleware(RequestLoggingMiddleware)
 app.add_middleware(BodyLimitMiddleware)
+app.add_middleware(SecurityHeadersMiddleware)
 
 
 @app.exception_handler(RequestValidationError)

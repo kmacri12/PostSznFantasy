@@ -4,6 +4,7 @@ import { Link, useParams } from "react-router-dom";
 import {
   type LineupMoveRequest,
   needsOverrideConfirmation,
+  useLeagueInfo,
   useMoveInLineup,
   useStandings,
   useTeam,
@@ -49,6 +50,8 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
   const canEdit = team.canEdit && season.canEdit;
   const canSetLineup = team.canSetLineup && season.canEdit;
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const canAssignOwner = season.canCommission && season.canEdit;
+  const members = useLeagueInfo(season.leagueId, canAssignOwner).data?.members;
   const now = useNow();
   const standing = useStandings(seasonId).data?.teams.find((row) => row.teamId === teamId);
   const currentRound = defaultRound(team.lineups, now);
@@ -176,6 +179,7 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
           team={team}
           owner={owner}
           canRename={canEdit}
+          ownerPicker={canAssignOwner && members ? { seasonId, members } : undefined}
           onClose={() => setSettingsOpen(false)}
         />
       )}

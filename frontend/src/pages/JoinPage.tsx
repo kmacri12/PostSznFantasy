@@ -15,7 +15,8 @@ import { leaguePath } from "../routes";
 import { signInPath } from "../utils/authRedirect";
 import { JOINED_LEAGUE_STATE } from "../utils/notificationPrompt";
 
-const FULL_HELP = "Ask your commissioner to add a team, then try again.";
+const FULL_HELP =
+  "Every team has an owner. Ask your commissioner to raise the team count limit in the league settings, then try again.";
 
 /** Shareable /join/:code link: preview the league, sign in if needed, then press Join. */
 const JoinPage = () => {

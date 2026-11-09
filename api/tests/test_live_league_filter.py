@@ -19,6 +19,8 @@ DIRECT_READS = re.compile(
 # File -> why a direct read is safe. Entries must shrink, not grow.
 GUARDED_BY_CALLER = {
     "dependencies/league.py": "the membership guards apply the filter themselves",
+    "ws/disconnect.py": "must also reach the seasons of a league deleted a moment ago",
+    "services/account_deletion.py": "must also free teams and memberships of soft-deleted leagues",
     "routers/leagues.py": "league routes sit behind LeagueMember / user-leagues join",
     "routers/seasons.py": "season routes sit behind SeasonMember",
     "routers/invites.py": "reads the league of an invite that find_invite kept live",

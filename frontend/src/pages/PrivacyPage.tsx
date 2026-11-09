@@ -5,8 +5,13 @@ const SECTIONS: LegalSection[] = [
     heading: "What we store",
     body: [
       "When you sign in with Google or an emailed one-time code, we keep your email address and, if Google provides it, your name. You choose the display name other members see; it is never taken from your email address. Sign-in is handled by Supabase.",
-      "We also store what you do in the game: the leagues you create or join, your team and roster, your draft picks and queue, and league settings.",
+      "We also store what you do in the game: the leagues you create or join, your team and roster, your draft picks and queue, league settings, and the chat messages and GIF links you post in a league's Feed (each message keeps the name you had when you posted it).",
+      "If you turn on notifications, we store your browser's push address and browser type for that device so we can send them. They are removed when you turn notifications off or sign out on that device, and a device that has not opened the app in 60 days is removed too.",
     ],
+  },
+  {
+    heading: "Who is allowed to use PostSzn",
+    body: ["You must be at least 13 years old to use PostSzn."],
   },
   {
     heading: "Error reports",
@@ -27,9 +32,15 @@ const SECTIONS: LegalSection[] = [
     ],
   },
   {
+    heading: "GIFs",
+    body: [
+      "If you open the GIF picker in the chat, your browser sends the search text and your IP address directly to GIPHY, which has its own privacy policy. Nothing is sent to GIPHY unless you open the picker.",
+    ],
+  },
+  {
     heading: "What we do not do",
     body: [
-      "We do not sell your data, share it with advertisers, or show ads. We only share it with the services that run the app (sign-in, hosting, error reporting and support email).",
+      "We do not sell your data, share it with advertisers, or show ads. We only share it with the services that run the app (sign-in and picture storage: Supabase; hosting: Fly.io and Cloudflare; error reporting: Sentry; support email: Resend; GIFs: GIPHY, only when you use the picker).",
     ],
   },
   {
@@ -41,7 +52,8 @@ const SECTIONS: LegalSection[] = [
   {
     heading: "Deleting your data",
     body: [
-      "You can stop using PostSzn at any time. To have your account and league data deleted, ask the person who runs this site.",
+      "You can stop using PostSzn at any time. To delete your account, open your profile (tap your picture), then Delete my account. Your sign-in, email, profile picture and notification settings are deleted right away. Your leagues keep your past teams, picks and chat under the name Former member so other members' history still makes sense, and your teams in seasons still under way become open. If you are the only commissioner of a league with other members, hand it over first.",
+      "We keep encrypted backups of the database for a limited time; your data ages out of them as they are replaced. If you cannot use the app, write to support@postsznfantasy.com and we will delete your account within 30 days.",
     ],
   },
   {
@@ -53,7 +65,7 @@ const SECTIONS: LegalSection[] = [
 ];
 
 const PrivacyPage = () => (
-  <LegalDocument title="Privacy Policy" updated="October 2026" sections={SECTIONS} />
+  <LegalDocument title="Privacy Policy" updated="November 2026" sections={SECTIONS} />
 );
 
 export default PrivacyPage;

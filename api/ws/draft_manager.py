@@ -1,10 +1,11 @@
 import asyncio
+import contextlib
 import json
 import logging
 from collections import defaultdict
 from typing import Any, Protocol
 
-from fastapi import WebSocket
+from fastapi import WebSocket, status
 
 logger = logging.getLogger(__name__)
 
@@ -54,6 +55,23 @@ class DraftConnectionManager:
                 if not self._rooms[season_id]:
                     del self._rooms[season_id]
         logger.info("WebSocket disconnected from league %s", season_id)
+
+    async def close_sockets(
+        self, season_ids: list[int], *, user_id: int | None = None, reason: str
+    ) -> None:
+        """Close this instance's sockets in those rooms (one user's, or everyone's),
+        for a member who was removed or a league that was deleted while connected.
+        With a broadcast relay other instances keep theirs until a reconnect."""
+        async with self._lock:
+            doomed = [
+                socket
+                for season_id in season_ids
+                for socket in self._rooms.get(season_id, ())
+                if user_id is None or self._users.get(socket) == user_id
+            ]
+        for socket in doomed:
+            with contextlib.suppress(Exception):
+                await socket.close(code=status.WS_1008_POLICY_VIOLATION, reason=reason)
 
     async def broadcast(self, season_id: int, message: dict[str, Any]) -> None:
         """Send a JSON message to every client in the league room, on every instance."""

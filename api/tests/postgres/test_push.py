@@ -19,7 +19,7 @@ from api.db.models import (
     TeamPlayer,
     User,
 )
-from api.services import push
+from api.services import draft_reminders, push
 from api.services.draft_events import announce_events
 from api.services.lineup_reminders import send_lock_reminders
 from api.tests.postgres.conftest import ClientFactory
@@ -243,6 +243,50 @@ async def test_a_chat_message_notifies_the_other_members_without_its_text(
     message.deleted_at = datetime.now(UTC)
     await push.notify_league_message(db, message.id)
     assert len(sender.sent) == 1
+
+
+async def test_draft_phase_push_reaches_every_active_member(
+    db: AsyncSession, sender: FakeSender
+) -> None:
+    season, users, _, _ = await make_season(db, teams=3)
+    for i, user in enumerate(users):
+        await _subscribe(db, user, f"https://fcm.googleapis.com/send/m{i}")
+    await db.execute(
+        update(LeagueMember)
+        .where(LeagueMember.user_id == users[2].id)
+        .values(left_at=datetime.now(UTC))
+    )
+    await push.notify_draft_phase(db, season.id, "lobby")
+    assert len(sender.sent) == 2
+    assert sender.sent[0][1].title == "The draft lobby is open"
+    assert sender.sent[0][1].urgency == "high"
+    assert sender.sent[0][1].url == f"/leagues/{season.league_id}/draft"
+
+
+async def test_draft_start_reminder_goes_once_in_the_last_15_minutes(
+    db: AsyncSession, sender: FakeSender
+) -> None:
+    season, users, _, draft = await make_season(db, teams=2)
+    await _subscribe(db, users[0])
+    draft.status = "scheduled"
+    draft.start_time = NOW + timedelta(minutes=10)
+    await db.flush()
+    draft_reminders._sent.clear()
+
+    assert (
+        await draft_reminders.send_draft_start_reminders(db, NOW - timedelta(hours=1))
+        == 0
+    )
+    assert await draft_reminders.send_draft_start_reminders(db, NOW) == 1
+    assert await draft_reminders.send_draft_start_reminders(db, NOW) == 0
+    assert len(sender.sent) == 1
+    assert "starts it" in sender.sent[0][1].body
+    assert (
+        await draft_reminders.send_draft_start_reminders(
+            db, NOW + timedelta(minutes=11)
+        )
+        == 0
+    )
 
 
 async def _lock_setup(

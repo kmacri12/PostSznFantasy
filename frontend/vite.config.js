@@ -44,9 +44,25 @@ function requireProductionEnv() {
         },
     };
 }
+// Publishes the build's dormant flag as /status.json so scripts/dormancy-check.sh can read what the
+// deployed site was built with (the bundle itself only inlines the value).
+function statusFile() {
+    return {
+        name: "status-file",
+        apply: "build",
+        generateBundle: function () {
+            var dormant = process.env.VITE_DORMANT === "true";
+            this.emitFile({
+                type: "asset",
+                fileName: "status.json",
+                source: JSON.stringify({ dormant: dormant }),
+            });
+        },
+    };
+}
 // https://vitejs.dev/config/
 export default defineConfig({
-    plugins: [react(), requireProductionEnv()],
+    plugins: [react(), requireProductionEnv(), statusFile()],
     define: {
         // The commit this bundle was built from (Cloudflare Pages or GitHub Actions), for support reports.
         __WEB_VERSION__: JSON.stringify((_b = (_a = process.env.CF_PAGES_COMMIT_SHA) !== null && _a !== void 0 ? _a : process.env.GITHUB_SHA) !== null && _b !== void 0 ? _b : ""),

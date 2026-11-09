@@ -72,7 +72,7 @@ const InvitePanel = ({ leagueId }: { leagueId: number }) => {
       {code && (
         <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1 }}>
           {expiresAt
-            ? `Expires ${new Date(expiresAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })} (invites last 7 days). `
+            ? `The link works until ${new Date(expiresAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}; regenerate it for a new one. `
             : ""}
           Regenerating retires the old link and code immediately.
         </Typography>

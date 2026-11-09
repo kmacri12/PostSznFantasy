@@ -16,6 +16,8 @@ logger = logging.getLogger(__name__)
 
 _bearer = HTTPBearer()
 
+ALLOWED_ALGORITHMS = ("ES256", "RS256")
+
 # Deliberately vague: the specific JWT failure is logged, never returned to the caller.
 INVALID_CREDENTIALS_DETAIL = "Invalid or expired credentials"
 
@@ -53,7 +55,14 @@ def verify_claims(token: str) -> AuthUser:
             detail=INVALID_CREDENTIALS_DETAIL,
         ) from exc
 
-    alg = unverified_header.get("alg", "ES256")
+    # The header is attacker-controlled: only the algorithms Supabase signs with count.
+    alg = unverified_header.get("alg")
+    if alg not in ALLOWED_ALGORITHMS:
+        logger.warning("Auth failure: unexpected token algorithm: %s", alg)
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=INVALID_CREDENTIALS_DETAIL,
+        )
 
     try:
         jwks_client = _get_jwk_client(settings.supabase_jwks_url)
@@ -61,7 +70,7 @@ def verify_claims(token: str) -> AuthUser:
         payload = jwt.decode(
             token,
             signing_key.key,
-            algorithms=[alg],
+            algorithms=list(ALLOWED_ALGORITHMS),
             audience="authenticated",
             options={"verify_aud": True},
         )

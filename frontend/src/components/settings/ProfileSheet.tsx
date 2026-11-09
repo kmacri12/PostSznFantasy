@@ -6,6 +6,7 @@ import { nameProblem } from "../../utils/displayName";
 import AvatarSheet from "../avatar/AvatarSheet";
 import { mutationError } from "../common/friendlyError";
 import PictureAvatar from "../common/PictureAvatar";
+import DeleteAccountDialog from "./DeleteAccountDialog";
 import EditTextSheet from "./EditTextSheet";
 import NotificationsToggle from "./NotificationsToggle";
 import SettingsCard from "./SettingsCard";
@@ -26,6 +27,7 @@ const ProfileSheet = ({ user, onSignOut, onClose }: Props) => {
   const [name, setName] = useState(username ?? "");
   const [editing, setEditing] = useState<"name" | "picture" | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   if (editing === "picture") {
     return (
@@ -89,7 +91,17 @@ const ProfileSheet = ({ user, onSignOut, onClose }: Props) => {
             onSignOut();
           }}
         />
+        <SettingsRow label="Delete my account" centered danger onClick={() => setDeleting(true)} />
       </SettingsCard>
+      {deleting && (
+        <DeleteAccountDialog
+          onClose={() => setDeleting(false)}
+          onDeleted={() => {
+            onClose();
+            onSignOut();
+          }}
+        />
+      )}
     </SettingsSheet>
   );
 };

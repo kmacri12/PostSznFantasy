@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useRenameTeam, useSetAvatar } from "../../api/queries";
-import type { TeamDetails } from "../../api/types";
+import type { MemberSummary, TeamDetails } from "../../api/types";
 import AvatarSheet from "../avatar/AvatarSheet";
 import { mutationError } from "../common/friendlyError";
 import PictureAvatar from "../common/PictureAvatar";
@@ -8,6 +8,7 @@ import EditTextSheet from "./EditTextSheet";
 import SettingsCard from "./SettingsCard";
 import SettingsRow from "./SettingsRow";
 import SettingsSheet from "./SettingsSheet";
+import TeamOwnerSheet from "./TeamOwnerSheet";
 
 interface Props {
   team: TeamDetails;
@@ -15,15 +16,18 @@ interface Props {
   owner: string;
   /** The owner or a commissioner, in a season that is not archived. */
   canRename: boolean;
+  /** Set for a commissioner in a season that is not archived: the owner row opens a picker. */
+  ownerPicker?: { seasonId: number; members: MemberSummary[] };
   onClose: () => void;
 }
 
 /** Team settings, opened from the cog on the Team page. Anyone can look; the owner changes the name and picture. */
-const TeamSettingsSheet = ({ team, owner, canRename, onClose }: Props) => {
+const TeamSettingsSheet = ({ team, owner, canRename, ownerPicker, onClose }: Props) => {
   const rename = useRenameTeam(team.id);
   const picture = useSetAvatar({ kind: "team", id: team.id });
   const [renaming, setRenaming] = useState(false);
   const [pictureOpen, setPictureOpen] = useState(false);
+  const [pickingOwner, setPickingOwner] = useState(false);
 
   if (pictureOpen) {
     return (
@@ -42,6 +46,17 @@ const TeamSettingsSheet = ({ team, owner, canRename, onClose }: Props) => {
         onRemove={async () => {
           await picture.mutateAsync(null);
         }}
+      />
+    );
+  }
+
+  if (pickingOwner && ownerPicker) {
+    return (
+      <TeamOwnerSheet
+        seasonId={ownerPicker.seasonId}
+        teamId={team.id}
+        members={ownerPicker.members}
+        onClose={() => setPickingOwner(false)}
       />
     );
   }
@@ -78,7 +93,11 @@ const TeamSettingsSheet = ({ team, owner, canRename, onClose }: Props) => {
           value={team.name}
           onClick={canRename ? () => setRenaming(true) : undefined}
         />
-        <SettingsRow label="Owner" value={owner} />
+        <SettingsRow
+          label="Owner"
+          value={owner}
+          onClick={ownerPicker ? () => setPickingOwner(true) : undefined}
+        />
       </SettingsCard>
     </SettingsSheet>
   );

@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { useApiHealth } from "./health";
+import { isDormant, useApiHealth } from "./health";
 
 const wrapper = ({ children }: { children: ReactNode }) => (
   <QueryClientProvider client={new QueryClient()}>{children}</QueryClientProvider>
@@ -37,5 +37,15 @@ describe("useApiHealth", () => {
     respondWith(401);
     const { result } = renderHook(() => useApiHealth(), { wrapper });
     await waitFor(() => expect(result.current).toBe("up"));
+  });
+});
+
+describe("isDormant", () => {
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("is off unless the build says VITE_DORMANT=true", () => {
+    expect(isDormant()).toBe(false);
+    vi.stubEnv("VITE_DORMANT", "true");
+    expect(isDormant()).toBe(true);
   });
 });

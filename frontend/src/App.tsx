@@ -1,11 +1,13 @@
 import { Box, Container } from "@mui/material";
+import { useQueryClient } from "@tanstack/react-query";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { matchPath, Route, Routes, useLocation } from "react-router-dom";
-import { useApiHealth } from "./api/health";
+import { isDormant, useApiHealth } from "./api/health";
 import { useUserLeagues } from "./api/queries";
 import RequireSignIn from "./components/auth/RequireSignIn";
 import SessionExpiredBanner from "./components/auth/SessionExpiredBanner";
 import LoadingState from "./components/common/LoadingState";
+import ReconnectingBanner from "./components/connection/ReconnectingBanner";
 import AppShell from "./components/layout/AppShell";
 import NotificationOptIn from "./components/notifications/NotificationOptIn";
 import NameSetupDialog from "./components/onboarding/NameSetupDialog";
@@ -34,15 +36,20 @@ const TeamPage = lazy(() => import("./pages/TeamPage"));
 const TermsPage = lazy(() => import("./pages/TermsPage"));
 
 function App() {
-  const { user, userId, needsNameSetup, signIn, signOutUser } = useUser();
-  const dormant = useApiHealth() === "down";
-  const wasDormant = useRef(false);
-  // The sign-in sync in UserContext ran against the dead API and will not retry, so a
-  // full reload is the simple way to restore a signed-in session after recovery.
+  const { user, userId, needsNameSetup, syncError, retrySync, signIn, signOutUser } = useUser();
+  const dormant = isDormant();
+  const apiDown = useApiHealth() === "down";
+  const queryClient = useQueryClient();
+  const wasDown = useRef(false);
+  // An outage keeps the page and its cached data; once the API answers again, refetch what
+  // failed and repeat a sign-in sync that ran against the dead API.
   useEffect(() => {
-    if (wasDormant.current && !dormant) window.location.reload();
-    wasDormant.current = dormant;
-  }, [dormant]);
+    if (wasDown.current && !apiDown) {
+      void queryClient.invalidateQueries();
+      if (syncError) retrySync();
+    }
+    wasDown.current = apiDown;
+  }, [apiDown, queryClient, syncError, retrySync]);
   const { data: leagues = [] } = useUserLeagues(userId !== null && !dormant);
   const { pathname, state } = useLocation();
   const [tourOpen, setTourOpen] = useState(false);
@@ -68,6 +75,7 @@ function App() {
       dormant={dormant}
     >
       <SessionExpiredBanner />
+      {apiDown && !dormant && <ReconnectingBanner />}
       {!dormant && user && <NameSetupDialog />}
       {!dormant && (
         <TeamNameDialog
