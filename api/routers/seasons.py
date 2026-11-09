@@ -21,6 +21,7 @@ from api.models.league_models import (
     TeamBrief,
     TeamOwnerUpdate,
     TeamSimple,
+    merged_roster_updates,
 )
 from api.models.recap_models import SeasonRecap
 from api.services.activity import Actor
@@ -206,10 +207,11 @@ async def update_season_settings(
     settings = await get_season_settings(season_id, membership, db)
     try:
         patch = SeasonSettingsPatch.model_validate(body)
+        updates = patch.model_dump(exclude_unset=True, by_alias=False, mode="json")
+        updates = {key: value for key, value in updates.items() if value is not None}
+        updates = merged_roster_updates(settings, updates)
     except ValidationError as exc:
         raise RequestValidationError(exc.errors()) from exc
-    updates = patch.model_dump(exclude_unset=True, by_alias=False, mode="json")
-    updates = {key: value for key, value in updates.items() if value is not None}
     patch_values = dict(updates)
 
     started = await draft_has_started(db, season_id)

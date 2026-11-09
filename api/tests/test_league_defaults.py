@@ -59,3 +59,21 @@ def test_league_size_is_two_to_fourteen(teams: int) -> None:
 
 def test_fullback_means_running_back() -> None:
     assert PlayerPosition.from_str("FB") is PlayerPosition.RB
+
+
+def test_create_league_roster_must_be_consistent() -> None:
+    import pytest
+    from pydantic import ValidationError
+
+    from api.models.league_models import RosterSettingsInput
+
+    assert RosterSettingsInput().roster_total == 18
+    for bad in (
+        {"roster_num_bench": 2_000_000_000},
+        {"roster_total": 41},
+        {"roster_total": 5},
+        {"roster_max_qb": 0},
+        {"roster_num_bench": -1},
+    ):
+        with pytest.raises(ValidationError):
+            RosterSettingsInput(**bad)
