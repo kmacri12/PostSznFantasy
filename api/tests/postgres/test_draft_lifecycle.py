@@ -402,6 +402,7 @@ async def test_undo_clears_the_undone_players_lineup_slots(
         await commissioner.post(f"/api/drafts/{season.id}/control/undo")
     assert (await db.execute(select(LineupSlot))).scalars().all() == []
 
+
 async def test_clock_finishes_a_four_team_draft_with_two_owners_in_seconds(
     db: AsyncSession, monkeypatch: object
 ) -> None:
