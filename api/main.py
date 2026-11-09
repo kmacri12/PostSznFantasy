@@ -11,6 +11,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
+from api.core.body_limit import BodyLimitMiddleware
 from api.core.config import get_settings
 from api.core.logging import RequestLoggingMiddleware, setup_logging
 from api.core.observability import init_sentry
@@ -98,6 +99,7 @@ app.add_middleware(
 
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.add_middleware(RequestLoggingMiddleware)
+app.add_middleware(BodyLimitMiddleware)
 
 
 @app.exception_handler(RequestValidationError)

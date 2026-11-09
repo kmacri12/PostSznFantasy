@@ -5,6 +5,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, status
 from sqlalchemy import select
 
+from api.core.rate_limit import SocketThrottle
 from api.db.models.draft import Draft
 from api.db.models.user import User
 from api.db.session import DbSession, get_session_factory
@@ -27,7 +28,7 @@ from api.services.activity import Actor
 from api.services.draft_events import announce_events, pick_events, state_event
 from api.services.draft_picks import DraftPickError, PickResult, make_pick
 from api.services.season_recap import ARCHIVED_MESSAGE, season_is_archived
-from api.ws.auth import authenticate_socket
+from api.ws.auth import authenticate_socket, receive_guarded
 from api.ws.draft_manager import draft_manager
 from api.ws.feed_manager import announce_feed_change
 
@@ -281,8 +282,9 @@ async def websocket_draft_endpoint(websocket: WebSocket, season_id: int) -> None
             },
         )
 
+        throttle = SocketThrottle()
         while True:
-            raw_text = await websocket.receive_text()
+            raw_text = await receive_guarded(websocket, throttle)
             try:
                 message: dict[str, Any] = json.loads(raw_text)
             except json.JSONDecodeError:

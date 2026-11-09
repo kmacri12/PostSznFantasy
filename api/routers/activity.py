@@ -12,13 +12,14 @@ from fastapi import (
     status,
 )
 
+from api.core.rate_limit import ChatLimit, SocketThrottle
 from api.db.session import DbSession
 from api.dependencies.league import SeasonMember, TeamMember
 from api.models.activity_models import ActivityFeed, ActivityViewed
 from api.models.feed_models import Feed, FeedMessageItem, FeedViewed, MessageCreate
 from api.services import activity, feed, push
 from api.services.season_recap import ARCHIVED_MESSAGE
-from api.ws.auth import authenticate_socket
+from api.ws.auth import authenticate_socket, receive_guarded
 from api.ws.feed_manager import announce_feed_change, feed_manager
 
 logger = logging.getLogger(__name__)
@@ -123,7 +124,11 @@ async def season_feed(
     status_code=status.HTTP_201_CREATED,
 )
 async def post_message(
-    season_id: int, payload: MessageCreate, membership: SeasonMember, db: DbSession
+    season_id: int,
+    payload: MessageCreate,
+    membership: SeasonMember,
+    db: DbSession,
+    _: ChatLimit,
 ) -> FeedMessageItem:
     """Chat in the league's current season; former members and archives get 403/409."""
     try:
@@ -206,10 +211,11 @@ async def feed_socket(websocket: WebSocket, season_id: int) -> None:
     if membership is None:
         return
     await feed_manager.join(season_id, websocket, membership.user.id)
+    throttle = SocketThrottle()
     try:
         while True:
             try:
-                message: Any = json.loads(await websocket.receive_text())
+                message: Any = json.loads(await receive_guarded(websocket, throttle))
             except json.JSONDecodeError:
                 message = None
             event_type = message.get("eventType") if isinstance(message, dict) else None

@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, status
 from fastapi.responses import JSONResponse
 from sqlalchemy import select
 
+from api.core.rate_limit import InvitePreviewLimit, JoinLimit
 from api.db.models.league import League, LeagueInvite
 from api.db.models.user import User
 from api.db.session import DbSession
@@ -64,7 +65,9 @@ async def revoke_invite(league_id: int, _: LeagueCommissioner, db: DbSession) ->
 
 
 @router.get("/invites/{code}", response_model=InvitePreview)
-async def preview_invite(code: str, db: DbSession) -> InvitePreview:
+async def preview_invite(
+    code: str, db: DbSession, _: InvitePreviewLimit
+) -> InvitePreview:
     """Public on purpose: the join page shows what you are joining before login."""
     invite = await invite_service.find_invite(db, code)
     if invite is None:
@@ -95,7 +98,7 @@ async def preview_invite(code: str, db: DbSession) -> InvitePreview:
 
 @router.post("/invites/{code}/join", response_model=JoinResponse)
 async def join_with_invite(
-    code: str, supabase_uid: CurrentUser, db: DbSession
+    code: str, supabase_uid: CurrentUser, db: DbSession, _: JoinLimit
 ) -> JoinResponse | JSONResponse:
     """Idempotent: joining a league you are already in just returns it."""
     invite = await invite_service.find_invite(db, code)

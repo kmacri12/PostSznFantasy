@@ -7,6 +7,7 @@ from sqlalchemy import Boolean, literal_column
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.exc import IntegrityError
 
+from api.core.rate_limit import LoginLimit
 from api.db.models.user import User
 from api.db.session import DbSession
 from api.dependencies.auth import CurrentUser, TokenEmail
@@ -29,6 +30,7 @@ async def login_or_register(
     current_user_id: CurrentUser,
     token_email: TokenEmail,
     db: DbSession,
+    _: LoginLimit,
 ) -> LoginResponse:
     """Verify Supabase auth bearer token and upsert the relational User row.
 

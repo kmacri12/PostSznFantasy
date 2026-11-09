@@ -5,6 +5,7 @@ import logging
 
 from fastapi import HTTPException, WebSocket, WebSocketDisconnect, status
 
+from api.core.rate_limit import SocketThrottle
 from api.db.session import get_session_factory
 from api.dependencies.auth import verify_token
 from api.dependencies.league import SeasonMembership, find_season_membership
@@ -12,6 +13,17 @@ from api.dependencies.league import SeasonMembership, find_season_membership
 logger = logging.getLogger(__name__)
 
 AUTH_TIMEOUT_SECONDS = 10
+MAX_SOCKET_MESSAGE_CHARS = 4096
+
+
+async def receive_guarded(websocket: WebSocket, throttle: SocketThrottle) -> str:
+    """The next text message, or close the socket with 1008 (and raise
+    WebSocketDisconnect) when the client floods or sends an oversize one."""
+    raw_text = await websocket.receive_text()
+    if len(raw_text) > MAX_SOCKET_MESSAGE_CHARS or not throttle.allow():
+        await close_quietly(websocket, "Too many or too large messages")
+        raise WebSocketDisconnect(status.WS_1008_POLICY_VIOLATION)
+    return raw_text
 
 
 async def authenticate_socket(
