@@ -16,3 +16,7 @@
 # The service worker must revalidate so a new version is picked up on the next visit.
 /sw.js
   Cache-Control: no-cache
+
+# Read by scripts/dormancy-check.sh; must never be served stale.
+/status.json
+  Cache-Control: no-cache

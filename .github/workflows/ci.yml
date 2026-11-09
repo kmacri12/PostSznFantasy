@@ -139,7 +139,7 @@ jobs:
 
       - name: Install Playwright and Chromium
         if: steps.decide.outputs.needed == 'true'
-        run: cd e2e && npm ci && npx playwright install ${{ vars.CI_RUNS_ON && '' || '--with-deps' }} chromium
+        run: cd e2e && npm ci && npx playwright install ${{ vars.CI_RUNS_ON == '' && '--with-deps' || '' }} chromium
 
       - name: Lint and type check the e2e project
         if: steps.decide.outputs.needed == 'true'

@@ -85,7 +85,10 @@ const DraftBlock = ({ season }: { season: SeasonOverview }) => {
   ]
     .filter(Boolean)
     .join(" · ");
-  const countingDown = season.draftStatus === "scheduled" && startTime !== null;
+  const countingDown =
+    season.draftStatus === "scheduled" && startTime !== null && Date.parse(startTime) > now;
+  const timePassed = season.draftStatus === "scheduled" && startTime !== null && !countingDown;
+  const awaitingStart = timePassed || season.draftStatus === "lobby";
   return (
     <Block>
       {countingDown ? (
@@ -99,10 +102,23 @@ const DraftBlock = ({ season }: { season: SeasonOverview }) => {
           </Typography>
         </>
       ) : (
-        <Title>{DRAFT_TITLES[season.draftStatus] ?? "Draft scheduled"}</Title>
+        <Title>
+          {timePassed
+            ? "Draft time has passed"
+            : (DRAFT_TITLES[season.draftStatus] ?? "Draft scheduled")}
+        </Title>
       )}
       {when && <Detail>{when}</Detail>}
-      <Action to={paths.draft}>Enter draft</Action>
+      {awaitingStart && (
+        <Detail>
+          {season.canCommission
+            ? "The draft only begins when you start it."
+            : "Waiting for your commissioner to start it."}
+        </Detail>
+      )}
+      <Action to={paths.draft}>
+        {awaitingStart && season.canCommission ? "Start the draft" : "Enter draft"}
+      </Action>
     </Block>
   );
 };

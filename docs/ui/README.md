@@ -183,7 +183,7 @@ Four places, each a cog or the avatar, none in More. A finished season keeps its
 - The logo always opens the leagues page; the redirect only follows sign-in.
 - Create league: league name and a number-of-teams stepper (changeable until the draft starts), a "Default rules" summary of the roster and reception scoring, optional "Customize rules" (the roster and scoring steps). Defaults do not make later rounds count for more: every round multiplier defaults to 1x, as in `docs/product-rules.md`. Then the new league's League tab with "Invite your friends".
 - Invite link: preview shows "You're invited", the league name, commissioner and year, "N of M teams filled", every current member (commissioner marked) and the open slots. Signed out: sign in with an emailed code, then join. Signed in: a **Join league** button and "Signed in as <email>". A joiner is auto-assigned an open team (no "this will be your team" text). Full league: "This league is full", join disabled, ask the commissioner.
-- How to play is public. Dormant notice replaces the landing hero off-season. Not found offers "Go to your leagues". Privacy and terms are links on the landing and leagues pages only.
+- How to play is public. Dormant notice (owner-declared with `VITE_DORMANT`, not an API failure; an outage shows a "Reconnecting" banner instead) replaces the landing hero off-season. Not found offers "Go to your leagues". Privacy and terms are links on the landing and leagues pages only.
 
 ## Archived seasons, desktop, live updates
 

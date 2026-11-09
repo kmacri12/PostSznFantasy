@@ -178,6 +178,74 @@ async def notify_on_the_clock(db: AsyncSession, season_id: int, team_id: int) ->
     )
 
 
+async def notify_draft_phase(
+    db: AsyncSession, season_id: int, phase: Literal["lobby", "started"]
+) -> None:
+    """Tell every active member the draft lobby is open or the draft has started."""
+    if not get_settings().push_enabled:
+        return
+    title, body = {
+        "lobby": ("The draft lobby is open", "Head in before it starts."),
+        "started": ("The draft has started", "Your commissioner started the draft."),
+    }[phase]
+    await _notify_league_members(db, season_id, title, body, f"draft-{phase}", "high")
+
+
+async def notify_draft_soon(db: AsyncSession, season_id: int, minutes: int) -> None:
+    """The reminder shortly before the scheduled time; it says the start is manual."""
+    if not get_settings().push_enabled:
+        return
+    await _notify_league_members(
+        db,
+        season_id,
+        "Your draft is scheduled soon",
+        f"Scheduled in about {minutes} minutes. Your commissioner starts it.",
+        "draft-soon",
+        "high",
+    )
+
+
+async def _notify_league_members(
+    db: AsyncSession,
+    season_id: int,
+    title: str,
+    body: str,
+    tag_prefix: str,
+    urgency: Urgency,
+) -> None:
+    row = (
+        await db.execute(
+            select(League.id, League.name)
+            .join(Season, Season.league_id == League.id)
+            .where(Season.id == season_id, Season.id.in_(live_season_ids()))
+        )
+    ).one_or_none()
+    if row is None:
+        return
+    recipients = (
+        (
+            await db.execute(
+                select(LeagueMember.user_id).where(
+                    LeagueMember.league_id == row.id, LeagueMember.left_at.is_(None)
+                )
+            )
+        )
+        .scalars()
+        .all()
+    )
+    await send_to_users(
+        db,
+        recipients,
+        PushMessage(
+            title=title,
+            body=f"{body} ({row.name})",
+            url=f"/leagues/{row.id}/draft",
+            tag=f"{tag_prefix}-{season_id}",
+            urgency=urgency,
+        ),
+    )
+
+
 async def notify_league_message(db: AsyncSession, message_id: int) -> None:
     """Tell the league's other active members about a new chat message.
 
