@@ -25,6 +25,9 @@ test.describe("draft room", () => {
     await expect(page.getByText("Draft not scheduled yet")).toBeVisible();
     await openControls(page);
     await page.getByRole("button", { name: "Start draft" }).click();
+    const preflight = page.getByRole("dialog", { name: "Start the draft?" });
+    await expect(preflight.getByText(/teams? have an owner/)).toBeVisible();
+    await preflight.getByRole("button", { name: "Start draft" }).click();
     await expect(page.getByText("Round 1, pick 1")).toBeVisible();
     await expect(page.getByText("You're on the clock")).toBeVisible();
 
@@ -112,6 +115,10 @@ test.describe("draft room", () => {
 
     await openControls(page);
     await page.getByRole("button", { name: "Undo last pick" }).click();
+    await page
+      .getByRole("dialog", { name: "Undo the last pick?" })
+      .getByRole("button", { name: "Undo pick" })
+      .click();
     await expect(page.getByText("Round 1, pick 1")).toBeVisible();
     const state = await league.state();
     expect(state.picks).toHaveLength(0);
@@ -125,10 +132,36 @@ test.describe("draft room", () => {
 
     await openControls(page);
     await page.getByRole("button", { name: "Auto-pick now" }).click();
+    await page
+      .getByRole("dialog", { name: "Auto-pick now?" })
+      .getByRole("button", { name: "Auto-pick", exact: true })
+      .click();
     await expect(page.getByText("Round 1, pick 2")).toBeVisible();
     const [pick] = (await league.state()).picks;
     expect(pick.teamId).toBe(league.hostTeamId);
     expect(pick.autopick).toBe(true);
+  });
+
+  test("a commissioner assigns the pick on the clock and reserves a later slot", async ({
+    page,
+    context,
+    request,
+  }) => {
+    const league = await createDraftLeague(request, { seconds: 60, status: "in_progress" });
+    await signInAs(context, league.host.uid);
+    await page.goto(seasonUrl(league.league, "/draft"));
+    await showView(page, "Board");
+
+    await page.getByRole("button", { name: "Assign pick 1", exact: true }).click();
+    const sheet = page.getByRole("dialog", { name: /Assign pick 1/ });
+    // The first row of the list is the alphabetically first available player.
+    await sheet.getByRole("list").getByRole("button").first().click();
+    await expect(page.getByRole("dialog", { name: /^Assign .+ to .+, pick 1\?$/ })).toBeVisible();
+    await page.getByRole("button", { name: "Assign", exact: true }).click();
+    await expect(page.getByText("Round 1, pick 2")).toBeVisible();
+    const [pick] = (await league.state()).picks;
+    expect(pick.teamId).toBe(league.hostTeamId);
+    expect(pick.autopick).toBe(false);
   });
 
   test("an expired clock auto-picks the best available player", async ({
@@ -162,6 +195,10 @@ test.describe("draft room", () => {
 
     await openControls(page);
     await page.getByRole("button", { name: "Auto-pick now" }).click();
+    await page
+      .getByRole("dialog", { name: "Auto-pick now?" })
+      .getByRole("button", { name: "Auto-pick", exact: true })
+      .click();
     await expect(page.getByText("Round 1, pick 2")).toBeVisible();
     await showView(page, "Roster");
     await expect(page.getByLabel("Your roster").getByText(queued)).toBeVisible();

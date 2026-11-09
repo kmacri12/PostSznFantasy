@@ -12,6 +12,8 @@ import { positionColor } from "./positions";
 interface Props {
   state: DraftState;
   myTeamId: number | null;
+  /** Commissioners tap a slot to assign a player to it. */
+  onSelectSlot?: (slot: { pickNumber: number; teamName: string }) => void;
   /** Frame size overrides: the page decides how tall the board may be. */
   sx?: SxProps<Theme>;
 }
@@ -40,11 +42,12 @@ const gridLine = {
  * The grid scrolls both ways inside its own frame with the round and team headers pinned,
  * and follows the pick on the clock.
  */
-const DraftBoard: React.FC<Props> = ({ state, myTeamId, sx }) => {
+const DraftBoard: React.FC<Props> = ({ state, myTeamId, onSelectSlot, sx }) => {
   const teamCount = state.order.length;
   const columns = `${ROUND_COL}px repeat(${teamCount || 1}, minmax(${TEAM_COL}px, 1fr))`;
   const frameRef = useRef<HTMLDivElement>(null);
   const byOverall = new Map<number, DraftPick>(state.picks.map((p) => [p.numberPickOverall, p]));
+  const reservedByOverall = new Map(state.reservedPicks.map((item) => [item.pickNumber, item]));
 
   // Overall pick number for a team's cell in a round, honouring the draft type's direction.
   const overallFor = (round: number, slotIndex: number): number => {
@@ -166,13 +169,27 @@ const DraftBoard: React.FC<Props> = ({ state, myTeamId, sx }) => {
             {state.order.map((slot, slotIndex) => {
               const overall = overallFor(round, slotIndex);
               const pick = byOverall.get(overall);
+              const reserved = reservedByOverall.get(overall);
               const onClock = overall === onClockOverall && state.status !== "completed";
               const mine = slot.teamId === myTeamId;
               return (
                 <Box
                   key={`${round}-${slot.teamId}`}
                   data-testid={`pick-${overall}`}
+                  {...(onSelectSlot && {
+                    role: "button",
+                    tabIndex: 0,
+                    "aria-label": `Assign pick ${overall}`,
+                    onClick: () => onSelectSlot({ pickNumber: overall, teamName: slot.teamName }),
+                    onKeyDown: (event: React.KeyboardEvent) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        onSelectSlot({ pickNumber: overall, teamName: slot.teamName });
+                      }
+                    },
+                  })}
                   sx={{
+                    cursor: onSelectSlot ? "pointer" : undefined,
                     ...gridLine,
                     height: CELL_HEIGHT,
                     minWidth: 0,
@@ -191,6 +208,18 @@ const DraftBoard: React.FC<Props> = ({ state, myTeamId, sx }) => {
                   }}
                 >
                   {onClock && "On the clock"}
+                  {reserved && !pick && (
+                    <>
+                      <Typography
+                        noWrap
+                        component="b"
+                        sx={{ display: "block", fontSize: 12, fontWeight: 600, color: tokens.text }}
+                      >
+                        {shortName(reserved.playerName, reserved.position)}
+                      </Typography>
+                      Reserved · {reserved.position} {reserved.teamAbv}
+                    </>
+                  )}
                   {pick && (
                     <>
                       <Typography

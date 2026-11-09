@@ -81,6 +81,14 @@ export const describeEvent = (event: ActivityEvent): string => {
       return `${who} started the draft`;
     case "draft_completed":
       return `The draft is complete after ${event.payload.picks} picks`;
+    case "draft_pick_assigned": {
+      const { pickNumber, teamName, playerName, scheduled, replacedPlayerName } = event.payload;
+      if (replacedPlayerName !== null)
+        return `${who} replaced ${replacedPlayerName} with ${playerName} at pick ${pickNumber} (${teamName})`;
+      return scheduled
+        ? `${who} reserved ${playerName} for pick ${pickNumber} (${teamName})`
+        : `${who} assigned ${playerName} to ${teamName} at pick ${pickNumber}`;
+    }
   }
 };
 

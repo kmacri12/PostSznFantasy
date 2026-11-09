@@ -1,5 +1,5 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 import type { DraftState } from "../../api/types";
 import DraftBoard from "./DraftBoard";
 
@@ -18,8 +18,8 @@ const base: DraftState = {
   serverTime: "2030-01-01T00:00:00Z",
   orderLocked: true,
   order: [
-    { slot: 1, teamId: 10, teamName: "Alpha", ownerName: "ann" },
-    { slot: 2, teamId: 20, teamName: "Bravo", ownerName: null },
+    { slot: 1, teamId: 10, teamName: "Alpha", ownerName: "ann", ownerUserId: 1 },
+    { slot: 2, teamId: 20, teamName: "Bravo", ownerName: null, ownerUserId: null },
   ],
   unassignedTeamIds: [],
   picks: [
@@ -36,6 +36,7 @@ const base: DraftState = {
       autopick: false,
     },
   ],
+  reservedPicks: [],
   totalPicks: 4,
   currentPickOverall: 2,
   onTheClockTeamId: 20,
@@ -90,5 +91,31 @@ describe("DraftBoard team QB / team K", () => {
   it("shows no badge for an ordinary pick", () => {
     render(<DraftBoard state={withFlag(false)} myTeamId={null} />);
     expect(screen.queryByRole("note")).toBeNull();
+  });
+
+  it("shows a reserved player and lets a commissioner tap a slot", () => {
+    const onSelectSlot = vi.fn();
+    render(
+      <DraftBoard
+        state={{
+          ...base,
+          reservedPicks: [
+            {
+              pickNumber: 3,
+              teamId: 20,
+              playerId: 9,
+              playerName: "Tyreek Hill",
+              position: "WR",
+              teamAbv: "MIA",
+            },
+          ],
+        }}
+        myTeamId={10}
+        onSelectSlot={onSelectSlot}
+      />,
+    );
+    expect(screen.getByText("T. Hill")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Assign pick 3" }));
+    expect(onSelectSlot).toHaveBeenCalledWith({ pickNumber: 3, teamName: "Bravo" });
   });
 });

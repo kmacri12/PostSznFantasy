@@ -3,10 +3,6 @@ import {
   Alert,
   Box,
   Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   Link,
   Typography,
 } from "@mui/material";
@@ -18,11 +14,17 @@ import { useSeasonContext } from "../../contexts/SeasonContext";
 import { radii, tokens } from "../../theme";
 import { mutationError } from "../common/friendlyError";
 import { formatDraftTime } from "../league/countdown";
+import ConfirmDraftAction from "./ConfirmDraftAction";
 import { DraftDateDialog } from "./DraftSetupDialogs";
 import PreDraftNotice from "./PreDraftNotice";
+import { preflight } from "./preflight";
+
+type Confirming = "start" | "undo" | "force-pick";
 
 interface Props {
   draft: DraftState;
+  /** User ids currently connected to the draft room. */
+  presence: number[];
   editingOrder: boolean;
   onEditOrder: () => void;
 }
@@ -54,18 +56,32 @@ const Action = ({
   </Button>
 );
 
-/** Collapsed row that opens the commissioner's draft actions; before the draft they set it up. */
-const CommissionerStrip = ({ draft, editingOrder, onEditOrder }: Props) => {
+/** The pick the last Undo would remove, named so the commissioner knows what goes. */
+const lastPickLine = (draft: DraftState): string | null => {
+  const last = draft.picks[draft.picks.length - 1];
+  if (!last) return null;
+  const team = draft.order.find((slot) => slot.teamId === last.teamId)?.teamName ?? "a team";
+  return `Pick ${last.numberPickOverall}: ${team} took ${last.playerName ?? "a player"}`;
+};
+
+/**
+ * The commissioner's draft actions. Open from the lobby on, when they are needed; the
+ * irreversible or costly ones (start, undo, auto-pick now) ask first.
+ */
+const CommissionerStrip = ({ draft, presence, editingOrder, onEditOrder }: Props) => {
   const control = useDraftControl(draft.seasonId);
-  const [open, setOpen] = useState(false);
-  const [dateOpen, setDateOpen] = useState(false);
-  const [confirmStart, setConfirmStart] = useState(false);
   const { paths } = useSeasonContext();
-  const unowned = draft.order.filter((slot) => !slot.ownerName).length;
   const status = draft.status;
   const preDraft = ["unscheduled", "scheduled", "lobby"].includes(status);
+  const [open, setOpen] = useState(status === "lobby" || !preDraft);
+  const [dateOpen, setDateOpen] = useState(false);
+  const [confirming, setConfirming] = useState<Confirming | null>(null);
   const run = (action: Parameters<typeof control.mutate>[0]) => () => control.mutate(action);
+  const confirmed = (action: Confirming) =>
+    control.mutate(action, { onSuccess: () => setConfirming(null) });
   const error = mutationError(control.error, "Couldn't update the draft. Try again.");
+  const check = preflight(draft, presence);
+  const onClock = draft.order.find((slot) => slot.teamId === draft.onTheClockTeamId);
 
   return (
     <Box
@@ -117,10 +133,7 @@ const CommissionerStrip = ({ draft, editingOrder, onEditOrder }: Props) => {
               >
                 Change date
               </Action>
-              <Action
-                disabled={control.isPending}
-                onClick={() => (unowned > 0 ? setConfirmStart(true) : control.mutate("start"))}
-              >
+              <Action disabled={control.isPending} onClick={() => setConfirming("start")}>
                 Start draft
               </Action>
               <Box
@@ -139,42 +152,6 @@ const CommissionerStrip = ({ draft, editingOrder, onEditOrder }: Props) => {
                 randomize.
               </Box>
               <PreDraftNotice state={draft} />
-              <Dialog
-                open={confirmStart}
-                onClose={() => setConfirmStart(false)}
-                fullWidth
-                maxWidth="xs"
-              >
-                <DialogTitle>Start the draft?</DialogTitle>
-                <DialogContent>
-                  <Typography>
-                    {unowned === 1
-                      ? "1 team has no owner and will be auto-picked."
-                      : `${unowned} teams have no owner and will be auto-picked.`}{" "}
-                    Auto-picks use the team's queue, then best available, and happen right away.
-                    Whoever joins later takes over that team's roster.
-                  </Typography>
-                  <Link
-                    component={RouterLink}
-                    to={paths.more}
-                    sx={{ display: "inline-block", mt: 1.5 }}
-                  >
-                    Invite members or assign owners first
-                  </Link>
-                </DialogContent>
-                <DialogActions>
-                  <Button onClick={() => setConfirmStart(false)}>Cancel</Button>
-                  <Button
-                    variant="contained"
-                    onClick={() => {
-                      setConfirmStart(false);
-                      control.mutate("start");
-                    }}
-                  >
-                    Start draft
-                  </Button>
-                </DialogActions>
-              </Dialog>
             </>
           ) : (
             <>
@@ -183,7 +160,7 @@ const CommissionerStrip = ({ draft, editingOrder, onEditOrder }: Props) => {
                   <Action disabled={control.isPending} onClick={run("pause")}>
                     Pause
                   </Action>
-                  <Action disabled={control.isPending} onClick={run("force-pick")}>
+                  <Action disabled={control.isPending} onClick={() => setConfirming("force-pick")}>
                     Auto-pick now
                   </Action>
                 </>
@@ -193,12 +170,64 @@ const CommissionerStrip = ({ draft, editingOrder, onEditOrder }: Props) => {
                   Resume
                 </Action>
               )}
-              <Action disabled={control.isPending} onClick={run("undo")}>
+              <Action
+                disabled={control.isPending || draft.picks.length === 0}
+                onClick={() => setConfirming("undo")}
+              >
                 Undo last pick
               </Action>
             </>
           )}
         </Box>
+      )}
+      {confirming === "start" && (
+        <ConfirmDraftAction
+          title="Start the draft?"
+          confirmLabel="Start draft"
+          lines={check.lines}
+          warnings={check.warnings}
+          disabled={!check.orderComplete}
+          pending={control.isPending}
+          error={error}
+          onConfirm={() => confirmed("start")}
+          onClose={() => setConfirming(null)}
+        >
+          <Typography variant="body2" color="text.secondary">
+            This can't be undone. The order, draft type and timeout lock once it starts.
+          </Typography>
+          {check.warnings.length > 0 && (
+            <Link component={RouterLink} to={paths.more} sx={{ display: "inline-block", mt: 1.5 }}>
+              Invite members or assign owners first
+            </Link>
+          )}
+        </ConfirmDraftAction>
+      )}
+      {confirming === "undo" && (
+        <ConfirmDraftAction
+          title="Undo the last pick?"
+          confirmLabel="Undo pick"
+          lines={[
+            `${lastPickLine(draft) ?? "The last pick"}. The player goes back to the pool and that team is on the clock again.`,
+          ]}
+          destructive
+          pending={control.isPending}
+          error={error}
+          onConfirm={() => confirmed("undo")}
+          onClose={() => setConfirming(null)}
+        />
+      )}
+      {confirming === "force-pick" && (
+        <ConfirmDraftAction
+          title="Auto-pick now?"
+          confirmLabel="Auto-pick"
+          lines={[
+            `${onClock?.teamName ?? "The team on the clock"} loses its turn: the best available player is picked for it, from its queue first if that is how the clock works in your league.`,
+          ]}
+          pending={control.isPending}
+          error={error}
+          onConfirm={() => confirmed("force-pick")}
+          onClose={() => setConfirming(null)}
+        />
       )}
       {dateOpen && <DraftDateDialog draft={draft} open onClose={() => setDateOpen(false)} />}
     </Box>

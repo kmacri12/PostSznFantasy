@@ -13,6 +13,7 @@ from sqlalchemy import (
     Time,
     UniqueConstraint,
 )
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from api.db.base import Base
@@ -91,6 +92,11 @@ class Draft(Base):
     # None marks a slot the commissioner has not filled yet.
     draft_order_team_ids: Mapped[list[int | None]] = mapped_column(
         ARRAY(Integer), nullable=False, default=list
+    )
+    # Commissioner-assigned players for slots still to come: overall pick number (as a
+    # string key) -> player id. Consumed by `record_pick` when the slot comes up.
+    reserved_picks: Mapped[dict[str, int]] = mapped_column(
+        JSONB, nullable=False, default=dict, server_default="{}"
     )
 
     season: Mapped["Season"] = relationship("Season", back_populates="draft")
