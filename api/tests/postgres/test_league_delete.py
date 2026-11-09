@@ -94,7 +94,7 @@ async def test_a_deleted_league_answers_404_with_a_code_to_former_members(
             assert body["deletedAt"]
 
 
-async def test_non_members_get_the_plain_404(
+async def test_non_members_get_the_same_403_as_for_a_live_league(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
     from api.db.models import User
@@ -106,7 +106,7 @@ async def test_non_members_get_the_plain_404(
         await _delete(commissioner, season.league_id)
     async with client_as("stranger") as stranger:
         response = await stranger.get(f"/api/leagues/{season.league_id}")
-    assert response.status_code == 404
+    assert response.status_code == 403
     assert "code" not in response.json()
 
 
@@ -237,3 +237,33 @@ async def test_restore_brings_it_back(
     assert await restore_league(db, season.league_id) is False
     draft = await db.scalar(select(Draft).where(Draft.season_id == season.id))
     assert draft is not None
+
+
+async def test_removing_a_member_or_deleting_the_league_closes_open_sockets(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    from unittest.mock import AsyncMock, MagicMock
+
+    from api.ws.draft_manager import draft_manager
+    from api.ws.feed_manager import feed_manager
+
+    season, users, _, _ = await make_season(db, draft_status="completed")
+    removed, other = MagicMock(close=AsyncMock()), MagicMock(close=AsyncMock())
+    feed_removed = MagicMock(close=AsyncMock())
+    await draft_manager.join(season.id, removed, users[1].id)
+    await draft_manager.join(season.id, other, users[0].id)
+    await feed_manager.join(season.id, feed_removed, users[1].id)
+    try:
+        async with client_as("uid-0") as commissioner:
+            await commissioner.delete(
+                f"/api/leagues/{season.league_id}/members/{users[1].id}"
+            )
+            removed.close.assert_awaited_once()
+            feed_removed.close.assert_awaited_once()
+            other.close.assert_not_awaited()
+            await _delete(commissioner, season.league_id)
+        other.close.assert_awaited_once()
+    finally:
+        await draft_manager.disconnect(season.id, removed)
+        await draft_manager.disconnect(season.id, other)
+        await feed_manager.disconnect(season.id, feed_removed)

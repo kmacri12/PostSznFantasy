@@ -4,6 +4,9 @@
   X-Frame-Options: DENY
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=()
+  # Report-Only first: watch the browser console for violations on a real deploy, then
+  # rename the header to Content-Security-Policy (docs/owner/22-security-headers.md).
+  Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' 'sha256-TF0t4CqRU2/ESPWj0xX43M3nJfr2oUNfNLeJHPzU6ug='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://api.postsznfantasy.com https://*.giphy.com https://*.tenor.com https://*.klipy.com; font-src 'self' data:; connect-src 'self' https://api.postsznfantasy.com wss://api.postsznfantasy.com https://*.supabase.co https://api.giphy.com https://*.ingest.sentry.io https://*.ingest.us.sentry.io https://*.ingest.de.sentry.io; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
 
 # The entry document must revalidate so a new deploy is picked up on the next load.
 /index.html

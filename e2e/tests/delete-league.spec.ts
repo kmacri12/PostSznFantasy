@@ -52,7 +52,7 @@ test.describe("delete a league", () => {
     await signInAs(strangerContext, stranger.uid);
     const strangerPage = await strangerContext.newPage();
     await strangerPage.goto(seasonUrl(league));
-    await expect(strangerPage.getByText("League not found")).toBeVisible();
+    await expect(strangerPage.getByText("You are not a member of this league")).toBeVisible();
     await expect(strangerPage.getByText("This league was deleted by a commissioner")).toHaveCount(
       0,
     );
