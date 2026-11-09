@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { LeagueInfo, MemberSummary } from "../api/types";
 import { SeasonContext } from "../contexts/SeasonContext";
@@ -27,6 +27,7 @@ vi.mock("../api/queries", () => ({
   useLeagueSettings: () => ({ isLoading: false, isError: false, data: mocks.settings }),
   useDraft: () => ({ data: { status: "unscheduled" } }),
   useInvite: () => ({ data: { revoked: false } }),
+  useStandings: () => ({ data: undefined }),
   useSetAvatar: () => ({ ...mutation, reset: vi.fn() }),
   useUpdateLeague: () => mutation,
   useUpdateSeason: () => mutation,
@@ -55,15 +56,19 @@ const info = (myRole: LeagueInfo["myRole"]): LeagueInfo => ({
 
 const renderPage = (role: LeagueInfo["myRole"]) => {
   mocks.info = info(role);
-  return render(
-    <MemoryRouter>
-      <SeasonContext.Provider
-        value={testSeason({ canCommission: role === "commissioner", myRole: role })}
-      >
-        <SettingsPage />
-      </SeasonContext.Provider>
-    </MemoryRouter>,
-  );
+  const router = createMemoryRouter([
+    {
+      path: "*",
+      element: (
+        <SeasonContext.Provider
+          value={testSeason({ canCommission: role === "commissioner", myRole: role })}
+        >
+          <SettingsPage />
+        </SeasonContext.Provider>
+      ),
+    },
+  ]);
+  return render(<RouterProvider router={router} />);
 };
 
 beforeEach(() => {
