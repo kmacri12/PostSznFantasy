@@ -15,6 +15,7 @@ import {
 import { useLocation, useNavigate } from "react-router-dom";
 import { api } from "../api/client";
 import { authCallbackUrl, signInPath } from "../utils/authRedirect";
+import { markNameSkipped, nameProblem, nameSkipped, providerName } from "../utils/displayName";
 import { createLogger } from "../utils/logger";
 import { forgetThisDevice, refreshPushSubscription } from "../utils/pushSetup";
 import { supabaseAuth } from "../utils/supabase";
@@ -24,6 +25,11 @@ const logger = createLogger("UserContext");
 interface UserContextType {
   user: SupabaseUser | null;
   userId: number | null;
+  /** The name other members see (the API's, not the sign-in provider's), once known. */
+  username: string | null;
+  /** First sign-in or still no name chosen: show "What should we call you?". */
+  needsNameSetup: boolean;
+  skipNameSetup: () => void;
   /** The signed-in member's profile picture path, if they set one. */
   avatarUrl: string | null;
   setAvatarUrl: (avatarUrl: string | null) => void;
@@ -60,12 +66,6 @@ const loginErrorMessage = (error: unknown): string => {
   return UNREACHABLE_MESSAGE;
 };
 
-const displayName = (user: SupabaseUser): string =>
-  (user.user_metadata?.full_name as string | undefined) ||
-  (user.user_metadata?.name as string | undefined) ||
-  user.email?.split("@")[0] ||
-  "User";
-
 const sendCodeErrorMessage = (error: { status?: number; code?: string }): string =>
   error.status === 429 || error.code === "over_email_send_rate_limit"
     ? "Too many emails sent. Wait a minute and try again."
@@ -82,6 +82,8 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [session, setSession] = useState<Session | null>(null);
   const [userId, setUserId] = useState<number | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [username, setUsername] = useState<string | null>(null);
+  const [namePrompt, setNamePrompt] = useState(false);
   const [loading, setLoading] = useState(true);
   const [syncError, setSyncError] = useState<string | null>(null);
   const [sessionExpired, setSessionExpired] = useState(false);
@@ -117,6 +119,8 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     if (!user) {
       setUserId(null);
+      setUsername(null);
+      setNamePrompt(false);
       setAvatarUrl(null);
       setSyncError(null);
       if (hadUser.current) {
@@ -131,12 +135,17 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setSessionExpired(false);
     let cancelled = false;
     api
-      .post<{ userId: number; avatarUrl?: string | null }>("/api/auth/login", {
-        username: displayName(user).slice(0, 20),
-      })
+      .post<{
+        userId: number;
+        avatarUrl?: string | null;
+        username: string;
+        namePrompt: boolean;
+      }>("/api/auth/login", { username: providerName(user) })
       .then((response) => {
         if (cancelled) return;
         setUserId(response.data.userId);
+        setUsername(response.data.username);
+        setNamePrompt(response.data.namePrompt && !nameSkipped(user.id));
         setAvatarUrl(response.data.avatarUrl ?? null);
         setSyncError(null);
         void refreshPushSubscription();
@@ -194,22 +203,32 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // there too or the next sign-in would overwrite it.
   const updateDisplayName = useCallback(
     async (name: string) => {
-      const { error } = await supabaseAuth.updateUser({ data: { full_name: name } });
-      if (error) {
-        logger.error("Error updating the display name:", error);
-        return "Couldn't save your name. Try again.";
-      }
+      const trimmed = name.trim();
+      const problem = nameProblem(trimmed);
+      if (problem) return problem;
       try {
-        await api.post("/api/auth/login", { username: name });
+        await api.patch("/api/auth/me", { username: trimmed });
       } catch (syncError) {
-        logger.error("Error syncing the display name:", syncError);
-        return "Couldn't save your name. Try again.";
+        logger.error("Error saving the display name:", syncError);
+        return loginErrorMessage(syncError) === UNREACHABLE_MESSAGE
+          ? "Couldn't save your name. Try again."
+          : loginErrorMessage(syncError);
       }
+      // Kept in the provider profile too, so the Google name never contradicts it.
+      const { error } = await supabaseAuth.updateUser({ data: { full_name: trimmed } });
+      if (error) logger.warn("Error updating the provider name:", error);
+      setUsername(trimmed);
+      setNamePrompt(false);
       await queryClient.invalidateQueries();
       return null;
     },
     [queryClient],
   );
+
+  const skipNameSetup = useCallback(() => {
+    if (user) markNameSkipped(user.id);
+    setNamePrompt(false);
+  }, [user]);
 
   const getIdToken = useCallback(async () => {
     const {
@@ -222,6 +241,9 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     () => ({
       user,
       userId,
+      username,
+      needsNameSetup: namePrompt,
+      skipNameSetup,
       avatarUrl,
       setAvatarUrl,
       loading,
@@ -238,6 +260,9 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     [
       user,
       userId,
+      username,
+      namePrompt,
+      skipNameSetup,
       avatarUrl,
       loading,
       sessionExpired,
@@ -262,6 +287,9 @@ export const useUser = (): UserContextType => {
   }
   return context;
 };
+
+/** The signed-in member's display name, or null; safe outside a provider (header tests). */
+export const useUsername = (): string | null => useContext(UserContext)?.username ?? null;
 
 /** The signed-in member's picture path, or null; safe outside a provider (header tests). */
 export const useUserAvatar = (): string | null => useContext(UserContext)?.avatarUrl ?? null;

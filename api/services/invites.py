@@ -16,6 +16,7 @@ from api.db.models.user import User
 from api.models.activity_models import MembershipJoinedPayload
 from api.models.enums import LeagueRole
 from api.services import activity
+from api.services.display_names import disambiguate
 from api.services.league_admin import draft_has_started
 from api.services.league_members import LeagueFullError, LeagueRuleError
 from api.services.live_leagues import live_league_ids
@@ -135,7 +136,12 @@ async def current_member_names(
         .where(LeagueMember.league_id == league_id, LeagueMember.left_at.is_(None))
         .order_by(LeagueMember.joined_at, User.id)
     )
-    return [(name, role == LeagueRole.COMMISSIONER.value) for name, role in rows.all()]
+    listed = rows.all()
+    names = disambiguate([name for name, _ in listed])
+    return [
+        (name, role == LeagueRole.COMMISSIONER.value)
+        for name, (_, role) in zip(names, listed, strict=True)
+    ]
 
 
 async def join_problem(db: AsyncSession, invite: LeagueInvite) -> str | None:

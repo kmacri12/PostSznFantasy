@@ -1,9 +1,9 @@
 import logging
 from typing import Any
 
-from fastapi import APIRouter
-from pydantic import Field
-from sqlalchemy import Boolean, literal_column
+from fastapi import APIRouter, HTTPException, status
+from pydantic import field_validator
+from sqlalchemy import Boolean, literal_column, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.exc import IntegrityError
 
@@ -14,14 +14,32 @@ from api.dependencies.auth import CurrentUser, TokenEmail
 from api.models.auth_models import LoginResponse
 from api.models.base import BaseSchema
 from api.services.avatars import avatar_url
+from api.services.display_names import clean_display_name, placeholder_name
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
 
+class NamePayload(BaseSchema):
+    username: str
+
+    @field_validator("username")
+    @classmethod
+    def _clean(cls, value: str) -> str:
+        return clean_display_name(value)
+
+
 class LoginPayload(BaseSchema):
-    username: str | None = Field(default=None, max_length=20)
+    """`username` is the provider's name, used only when the row is first created: later
+    sign-ins never overwrite a name the member chose (PATCH /me changes it)."""
+
+    username: str | None = None
+
+    @field_validator("username")
+    @classmethod
+    def _clean(cls, value: str | None) -> str | None:
+        return None if value is None else clean_display_name(value)
 
 
 @router.post("/login", response_model=LoginResponse)
@@ -48,13 +66,31 @@ async def login_or_register(
             extra={"supabase_uid": current_user_id},
         )
         row = await _upsert(db, current_user_id, None, payload.username)
-    user_id, avatar_key, created = row
+    user_id, avatar_key, created, username = row
 
     return LoginResponse(
         message="User created successfully" if created else "Login successful",
         user_id=user_id,
         avatar_url=avatar_url(avatar_key),
+        username=username,
+        name_prompt=created or username == placeholder_name(current_user_id),
     )
+
+
+@router.patch("/me", response_model=NamePayload)
+async def rename_me(
+    payload: NamePayload, current_user_id: CurrentUser, db: DbSession
+) -> NamePayload:
+    """Change the display name (1 to 20 characters)."""
+    renamed = await db.scalar(
+        update(User)
+        .where(User.supabase_uid == current_user_id)
+        .values(username=payload.username)
+        .returning(User.id)
+    )
+    if renamed is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "User not found")
+    return payload
 
 
 async def _upsert(
@@ -64,17 +100,17 @@ async def _upsert(
     insert_stmt = insert(User).values(
         supabase_uid=supabase_uid,
         email=email,
-        username=username or f"user_{supabase_uid[:8]}",
+        username=username or placeholder_name(supabase_uid),
     )
-    # Only values actually supplied overwrite stored ones.
-    updates: dict[str, Any] = {
-        key: value
-        for key, value in (("email", email), ("username", username))
-        if value is not None
-    } or {"supabase_uid": insert_stmt.excluded.supabase_uid}
+    updates: dict[str, Any] = ({"email": email} if email is not None else {}) or {
+        "supabase_uid": insert_stmt.excluded.supabase_uid
+    }
     upsert_stmt = insert_stmt.on_conflict_do_update(
         index_elements=[User.supabase_uid], set_=updates
     ).returning(
-        User.id, User.avatar_key, literal_column("(xmax = 0)", Boolean).label("created")
+        User.id,
+        User.avatar_key,
+        literal_column("(xmax = 0)", Boolean).label("created"),
+        User.username,
     )
     return (await db.execute(upsert_stmt)).one()

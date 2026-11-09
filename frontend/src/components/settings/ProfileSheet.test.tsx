@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({ updateDisplayName: vi.fn() }));
 
 vi.mock("../../contexts/UserContext", () => ({
   useUser: () => ({
+    username: "Kyle",
     updateDisplayName: mocks.updateDisplayName,
     avatarUrl: null,
     setAvatarUrl: vi.fn(),

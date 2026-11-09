@@ -23,7 +23,11 @@ test("a new user creates a league from just a name and a team count", async ({
   await page.getByRole("button", { name: "Create league" }).click();
 
   await expect(page).toHaveURL(/\/leagues\/\d+$/);
-  // The first-run tour opens over a new league's first page.
+  // The optional team name comes first, then the first-run tour over the league's first page.
+  const teamName = page.getByRole("dialog", { name: "Name your team" });
+  await teamName.getByLabel("Team name").fill("Gridiron Ghosts");
+  await teamName.getByRole("button", { name: "Save" }).click();
+  await expect(teamName).toBeHidden();
   await page.getByRole("button", { name: "Skip" }).click();
   await expect(page.getByText("Invite your friends")).toBeVisible();
   await expect(page.getByText("1 of 4 teams filled. Draft date not set yet.")).toBeVisible();
@@ -56,6 +60,9 @@ test("Customize rules walks the roster, scoring and review steps", async ({
   await page.getByRole("button", { name: "Create league" }).click();
 
   await expect(page).toHaveURL(/\/leagues\/\d+$/);
+  const teamName = page.getByRole("dialog", { name: "Name your team" });
+  await expect(teamName).toBeVisible();
+  await teamName.getByRole("button", { name: "Skip for now" }).click();
   await expect(page.getByText("Invite your friends")).toBeVisible();
 });
 

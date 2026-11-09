@@ -51,3 +51,29 @@ async def test_the_real_owner_signs_in_after_an_attacker_used_other_identity(
         response = await client.post("/api/auth/login", json={})
     assert response.status_code == 200
     assert await _email_of(db, "uid-victim") == "victim@example.com"
+
+
+async def test_a_later_sign_in_never_overwrites_the_chosen_name(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    async with client_as("uid-name", "n@example.com") as client:
+        first = await client.post("/api/auth/login", json={"username": "  Pat  "})
+        assert first.json()["username"] == "Pat"
+        assert first.json()["namePrompt"] is True
+        assert (
+            await client.patch("/api/auth/me", json={"username": "Coach"})
+        ).status_code == 200
+        later = await client.post("/api/auth/login", json={"username": "Pat"})
+    assert later.json()["username"] == "Coach"
+    assert later.json()["namePrompt"] is False
+
+
+async def test_an_email_sign_in_without_a_name_gets_a_placeholder_and_a_prompt(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    async with client_as("uid-nameless", "secret.person@example.com") as client:
+        first = await client.post("/api/auth/login", json={})
+        again = await client.post("/api/auth/login", json={})
+    assert first.json()["username"] == "user_uid-name"
+    assert "secret" not in first.json()["username"]
+    assert again.json()["namePrompt"] is True

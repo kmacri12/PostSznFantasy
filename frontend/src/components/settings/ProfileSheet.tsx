@@ -2,6 +2,7 @@ import type { User as SupabaseUser } from "@supabase/auth-js";
 import { useState } from "react";
 import { useSetAvatar } from "../../api/queries";
 import { useUser } from "../../contexts/UserContext";
+import { nameProblem } from "../../utils/displayName";
 import AvatarSheet from "../avatar/AvatarSheet";
 import { mutationError } from "../common/friendlyError";
 import PictureAvatar from "../common/PictureAvatar";
@@ -18,17 +19,11 @@ interface Props {
   onClose: () => void;
 }
 
-const nameOf = (user: SupabaseUser): string =>
-  (user.user_metadata?.full_name as string | undefined) ||
-  (user.user_metadata?.name as string | undefined) ||
-  user.email?.split("@")[0] ||
-  "";
-
 /** Profile settings, opened from the avatar: display name, theme, notifications, sign out. */
 const ProfileSheet = ({ user, onSignOut, onClose }: Props) => {
-  const { updateDisplayName, avatarUrl, setAvatarUrl } = useUser();
+  const { updateDisplayName, avatarUrl, setAvatarUrl, username } = useUser();
   const picture = useSetAvatar({ kind: "me" });
-  const [name, setName] = useState(nameOf(user));
+  const [name, setName] = useState(username ?? "");
   const [editing, setEditing] = useState<"name" | "picture" | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
 
@@ -58,7 +53,7 @@ const ProfileSheet = ({ user, onSignOut, onClose }: Props) => {
         title="Display name"
         label="Display name"
         initial={name}
-        maxLength={20}
+        validate={(value) => nameProblem(value)}
         failure={failure}
         onClose={() => {
           setEditing(null);
