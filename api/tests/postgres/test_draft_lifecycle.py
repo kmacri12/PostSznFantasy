@@ -401,3 +401,41 @@ async def test_undo_clears_the_undone_players_lineup_slots(
         await db.flush()
         await commissioner.post(f"/api/drafts/{season.id}/control/undo")
     assert (await db.execute(select(LineupSlot))).scalars().all() == []
+
+
+async def test_clock_finishes_a_four_team_draft_with_two_owners_in_seconds(
+    db: AsyncSession, monkeypatch: object
+) -> None:
+    from contextlib import asynccontextmanager
+
+    season, _, teams, draft = await make_season(db, teams=4, roster_total=2)
+    kc = NFLTeam(id=1, team_abv="KC", is_active=True, in_playoffs=True)
+    db.add(kc)
+    await db.flush()
+    await make_players(
+        db, ["QB", "RB", "WR", "TE", "QB", "RB", "WR", "TE"], nfl_team=kc
+    )
+    unowned = {teams[2].id, teams[3].id}
+    for team in teams[2:]:
+        team.owner_id = None
+    draft.current_pick_deadline = datetime.now(UTC) + timedelta(hours=1)
+    await db.flush()
+
+    @asynccontextmanager
+    async def session():  # type: ignore[no-untyped-def]
+        yield db
+
+    assert isinstance(monkeypatch, pytest.MonkeyPatch)
+    monkeypatch.setattr(draft_clock, "get_session_factory", lambda: session)
+    monkeypatch.setattr(db, "commit", db.flush)
+
+    for _ in range(8):
+        await db.refresh(draft)
+        if draft.status == "completed":
+            break
+        if not await draft_clock.expire_overdue_picks():
+            await draft_flow.auto_pick(db, season.id)  # an owner picking in time
+    await db.refresh(draft)
+    assert draft.status == "completed"
+    picks = (await db.execute(select(DraftPick))).scalars().all()
+    assert {p.team_id for p in picks if p.autopick} >= unowned

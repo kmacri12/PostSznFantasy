@@ -3,10 +3,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { MemberSummary } from "../../api/types";
 import MembersSheet from "./MembersSheet";
 
-const mocks = vi.hoisted(() => ({ setRole: vi.fn(), remove: vi.fn() }));
+const mocks = vi.hoisted(() => ({ setRole: vi.fn(), remove: vi.fn(), regenerate: vi.fn() }));
 
 vi.mock("../../api/queries", () => ({
   useSetMemberRole: () => ({ mutate: mocks.setRole, isPending: false, error: null }),
+  useRegenerateInvite: () => ({ mutate: mocks.regenerate, isPending: false, error: null }),
   useRemoveMember: () => ({ mutate: mocks.remove, isPending: false, error: null }),
 }));
 
@@ -24,6 +25,7 @@ const renderSheet = (members: MemberSummary[]) =>
 beforeEach(() => {
   mocks.setRole.mockClear();
   mocks.remove.mockClear();
+  mocks.regenerate.mockClear();
 });
 
 describe("MembersSheet", () => {
@@ -55,5 +57,23 @@ describe("MembersSheet", () => {
       }),
     );
     expect(mocks.remove).toHaveBeenCalledWith(2, expect.anything());
+  });
+
+  it("says the invite link is retired after a removal and offers Regenerate", () => {
+    mocks.remove.mockImplementation((_id, options) => {
+      options.onSuccess();
+      options.onSettled();
+    });
+    renderSheet([member(1, "Kyle", "commissioner"), member(2, "Dave", "member")]);
+    fireEvent.click(screen.getByRole("button", { name: "Remove from league" }));
+    fireEvent.click(
+      within(screen.getByRole("dialog", { name: "Remove Dave?" })).getByRole("button", {
+        name: "Remove from league",
+      }),
+    );
+    expect(screen.getByText(/invite link was retired/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Regenerate" }));
+    expect(mocks.regenerate).toHaveBeenCalled();
+    mocks.remove.mockReset();
   });
 });

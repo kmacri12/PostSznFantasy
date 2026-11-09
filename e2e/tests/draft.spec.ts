@@ -381,3 +381,43 @@ test.describe("commissioner draft setup", () => {
     await expect(page.getByText(/^Draft scheduled for /)).toBeVisible();
   });
 });
+
+test.describe("draft with teams that have no owner", () => {
+  test("Start draft says how many teams will be auto-picked and the clock skips them", async ({
+    page,
+    context,
+    request,
+  }) => {
+    const host = new Api(request, unique("host"));
+    await host.signUp("host");
+    const league = await host.createLeague(unique("Half Empty"));
+    const hostTeam = (await host.get<{ myTeamId: number }>(`/api/seasons/${league.seasonId}`))
+      .myTeamId;
+    const info = await host.get<{ unassignedTeamIds: number[] }>(
+      `/api/drafts/draft-info/${league.seasonId}`,
+    );
+    const emptyTeam = info.unassignedTeamIds.find((id) => id !== hostTeam);
+    await host.put(`/api/drafts/${league.seasonId}/order`, { teamIds: [hostTeam, emptyTeam] });
+    await signInAs(context, host.uid);
+
+    await page.goto(seasonUrl(league, "/draft"));
+    await openControls(page);
+    await page.getByRole("button", { name: "Start draft", exact: true }).click();
+    await expect(page.getByText("1 team has no owner and will be auto-picked.")).toBeVisible();
+    await page
+      .getByRole("dialog")
+      .getByRole("button", { name: "Start draft", exact: true })
+      .click();
+    await expect(page.getByText("You're on the clock")).toBeVisible();
+    await draftFirst(page, "QB");
+    await expect
+      .poll(async () =>
+        (
+          await host.get<{ picks: { autopick: boolean }[] }>(
+            `/api/drafts/draft-info/${league.seasonId}`,
+          )
+        ).picks.some((pick) => pick.autopick),
+      )
+      .toBe(true);
+  });
+});

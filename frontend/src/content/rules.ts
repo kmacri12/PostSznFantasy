@@ -266,6 +266,13 @@ export const OPT_IN_MANAGE =
 export const LAST_COMMISSIONER_NOTE =
   "A league always keeps at least one commissioner. Removing a member frees their team in an unfinished season; finished seasons keep their name on it.";
 
+export const INVITE_RETIRED_NOTE =
+  "The invite link was retired when you removed someone, so the old link no longer works. Regenerate it to invite people again.";
+export const LEAVE_LEAGUE_NOTE =
+  "Your team in an unfinished season is freed with its roster; finished seasons keep your name. You can rejoin later with a valid invite link.";
+export const LEAVE_LAST_COMMISSIONER_NOTE =
+  "You are the only commissioner. Make someone else a commissioner in the members list first, then you can leave.";
+
 export const REPORT_PROBLEM_LABEL = "Report a problem";
 export const REPORT_PROBLEM_HINT = "Something broken or confusing? Tell us";
 export const REPORT_PROBLEM_ATTACH_NOTE =
