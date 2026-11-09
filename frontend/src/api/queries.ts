@@ -578,7 +578,7 @@ export const useAdminSync = () =>
   useMutation({
     mutationFn: async () =>
       (
-        await api.post<SyncResult>("/api/admin/update/all", {
+        await api.post<SyncResult>("/api/admin/update/all?wait=true", {
           withStats: true,
           withBoxScores: false,
         })

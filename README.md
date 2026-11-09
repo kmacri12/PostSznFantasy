@@ -120,13 +120,13 @@ uv run --project api python -m api.scripts.set_playoff_field BUF KC BAL HOU PIT 
 Trigger complete batch ingestion over HTTP via the admin router. Only users whose Supabase id (the JWT `sub`) is listed in `ADMIN_SUPABASE_UIDS` in `api/.env` are allowed; everyone else gets a 403:
 
 ```bash
-curl -X POST http://localhost:8000/api/admin/update/all \
+curl -X POST 'http://localhost:8000/api/admin/update/all?wait=true' \
   -H "Authorization: Bearer <SUPABASE_JWT>" \
   -H "Content-Type: application/json" \
   -d '{"season": "2024", "withStats": true, "withBoxScores": false}'
 ```
 
-Returns duration and record counts:
+Without `?wait=true` the job runs in the background and the call answers `{"status": "started"}` at once (check `GET /api/players/sync-status`); with it, the call waits and returns duration and record counts:
 ```json
 {
   "status": "success",

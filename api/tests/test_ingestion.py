@@ -32,7 +32,7 @@ async def test_admin_update_all_endpoint(
         }
 
         response = await async_client.post(
-            "/api/admin/update/all",
+            "/api/admin/update/all?wait=true",
             json={"season": "2024", "withStats": True, "withBoxScores": True},
             headers={"Authorization": "Bearer fake-token"},
         )
@@ -45,3 +45,21 @@ async def test_admin_update_all_endpoint(
         assert data["synced"]["stats"] == 950
         assert data["synced"]["games"] == 13
         assert mock_pipeline.called
+
+
+@pytest.mark.asyncio
+async def test_admin_triggers_run_in_the_background_by_default(
+    async_client: AsyncClient, mock_db_session: AsyncMock
+) -> None:
+    app.dependency_overrides[require_admin] = lambda: "admin-uid"
+    with patch("api.routers.admin._run_job", new_callable=AsyncMock) as run_job:
+        response = await async_client.post(
+            "/api/admin/update/all",
+            json={"withStats": False},
+            headers={"Authorization": "Bearer fake-token"},
+        )
+    assert response.status_code == 200
+    assert response.json() == {"status": "started"}
+    run_job.assert_awaited_once()
+    assert run_job.await_args is not None
+    assert run_job.await_args.args[0] == "update_all"
