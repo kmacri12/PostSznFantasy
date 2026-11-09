@@ -9,7 +9,7 @@ from api.core.config import get_settings
 from api.core.logging import request_id_ctx
 from api.db.models.user import User
 from api.db.session import DbSession
-from api.dependencies.auth import CurrentUser
+from api.dependencies.auth import CurrentUser, TokenEmail
 from api.services import support
 
 logger = logging.getLogger(__name__)
@@ -19,10 +19,13 @@ router = APIRouter()
 
 @router.post("", status_code=status.HTTP_204_NO_CONTENT)
 async def report_problem(
-    request: Request, supabase_uid: CurrentUser, db: DbSession
+    request: Request,
+    supabase_uid: CurrentUser,
+    token_email: TokenEmail,
+    db: DbSession,
 ) -> Response:
     """Email the support inbox: multipart `message`, optional `diagnostics` (JSON text)
-    and up to five `images`. Reply-to is the member's account email. Nothing is stored."""
+    and up to five `images`. Reply-to is the email of the verified sign-in token. Nothing is stored."""
     settings = get_settings()
     if not settings.support_enabled:
         raise HTTPException(
@@ -70,12 +73,12 @@ async def report_problem(
         attachments = support.validate_images([await item.read() for item in uploads])
         await support.send_report(
             settings,
-            reply_to=user.email,
+            reply_to=token_email,
             subject=support.subject_for(user.username, message),
             text=support.body_for(
                 user_id=user.id,
                 username=user.username,
-                email=user.email,
+                email=token_email,
                 message=message,
                 diagnostics=diagnostics,
                 request_id=request_id_ctx.get(),

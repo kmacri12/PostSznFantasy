@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { AxiosError, type AxiosResponse } from "axios";
 import { MemoryRouter, useLocation } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { UserProvider, useUser } from "./UserContext";
@@ -81,9 +82,32 @@ describe("UserProvider auth flow", () => {
     renderProbe();
     await waitFor(() => expect(screen.getByTestId("user").textContent).toBe("42"));
     expect(mocks.post).toHaveBeenCalledWith("/api/auth/login", {
-      email: "u1@x.co",
       username: "Pat Player",
     });
+  });
+
+  it("shows the server's explanation when sign-in is refused", async () => {
+    mocks.post.mockRejectedValue(
+      new AxiosError("conflict", "ERR_BAD_REQUEST", undefined, undefined, {
+        status: 409,
+        data: { detail: "Already taken" },
+      } as AxiosResponse),
+    );
+    renderProbe();
+    await waitFor(() => expect(screen.getByTestId("error").textContent).toBe("Already taken"));
+  });
+
+  it("keeps the unreachable text for network errors and server failures", async () => {
+    mocks.post.mockRejectedValue(
+      new AxiosError("boom", "ERR_BAD_RESPONSE", undefined, undefined, {
+        status: 503,
+        data: { detail: "Down" },
+      } as AxiosResponse),
+    );
+    renderProbe();
+    await waitFor(() =>
+      expect(screen.getByTestId("error").textContent).toMatch(/couldn't reach the server/i),
+    );
   });
 
   it("does not re-post /auth/login when only the token refreshes", async () => {

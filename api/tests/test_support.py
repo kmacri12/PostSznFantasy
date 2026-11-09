@@ -13,7 +13,7 @@ from pydantic import ValidationError
 from api.core.config import Settings, get_settings
 from api.db.models import User
 from api.db.session import get_db
-from api.dependencies.auth import get_current_user
+from api.dependencies.auth import get_current_user, get_token_email
 from api.main import app
 from api.services import support
 
@@ -73,6 +73,7 @@ async def post() -> AsyncGenerator[Callable[..., Any]]:
 
     app.dependency_overrides[get_db] = override_db
     app.dependency_overrides[get_current_user] = lambda: "uid-7"
+    app.dependency_overrides[get_token_email] = lambda: "kyle@example.org"
 
     async def send(
         message: str = "The board is blank",
