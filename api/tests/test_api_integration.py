@@ -17,7 +17,7 @@ async def test_auth_login_create_and_sync(
     async_client: AsyncClient,
     mock_db_session: AsyncMock,
 ) -> None:
-    payload = {"email": "player@example.com", "username": "playmaker"}
+    payload = {"username": "playmaker"}
 
     # 1. First login inserts the user (Postgres reports xmax = 0 for fresh rows)
     mock_db_session.execute.return_value = MagicMock(one=lambda: (42, None, True))
@@ -59,12 +59,16 @@ async def test_auth_login_without_profile_fields(
 
 
 @pytest.mark.asyncio
-async def test_auth_login_duplicate_email_conflict(
+async def test_auth_login_email_conflict_signs_in_without_email(
     async_client: AsyncClient, mock_db_session: AsyncMock
 ) -> None:
-    mock_db_session.execute.side_effect = IntegrityError("stmt", {}, Exception("dup"))
-    response = await async_client.post("/api/auth/login", json={"email": "a@b.co"})
-    assert response.status_code == 409
+    mock_db_session.execute.side_effect = [
+        IntegrityError("stmt", {}, Exception("dup")),
+        MagicMock(one=lambda: (9, None, True)),
+    ]
+    response = await async_client.post("/api/auth/login", json={})
+    assert response.status_code == 200
+    assert response.json()["userId"] == 9
 
 
 @pytest.mark.asyncio
@@ -95,6 +99,7 @@ async def test_create_league_success(
         "rosterSettings": {
             "number_teams": 4,
             "roster_total": 10,
+            "roster_num_bench": 1,
         },
         "scoringSettings": {
             "scoring_passing_td": 6,

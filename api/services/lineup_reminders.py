@@ -107,5 +107,5 @@ async def _unfilled(
         .scalars()
         .all()
     )
-    stored = (await _placements(db, team.id))[round_]
+    stored = (await _placements(db, team.id, {p.id for p in players}))[round_]
     return fillable_starter_slots(slot_layout(settings), players, games, stored, round_)

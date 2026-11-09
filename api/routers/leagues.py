@@ -5,6 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from api.core.config import get_settings
+from api.core.rate_limit import CreateLeagueLimit
 from api.db.models.draft import Draft
 from api.db.models.league import (
     League,
@@ -90,6 +91,7 @@ async def create_league(
     payload: LeagueCreate,
     current_user_id: CurrentUser,
     db: DbSession,
+    _: CreateLeagueLimit,
 ) -> LeagueCreateResponse:
     """Create a league with its first season: the creator is commissioner, plus teams and a draft."""
     user = await _caller(db, current_user_id)

@@ -1,8 +1,8 @@
 from datetime import datetime
 from enum import StrEnum
-from typing import Any
+from typing import Annotated, Any, Self
 
-from pydantic import Field, StrictBool, create_model
+from pydantic import Field, StrictBool, create_model, model_validator
 
 from api.models.activity_models import ScoreChange, SlotMark
 from api.models.base import BaseSchema
@@ -14,83 +14,128 @@ from api.models.enums import (
     TieRule,
 )
 
+ROSTER_SLOTS_MAX = 20
+ROSTER_TOTAL_MAX = 40
+ROSTER_MAX_CAP = 99
+STARTER_FIELDS = (
+    "roster_num_qb",
+    "roster_num_rb",
+    "roster_num_wr",
+    "roster_num_te",
+    "roster_num_flex_wr_rb_te",
+    "roster_num_flex_wr_rb",
+    "roster_num_flex_wr_te",
+    "roster_num_flex_qb_wr_rb_te",
+    "roster_num_k",
+    "roster_num_dst",
+)
+CAPPED_POSITIONS = ("qb", "rb", "wr", "te", "k", "dst")
+# Column is NUMERIC(6, 2); NaN and infinity would break every score computation.
+SCORING_VALUE_LIMIT = 100
+ScoringValue = Annotated[
+    float, Field(ge=-SCORING_VALUE_LIMIT, le=SCORING_VALUE_LIMIT, allow_inf_nan=False)
+]
+PICK_SECONDS_MIN = 15
+PICK_SECONDS_MAX = 600
+
 
 class RosterSettings(BaseSchema):
     number_teams: int = Field(default=6, ge=2, le=14)
-    roster_total: int = 18
-    roster_num_qb: int = 1
-    roster_num_rb: int = 2
-    roster_num_wr: int = 2
-    roster_num_te: int = 1
-    roster_num_flex_wr_rb_te: int = 1
-    roster_num_flex_wr_rb: int = 0
-    roster_num_flex_wr_te: int = 0
-    roster_num_flex_qb_wr_rb_te: int = 0
-    roster_num_k: int = 1
-    roster_num_dst: int = 1
-    roster_num_bench: int = 9
-    roster_max_qb: int = 2
-    roster_max_rb: int = 99
-    roster_max_wr: int = 99
-    roster_max_te: int = 99
-    roster_max_k: int = 2
-    roster_max_dst: int = 2
+    roster_total: int = Field(default=18, ge=1, le=ROSTER_TOTAL_MAX)
+    roster_num_qb: int = Field(default=1, ge=0, le=ROSTER_SLOTS_MAX)
+    roster_num_rb: int = Field(default=2, ge=0, le=ROSTER_SLOTS_MAX)
+    roster_num_wr: int = Field(default=2, ge=0, le=ROSTER_SLOTS_MAX)
+    roster_num_te: int = Field(default=1, ge=0, le=ROSTER_SLOTS_MAX)
+    roster_num_flex_wr_rb_te: int = Field(default=1, ge=0, le=ROSTER_SLOTS_MAX)
+    roster_num_flex_wr_rb: int = Field(default=0, ge=0, le=ROSTER_SLOTS_MAX)
+    roster_num_flex_wr_te: int = Field(default=0, ge=0, le=ROSTER_SLOTS_MAX)
+    roster_num_flex_qb_wr_rb_te: int = Field(default=0, ge=0, le=ROSTER_SLOTS_MAX)
+    roster_num_k: int = Field(default=1, ge=0, le=ROSTER_SLOTS_MAX)
+    roster_num_dst: int = Field(default=1, ge=0, le=ROSTER_SLOTS_MAX)
+    roster_num_bench: int = Field(default=9, ge=0, le=ROSTER_SLOTS_MAX)
+    roster_max_qb: int = Field(default=2, ge=0, le=ROSTER_MAX_CAP)
+    roster_max_rb: int = Field(default=99, ge=0, le=ROSTER_MAX_CAP)
+    roster_max_wr: int = Field(default=99, ge=0, le=ROSTER_MAX_CAP)
+    roster_max_te: int = Field(default=99, ge=0, le=ROSTER_MAX_CAP)
+    roster_max_k: int = Field(default=2, ge=0, le=ROSTER_MAX_CAP)
+    roster_max_dst: int = Field(default=2, ge=0, le=ROSTER_MAX_CAP)
+
+
+class RosterSettingsInput(RosterSettings):
+    """What a client may send. Stored rosters from before these rules still read back
+    through RosterSettings, so the cross-field rules live only here."""
+
+    @model_validator(mode="after")
+    def _check_roster(self) -> Self:
+        starters = sum(getattr(self, f) for f in STARTER_FIELDS)
+        if starters < 1:
+            raise ValueError("A roster needs at least one starter slot")
+        if self.roster_total != starters + self.roster_num_bench:
+            raise ValueError("roster_total must equal starters plus bench")
+        for position in CAPPED_POSITIONS:
+            if getattr(self, f"roster_max_{position}") < getattr(
+                self, f"roster_num_{position}"
+            ):
+                raise ValueError(
+                    f"roster_max_{position} cannot be below roster_num_{position}"
+                )
+        return self
 
 
 class ScoringSettings(BaseSchema):
     """Defaults are docs/product-rules.md section 5; anything unlisted there is 0."""
 
-    scoring_passing_yard: float = 0.04
-    scoring_passing_td: float = 4
-    scoring_passing_2pt: float = 2
-    scoring_passing_interception: float = -2
-    scoring_passing_completion: float = 0
-    scoring_passing_attempt: float = 0
-    scoring_passing_sack: float = 0
-    scoring_passing_bonus_300_yards: float = 0
-    scoring_passing_bonus_400_yards: float = 0
-    scoring_rushing_yard: float = 0.1
-    scoring_rushing_td: float = 6
-    scoring_rushing_2pt: float = 2
-    scoring_rushing_attempt: float = 0
-    scoring_rushing_bonus_100_yards: float = 0
-    scoring_rushing_bonus_200_yards: float = 0
-    scoring_receiving_reception: float = 1
-    scoring_receiving_yard: float = 0.1
-    scoring_receiving_td: float = 6
-    scoring_receiving_2pt: float = 2
-    scoring_receiving_target: float = 0
-    scoring_receiving_reception_bonus_rb: float = 0
-    scoring_receiving_reception_bonus_wr: float = 0
-    scoring_receiving_reception_bonus_te: float = 0
-    scoring_receiving_bonus_100_yards: float = 0
-    scoring_receiving_bonus_200_yards: float = 0
-    scoring_carrying_fumble: float = 0
-    scoring_carrying_fumble_lost: float = -2
-    scoring_special_punt_return_yard: float = 0
-    scoring_special_kick_return_yard: float = 0
-    scoring_kicking_fg_made: float = 0
-    scoring_kicking_fg_miss: float = -1
-    scoring_kicking_fg_yard: float = 0.1
-    scoring_kicking_fg_miss_yard: float = 0
-    scoring_kicking_xp_made: float = 1
-    scoring_kicking_xp_miss: float = -1
-    scoring_dst_td: float = 6
-    scoring_dst_pts_allowed_0: float = 7
-    scoring_dst_pts_allowed_1_13: float = 5
-    scoring_dst_pts_allowed_14_21: float = 3
-    scoring_dst_pts_allowed_22_28: float = 1
-    scoring_dst_pts_allowed_29_plus: float = 0
-    scoring_dst_yards_allowed_under_100: float = 6
-    scoring_dst_yards_allowed_100_199: float = 4
-    scoring_dst_yards_allowed_200_299: float = 2
-    scoring_dst_yards_allowed_300_plus: float = 0
-    scoring_dst_sack: float = 1
-    scoring_dst_safety: float = 2
-    scoring_dst_fumble_recover: float = 1
-    scoring_dst_interception: float = 1
-    scoring_dst_blocked_kick: float = 1
-    scoring_dst_two_point_return: float = 2
+    scoring_passing_yard: ScoringValue = 0.04
+    scoring_passing_td: ScoringValue = 4
+    scoring_passing_2pt: ScoringValue = 2
+    scoring_passing_interception: ScoringValue = -2
+    scoring_passing_completion: ScoringValue = 0
+    scoring_passing_attempt: ScoringValue = 0
+    scoring_passing_sack: ScoringValue = 0
+    scoring_passing_bonus_300_yards: ScoringValue = 0
+    scoring_passing_bonus_400_yards: ScoringValue = 0
+    scoring_rushing_yard: ScoringValue = 0.1
+    scoring_rushing_td: ScoringValue = 6
+    scoring_rushing_2pt: ScoringValue = 2
+    scoring_rushing_attempt: ScoringValue = 0
+    scoring_rushing_bonus_100_yards: ScoringValue = 0
+    scoring_rushing_bonus_200_yards: ScoringValue = 0
+    scoring_receiving_reception: ScoringValue = 1
+    scoring_receiving_yard: ScoringValue = 0.1
+    scoring_receiving_td: ScoringValue = 6
+    scoring_receiving_2pt: ScoringValue = 2
+    scoring_receiving_target: ScoringValue = 0
+    scoring_receiving_reception_bonus_rb: ScoringValue = 0
+    scoring_receiving_reception_bonus_wr: ScoringValue = 0
+    scoring_receiving_reception_bonus_te: ScoringValue = 0
+    scoring_receiving_bonus_100_yards: ScoringValue = 0
+    scoring_receiving_bonus_200_yards: ScoringValue = 0
+    scoring_carrying_fumble: ScoringValue = 0
+    scoring_carrying_fumble_lost: ScoringValue = -2
+    scoring_special_punt_return_yard: ScoringValue = 0
+    scoring_special_kick_return_yard: ScoringValue = 0
+    scoring_kicking_fg_made: ScoringValue = 0
+    scoring_kicking_fg_miss: ScoringValue = -1
+    scoring_kicking_fg_yard: ScoringValue = 0.1
+    scoring_kicking_fg_miss_yard: ScoringValue = 0
+    scoring_kicking_xp_made: ScoringValue = 1
+    scoring_kicking_xp_miss: ScoringValue = -1
+    scoring_dst_td: ScoringValue = 6
+    scoring_dst_pts_allowed_0: ScoringValue = 7
+    scoring_dst_pts_allowed_1_13: ScoringValue = 5
+    scoring_dst_pts_allowed_14_21: ScoringValue = 3
+    scoring_dst_pts_allowed_22_28: ScoringValue = 1
+    scoring_dst_pts_allowed_29_plus: ScoringValue = 0
+    scoring_dst_yards_allowed_under_100: ScoringValue = 6
+    scoring_dst_yards_allowed_100_199: ScoringValue = 4
+    scoring_dst_yards_allowed_200_299: ScoringValue = 2
+    scoring_dst_yards_allowed_300_plus: ScoringValue = 0
+    scoring_dst_sack: ScoringValue = 1
+    scoring_dst_safety: ScoringValue = 2
+    scoring_dst_fumble_recover: ScoringValue = 1
+    scoring_dst_interception: ScoringValue = 1
+    scoring_dst_blocked_kick: ScoringValue = 1
+    scoring_dst_two_point_return: ScoringValue = 2
 
 
 class PostseasonSettings(BaseSchema):
@@ -118,12 +163,14 @@ NOTES_MAX_LENGTH = 5000
 
 class LeagueCreate(BaseSchema):
     league_name: str = Field(min_length=1, max_length=100)
-    roster_settings: RosterSettings = Field(default_factory=RosterSettings)
+    roster_settings: RosterSettingsInput = Field(default_factory=RosterSettingsInput)
     scoring_settings: ScoringSettings = Field(default_factory=ScoringSettings)
     postseason_settings: PostseasonSettings = Field(default_factory=PostseasonSettings)
     team_unit_settings: TeamUnitSettings
     draft_start_time: datetime | None = None
-    time_per_pick_seconds: int = Field(default=90, ge=10, le=86400)
+    time_per_pick_seconds: int = Field(
+        default=90, ge=PICK_SECONDS_MIN, le=PICK_SECONDS_MAX
+    )
 
 
 class LeagueCreateResponse(BaseSchema):
@@ -183,6 +230,8 @@ def _all_optional(name: str, *models: type[BaseSchema]) -> type[BaseSchema]:
     for model in models:
         for field, info in model.model_fields.items():
             annotation: Any = info.annotation
+            if info.metadata:
+                annotation = Annotated[(annotation, *info.metadata)]
             fields[field] = (annotation | None, None)
     return create_model(name, __base__=BaseSchema, **fields)
 
@@ -195,6 +244,30 @@ SeasonSettingsPatch = _all_optional(
     PostseasonSettings,
     TeamUnitSettings,
 )
+
+
+def merged_roster_updates(current: Any, updates: dict[str, Any]) -> dict[str, Any]:
+    """Validate a PATCH's roster changes against the stored settings.
+
+    A change to the slot counts or bench that leaves out `roster_total` gets it
+    recomputed; the whole merged roster must then satisfy `RosterSettings`.
+    """
+    roster_keys = set(RosterSettings.model_fields) - {"number_teams"}
+    changed = {
+        key
+        for key in roster_keys & updates.keys()
+        if getattr(current, key) != updates[key]
+    }
+    if not changed:
+        return updates
+    merged = {key: getattr(current, key) for key in roster_keys} | updates
+    if "roster_total" not in updates:
+        merged["roster_total"] = (
+            sum(merged[f] for f in STARTER_FIELDS) + merged["roster_num_bench"]
+        )
+        updates = updates | {"roster_total": merged["roster_total"]}
+    RosterSettingsInput.model_validate(merged)
+    return updates
 
 
 class LeagueDelete(BaseSchema):

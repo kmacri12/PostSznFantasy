@@ -1,3 +1,5 @@
+from typing import Any
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.db.models import (
@@ -57,9 +59,13 @@ async def make_season(
         )
         for i, u in enumerate(users)
     )
-    roster_settings = RosterSettings(
-        number_teams=teams, roster_total=roster_total, **roster
-    )
+    # Tests pick a roster_total independent of the slots, which the API would refuse.
+    roster_values: dict[str, Any] = {
+        "number_teams": teams,
+        "roster_total": roster_total,
+        **roster,
+    }
+    roster_settings = RosterSettings.model_construct(**roster_values)
     db.add(
         SeasonSettings(
             season_id=season.id,

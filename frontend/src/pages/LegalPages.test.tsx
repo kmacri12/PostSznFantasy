@@ -13,7 +13,7 @@ describe("legal pages", () => {
     expect(screen.getByText(/do not sell your data/i)).toBeVisible();
   });
 
-  it("terms say it is a free game, not gambling, as is", () => {
+  it("terms say it is a free game with no money handled, as is", () => {
     render(
       <MemoryRouter>
         <TermsPage />
@@ -23,7 +23,7 @@ describe("legal pages", () => {
       screen.getByRole("heading", { level: 1, name: /terms of service/i }),
     ).toBeInTheDocument();
     expect(screen.getByText(/free fantasy football game/i)).toBeVisible();
-    expect(screen.getByRole("heading", { name: /not gambling/i })).toBeVisible();
+    expect(screen.getByRole("heading", { name: /free game, no money/i })).toBeVisible();
     expect(screen.getByRole("heading", { name: /provided as is/i })).toBeVisible();
   });
 });

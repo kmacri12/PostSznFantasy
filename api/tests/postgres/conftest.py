@@ -18,7 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
 from api.db.models import Base
 from api.db.session import get_db
-from api.dependencies.auth import get_current_user
+from api.dependencies.auth import get_current_user, get_token_email
 from api.dependencies.clock import get_today
 from api.main import app
 
@@ -72,7 +72,7 @@ async def db() -> AsyncGenerator[AsyncSession]:
 # The day after the 2025 season's start-next-season gate opens (December 1, 2026).
 TEST_TODAY = date(2026, 12, 1)
 
-ClientFactory = Callable[[str], AsyncClient]
+ClientFactory = Callable[..., AsyncClient]
 
 
 @pytest.fixture
@@ -83,8 +83,9 @@ async def client_as(db: AsyncSession) -> AsyncGenerator[ClientFactory]:
     app.dependency_overrides[get_db] = override_db
     app.dependency_overrides[get_today] = lambda: TEST_TODAY
 
-    def build(uid: str) -> AsyncClient:
+    def build(uid: str, email: str | None = None) -> AsyncClient:
         app.dependency_overrides[get_current_user] = lambda: uid
+        app.dependency_overrides[get_token_email] = lambda: email
         return AsyncClient(transport=ASGITransport(app=app), base_url="http://test")
 
     yield build

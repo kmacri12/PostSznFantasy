@@ -11,7 +11,7 @@ const png = (bytes = 64) => Buffer.concat([PNG_HEADER, Buffer.alloc(bytes)]);
 interface SentEmail {
   authorization: string;
   to: string[];
-  reply_to: string;
+  reply_to?: string;
   subject: string;
   text: string;
   attachments: { filename: string; content: string }[];
@@ -69,7 +69,8 @@ test.describe("report a problem", () => {
     const [email] = await sentEmails(request);
     expect(email?.authorization).toBe("Bearer re_e2e_stub");
     expect(email?.to).toEqual(["support@e2e.test"]);
-    expect(email?.reply_to).toBe(`${member.uid}@e2e.test`);
+    // Stub tokens carry no email claim, and reply-to comes only from the token.
+    expect(email?.reply_to).toBeUndefined();
     expect(email?.text).toContain("The board is blank");
     expect(email?.text).toContain(`"leagueId": ${league.leagueId}`);
     expect(email?.text).not.toContain("Bearer");

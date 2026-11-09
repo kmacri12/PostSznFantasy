@@ -93,7 +93,8 @@ export const HOW_TO_PLAY_SECTIONS: HowToPlaySection[] = [
     body: [
       "A commissioner can edit any lineup, even after a lock. Moving a locked player needs a confirmation, the league is told, and the slot is marked “changed by commissioner after kickoff”.",
       "Every override, stat correction and settings change goes in the activity feed.",
-      "The app does not handle money. Buy-in, prizes and house rules go in the league notes.",
+      "House rules and a welcome message go in the league notes.",
+      "PostSzn is a free game played for fun. We do not handle, support, facilitate or help with anything related to money.",
     ],
   },
 ];
@@ -119,9 +120,8 @@ export const TEAM_K_ON_NOTE = "Team K is on: your K scores every K on his NFL te
 
 export const NOTES_TITLE = "Commissioner notes";
 export const NOTES_EMPTY_MEMBER = "No notes yet.";
-export const NOTES_EMPTY_COMMISSIONER =
-  "Add buy-in, prizes or house rules for your league. The app does not handle any money.";
-export const NOTES_HINT = "Everyone in the league can read this. The app does not handle money.";
+export const NOTES_EMPTY_COMMISSIONER = "Add house rules or a welcome message for your league.";
+export const NOTES_HINT = "Everyone in the league can read this.";
 export const NOTES_MAX_LENGTH = 5000;
 
 export const HOW_TO_PLAY_LABEL = "How to play";
@@ -216,7 +216,7 @@ export const SETTING_HELP = {
 
 // Settings page copy.
 export const NOTIFICATIONS_BLURB =
-  "Your pick on the clock, lineup locks, and chat. On iPhone, add the site to your Home Screen first.";
+  "Your pick on the clock, lineup locks, and chat, on this device only. Signing out turns them off here. On iPhone, add the site to your Home Screen first.";
 export const NOTIFICATIONS_IPHONE_STEPS = [
   "Open this site in Safari.",
   "Tap the Share button, then Add to Home Screen.",

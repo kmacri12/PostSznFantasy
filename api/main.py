@@ -4,12 +4,14 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request, status
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
+from api.core.body_limit import BodyLimitMiddleware
 from api.core.config import get_settings
 from api.core.logging import RequestLoggingMiddleware, setup_logging
 from api.core.observability import init_sentry
@@ -97,6 +99,22 @@ app.add_middleware(
 
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.add_middleware(RequestLoggingMiddleware)
+app.add_middleware(BodyLimitMiddleware)
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_error_handler(
+    _: Request, exc: RequestValidationError
+) -> JSONResponse:
+    # The default handler echoes each rejected `input`, which for NaN or Infinity
+    # cannot be rendered as JSON and would turn the 422 into a 500.
+    detail = [
+        {key: value for key, value in error.items() if key not in ("input", "ctx")}
+        for error in exc.errors()
+    ]
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, content={"detail": detail}
+    )
 
 
 @app.exception_handler(LeagueDeletedError)

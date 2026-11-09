@@ -10,7 +10,7 @@ vi.mock("../../api/queries", () => ({
 const league = (extra: Partial<LeagueInfo> = {}): LeagueInfo => ({
   id: 1,
   name: "L",
-  notes: "Buy-in is $20",
+  notes: "House rules: no trading",
   myRole: "member",
   currentSeasonId: 1,
   canStartSeason: false,
@@ -27,9 +27,9 @@ describe("LeagueNotes", () => {
       "aria-expanded",
       "false",
     );
-    expect(screen.queryByText("Buy-in is $20")).toBeNull();
+    expect(screen.queryByText("House rules: no trading")).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: /Commissioner notes/ }));
-    expect(screen.getByText("Buy-in is $20")).toBeInTheDocument();
+    expect(screen.getByText("House rules: no trading")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Edit notes" })).toBeNull();
   });
 
@@ -37,6 +37,6 @@ describe("LeagueNotes", () => {
     render(<LeagueNotes league={league({ myRole: "commissioner" })} />);
     fireEvent.click(screen.getByRole("button", { name: /Commissioner notes/ }));
     fireEvent.click(screen.getByRole("button", { name: "Edit notes" }));
-    expect(screen.getByRole("textbox")).toHaveValue("Buy-in is $20");
+    expect(screen.getByRole("textbox")).toHaveValue("House rules: no trading");
   });
 });

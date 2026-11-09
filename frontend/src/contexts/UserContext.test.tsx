@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { AxiosError, type AxiosResponse } from "axios";
 import { MemoryRouter, useLocation } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { UserProvider, useUser } from "./UserContext";
@@ -9,6 +10,7 @@ const mocks = vi.hoisted(() => ({
   onAuthStateChange: vi.fn(),
   post: vi.fn(),
   signOut: vi.fn(),
+  forgetThisDevice: vi.fn(),
 }));
 
 vi.mock("../utils/supabase", () => ({
@@ -19,6 +21,10 @@ vi.mock("../utils/supabase", () => ({
   },
 }));
 vi.mock("../api/client", () => ({ api: { post: mocks.post } }));
+vi.mock("../utils/pushSetup", () => ({
+  forgetThisDevice: mocks.forgetThisDevice,
+  refreshPushSubscription: vi.fn(),
+}));
 
 const sessionFor = (id: string, token: string) => ({
   access_token: token,
@@ -57,6 +63,7 @@ let emitAuthChange: (session: unknown) => void;
 beforeEach(() => {
   queryClient = new QueryClient();
   mocks.signOut.mockReset().mockImplementation(async () => emitAuthChange(null));
+  mocks.forgetThisDevice.mockReset().mockResolvedValue(undefined);
   mocks.post.mockReset().mockResolvedValue({ data: { userId: 42 } });
   mocks.getSession.mockReset().mockResolvedValue({ data: { session: sessionFor("u1", "t1") } });
   mocks.onAuthStateChange.mockReset().mockImplementation((callback) => {
@@ -81,9 +88,32 @@ describe("UserProvider auth flow", () => {
     renderProbe();
     await waitFor(() => expect(screen.getByTestId("user").textContent).toBe("42"));
     expect(mocks.post).toHaveBeenCalledWith("/api/auth/login", {
-      email: "u1@x.co",
       username: "Pat Player",
     });
+  });
+
+  it("shows the server's explanation when sign-in is refused", async () => {
+    mocks.post.mockRejectedValue(
+      new AxiosError("conflict", "ERR_BAD_REQUEST", undefined, undefined, {
+        status: 409,
+        data: { detail: "Already taken" },
+      } as AxiosResponse),
+    );
+    renderProbe();
+    await waitFor(() => expect(screen.getByTestId("error").textContent).toBe("Already taken"));
+  });
+
+  it("keeps the unreachable text for network errors and server failures", async () => {
+    mocks.post.mockRejectedValue(
+      new AxiosError("boom", "ERR_BAD_RESPONSE", undefined, undefined, {
+        status: 503,
+        data: { detail: "Down" },
+      } as AxiosResponse),
+    );
+    renderProbe();
+    await waitFor(() =>
+      expect(screen.getByTestId("error").textContent).toMatch(/couldn't reach the server/i),
+    );
   });
 
   it("does not re-post /auth/login when only the token refreshes", async () => {
@@ -131,6 +161,18 @@ describe("UserProvider auth flow", () => {
 
     expect(screen.getByTestId("expired").textContent).toBe("no");
     expect(queryClient.getQueryData(["leagues"])).toBeUndefined();
+  });
+
+  it("removes this device's push subscription before ending the session", async () => {
+    renderProbe();
+    await waitFor(() => expect(screen.getByTestId("user").textContent).toBe("42"));
+
+    fireEvent.click(screen.getByText("out"));
+    await waitFor(() => expect(mocks.signOut).toHaveBeenCalled());
+
+    const [forgotAt = Infinity] = mocks.forgetThisDevice.mock.invocationCallOrder;
+    const [signedOutAt = 0] = mocks.signOut.mock.invocationCallOrder;
+    expect(forgotAt).toBeLessThan(signedOutAt);
   });
 
   it("clears the expired flag once the user signs back in", async () => {
