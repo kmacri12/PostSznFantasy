@@ -440,7 +440,7 @@ test.describe("draft with teams that have no owner", () => {
     await page.goto(seasonUrl(league, "/draft"));
     await openControls(page);
     await page.getByRole("button", { name: "Start draft", exact: true }).click();
-    await expect(page.getByText("1 team has no owner and will be auto-picked.")).toBeVisible();
+    await expect(page.getByText(/1 team has no owner and will be auto-picked/)).toBeVisible();
     await page
       .getByRole("dialog")
       .getByRole("button", { name: "Start draft", exact: true })
