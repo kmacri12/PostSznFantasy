@@ -3,14 +3,22 @@ import logging
 from datetime import UTC, datetime
 
 import sentry_sdk
-from sqlalchemy import select
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.db.models.draft import Draft
+from api.db.models.draft import Draft, DraftPick
+from api.db.models.league import Team
 from api.db.session import get_session_factory
 from api.models.enums import DraftStatus
 from api.services import draft_flow
 from api.services.draft_events import announce_events, pick_events
-from api.services.draft_picks import DraftPickError, PickNotDue, next_deadline
+from api.services.draft_picks import (
+    DraftPickError,
+    PickNotDue,
+    next_deadline,
+    placed_order,
+    team_on_the_clock,
+)
 from api.services.live_leagues import live_season_ids
 
 logger = logging.getLogger(__name__)
@@ -18,23 +26,39 @@ logger = logging.getLogger(__name__)
 TICK_SECONDS = 1
 
 
+async def _unowned_team_on_clock(db: AsyncSession, draft: Draft) -> bool:
+    picks_made = await db.scalar(
+        select(func.count())
+        .select_from(DraftPick)
+        .where(DraftPick.draft_id == draft.id)
+    )
+    team_id = team_on_the_clock(placed_order(draft), picks_made or 0, draft.draft_type)
+    owner_id = await db.scalar(select(Team.owner_id).where(Team.id == team_id))
+    return owner_id is None
+
+
 async def expire_overdue_picks() -> int:
-    """Auto-pick for every draft whose server-side deadline has passed."""
+    """Auto-pick for every draft whose deadline has passed or whose team on the clock has no owner."""
     now = datetime.now(UTC)
     async with get_session_factory()() as db:
-        season_ids = list(
+        drafts = (
             (
                 await db.execute(
-                    select(Draft.season_id).where(
+                    select(Draft).where(
                         Draft.season_id.in_(live_season_ids()),
                         Draft.status == DraftStatus.IN_PROGRESS.value,
-                        Draft.current_pick_deadline <= now,
                     )
                 )
             )
             .scalars()
             .all()
         )
+        season_ids = [
+            draft.season_id
+            for draft in drafts
+            if (draft.current_pick_deadline or now) <= now
+            or await _unowned_team_on_clock(db, draft)
+        ]
 
     handled = 0
     for season_id in season_ids:

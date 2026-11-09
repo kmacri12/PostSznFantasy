@@ -312,6 +312,27 @@ export const useRemoveMember = (leagueId: Id | undefined) =>
     await api.delete(`/api/leagues/${leagueId}/members/${userId}`);
   });
 
+/** Leave the league yourself; the league then disappears from the caller's list. */
+export const useLeaveLeague = (leagueId: Id | undefined, userId: number | null) => {
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  return useMutation({
+    mutationFn: async () => {
+      await api.delete(`/api/leagues/${leagueId}/members/${userId}`);
+    },
+    onSuccess: () => {
+      navigate("/", { replace: true });
+      window.scrollTo(0, 0);
+      queryClient.removeQueries({ queryKey: keys.leagueSeasons(leagueId ?? "") });
+      queryClient.removeQueries({ queryKey: keys.leagueInfo(leagueId ?? "") });
+      return Promise.all([
+        queryClient.invalidateQueries({ queryKey: keys.userLeagues }),
+        queryClient.invalidateQueries({ queryKey: keys.pastLeagues }),
+      ]);
+    },
+  });
+};
+
 export const useRegenerateInvite = (leagueId: Id | undefined) =>
   useLeagueMutation(
     async () => (await api.post<Invite>(`/api/leagues/${leagueId}/invite`, {})).data,

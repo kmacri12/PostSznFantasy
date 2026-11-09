@@ -1,8 +1,20 @@
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { Alert, Box, Button, Typography } from "@mui/material";
+import {
+  Alert,
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Link,
+  Typography,
+} from "@mui/material";
 import { useState } from "react";
+import { Link as RouterLink } from "react-router-dom";
 import { useDraftControl } from "../../api/queries";
 import type { DraftState } from "../../api/types";
+import { useSeasonContext } from "../../contexts/SeasonContext";
 import { radii, tokens } from "../../theme";
 import { mutationError } from "../common/friendlyError";
 import { formatDraftTime } from "../league/countdown";
@@ -47,6 +59,9 @@ const CommissionerStrip = ({ draft, editingOrder, onEditOrder }: Props) => {
   const control = useDraftControl(draft.seasonId);
   const [open, setOpen] = useState(false);
   const [dateOpen, setDateOpen] = useState(false);
+  const [confirmStart, setConfirmStart] = useState(false);
+  const { paths } = useSeasonContext();
+  const unowned = draft.order.filter((slot) => !slot.ownerName).length;
   const status = draft.status;
   const preDraft = ["unscheduled", "scheduled", "lobby"].includes(status);
   const run = (action: Parameters<typeof control.mutate>[0]) => () => control.mutate(action);
@@ -102,7 +117,10 @@ const CommissionerStrip = ({ draft, editingOrder, onEditOrder }: Props) => {
               >
                 Change date
               </Action>
-              <Action disabled={control.isPending} onClick={run("start")}>
+              <Action
+                disabled={control.isPending}
+                onClick={() => (unowned > 0 ? setConfirmStart(true) : control.mutate("start"))}
+              >
                 Start draft
               </Action>
               <Box
@@ -121,6 +139,42 @@ const CommissionerStrip = ({ draft, editingOrder, onEditOrder }: Props) => {
                 randomize.
               </Box>
               <PreDraftNotice state={draft} />
+              <Dialog
+                open={confirmStart}
+                onClose={() => setConfirmStart(false)}
+                fullWidth
+                maxWidth="xs"
+              >
+                <DialogTitle>Start the draft?</DialogTitle>
+                <DialogContent>
+                  <Typography>
+                    {unowned === 1
+                      ? "1 team has no owner and will be auto-picked."
+                      : `${unowned} teams have no owner and will be auto-picked.`}{" "}
+                    Auto-picks use the team's queue, then best available, and happen right away.
+                    Whoever joins later takes over that team's roster.
+                  </Typography>
+                  <Link
+                    component={RouterLink}
+                    to={paths.more}
+                    sx={{ display: "inline-block", mt: 1.5 }}
+                  >
+                    Invite members or assign owners first
+                  </Link>
+                </DialogContent>
+                <DialogActions>
+                  <Button onClick={() => setConfirmStart(false)}>Cancel</Button>
+                  <Button
+                    variant="contained"
+                    onClick={() => {
+                      setConfirmStart(false);
+                      control.mutate("start");
+                    }}
+                  >
+                    Start draft
+                  </Button>
+                </DialogActions>
+              </Dialog>
             </>
           ) : (
             <>

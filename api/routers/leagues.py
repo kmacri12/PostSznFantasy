@@ -1,6 +1,6 @@
 from datetime import date
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Response, status
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
@@ -43,6 +43,7 @@ from api.services import activity
 from api.services.activity import leagues_with_new_activity
 from api.services.avatars import avatar_url
 from api.services.draft_picks import DraftPickError
+from api.services.invites import revoke_invites
 from api.services.league_members import (
     LeagueRuleError,
     member_summaries,
@@ -412,20 +413,36 @@ async def update_member_role(
     return await get_league(league_id, membership, db, today)
 
 
-@router.delete("/{league_id}/members/{user_id}", response_model=LeagueOverview)
+@router.delete(
+    "/{league_id}/members/{user_id}",
+    response_model=LeagueOverview | None,
+    responses={204: {"description": "You left the league"}},
+)
 async def delete_member(
     league_id: int,
     user_id: int,
-    membership: LeagueCommissioner,
+    membership: LeagueMember,
     db: DbSession,
     today: Today,
-) -> LeagueOverview:
-    """Remove a member (or leave); the row stays as history with `left_at` set."""
+) -> LeagueOverview | Response:
+    """Leave (any member, yourself) or remove a member (commissioner); the row stays
+    as history with `left_at` set. Removing someone retires the invite link so they
+    cannot walk back in with it; leaving does not."""
+    leaving = user_id == membership.user.id
+    if not leaving and not membership.is_commissioner:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only a commissioner can remove another member",
+        )
     try:
         await remove_member(db, league_id, user_id, membership.user)
     except LeagueRuleError as exc:
         raise rule_error(exc) from exc
+    if not leaving:
+        await revoke_invites(db, league_id)
     await db.flush()
+    if leaving:
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
     return await get_league(league_id, membership, db, today)
 
 
