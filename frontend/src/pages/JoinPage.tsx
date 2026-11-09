@@ -8,6 +8,8 @@ import { friendlyError } from "../components/common/friendlyError";
 import LoadingState from "../components/common/LoadingState";
 import InviteMembers from "../components/invite/InviteMembers";
 import { commissionerName, inviteView } from "../components/invite/inviteView";
+import TourDialog from "../components/tour/TourDialog";
+import { TOUR_LABEL } from "../content/rules";
 import { useUser } from "../contexts/UserContext";
 import { leaguePath } from "../routes";
 import { signInPath } from "../utils/authRedirect";
@@ -23,6 +25,7 @@ const JoinPage = () => {
   const preview = useInvitePreview(code);
   const join = useJoinWithCode();
   const [filledMeanwhile, setFilledMeanwhile] = useState(false);
+  const [touring, setTouring] = useState(false);
 
   if (preview.isLoading || loading) {
     return (
@@ -117,6 +120,10 @@ const JoinPage = () => {
           )}
         </>
       )}
+      <Button variant="outlined" sx={{ minHeight: 48 }} onClick={() => setTouring(true)}>
+        {TOUR_LABEL}
+      </Button>
+      {touring && <TourDialog onClose={() => setTouring(false)} />}
     </Container>
   );
 };

@@ -1,0 +1,22 @@
+{
+  "comment": "The source the first-run tour's screenshots are taken from. A change under any of these makes `make tour-check` fail until `make tour` recaptures the screens (frontend/public/tour). Tests and the tour's own files are left out.",
+  "paths": [
+    "src/theme.ts",
+    "src/assets",
+    "src/pages/LeaguePage.tsx",
+    "src/pages/TeamPage.tsx",
+    "src/pages/DraftPage.tsx",
+    "src/pages/FeedPage.tsx",
+    "src/pages/SeasonLayout.tsx",
+    "src/components/layout",
+    "src/components/league",
+    "src/components/team",
+    "src/components/draft",
+    "src/components/feed",
+    "src/components/recap",
+    "src/components/players",
+    "src/components/activity",
+    "src/components/avatar",
+    "src/components/common"
+  ]
+}

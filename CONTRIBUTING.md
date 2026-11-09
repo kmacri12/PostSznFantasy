@@ -101,6 +101,10 @@ A pull request is ready for merge only when all of the following criteria are me
 4. **Mobile Verification (every UI change)**:
    - Run the app and look at the changed screen at phone width (375x812) and at desktop width before calling the work done: no horizontal scroll, no clipped or truncated text, no overlapping elements, tap targets of at least 44px, and drag interactions that work by touch.
    - Fix anything that looks off, then re-check. Do not hand off UI work that has only been type-checked.
-5. **Documentation Synchronization**:
+5. **First-run tour is current**:
+   - `make tour-check` passes (it is part of `make check`). It fails when the League, Team, Draft, Feed, layout, theme or recap code changed after the tour's screenshots were taken.
+   - If it fails, run `make tour` (needs `make db-up` and `make e2e-install`), look at the new images in `frontend/public/tour/`, and commit them with the change. The tour shows the real app; a tour with a retired design is a bug.
+   - If you add a screen to the tour, add its step to `TOUR_STEPS` in `frontend/src/content/rules.ts` and its capture to `e2e/tour/capture.spec.ts`.
+6. **Documentation Synchronization**:
    - Any new environment variables are documented in `api/.env.example` or `frontend/.env.example` and registered in `api/core/config.py`.
    - Structural or workflow changes are reflected in `README.md` and `AGENTS.md`.

@@ -1,6 +1,6 @@
 import { Box, Container } from "@mui/material";
 import { useQueryClient } from "@tanstack/react-query";
-import { lazy, Suspense, useEffect, useRef } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { matchPath, Route, Routes, useLocation } from "react-router-dom";
 import { isDormant, useApiHealth } from "./api/health";
 import { useUserLeagues } from "./api/queries";
@@ -10,10 +10,12 @@ import LoadingState from "./components/common/LoadingState";
 import AppShell from "./components/layout/AppShell";
 import ReconnectingBanner from "./components/layout/ReconnectingBanner";
 import NotificationOptIn from "./components/notifications/NotificationOptIn";
+import FirstRunTour from "./components/tour/FirstRunTour";
 import { useUser } from "./contexts/UserContext";
 import DormantPage from "./pages/DormantPage";
 import HowToPlayPage from "./pages/HowToPlayPage";
 import LandingPage from "./pages/LandingPage";
+import { isTourTrigger, tourSeen } from "./utils/tourSeen";
 
 const CreateLeaguePage = lazy(() => import("./pages/CreateLeaguePage"));
 const DraftBoardPage = lazy(() => import("./pages/DraftBoardPage"));
@@ -46,7 +48,11 @@ function App() {
     wasDown.current = apiDown;
   }, [apiDown, queryClient, syncError, retrySync]);
   const { data: leagues = [] } = useUserLeagues(userId !== null && !dormant);
-  const { pathname } = useLocation();
+  const { pathname, state } = useLocation();
+  const [tourOpen, setTourOpen] = useState(false);
+  // True from the render that sees the join or create until the tour is closed, so the
+  // notification prompt never opens underneath it.
+  const tourHolds = tourOpen || (userId !== null && isTourTrigger(state) && !tourSeen(userId));
   const routeLeagueId = matchPath("/leagues/:leagueId/*", pathname)?.params.leagueId;
   const league = leagues.find((item) => String(item.id) === routeLeagueId);
 
@@ -61,7 +67,8 @@ function App() {
     >
       <SessionExpiredBanner />
       {apiDown && !dormant && <ReconnectingBanner />}
-      {!dormant && <NotificationOptIn />}
+      {!dormant && <FirstRunTour open={tourOpen} onOpenChange={setTourOpen} />}
+      {!dormant && <NotificationOptIn hold={tourHolds} />}
       <Box component="main">
         <Suspense
           fallback={

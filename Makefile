@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help setup db-up db-down db-reset migrate migration api web dev seed \
+.PHONY: tour tour-check help setup db-up db-down db-reset migrate migration api web dev seed \
 	lint lint-api lint-web format typecheck typecheck-api typecheck-web \
 	test test-api test-web build-web check check-api check-web e2e e2e-install e2e-stress lint-e2e
 
@@ -85,7 +85,7 @@ build-web:
 	cd frontend && npm run build
 
 check-api: lint-api typecheck-api test-api
-check-web: lint-web lint-e2e typecheck-web test-web build-web
+check-web: lint-web lint-e2e tour-check typecheck-web test-web build-web
 
 check: check-api check-web ## Everything CI runs
 
@@ -95,6 +95,13 @@ e2e-install: ## Install the Playwright project and its Chromium
 e2e: ## Playwright end-to-end tests (mobile first) plus the replay suite; needs Postgres (make db-up)
 	cd e2e && npx playwright test --pass-with-no-tests $(E2E_ARGS)
 	cd e2e && npx playwright test -c playwright.live.config.ts --pass-with-no-tests $(E2E_ARGS)
+
+tour: ## Recapture the first-run tour from the real app (about 5 minutes; needs make db-up, make e2e-install)
+	cd e2e && node tour/run.mjs
+	node scripts/tour.mjs write
+
+tour-check: ## Fail when a screen the tour shows has changed since `make tour`
+	node scripts/tour.mjs check
 
 lint-e2e: ## Fail on fixed sleeps, test.only and unjustified .first()/.last() in the e2e specs
 	scripts/lint-e2e.sh
