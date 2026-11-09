@@ -4,6 +4,16 @@ About 2 minutes, only when someone cannot use the app to do it themselves. Issue
 
 Members delete their own account in the app: tap the profile picture, then **Delete my account**. The Privacy Policy promises the same, and promises an answer to `support@postsznfantasy.com` within 30 days.
 
+## One-time setup and live test
+
+1. Deleting accounts needs the same secret as pictures. If Step 20 is done, nothing to do; otherwise:
+   ```bash
+   fly secrets set SUPABASE_SERVICE_ROLE_KEY='<the secret key>' --app postszn-api
+   ```
+   Never run this while a draft is live (the secret change restarts the API). Until it is set, Delete my account answers "Account deletion is not set up yet." and changes nothing.
+2. Sign in on the live site with a throwaway email, join or create a test league, then profile sheet, **Delete my account**. You land on the signed-out home page.
+3. In the Supabase dashboard, Authentication, Users: the throwaway user is gone. In the league the person shows as **Former member**.
+
 ## What deletion does
 
 - Deletes the Supabase Auth user (the sign-in), the member's push subscriptions and profile picture.
