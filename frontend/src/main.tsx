@@ -1,7 +1,7 @@
 import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
-import { BrowserRouter } from "react-router-dom";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import App from "./App.tsx";
 import "./assets/fonts.css";
 import { recheckLeagueOnDeleted } from "./api/leagueDeleted";
@@ -24,6 +24,18 @@ const queryClient: QueryClient = new QueryClient({
   }),
 });
 
+// A data router, because the settings page blocks navigation while it has unsaved edits.
+const router = createBrowserRouter([
+  {
+    path: "*",
+    element: (
+      <UserProvider>
+        <App />
+      </UserProvider>
+    ),
+  },
+]);
+
 const rootElement = document.getElementById("root");
 if (rootElement) {
   ReactDOM.createRoot(rootElement).render(
@@ -31,11 +43,7 @@ if (rootElement) {
       <ThemeModeProvider>
         <ErrorBoundary>
           <QueryClientProvider client={queryClient}>
-            <BrowserRouter>
-              <UserProvider>
-                <App />
-              </UserProvider>
-            </BrowserRouter>
+            <RouterProvider router={router} />
           </QueryClientProvider>
         </ErrorBoundary>
       </ThemeModeProvider>

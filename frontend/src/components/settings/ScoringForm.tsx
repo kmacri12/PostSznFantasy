@@ -9,9 +9,10 @@ interface ScoringFormProps {
   values: SettingsValues;
   onChange: (key: string, rawValue: string) => void;
   disabled?: boolean;
+  errors?: Record<string, string>;
 }
 
-const ScoringForm = ({ values, onChange, disabled }: ScoringFormProps) => (
+const ScoringForm = ({ values, onChange, disabled, errors }: ScoringFormProps) => (
   <Box>
     {SCORING_GROUPS.map((group, index) => (
       <SettingsSection
@@ -20,6 +21,7 @@ const ScoringForm = ({ values, onChange, disabled }: ScoringFormProps) => (
         values={values}
         onChange={onChange}
         disabled={disabled}
+        errors={errors}
         defaultExpanded={index === 0}
         helper={scoringHelp}
         help={SETTING_HELP.scoring}

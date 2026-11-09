@@ -8,12 +8,13 @@ interface RosterFormProps {
   values: SettingsValues;
   onChange: (values: SettingsValues) => void;
   disabled?: boolean;
+  errors?: Record<string, string>;
 }
 
 /** Keeps roster_total equal to starters + bench whenever one of them changes. */
-const RosterForm = ({ values, onChange, disabled }: RosterFormProps) => {
+const RosterForm = ({ values, onChange, disabled, errors }: RosterFormProps) => {
   const handleChange = (key: string, rawValue: string) => {
-    const next = { ...values, [key]: Number.parseInt(rawValue, 10) || 0 };
+    const next = { ...values, [key]: rawValue };
     if (STARTER_AND_BENCH_KEYS.includes(key)) next.roster_total = sumRosterSpots(next);
     onChange(next);
   };
@@ -27,6 +28,7 @@ const RosterForm = ({ values, onChange, disabled }: RosterFormProps) => {
           values={values}
           onChange={handleChange}
           disabled={disabled}
+          errors={errors}
           inputMode="numeric"
           defaultExpanded={index === 0}
           help={

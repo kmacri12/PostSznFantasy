@@ -25,9 +25,11 @@ import ScoringForm from "../components/settings/ScoringForm";
 import TeamUnitChoice, { type TeamUnitValues } from "../components/settings/TeamUnitChoice";
 import { leaguePath } from "../routes";
 import { createLogger } from "../utils/logger";
+import { rosterProblems } from "../utils/numberField";
 import {
   countChangedFromDefaults,
   type ScoringSettingsState,
+  scoringProblems,
   toNumericScoring,
 } from "../utils/scoring";
 import { CREATED_LEAGUE_STATE } from "../utils/tourSeen";
@@ -93,7 +95,9 @@ const CreateLeaguePage = () => {
     try {
       const response = await createLeague.mutateAsync({
         leagueName: leagueName.trim(),
-        rosterSettings,
+        rosterSettings: Object.fromEntries(
+          Object.entries(rosterSettings).map(([key, value]) => [key, Number(value)]),
+        ),
         ...(customizing && { scoringSettings: toNumericScoring(scoringSettings) }),
         teamUnitSettings: { teamQb: teamUnits.team_qb, teamK: teamUnits.team_k },
       });
@@ -115,6 +119,11 @@ const CreateLeaguePage = () => {
   const changedCount = scoringDefaults
     ? countChangedFromDefaults(scoringSettings, scoringDefaults)
     : 0;
+  const rosterErrors = rosterProblems(rosterSettings);
+  const scoringErrors = scoringProblems(scoringSettings);
+  const stepInvalid =
+    (step >= 0 && Object.keys(rosterErrors).length > 0) ||
+    (step >= 1 && Object.keys(scoringErrors).length > 0);
   const isLastStep = step === STEPS.length - 1;
   const leagueValid = leagueName.trim() !== "";
   const setTeams = (count: number) =>
@@ -259,6 +268,7 @@ const CreateLeaguePage = () => {
             />
             <RosterForm
               values={rosterSettings}
+              errors={rosterErrors}
               onChange={(next) => setRosterSettings(next as typeof rosterSettings)}
             />
           </>
@@ -287,6 +297,7 @@ const CreateLeaguePage = () => {
             </Box>
             <ScoringForm
               values={scoringSettings}
+              errors={scoringErrors}
               onChange={(key, rawValue) =>
                 setScoringSettings((previous) => ({ ...previous, [key]: rawValue }))
               }
@@ -340,7 +351,7 @@ const CreateLeaguePage = () => {
           <Button
             type="submit"
             variant="contained"
-            disabled={isLastStep && (!scoringDefaults || createLeague.isPending)}
+            disabled={stepInvalid || (isLastStep && (!scoringDefaults || createLeague.isPending))}
           >
             {isLastStep ? "Create league" : "Next"}
           </Button>

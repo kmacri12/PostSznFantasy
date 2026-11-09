@@ -63,7 +63,7 @@ jobs:
         run: cd frontend && npm ci
 
       - name: Install Playwright and Chromium
-        run: cd e2e && npm ci && npx playwright install ${{ vars.CI_RUNS_ON && '' || '--with-deps' }} chromium
+        run: cd e2e && npm ci && npx playwright install ${{ vars.CI_RUNS_ON == '' && '--with-deps' || '' }} chromium
 
       - name: Run the suite repeatedly
         run: make e2e-stress E2E_STRESS_REPEAT=${{ inputs.repeat || '5' }}

@@ -1,7 +1,7 @@
 import secrets
 from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import func, select, update
+from sqlalchemy import func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.db.models.league import (
@@ -169,6 +169,12 @@ async def join_league(
     Returns (league, team, already_member). Someone who left may rejoin with any
     live invite.
     """
+    # A double tap or a second tab queues behind the first join and then sees the
+    # membership it created; the invite lock stops two joins reading the same `uses`.
+    await db.execute(
+        select(func.pg_advisory_xact_lock(invite.league_id << 32 | user.id))
+    )
+    await db.refresh(invite, with_for_update=True)
     league = await db.get(League, invite.league_id)
     assert league is not None
     season = await current_season(db, invite.league_id)
@@ -212,7 +218,20 @@ async def join_league(
                 role=LeagueRole.MEMBER.value,
             )
         )
-    invite.uses += 1
+    claimed = await db.execute(
+        update(LeagueInvite)
+        .where(
+            LeagueInvite.id == invite.id,
+            or_(
+                LeagueInvite.max_uses.is_(None),
+                LeagueInvite.uses < LeagueInvite.max_uses,
+            ),
+        )
+        .values(uses=LeagueInvite.uses + 1)
+    )
+    if claimed.rowcount == 0:  # type: ignore[attr-defined]
+        raise LeagueRuleError("This invite has reached its usage limit")
+    await db.refresh(invite)
     await db.flush()
     await activity.append_to_league(
         db,
