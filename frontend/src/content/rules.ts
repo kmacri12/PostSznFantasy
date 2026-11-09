@@ -216,7 +216,7 @@ export const SETTING_HELP = {
 
 // Settings page copy.
 export const NOTIFICATIONS_BLURB =
-  "Your pick on the clock, lineup locks, and chat. On iPhone, add the site to your Home Screen first.";
+  "Your pick on the clock, lineup locks, and chat, on this device only. Signing out turns them off here. On iPhone, add the site to your Home Screen first.";
 export const NOTIFICATIONS_IPHONE_STEPS = [
   "Open this site in Safari.",
   "Tap the Share button, then Add to Home Screen.",

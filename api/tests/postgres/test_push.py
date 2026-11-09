@@ -146,6 +146,21 @@ async def test_dead_subscriptions_are_pruned_and_live_ones_kept(
     assert [r.endpoint for r in await _rows(db)] == [CHROME + "alive"]
 
 
+async def test_subscriptions_not_refreshed_for_60_days_are_pruned(
+    db: AsyncSession,
+) -> None:
+    _, users, _, _ = await make_season(db, teams=2)
+    await _subscribe(db, users[0], CHROME + "stale")
+    await _subscribe(db, users[0], CHROME + "fresh")
+    await db.execute(
+        update(PushSubscription)
+        .where(PushSubscription.endpoint == CHROME + "stale")
+        .values(last_seen=datetime.now(UTC) - timedelta(days=61))
+    )
+    assert await push.prune_stale_subscriptions(db) == 1
+    assert [r.endpoint for r in await _rows(db)] == [CHROME + "fresh"]
+
+
 async def test_nothing_is_sent_without_vapid_keys(
     db: AsyncSession, sender: FakeSender
 ) -> None:

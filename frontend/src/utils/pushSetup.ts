@@ -1,3 +1,4 @@
+import { api } from "../api/client";
 import { createLogger } from "./logger";
 
 const log = createLogger("push");
@@ -37,4 +38,43 @@ export const urlBase64ToUint8Array = (value: string): Uint8Array<ArrayBuffer> =>
   const padded = value + "=".repeat((4 - (value.length % 4)) % 4);
   const raw = atob(padded.replace(/-/g, "+").replace(/_/g, "/"));
   return Uint8Array.from(raw, (char) => char.charCodeAt(0));
+};
+
+const FORGET_TIMEOUT_MS = 3000;
+
+/**
+ * Removes this browser's push subscription from the server and the browser, so a signed-out
+ * device stops getting the account's notifications. Best effort: it never throws and gives up
+ * after a few seconds so sign-out is never held up.
+ */
+export const forgetThisDevice = async (): Promise<void> => {
+  if (!pushApisAvailable()) return;
+  const forget = async () => {
+    const registration = await navigator.serviceWorker.ready;
+    const subscription = await registration.pushManager.getSubscription();
+    if (!subscription) return;
+    await api.delete("/api/push/subscriptions", { data: { endpoint: subscription.endpoint } });
+    await subscription.unsubscribe();
+  };
+  try {
+    await Promise.race([
+      forget(),
+      new Promise<void>((resolve) => setTimeout(resolve, FORGET_TIMEOUT_MS)),
+    ]);
+  } catch (error) {
+    log.warn("Could not remove this device's push subscription", error);
+  }
+};
+
+/** Re-posts an existing subscription so the server's `last_seen` stays fresh (and the row
+ * follows whoever is signed in). Best effort. */
+export const refreshPushSubscription = async (): Promise<void> => {
+  if (!pushApisAvailable() || Notification.permission !== "granted") return;
+  try {
+    const registration = await navigator.serviceWorker.ready;
+    const subscription = await registration.pushManager.getSubscription();
+    if (subscription) await api.post("/api/push/subscriptions", subscription.toJSON());
+  } catch (error) {
+    log.warn("Could not refresh the push subscription", error);
+  }
 };
