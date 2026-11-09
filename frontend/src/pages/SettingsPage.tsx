@@ -1,11 +1,24 @@
-import { Alert, Button, Container, Paper, Typography } from "@mui/material";
+import {
+  Alert,
+  Button,
+  Container,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Paper,
+  Typography,
+} from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
+import { useBlocker } from "react-router-dom";
 import {
   useDraft,
   useInvite,
   useLeagueInfo,
   useLeagueSettings,
   useSetAvatar,
+  useStandings,
   useUpdateLeague,
   useUpdateSeason,
   useUpdateSettings,
@@ -34,6 +47,8 @@ import { fromApi, postseasonFromApi, ROSTER_KEYS, SCORING_KEYS } from "../settin
 import { POSTSEASON_KEYS, type PostseasonValues } from "../settings/postseasonFields";
 import type { SettingsValues } from "../settings/types";
 import { TAB_BAR_HEIGHT } from "../theme";
+import { MULTIPLIER_RULE, numberProblems, rosterProblems } from "../utils/numberField";
+import { scoringProblems } from "../utils/scoring";
 
 type Sheet =
   | "leaguePicture"
@@ -46,6 +61,11 @@ type Sheet =
   | null;
 
 const PICTURE_FAILURE = "Couldn't save the picture. Try again.";
+
+const UNSAVED_WARNING = "You have unsaved changes to the league settings.";
+
+const multiplierProblems = (values: PostseasonValues) =>
+  numberProblems(values, (key) => (key.startsWith("multiplier_") ? MULTIPLIER_RULE : null));
 
 const teamCountProblem = (value: string) => {
   const count = Number(value);
@@ -65,6 +85,7 @@ function SettingsPage() {
   const archived = season.finished;
   const settingsQuery = useLeagueSettings(seasonId);
   const draft = useDraft(seasonId);
+  const standings = useStandings(seasonId).data;
   const updateSettings = useUpdateSettings(seasonId);
   const updateLeague = useUpdateLeague(leagueId);
   const updateSeason = useUpdateSeason(seasonId);
@@ -77,6 +98,7 @@ function SettingsPage() {
   const [roster, setRoster] = useState<SettingsValues>({});
   const [scoring, setScoring] = useState<SettingsValues>({});
   const [postseason, setPostseason] = useState<PostseasonValues>({});
+  const [confirmingRescore, setConfirmingRescore] = useState(false);
 
   const baseline = useMemo(
     () =>
@@ -97,6 +119,24 @@ function SettingsPage() {
       valuesEqual(baseline.postseason, postseason)
     );
 
+  const rosterErrors = useMemo(() => rosterProblems(roster), [roster]);
+  const scoringErrors = useMemo(() => scoringProblems(scoring), [scoring]);
+  const multiplierErrors = useMemo(() => multiplierProblems(postseason), [postseason]);
+  const invalid =
+    Object.keys(rosterErrors).length +
+      Object.keys(scoringErrors).length +
+      Object.keys(multiplierErrors).length >
+    0;
+  const guarded = dirty && season.canCommission;
+  const blocker = useBlocker(guarded);
+
+  useEffect(() => {
+    if (!guarded) return;
+    const warn = (event: BeforeUnloadEvent) => event.preventDefault();
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [guarded]);
+
   useEffect(() => {
     if (!baseline) return;
     setRoster(baseline.roster);
@@ -111,19 +151,31 @@ function SettingsPage() {
     setPostseason(baseline.postseason);
   };
 
+  // Only called once every field validates, so Number() never sees a blank or half-typed value.
   const save = () =>
     updateSettings.mutateAsync({
-      ...roster,
-      ...Object.fromEntries(
-        Object.entries(scoring).map(([key, value]) => [key, Number(value) || 0]),
-      ),
+      ...Object.fromEntries(Object.entries(roster).map(([key, value]) => [key, Number(value)])),
+      ...Object.fromEntries(Object.entries(scoring).map(([key, value]) => [key, Number(value)])),
       ...Object.fromEntries(
         Object.entries(postseason).map(([key, value]) => [
           key,
-          key.startsWith("multiplier_") ? Number(value) || 0 : value,
+          key.startsWith("multiplier_") ? Number(value) : value,
         ]),
       ),
     });
+
+  // Scoring and postseason changes re-score every finished round, so ask once games have been played.
+  const rescoresPlayedRounds =
+    !valuesEqual(baseline?.scoring ?? {}, scoring) ||
+    !valuesEqual(baseline?.postseason ?? {}, postseason);
+  // Before the draft there are no standings to change, whatever games the schedule holds.
+  const gamesPlayed =
+    standings?.phase === "live" &&
+    ((standings.gamesFinal ?? 0) + (standings.gamesInProgress ?? 0) > 0 || standings.round > 1);
+  const requestSave = () => {
+    if (rescoresPlayedRounds && gamesPlayed) setConfirmingRescore(true);
+    else void save().catch(() => {});
+  };
 
   if (settingsQuery.isLoading) {
     return (
@@ -193,11 +245,17 @@ function SettingsPage() {
               onClick={() => setSheet("members")}
             />
             <SettingsGroup title="Roster">
-              <RosterForm values={roster} onChange={setRoster} disabled={!canEdit || started} />
+              <RosterForm
+                values={roster}
+                onChange={setRoster}
+                errors={rosterErrors}
+                disabled={!canEdit || started}
+              />
             </SettingsGroup>
             <SettingsGroup title="Scoring">
               <ScoringForm
                 values={scoring}
+                errors={scoringErrors}
                 disabled={!canEdit}
                 onChange={(key, rawValue) =>
                   setScoring((previous) => ({ ...previous, [key]: rawValue }))
@@ -207,6 +265,7 @@ function SettingsPage() {
             <SettingsGroup title="Postseason">
               <PostseasonForm
                 values={postseason}
+                errors={multiplierErrors}
                 disabled={!canEdit}
                 onChange={(key, value) =>
                   setPostseason((previous) => ({ ...previous, [key]: value }))
@@ -253,19 +312,59 @@ function SettingsPage() {
             borderColor: "primary.main",
           }}
         >
-          <Typography sx={{ flexGrow: 1 }}>Unsaved changes</Typography>
+          <Typography sx={{ flexGrow: 1 }}>
+            {invalid ? "Fix the highlighted fields to save" : "Unsaved changes"}
+          </Typography>
           <Button onClick={discard} disabled={updateSettings.isPending}>
             Discard
           </Button>
           <Button
             variant="contained"
-            onClick={() => void save()}
-            disabled={updateSettings.isPending}
+            onClick={requestSave}
+            disabled={updateSettings.isPending || invalid}
           >
             Save
           </Button>
         </Paper>
       )}
+
+      <Dialog
+        open={confirmingRescore}
+        onClose={() => setConfirmingRescore(false)}
+        aria-labelledby="rescore-title"
+      >
+        <DialogTitle id="rescore-title">Re-score every team?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Games have already been played. This re-scores every team's finished rounds and changes
+            standings. The Feed will show the change.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmingRescore(false)}>Keep editing</Button>
+          <Button
+            variant="contained"
+            onClick={() => {
+              setConfirmingRescore(false);
+              void save().catch(() => {});
+            }}
+          >
+            Save and re-score
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={blocker.state === "blocked"} aria-labelledby="leave-title">
+        <DialogTitle id="leave-title">Leave without saving?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>{UNSAVED_WARNING} They will be lost.</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => blocker.reset?.()}>Stay</Button>
+          <Button color="error" onClick={() => blocker.proceed?.()}>
+            Leave
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {sheet === "leaguePicture" && info && (
         <AvatarSheet

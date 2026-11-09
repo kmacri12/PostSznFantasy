@@ -169,7 +169,7 @@ PostSznFantasy/
         ├── App.tsx             # Routes, league list state, wires NavBar
         ├── routes.ts           # Path builders: `leaguePath`, `seasonPaths(leagueId, year, current)` (clean paths for the current season, `/seasons/<year>` otherwise; home, draft, settings, players, feed, more, team)
         ├── theme.ts            # `palettes` (dark, light), `tokens` (CSS variables `--ps-*`; components use these, never hex), `createAppTheme(mode)`, `tint`
-        ├── main.tsx            # Vite DOM mount point; calls `registerServiceWorker()` once at startup
+        ├── main.tsx            # Vite DOM mount point (a data router, `createBrowserRouter`, so `useBlocker` works); calls `registerServiceWorker()` once at startup
         ├── content/
         │   └── rules.ts        # Every plain-language rule string: How to play, pre-draft roster, lock note, setting tooltips, notes copy
         ├── contexts/
@@ -219,6 +219,7 @@ PostSznFantasy/
         ├── utils/
         │   ├── avatarUrl.ts    # `avatarSrc` (adds the API origin to a picture path) and `initialsOf`
         │   ├── draftCue.ts     # Web Audio on-deck beep
+        │   ├── numberField.ts  # `numberProblem(s)`: per-field validation (blank, half-typed, out of range) shared by the settings and create forms; never coerce a bad value to 0
         │   ├── scoring.ts      # Numeric coercion + defaults diff for league forms
         │   ├── gifProvider.ts  # `GifProvider` interface plus the GIPHY adapter; `gifProvider()` is null without `VITE_GIPHY_API_KEY`, which hides the GIF button
         │   ├── logger.ts       # Leveled client logger (debug/info dev-only on the console) plus a 50-entry ring buffer of scrubbed messages, `recentLogEntries()`
