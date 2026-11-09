@@ -23,6 +23,8 @@ test("a new user creates a league from just a name and a team count", async ({
   await page.getByRole("button", { name: "Create league" }).click();
 
   await expect(page).toHaveURL(/\/leagues\/\d+$/);
+  // The first-run tour opens over a new league's first page.
+  await page.getByRole("button", { name: "Skip" }).click();
   await expect(page.getByText("Invite your friends")).toBeVisible();
   await expect(page.getByText("1 of 4 teams filled. Draft date not set yet.")).toBeVisible();
   await expect(page.getByRole("button", { name: "Create invite link" })).toBeVisible();

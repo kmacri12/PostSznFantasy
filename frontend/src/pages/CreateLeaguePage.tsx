@@ -30,6 +30,7 @@ import {
   type ScoringSettingsState,
   toNumericScoring,
 } from "../utils/scoring";
+import { CREATED_LEAGUE_STATE } from "../utils/tourSeen";
 
 const logger = createLogger("CreateLeaguePage");
 
@@ -104,7 +105,7 @@ const CreateLeaguePage = () => {
         );
         return;
       }
-      navigate(leaguePath(createdLeagueId));
+      navigate(leaguePath(createdLeagueId), { state: CREATED_LEAGUE_STATE });
     } catch (error) {
       logger.error("Error creating league:", error);
       setSubmitError("Couldn't create the league. Try again.");

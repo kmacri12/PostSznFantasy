@@ -49,6 +49,15 @@ One component, `components/common/Logo`: `variant` mark | lockup | stacked, `siz
 - **Wordmark**: "PostSzn" in Space Grotesk 700 with "Szn" in `accent`, tight tracking, the rest in `text`; "FANTASY" beneath in Space Grotesk 500 at 0.34em tracking. The font is self-hosted (`@fontsource/space-grotesk`, `assets/fonts.css`, `font-display: block` so the lockup does not reflow).
 - **App icons** (`public/icons/`): `icon-180` (full-bleed, iOS masks it), `icon-192`, `icon-512`, `icon-maskable-512` (mark inside the central 80% safe zone), `favicon-32`; `public/favicon.svg` is the tile. Both manifests list the maskable icon. To regenerate, render `logo-tile.svg` with Playwright's chromium.
 
+## First-run tour
+
+A swipeable tour of real screenshots, 6 steps: what this is (standings), the draft (the board, with a bold "choose carefully: no waivers or free agency" line), the lineup you set every round (byes, eliminations and injuries), Eliminations (starting spots fade as teams lose), the Feed (chats and important updates) and the champion and awards (points add up over all four rounds). It deliberately has no step per round and never mentions next season (starting one is only possible from December). Phone first: the screen is shown full height, a caption sits below, Back and Next are 48px buttons, swiping works, nothing needs sound. The screens are a real 2025 league: its six managers, rosters, lineups and box scores. All wording is `TOUR_STEPS` in `content/rules.ts`; the title is "PostSzn Fantasy in a minute".
+
+- **How to play replaces the old rules-only page**: the tour is inline at the top, then "The rules in full" below it. The landing hero's How to play button and the More tab's row land there.
+- **First run**: right after a person joins a league by link or creates one, once per account on that device (`postszn-tour-seen-<user id>` in localStorage; a device that cannot remember never shows it). It is a full-screen dialog on phones and a dialog from `sm` up, with Skip always at the top. The notification prompt waits until the tour is closed.
+- **Reopen**: More, Take the tour (same dialog), and How to play. **Signed-out invite visitors** see a Take the tour button on the invite page under Sign in to join.
+- **The screens are captures, not drawings**: `make tour` replays the whole 2025 postseason against that real league (dark theme, 375x812) and rewrites `frontend/public/tour`; `make tour-check` fails the build when a captured screen's source changed since. See AGENTS.md for the pipeline. Nothing about the league is stored in the app.
+
 ## Navigation and header
 
 - Header, always: the **full horizontal logo** top-left (bare bracket mark at 34px, "PostSzn" and the centered "FANTASY" line; links to the leagues page). It never truncates. Inside a league, the **league switcher** (league name plus chevron) sits on the right, just left of the avatar; the name truncates with an ellipsis (64px to about 140px, chevron always visible) and the switcher and avatar keep 44px tap targets. The avatar is furthest right: tapping it opens **Profile settings** (see Settings below). No hamburger.
