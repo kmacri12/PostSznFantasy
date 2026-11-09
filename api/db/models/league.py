@@ -1,6 +1,6 @@
 from datetime import UTC, datetime
 from decimal import Decimal
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from sqlalchemy import (
     DECIMAL,
@@ -11,6 +11,7 @@ from sqlalchemy import (
     Integer,
     Numeric,
     String,
+    Table,
     Text,
     UniqueConstraint,
 )
@@ -202,9 +203,47 @@ class Team(Base):
         return f"<Team(id={self.id}, name={self.name})>"
 
 
+_STARTER_COLUMNS = (
+    "roster_num_qb",
+    "roster_num_rb",
+    "roster_num_wr",
+    "roster_num_te",
+    "roster_num_flex_wr_rb_te",
+    "roster_num_flex_wr_rb",
+    "roster_num_flex_wr_te",
+    "roster_num_flex_qb_wr_rb_te",
+    "roster_num_k",
+    "roster_num_dst",
+)
+_CAPPED = ("qb", "rb", "wr", "te", "k", "dst")
+
+
+def _settings_checks() -> list[CheckConstraint]:
+    checks = [
+        CheckConstraint(f"{col} BETWEEN 0 AND 20", name=f"ck_season_settings_{col}")
+        for col in (*_STARTER_COLUMNS, "roster_num_bench")
+    ]
+    checks += [
+        CheckConstraint(
+            f"roster_max_{pos} BETWEEN roster_num_{pos} AND 99",
+            name=f"ck_season_settings_roster_max_{pos}",
+        )
+        for pos in _CAPPED
+    ]
+    checks += [
+        CheckConstraint(
+            "roster_total BETWEEN 1 AND 40 AND "
+            + " + ".join(_STARTER_COLUMNS)
+            + " >= 1",
+            name="ck_season_settings_roster_size",
+        ),
+    ]
+    return checks
+
+
 class SeasonSettings(Base):
     __tablename__ = "season_settings"
-    __table_args__ = {"schema": "fantasy"}
+    __table_args__ = (*_settings_checks(), {"schema": "fantasy"})
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     season_id: Mapped[int] = mapped_column(
@@ -383,6 +422,17 @@ class SeasonSettings(Base):
     team_k: Mapped[bool] = mapped_column(Boolean, nullable=False)
 
     season: Mapped["Season"] = relationship("Season", back_populates="settings")
+
+
+_settings_table = cast(Table, SeasonSettings.__table__)
+for _column in _settings_table.columns:
+    if _column.name.startswith("scoring_"):
+        _settings_table.append_constraint(
+            CheckConstraint(
+                f"{_column.name} BETWEEN -100 AND 100",
+                name=f"ck_season_settings_{_column.name}",
+            )
+        )
 
 
 class TeamPlayer(Base):
