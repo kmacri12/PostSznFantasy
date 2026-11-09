@@ -4,8 +4,8 @@ Roster and scoring limits on season_settings (#322), the same ones the API enfor
 so no write path can store a roster that exhausts memory or can never be filled.
 roster_total = starters + bench stays an API rule: older rows may differ.
 
-Revision ID: 0020_settings_bounds
-Revises: 0019_avatars
+Revision ID: 0021_settings_bounds
+Revises: 0020_lowercase_emails
 Create Date: 2026-11-09 09:00:00
 
 """
@@ -16,8 +16,8 @@ import sqlalchemy as sa
 
 from alembic import op
 
-revision: str = "0020_settings_bounds"
-down_revision: str | Sequence[str] | None = "0019_avatars"
+revision: str = "0021_settings_bounds"
+down_revision: str | Sequence[str] | None = "0020_lowercase_emails"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
