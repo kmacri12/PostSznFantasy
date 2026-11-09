@@ -1,10 +1,10 @@
 """draft reserved picks
 
 Players a commissioner assigned by hand to slots that have not come up yet (#332), and
-the activity kind that records every manual assignment. Also merges the two 0020 heads.
+the activity kind that records every manual assignment.
 
-Revision ID: 0021_draft_reserved_picks
-Revises: 0020_lowercase_emails, 0020_settings_bounds
+Revision ID: 0022_draft_reserved_picks
+Revises: 0021_merge_0020_heads
 Create Date: 2026-11-09 12:00:00
 
 """
@@ -16,11 +16,8 @@ from sqlalchemy.dialects import postgresql
 
 from alembic import op
 
-revision: str = "0021_draft_reserved_picks"
-down_revision: str | Sequence[str] | None = (
-    "0020_lowercase_emails",
-    "0020_settings_bounds",
-)
+revision: str = "0022_draft_reserved_picks"
+down_revision: str | Sequence[str] | None = "0021_merge_0020_heads"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
