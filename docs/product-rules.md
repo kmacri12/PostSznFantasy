@@ -12,7 +12,7 @@ Each league drafts once, before the Wild Card round, from players on the 14 play
 - Only players on playoff teams are in the pool, and a draft cannot start until the playoff field is set.
 - A draft cannot be scheduled or started after the first Wild Card kickoff. A draft already running may finish; players whose game has started are still draftable and lock on the bench for that round.
 - Default 6 teams, 90-second pick clock. League size may be 2 to 14.
-- Position caps (default QB 2, K 2, DST 2; RB, WR and TE uncapped). Once a team reaches a cap, that position's players are greyed out in its draft pool with a plain-language reason. Auto-pick (queue first, then the highest season fantasy points under the league's scoring) never picks an ineligible player.
+- Position caps (default QB 2, K 2, DST 2; RB, WR and TE uncapped). Once a team reaches a cap, that position's players are greyed out in its draft pool with a plain-language reason. Auto-pick (queue first, then the highest season fantasy points under the league's scoring) never picks an ineligible player. A team with no owner is auto-picked within a second of coming on the clock; a later joiner inherits its picks.
 - Create-league shows a yellow warning when teams times max-per-position exceeds the 14 available units of a position (QB, K, DST).
 - Roster slots, caps and team count are locked when the draft starts.
 
