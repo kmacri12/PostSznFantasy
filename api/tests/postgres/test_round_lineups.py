@@ -2,6 +2,7 @@ from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from typing import Any
 
+import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -339,3 +340,50 @@ async def test_a_live_game_shows_its_state_clock_stat_line_and_counted_points(
     assert unassigned[runner.id]["points"] == 16.0
     assert unassigned[waiting.id]["gameState"] == "scheduled"
     assert unassigned[waiting.id]["statLine"] is None
+
+
+async def test_repeating_a_move_is_harmless(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    s = await _setup(db, [game("g1", 1, 1, 3, FUTURE)])
+    qb = s.players[0]
+    async with client_as("uid-0") as owner:
+        first = await owner.post(f"{s.url}/lineup", json=s.move(1, qb, QB))
+        again = await owner.post(f"{s.url}/lineup", json=s.move(1, qb, QB))
+    assert again.status_code == 200
+    assert placed(again.json(), 1) == placed(first.json(), 1) == {QB: qb.id}
+
+
+async def test_a_slot_of_a_player_off_the_roster_does_not_break_a_move(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    s = await _setup(db, [game("g1", 1, 1, 3, FUTURE)])
+    qb, rb = s.players[0], s.players[1]
+    stranger = (await make_players(db, ["RB"], first_id=5000))[0]
+    db.add(LineupSlot(team_id=s.team.id, round=1, player_id=stranger.id, slot_index=RB))
+    await db.flush()
+    async with client_as("uid-0") as owner:
+        await owner.post(f"{s.url}/lineup", json=s.move(1, qb, QB))
+        moved = await owner.post(f"{s.url}/lineup", json=s.move(1, rb, RB))
+    assert moved.status_code == 200
+    assert placed(moved.json(), 1) == {QB: qb.id, RB: rb.id}
+
+
+async def test_standings_are_recomputed_only_once_the_round_has_games_going(
+    db: AsyncSession, client_as: ClientFactory, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    s = await _setup(
+        db,
+        [game("g1", 1, 1, 3, FUTURE), game("g2", 2, 1, 3, FUTURE, score=(24, 3))],
+    )
+    calls: list[int] = []
+
+    async def spy(_db: AsyncSession, season_id: int) -> None:
+        calls.append(season_id)
+
+    monkeypatch.setattr("api.routers.teams.refresh_standings_if_drafted", spy)
+    async with client_as("uid-0") as owner:
+        await owner.post(f"{s.url}/lineup", json=s.move(1, s.players[0], QB))
+        assert calls == []
+        await owner.post(f"{s.url}/lineup", json=s.move(2, s.players[0], QB))
+    assert calls == [s.team.season_id]

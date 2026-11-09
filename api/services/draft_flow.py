@@ -6,7 +6,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.core.config import get_settings
 from api.db.models.draft import Draft, DraftPick, DraftQueueItem
-from api.db.models.league import Season, SeasonSettings, Team, TeamPlayer
+from api.db.models.league import (
+    LineupSlot,
+    Season,
+    SeasonSettings,
+    Team,
+    TeamPlayer,
+)
 from api.db.models.nfl import NFLPlayer, NFLPlayerSeasonStats, NFLTeam
 from api.models.activity_models import (
     DraftOrderChangedPayload,
@@ -395,6 +401,11 @@ async def undo_last_pick(db: AsyncSession, season_id: int) -> Draft:
     await db.execute(
         delete(TeamPlayer).where(
             TeamPlayer.team_id == last.team_id, TeamPlayer.player_id == last.player_id
+        )
+    )
+    await db.execute(
+        delete(LineupSlot).where(
+            LineupSlot.team_id == last.team_id, LineupSlot.player_id == last.player_id
         )
     )
     await db.delete(last)

@@ -209,8 +209,14 @@ def fillable_starter_slots(
     return min(empty, len(roster - eliminated - placed))
 
 
-async def _placements(db: AsyncSession, team_id: int) -> dict[int, dict[int, int]]:
-    """round -> slot index -> player id, straight from the stored rows."""
+async def _placements(
+    db: AsyncSession, team_id: int, roster_ids: set[int]
+) -> dict[int, dict[int, int]]:
+    """round -> slot index -> player id, from the stored rows.
+
+    Slots holding a player no longer on the roster (slots reference NFL players, not
+    roster rows) are ignored.
+    """
     rows = await db.execute(
         select(LineupSlot.round, LineupSlot.slot_index, LineupSlot.player_id).where(
             LineupSlot.team_id == team_id
@@ -218,6 +224,8 @@ async def _placements(db: AsyncSession, team_id: int) -> dict[int, dict[int, int
     )
     by_round: dict[int, dict[int, int]] = {r: {} for r in ROUNDS}
     for round_, slot_index, player_id in rows.all():
+        if player_id not in roster_ids:
+            continue
         by_round[round_][slot_index] = player_id
     return by_round
 
@@ -297,7 +305,7 @@ async def team_lineups(
     """All four rounds' lineups for a team; a round nobody has set is empty."""
     games = await load_games(db, season)
     specs = slot_layout(settings)
-    placements = await _placements(db, team.id)
+    placements = await _placements(db, team.id, {p.id for p in players})
     marks = await activity.slot_marks(db, team.id)
     rows = await _round_rows(db, settings, players, season)
     points = _round_points(settings, players, rows)
@@ -417,8 +425,10 @@ async def move_in_lineup(
     now: datetime,
     *,
     actor: LineupActor,
-) -> None:
+) -> bool:
     """Persist one legal move in a round's lineup and record it in the activity feed.
+
+    Returns whether the round has a live or final game, i.e. whether scores can change.
 
     An owner may only move unlocked players. A commissioner may move anyone, but a
     move that touches a locked player (everyone with a game in a past round is) is an
@@ -432,7 +442,7 @@ async def move_in_lineup(
     if player_id in eliminated:
         raise LineupError("That player's team has been eliminated")
     specs = slot_layout(settings)
-    stored = (await _placements(db, team.id))[round_]
+    stored = (await _placements(db, team.id, set(by_id)))[round_]
     placement: list[int | None] = [stored.get(i) for i in range(len(specs))]
     # A stale placement of an eliminated player is empty space, not a blocker.
     placement = [None if pid in eliminated else pid for pid in placement]
@@ -488,6 +498,21 @@ async def move_in_lineup(
             actor=activity.Actor.of(actor.user),
             at=now,
         )
+    if any(g.round == round_ and (g.completed or g.in_progress) for g in games):
+        return True
+    return await _round_has_stats(db, season, round_)
+
+
+async def _round_has_stats(db: AsyncSession, season: int, round_: int) -> bool:
+    rows = await db.execute(
+        select(NFLGame.game_week)
+        .join(NFLPlayerGameStats, NFLPlayerGameStats.game_id == NFLGame.id)
+        .where(NFLGame.season == season, NFLGame.season_type == "post")
+        .distinct()
+    )
+    return any(
+        postseason_round_index(week or 0) == round_ - 1 for (week,) in rows.all()
+    )
 
 
 def _touches(
