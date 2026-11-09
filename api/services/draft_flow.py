@@ -523,6 +523,7 @@ async def auto_pick(
 
     The clock sets `only_if_overdue` because it scans for expired deadlines before taking
     the lock; a drafter may have picked in between, which would burn the next team's turn.
+    A team with no owner is always due: nobody is there to wait for.
     """
     draft = await load_draft_for_update(db, season_id)
     settings = await load_settings(db, season_id)
@@ -531,18 +532,19 @@ async def auto_pick(
         # final pick, or a commissioner paused), not a failure worth alerting on.
         error = PickNotDue if only_if_overdue else DraftPickError
         raise error("The draft is not in progress")
-    if (
-        only_if_overdue
-        and draft.current_pick_deadline is not None
-        and draft.current_pick_deadline > datetime.now(UTC)
-    ):
-        raise PickNotDue("The pick deadline has not passed")
     picks_made = await db.scalar(
         select(func.count())
         .select_from(DraftPick)
         .where(DraftPick.draft_id == draft.id)
     )
     team_id = team_on_the_clock(placed_order(draft), picks_made or 0, draft.draft_type)
+    if (
+        only_if_overdue
+        and draft.current_pick_deadline is not None
+        and draft.current_pick_deadline > datetime.now(UTC)
+        and await _has_owner(db, team_id)
+    ):
+        raise PickNotDue("The pick deadline has not passed")
 
     best_available = await _best_available_ids(db, draft, settings)
     pool = set(best_available)
@@ -579,6 +581,10 @@ async def auto_pick(
             db, draft, settings, player_id, acting_user=None, autopick=True
         )
     raise DraftPickError("No eligible player is available to auto-pick")
+
+
+async def _has_owner(db: AsyncSession, team_id: int) -> bool:
+    return await db.scalar(select(Team.owner_id).where(Team.id == team_id)) is not None
 
 
 async def _roster_positions(
