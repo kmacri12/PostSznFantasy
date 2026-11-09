@@ -17,7 +17,7 @@ permissions:
 jobs:
   stress:
     name: End-to-end stress (make e2e-stress)
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(vars.CI_E2E_RUNS_ON || vars.CI_RUNS_ON || '"ubuntu-latest"') }}
     timeout-minutes: 90
     services:
       postgres:
@@ -26,16 +26,17 @@ jobs:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
         ports:
-          - 5432:5432
+          - 5432
         options: >-
           --health-cmd "pg_isready -U postgres"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
-    env:
-      E2E_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postszn_e2e
     steps:
       - uses: actions/checkout@v7
+
+      - name: Point the suite at the Postgres service port
+        run: echo "E2E_DATABASE_URL=postgresql://postgres:postgres@localhost:${{ job.services.postgres.ports['5432'] }}/postszn_e2e" >> "$GITHUB_ENV"
 
       - name: Install uv
         uses: astral-sh/setup-uv@v7
@@ -62,7 +63,7 @@ jobs:
         run: cd frontend && npm ci
 
       - name: Install Playwright and Chromium
-        run: cd e2e && npm ci && npx playwright install --with-deps chromium
+        run: cd e2e && npm ci && npx playwright install ${{ vars.CI_RUNS_ON && '' || '--with-deps' }} chromium
 
       - name: Run the suite repeatedly
         run: make e2e-stress E2E_STRESS_REPEAT=${{ inputs.repeat || '5' }}
