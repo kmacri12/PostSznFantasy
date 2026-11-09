@@ -33,6 +33,8 @@ vi.mock("../api/queries", () => ({
   useUpdateSettings: () => mutation,
   useSetMemberRole: () => mutation,
   useRemoveMember: () => mutation,
+  useRegenerateInvite: () => mutation,
+  useLeaveLeague: () => mutation,
 }));
 vi.mock("../contexts/UserContext", () => ({ useUser: () => ({ userId: 2 }) }));
 vi.mock("../components/settings/RosterForm", () => ({ default: () => null }));
@@ -87,6 +89,18 @@ describe("League settings", () => {
       expect(screen.getByRole("button", { name })).toBeInTheDocument();
     }
     expect(screen.getByRole("button", { name: "Scoring" })).toBeInTheDocument();
+  });
+
+  it("offers every member a Leave league row", () => {
+    renderPage("member");
+    fireEvent.click(screen.getByRole("button", { name: /^Leave league/ }));
+    expect(screen.getByRole("dialog", { name: "Leave Sunday League?" })).toBeInTheDocument();
+  });
+
+  it("tells the only commissioner to hand over before leaving", () => {
+    renderPage("commissioner");
+    fireEvent.click(screen.getByRole("button", { name: /^Leave league/ }));
+    expect(screen.getByText(/only commissioner/i)).toBeInTheDocument();
   });
 
   it("lets a commissioner, and only a commissioner, change the league picture", () => {

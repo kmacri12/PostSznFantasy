@@ -36,7 +36,8 @@ const InvitePanel = ({ leagueId }: { leagueId: number }) => {
         </>
       ) : (
         <Typography color="text.secondary" sx={{ my: 1 }}>
-          No active invite. Generate one to let people join.
+          No active invite. The old link no longer works (it is retired when a member is removed or
+          revoked). Regenerate it to let people join.
         </Typography>
       )}
       <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mt: 2 }}>
@@ -56,7 +57,7 @@ const InvitePanel = ({ leagueId }: { leagueId: number }) => {
           disabled={regenerate.isPending}
           onClick={() => regenerate.mutate()}
         >
-          {code ? "Regenerate" : "Create invite"}
+          {code ? "Regenerate" : "Regenerate invite"}
         </Button>
         {code && (
           <Button

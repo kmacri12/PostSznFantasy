@@ -11,9 +11,9 @@ import {
   Typography,
 } from "@mui/material";
 import { useState } from "react";
-import { useRemoveMember, useSetMemberRole } from "../../api/queries";
+import { useRegenerateInvite, useRemoveMember, useSetMemberRole } from "../../api/queries";
 import type { MemberSummary } from "../../api/types";
-import { LAST_COMMISSIONER_NOTE } from "../../content/rules";
+import { INVITE_RETIRED_NOTE, LAST_COMMISSIONER_NOTE } from "../../content/rules";
 import { mutationError } from "../common/friendlyError";
 import PictureAvatar from "../common/PictureAvatar";
 import { isLastCommissioner, removalWarning, toggledRole } from "./members";
@@ -32,6 +32,8 @@ interface Props {
 const MembersSheet = ({ leagueId, members, currentUserId, readOnly = false, onClose }: Props) => {
   const setRole = useSetMemberRole(leagueId);
   const remove = useRemoveMember(leagueId);
+  const regenerate = useRegenerateInvite(leagueId);
+  const [inviteRetired, setInviteRetired] = useState(false);
   const [removing, setRemoving] = useState<MemberSummary | null>(null);
   const failure =
     mutationError(setRole.error, "Couldn't change that role. Try again.") ??
@@ -40,6 +42,26 @@ const MembersSheet = ({ leagueId, members, currentUserId, readOnly = false, onCl
   return (
     <SettingsSheet title={readOnly ? "Members" : "Edit members"} onClose={onClose}>
       {failure && <Alert severity="error">{failure}</Alert>}
+      {inviteRetired && (
+        <Alert
+          severity="warning"
+          action={
+            <Button
+              color="inherit"
+              size="small"
+              sx={{ minHeight: 44 }}
+              disabled={regenerate.isPending}
+              onClick={() =>
+                regenerate.mutate(undefined, { onSuccess: () => setInviteRetired(false) })
+              }
+            >
+              Regenerate
+            </Button>
+          }
+        >
+          {INVITE_RETIRED_NOTE}
+        </Alert>
+      )}
       <Box
         component="ul"
         sx={{ listStyle: "none", m: 0, p: 0, border: 1, borderColor: "divider", borderRadius: 2 }}
@@ -131,7 +153,12 @@ const MembersSheet = ({ leagueId, members, currentUserId, readOnly = false, onCl
               variant="contained"
               sx={{ minHeight: 44 }}
               disabled={remove.isPending}
-              onClick={() => remove.mutate(removing.userId, { onSettled: () => setRemoving(null) })}
+              onClick={() =>
+                remove.mutate(removing.userId, {
+                  onSuccess: () => setInviteRetired(true),
+                  onSettled: () => setRemoving(null),
+                })
+              }
             >
               Remove from league
             </Button>

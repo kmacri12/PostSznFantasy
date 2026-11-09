@@ -11,6 +11,6 @@ export const toggledRole = (member: MemberSummary) =>
   isCommissioner(member) ? "member" : "commissioner";
 
 export const removalWarning = (name: string) =>
-  `Remove ${name} from the league? Their team in an unfinished season is freed; finished seasons keep their name on it.`;
+  `Remove ${name} from the league? Their team in an unfinished season is freed; finished seasons keep their name on it. The invite link is retired too, so you will need to regenerate it.`;
 
 export const initials = (name: string) => name.trim().slice(0, 2).toUpperCase();
