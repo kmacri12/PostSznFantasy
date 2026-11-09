@@ -4,7 +4,7 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.db.models import Draft, DraftPick, NFLTeam, TeamPlayer
+from api.db.models import Draft, DraftPick, LineupSlot, NFLTeam, TeamPlayer
 from api.services import draft_clock, draft_flow
 from api.services.draft_picks import DraftPickError, PickNotDue
 from api.tests.postgres.conftest import ClientFactory
@@ -382,3 +382,22 @@ async def test_partial_order_keeps_slot_positions_but_cannot_start(
         (4, teams[1].id),
     ]
     assert started.status_code == 409
+
+
+async def test_undo_clears_the_undone_players_lineup_slots(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    season, _, teams, _ = await make_season(db, roster_total=2)
+    players = await make_players(db, ["QB"])
+    async with client_as("uid-0") as commissioner:
+        await commissioner.post(
+            f"/api/drafts/{season.id}/picks", json={"playerId": players[0].id}
+        )
+        db.add(
+            LineupSlot(
+                team_id=teams[0].id, round=1, player_id=players[0].id, slot_index=0
+            )
+        )
+        await db.flush()
+        await commissioner.post(f"/api/drafts/{season.id}/control/undo")
+    assert (await db.execute(select(LineupSlot))).scalars().all() == []

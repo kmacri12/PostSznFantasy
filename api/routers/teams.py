@@ -206,6 +206,9 @@ async def move_in_round_lineup(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only the team owner or a commissioner can set the lineup",
         )
+    # Moves rewrite the whole round: a second one waits here and then builds on the
+    # first instead of overwriting it or colliding on the slot constraint.
+    await db.execute(select(Team.id).where(Team.id == team_id).with_for_update())
     settings = (
         await db.execute(
             select(SeasonSettings).where(SeasonSettings.season_id == team.season_id)
@@ -213,7 +216,7 @@ async def move_in_round_lineup(
     ).scalar_one()
     players = await _roster(db, team.id)
     try:
-        await move_in_lineup(
+        scores_may_change = await move_in_lineup(
             db,
             team,
             settings,
@@ -241,5 +244,6 @@ async def move_in_round_lineup(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail=str(exc)
         ) from exc
-    await refresh_standings_if_drafted(db, team.season_id)
+    if scores_may_change:
+        await refresh_standings_if_drafted(db, team.season_id)
     return await build_team_details(db, team, membership)
