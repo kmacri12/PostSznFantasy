@@ -1,9 +1,9 @@
 import logging
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, Response, status
 from pydantic import Field
-from sqlalchemy import Boolean, literal_column
+from sqlalchemy import Boolean, literal_column, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.exc import IntegrityError
 
@@ -13,6 +13,7 @@ from api.db.session import DbSession
 from api.dependencies.auth import CurrentUser, TokenEmail
 from api.models.auth_models import LoginResponse
 from api.models.base import BaseSchema
+from api.services import account_deletion
 from api.services.avatars import avatar_url
 
 logger = logging.getLogger(__name__)
@@ -78,3 +79,17 @@ async def _upsert(
         User.id, User.avatar_key, literal_column("(xmax = 0)", Boolean).label("created")
     )
     return (await db.execute(upsert_stmt)).one()
+
+
+@router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_my_account(current_user_id: CurrentUser, db: DbSession) -> Response:
+    """Delete the caller's account (#330): sign-in identity, push subscriptions and
+    picture go, the name and email are wiped, and the leagues keep "Former member"."""
+    user = await db.scalar(select(User).where(User.supabase_uid == current_user_id))
+    if user is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "User not found")
+    try:
+        await account_deletion.delete_account(db, user)
+    except account_deletion.AccountDeletionError as exc:
+        raise HTTPException(exc.status_code, str(exc)) from exc
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
