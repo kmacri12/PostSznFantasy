@@ -1,5 +1,7 @@
 """The Supabase Storage client, with the network stubbed."""
 
+import json
+
 import httpx
 import pytest
 
@@ -53,3 +55,40 @@ async def test_the_store_talks_to_a_private_bucket_with_the_service_key(
     assert first.headers["authorization"] == "Bearer service-key"
     assert first.headers["content-type"] == "image/png"
     assert "/object/public/" not in str(first.url)
+
+
+async def test_listing_pages_through_the_bucket_with_the_service_key(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    requests: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        offset = json.loads(request.content)["offset"]
+        count = avatars.LIST_PAGE if offset == 0 else 2
+        return httpx.Response(
+            200,
+            json=[
+                {
+                    "name": f"{offset + i:032x}",
+                    "created_at": "2026-01-01T00:00:00+00:00",
+                }
+                for i in range(count)
+            ],
+        )
+
+    monkeypatch.setattr(avatars, "_transport", httpx.MockTransport(handler))
+    store = avatars.SupabaseAvatarStore(
+        Settings(
+            _env_file=None,
+            pg_host="localhost",
+            supabase_url="https://abc.supabase.co",
+            supabase_service_role_key="service-key",
+        )
+    )
+    listed = await store.list_objects()
+    assert len(listed) == avatars.LIST_PAGE + 2
+    assert (
+        str(requests[0].url) == "https://abc.supabase.co/storage/v1/object/list/avatars"
+    )
+    assert requests[0].headers["authorization"] == "Bearer service-key"

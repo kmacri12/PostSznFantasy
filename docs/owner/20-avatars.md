@@ -27,7 +27,7 @@ Members can set a profile picture, team owners a team picture and commissioners 
 
 1. On https://postsznfantasy.com sign in, open a league, **More**, **Settings**, **Profile picture**.
 2. Choose a photo, drag and zoom inside the circle, **Save picture**. Your picture replaces the initials in the top-right account button.
-3. Supabase, **Storage**, `avatars`: one file with a random name appeared. **Remove picture** in the app deletes it.
+3. Supabase, **Storage**, `avatars`: one file with a random name appeared (a small WebP: the API re-saves every upload at 512 px or less and drops camera and location tags). **Remove picture** in the app deletes it.
 4. Open the file's address from a signed-out window (`https://<api host>/api/avatars/<that name>`): it loads (the random name is the key). Opening the Supabase Storage URL for the same file does **not** (the bucket is private).
 
 ## If it goes wrong
@@ -35,3 +35,5 @@ Members can set a profile picture, team owners a team picture and commissioners 
 - Saving says "Pictures are not set up yet": the secret is missing; `fly secrets list --app postszn-api` must list `SUPABASE_SERVICE_ROLE_KEY`.
 - "We couldn't save that picture": `fly logs --app postszn-api` shows `Avatar not stored` with an error type. A 4xx usually means a wrong key or a bucket name that does not match `AVATAR_BUCKET`. Paste the line (not the key) to the coordinator.
 - A picture shows initials after saving: the API could not read it back (`Avatar not read` in the logs), or the bucket is public/missing.
+
+Leftovers from a failed delete are swept by the API's roster sync (about daily, needs `SCHEDULER_ENABLED`); run `fly ssh console --app postszn-api -C "python -m api.scripts.prune_avatars"` to sweep by hand. Files younger than a day are never swept.
