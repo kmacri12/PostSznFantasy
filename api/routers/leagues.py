@@ -59,6 +59,7 @@ from api.services.seasons import (
     season_summaries,
     start_season,
 )
+from api.ws.disconnect import close_league_sockets
 
 router = APIRouter()
 
@@ -393,6 +394,7 @@ async def remove_league(
         await delete_league(db, membership.league, deleted_by=membership.user.id)
     except LeagueRuleError as exc:
         raise rule_error(exc) from exc
+    await close_league_sockets(db, membership.league.id)
 
 
 @router.patch("/{league_id}/members/{user_id}", response_model=LeagueOverview)
@@ -426,6 +428,7 @@ async def delete_member(
     except LeagueRuleError as exc:
         raise rule_error(exc) from exc
     await db.flush()
+    await close_league_sockets(db, league_id, user_id=user_id)
     return await get_league(league_id, membership, db, today)
 
 

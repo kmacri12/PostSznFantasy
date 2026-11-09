@@ -54,9 +54,12 @@ async def _user(db: AsyncSession, supabase_uid: str) -> User | None:
 
 
 def deleted_league_error(league: League, member: object | None) -> HTTPException:
-    """Anyone who was ever a member learns it was deleted; others see a plain 404."""
+    """Anyone who was ever a member learns it was deleted; others get the 403 a live
+    league gives them, so league ids cannot be probed for deleted ones."""
     if member is None:
-        return HTTPException(status.HTTP_404_NOT_FOUND, "League not found")
+        return HTTPException(
+            status.HTTP_403_FORBIDDEN, "You are not a member of this league"
+        )
     return LeagueDeletedError(league)
 
 
