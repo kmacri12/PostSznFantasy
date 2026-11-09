@@ -103,9 +103,13 @@ describe("when the prompt shows", () => {
     expect(screen.getByRole("button", { name: "Not now" })).toBeVisible();
   });
 
-  it("points to More, Settings, Notifications for changing it later", async () => {
+  it("points to profile settings for changing it later", async () => {
     visit("/");
-    expect(await screen.findByText(/More, Settings, Notifications/)).toBeVisible();
+    expect(
+      await screen.findByText(
+        /your profile settings \(tap your avatar, top right\), Notifications/,
+      ),
+    ).toBeVisible();
   });
 
   it("shows how to unblock if the browser permission gets blocked from the sheet", async () => {

@@ -1,6 +1,7 @@
 import { Box, Typography } from "@mui/material";
 import type { DraftState } from "../../api/types";
 import { HEADER_HEIGHT, tokens } from "../../theme";
+import CogButton from "../settings/CogButton";
 import { clockText } from "./clockText";
 
 interface Props {
@@ -9,10 +10,18 @@ interface Props {
   secondsLeft: number | null;
   secondsToStart: number | null;
   isConnected: boolean;
+  onOpenSettings: () => void;
 }
 
 /** Sticky bar: round and pick, the team on the clock and the countdown (green on my turn). */
-const DraftClockBar = ({ state, myTeamId, secondsLeft, secondsToStart, isConnected }: Props) => {
+const DraftClockBar = ({
+  state,
+  myTeamId,
+  secondsLeft,
+  secondsToStart,
+  isConnected,
+  onOpenSettings,
+}: Props) => {
   const text = clockText(state, myTeamId, secondsLeft, secondsToStart);
   const urgent = text.myTurn && secondsLeft !== null && secondsLeft <= 10;
   return (
@@ -45,25 +54,28 @@ const DraftClockBar = ({ state, myTeamId, secondsLeft, secondsToStart, isConnect
           </Typography>
         )}
       </Box>
-      <Box sx={{ textAlign: "right", flexShrink: 0 }}>
-        {text.timer !== null && (
-          <Typography
-            aria-label="Pick clock"
-            sx={{
-              fontSize: 28,
-              fontWeight: 700,
-              lineHeight: 1.1,
-              fontVariantNumeric: "tabular-nums",
-              color: urgent && isConnected ? tokens.red : tokens.text,
-              opacity: isConnected ? 1 : 0.4,
-            }}
-          >
-            {text.timer}
-          </Typography>
-        )}
-        {!isConnected && (
-          <Typography sx={{ fontSize: 11, color: tokens.warning }}>Reconnecting…</Typography>
-        )}
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexShrink: 0 }}>
+        <Box sx={{ textAlign: "right" }}>
+          {text.timer !== null && (
+            <Typography
+              aria-label="Pick clock"
+              sx={{
+                fontSize: 28,
+                fontWeight: 700,
+                lineHeight: 1.1,
+                fontVariantNumeric: "tabular-nums",
+                color: urgent && isConnected ? tokens.red : tokens.text,
+                opacity: isConnected ? 1 : 0.4,
+              }}
+            >
+              {text.timer}
+            </Typography>
+          )}
+          {!isConnected && (
+            <Typography sx={{ fontSize: 11, color: tokens.warning }}>Reconnecting…</Typography>
+          )}
+        </Box>
+        <CogButton label="Draft settings" onClick={onOpenSettings} />
       </Box>
     </Box>
   );

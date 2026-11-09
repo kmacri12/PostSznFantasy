@@ -35,7 +35,7 @@ const renderMore = (season: Partial<SeasonOverview> = {}) =>
 describe("MorePage", () => {
   it("lists the league rows with the draft status under Players", () => {
     renderMore({ draftStatus: "unscheduled" });
-    expect(screen.getByText("Your settings and commissioner settings")).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /Settings/ })).toBeNull();
     expect(screen.getByText("Draft not scheduled")).toBeInTheDocument();
     expect(screen.getByText("How to play")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Draft board" })).toHaveAttribute(

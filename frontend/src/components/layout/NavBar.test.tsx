@@ -5,6 +5,15 @@ import type { LeagueByUser } from "../../api/types";
 import NavBar from "./NavBar";
 
 vi.mock("../dev/DevQuickSync", () => ({ DevQuickSync: () => null }));
+vi.mock("../settings/ProfileSheet", () => ({
+  default: ({ onSignOut }: { onSignOut: () => void }) => (
+    <div role="dialog" aria-label="Profile settings">
+      <button type="button" onClick={onSignOut}>
+        Sign out
+      </button>
+    </div>
+  ),
+}));
 
 const league = (id: number, finished: boolean, hasNewActivity = false): LeagueByUser => ({
   id,
@@ -69,7 +78,7 @@ describe("NavBar", () => {
     expect(logo.textContent).toBe("PostSznFANTASY");
     expect(logo.getAttribute("href")).toBe("/");
     const switcher = screen.getByRole("button", { name: /League 2/ });
-    const account = screen.getByRole("button", { name: "Account menu" });
+    const account = screen.getByRole("button", { name: "Profile settings" });
     // Logo, then switcher, then the avatar furthest right.
     expect(logo.compareDocumentPosition(switcher) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(
@@ -102,11 +111,13 @@ describe("NavBar", () => {
     expect(screen.getByTestId("where").textContent).toBe("/leagues/1");
   });
 
-  it("signs out from the account menu", () => {
+  it("opens profile settings from the avatar, and signing out from there signs out", () => {
     const onSignOut = vi.fn();
     renderBar({ onSignOut });
-    fireEvent.click(screen.getByRole("button", { name: "Account menu" }));
-    fireEvent.click(screen.getByRole("menuitem", { name: "Sign out" }));
+    expect(screen.queryByRole("dialog", { name: "Profile settings" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Profile settings" }));
+    expect(screen.getByRole("dialog", { name: "Profile settings" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Sign out" }));
     expect(onSignOut).toHaveBeenCalled();
   });
 });

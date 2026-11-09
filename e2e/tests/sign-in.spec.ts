@@ -63,9 +63,12 @@ test.describe("sign in", () => {
     await page.goto("/sign-in");
     await expect(page).toHaveURL(/\/$/);
 
-    await page.getByRole("button", { name: "Account menu" }).click();
-    await page.getByRole("menuitem", { name: "Sign out" }).click();
+    await page.getByRole("button", { name: "Profile settings" }).click();
+    await page
+      .getByRole("dialog", { name: "Profile settings" })
+      .getByRole("button", { name: "Sign out" })
+      .click();
     await expect(page.getByRole("button", { name: "Sign in", exact: true })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Account menu" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Profile settings" })).toHaveCount(0);
   });
 });
