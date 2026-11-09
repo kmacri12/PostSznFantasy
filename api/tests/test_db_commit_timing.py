@@ -11,6 +11,7 @@ from api.db.session import DbSession
 class RecordingSession:
     def __init__(self, events: list[str]) -> None:
         self.events = events
+        self.info: dict[str, object] = {}
 
     async def __aenter__(self) -> "RecordingSession":
         return self

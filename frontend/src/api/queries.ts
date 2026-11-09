@@ -157,13 +157,6 @@ export const useDraft = (seasonId: Id | undefined, pollMs?: number) =>
     refetchInterval: pollMs,
   });
 
-export const usePlayerList = () =>
-  useQuery({
-    queryKey: keys.players,
-    queryFn: ({ signal }) => get<PlayerSummary[]>("/api/players/player-list", signal),
-    staleTime: 5 * 60_000,
-  });
-
 /** Draftable players on the playoff teams; with a league, its team QB / team K settings narrow and flag the pool. */
 export const useDraftPool = (seasonId?: Id) =>
   useQuery({

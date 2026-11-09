@@ -172,3 +172,20 @@ console.log(Object.entries(lhr.categories).map(([k, c]) => `${k} ${c.score * 100
 ```
 
 Run it five times per page and compare medians; single runs vary by 10 or more points on a busy machine. Landing is `node run.mjs http://localhost:5292 / -`, the draft room needs the seeded league id and the host's uid.
+
+## Request-path queries (issue #342)
+
+Measured as database statements per request, counted with a `before_cursor_execute` listener in `api/tests/postgres/test_request_cost.py` (which now fails if the cost grows again), on `GET /api/leagues/user-leagues` for one user.
+
+| | Before | After |
+| :-- | --: | --: |
+| One league, one season | 8 statements | 8 |
+| Each extra league with two seasons | 7 statements | 3.3 (3 queries plus each new year's games, loaded once) |
+| Four leagues of two seasons | 29 statements | 18 |
+
+What changed:
+
+- `round_status.load_games` (and so `season_is_finished`, which every guarded season request calls) reads each postseason year once per request. Only a request's session does this (`get_db` sets `REQUEST_SCOPED` in `Session.info`); the scheduler and scripts reuse a session across ingests and always read. Any insert, update, delete or flush on the session drops the memo, so a request that writes games still reads them fresh.
+- `season_summaries` fetches a league's teams and draft statuses for all its seasons in two queries instead of two per season.
+
+Not done here: batching the league list across leagues (it is still one set of queries per league), memoizing the draft's best-available list per pick (it runs only when a pick timer expires), and the standings refresh after a lineup move. `GET /api/players/player-list` stays unpaged because the e2e replay suite reads every eliminated player from it; the SPA no longer calls it (the unused `usePlayerList` hook is removed).
