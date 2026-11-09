@@ -29,7 +29,7 @@ env:
 jobs:
   deploy:
     name: Deploy main
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(vars.CI_RUNS_ON || '"ubuntu-latest"') }}
     timeout-minutes: 30
     steps:
       - name: Require the live-draft confirmation
