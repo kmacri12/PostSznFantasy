@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Any
+from typing import Any, Literal
 
 from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, status
 from sqlalchemy import select
@@ -23,7 +23,7 @@ from api.models.draft_models import (
     QueueResponse,
     QueueUpdate,
 )
-from api.services import draft_flow
+from api.services import draft_flow, push
 from api.services.activity import Actor
 from api.services.draft_events import announce_events, pick_events, state_event
 from api.services.draft_picks import DraftPickError, PickResult, make_pick
@@ -131,6 +131,12 @@ CONTROLS = {
 }
 
 
+PHASE_PUSHES: dict[str, Literal["lobby", "started"]] = {
+    "lobby": "lobby",
+    "start": "started",
+}
+
+
 @router.post("/{season_id}/control/{action}", response_model=DraftStateResponse)
 async def control(
     season_id: int, action: str, membership: SeasonCommissioner, db: DbSession
@@ -149,7 +155,10 @@ async def control(
             draft = await CONTROLS[action](db, season_id)
     except DraftPickError as exc:
         raise _conflict(exc) from exc
-    return await _broadcast_state(db, draft, feed_event=action == "start")
+    response = await _broadcast_state(db, draft, feed_event=action == "start")
+    if action in PHASE_PUSHES:
+        push.spawn(push.notify_draft_phase, season_id, PHASE_PUSHES[action])
+    return response
 
 
 @router.post("/{season_id}/force-pick", response_model=DraftStateResponse)

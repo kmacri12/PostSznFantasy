@@ -48,6 +48,14 @@ describe("clockText", () => {
     expect(scheduled.title).toMatch(/^Draft scheduled for /);
     expect(scheduled.subtitle).toBe("1h 0m to go");
     expect(scheduled.timer).toBeNull();
+    const passed = clockText(
+      { ...base, status: "scheduled", startTime: "2020-01-05T19:00:00Z" },
+      10,
+      null,
+      0,
+    );
+    expect(passed.title).toBe("Draft time has passed");
+    expect(passed.subtitle).toBe("Waiting for the commissioner to start it");
   });
 
   it("shows a paused draft with the frozen clock", () => {

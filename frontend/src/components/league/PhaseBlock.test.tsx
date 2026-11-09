@@ -98,6 +98,23 @@ describe("PhaseBlock", () => {
     );
   });
 
+  it("says what a passed draft time is waiting for, and gives the commissioner Start", () => {
+    show({ draftStatus: "scheduled", draftStartTime: "2026-01-01T11:00:00Z", canCommission: true });
+    expect(screen.getByText("Draft time has passed")).toBeInTheDocument();
+    expect(screen.queryByText("Starting now")).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Start the draft" })).toBeInTheDocument();
+  });
+
+  it("tells a member the draft waits for the commissioner", () => {
+    show({
+      draftStatus: "scheduled",
+      draftStartTime: "2026-01-01T11:00:00Z",
+      canCommission: false,
+    });
+    expect(screen.getByText("Waiting for your commissioner to start it.")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Enter draft" })).toBeInTheDocument();
+  });
+
   it("offers to enter a draft that is under way", () => {
     show({ draftStatus: "in_progress" });
     expect(screen.getByText("The draft is under way")).toBeInTheDocument();

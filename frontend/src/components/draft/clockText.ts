@@ -9,12 +9,13 @@ export const formatClock = (seconds: number): string => {
   return hours > 0 ? `${hours}:${mmss}` : mmss;
 };
 
-/** "Saturday 7:00 pm": the countdown under it says how far off that is. */
+/** "Saturday 7:00 PM EST": the countdown under it says how far off that is. */
 const formatBarTime = (iso: string): string =>
   new Date(iso).toLocaleString(undefined, {
     weekday: "long",
     hour: "numeric",
     minute: "2-digit",
+    timeZoneName: "short",
   });
 
 export interface ClockText {
@@ -74,6 +75,14 @@ export function clockText(
         return {
           title: "Draft not scheduled yet",
           subtitle: "No clock yet",
+          timer: null,
+          myTurn: false,
+        };
+      }
+      if (secondsToStart !== null && secondsToStart <= 0) {
+        return {
+          title: "Draft time has passed",
+          subtitle: "Waiting for the commissioner to start it",
           timer: null,
           myTurn: false,
         };
