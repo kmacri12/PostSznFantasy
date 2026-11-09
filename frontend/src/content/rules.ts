@@ -166,7 +166,7 @@ export const TOUR_STEPS: TourStep[] = [
     id: "wild-card",
     title: "Set your lineup every round",
     caption:
-      "Check your lineup before each round's kickoffs: byes, eliminations and injuries all change who should start. In the Wild Card round everyone is still alive, but pay attention to who has a bye.",
+      "Check your lineup before each round's kickoffs: byes, eliminations and injuries all change who should start.",
     alt: "A team page during Wild Card weekend with a full lineup, including players on a bye.",
   },
   {
