@@ -62,6 +62,17 @@ describe("ProfileSheet", () => {
     expect(screen.getByText("This is permanent and cannot be undone.")).toBeInTheDocument();
   });
 
+  it("puts Delete my account under a Danger zone heading, after Sign out", () => {
+    render(<ProfileSheet user={user} onSignOut={vi.fn()} onClose={vi.fn()} />);
+    const heading = screen.getByRole("heading", { name: "Danger zone" });
+    const signOut = screen.getByRole("button", { name: "Sign out" });
+    const remove = screen.getByRole("button", { name: "Delete my account" });
+    expect(
+      signOut.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(heading.compareDocumentPosition(remove) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   it("closes the sheet, then signs out", () => {
     const calls: string[] = [];
     render(

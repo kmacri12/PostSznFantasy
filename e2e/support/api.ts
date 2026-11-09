@@ -47,6 +47,16 @@ export class Api {
     return (body ? JSON.parse(body) : undefined) as T;
   }
 
+  /** The status of a call that is expected to fail, for specs that check a refusal. */
+  async status(method: string, path: string, data?: unknown): Promise<number> {
+    const response = await this.request.fetch(`${API_URL}${path}`, {
+      method,
+      headers: authHeaders(this.uid),
+      data,
+    });
+    return response.status();
+  }
+
   get = <T>(path: string) => this.send<T>("GET", path);
   post = <T>(path: string, data?: unknown) => this.send<T>("POST", path, data);
   put = <T>(path: string, data?: unknown) => this.send<T>("PUT", path, data);

@@ -1,3 +1,4 @@
+import { Divider, Typography } from "@mui/material";
 import type { User as SupabaseUser } from "@supabase/auth-js";
 import { useState } from "react";
 import { useSetAvatar } from "../../api/queries";
@@ -96,6 +97,17 @@ const ProfileSheet = ({ user, onSignOut, onClose }: Props) => {
             onSignOut();
           }}
         />
+      </SettingsCard>
+      {/* Far from Sign out and the everyday rows, so it is never a stray tap away (#375). */}
+      <Divider sx={{ mt: 4 }} />
+      <Typography
+        component="h3"
+        variant="overline"
+        sx={{ color: "error.light", fontWeight: 700, mt: 2, mb: 1, display: "block" }}
+      >
+        Danger zone
+      </Typography>
+      <SettingsCard>
         <SettingsRow label="Delete my account" centered danger onClick={() => setDeleting(true)} />
       </SettingsCard>
       {deleting && (
