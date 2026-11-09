@@ -136,7 +136,7 @@ test.describe("draft room", () => {
     context,
     request,
   }) => {
-    const league = await createDraftLeague(request, { seconds: 10, status: "in_progress" });
+    const league = await createDraftLeague(request, { seconds: 15, status: "in_progress" });
     await signInAs(context, league.host.uid);
     await page.goto(seasonUrl(league.league, "/draft"));
 
