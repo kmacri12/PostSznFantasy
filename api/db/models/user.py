@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Integer, String
+from sqlalchemy import Boolean, Integer, String, false, true
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from api.db.base import Base
@@ -19,6 +19,17 @@ class User(Base):
     email: Mapped[str | None] = mapped_column(String(120), unique=True, nullable=True)
     # Key of the profile picture in the avatar store (services/avatars.py); None = initials.
     avatar_key: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    # Which pushes this person wants (the device switch only grants permission). Chat is
+    # off by default: a busy league would otherwise push every message to everyone.
+    push_draft_alerts: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True, server_default=true()
+    )
+    push_lineup_reminders: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True, server_default=true()
+    )
+    push_chat: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default=false()
+    )
 
     teams_owned: Mapped[list["Team"]] = relationship(
         "Team", back_populates="owner", cascade="all, delete-orphan"

@@ -83,6 +83,7 @@ async def send_lock_reminders(db: AsyncSession, year: int, now: datetime) -> int
                     tag=f"lineup-lock-{team.id}-{round_}",
                     urgency="high",
                 ),
+                "lineup",
             )
             reminded += 1
     return reminded

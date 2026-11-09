@@ -13,6 +13,8 @@ vi.mock("../api/queries", () => ({
   useMarkFeedViewed: () => ({ mutate: markViewed, isPending: false }),
   usePostMessage: () => ({ mutate: post, isPending: false, error: null }),
   useDeleteMessage: () => ({ mutate: vi.fn(), isPending: false, error: null }),
+  usePushPreferences: () => ({ data: { mutedLeagueIds: [] } }),
+  useMuteLeagueChat: () => ({ mutate: vi.fn(), isPending: false }),
 }));
 vi.mock("../hooks/useFeedLive", () => ({ useFeedLive: () => ({ isConnected: true }) }));
 vi.mock("../contexts/UserContext", () => ({ useUser: () => ({ userId: 3 }) }));

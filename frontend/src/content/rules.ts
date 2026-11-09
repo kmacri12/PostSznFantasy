@@ -216,7 +216,20 @@ export const SETTING_HELP = {
 
 // Settings page copy.
 export const NOTIFICATIONS_BLURB =
-  "Your pick on the clock, lineup locks, and chat, on this device only. Signing out turns them off here. On iPhone, add the site to your Home Screen first.";
+  "Allow notifications on this device, then choose below which ones you get. Signing out turns them off here. On iPhone, add the site to your Home Screen first.";
+export const NOTIFICATION_KINDS = [
+  {
+    key: "draftAlerts",
+    label: "Draft alerts",
+    hint: "Your pick is on the clock, and the draft lobby and start.",
+  },
+  {
+    key: "lineupReminders",
+    label: "Lineup reminders",
+    hint: "An hour before a round locks, if you have an empty starter slot.",
+  },
+  { key: "chat", label: "Chat messages", hint: "A message in any league you have not muted." },
+] as const;
 export const NOTIFICATIONS_IPHONE_STEPS = [
   "Open this site in Safari.",
   "Tap the Share button, then Add to Home Screen.",
@@ -250,7 +263,7 @@ export const NOTIFICATIONS_DENIED_HELP = {
 // The one-time prompt offered after first sign-in and after joining a league.
 export const OPT_IN_TITLE = "Get notified when it matters";
 export const OPT_IN_WHY =
-  "We'll tell you when your pick is on the clock, when lineups are about to lock, and when your league chats.";
+  "We'll tell you when your pick is on the clock and when lineups are about to lock. League chat stays quiet unless you turn it on in Profile settings.";
 export const OPT_IN_TURN_ON = "Turn on notifications";
 export const OPT_IN_NOT_NOW = "Not now";
 export const OPT_IN_DONE = "Notifications are on";

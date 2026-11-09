@@ -1,6 +1,6 @@
 import { Box, Button, Container, Typography } from "@mui/material";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useFeed, useMarkFeedViewed } from "../api/queries";
+import { useFeed, useMarkFeedViewed, useMuteLeagueChat, usePushPreferences } from "../api/queries";
 import type { FeedItem, FeedMessageItem } from "../api/types";
 import ErrorState from "../components/common/ErrorState";
 import { friendlyError } from "../components/common/friendlyError";
@@ -65,7 +65,9 @@ const NewDivider = () => (
 
 /** The Feed tab: league events and chat in one stream, newest at the bottom above the message box. */
 const FeedPage = () => {
-  const { seasonId, season } = useSeasonContext();
+  const { leagueId, seasonId, season } = useSeasonContext();
+  const muted = usePushPreferences().data?.mutedLeagueIds.includes(leagueId) ?? false;
+  const muteChat = useMuteLeagueChat(leagueId);
   const { userId } = useUser();
   const live = useFeedLive(seasonId, season.canEdit);
   const feed = useFeed(seasonId, live.isConnected);
@@ -175,6 +177,16 @@ const FeedPage = () => {
           gap: "10px",
         }}
       >
+        <Box component="li" sx={{ listStyle: "none", alignSelf: "flex-end" }}>
+          <Button
+            size="small"
+            sx={{ minHeight: 44 }}
+            disabled={muteChat.isPending}
+            onClick={() => muteChat.mutate(!muted)}
+          >
+            {muted ? "Chat alerts muted · Unmute" : "Mute chat alerts"}
+          </Button>
+        </Box>
         {feed.hasNextPage && (
           <Box component="li" sx={{ listStyle: "none", alignSelf: "center" }}>
             <Button

@@ -24,7 +24,7 @@ Use a league where you own a team and the draft is running or the field is set.
 
 **Android, phone locked (the real draft test):** repeat the draft test with the phone **locked for 5 minutes or more**, screen off, Chrome closed, not plugged in. The "You're on the clock" notification must arrive within seconds. A test with the app open proves nothing about a sleeping phone. The draft alert and the lineup reminder are sent at high priority so Android delivers them while the phone dozes; chat is sent at normal priority and may be held back a few minutes on an idle phone.
 
-**Chat:** with two accounts in one league, both with notifications on, post a message in the Feed from one; the other gets a notification naming the league and the author (not the text) that opens the Feed.
+**Chat:** chat pushes are off until each member turns on **Chat messages** in Profile settings (avatar), where Draft alerts and Lineup reminders (both on by default) have their own switches. With two accounts in one league, both with notifications and Chat messages on, post a message in the Feed from one; the other gets a notification naming the league and the author (not the text) that opens the Feed. Several messages within ten minutes replace each other with "N new messages". **Mute chat alerts** at the top of the Feed silences that one league.
 
 **iPhone (iOS 16.4 or later):** in Safari tap Share, **Add to Home Screen**, then open PostSzn **from the new icon** (a Safari tab cannot receive notifications). Sign in, tap your avatar (top right), switch **Notifications** on in Profile settings, allow. Repeat the draft test.
 

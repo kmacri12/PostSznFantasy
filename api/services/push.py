@@ -14,15 +14,16 @@ from datetime import UTC, datetime, timedelta
 from typing import Concatenate, Literal
 
 from pywebpush import WebPushException, webpush
-from sqlalchemy import delete, select, true
+from sqlalchemy import delete, func, select, true, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.core.config import get_settings
 from api.db.models.activity import LeagueMessage
 from api.db.models.league import League, LeagueMember, Season, Team
 from api.db.models.push import PushSubscription
+from api.db.models.user import User
 from api.db.session import get_session_factory
-from api.services.live_leagues import live_season_ids
+from api.services.live_leagues import live_league_ids, live_season_ids
 
 logger = logging.getLogger(__name__)
 
@@ -33,8 +34,16 @@ STALE_AFTER = timedelta(days=60)
 # A pick or a lock reminder that cannot be delivered within this is no longer useful.
 TTL_SECONDS = 15 * 60
 REQUEST_TIMEOUT_SECONDS = 10
+CHAT_BURST_WINDOW = timedelta(minutes=10)
 
 Urgency = Literal["very-low", "low", "normal", "high"]
+PushKind = Literal["draft", "lineup", "chat"]
+# The users column holding each kind's preference.
+PREFERENCE_COLUMNS = {
+    "draft": User.push_draft_alerts,
+    "lineup": User.push_lineup_reminders,
+    "chat": User.push_chat,
+}
 
 _pending: set[asyncio.Task[None]] = set()
 
@@ -110,11 +119,23 @@ async def wait_for_pending() -> None:
 
 
 async def send_to_users(
-    db: AsyncSession, user_ids: Iterable[int], message: PushMessage
+    db: AsyncSession, user_ids: Iterable[int], message: PushMessage, kind: PushKind
 ) -> int:
-    """Push to every device of the given users; returns how many accepted it."""
+    """Push to every device of the given users who want this kind; returns how many
+    accepted it."""
     ids = set(user_ids)
     if not ids or not get_settings().push_enabled:
+        return 0
+    ids = set(
+        (
+            await db.execute(
+                select(User.id).where(User.id.in_(ids), PREFERENCE_COLUMNS[kind])
+            )
+        )
+        .scalars()
+        .all()
+    )
+    if not ids:
         return 0
     subscriptions = list(
         (
@@ -175,6 +196,7 @@ async def notify_on_the_clock(db: AsyncSession, season_id: int, team_id: int) ->
             tag=f"on-the-clock-{season_id}",
             urgency="high",
         ),
+        "draft",
     )
 
 
@@ -243,6 +265,7 @@ async def _notify_league_members(
             tag=f"{tag_prefix}-{season_id}",
             urgency=urgency,
         ),
+        "draft",
     )
 
 
@@ -250,8 +273,9 @@ async def notify_league_message(db: AsyncSession, message_id: int) -> None:
     """Tell the league's other active members about a new chat message.
 
     The text carries the author's name and the league's, never the message itself, since
-    it shows on lock screens. There is no per-member chat mute yet; add the filter here
-    when the notification settings (#267) gain one.
+    it shows on lock screens. Only members who turned chat on and have not muted this
+    league get it; a burst within `CHAT_BURST_WINDOW` collapses into one notification
+    (same tag) that says how many messages it stands for.
     """
     if not get_settings().push_enabled:
         return
@@ -280,6 +304,7 @@ async def notify_league_message(db: AsyncSession, message_id: int) -> None:
                 select(LeagueMember.user_id).where(
                     LeagueMember.league_id == row.league_id,
                     LeagueMember.left_at.is_(None),
+                    LeagueMember.chat_muted.is_(False),
                     LeagueMember.user_id != row.author_user_id
                     if row.author_user_id is not None
                     else true(),
@@ -289,15 +314,32 @@ async def notify_league_message(db: AsyncSession, message_id: int) -> None:
         .scalars()
         .all()
     )
+    recent = (
+        await db.scalar(
+            select(func.count())
+            .select_from(LeagueMessage)
+            .where(
+                LeagueMessage.season_id == row.season_id,
+                LeagueMessage.deleted_at.is_(None),
+                LeagueMessage.created_at >= datetime.now(UTC) - CHAT_BURST_WINDOW,
+            )
+        )
+    ) or 1
+    body = (
+        f"{recent} new messages in the chat."
+        if recent > 1
+        else f"{row.author_name or 'Someone'} posted in the chat."
+    )
     await send_to_users(
         db,
         recipients,
         PushMessage(
             title=row.name,
-            body=f"{row.author_name or 'Someone'} posted in the chat.",
+            body=body,
             url=f"/leagues/{row.league_id}/feed",
             tag=f"chat-{row.season_id}",
         ),
+        "chat",
     )
 
 
@@ -309,3 +351,33 @@ async def prune_stale_subscriptions(db: AsyncSession) -> int:
         )
     )
     return int(result.rowcount or 0)  # type: ignore[attr-defined]
+
+
+async def muted_league_ids(db: AsyncSession, user_id: int) -> list[int]:
+    """Live leagues the member muted chat pushes from."""
+    rows = await db.execute(
+        select(LeagueMember.league_id).where(
+            LeagueMember.user_id == user_id,
+            LeagueMember.left_at.is_(None),
+            LeagueMember.chat_muted.is_(True),
+            LeagueMember.league_id.in_(live_league_ids()),
+        )
+    )
+    return sorted(rows.scalars().all())
+
+
+async def set_chat_muted(
+    db: AsyncSession, user_id: int, league_id: int, muted: bool
+) -> bool:
+    """Mute or unmute one league; False when the user is not an active member of it."""
+    result = await db.execute(
+        update(LeagueMember)
+        .where(
+            LeagueMember.league_id == league_id,
+            LeagueMember.user_id == user_id,
+            LeagueMember.left_at.is_(None),
+            LeagueMember.league_id.in_(live_league_ids()),
+        )
+        .values(chat_muted=muted)
+    )
+    return bool(result.rowcount)  # type: ignore[attr-defined]

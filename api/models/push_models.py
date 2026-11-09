@@ -49,3 +49,23 @@ class PushSubscriptionDelete(BaseSchema):
 class VapidKeyResponse(BaseSchema):
     # None while the server has no VAPID keys; the client then hides notifications.
     public_key: str | None
+
+
+class PushPreferences(BaseSchema):
+    draft_alerts: bool
+    lineup_reminders: bool
+    chat: bool
+    # Leagues whose chat the caller muted; the Feed header shows the toggle.
+    muted_league_ids: list[int]
+
+
+class PushPreferencesUpdate(BaseSchema):
+    """Only the fields sent change."""
+
+    draft_alerts: bool | None = None
+    lineup_reminders: bool | None = None
+    chat: bool | None = None
+
+
+class ChatMuteUpdate(BaseSchema):
+    muted: bool
