@@ -1,14 +1,6 @@
 import { Box, Button, Typography } from "@mui/material";
 import { type KeyboardEvent, type TouchEvent, useRef, useState } from "react";
-import {
-  TOUR_BACK,
-  TOUR_DONE,
-  TOUR_FOOTNOTE,
-  TOUR_NEXT,
-  TOUR_STAGES,
-  TOUR_STAGES_LABEL,
-  TOUR_STEPS,
-} from "../../content/rules";
+import { TOUR_BACK, TOUR_DONE, TOUR_FOOTNOTE, TOUR_NEXT, TOUR_STEPS } from "../../content/rules";
 import { tokens } from "../../theme";
 
 const SWIPE_PX = 50;
@@ -54,25 +46,23 @@ const TourViewer = ({ onFinish, fill = false }: Props) => {
       onTouchEnd={onTouchEnd}
       sx={{ display: "grid", gap: 1.5, justifyItems: "center" }}
     >
-      {step.stage !== null && (
-        <Box
-          role="img"
-          aria-label={`${TOUR_STAGES_LABEL}: ${TOUR_STAGES[step.stage] ?? ""}, ${step.stage + 1} of ${TOUR_STAGES.length}`}
-          sx={{ display: "flex", gap: 0.5, width: "100%", maxWidth: 375 }}
-        >
-          {TOUR_STAGES.map((stage, stageIndex) => (
-            <Box
-              key={stage}
-              sx={{
-                flex: 1,
-                height: 4,
-                borderRadius: 2,
-                bgcolor: stageIndex <= (step.stage ?? 0) ? tokens.accentFill : tokens.border,
-              }}
-            />
-          ))}
-        </Box>
-      )}
+      <Box
+        role="img"
+        aria-label={`Step ${index + 1} of ${TOUR_STEPS.length}`}
+        sx={{ display: "flex", gap: 0.5, width: "100%", maxWidth: 375 }}
+      >
+        {TOUR_STEPS.map((each, stepIndex) => (
+          <Box
+            key={each.id}
+            sx={{
+              flex: 1,
+              height: 4,
+              borderRadius: 2,
+              bgcolor: stepIndex <= index ? tokens.accentFill : tokens.border,
+            }}
+          />
+        ))}
+      </Box>
       <Box
         sx={{
           border: 1,

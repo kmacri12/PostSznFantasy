@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { Api, seasonUrl, unique } from "../support/api";
 import { signInAs } from "../support/auth";
 
-const TOUR = "PostSzn in a minute";
+const TOUR = "PostSzn Fantasy in a minute";
 
 test.describe("first-run tour", () => {
   test("shows once after joining by link, can be skipped, and reopens from More", async ({
@@ -24,7 +24,7 @@ test.describe("first-run tour", () => {
     ).toBeVisible();
     await expect(tour.getByRole("img", { name: /league standings/ })).toBeVisible();
     await tour.getByRole("button", { name: "Next" }).click();
-    await expect(tour.getByRole("heading", { name: "The Feed" })).toBeVisible();
+    await expect(tour.getByRole("heading", { name: "Invite your league" })).toBeVisible();
     await tour.getByRole("button", { name: "Skip" }).click();
     await expect(tour).toBeHidden();
 
@@ -36,8 +36,8 @@ test.describe("first-run tour", () => {
 
     await page.goto(seasonUrl(league, "/more"));
     await page.getByRole("button", { name: "Take the tour" }).click();
-    for (let step = 0; step < 9; step++) await tour.getByRole("button", { name: "Next" }).click();
-    await expect(tour.getByRole("heading", { name: "Next season" })).toBeVisible();
+    for (let step = 0; step < 6; step++) await tour.getByRole("button", { name: "Next" }).click();
+    await expect(tour.getByRole("heading", { name: "A champion and awards" })).toBeVisible();
     await tour.getByRole("button", { name: "Got it" }).click();
     await expect(tour).toBeHidden();
   });
@@ -63,7 +63,7 @@ test.describe("first-run tour", () => {
       inline.getByRole("heading", { name: "Fantasy for the playoffs only" }),
     ).toBeVisible();
     await inline.getByRole("button", { name: "Next" }).click();
-    await expect(inline.getByRole("heading", { name: "The Feed" })).toBeVisible();
+    await expect(inline.getByRole("heading", { name: "Invite your league" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "The four rounds" })).toBeVisible();
   });
 

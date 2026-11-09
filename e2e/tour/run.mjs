@@ -8,30 +8,23 @@ import path from "node:path";
 
 const here = import.meta.dirname;
 const replay = JSON.parse(readFileSync(path.join(here, "../fixtures/replay.json"), "utf8"));
-const YEAR_SECONDS = 365 * 86400;
 const FIRST_KICKOFF = 1798500000;
 const LEAD_SECONDS = 24 * 3600;
 
-// `shiftYear` moves the games a year back so the finished season's "next season opens on
-// December 1" date has already passed and the real Start next season button shows.
 const RUNS = [
-  { round: "wild-card", label: "Wild Card", shiftYear: false },
-  { round: "conference", label: "Conference Championship", shiftYear: false },
-  { round: "super-bowl", label: "Super Bowl", shiftYear: true },
+  { round: "wild-card", label: "Wild Card" },
+  { round: "super-bowl", label: "Super Bowl" },
 ];
 
 // The quiet-opening placeholder game has no teams and no box score, so it is no round's game:
 // left in one it would keep that round from ever finishing.
 const retime = (game, run) => {
   const placeholder = String(game.gameID).includes("LEAD@");
-  let epoch = Number(game.gameTime_epoch);
-  // A longer quiet opening gives the capture time to draft and set lineups before game one.
-  if (placeholder) epoch = FIRST_KICKOFF - LEAD_SECONDS;
-  if (run.shiftYear) epoch -= YEAR_SECONDS;
   const { gameWeek, ...rest } = game;
   return {
     ...rest,
-    gameTime_epoch: `${epoch}.0`,
+    // A longer quiet opening gives the capture time to draft and set lineups before game one.
+    gameTime_epoch: `${placeholder ? FIRST_KICKOFF - LEAD_SECONDS : Number(game.gameTime_epoch)}.0`,
     ...(placeholder ? {} : { gameWeek: run.label }),
   };
 };

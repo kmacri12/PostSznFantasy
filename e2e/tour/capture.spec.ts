@@ -8,18 +8,20 @@ import { signInAs } from "../support/auth";
 // The tour's wording is in frontend/src/content/rules.ts (TOUR_STEPS); a step's id is its file.
 const OUT = path.resolve(import.meta.dirname, "../../frontend/public/tour");
 const round = process.env.TOUR_ROUND ?? "wild-card";
-const ROUND_INDEX: Record<string, number> = { "wild-card": 1, conference: 3, "super-bowl": 4 };
+const ROUND_INDEX: Record<string, number> = { "wild-card": 1, "super-bowl": 4 };
 
 const NAMES = ["Maya", "Jordan", "Sam", "Riley"];
-// Player ids are team*100+slot+1 (e2e/fixtures): 1 QB, 2-3 RB, 4-5 WR, 6 TE. KCC, BAL, LAR and
-// DET lose in the replay, so every manager loses someone.
+// Player ids are team*100+slot+1 (e2e/fixtures, named in real_names.py): 1 QB, 2-3 RB, 4-5 WR,
+// 6 TE. KC, BAL, LAR and DET lose in the replay. The host's QB wins and both of their RBs
+// (Pacheco, Hunt) are Chiefs, so after the Wild Card their running back slot is empty.
 const PICKS = [
-  [101, 202, 504, 806, 402],
-  [201, 302, 604, 506, 503],
-  [401, 502, 204, 106, 303],
-  [501, 802, 404, 706, 203],
+  [201, 102, 504, 806, 103],
+  [101, 202, 404, 506, 502],
+  [401, 802, 204, 106, 303],
+  [801, 402, 604, 706, 602],
 ];
-const TEAM_NAMES = ["Gridiron Gang", "Blitz Brigade", "Sunday Scaries", "Hail Mary Club"];
+const TEAM_NAMES = ["Wing Night Wonders", "Cheesesteak Crew", "Bayou Blitz", "Garage Gridiron"];
+const LEAGUE_NAME = "Wing Night Playoff Pool";
 
 const shoot = (page: Page, id: string) =>
   page.screenshot({ path: path.join(OUT, `${id}.jpg`), type: "jpeg", quality: 82 });
@@ -37,7 +39,7 @@ test(`tour captures: ${round}`, async ({ page, context, request }) => {
   const users = NAMES.map((name) => new Api(request, unique(name.toLowerCase())));
   for (const [index, user] of users.entries()) await user.signUp(NAMES[index]);
   const [host, ...others] = users;
-  const league: LeagueRef = await host.createLeague("Sunday Squad", {
+  const league: LeagueRef = await host.createLeague(LEAGUE_NAME, {
     numberTeams: 4,
     rosterTotal: 5,
     rosterNumQb: 1,
@@ -82,9 +84,17 @@ test(`tour captures: ${round}`, async ({ page, context, request }) => {
       onTheClockTeamId: number | null;
     }>(`/api/drafts/draft-info/${seasonId}`);
     if (state.status === "completed") break;
-    if (round === "wild-card" && picked === 6) {
+    if (round === "wild-card" && picked === 12) {
       await page.goto(seasonUrl(league, "/draft"));
-      await expect(page.getByRole("tab", { name: "Players" })).toBeVisible();
+      await page.getByRole("tab", { name: "Board" }).click();
+      await expect(page.getByTestId("pick-1")).toBeVisible();
+      // The board opens scrolled to the pick on the clock; show it from the first round.
+      await page.evaluate(() => {
+        for (const element of document.querySelectorAll("*")) {
+          element.scrollLeft = 0;
+          element.scrollTop = 0;
+        }
+      });
       await shoot(page, "draft");
       picked++;
     }
@@ -111,12 +121,16 @@ test(`tour captures: ${round}`, async ({ page, context, request }) => {
       }
     }
   }
-  await host.post(`/api/seasons/${seasonId}/messages`, {
-    body: "Draft is in the books. Good luck!",
-  });
-  await others[0].post(`/api/seasons/${seasonId}/messages`, {
-    body: "Starting my QB, no matter what.",
-  });
+  const chat = [
+    [1, "Mahomes at pick five? Bold."],
+    [0, "Josh Allen carried me last year. Not worried."],
+    [2, "McCaffrey in the second round felt too easy lol"],
+    [3, "Saquon over Gibbs is going to age badly"],
+    [0, "Lineups lock at kickoff, set yours before Saturday!"],
+    [1, "Already set mine. Let's go Wild Card weekend"],
+  ] as const;
+  for (const [who, body] of chat)
+    await users[who].post(`/api/seasons/${seasonId}/messages`, { body });
 
   const standings = () => host.get<StandingsView>(`/api/seasons/${seasonId}/standings`);
   const hostTeam = seasonUrl(league, `/teams/${teamIds[0]}`);
@@ -132,15 +146,9 @@ test(`tour captures: ${round}`, async ({ page, context, request }) => {
       { timeout: 120_000, intervals: [250] },
     )
     .toBe(true);
-  const live = round === "conference" ? seasonUrl(league) : hostTeam;
-  await page.goto(live);
-  if (round === "super-bowl") await page.getByRole("tab", { name: "Super Bowl" }).click();
+  await page.goto(round === "wild-card" ? hostTeam : seasonUrl(league));
   await expect(page.getByText(/Live/).first()).toBeVisible();
-  await shoot(
-    page,
-    { "wild-card": "wild-card", conference: "conference", "super-bowl": "super-bowl" }[round] ??
-      round,
-  );
+  if (round === "wild-card") await shoot(page, "wild-card");
 
   // Each replayed game knocks one NFL team out, so four eliminations means every game is final.
   await expect
@@ -156,27 +164,24 @@ test(`tour captures: ${round}`, async ({ page, context, request }) => {
     .toBeGreaterThanOrEqual(4);
 
   if (round === "wild-card") {
+    // The Divisional lineup: the host's QB won, but both running backs were Chiefs.
     await page.goto(hostTeam);
     await page.getByRole("tab", { name: "Divisional" }).click();
     const eliminated = page.getByRole("region", { name: "Eliminated" });
     await expect(eliminated).toBeVisible();
-    await eliminated.evaluate((element) => element.scrollIntoView({ block: "center" }));
-    await shoot(page, "divisional");
+    await eliminated.evaluate((element) => element.scrollIntoView({ block: "end" }));
+    await shoot(page, "eliminated");
     await page.goto(seasonUrl(league));
-    await expect(page.getByText("Gridiron Gang").first()).toBeVisible();
+    await expect(page.getByText(TEAM_NAMES[0]).first()).toBeVisible();
     await shoot(page, "idea");
-  }
-  if (round === "conference") {
     await page.goto(seasonUrl(league, "/feed"));
-    await expect(page.getByText("Starting my QB")).toBeVisible();
+    await expect(page.getByText("Saquon over Gibbs")).toBeVisible();
     await shoot(page, "feed");
   }
   if (round === "super-bowl") {
     await page.goto(seasonUrl(league));
     await expect(page.getByText(/champion/i).first()).toBeVisible();
     await shoot(page, "champion");
-    await page.getByRole("button", { name: /Start .* season/ }).scrollIntoViewIfNeeded();
-    await shoot(page, "next-season");
   }
   await page.unrouteAll({ behavior: "wait" });
 });

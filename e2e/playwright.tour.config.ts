@@ -64,6 +64,7 @@ export default defineConfig({
       command:
         `until curl -sf ${LIVE_WEB_URL} > /dev/null; do sleep 0.2; done` +
         " && uv run --project api python -m api.scripts.seed_e2e" +
+        " && PYTHONPATH=. uv run --project api python e2e/tour/real_names.py" +
         ` && uv run --project api uvicorn api.main:app --port ${LIVE_API_PORT}`,
       cwd: "..",
       url: `${LIVE_API_URL}/api`,

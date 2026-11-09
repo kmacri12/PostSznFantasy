@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { TOUR_STAGES, TOUR_STEPS } from "../../content/rules";
+import { TOUR_STEPS } from "../../content/rules";
 import TourViewer from "./TourViewer";
 
 describe("TourViewer", () => {
@@ -29,15 +29,7 @@ describe("TourViewer", () => {
     expect(screen.getByRole("heading", { name: TOUR_STEPS[1]?.title })).toBeInTheDocument();
   });
 
-  it("has an image with alt text and a file for every step", () => {
-    for (const step of TOUR_STEPS) {
-      expect(step.alt.length).toBeGreaterThan(10);
-      expect(step.stage === null || step.stage < TOUR_STAGES.length).toBe(true);
-    }
-  });
-
-  it("covers every season stage in order", () => {
-    const stages = TOUR_STEPS.flatMap((step) => (step.stage === null ? [] : [step.stage]));
-    expect(stages).toEqual(TOUR_STAGES.map((_, index) => index));
+  it("has alt text for every step", () => {
+    for (const step of TOUR_STEPS) expect(step.alt.length).toBeGreaterThan(10);
   });
 });
