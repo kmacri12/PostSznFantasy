@@ -7,11 +7,13 @@ import { draftStatusLine } from "../components/league/draftStatusLine";
 import InviteSheet from "../components/settings/InviteSheet";
 import PastSeasonsSheet from "../components/settings/PastSeasonsSheet";
 import ReportProblemSheet from "../components/support/ReportProblemSheet";
+import TourDialog from "../components/tour/TourDialog";
 import {
   HOW_TO_PLAY_LABEL,
   REPORT_PROBLEM_HINT,
   REPORT_PROBLEM_LABEL,
   REPORT_PROBLEM_SENT,
+  TOUR_LABEL,
 } from "../content/rules";
 import { useSeasonContext } from "../contexts/SeasonContext";
 import { useUser } from "../contexts/UserContext";
@@ -89,7 +91,7 @@ const MorePage = () => {
   const { signOutUser } = useUser();
   const league = useUserLeagues(true).data?.find((item) => item.id === leagueId);
   const pastSeasons = (league?.seasons ?? []).filter((item) => !item.current).reverse();
-  const [sheet, setSheet] = useState<"past" | "invite" | "report" | null>(null);
+  const [sheet, setSheet] = useState<"past" | "invite" | "report" | "tour" | null>(null);
   const [sent, setSent] = useState(false);
 
   return (
@@ -110,6 +112,7 @@ const MorePage = () => {
       </Group>
       <Group label="Help">
         <Row to="/how-to-play" title={HOW_TO_PLAY_LABEL} />
+        <Row title={TOUR_LABEL} hint="A minute, in pictures" onClick={() => setSheet("tour")} />
         <Row
           title={REPORT_PROBLEM_LABEL}
           hint={REPORT_PROBLEM_HINT}
@@ -126,6 +129,7 @@ const MorePage = () => {
           Sign out
         </Box>
       </Group>
+      {sheet === "tour" && <TourDialog onClose={() => setSheet(null)} />}
       {sheet === "past" && (
         <PastSeasonsSheet
           leagueId={leagueId}

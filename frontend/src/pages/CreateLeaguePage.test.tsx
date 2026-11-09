@@ -87,7 +87,11 @@ describe("CreateLeaguePage short path", () => {
     fireEvent.click(screen.getByRole("button", { name: "More teams" }));
     fireEvent.click(screen.getByRole("button", { name: "Create league" }));
 
-    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith("/leagues/70"));
+    await waitFor(() =>
+      expect(mockNavigate).toHaveBeenCalledWith("/leagues/70", {
+        state: { createdLeague: true },
+      }),
+    );
     const body = mockPost.mock.calls[0]?.[1];
     expect(body).toMatchObject({
       leagueName: "Pals",

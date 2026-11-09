@@ -110,7 +110,7 @@ const OptInSheet = ({ onClose }: SheetProps) => {
  * signing in and right after joining a league. Creating a league never triggers it, and the
  * device's two-prompt cap (utils/notificationPrompt.ts) is enforced before anything opens.
  */
-const NotificationOptIn = () => {
+const NotificationOptIn = ({ hold = false }: { hold?: boolean }) => {
   const { userId } = useUser();
   const { pathname, state } = useLocation();
   const [pending, setPending] = useState(false);
@@ -140,6 +140,7 @@ const NotificationOptIn = () => {
 
   const ready =
     pending &&
+    !hold &&
     !active &&
     !finishedThisVisit &&
     userId !== null &&
