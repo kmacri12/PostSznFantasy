@@ -365,6 +365,14 @@ export const useDeleteLeague = (leagueId: Id | undefined) => {
   });
 };
 
+/** Delete the signed-in member's account (#330); the API says which league needs a new commissioner. */
+export const useDeleteAccount = () =>
+  useMutation({
+    mutationFn: async () => {
+      await api.delete("/api/auth/me");
+    },
+  });
+
 /** For callers outside React Query (the draft socket): recheck whether the league still exists. */
 export const useRecheckLeague = () => {
   const queryClient = useQueryClient();

@@ -9,7 +9,10 @@ describe("legal pages", () => {
     render(<PrivacyPage />);
     expect(screen.getByRole("heading", { level: 1, name: /privacy policy/i })).toBeInTheDocument();
     expect(screen.getByText(/email address and, if google provides it, your name/i)).toBeVisible();
-    expect(screen.getByText(/sentry/i)).toBeVisible();
+    expect(screen.getByText(/may be sent to sentry/i)).toBeVisible();
+    expect(screen.getByRole("heading", { name: /gifs/i })).toBeVisible();
+    expect(screen.getByText(/at least 13 years old/i)).toBeVisible();
+    expect(screen.getByText(/open your profile.*delete my account/i)).toBeVisible();
     expect(screen.getByText(/do not sell your data/i)).toBeVisible();
   });
 

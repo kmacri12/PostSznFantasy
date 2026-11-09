@@ -13,6 +13,7 @@ vi.mock("../../contexts/UserContext", () => ({
 }));
 vi.mock("../../api/queries", () => ({
   useSetAvatar: () => ({ mutateAsync: vi.fn(), reset: vi.fn(), error: null }),
+  useDeleteAccount: () => ({ mutate: vi.fn(), isPending: false, error: null }),
 }));
 vi.mock("./ThemeModeRow", () => ({ default: () => <div>Theme row</div> }));
 vi.mock("./NotificationsToggle", () => ({ default: () => <div>Notifications row</div> }));
@@ -53,6 +54,12 @@ describe("ProfileSheet", () => {
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
     await waitFor(() => expect(mocks.updateDisplayName).toHaveBeenCalledWith("Ky"));
     expect(await screen.findByRole("dialog", { name: "Profile settings" })).toHaveTextContent("Ky");
+  });
+
+  it("opens the delete-account confirmation from its own row", () => {
+    render(<ProfileSheet user={user} onSignOut={vi.fn()} onClose={vi.fn()} />);
+    fireEvent.click(screen.getByRole("button", { name: "Delete my account" }));
+    expect(screen.getByText("This is permanent and cannot be undone.")).toBeInTheDocument();
   });
 
   it("closes the sheet, then signs out", () => {
