@@ -16,7 +16,7 @@ export const SeasonNotices = ({ season }: { season: SeasonOverview }) => (
       <Alert severity="info">
         {season.finished
           ? `You didn't have a team in the ${season.year} season.`
-          : `You don't have a team in the ${season.year} season yet. Ask your commissioner to give you one.`}
+          : `You don't have a team in the ${season.year} season yet. Your commissioner can give you one from a team's settings.`}
       </Alert>
     )}
     {season.finished && season.openSpots > 0 && (

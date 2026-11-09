@@ -253,6 +253,7 @@ const LEAGUE_DATA_KEYS = [
   "season",
   "settings",
   "teams",
+  "team",
   "standings",
   "invite",
   "draft",

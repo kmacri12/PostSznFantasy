@@ -54,6 +54,7 @@ vi.mock("../api/queries", () => ({
   useStandings: () => ({ data: { teams: [{ teamId: 7, rank: 2, total: 71.6 }] } }),
   usePlayerSeasonLine: () => ({ isPending: false, data: null }),
   useMoveInLineup: () => ({ mutate: vi.fn(), reset: vi.fn(), error: null, isPending: false }),
+  useLeagueInfo: () => ({ data: undefined }),
   useRenameTeam: () => ({ mutateAsync: vi.fn(), error: null, isPending: false }),
   useSetAvatar: () => ({ mutateAsync: vi.fn(), reset: vi.fn(), error: null }),
 }));
