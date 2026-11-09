@@ -34,7 +34,8 @@ const InviteSheet = ({ leagueId, onClose }: { leagueId: number; onClose: () => v
         </Box>
       ) : (
         <Typography color="text.secondary">
-          No active invite. Create one to let people join.
+          No active invite. The old link no longer works (it is retired when a member is removed or
+          revoked). Regenerate it to let people join.
         </Typography>
       )}
       <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
@@ -54,7 +55,7 @@ const InviteSheet = ({ leagueId, onClose }: { leagueId: number; onClose: () => v
           disabled={regenerate.isPending}
           onClick={() => regenerate.mutate()}
         >
-          {code ? "Regenerate" : "Create invite"}
+          {code ? "Regenerate" : "Regenerate invite"}
         </Button>
         {code && (
           <Button

@@ -414,11 +414,9 @@ async def test_rejoining_after_leaving_takes_one_team_only(
         first = (await newbie.post(f"/api/invites/{code}/join")).json()
     newbie_user = await db.scalar(select(User).where(User.supabase_uid == "newbie"))
     assert newbie_user is not None
-    async with client_as("uid-0") as commissioner:
-        removed = await commissioner.delete(
-            f"/api/leagues/{league_id}/members/{newbie_user.id}"
-        )
-    assert removed.status_code == 200
+    async with client_as("newbie") as newbie:
+        left = await newbie.delete(f"/api/leagues/{league_id}/members/{newbie_user.id}")
+    assert left.status_code == 204
     async with client_as("newbie") as newbie:
         second = (await newbie.post(f"/api/invites/{code}/join")).json()
     assert second["alreadyMember"] is False
@@ -445,3 +443,60 @@ async def test_preview_lists_member_names_and_no_emails(
     assert preview["openSpots"] == 1
     assert preview["full"] is False
     assert "@" not in response.text
+
+
+async def test_a_member_can_leave_but_not_remove_others(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    season, users, _, _ = await make_season(db, draft_status="scheduled")
+    base = f"/api/leagues/{season.league_id}/members"
+    async with client_as("uid-1") as member:
+        other = await member.delete(f"{base}/{users[0].id}")
+        left = await member.delete(f"{base}/{users[1].id}")
+        after = await member.get(f"/api/leagues/{season.league_id}")
+    assert other.status_code == 403
+    assert left.status_code == 204
+    assert after.status_code == 403
+    row = await db.get(LeagueMember, (season.league_id, users[1].id))
+    await db.refresh(row)
+    assert row is not None and row.left_at is not None
+
+
+async def test_leaving_keeps_the_invite_link(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    season, users, _, _ = await make_season(db, draft_status="scheduled")
+    league_id = season.league_id
+    async with client_as("uid-0") as commissioner:
+        code = (
+            await commissioner.post(f"/api/leagues/{league_id}/invite", json={})
+        ).json()["code"]
+    async with client_as("uid-1") as member:
+        await member.delete(f"/api/leagues/{league_id}/members/{users[1].id}")
+    async with client_as("uid-0") as commissioner:
+        assert (await commissioner.get(f"/api/leagues/{league_id}/invite")).json()[
+            "code"
+        ] == code
+
+
+async def test_removing_a_member_revokes_the_invite_link(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    season, users, _, _ = await make_season(db, draft_status="scheduled")
+    league_id = season.league_id
+    async with client_as("uid-0") as commissioner:
+        code = (
+            await commissioner.post(f"/api/leagues/{league_id}/invite", json={})
+        ).json()["code"]
+        removed = await commissioner.delete(
+            f"/api/leagues/{league_id}/members/{users[1].id}"
+        )
+        assert removed.status_code == 200
+        assert (
+            await commissioner.get(f"/api/leagues/{league_id}/invite")
+        ).json() is None
+    async with client_as("uid-1") as removed_user:
+        preview = await removed_user.get(f"/api/invites/{code}")
+        join = await removed_user.post(f"/api/invites/{code}/join")
+    assert preview.json()["joinable"] is False
+    assert join.status_code >= 400

@@ -20,6 +20,7 @@ import DeleteLeagueDialog from "../components/settings/DeleteLeagueDialog";
 import { valuesEqual } from "../components/settings/dirty";
 import EditTextSheet from "../components/settings/EditTextSheet";
 import InviteSheet from "../components/settings/InviteSheet";
+import LeaveLeagueDialog from "../components/settings/LeaveLeagueDialog";
 import MembersSheet from "../components/settings/MembersSheet";
 import PostseasonForm from "../components/settings/PostseasonForm";
 import RosterForm from "../components/settings/RosterForm";
@@ -43,6 +44,7 @@ type Sheet =
   | "members"
   | "invite"
   | "delete"
+  | "leave"
   | null;
 
 const PICTURE_FAILURE = "Couldn't save the picture. Try again.";
@@ -216,12 +218,17 @@ function SettingsPage() {
             {isCommissioner && (
               <SettingsRow
                 label="Invite link"
-                value={activeInvite ? "Active" : "None"}
+                value={activeInvite ? "Active" : "None, regenerate"}
                 onClick={() => setSheet("invite")}
               />
             )}
           </SettingsCard>
 
+          {!season.isFormerMember && (
+            <SettingsCard danger>
+              <SettingsRow label="Leave league" danger centered onClick={() => setSheet("leave")} />
+            </SettingsCard>
+          )}
           {isCommissioner && (
             <SettingsCard danger>
               <SettingsRow
@@ -328,6 +335,18 @@ function SettingsPage() {
           members={info.members}
           currentUserId={userId}
           readOnly={!isCommissioner}
+          onClose={close}
+        />
+      )}
+      {sheet === "leave" && info && (
+        <LeaveLeagueDialog
+          leagueId={leagueId}
+          userId={userId}
+          leagueName={info.name}
+          onlyCommissioner={
+            isCommissioner && info.members.filter((m) => m.role === "commissioner").length === 1
+          }
+          onOpenMembers={() => setSheet("members")}
           onClose={close}
         />
       )}
