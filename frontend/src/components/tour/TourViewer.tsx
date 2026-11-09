@@ -96,6 +96,11 @@ const TourViewer = ({ onFinish, fill = false }: Props) => {
           {step.title}
         </Typography>
         <Typography color="text.secondary">{step.caption}</Typography>
+        {step.emphasis && (
+          <Typography sx={{ mt: 0.5, fontWeight: 700, color: "primary.main" }}>
+            {step.emphasis}
+          </Typography>
+        )}
       </Box>
       <Box sx={{ display: "flex", alignItems: "center", gap: 1, width: "100%", maxWidth: 375 }}>
         <Button

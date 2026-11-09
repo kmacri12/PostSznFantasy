@@ -24,7 +24,7 @@ test.describe("first-run tour", () => {
     ).toBeVisible();
     await expect(tour.getByRole("img", { name: /league standings/ })).toBeVisible();
     await tour.getByRole("button", { name: "Next" }).click();
-    await expect(tour.getByRole("heading", { name: "Invite your league" })).toBeVisible();
+    await expect(tour.getByRole("heading", { name: "Draft once" })).toBeVisible();
     await tour.getByRole("button", { name: "Skip" }).click();
     await expect(tour).toBeHidden();
 
@@ -36,7 +36,7 @@ test.describe("first-run tour", () => {
 
     await page.goto(seasonUrl(league, "/more"));
     await page.getByRole("button", { name: "Take the tour" }).click();
-    for (let step = 0; step < 6; step++) await tour.getByRole("button", { name: "Next" }).click();
+    for (let step = 0; step < 5; step++) await tour.getByRole("button", { name: "Next" }).click();
     await expect(tour.getByRole("heading", { name: "A champion and awards" })).toBeVisible();
     await tour.getByRole("button", { name: "Got it" }).click();
     await expect(tour).toBeHidden();
@@ -63,7 +63,7 @@ test.describe("first-run tour", () => {
       inline.getByRole("heading", { name: "Fantasy for the playoffs only" }),
     ).toBeVisible();
     await inline.getByRole("button", { name: "Next" }).click();
-    await expect(inline.getByRole("heading", { name: "Invite your league" })).toBeVisible();
+    await expect(inline.getByRole("heading", { name: "Draft once" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "The four rounds" })).toBeVisible();
   });
 

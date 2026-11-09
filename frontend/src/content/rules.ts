@@ -134,13 +134,15 @@ export const TOUR_SKIP = "Skip";
 export const TOUR_BACK = "Back";
 export const TOUR_NEXT = "Next";
 export const TOUR_DONE = "Got it";
-export const TOUR_FOOTNOTE = "Sample league and sample players. Yours will look like this.";
+export const TOUR_FOOTNOTE = "A real league\u2019s playoffs. Yours will look like this.";
 
 export interface TourStep {
   /** Also the capture's file name: `public/tour/<id>.jpg`. */
   id: string;
   title: string;
   caption: string;
+  /** A line set apart from the caption, for the one thing not to miss. */
+  emphasis?: string;
   /** What the screen shows, for people who cannot see it. */
   alt: string;
 }
@@ -154,45 +156,37 @@ export const TOUR_STEPS: TourStep[] = [
     alt: "The league standings during the playoffs: each team's total, this round's points and how many players it has left.",
   },
   {
-    id: "pre-draft",
-    title: "Invite your league",
-    caption:
-      "The commissioner shares a link. Everyone takes a team slot and starts at zero until the draft.",
-    alt: "A new league with an invite link to copy and an open team slot in the standings.",
-  },
-  {
     id: "draft",
     title: "Draft once",
-    caption:
-      "One snake draft before the first Wild Card kickoff, from players on the playoff teams. The board fills in as picks are made.",
-    alt: "The draft board with the first picks of a four-team snake draft.",
+    caption: "One draft before the first Wild Card kickoff, from players on the playoff teams.",
+    emphasis: "Choose carefully: there are no waivers or free agency.",
+    alt: "The draft board with the picks of a six-team draft.",
   },
   {
     id: "wild-card",
     title: "Set your lineup",
-    caption:
-      "In the Wild Card round everyone is still alive. Place your players yourself each round: only starters score, and a player locks when their game kicks off.",
-    alt: "A team page during Wild Card weekend with a full lineup scoring live.",
+    caption: "In the Wild Card round everyone is still alive, but pay attention to who has a bye.",
+    alt: "A team page during Wild Card weekend with a full lineup, including players on a bye.",
   },
   {
     id: "eliminated",
-    title: "Teams go out, players too",
+    title: "Eliminations",
     caption:
-      "When a real team loses, its players are eliminated. Here both running backs were Chiefs, so the running back slot is empty for the Divisional round. Fill it if you have anyone left.",
-    alt: "A team page for the Divisional round with an empty running back slot and the two eliminated running backs listed below.",
+      "When a real team loses, its players are eliminated. Your filled starting spots fade away throughout the playoffs.",
+    alt: "A team page for a later round with empty starting spots and eliminated players listed below.",
   },
   {
     id: "feed",
     title: "The Feed",
     caption:
-      "Joins, the draft, commissioner changes and your league's chat land in one place, with a dot on the tab when something is new.",
-    alt: "The Feed: league events followed by members chatting about their picks.",
+      "Chats and important updates in one place, with a dot on the tab when something is new.",
+    alt: "The Feed: league updates followed by members chatting about their picks.",
   },
   {
     id: "champion",
     title: "A champion and awards",
     caption:
-      "When the Super Bowl ends, the highest total wins. Awards honor the best players, picks and busts.",
+      "Points add up over all four rounds. After the Super Bowl, the team with the most total points wins. Awards honor the best players, picks and busts.",
     alt: "The finished season: the champion card, then the awards.",
   },
 ];

@@ -15,8 +15,9 @@ process.env.E2E_API_URL = LIVE_API_URL;
 // Virtual seconds per real second. The fixture games are spaced six virtual hours apart,
 // so at this speed a game takes ~6s and the next one starts ~4.5s after it ends.
 const REPLAY_SPEED = 2000;
-const REPLAY_FILE =
-  process.env.TOUR_REPLAY_FILE ?? path.resolve(import.meta.dirname, "fixtures/replay.json");
+// run.mjs builds the real league's seed and replay into TOUR_FIXTURES_DIR first.
+const FIXTURES_DIR = process.env.TOUR_FIXTURES_DIR ?? "";
+const REPLAY_FILE = path.join(FIXTURES_DIR, "replay.json");
 
 // Replay mode: the real poll, scoring and elimination code runs against saved box scores,
 // with no RapidAPI calls. The API process starts the replay clock, so it is started fresh.
@@ -25,7 +26,7 @@ export default defineConfig({
   workers: 1,
   forbidOnly: !!process.env.CI,
   retries: 0,
-  timeout: 240_000,
+  timeout: 900_000,
   reporter: process.env.CI
     ? [["list"], ["html", { open: "never", outputFolder: "playwright-report-tour" }]]
     : "list",
@@ -64,7 +65,6 @@ export default defineConfig({
       command:
         `until curl -sf ${LIVE_WEB_URL} > /dev/null; do sleep 0.2; done` +
         " && uv run --project api python -m api.scripts.seed_e2e" +
-        " && PYTHONPATH=. uv run --project api python e2e/tour/real_names.py" +
         ` && uv run --project api uvicorn api.main:app --port ${LIVE_API_PORT}`,
       cwd: "..",
       url: `${LIVE_API_URL}/api`,
@@ -76,7 +76,8 @@ export default defineConfig({
         CORS_ORIGINS: LIVE_WEB_URL,
         ENVIRONMENT: "test",
         TEST_AUTH_STUB: "true",
-        PLAYOFF_FIELD_SIZE: "8",
+        E2E_FIXTURES_DIR: FIXTURES_DIR,
+        PLAYOFF_FIELD_SIZE: "14",
         LOG_FORMAT: "console",
         SCHEDULER_ENABLED: "true",
         SCHEDULER_REPLAY_FILE: REPLAY_FILE,
