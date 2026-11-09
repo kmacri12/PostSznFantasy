@@ -1,6 +1,6 @@
 """league_notes
 
-Adds the free-text league notes the commissioner edits (buy-in, prizes, house rules).
+Adds the free-text league notes the commissioner edits (house rules, welcome message).
 
 Revision ID: 0011_league_notes
 Revises: 0010_drop_tiebreaker

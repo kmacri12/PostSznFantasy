@@ -8,9 +8,10 @@ const SECTIONS: LegalSection[] = [
     ],
   },
   {
-    heading: "Not gambling",
+    heading: "Free game, no money",
     body: [
-      "There are no entry fees, no prizes handled by this site, and no real-money wagering. Do not use PostSzn to run a paid contest.",
+      "PostSzn is a free game played for fun. Nothing is required to be bought, and the site offers no prizes of value and no real-money gaming.",
+      "We do not handle, support, facilitate or help with anything related to money, including entry fees, buy-ins, prizes, wagering or payouts. If members of a league arrange anything of value among themselves, they do so entirely on their own, they alone are responsible for it and for following the laws that apply to them, and PostSzn takes no part in it. Void where prohibited.",
     ],
   },
   {
@@ -40,7 +41,7 @@ const SECTIONS: LegalSection[] = [
 ];
 
 const TermsPage = () => (
-  <LegalDocument title="Terms of Service" updated="October 2026" sections={SECTIONS} />
+  <LegalDocument title="Terms of Service" updated="November 2026" sections={SECTIONS} />
 );
 
 export default TermsPage;

@@ -11,7 +11,7 @@ import {
 } from "../../content/rules";
 import { mutationError } from "../common/friendlyError";
 
-/** Free text for buy-in, prizes and house rules: commissioners edit it, everyone reads it. */
+/** Free text for house rules and a welcome message: commissioners edit it, everyone reads it. */
 const LeagueNotes = ({ league }: { league: LeagueInfo }) => {
   const isCommissioner = league.myRole === "commissioner";
   const [open, setOpen] = useState(false);
