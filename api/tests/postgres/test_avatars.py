@@ -1,6 +1,11 @@
 """Profile, league and team pictures (#316): who may set them, limits, serving."""
 
+from datetime import UTC, datetime
+from io import BytesIO
+from typing import Any
+
 import pytest
+from PIL import Image
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.core.config import get_settings
@@ -8,18 +13,29 @@ from api.services import avatars
 from api.tests.postgres.conftest import ClientFactory
 from api.tests.postgres.factories import make_season
 
-PNG = b"\x89PNG\r\n\x1a\n" + b"\x00" * 64
-JPEG = b"\xff\xd8\xff\xe0" + b"\x00" * 64
-WEBP = b"RIFF\x00\x00\x00\x00WEBP" + b"\x00" * 32
+
+def _image(kind: str, size: tuple[int, int] = (64, 64), **save: Any) -> bytes:
+    out = BytesIO()
+    Image.new("RGB", size, (200, 30, 30)).save(out, kind, **save)
+    return out.getvalue()
+
+
+PNG = _image("PNG")
+JPEG = _image("JPEG")
+WEBP = _image("WEBP")
 GIF = b"GIF89a" + b"\x00" * 32
 
 
 class MemoryStore:
     def __init__(self) -> None:
         self.objects: dict[str, bytes] = {}
+        self.created: dict[str, datetime] = {}
 
     async def put(self, key: str, data: bytes, content_type: str) -> None:
         self.objects[key] = data
+
+    async def list_objects(self) -> list[tuple[str, datetime]]:
+        return [(key, self.created.get(key, datetime.now(UTC))) for key in self.objects]
 
     async def get(self, key: str) -> bytes | None:
         return self.objects.get(key)
@@ -50,14 +66,61 @@ async def test_a_member_sets_and_replaces_their_picture(
         assert url.startswith("/api/avatars/")
         served = await client.get(url)
         assert served.status_code == 200
-        assert served.content == PNG
-        assert served.headers["content-type"] == "image/png"
-        assert "immutable" in served.headers["cache-control"]
+        assert served.content == next(iter(store.objects.values()))
+        assert served.headers["content-type"] == "image/webp"
+        assert served.headers["cache-control"].startswith("private")
 
         second = await _put(client, "/api/avatars/me", JPEG)
         assert second.json()["avatarUrl"] != url
         assert len(store.objects) == 1
         assert (await client.get(url)).status_code == 404
+
+
+async def test_the_stored_copy_is_a_small_webp_without_location_metadata(
+    db: AsyncSession, client_as: ClientFactory, store: MemoryStore
+) -> None:
+    exif = Image.Exif()
+    exif[0x010F] = "SecretPhone"
+    exif[0x8825] = {1: "N", 2: (40.0, 26.0, 46.0), 3: "W", 4: (79.0, 58.0, 56.0)}
+    photo = _image("JPEG", (2000, 1000), exif=exif)
+    assert b"SecretPhone" in photo
+    await make_season(db, teams=2)
+    async with client_as("uid-1") as client:
+        response = await _put(client, "/api/avatars/me", photo)
+    assert response.status_code == 200
+    [stored] = store.objects.values()
+    assert b"SecretPhone" not in stored
+    with Image.open(BytesIO(stored)) as image:
+        assert image.format == "WEBP"
+        assert max(image.size) == 512
+        assert not image.getexif()
+
+
+async def test_bytes_that_only_look_like_an_image_are_refused(
+    db: AsyncSession, client_as: ClientFactory, store: MemoryStore
+) -> None:
+    await make_season(db, teams=2)
+    async with client_as("uid-1") as client:
+        response = await _put(
+            client, "/api/avatars/me", b"\x89PNG\r\n\x1a\n" + b"\x00" * 64
+        )
+    assert response.status_code == 422
+    assert store.objects == {}
+
+
+async def test_orphaned_objects_are_swept_but_referenced_and_new_ones_stay(
+    db: AsyncSession, client_as: ClientFactory, store: MemoryStore
+) -> None:
+    await make_season(db, teams=2)
+    async with client_as("uid-1") as client:
+        kept = (await _put(client, "/api/avatars/me", PNG)).json()["avatarUrl"]
+    kept_key = kept.rsplit("/", 1)[1]
+    store.objects["a" * 32] = b"orphan"
+    store.objects["b" * 32] = b"orphan too"
+    store.created["a" * 32] = datetime(2020, 1, 1, tzinfo=UTC)
+    # b was just uploaded and its row may not have committed yet.
+    assert await avatars.prune_orphans(db) == 1
+    assert set(store.objects) == {kept_key, "b" * 32}
 
 
 async def test_login_and_members_carry_the_picture(

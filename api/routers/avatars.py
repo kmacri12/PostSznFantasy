@@ -16,6 +16,9 @@ router = APIRouter()
 # The image rides as the raw request body (the browser sends the cropped Blob), so no
 # multipart parsing is involved. Anything past the limit is refused before it is read.
 BODY_SLACK_BYTES = 4096
+# `private` keeps shared caches (a CDN) from holding a removed picture; a browser may
+# still show its own copy for this long after removal (stated in the Privacy Policy).
+CACHE_SECONDS = 24 * 3600
 
 
 class AvatarResponse(BaseSchema):
@@ -71,7 +74,7 @@ async def get_avatar(key: str) -> Response:
     return Response(
         data,
         media_type=content_type,
-        headers={"Cache-Control": "public, max-age=31536000, immutable"},
+        headers={"Cache-Control": f"private, max-age={CACHE_SECONDS}"},
     )
 
 

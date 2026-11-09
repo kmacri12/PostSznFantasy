@@ -28,7 +28,7 @@ const SECTIONS: LegalSection[] = [
   {
     heading: "Pictures",
     body: [
-      "If you set a profile, team or league picture, the cropped image is stored in a private storage bucket run for us by Supabase. Anyone in your leagues can see a picture that appears in a league (your profile picture, your team's picture and the league's picture); someone who is not in your leagues cannot find it without its address. Removing a picture deletes the file.",
+      "If you set a profile, team or league picture, the cropped image is stored in a private storage bucket run for us by Supabase. Anyone in your leagues can see a picture that appears in a league (your profile picture, your team's picture and the league's picture); someone who is not in your leagues cannot find it without its address. We re-save every uploaded picture at a small size, which also drops any location or camera information embedded in the original. Removing a picture deletes the file from storage; a browser that already loaded it may keep showing its own copy for up to a day.",
     ],
   },
   {
