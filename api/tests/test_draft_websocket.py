@@ -222,3 +222,25 @@ def test_picks_on_an_archived_league_are_refused(client: TestClient) -> None:
         reply = ws.receive_json()
     assert (reply["eventType"], reply["code"]) == ("ERROR", "archived")
     make.assert_not_awaited()
+
+
+def test_a_flood_of_messages_closes_the_socket(client: TestClient) -> None:
+    verify, membership, snapshot = as_member()
+    with verify, membership, snapshot, client.websocket_connect(WS_URL) as ws:
+        join(ws)
+        with pytest.raises(WebSocketDisconnect) as exc:
+            for _ in range(100):
+                ws.send_json({"eventType": "PING"})
+            while True:
+                ws.receive_json()
+    assert exc.value.code == 1008
+
+
+def test_an_oversize_message_closes_the_socket(client: TestClient) -> None:
+    verify, membership, snapshot = as_member()
+    with verify, membership, snapshot, client.websocket_connect(WS_URL) as ws:
+        join(ws)
+        ws.send_text("x" * 5000)
+        with pytest.raises(WebSocketDisconnect) as exc:
+            ws.receive_json()
+    assert exc.value.code == 1008

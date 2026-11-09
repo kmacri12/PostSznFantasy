@@ -9,6 +9,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from httpx import ASGITransport, AsyncClient
 
+from api.core.rate_limit import reset_all
 from api.db.session import get_db
 from api.dependencies.auth import get_current_user
 from api.dependencies.league import (
@@ -86,3 +87,8 @@ async def async_client(
         yield client
 
     app.dependency_overrides.clear()
+
+
+@pytest.fixture(autouse=True)
+def _fresh_rate_limits() -> None:
+    reset_all()

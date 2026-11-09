@@ -50,6 +50,8 @@ PostSznFantasy/
 │   │   ├── versions/           # Migration revisions
 │   │   └── env.py              # Alembic environment runner
 │   ├── core/                   # Centralized application configuration
+│   │   ├── rate_limit.py   # In-memory sliding-window `RateLimiter` (single API process, same reasoning as support) and the per-route dependencies: chat 20/min and 200/h, create-league 5/day, join 10/h, avatar PUT 10/h, login 30/min (all per user), invite preview 60/min per IP; 429 with `Retry-After` and a readable `detail`; `SocketThrottle` for the sockets; `reset_all()` runs before every test
+│   │   ├── body_limit.py   # ASGI middleware counting the bytes a handler reads, so chunked bodies hit the cap too (413): 256 KB default, avatar routes 1 MB + slack, support its own cap
 │   │   ├── config.py           # Settings model via pydantic-settings
 │   │   └── logging.py          # Logging setup (JSON/console) + request-ID middleware
 │   ├── db/                     # Async database sessions & models
@@ -317,6 +319,7 @@ Authorization (`api/dependencies/league.py`): `LeagueMember` / `LeagueCommission
 - **Avatars**: images live in a private Supabase Storage bucket (`AVATAR_BUCKET`, default `avatars`) that only the API reads, with `SUPABASE_SERVICE_ROLE_KEY`; the browser never talks to Storage. Tests install `avatars._store_override` or `avatars._transport`; the e2e API uses `AVATAR_LOCAL_DIR` (refused in production). Cropping happens in the browser (`components/avatar/crop.ts`).
 - **Support email**: the More tab's "Report a problem" sends through Resend with its own key (`RESEND_API_KEY`, named `api-support`, separate from Supabase's sign-in key) to `SUPPORT_EMAIL`; inert until both are set. Tests never call Resend: unit tests install `httpx.MockTransport` on `api/services/support._transport`, and the e2e API points `RESEND_API_URL` (refused when `ENVIRONMENT=production`) at `e2e/support/resend-stub.mjs` on :8102. Resend's free plan is 100 emails a day, shared with sign-in codes, so keep the per-user limit low.
 - **Error tracking**: Sentry is inert without `SENTRY_DSN` (API, `api/core/observability.py`) / `VITE_SENTRY_DSN` (SPA, `utils/sentry.ts`, lazy-loaded). `logger.error` forwards to it, so never put PII in error messages; `RapidApiClient` also sends one "Tank01 daily request budget spent" message per UTC day. Extend the scrubbers when adding new fields. See [docs/deploy/sentry.md](docs/deploy/sentry.md).
+- **Abuse limits**: `api/core/rate_limit.py` and `api/core/body_limit.py` (see the core/ entries above). Sockets close with 1008 on a message over 4096 characters or more than 20 messages in 5 seconds (`ws/auth.py` `receive_guarded`; uvicorn also runs with `--ws-max-size 8192`). Limits are per process and forgotten on restart; Cloudflare's rule is the outer layer ([docs/owner/21-rate-limiting.md](docs/owner/21-rate-limiting.md)). Add a new limiter by constructing a `RateLimiter` and a dependency alias beside the others. The SPA shows the 429 `detail` through `friendlyError`.
 - **Centralized Configuration**: All environment variables are strongly typed and accessed via `get_settings()` from `api/core/config.py`.
 
 ### Frontend Patterns

@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Request, Response, status
 from sqlalchemy import select
 
+from api.core.rate_limit import AvatarLimit
 from api.db.models.league import Team
 from api.db.models.user import User
 from api.db.session import DbSession
@@ -76,7 +77,7 @@ async def get_avatar(key: str) -> Response:
 
 @router.put("/avatars/me", response_model=AvatarResponse)
 async def set_my_avatar(
-    request: Request, supabase_uid: CurrentUser, db: DbSession
+    request: Request, supabase_uid: CurrentUser, db: DbSession, _: AvatarLimit
 ) -> AvatarResponse:
     return await _store(await _me(db, supabase_uid), request)
 
@@ -88,7 +89,7 @@ async def clear_my_avatar(supabase_uid: CurrentUser, db: DbSession) -> Response:
 
 @router.put("/leagues/{league_id}/avatar", response_model=AvatarResponse)
 async def set_league_avatar(
-    league_id: int, request: Request, membership: LeagueCommissioner
+    league_id: int, request: Request, membership: LeagueCommissioner, _: AvatarLimit
 ) -> AvatarResponse:
     return await _store(membership.league, request)
 
@@ -114,7 +115,11 @@ async def _team_for_editing(
 
 @router.put("/teams/{team_id}/avatar", response_model=AvatarResponse)
 async def set_team_avatar(
-    team_id: int, request: Request, membership: TeamMember, db: DbSession
+    team_id: int,
+    request: Request,
+    membership: TeamMember,
+    db: DbSession,
+    _: AvatarLimit,
 ) -> AvatarResponse:
     return await _store(await _team_for_editing(db, team_id, membership), request)
 
