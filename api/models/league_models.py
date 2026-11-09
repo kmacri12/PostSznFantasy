@@ -13,6 +13,7 @@ from api.models.enums import (
     PlayerRoundStatus,
     TieRule,
 )
+from api.utils.text import CleanLine, CleanNote
 
 ROSTER_SLOTS_MAX = 20
 ROSTER_TOTAL_MAX = 40
@@ -162,7 +163,7 @@ NOTES_MAX_LENGTH = 5000
 
 
 class LeagueCreate(BaseSchema):
-    league_name: str = Field(min_length=1, max_length=100)
+    league_name: CleanLine = Field(min_length=1, max_length=100)
     roster_settings: RosterSettingsInput = Field(default_factory=RosterSettingsInput)
     scoring_settings: ScoringSettings = Field(default_factory=ScoringSettings)
     postseason_settings: PostseasonSettings = Field(default_factory=PostseasonSettings)
@@ -277,8 +278,8 @@ class LeagueDelete(BaseSchema):
 
 
 class LeagueUpdate(BaseSchema):
-    name: str | None = Field(default=None, min_length=1, max_length=100)
-    notes: str | None = Field(default=None, max_length=NOTES_MAX_LENGTH)
+    name: CleanLine | None = Field(default=None, min_length=1, max_length=100)
+    notes: CleanNote | None = Field(default=None, max_length=NOTES_MAX_LENGTH)
 
 
 class SeasonUpdate(BaseSchema):
@@ -546,7 +547,7 @@ class TeamDetails(BaseSchema):
 
 
 class TeamRename(BaseSchema):
-    name: str = Field(min_length=1, max_length=40)
+    name: CleanLine = Field(min_length=1, max_length=40)
 
 
 class InviteCreate(BaseSchema):

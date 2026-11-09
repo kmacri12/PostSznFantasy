@@ -2,7 +2,7 @@ import logging
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Response, status
-from pydantic import Field
+from pydantic import Field, field_validator
 from sqlalchemy import Boolean, literal_column, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.exc import IntegrityError
@@ -15,6 +15,7 @@ from api.models.auth_models import LoginResponse
 from api.models.base import BaseSchema
 from api.services import account_deletion
 from api.services.avatars import avatar_url
+from api.utils.text import CleanLine
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +23,12 @@ router = APIRouter()
 
 
 class LoginPayload(BaseSchema):
-    username: str | None = Field(default=None, max_length=20)
+    username: CleanLine | None = Field(default=None, max_length=20)
+
+    @field_validator("username")
+    @classmethod
+    def _blank_is_absent(cls, value: str | None) -> str | None:
+        return value or None
 
 
 @router.post("/login", response_model=LoginResponse)
