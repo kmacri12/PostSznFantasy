@@ -1,5 +1,5 @@
 import { Box, Container } from "@mui/material";
-import { lazy, Suspense, useEffect, useRef } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { matchPath, Route, Routes, useLocation } from "react-router-dom";
 import { useApiHealth } from "./api/health";
 import { useUserLeagues } from "./api/queries";
@@ -8,10 +8,12 @@ import SessionExpiredBanner from "./components/auth/SessionExpiredBanner";
 import LoadingState from "./components/common/LoadingState";
 import AppShell from "./components/layout/AppShell";
 import NotificationOptIn from "./components/notifications/NotificationOptIn";
+import FirstRunTour from "./components/tour/FirstRunTour";
 import { useUser } from "./contexts/UserContext";
 import DormantPage from "./pages/DormantPage";
 import HowToPlayPage from "./pages/HowToPlayPage";
 import LandingPage from "./pages/LandingPage";
+import { isTourTrigger, tourSeen } from "./utils/tourSeen";
 
 const CreateLeaguePage = lazy(() => import("./pages/CreateLeaguePage"));
 const DraftBoardPage = lazy(() => import("./pages/DraftBoardPage"));
@@ -39,7 +41,11 @@ function App() {
     wasDormant.current = dormant;
   }, [dormant]);
   const { data: leagues = [] } = useUserLeagues(userId !== null && !dormant);
-  const { pathname } = useLocation();
+  const { pathname, state } = useLocation();
+  const [tourOpen, setTourOpen] = useState(false);
+  // True from the render that sees the join or create until the tour is closed, so the
+  // notification prompt never opens underneath it.
+  const tourHolds = tourOpen || (userId !== null && isTourTrigger(state) && !tourSeen(userId));
   const routeLeagueId = matchPath("/leagues/:leagueId/*", pathname)?.params.leagueId;
   const league = leagues.find((item) => String(item.id) === routeLeagueId);
 
@@ -53,7 +59,8 @@ function App() {
       dormant={dormant}
     >
       <SessionExpiredBanner />
-      {!dormant && <NotificationOptIn />}
+      {!dormant && <FirstRunTour open={tourOpen} onOpenChange={setTourOpen} />}
+      {!dormant && <NotificationOptIn hold={tourHolds} />}
       <Box component="main">
         <Suspense
           fallback={

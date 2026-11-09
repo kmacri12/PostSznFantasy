@@ -10,6 +10,7 @@ import argparse
 import asyncio
 import json
 import logging
+import os
 import time
 from pathlib import Path
 from typing import Any
@@ -22,12 +23,22 @@ from api.core.config import get_settings
 from api.core.logging import setup_logging
 from api.db import session as db_session
 from api.db.models import Base
-from api.db.models.nfl import NFLGame, NFLPlayer, NFLPlayerSeasonStats, NFLTeam
+from api.db.models.nfl import (
+    DepthChartStarter,
+    NFLGame,
+    NFLPlayer,
+    NFLPlayerSeasonStats,
+    NFLTeam,
+)
 from api.services.ingestion.schemas import safe_int
 
 logger = logging.getLogger("seed_e2e")
 
-FIXTURES = Path(__file__).resolve().parents[2] / "e2e" / "fixtures"
+# E2E_FIXTURES_DIR points at another nfl.json: the tour seeds last season's real league.
+FIXTURES = Path(
+    os.environ.get("E2E_FIXTURES_DIR")
+    or Path(__file__).resolve().parents[2] / "e2e" / "fixtures"
+)
 SAFE_DATABASE_SUFFIXES = ("_e2e", "_e2e_live", "_test")
 
 
@@ -100,6 +111,14 @@ async def _load_fixtures() -> None:
         )
         await db.flush()
         db.add_all(_season_stats_row(row) for row in data["seasonStats"])
+        db.add_all(
+            DepthChartStarter(
+                team_id=row["teamId"],
+                position=row["position"],
+                player_id=row["playerId"],
+            )
+            for row in data.get("depthChartStarters", [])
+        )
         db.add_all(
             NFLGame(
                 id=g["gameID"],
