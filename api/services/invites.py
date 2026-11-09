@@ -19,14 +19,18 @@ from api.services import activity
 from api.services.league_admin import draft_has_started
 from api.services.league_members import LeagueFullError, LeagueRuleError
 from api.services.live_leagues import live_league_ids
+from api.services.playoff_field import first_wild_card_kickoff
 from api.services.round_status import season_is_finished
 from api.services.seasons import current_season
 
 # No 0/O/1/I/L so codes survive being read aloud or retyped.
 CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
 CODE_LENGTH = 8
-# A link posted in a group chat should not work forever.
-DEFAULT_INVITE_TTL = timedelta(days=7)
+# A link posted in a group chat should not work forever, but a league is often created
+# weeks before the draft: by default it lasts until drafts close (the first Wild Card
+# kickoff), never less than a week and never more than 60 days.
+MIN_INVITE_TTL = timedelta(days=7)
+MAX_INVITE_TTL = timedelta(days=60)
 
 
 def new_code() -> str:
@@ -41,7 +45,7 @@ def invite_problem(invite: LeagueInvite, now: datetime) -> str | None:
     if invite.revoked:
         return "This invite has been revoked"
     if invite.expires_at is not None and invite.expires_at <= now:
-        return "This invite has expired"
+        return "This invite link has expired. Ask your commissioner for a new link"
     if invite.max_uses is not None and invite.uses >= invite.max_uses:
         return "This invite has reached its usage limit"
     return None
@@ -74,6 +78,13 @@ async def revoke_invites(db: AsyncSession, league_id: int) -> None:
     )
 
 
+async def default_expiry(db: AsyncSession, league_id: int, now: datetime) -> datetime:
+    season = await current_season(db, league_id)
+    cutoff = await first_wild_card_kickoff(db, season.year) if season else None
+    expiry = cutoff or now + MAX_INVITE_TTL
+    return min(max(expiry, now + MIN_INVITE_TTL), now + MAX_INVITE_TTL)
+
+
 async def create_invite(
     db: AsyncSession,
     league_id: int,
@@ -83,11 +94,12 @@ async def create_invite(
 ) -> LeagueInvite:
     """Replace any live invite: regenerating is how a leaked code is retired."""
     await revoke_invites(db, league_id)
+    now = datetime.now(UTC)
     invite = LeagueInvite(
         code=new_code(),
         league_id=league_id,
         created_by=created_by,
-        expires_at=expires_at or datetime.now(UTC) + DEFAULT_INVITE_TTL,
+        expires_at=expires_at or await default_expiry(db, league_id, now),
         max_uses=max_uses,
         uses=0,
         revoked=False,

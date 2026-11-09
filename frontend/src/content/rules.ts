@@ -291,3 +291,6 @@ export const REPORT_PROBLEM_HINT = "Something broken or confusing? Tell us";
 export const REPORT_PROBLEM_ATTACH_NOTE =
   "A screenshot and the diagnostic info each help. Including both gets it fixed faster.";
 export const REPORT_PROBLEM_SENT = "Sent. We'll reply by email.";
+
+export const ACCOUNT_DELETION_SUMMARY =
+  "Your sign-in, email, profile picture and notifications are deleted. Your leagues keep your past teams, picks and chat under the name Former member, and your teams in seasons still under way become open. If you are the only commissioner of a league with other members, hand it over first.";
