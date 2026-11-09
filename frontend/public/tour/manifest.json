@@ -1,0 +1,15 @@
+{
+  "sourceHash": "186eb3c2e4b96e41a5c8b3e0b2d1196f1ab74127fe4699b335d356a4be17a84d",
+  "screens": [
+    "idea",
+    "feed",
+    "pre-draft",
+    "draft",
+    "wild-card",
+    "divisional",
+    "conference",
+    "super-bowl",
+    "champion",
+    "next-season"
+  ]
+}

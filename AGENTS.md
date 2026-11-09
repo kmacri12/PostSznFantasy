@@ -187,13 +187,13 @@ PostSznFantasy/
         │   ├── LandingPage.tsx # Root route: signed out = hero with Sign in and How to play plus the privacy/terms footer; signed in = `YourLeagues` (no redirect, so the logo always reaches it; `dormant` swaps the hero for the off-season notice)
         │   ├── DormantPage.tsx # Dormant-mode notice and fallback for every route except landing, How to play, privacy, terms
         │   ├── CreateLeaguePage.tsx # Short path (name + team count stepper, default rules, Team QB/K off) and an optional "Customize rules" Roster, Scoring, Review wizard
-        │   ├── JoinPage.tsx    # `/join/:code` invite preview (members, open slots), Sign in to join / Join league, full-league state and the 409 `league_full` answer
+        │   ├── JoinPage.tsx    # `/join/:code` invite preview (members, open slots), Sign in to join / Join league, a Take the tour button (works signed out), full-league state and the 409 `league_full` answer
         │   ├── DraftPage.tsx   # The Draft tab: sticky clock bar, commissioner strip, Players / Board / Roster / Queue views (all on screen from `lg` up); once the draft is complete just the league player list
         │   ├── DraftBoardPage.tsx # `/draft/board`: the board on its own, linked from More at any time
-        │   ├── HowToPlayPage.tsx # Plain-language rules page (nav link), copy from src/content/rules.ts
+        │   ├── HowToPlayPage.tsx # The first-run tour inline (`TourViewer`) above the plain-language rules, all copy from src/content/rules.ts
         │   ├── SeasonLayout.tsx # `/leagues/:leagueId` (the current season) and `/leagues/:leagueId/seasons/:year` resolve to a season and provide SeasonContext to the pages below; the long form of the current season redirects (`replace`) to the clean one
         │   ├── FeedPage.tsx    # Feed tab: events and chat oldest-to-newest with the message box pinned above the tab bar, date rows, a "New" divider fixed when the page opens, read-only note in an archived season
-        │   ├── MorePage.tsx    # More tab: Settings, Players (the Draft tab, with the draft status line), Draft board, Past seasons (sheet, only if any), Invite members (sheet, commissioners), How to play, Report a problem (sheet), Sign out
+        │   ├── MorePage.tsx    # More tab: Settings, Players (the Draft tab, with the draft status line), Draft board, Past seasons (sheet, only if any), Invite members (sheet, commissioners), How to play, Take the tour (full-screen `TourDialog`), Report a problem (sheet), Sign out
         │   ├── LeaguePage.tsx  # A season's home: phase block (invite, draft countdown, set your lineup, round progress) or the champion and awards, standings in every phase, collapsible notes, empty-state notices
         │   ├── SettingsPage.tsx# Your settings (everyone) and Commissioner settings (commissioners): rows that open sheets, rules as accordions
         │   ├── TeamPage.tsx    # Any team: header (rank, total), round strip, Starters / Bench / Eliminated for the chosen round, player sheet
@@ -201,6 +201,7 @@ PostSznFantasy/
         ├── components/
         │   ├── home/           # YourLeagues (league cards, Create, invite code, How to play), LeagueCard, leagueSummary (phase tag, rank), PastLeagues, InviteCodeForm, LegalFooter (privacy and terms)
         │   ├── invite/         # InviteMembers (members plus open slots), `inviteView` (sign-in / join / full / unavailable)
+        │   ├── tour/           # TourViewer (swipe or Next/Back through the captured screens, stage bar), TourDialog (full screen on phones, Skip always there), FirstRunTour (opens once per account on this device right after joining or creating a league; `utils/tourSeen.ts`; the notification prompt waits for it)
         │   ├── notifications/  # NotificationOptIn: the one-time push prompt after first sign-in and joining a league (bottom sheet / dialog), mounted once in App
         │   ├── activity/       # ActivityFeed (collapsed, new dot), SlotMarker (override / asterisk), ChangedScore tooltip, describeEvent
         │   ├── feed/           # Feed pieces: `feedView.ts` (timeline rows, "New" divider, event wording), FeedEventRow, MessageRow, Composer (Enter sends with a mouse only), GifPicker, DeleteMessageDialog
@@ -259,6 +260,8 @@ make format     # auto-fix Ruff and Biome
 **Writing stable e2e specs** (full list in [CONTRIBUTING.md](CONTRIBUTING.md#writing-stable-e2e-specs)): `retries` stay 0. When you change UI, grep `e2e/` for the selectors you affected and run those specs before opening a PR. Select by role and exact name (`exact: true`; unique test data can collide with UI strings), wait for loaded state before acting, finish `page.route` specs with `unrouteAll({ behavior: "wait" })`, and never race a timer: the e2e build (`VITE_E2E`, `frontend/src/utils/e2e.ts`) makes MUI transitions instant and freezes the draft confirm window and the refresh toast, so gate any new timer-driven UI on `E2E_BUILD`. `scripts/lint-e2e.sh` (`make lint-e2e`, in CI) fails on `waitForTimeout`, `networkidle`, `page.pause`, `test.only` and `.first()` / `.last()` / `.nth()` without a justifying `//` comment. `make e2e-stress` repeats the suite (`E2E_STRESS_REPEAT=5`); `.github/workflows/e2e-stress.yml` runs it nightly.
 
 The e2e project also starts `e2e/support/resend-stub.mjs` (:8102), a stand-in for Resend that specs read with `GET /sent` and make fail with `PUT /mode`; `RESEND_API_KEY`, `SUPPORT_EMAIL` and `RESEND_API_URL` are set only for that API.
+
+**The first-run tour** (`frontend/src/components/tour`, copy in `TOUR_STEPS` of `content/rules.ts`, screens in `frontend/public/tour/<step id>.jpg`) is built from real screenshots, never drawn by hand. `make tour` (needs `make db-up`, `make e2e-install`; about 5 minutes) drives the seeded e2e stack through `e2e/tour/run.mjs` and `e2e/tour/capture.spec.ts` (three replayed rounds, Wild Card, Conference Championship and Super Bowl, each with a 4-manager league) and rewrites the images and `public/tour/manifest.json`. `make tour-check` (in `make check-web`, so in CI) hashes the source listed in `frontend/tour-sources.json` and fails when a captured screen changed since the last capture. **A PR that touches the League, Team, Draft, Feed, layout, theme or recap screens must run `make tour` and commit the new images**; a tour that shows a design the app no longer has is a bug. Adding or renaming a step means a new capture in `capture.spec.ts` and a new id in `TOUR_STEPS`.
 
 `e2e/live/` is the replay suite (`playwright.live.config.ts`, run by `make e2e` after the main suite): it starts its own API on :8101 with the scheduler in replay mode (`e2e/fixtures/replay.json`, 2000x) against `postszn_e2e_live`, and asserts eliminations land as each replayed game finishes.
 

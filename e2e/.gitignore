@@ -5,3 +5,5 @@ playwright-report/
 .web-dist-live/
 test-results-live/
 playwright-report-live/
+test-results-tour/
+playwright-report-tour/

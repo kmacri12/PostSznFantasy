@@ -1,13 +1,26 @@
 import { Box, Container, Link as MuiLink, Paper, Typography } from "@mui/material";
-import { HOW_TO_PLAY_INTRO, HOW_TO_PLAY_LABEL, HOW_TO_PLAY_SECTIONS } from "../content/rules";
+import TourViewer from "../components/tour/TourViewer";
+import {
+  HOW_TO_PLAY_INTRO,
+  HOW_TO_PLAY_LABEL,
+  HOW_TO_PLAY_SECTIONS,
+  TOUR_RULES_TITLE,
+  TOUR_TITLE,
+} from "../content/rules";
 
-/** The rules in plain language; the copy lives in content/rules.ts. */
+/** The tour first, then the rules in full; all copy lives in content/rules.ts. */
 const HowToPlayPage = () => (
   <Container maxWidth="md" sx={{ py: { xs: 2, sm: 4 } }}>
     <Typography variant="h4" component="h1" gutterBottom>
       {HOW_TO_PLAY_LABEL}
     </Typography>
     <Typography sx={{ mb: 2 }}>{HOW_TO_PLAY_INTRO}</Typography>
+    <Box component="section" aria-label={TOUR_TITLE} sx={{ mb: 3 }}>
+      <TourViewer />
+    </Box>
+    <Typography variant="h5" component="h2" gutterBottom>
+      {TOUR_RULES_TITLE}
+    </Typography>
     <Box
       component="nav"
       aria-label="Sections"

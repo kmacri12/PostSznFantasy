@@ -80,6 +80,9 @@ test.describe("notification opt-in", () => {
 
       await page.getByRole("button", { name: "Join league" }).click();
       await expect(page).toHaveURL(new RegExp(`${seasonUrl(league)}$`));
+      // The first-run tour comes first; the prompt follows once it is closed.
+      await expect(sheet).toBeHidden();
+      await page.getByRole("button", { name: "Skip" }).click();
       await expect(sheet).toBeVisible();
       await page.unrouteAll({ behavior: "wait" });
     });
@@ -94,6 +97,7 @@ test.describe("notification opt-in", () => {
       await page.getByLabel("League name").fill(unique("Created League"));
       await page.getByRole("button", { name: "Create league" }).click();
       await expect(page).toHaveURL(/\/leagues\/\d+$/);
+      await page.getByRole("button", { name: "Skip" }).click();
       await expect(page.getByText("Invite your friends")).toBeVisible();
       await expect(page.getByRole("dialog", { name: PROMPT })).toBeHidden();
       await page.unrouteAll({ behavior: "wait" });
