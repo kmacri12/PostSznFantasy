@@ -5,7 +5,8 @@ import type { LeagueTabLabel } from "./leagueTabs";
 const strokeIcon = (children: React.ReactNode) => (props: SvgIconProps) => (
   <SvgIcon
     {...props}
-    fill="none"
+    // MUI's own `fill: currentColor` rule beats the attribute, so say it in the style.
+    sx={{ fill: "none", ...props.sx }}
     stroke="currentColor"
     strokeWidth={1.8}
     strokeLinecap="round"
@@ -25,8 +26,8 @@ export const TAB_ICONS: Record<LeagueTabLabel, (props: SvgIconProps) => React.Re
   ),
   Draft: strokeIcon(
     <>
-      <rect x="6" y="4" width="12" height="16" rx="2" />
-      <path d="M9 9h6M9 13h6M9 17h3" />
+      <rect x="4" y="4" width="16" height="16" rx="2" />
+      <path d="M9.3 4v16M14.7 4v16M4 9.3h16M4 14.7h16" />
     </>,
   ),
   Feed: strokeIcon(<path d="M4 5h16v11H9l-5 4z" />),
