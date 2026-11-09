@@ -42,7 +42,7 @@ vi.mock("../components/settings/PostseasonForm", () => ({ default: () => null })
 const info = (myRole: LeagueInfo["myRole"]): LeagueInfo => ({
   id: 3,
   name: "Sunday League",
-  notes: "Buy-in is $20.",
+  notes: "House rules: no trading.",
   myRole,
   currentSeasonId: 5,
   canStartSeason: false,
@@ -99,7 +99,7 @@ describe("League settings", () => {
     expect(screen.getByText("League picture")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /^League picture/ })).toBeNull();
     expect(screen.getByText("Sunday League")).toBeInTheDocument();
-    expect(screen.getByText("Buy-in is $20.")).toBeInTheDocument();
+    expect(screen.getByText("House rules: no trading.")).toBeInTheDocument();
     expect(screen.getByText("3 teams")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /^Edit league/ })).toBeNull();
     expect(screen.queryByRole("button", { name: /^Invite link/ })).toBeNull();

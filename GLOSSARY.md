@@ -179,7 +179,7 @@ The step of the tiebreaker chain that put one fantasy team above another with th
 _Avoid_: Tiebreak explanation
 
 **League notes**:
-Free text on the league page for buy-in, prizes and house rules. A commissioner edits it and every member reads it. The app handles no money.
+Free text on the league page for house rules and a welcome message. A commissioner edits it and every member reads it.
 _Avoid_: Rules text, description
 
 ### Oversight

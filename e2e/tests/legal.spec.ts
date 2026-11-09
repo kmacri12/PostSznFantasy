@@ -12,7 +12,7 @@ test.describe("legal pages, signed out", () => {
     await page.getByRole("link", { name: "Terms", exact: true }).click();
     await expect(page).toHaveURL(/\/terms$/);
     await expect(page.getByRole("heading", { level: 1, name: "Terms of Service" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: /not gambling/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /free game, no money/i })).toBeVisible();
   });
 
   test("the sign-in page links to both and neither page scrolls sideways", async ({ page }) => {
