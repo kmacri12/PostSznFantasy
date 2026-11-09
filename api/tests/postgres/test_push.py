@@ -142,7 +142,7 @@ async def test_dead_subscriptions_are_pruned_and_live_ones_kept(
     await _subscribe(db, users[0], CHROME + "alive")
     sender.status_by_endpoint[CHROME + "dead"] = 410
     message = push.PushMessage("t", "b", "/", "tag")
-    assert await push.send_to_users(db, [users[0].id], message) == 1
+    assert await push.send_to_users(db, [users[0].id], message, "draft") == 1
     assert [r.endpoint for r in await _rows(db)] == [CHROME + "alive"]
 
 
@@ -169,7 +169,7 @@ async def test_nothing_is_sent_without_vapid_keys(
     get_settings().vapid_public_key = ""
     assert (
         await push.send_to_users(
-            db, [users[0].id], push.PushMessage("t", "b", "/", "x")
+            db, [users[0].id], push.PushMessage("t", "b", "/", "x"), "draft"
         )
         == 0
     )
@@ -214,6 +214,7 @@ async def test_a_chat_message_notifies_the_other_members_without_its_text(
     db: AsyncSession, sender: FakeSender
 ) -> None:
     season, users, _, _ = await make_season(db, teams=3)
+    await db.execute(update(User).values(push_chat=True))
     await _subscribe(db, users[0], "https://fcm.googleapis.com/send/author")
     await _subscribe(db, users[1], "https://fcm.googleapis.com/send/other")
     await _subscribe(db, users[2], "https://fcm.googleapis.com/send/gone")
@@ -243,6 +244,109 @@ async def test_a_chat_message_notifies_the_other_members_without_its_text(
     message.deleted_at = datetime.now(UTC)
     await push.notify_league_message(db, message.id)
     assert len(sender.sent) == 1
+
+
+async def _chat_message(db: AsyncSession, season: Any, author: User) -> LeagueMessage:
+    message = LeagueMessage(
+        league_id=season.league_id,
+        season_id=season.id,
+        author_user_id=author.id,
+        author_name="Ann",
+        body="hi",
+    )
+    db.add(message)
+    await db.flush()
+    return message
+
+
+async def test_chat_is_off_by_default_and_follows_the_members_choices(
+    db: AsyncSession, sender: FakeSender
+) -> None:
+    season, users, _, _ = await make_season(db, teams=3)
+    await _subscribe(db, users[1], CHROME + "dave")
+    await _subscribe(db, users[2], CHROME + "pat")
+    message = await _chat_message(db, season, users[0])
+
+    await push.notify_league_message(db, message.id)
+    assert sender.sent == []
+
+    await db.execute(update(User).where(User.id == users[1].id).values(push_chat=True))
+    await db.execute(update(User).where(User.id == users[2].id).values(push_chat=True))
+    await db.execute(
+        update(LeagueMember)
+        .where(LeagueMember.user_id == users[2].id)
+        .values(chat_muted=True)
+    )
+    await push.notify_league_message(db, message.id)
+    assert [endpoint for endpoint, _ in sender.sent] == [CHROME + "dave"]
+
+
+async def test_a_burst_of_chat_says_how_many_messages_it_stands_for(
+    db: AsyncSession, sender: FakeSender
+) -> None:
+    season, users, _, _ = await make_season(db, teams=2)
+    await db.execute(update(User).values(push_chat=True))
+    await _subscribe(db, users[1], CHROME + "dave")
+    await _chat_message(db, season, users[0])
+    await _chat_message(db, season, users[0])
+    last = await _chat_message(db, season, users[0])
+
+    await push.notify_league_message(db, last.id)
+
+    [(_, sent)] = sender.sent
+    assert sent.body == "3 new messages in the chat."
+    assert sent.tag == f"chat-{season.id}"
+
+
+async def test_draft_alerts_and_lineup_reminders_can_be_turned_off(
+    db: AsyncSession, sender: FakeSender
+) -> None:
+    season, users, _, _ = await make_season(db, teams=2)
+    await _subscribe(db, users[0], CHROME + "ann")
+    await _subscribe(db, users[1], CHROME + "dave")
+    await db.execute(
+        update(User).where(User.id == users[1].id).values(push_draft_alerts=False)
+    )
+
+    await push.notify_draft_phase(db, season.id, "lobby")
+    assert [endpoint for endpoint, _ in sender.sent] == [CHROME + "ann"]
+
+    message = push.PushMessage(title="t", body="b", url="/", tag="x")
+    assert await push.send_to_users(db, [users[0].id], message, "draft") == 1
+    await db.execute(update(User).values(push_lineup_reminders=False))
+    assert await push.send_to_users(db, [users[0].id], message, "lineup") == 0
+    assert await push.send_to_users(db, [users[0].id], message, "draft") == 1
+
+
+async def test_preferences_round_trip_and_per_league_mute(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    season, _, _, _ = await make_season(db, teams=2)
+    async with client_as("uid-1") as client:
+        first = await client.get("/api/push/preferences")
+        assert first.json() == {
+            "draftAlerts": True,
+            "lineupReminders": True,
+            "chat": False,
+            "mutedLeagueIds": [],
+        }
+        changed = await client.patch(
+            "/api/push/preferences", json={"chat": True, "draftAlerts": False}
+        )
+        assert changed.json()["chat"] is True
+        assert changed.json()["draftAlerts"] is False
+        assert changed.json()["lineupReminders"] is True
+
+        mute = await client.put(
+            f"/api/push/chat-mute/{season.league_id}", json={"muted": True}
+        )
+        assert mute.status_code == 204
+        assert (await client.get("/api/push/preferences")).json()["mutedLeagueIds"] == [
+            season.league_id
+        ]
+        assert (
+            await client.put("/api/push/chat-mute/99999", json={"muted": True})
+        ).status_code == 404
 
 
 async def test_draft_phase_push_reaches_every_active_member(
