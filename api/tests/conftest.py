@@ -4,13 +4,14 @@ import os
 os.environ.setdefault("PG_HOST", "localhost")
 os.environ.setdefault("SUPABASE_URL", "https://test.supabase.co")
 from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from httpx import ASGITransport, AsyncClient
 
 from api.db.session import get_db
-from api.dependencies.auth import get_current_user
+from api.dependencies.auth import get_current_user, get_token_email
 from api.dependencies.league import (
     LeagueMembership,
     get_draft_member,
@@ -25,6 +26,11 @@ def mock_user_id() -> str:
     return "test-supabase-uid-12345"
 
 
+@asynccontextmanager
+async def _savepoint() -> AsyncGenerator[None]:
+    yield
+
+
 @pytest.fixture
 def mock_db_session() -> AsyncMock:
     session = AsyncMock()
@@ -35,6 +41,7 @@ def mock_db_session() -> AsyncMock:
     session.flush = AsyncMock()
     session.refresh = AsyncMock()
     session.close = AsyncMock()
+    session.begin_nested = _savepoint
     return session
 
 
@@ -52,6 +59,7 @@ async def unauthorized_client(
         yield mock_db_session
 
     app.dependency_overrides[get_current_user] = override_get_current_user
+    app.dependency_overrides[get_token_email] = lambda: None
     app.dependency_overrides[get_db] = override_get_db
 
     transport = ASGITransport(app=app)
@@ -73,6 +81,7 @@ async def async_client(
         yield mock_db_session
 
     app.dependency_overrides[get_current_user] = override_get_current_user
+    app.dependency_overrides[get_token_email] = lambda: None
     app.dependency_overrides[get_db] = override_get_db
 
     async def override_member() -> LeagueMembership:

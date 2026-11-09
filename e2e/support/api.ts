@@ -54,7 +54,6 @@ export class Api {
 
   async signUp(username = this.uid): Promise<number> {
     const { userId } = await this.post<{ userId: number }>("/api/auth/login", {
-      email: `${this.uid}@e2e.test`,
       username: username.slice(0, 20),
     });
     return userId;

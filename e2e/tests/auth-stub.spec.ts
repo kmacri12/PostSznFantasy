@@ -5,7 +5,7 @@ import { API_URL } from "../support/env";
 test("the API accepts a stub token and rejects everything else", async ({ request }) => {
   const login = await request.post(`${API_URL}/api/auth/login`, {
     headers: authHeaders("stub-api-user"),
-    data: { email: "stub-api-user@e2e.test", username: "stubby" },
+    data: { username: "stubby" },
   });
   expect(login.ok()).toBe(true);
 

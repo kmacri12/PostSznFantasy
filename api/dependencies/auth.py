@@ -1,4 +1,5 @@
 import logging
+from dataclasses import dataclass
 from functools import lru_cache
 from typing import Annotated
 
@@ -24,8 +25,14 @@ def _get_jwk_client(jwks_url: str) -> PyJWKClient:
     return PyJWKClient(jwks_url, cache_keys=True, lifespan=300)
 
 
-def verify_token(token: str) -> str:
-    """Verify a Supabase JWT using modern asymmetric keys (JWKS) and return its `sub`.
+@dataclass(frozen=True)
+class AuthUser:
+    sub: str
+    email: str | None = None
+
+
+def verify_claims(token: str) -> AuthUser:
+    """Verify a Supabase JWT using modern asymmetric keys (JWKS); return `sub` + email.
 
     Retrieves public signing keys dynamically from Supabase's JWKS endpoint
     (`https://<project-ref>.supabase.co/auth/v1/.well-known/jwks.json`).
@@ -33,7 +40,7 @@ def verify_token(token: str) -> str:
     Raises 401 if the token is malformed, expired, or its signature is invalid.
     """
     if (stub_uid := stub_user_id(token)) is not None:
-        return stub_uid
+        return AuthUser(sub=stub_uid)
 
     settings = get_settings()
 
@@ -66,13 +73,22 @@ def verify_token(token: str) -> str:
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail=INVALID_CREDENTIALS_DETAIL,
             )
-        return str(sub)
+        email = payload.get("email")
+        return AuthUser(
+            sub=str(sub),
+            email=email.strip().lower() if isinstance(email, str) and email else None,
+        )
     except (PyJWTError, PyJWKClientError) as exc:
         logger.warning("Auth failure: invalid or expired token: %s", exc)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=INVALID_CREDENTIALS_DETAIL,
         ) from exc
+
+
+def verify_token(token: str) -> str:
+    """The verified `sub` of a Supabase JWT (see `verify_claims`)."""
+    return verify_claims(token).sub
 
 
 async def get_current_user(
@@ -82,8 +98,18 @@ async def get_current_user(
     return verify_token(credentials.credentials)
 
 
+async def get_token_email(
+    credentials: Annotated[HTTPAuthorizationCredentials, Depends(_bearer)],
+) -> str | None:
+    """The lowercased email claim of the verified token; the only trusted email source.
+
+    None for stub tokens and for tokens without one."""
+    return verify_claims(credentials.credentials).email
+
+
 # Convenience alias so route signatures read: user_id: CurrentUser
 CurrentUser = Annotated[str, Depends(get_current_user)]
+TokenEmail = Annotated[str | None, Depends(get_token_email)]
 
 
 async def require_admin(supabase_uid: CurrentUser) -> str:

@@ -1,5 +1,6 @@
 import type { Session, User as SupabaseUser } from "@supabase/auth-js";
 import { useQueryClient } from "@tanstack/react-query";
+import { isAxiosError } from "axios";
 import type React from "react";
 import {
   createContext,
@@ -44,6 +45,19 @@ interface UserContextType {
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
+
+const UNREACHABLE_MESSAGE =
+  "Couldn't reach the server to finish signing you in. Reload to try again.";
+
+/** The server's own explanation for a 4xx; the generic text only for network errors and 5xx. */
+const loginErrorMessage = (error: unknown): string => {
+  if (isAxiosError(error)) {
+    const status = error.response?.status;
+    const detail = error.response?.data?.detail;
+    if (status && status < 500 && typeof detail === "string" && detail) return detail;
+  }
+  return UNREACHABLE_MESSAGE;
+};
 
 const displayName = (user: SupabaseUser): string =>
   (user.user_metadata?.full_name as string | undefined) ||
@@ -117,7 +131,6 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     let cancelled = false;
     api
       .post<{ userId: number; avatarUrl?: string | null }>("/api/auth/login", {
-        email: user.email,
         username: displayName(user).slice(0, 20),
       })
       .then((response) => {
@@ -129,7 +142,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       .catch((error) => {
         if (cancelled) return;
         logger.error("Error syncing user with backend:", error);
-        setSyncError("Couldn't reach the server to finish signing you in. Reload to try again.");
+        setSyncError(loginErrorMessage(error));
       });
     return () => {
       cancelled = true;
