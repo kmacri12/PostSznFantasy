@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from api.core.config import get_settings
 from api.db.models.nfl import IngestionStatus, NFLGame, NFLTeam
 from api.db.session import get_session_factory
+from api.services.avatars import prune_orphans
 from api.services.draft_reminders import send_draft_start_reminders
 from api.services.eliminations import mark_eliminated_teams
 from api.services.ingestion import (
@@ -319,6 +320,10 @@ async def run_roster_sync() -> None:
     async with get_session_factory()() as db:
         await prune_stale_subscriptions(db)
         await db.commit()
+        try:
+            await prune_orphans(db)
+        except Exception:
+            logger.exception("Avatar orphan sweep failed")
 
 
 async def run_scheduler() -> None:

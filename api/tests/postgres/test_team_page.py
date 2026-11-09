@@ -50,3 +50,26 @@ async def test_owner_and_commissioner_can_rename_others_cannot(
         renamed = await commissioner.patch(url, json={"name": "By Commish"})
     assert renamed.json()["name"] == "By Commish"
     assert (await db.get(type(teams[1]), teams[1].id)).name == "By Commish"  # type: ignore[union-attr]
+
+
+async def test_team_names_are_cleaned_and_unique_within_a_season(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    _, _, teams, _ = await make_season(db, teams=2)
+    async with client_as("uid-0") as commissioner:
+        blank = await commissioner.patch(
+            f"/api/teams/{teams[0].id}", json={"name": "   "}
+        )
+        first = await commissioner.patch(
+            f"/api/teams/{teams[0].id}", json={"name": "  Big   Blue "}
+        )
+        clash = await commissioner.patch(
+            f"/api/teams/{teams[1].id}", json={"name": "big blue"}
+        )
+        again = await commissioner.patch(
+            f"/api/teams/{teams[0].id}", json={"name": "BIG BLUE"}
+        )
+    assert blank.status_code == 422
+    assert first.json()["name"] == "Big Blue"
+    assert clash.status_code == 409
+    assert again.status_code == 200  # keeping or re-casing your own name is fine

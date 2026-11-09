@@ -7,13 +7,19 @@ by `GET /api/avatars/{key}`: the key is an unguessable capability, so <img> tags
 token, and a new upload gets a new key, so responses can be cached forever.
 """
 
+import asyncio
 import logging
 import re
 import uuid
+from datetime import UTC, datetime
+from io import BytesIO
 from pathlib import Path
 from typing import Protocol
 
 import httpx
+from PIL import Image, ImageOps, UnidentifiedImageError
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.core.config import Settings, get_settings
 from api.db.models.league import League, Team
@@ -23,9 +29,19 @@ from api.services.support import ImageType, sniff_image
 logger = logging.getLogger(__name__)
 
 MAX_AVATAR_BYTES = 1024 * 1024
+# Uploads are decoded and re-saved at this size: the stored copy carries no metadata
+# (a direct API client's photo may hold GPS and device tags every member could fetch).
+MAX_DIMENSION = 512
+# A small file can still decode to a huge image; refuse before allocating it.
+MAX_SOURCE_PIXELS = 25_000_000
+STORED_TYPE = "image/webp"
+# Objects younger than this are left alone by the orphan sweep: an upload is stored
+# before its database row commits.
+ORPHAN_MIN_AGE_SECONDS = 24 * 3600
 AVATAR_TYPES = frozenset({"image/png", "image/jpeg", "image/webp"})
 KEY_PATTERN = re.compile(r"^[0-9a-f]{32}$")
 REQUEST_TIMEOUT_SECONDS = 15
+LIST_PAGE = 100
 
 type AvatarOwner = User | League | Team
 
@@ -44,6 +60,8 @@ class AvatarStore(Protocol):
 
     async def delete(self, key: str) -> None: ...
 
+    async def list_objects(self) -> list[tuple[str, datetime]]: ...
+
 
 class LocalAvatarStore:
     def __init__(self, directory: str) -> None:
@@ -59,6 +77,15 @@ class LocalAvatarStore:
 
     async def delete(self, key: str) -> None:
         (self._directory / key).unlink(missing_ok=True)
+
+    async def list_objects(self) -> list[tuple[str, datetime]]:
+        if not self._directory.is_dir():
+            return []
+        return [
+            (path.name, datetime.fromtimestamp(path.stat().st_mtime, UTC))
+            for path in self._directory.iterdir()
+            if path.is_file()
+        ]
 
 
 class SupabaseAvatarStore:
@@ -98,6 +125,30 @@ class SupabaseAvatarStore:
     async def delete(self, key: str) -> None:
         (await self._request("DELETE", key)).raise_for_status()
 
+    async def list_objects(self) -> list[tuple[str, datetime]]:
+        listed: list[tuple[str, datetime]] = []
+        offset = 0
+        list_url = self._object_url.replace("/object/", "/object/list/", 1)
+        while True:
+            async with httpx.AsyncClient(
+                transport=_transport, timeout=REQUEST_TIMEOUT_SECONDS
+            ) as client:
+                response = await client.post(
+                    list_url,
+                    headers=self._headers,
+                    json={"prefix": "", "limit": LIST_PAGE, "offset": offset},
+                )
+            response.raise_for_status()
+            page = response.json()
+            listed += [
+                (item["name"], datetime.fromisoformat(item["created_at"]))
+                for item in page
+                if item.get("created_at")
+            ]
+            if len(page) < LIST_PAGE:
+                return listed
+            offset += LIST_PAGE
+
 
 # Tests install httpx.MockTransport here so Supabase is never called.
 _transport: httpx.AsyncBaseTransport | None = None
@@ -131,13 +182,33 @@ def validate_avatar(data: bytes) -> ImageType:
     return kind
 
 
+def reencode(data: bytes) -> bytes:
+    """Decode the upload and save a fresh WebP of at most 512 px, dropping every tag."""
+    try:
+        with Image.open(BytesIO(data)) as source:
+            width, height = source.size
+            if width * height > MAX_SOURCE_PIXELS:
+                raise AvatarError(422, "That picture is too large. Use a smaller one.")
+            image = ImageOps.exif_transpose(source)
+            image.load()
+    except (UnidentifiedImageError, OSError, Image.DecompressionBombError) as exc:
+        raise AvatarError(422, "We couldn't read that picture. Try another.") from exc
+    image.thumbnail((MAX_DIMENSION, MAX_DIMENSION))
+    if image.mode not in ("RGB", "RGBA"):
+        image = image.convert("RGBA" if "transparency" in image.info else "RGB")
+    out = BytesIO()
+    image.save(out, "WEBP", quality=85)
+    return out.getvalue()
+
+
 async def set_avatar(owner: AvatarOwner, data: bytes) -> None:
-    """Store the picture under a fresh key and drop the previous one."""
-    kind = validate_avatar(data)
+    """Store a re-encoded copy under a fresh key and drop the previous one."""
+    validate_avatar(data)
+    data = await asyncio.to_thread(reencode, data)
     store = get_store()
     key = uuid.uuid4().hex
     try:
-        await store.put(key, data, kind.mime)
+        await store.put(key, data, STORED_TYPE)
     except httpx.HTTPError as exc:
         logger.error("Avatar not stored: %s", type(exc).__name__)
         raise AvatarError(502, "We couldn't save that picture. Try again.") from exc
@@ -174,3 +245,32 @@ async def read_avatar(key: str) -> tuple[bytes, str] | None:
         return None
     kind = sniff_image(data)
     return (data, kind.mime) if kind else None
+
+
+async def prune_orphans(db: AsyncSession, now: datetime | None = None) -> int:
+    """Delete stored objects no profile, team or league points at (a failed delete of a
+    replaced picture leaves one); returns how many."""
+    if not get_settings().avatars_enabled and _store_override is None:
+        return 0
+    now = now or datetime.now(UTC)
+    referenced: set[str] = set()
+    for owner in (User, Team, League):
+        referenced.update(
+            key
+            for key in await db.scalars(
+                select(owner.avatar_key).where(owner.avatar_key.is_not(None))
+            )
+            if key
+        )
+    store = get_store()
+    removed = 0
+    for key, created_at in await store.list_objects():
+        age = (now - created_at).total_seconds()
+        if (
+            KEY_PATTERN.match(key)
+            and key not in referenced
+            and age > ORPHAN_MIN_AGE_SECONDS
+        ):
+            await _forget(store, key)
+            removed += 1
+    return removed

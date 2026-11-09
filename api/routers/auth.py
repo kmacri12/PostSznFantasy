@@ -33,14 +33,17 @@ class NamePayload(BaseSchema):
 
 class LoginPayload(BaseSchema):
     """`username` is the provider's name, used only when the row is first created: later
-    sign-ins never overwrite a name the member chose (PATCH /me changes it)."""
+    sign-ins never overwrite a name the member chose (PATCH /me changes it). A blank one
+    counts as absent."""
 
     username: str | None = None
 
     @field_validator("username")
     @classmethod
     def _clean(cls, value: str | None) -> str | None:
-        return None if value is None else clean_display_name(value)
+        if value is None or not value.strip():
+            return None
+        return clean_display_name(value)
 
 
 @router.post("/login", response_model=LoginResponse)

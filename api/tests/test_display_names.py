@@ -1,3 +1,5 @@
+from unittest.mock import AsyncMock, MagicMock
+
 import pytest
 from httpx import AsyncClient
 
@@ -32,8 +34,20 @@ def test_only_colliding_names_get_a_number() -> None:
 @pytest.mark.parametrize(
     "payload", [{"username": ""}, {"username": "   "}, {"username": "x" * 21}]
 )
-async def test_login_and_rename_validate_the_name(
+async def test_rename_validates_the_name(
     async_client: AsyncClient, payload: dict[str, str]
 ) -> None:
-    assert (await async_client.post("/api/auth/login", json=payload)).status_code == 422
     assert (await async_client.patch("/api/auth/me", json=payload)).status_code == 422
+
+
+async def test_login_refuses_an_overlong_name_and_treats_blank_as_absent(
+    async_client: AsyncClient, mock_db_session: AsyncMock
+) -> None:
+    assert (
+        await async_client.post("/api/auth/login", json={"username": "x" * 21})
+    ).status_code == 422
+    mock_db_session.execute.return_value = MagicMock(
+        one=lambda: (1, None, False, "user_test-sup")
+    )
+    blank = await async_client.post("/api/auth/login", json={"username": "   "})
+    assert blank.status_code == 200
