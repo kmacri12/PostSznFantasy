@@ -15,6 +15,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { api } from "../api/client";
 import { authCallbackUrl, signInPath } from "../utils/authRedirect";
 import { createLogger } from "../utils/logger";
+import { forgetThisDevice, refreshPushSubscription } from "../utils/pushSetup";
 import { supabaseAuth } from "../utils/supabase";
 
 const logger = createLogger("UserContext");
@@ -125,6 +126,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setUserId(response.data.userId);
         setAvatarUrl(response.data.avatarUrl ?? null);
         setSyncError(null);
+        void refreshPushSubscription();
       })
       .catch((error) => {
         if (cancelled) return;
@@ -164,6 +166,8 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const signOutUser = useCallback(async () => {
     deliberateSignOut.current = true;
+    // Needs the session's token, so it runs before the session ends.
+    await forgetThisDevice();
     try {
       await supabaseAuth.signOut();
     } catch (error) {

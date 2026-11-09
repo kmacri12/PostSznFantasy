@@ -10,6 +10,7 @@ import json
 import logging
 from collections.abc import Awaitable, Callable, Iterable
 from dataclasses import asdict, dataclass
+from datetime import UTC, datetime, timedelta
 from typing import Concatenate, Literal
 
 from pywebpush import WebPushException, webpush
@@ -26,6 +27,9 @@ from api.services.live_leagues import live_season_ids
 logger = logging.getLogger(__name__)
 
 GONE_STATUSES = frozenset({404, 410})
+# The SPA refreshes `last_seen` on every sign-in and app load, so a device silent this
+# long is a signed-out or abandoned one whose notifications nobody should still get.
+STALE_AFTER = timedelta(days=60)
 # A pick or a lock reminder that cannot be delivered within this is no longer useful.
 TTL_SECONDS = 15 * 60
 REQUEST_TIMEOUT_SECONDS = 10
@@ -227,3 +231,13 @@ async def notify_league_message(db: AsyncSession, message_id: int) -> None:
             tag=f"chat-{row.season_id}",
         ),
     )
+
+
+async def prune_stale_subscriptions(db: AsyncSession) -> int:
+    """Delete subscriptions not refreshed within `STALE_AFTER`; returns how many."""
+    result = await db.execute(
+        delete(PushSubscription).where(
+            PushSubscription.last_seen < datetime.now(UTC) - STALE_AFTER
+        )
+    )
+    return int(result.rowcount or 0)  # type: ignore[attr-defined]

@@ -21,6 +21,7 @@ from api.services.ingestion import (
 )
 from api.services.ingestion.guard import IngestionBusy, IngestionKind
 from api.services.lineup_reminders import send_lock_reminders
+from api.services.push import prune_stale_subscriptions
 from api.services.replay import ReplayClient, load_replay, virtual_clock
 from api.services.standings import recompute_standings
 from api.utils.rapidapi.rapidapi import RapidApiClient, get_rapidapi_client
@@ -303,9 +304,13 @@ async def run_poll_cycle(
 
 
 async def run_roster_sync() -> None:
-    """Teams and players only: season stats are for the draft, not the live loop."""
+    """Teams and players only (season stats are for the draft, not the live loop), then
+    the stale push subscriptions."""
     async with get_session_factory()() as db:
         await run_full_ingestion_pipeline(db, with_stats=False, with_box_scores=False)
+        await db.commit()
+    async with get_session_factory()() as db:
+        await prune_stale_subscriptions(db)
         await db.commit()
 
 
