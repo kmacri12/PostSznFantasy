@@ -3,8 +3,8 @@
 Players a commissioner assigned by hand to slots that have not come up yet (#332), and
 the activity kind that records every manual assignment.
 
-Revision ID: 0022_draft_reserved_picks
-Revises: 0021_merge_0020_heads
+Revision ID: 0023_draft_reserved_picks
+Revises: 0022_push_preferences
 Create Date: 2026-11-09 12:00:00
 
 """
@@ -16,8 +16,8 @@ from sqlalchemy.dialects import postgresql
 
 from alembic import op
 
-revision: str = "0022_draft_reserved_picks"
-down_revision: str | Sequence[str] | None = "0021_merge_0020_heads"
+revision: str = "0023_draft_reserved_picks"
+down_revision: str | Sequence[str] | None = "0022_push_preferences"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
