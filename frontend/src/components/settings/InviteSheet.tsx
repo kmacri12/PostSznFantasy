@@ -71,7 +71,7 @@ const InviteSheet = ({ leagueId, onClose }: { leagueId: number; onClose: () => v
       {code && (
         <Typography variant="caption" color="text.secondary">
           {expiresAt
-            ? `Expires ${new Date(expiresAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })} (invites last 7 days). `
+            ? `The link works until ${new Date(expiresAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}; regenerate it for a new one. `
             : ""}
           Regenerating retires the old link and code immediately.
         </Typography>
