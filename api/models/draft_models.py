@@ -4,6 +4,7 @@ from pydantic import Field
 
 from api.models.base import BaseSchema
 from api.models.enums import DraftStatus, DraftType, PickTimeoutAction
+from api.models.league_models import PICK_SECONDS_MAX, PICK_SECONDS_MIN
 
 
 class DraftPickResponse(BaseSchema):
@@ -63,7 +64,9 @@ class DraftStateResponse(BaseSchema):
 class DraftSetup(BaseSchema):
     start_time: datetime | None = None
     clear_start_time: bool = False
-    time_per_pick_seconds: int | None = Field(default=None, ge=10, le=86400)
+    time_per_pick_seconds: int | None = Field(
+        default=None, ge=PICK_SECONDS_MIN, le=PICK_SECONDS_MAX
+    )
     draft_type: DraftType | None = None
     pick_timeout_action: PickTimeoutAction | None = None
 

@@ -99,6 +99,7 @@ async def test_create_league_success(
         "rosterSettings": {
             "number_teams": 4,
             "roster_total": 10,
+            "roster_num_bench": 1,
         },
         "scoringSettings": {
             "scoring_passing_td": 6,
