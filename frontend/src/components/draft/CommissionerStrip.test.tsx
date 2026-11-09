@@ -1,6 +1,9 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { MemoryRouter } from "react-router-dom";
 import type { DraftState } from "../../api/types";
+import { SeasonContext } from "../../contexts/SeasonContext";
+import { testSeason } from "../../test/season";
 import CommissionerStrip from "./CommissionerStrip";
 
 const mutate = vi.fn();
@@ -38,7 +41,11 @@ const draft = (overrides: Partial<DraftState> = {}): DraftState =>
 
 const strip = (state: DraftState) =>
   render(
-    <CommissionerStrip draft={state} presence={[]} editingOrder={false} onEditOrder={vi.fn()} />,
+    <MemoryRouter>
+      <SeasonContext.Provider value={testSeason({}, true)}>
+        <CommissionerStrip draft={state} presence={[]} editingOrder={false} onEditOrder={vi.fn()} />
+      </SeasonContext.Provider>
+    </MemoryRouter>,
   );
 
 describe("CommissionerStrip confirmations", () => {
