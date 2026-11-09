@@ -38,4 +38,5 @@ export const formatDraftTime = (iso: string): string =>
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
+    timeZoneName: "short",
   });

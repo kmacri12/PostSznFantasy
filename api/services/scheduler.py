@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from api.core.config import get_settings
 from api.db.models.nfl import IngestionStatus, NFLGame, NFLTeam
 from api.db.session import get_session_factory
+from api.services.draft_reminders import send_draft_start_reminders
 from api.services.eliminations import mark_eliminated_teams
 from api.services.ingestion import (
     ingest_games_list,
@@ -281,6 +282,12 @@ async def run_poll_cycle(
     except Exception:
         await db.rollback()
         logger.exception("Lineup lock reminders failed")
+        sentry_sdk.capture_exception()
+    try:
+        await send_draft_start_reminders(db, datetime.fromtimestamp(now, UTC))
+    except Exception:
+        await db.rollback()
+        logger.exception("Draft start reminders failed")
         sentry_sdk.capture_exception()
     limit = get_settings().rapidapi_daily_request_limit
     logger.info(

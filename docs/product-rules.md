@@ -15,6 +15,7 @@ Each league drafts once, before the Wild Card round, from players on the 14 play
 - Position caps (default QB 2, K 2, DST 2; RB, WR and TE uncapped). Once a team reaches a cap, that position's players are greyed out in its draft pool with a plain-language reason. Auto-pick (queue first, then the highest season fantasy points under the league's scoring) never picks an ineligible player. A team with no owner is auto-picked within a second of coming on the clock; a later joiner inherits its picks.
 - Create-league shows a yellow warning when teams times max-per-position exceeds the 14 available units of a position (QB, K, DST).
 - Roster slots, caps and team count are locked when the draft starts.
+- The scheduled draft time never starts the draft; only a commissioner does (#326). Once it passes, the league page and the draft bar say "Draft time has passed" and that the draft waits for the commissioner (who gets a "Start the draft" button). Draft times show with the viewer's time zone. Members with push on are told about 15 minutes before the time, when the lobby opens, and when the draft starts.
 
 ## 3. Roster and lineup
 
