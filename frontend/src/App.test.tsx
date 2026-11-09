@@ -1,26 +1,29 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App";
 
-const reload = vi.fn();
-Object.defineProperty(window, "location", {
-  value: { ...window.location, reload },
-  writable: true,
-});
-
 const mocks = vi.hoisted(() => ({
   health: "up" as "checking" | "up" | "down",
+  dormant: false,
+  syncError: null as string | null,
+  retrySync: vi.fn(),
   user: null as unknown,
   userId: null as number | null,
 }));
 
-vi.mock("./api/health", () => ({ useApiHealth: () => mocks.health }));
+vi.mock("./api/health", () => ({
+  useApiHealth: () => mocks.health,
+  isDormant: () => mocks.dormant,
+}));
 vi.mock("./api/queries", () => ({ useUserLeagues: () => ({ data: [] }) }));
 vi.mock("./contexts/UserContext", () => ({
   useUser: () => ({
     user: mocks.user,
     userId: mocks.userId,
+    syncError: mocks.syncError,
+    retrySync: mocks.retrySync,
     signIn: vi.fn(),
     signOutUser: vi.fn(),
   }),
@@ -31,18 +34,24 @@ vi.mock("./components/dev/DevQuickSync", () => ({ DevQuickSync: () => null }));
 vi.mock("./pages/NotFoundPage", () => ({ default: () => <div>not found page</div> }));
 vi.mock("./pages/LeaguePage", () => ({ default: () => <div>league page</div> }));
 
-const renderAt = (url: string) =>
-  render(
+const queryClient = new QueryClient();
+const tree = (url: string) => (
+  <QueryClientProvider client={queryClient}>
     <MemoryRouter initialEntries={[url]}>
       <App />
-    </MemoryRouter>,
-  );
+    </MemoryRouter>
+  </QueryClientProvider>
+);
+const renderAt = (url: string) => render(tree(url));
 
 beforeEach(() => {
-  reload.mockClear();
   mocks.health = "up";
+  mocks.dormant = false;
+  mocks.syncError = null;
   mocks.user = null;
   mocks.userId = null;
+  mocks.retrySync.mockClear();
+  vi.restoreAllMocks();
 });
 
 describe("API up", () => {
@@ -58,9 +67,9 @@ describe("API up", () => {
   });
 });
 
-describe("API down (dormant mode)", () => {
+describe("dormant mode (VITE_DORMANT)", () => {
   beforeEach(() => {
-    mocks.health = "down";
+    mocks.dormant = true;
   });
 
   it("shows the off-season notice on the landing page with the legal links", async () => {
@@ -85,19 +94,29 @@ describe("API down (dormant mode)", () => {
   });
 });
 
-describe("recovery", () => {
-  it("reloads once the API comes back so a signed-in user is synced again", async () => {
+describe("API outage", () => {
+  beforeEach(() => {
     mocks.health = "down";
+  });
+
+  it("keeps the page and shows a reconnecting banner instead of the off-season notice", async () => {
+    renderAt("/");
+    expect(await screen.findByText("Reconnecting to PostSzn...")).toBeVisible();
+    expect(screen.queryByText(/back for the next postseason/i)).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Sign in" })).toBeVisible();
+  });
+
+  it("refetches and retries a failed sign-in sync when the API comes back, without a reload", async () => {
+    mocks.syncError = "Couldn't reach the server";
+    const invalidate = vi.spyOn(queryClient, "invalidateQueries");
     const view = renderAt("/");
-    await screen.findByText(/back for the next postseason/i);
-    expect(reload).not.toHaveBeenCalled();
+    await screen.findByText("Reconnecting to PostSzn...");
+    expect(invalidate).not.toHaveBeenCalled();
     mocks.health = "up";
-    view.rerender(
-      <MemoryRouter initialEntries={["/"]}>
-        <App />
-      </MemoryRouter>,
-    );
-    expect(reload).toHaveBeenCalledTimes(1);
+    view.rerender(tree("/"));
+    expect(invalidate).toHaveBeenCalledTimes(1);
+    expect(mocks.retrySync).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText("Reconnecting to PostSzn...")).not.toBeInTheDocument();
   });
 });
 

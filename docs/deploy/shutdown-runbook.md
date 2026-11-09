@@ -1,6 +1,6 @@
 # Shutdown runbook: going dormant after the playoffs (#111)
 
-Run this about a month after the Super Bowl, once leagues are final and nobody is mid-draft. End state: Cloudflare Pages serves the static shell, the Fly machine is stopped, the database is kept, the scheduler and paid NFL data plan are off. The frontend notices the dead API at load and shows the "back for the next postseason" page ([frontend-hosting.md](frontend-hosting.md#dormant-mode-off-season-or-outage)).
+Run this about a month after the Super Bowl, once leagues are final and nobody is mid-draft. End state: Cloudflare Pages serves the static shell, the Fly machine is stopped, the database is kept, the scheduler and paid NFL data plan are off. The frontend shows (once you set `VITE_DORMANT=true` and rebuild, step 6) the "back for the next postseason" page ([frontend-hosting.md](frontend-hosting.md#dormant-mode-off-season-or-outage)).
 
 Who runs it: **you (the owner)**. The steps marked **OWNER** need your Fly, Supabase, GitHub, RapidAPI or UptimeRobot login. Nobody else can do them. Do the steps in order; each ends with a **Verify** line, and a step is done only when it passes. Reverse it with the [wake-up runbook](wake-up-runbook.md). Never paste a secret into chat, a ticket or this repository.
 
@@ -91,7 +91,9 @@ On rapidapi.com, sign in, open your Tank01 NFL API subscription (Hub, "My Apps",
 
 **Verify:** the RapidAPI billing page shows no paid NFL plan and no upcoming charge. Screenshot it with account and card details cropped out, and keep it with the dump.
 
-## 6. Pause the alerts and confirm the shell and dormant page (OWNER, then check)
+## 6. Pause the alerts, turn on dormant mode and confirm the shell (OWNER, then check)
+
+The dormant page is no longer inferred from a dead API: in Cloudflare Pages (Settings, Variables and Secrets, production) set `VITE_DORMANT=true`, then rebuild from Deployments (**Retry deployment**, not a push to `main`, which would also deploy the API). Until then members still see the normal app with a "Reconnecting" banner.
 
 The uptime monitor will email every five minutes otherwise. In UptimeRobot, open the `PostSzn API` monitor and **Pause** it ([uptime-check.md](uptime-check.md)). Sentry stays quiet with no API.
 
@@ -101,7 +103,7 @@ scripts/dormancy-check.sh dormant
 
 Then open `https://postsznfantasy.com` in a private window, on your phone too.
 
-**Verify:** the script prints only PASS lines (static shell 200, deep link 200, API not answering, machine stopped); the browser shows "We're back for the next postseason", the How it works section, and **How to play** still opens. If the browser shows the normal app instead, hard-reload once (the build must include #110).
+**Verify:** the script prints only PASS lines (static shell 200, deep link 200, `/status.json` says dormant, API not answering, machine stopped); the browser shows "We're back for the next postseason", the How it works section, and **How to play** still opens. If the browser shows the normal app instead, hard-reload once and check that `VITE_DORMANT` is `true` on the deployed build.
 
 ## 7. Record the off-season cost and what still runs
 

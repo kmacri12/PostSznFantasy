@@ -48,6 +48,8 @@ Secrets stay stored while the machine is stopped. Check these names exist: `PG_U
 
 **Verify:** `fly machine list` shows `started`, and `curl -s https://api.postsznfantasy.com/api` prints `{"status":"healthy"}` (that endpoint queries the database).
 
+Then turn dormant mode off: in Cloudflare Pages set `VITE_DORMANT=false` (or delete it) and rebuild from Deployments (**Retry deployment**). **Verify:** `scripts/dormancy-check.sh awake` passes, including `/status.json` saying `dormant: false`.
+
 ## 3. Run migrations and confirm the Postgres version (OWNER)
 
 Migrations run by themselves as the release step of **Deploy**, so this happens in step 4. If a restore or version bump needs them earlier:
