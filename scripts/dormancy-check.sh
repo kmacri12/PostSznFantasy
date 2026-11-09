@@ -28,14 +28,23 @@ deep_code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 "$SITE_URL/leag
 [[ $deep_code == 200 ]] && pass "deep link /leagues/1 serves the app (SPA fallback)" \
   || fail "deep link returned $deep_code (expected 200)"
 
+status_json=$(curl -s --max-time 15 "$SITE_URL/status.json") || status_json=""
+if [[ $mode == dormant ]]; then
+  [[ $status_json == *'"dormant":true'* ]] && pass "build is dormant (/status.json: dormant true)" \
+    || fail "/status.json does not say dormant true (got: ${status_json:-nothing}); set VITE_DORMANT=true in Pages and rebuild"
+else
+  [[ $status_json == *'"dormant":false'* ]] && pass "build is awake (/status.json: dormant false)" \
+    || fail "/status.json does not say dormant false (got: ${status_json:-nothing}); set VITE_DORMANT=false in Pages and rebuild"
+fi
+
 api_body=$(curl -s --max-time 15 -w '\n%{http_code}' "$API_URL/api") || api_body=$'\n000'
 api_code=${api_body##*$'\n'}
 if [[ $mode == awake ]]; then
   [[ $api_code == 200 && $api_body == *healthy* ]] && pass "API health is 200 healthy" \
     || fail "API health returned $api_code (expected 200 healthy)"
 else
-  [[ $api_code != 2* ]] && pass "API health is not 2xx ($api_code), so the SPA shows the dormant page" \
-    || fail "API still answers $api_code; the dormant page will not show"
+  [[ $api_code != 2* ]] && pass "API health is not 2xx ($api_code), so nothing is serving" \
+    || fail "API still answers $api_code; the machine is still serving"
 fi
 
 if command -v fly >/dev/null 2>&1; then

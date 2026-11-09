@@ -32,6 +32,8 @@ interface UserContextType {
   sessionExpired: boolean;
   /** Set when the backend login sync fails, so the UI can say why nothing loads. */
   syncError: string | null;
+  /** Repeats the backend login sync after it failed, e.g. once the API is reachable again. */
+  retrySync: () => void;
   /** Opens the sign-in screen and returns here afterwards. */
   signIn: () => void;
   signInWithGoogle: (next: string) => Promise<string | null>;
@@ -85,6 +87,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [loading, setLoading] = useState(true);
   const [syncError, setSyncError] = useState<string | null>(null);
   const [sessionExpired, setSessionExpired] = useState(false);
+  const [syncAttempt, setSyncAttempt] = useState(0);
   const deliberateSignOut = useRef(false);
   const hadUser = useRef(false);
   const queryClient = useQueryClient();
@@ -149,7 +152,9 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return () => {
       cancelled = true;
     };
-  }, [supabaseUid]);
+  }, [supabaseUid, syncAttempt]);
+
+  const retrySync = useCallback(() => setSyncAttempt((attempt) => attempt + 1), []);
 
   const currentPath = `${location.pathname}${location.search}${location.hash}`;
   const signIn = useCallback(() => {
@@ -227,6 +232,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       loading,
       sessionExpired,
       syncError,
+      retrySync,
       signIn,
       signInWithGoogle,
       sendEmailCode,
@@ -242,6 +248,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       loading,
       sessionExpired,
       syncError,
+      retrySync,
       signIn,
       signInWithGoogle,
       sendEmailCode,
