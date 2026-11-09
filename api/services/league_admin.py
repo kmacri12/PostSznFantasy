@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.db.models.draft import Draft
@@ -44,6 +44,28 @@ async def draft_has_started(db: AsyncSession, season_id: int) -> bool:
     return status in STARTED_STATUSES
 
 
+def _free_default_name(number: int, taken: set[str]) -> str:
+    """ "Team N", or the next number up when someone already renamed a team to it."""
+    while f"Team {number}".casefold() in taken:
+        number += 1
+    return f"Team {number}"
+
+
+async def team_name_taken(db: AsyncSession, team: Team, name: str) -> bool:
+    """Another team of the same season already has this name (case-insensitive)."""
+    return bool(
+        await db.scalar(
+            select(Team.id)
+            .where(
+                Team.season_id == team.season_id,
+                Team.id != team.id,
+                func.lower(Team.name) == name.lower(),
+            )
+            .limit(1)
+        )
+    )
+
+
 async def set_team_count(db: AsyncSession, season_id: int, count: int) -> None:
     """Grow with empty teams, or shrink by dropping unclaimed ones (never claimed ones)."""
     if await draft_has_started(db, season_id):
@@ -57,8 +79,11 @@ async def set_team_count(db: AsyncSession, season_id: int, count: int) -> None:
         .scalars()
         .all()
     )
+    taken = {(team.name or "").casefold() for team in teams}
     for index in range(len(teams), count):
-        db.add(Team(name=f"Team {index + 1}", season_id=season_id))
+        name = _free_default_name(index + 1, taken)
+        taken.add(name.casefold())
+        db.add(Team(name=name, season_id=season_id))
 
     if count < len(teams):
         removable = [team for team in reversed(teams) if team.owner_id is None]

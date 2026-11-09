@@ -18,6 +18,7 @@ from api.models.league_models import (
     TeamRename,
 )
 from api.services.avatars import avatar_url
+from api.services.league_admin import team_name_taken
 from api.services.lineups import (
     LineupActor,
     LineupError,
@@ -185,7 +186,12 @@ async def rename_team(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only the team owner or a commissioner can rename this team",
         )
-    team.name = payload.name.strip()
+    if await team_name_taken(db, team, payload.name):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Another team in this league already has that name",
+        )
+    team.name = payload.name
     await db.flush()
     return await build_team_details(db, team, membership)
 
