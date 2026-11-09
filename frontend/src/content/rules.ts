@@ -120,8 +120,7 @@ export const TEAM_K_ON_NOTE = "Team K is on: your K scores every K on his NFL te
 
 export const NOTES_TITLE = "Commissioner notes";
 export const NOTES_EMPTY_MEMBER = "No notes yet.";
-export const NOTES_EMPTY_COMMISSIONER =
-  "Add house rules or a welcome message for your league.";
+export const NOTES_EMPTY_COMMISSIONER = "Add house rules or a welcome message for your league.";
 export const NOTES_HINT = "Everyone in the league can read this.";
 export const NOTES_MAX_LENGTH = 5000;
 
