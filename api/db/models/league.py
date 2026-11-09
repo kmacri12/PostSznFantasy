@@ -14,6 +14,7 @@ from sqlalchemy import (
     Table,
     Text,
     UniqueConstraint,
+    false,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -130,6 +131,10 @@ class LeagueMember(Base):
     # Set when the member leaves or is removed; the row stays as history.
     left_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
+    )
+    # This member's chat pushes from this league are off, whatever their chat preference.
+    chat_muted: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default=false()
     )
 
     league: Mapped["League"] = relationship("League", back_populates="members")

@@ -54,6 +54,9 @@ erDiagram
         string username
         string email UK
         string avatar_key
+        bool push_draft_alerts
+        bool push_lineup_reminders
+        bool push_chat
     }
     leagues {
         int id PK
@@ -74,6 +77,7 @@ erDiagram
         string role
         datetime joined_at
         datetime left_at
+        bool chat_muted
     }
     season_settings {
         int id PK

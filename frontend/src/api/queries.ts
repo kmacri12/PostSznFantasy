@@ -388,6 +388,38 @@ export const useJoinWithCode = () => {
   });
 };
 
+export interface PushPreferences {
+  draftAlerts: boolean;
+  lineupReminders: boolean;
+  chat: boolean;
+  mutedLeagueIds: number[];
+}
+
+export const usePushPreferences = () =>
+  useQuery({
+    queryKey: ["push-preferences"] as const,
+    queryFn: ({ signal }) => get<PushPreferences>("/api/push/preferences", signal),
+  });
+
+export const useUpdatePushPreferences = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (body: Partial<Omit<PushPreferences, "mutedLeagueIds">>) =>
+      (await api.patch<PushPreferences>("/api/push/preferences", body)).data,
+    onSuccess: (data) => queryClient.setQueryData(["push-preferences"], data),
+  });
+};
+
+export const useMuteLeagueChat = (leagueId: Id | undefined) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (muted: boolean) => {
+      await api.put(`/api/push/chat-mute/${leagueId}`, { muted });
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["push-preferences"] }),
+  });
+};
+
 export const useRenameTeam = (teamId: Id | undefined) => {
   const queryClient = useQueryClient();
   return useMutation({

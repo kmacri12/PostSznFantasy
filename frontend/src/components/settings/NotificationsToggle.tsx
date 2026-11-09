@@ -1,5 +1,7 @@
 import { Alert, Box, Switch, Typography } from "@mui/material";
+import { usePushPreferences, useUpdatePushPreferences } from "../../api/queries";
 import {
+  NOTIFICATION_KINDS,
   NOTIFICATIONS_BLURB,
   NOTIFICATIONS_DENIED_HELP,
   NOTIFICATIONS_STATUS_NOTE,
@@ -12,6 +14,8 @@ import HelpTip from "../common/HelpTip";
 /** The Settings row for web push: the switch asks for permission only when tapped. */
 const NotificationsToggle = () => {
   const { status, busy, error, enable, disable } = usePushNotifications();
+  const preferences = usePushPreferences().data;
+  const update = useUpdatePushPreferences();
 
   if (status === "loading") return null;
 
@@ -47,6 +51,38 @@ const NotificationsToggle = () => {
         </Typography>
         <HelpTip label="notifications on iPhone and Android" text={NOTIFICATIONS_TIP} />
       </Box>
+      {status === "on" &&
+        preferences &&
+        NOTIFICATION_KINDS.map(({ key, label, hint }) => (
+          <Box
+            key={key}
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 1,
+              minHeight: 44,
+            }}
+          >
+            <Box sx={{ minWidth: 0 }}>
+              <Typography>{label}</Typography>
+              <Typography variant="caption" color="text.secondary">
+                {hint}
+              </Typography>
+            </Box>
+            <Switch
+              checked={preferences[key]}
+              disabled={update.isPending}
+              onChange={(event) => update.mutate({ [key]: event.target.checked })}
+              slotProps={{ input: { "aria-label": label } }}
+            />
+          </Box>
+        ))}
+      {update.isError && (
+        <Alert severity="error" sx={{ mt: 1 }}>
+          Couldn't save that choice. Try again.
+        </Alert>
+      )}
       {error && (
         <Alert severity="error" sx={{ mt: 1 }}>
           {error}

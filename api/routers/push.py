@@ -8,10 +8,14 @@ from api.db.models.user import User
 from api.db.session import DbSession
 from api.dependencies.auth import CurrentUser
 from api.models.push_models import (
+    ChatMuteUpdate,
+    PushPreferences,
+    PushPreferencesUpdate,
     PushSubscriptionCreate,
     PushSubscriptionDelete,
     VapidKeyResponse,
 )
+from api.services import push
 
 router = APIRouter()
 
@@ -80,4 +84,55 @@ async def unsubscribe(
             PushSubscription.endpoint == payload.endpoint,
         )
     )
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+async def _preferences(db: DbSession, user: User) -> PushPreferences:
+    return PushPreferences(
+        draft_alerts=user.push_draft_alerts,
+        lineup_reminders=user.push_lineup_reminders,
+        chat=user.push_chat,
+        muted_league_ids=await push.muted_league_ids(db, user.id),
+    )
+
+
+async def _user(db: DbSession, supabase_uid: str) -> User:
+    user = await db.scalar(select(User).where(User.supabase_uid == supabase_uid))
+    if user is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "User not found")
+    return user
+
+
+@router.get("/preferences", response_model=PushPreferences)
+async def get_preferences(supabase_uid: CurrentUser, db: DbSession) -> PushPreferences:
+    return await _preferences(db, await _user(db, supabase_uid))
+
+
+@router.patch("/preferences", response_model=PushPreferences)
+async def update_preferences(
+    payload: PushPreferencesUpdate, supabase_uid: CurrentUser, db: DbSession
+) -> PushPreferences:
+    """Choose which pushes to get; fields left out stay as they are."""
+    user = await _user(db, supabase_uid)
+    if payload.draft_alerts is not None:
+        user.push_draft_alerts = payload.draft_alerts
+    if payload.lineup_reminders is not None:
+        user.push_lineup_reminders = payload.lineup_reminders
+    if payload.chat is not None:
+        user.push_chat = payload.chat
+    await db.flush()
+    return await _preferences(db, user)
+
+
+@router.put("/chat-mute/{league_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def mute_league_chat(
+    league_id: int,
+    payload: ChatMuteUpdate,
+    supabase_uid: CurrentUser,
+    db: DbSession,
+) -> Response:
+    """Mute or unmute chat pushes from one of the caller's leagues."""
+    user = await _user(db, supabase_uid)
+    if not await push.set_chat_muted(db, user.id, league_id, payload.muted):
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "League not found")
     return Response(status_code=status.HTTP_204_NO_CONTENT)
