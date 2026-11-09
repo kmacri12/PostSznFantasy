@@ -49,6 +49,7 @@ import type { SettingsValues } from "../settings/types";
 import { TAB_BAR_HEIGHT } from "../theme";
 import { MULTIPLIER_RULE, numberProblems, rosterProblems } from "../utils/numberField";
 import { scoringProblems } from "../utils/scoring";
+import { validationDetail } from "../utils/validationDetail";
 
 type Sheet =
   | "leaguePicture"
@@ -198,7 +199,9 @@ function SettingsPage() {
   const started = ["in_progress", "paused", "completed"].includes(draft.data?.status ?? "");
   const notes = info?.notes ?? "";
   const activeInvite = invite.data && !invite.data.revoked;
-  const failure = mutationError(updateSettings.error, "Couldn't save the settings. Try again.");
+  const failure =
+    validationDetail(updateSettings.error) ??
+    mutationError(updateSettings.error, "Couldn't save the settings. Try again.");
   const close = () => setSheet(null);
 
   return (
