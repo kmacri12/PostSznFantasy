@@ -8,6 +8,7 @@ from api.db.models import (
     DraftPick,
     LeagueInvite,
     LeagueMember,
+    NFLGame,
     NFLTeam,
     Season,
     SeasonSettings,
@@ -189,14 +190,32 @@ async def test_invite_link_flow(db: AsyncSession, client_as: ClientFactory) -> N
     assert invite.uses == 1  # the replay did not spend another use
 
 
-async def test_invites_expire_after_seven_days_unless_told_otherwise(
+async def test_invites_last_until_the_draft_cutoff_within_sixty_days_at_most(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
-    league_id, _ = await _join_setup(db, draft_status="scheduled")
+    year = 2025
+    league_id, _ = await _join_setup(db, draft_status="scheduled", year=year)
     async with client_as("uid-0") as commissioner:
-        default = (
+        no_cutoff = (
             await commissioner.post(f"/api/leagues/{league_id}/invite", json={})
         ).json()
+
+        async def invite_with_kickoff_in(delta: timedelta) -> datetime:
+            db.add(
+                NFLGame(
+                    id=f"cutoff-{delta.days}",
+                    season=year,
+                    game_week=19,
+                    game_time_epoch=str((datetime.now(UTC) + delta).timestamp()),
+                )
+            )
+            await db.flush()
+            created = (
+                await commissioner.post(f"/api/leagues/{league_id}/invite", json={})
+            ).json()
+            return datetime.fromisoformat(created["expiresAt"])
+
+        within = await invite_with_kickoff_in(timedelta(days=30))
         explicit = (
             await commissioner.post(
                 f"/api/leagues/{league_id}/invite",
@@ -204,8 +223,15 @@ async def test_invites_expire_after_seven_days_unless_told_otherwise(
             )
         ).json()
 
-    remaining = datetime.fromisoformat(default["expiresAt"]) - datetime.now(UTC)
-    assert timedelta(days=6, hours=23) < remaining <= timedelta(days=7)
+    now = datetime.now(UTC)
+    # No kickoff known yet: the 60 day cap.
+    assert (
+        timedelta(days=59, hours=23)
+        < datetime.fromisoformat(no_cutoff["expiresAt"]) - now
+        <= timedelta(days=60)
+    )
+    # A kickoff 30 days out is the cutoff.
+    assert timedelta(days=29, hours=23) < within - now <= timedelta(days=30)
     assert explicit["expiresAt"].startswith("2030-01-01")
 
 
