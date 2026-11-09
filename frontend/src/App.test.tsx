@@ -17,7 +17,10 @@ vi.mock("./api/health", () => ({
   useApiHealth: () => mocks.health,
   isDormant: () => mocks.dormant,
 }));
-vi.mock("./api/queries", () => ({ useUserLeagues: () => ({ data: [] }) }));
+vi.mock("./api/queries", () => ({
+  useUserLeagues: () => ({ data: [] }),
+  useRenameTeam: () => ({ mutate: vi.fn(), isPending: false, isError: false, error: null }),
+}));
 vi.mock("./contexts/UserContext", () => ({
   useUser: () => ({
     user: mocks.user,
@@ -28,6 +31,7 @@ vi.mock("./contexts/UserContext", () => ({
     signOutUser: vi.fn(),
   }),
   useUserAvatar: () => null,
+  useUsername: () => null,
 }));
 vi.mock("./components/auth/SessionExpiredBanner", () => ({ default: () => null }));
 vi.mock("./components/dev/DevQuickSync", () => ({ DevQuickSync: () => null }));
