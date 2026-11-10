@@ -1,4 +1,6 @@
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import LocalCafeIcon from "@mui/icons-material/LocalCafe";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { Alert, Box, Container, Snackbar, Typography } from "@mui/material";
 import { type ReactNode, useState } from "react";
 import { Link } from "react-router-dom";
@@ -13,6 +15,8 @@ import {
   REPORT_PROBLEM_HINT,
   REPORT_PROBLEM_LABEL,
   REPORT_PROBLEM_SENT,
+  SUPPORT_HINT,
+  SUPPORT_LABEL,
   TOUR_LABEL,
 } from "../content/rules";
 import { useSeasonContext } from "../contexts/SeasonContext";
@@ -47,15 +51,22 @@ interface RowProps {
   hint?: string;
   /** A page to open; without it the row is a button that runs `onClick`. */
   to?: string;
+  /** A third-party page, opened in a new tab. */
+  href?: string;
+  icon?: ReactNode;
   onClick?: () => void;
 }
 
-const Row = ({ to, title, hint, onClick }: RowProps) => (
-  <Box
-    {...(to ? { component: Link, to } : { component: "button", type: "button", onClick })}
-    sx={rowSx}
-  >
-    <span>
+const rowProps = ({ to, href, onClick }: Pick<RowProps, "to" | "href" | "onClick">) => {
+  if (href) return { component: "a", href, target: "_blank", rel: "noopener noreferrer" };
+  if (to) return { component: Link, to };
+  return { component: "button", type: "button", onClick };
+};
+
+const Row = ({ to, href, icon, title, hint, onClick }: RowProps) => (
+  <Box {...rowProps({ to, href, onClick })} sx={rowSx}>
+    {icon}
+    <span style={{ flex: 1 }}>
       {title}
       {hint && (
         <Typography component="small" sx={{ display: "block", fontSize: 12, color: tokens.muted }}>
@@ -63,7 +74,11 @@ const Row = ({ to, title, hint, onClick }: RowProps) => (
         </Typography>
       )}
     </span>
-    <ChevronRightIcon sx={{ color: tokens.muted }} />
+    {href ? (
+      <OpenInNewIcon sx={{ color: tokens.muted }} />
+    ) : (
+      <ChevronRightIcon sx={{ color: tokens.muted }} />
+    )}
   </Box>
 );
 
@@ -93,6 +108,7 @@ const MorePage = () => {
   const pastSeasons = (league?.seasons ?? []).filter((item) => !item.current).reverse();
   const [sheet, setSheet] = useState<"past" | "invite" | "report" | "tour" | null>(null);
   const [sent, setSent] = useState(false);
+  const supportUrl = import.meta.env.VITE_SUPPORT_URL?.trim();
 
   return (
     <Container maxWidth="sm" sx={{ pt: 2, pb: 3 }}>
@@ -113,6 +129,14 @@ const MorePage = () => {
       <Group label="Help">
         <Row to="/how-to-play" title={HOW_TO_PLAY_LABEL} />
         <Row title={TOUR_LABEL} hint="A minute, in pictures" onClick={() => setSheet("tour")} />
+        {supportUrl && (
+          <Row
+            href={supportUrl}
+            icon={<LocalCafeIcon sx={{ color: tokens.muted }} />}
+            title={SUPPORT_LABEL}
+            hint={SUPPORT_HINT}
+          />
+        )}
         <Row
           title={REPORT_PROBLEM_LABEL}
           hint={REPORT_PROBLEM_HINT}

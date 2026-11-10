@@ -44,6 +44,12 @@ const SECTIONS: LegalSection[] = [
     ],
   },
   {
+    heading: "Support link",
+    body: [
+      "If we show a Support PostSzn link in the More tab and you tap it, it opens a page run by Buy Me a Coffee in a new tab. That is when your browser first contacts them, under their own privacy policy. We send them nothing, and nothing is sent unless you tap it.",
+    ],
+  },
+  {
     heading: "What we do not do",
     body: [
       "We do not sell your data, share it with advertisers, or show ads. We only share it with the services that run the app (sign-in and picture storage: Supabase; hosting: Fly.io and Cloudflare; error reporting: Sentry; support email: Resend; GIFs: GIPHY, only when you use the picker).",
