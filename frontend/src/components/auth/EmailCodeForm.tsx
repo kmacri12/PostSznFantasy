@@ -1,5 +1,6 @@
 import { Alert, Box, Button, TextField, Typography } from "@mui/material";
 import { type FormEvent, useEffect, useState } from "react";
+import { maskEmail } from "../../utils/maskEmail";
 
 const RESEND_SECONDS = 60;
 // Supabase issues 6 digits by default and lets the project raise it to 10.
@@ -19,6 +20,7 @@ const EmailCodeForm = ({ onSend, onVerify }: EmailCodeFormProps) => {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [cooldown, setCooldown] = useState(0);
+  const [resent, setResent] = useState(false);
 
   useEffect(() => {
     if (cooldown <= 0) return;
@@ -29,12 +31,14 @@ const EmailCodeForm = ({ onSend, onVerify }: EmailCodeFormProps) => {
   const send = async (address: string) => {
     setBusy(true);
     setError(null);
+    setResent(false);
     const failure = await onSend(address);
     setBusy(false);
     if (failure) {
       setError(failure);
       return;
     }
+    setResent(sentTo !== null);
     setSentTo(address);
     setCode("");
     setCooldown(RESEND_SECONDS);
@@ -64,14 +68,15 @@ const EmailCodeForm = ({ onSend, onVerify }: EmailCodeFormProps) => {
     setCode("");
     setError(null);
     setCooldown(0);
+    setResent(false);
   };
 
   if (sentTo) {
     return (
       <Box component="form" onSubmit={submitCode} sx={{ display: "grid", gap: 2 }}>
         <Typography>
-          We emailed a sign-in code to <strong>{sentTo}</strong>. Enter it below. It works once and
-          expires after an hour.
+          We emailed a sign-in code to <strong>{maskEmail(sentTo)}</strong>. Enter it below. It
+          works once and expires after an hour. Nothing yet? Check your spam folder.
         </Typography>
         <TextField
           label="Sign-in code"
@@ -93,6 +98,7 @@ const EmailCodeForm = ({ onSend, onVerify }: EmailCodeFormProps) => {
           }}
         />
         {error && <Alert severity="error">{error}</Alert>}
+        {resent && !error && <Alert severity="success">A new code is on its way.</Alert>}
         <Button
           type="submit"
           variant="contained"

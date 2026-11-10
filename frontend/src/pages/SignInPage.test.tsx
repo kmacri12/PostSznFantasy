@@ -92,6 +92,17 @@ describe("SignInPage", () => {
   });
 });
 
+describe("SignInPage in an app's own browser", () => {
+  it("offers the emailed code instead of Google", () => {
+    const agent = vi.spyOn(navigator, "userAgent", "get").mockReturnValue("Mozilla Instagram 350");
+    renderAt("/sign-in");
+    expect(screen.queryByRole("button", { name: /continue with google/i })).not.toBeInTheDocument();
+    expect(screen.getByText(/open this page in safari or chrome/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /email me a sign-in code/i })).toBeInTheDocument();
+    agent.mockRestore();
+  });
+});
+
 describe("SignInPage legal links", () => {
   it("links to the terms and privacy pages", () => {
     renderAt("/sign-in");
