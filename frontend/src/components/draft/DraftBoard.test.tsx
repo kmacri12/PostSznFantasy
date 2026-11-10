@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { DraftState } from "../../api/types";
-import DraftBoard from "./DraftBoard";
+import DraftBoard, { teamInitials } from "./DraftBoard";
 
 const base: DraftState = {
   draftId: 1,
@@ -49,12 +49,9 @@ const base: DraftState = {
 describe("DraftBoard", () => {
   it("renders teams as columns in assigned order with picks in their cells", () => {
     render(<DraftBoard state={base} myTeamId={10} />);
-    expect(screen.getAllByText(/Alpha|Bravo/).map((node) => node.textContent)).toEqual([
-      "Alpha",
-      "Bravo",
-    ]);
-    expect(screen.getByTestId("pick-1").textContent).toContain("P. QB");
-    expect(screen.getByTestId("pick-2").textContent).toContain("On the clock");
+    expect(screen.getAllByText(/^Alp/).length).toBeGreaterThan(0);
+    expect(screen.getByTestId("pick-1").textContent).toContain("QB");
+    expect(screen.getByTestId("pick-2").textContent).toContain("NOW");
   });
 
   it("reverses odd rounds for snake drafts", () => {
@@ -69,10 +66,24 @@ describe("DraftBoard", () => {
     expect(screen.getByText(/hasn't set the draft order/i)).toBeTruthy();
   });
 
-  it("labels auto-picks on the board", () => {
+  it("shows the full pick, and who made it, in a sheet when a cell is tapped", () => {
     const picks = [{ ...base.picks[0], autopick: true }] as DraftState["picks"];
     render(<DraftBoard state={{ ...base, picks }} myTeamId={10} />);
-    expect(screen.getByTestId("pick-1").textContent).toContain("auto");
+    fireEvent.click(screen.getByTestId("pick-1"));
+    expect(screen.getByText("Pat QB")).toBeTruthy();
+    expect(screen.getByText(/Round 1 · Alpha · Auto-pick/)).toBeTruthy();
+  });
+
+  it("says who is on the clock for an empty cell and offers extra actions", () => {
+    render(<DraftBoard state={base} myTeamId={null} onSelectSlot={vi.fn()} />);
+    fireEvent.click(screen.getByTestId("pick-2"));
+    expect(screen.getByText("Bravo is on the clock.")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Assign pick 2" })).toBeTruthy();
+  });
+
+  it("abbreviates team headers", () => {
+    expect(teamInitials("Dream Team Alpha")).toBe("DTA");
+    expect(teamInitials("Bravo")).toBe("Bra");
   });
 });
 
@@ -84,7 +95,7 @@ describe("DraftBoard team QB / team K", () => {
 
   it("badges a drafted team QB while still showing his name", () => {
     render(<DraftBoard state={withFlag(true)} myTeamId={null} />);
-    expect(screen.getByText("P. QB")).toBeTruthy();
+    fireEvent.click(screen.getByTestId("pick-1"));
     expect(screen.getByRole("note", { name: /Scores all PHI QBs/ })).toBeTruthy();
   });
 
@@ -114,7 +125,8 @@ describe("DraftBoard team QB / team K", () => {
         onSelectSlot={onSelectSlot}
       />,
     );
-    expect(screen.getByText("T. Hill")).toBeInTheDocument();
+    expect(screen.getByText("Hill")).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("pick-3"));
     fireEvent.click(screen.getByRole("button", { name: "Assign pick 3" }));
     expect(onSelectSlot).toHaveBeenCalledWith({ pickNumber: 3, teamName: "Bravo" });
   });

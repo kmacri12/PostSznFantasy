@@ -152,6 +152,7 @@ test.describe("draft room", () => {
     await page.goto(seasonUrl(league.league, "/draft"));
     await showView(page, "Board");
 
+    await page.getByRole("button", { name: /^Pick 1, / }).click();
     await page.getByRole("button", { name: "Assign pick 1", exact: true }).click();
     const sheet = page.getByRole("dialog", { name: /Assign pick 1/ });
     // The first row of the list is the alphabetically first available player.
