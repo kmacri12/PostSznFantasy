@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import type { SeasonOverview } from "../api/types";
 import { SeasonContext } from "../contexts/SeasonContext";
 import { testSeason } from "../test/season";
@@ -33,6 +33,24 @@ const renderMore = (season: Partial<SeasonOverview> = {}) =>
   );
 
 describe("MorePage", () => {
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("hides the support row when VITE_SUPPORT_URL is unset", () => {
+    vi.stubEnv("VITE_SUPPORT_URL", "");
+    renderMore();
+    expect(screen.queryByText("Support PostSzn")).toBeNull();
+  });
+
+  it("opens the support page in a new tab, safely, when VITE_SUPPORT_URL is set", () => {
+    vi.stubEnv("VITE_SUPPORT_URL", "https://buymeacoffee.com/example");
+    renderMore();
+    const link = screen.getByRole("link", { name: /Support PostSzn/ });
+    expect(link).toHaveAttribute("href", "https://buymeacoffee.com/example");
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(link).toHaveAttribute("rel", "noopener noreferrer");
+    expect(link).toHaveTextContent("changes nothing in your league");
+  });
+
   it("lists the league rows with the draft status under Players", () => {
     renderMore({ draftStatus: "unscheduled" });
     expect(screen.queryByRole("link", { name: /Settings/ })).toBeNull();

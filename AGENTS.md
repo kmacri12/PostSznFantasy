@@ -341,6 +341,7 @@ Authorization (`api/dependencies/league.py`): `LeagueMember` / `LeagueCommission
   - `VITE_API_URL`: Backend HTTP origin; optional locally because the Vite dev server proxies `/api` to `http://localhost:8000`.
   - `VITE_WS_URL`: WebSocket origin; optional for the same reason (defaults to the page origin). Both are required in production builds (Cloudflare Pages build vars). Full contract: `api/.env.example`, `frontend/.env.example`.
   - `VITE_GIPHY_API_KEY`: optional public GIPHY key for the Feed's GIF button (unset hides it); the API still only stores GIF links from `GIF_ALLOWED_HOSTS`.
+  - `VITE_SUPPORT_URL`: optional link for the More tab's "Support PostSzn" row (the owner's Buy Me a Coffee page, opened in a new tab with `rel="noopener noreferrer"`); unset hides the row, so nothing ships with a placeholder. Owner step: docs/owner/24-support-link.md.
   - `VITE_SUPABASE_URL`: Supabase project URL.
   - `VITE_SUPABASE_PUBLISHABLE_KEY`: Supabase project publishable API key (`sb_publishable_...`, with fallback to legacy `VITE_SUPABASE_ANON_KEY`).
 - **Component Styling**: Material-UI (MUI v9) styled components and `sx` prop.

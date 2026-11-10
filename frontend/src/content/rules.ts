@@ -286,6 +286,10 @@ export const LEAVE_LEAGUE_NOTE =
 export const LEAVE_LAST_COMMISSIONER_NOTE =
   "You are the only commissioner. Make someone else a commissioner in the members list first, then you can leave.";
 
+export const SUPPORT_LABEL = "Support PostSzn";
+export const SUPPORT_HINT =
+  "Enjoying PostSzn? Buy the developer a coffee. Optional, and it changes nothing in your league.";
+
 export const REPORT_PROBLEM_LABEL = "Report a problem";
 export const REPORT_PROBLEM_HINT = "Something broken or confusing? Tell us";
 export const REPORT_PROBLEM_ATTACH_NOTE =
