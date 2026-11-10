@@ -19,6 +19,7 @@ from api.models.activity_models import (
     DraftOrderMove,
     DraftOrderRandomizedPayload,
     DraftOrderSlot,
+    DraftPickAssignedPayload,
     DraftStartedPayload,
 )
 from api.models.draft_models import (
@@ -26,6 +27,7 @@ from api.models.draft_models import (
     DraftSetup,
     DraftSlot,
     DraftStateResponse,
+    ReservedPick,
 )
 from api.models.enums import (
     DRAFTABLE_POSITION_VALUES,
@@ -46,7 +48,11 @@ from api.services.draft_picks import (
     next_deadline,
     placed_order,
     record_pick,
+    reservations,
+    reserved_positions,
+    store_reservations,
     team_on_the_clock,
+    validate_candidate,
 )
 from api.services.playoff_field import (
     first_wild_card_kickoff,
@@ -54,7 +60,7 @@ from api.services.playoff_field import (
     require_draft_window_open,
     require_field_set,
 )
-from api.services.standings import clear_season_standings
+from api.services.standings import clear_season_standings, recompute_season_standings
 from api.services.team_units import (
     combined_positions,
     scores_whole_team,
@@ -93,6 +99,7 @@ async def build_state(db: AsyncSession, draft: Draft) -> DraftStateResponse:
             team_name=by_id[team_id].name or f"Team {team_id}",
             team_avatar_url=avatar_url(by_id[team_id].avatar_key),
             owner_name=owner_names.get(by_id[team_id].owner_id or -1),
+            owner_user_id=by_id[team_id].owner_id,
         )
         for index, team_id in enumerate(draft.draft_order_team_ids)
         if team_id is not None and team_id in by_id
@@ -108,6 +115,7 @@ async def build_state(db: AsyncSession, draft: Draft) -> DraftStateResponse:
     ).all()
     settings = await load_settings(db, draft.season_id)
     combined = combined_positions(settings)
+    reserved = await _reserved_pick_rows(db, draft)
     picks = [
         DraftPickResponse(
             id=p.id,
@@ -161,6 +169,7 @@ async def build_state(db: AsyncSession, draft: Draft) -> DraftStateResponse:
         order=order,
         unassigned_team_ids=[t.id for t in teams if t.id not in ids],
         picks=picks,
+        reserved_picks=reserved,
         total_picks=total,
         current_pick_overall=overall,
         on_the_clock_team_id=clock,
@@ -172,6 +181,36 @@ async def build_state(db: AsyncSession, draft: Draft) -> DraftStateResponse:
         playoff_field_set=await playoff_team_count(db)
         == get_settings().playoff_field_size,
     )
+
+
+async def _reserved_pick_rows(db: AsyncSession, draft: Draft) -> list[ReservedPick]:
+    reserved = reservations(draft)
+    ids = placed_order(draft)
+    if not reserved or not ids:
+        return []
+    rows = {
+        row[0]: row
+        for row in (
+            await db.execute(
+                select(
+                    NFLPlayer.id, NFLPlayer.name, NFLPlayer.position, NFLTeam.team_abv
+                )
+                .outerjoin(NFLTeam, NFLTeam.id == NFLPlayer.team_id)
+                .where(NFLPlayer.id.in_(reserved.values()))
+            )
+        ).all()
+    }
+    return [
+        ReservedPick(
+            pick_number=slot,
+            team_id=team_on_the_clock(ids, slot - 1, draft.draft_type),
+            player_id=player_id,
+            player_name=rows[player_id][1] if player_id in rows else None,
+            position=rows[player_id][2] if player_id in rows else None,
+            team_abv=rows[player_id][3] if player_id in rows else None,
+        )
+        for slot, player_id in sorted(reservations(draft).items())
+    ]
 
 
 async def _owner_names(db: AsyncSession, user_ids: list[int]) -> dict[int, str]:
@@ -470,8 +509,9 @@ async def _best_available_ids(
 ) -> list[int]:
     """Undrafted draft-pool players, best last-season fantasy output first."""
     drafted = select(DraftPick.player_id).where(DraftPick.draft_id == draft.id)
+    reserved_ids = list(reservations(draft).values())
     blocked = await unavailable_in_pool(
-        db, settings, list((await db.execute(drafted)).scalars())
+        db, settings, [*(await db.execute(drafted)).scalars(), *reserved_ids]
     )
     players = (
         (
@@ -482,7 +522,7 @@ async def _best_available_ids(
                     NFLTeam.in_playoffs,
                     NFLPlayer.position.in_(DRAFTABLE_POSITION_VALUES),
                     NFLPlayer.id.not_in(drafted),
-                    NFLPlayer.id.not_in(blocked),
+                    NFLPlayer.id.not_in([*blocked, *reserved_ids]),
                 )
             )
         )
@@ -564,7 +604,12 @@ async def auto_pick(
         .scalars()
         .all()
     )
-    roster_positions = await _roster_positions(db, draft.id, team_id)
+    roster_positions = [
+        *await _roster_positions(db, draft.id, team_id),
+        *await reserved_positions(
+            db, draft, placed_order(draft), team_id, skip_slot=(picks_made or 0) + 1
+        ),
+    ]
     for player_id in dict.fromkeys(candidates):
         if player_id in drafted:
             continue
@@ -598,3 +643,164 @@ async def _roster_positions(
         )
     ).scalars()
     return [PlayerPosition.from_str(position) for position in rows]
+
+
+async def _slot_team(db: AsyncSession, draft: Draft, pick_number: int) -> Team:
+    order = placed_order(draft)
+    team = await db.get(
+        Team, team_on_the_clock(order, pick_number - 1, draft.draft_type)
+    )
+    assert team is not None
+    return team
+
+
+async def assign_pick(
+    db: AsyncSession,
+    season_id: int,
+    pick_number: int,
+    player_id: int,
+    *,
+    replace: bool,
+    actor: activity.Actor,
+) -> PickResult | None:
+    """A commissioner places a player at any slot of a running or finished draft.
+
+    The slot on the clock is picked now (and reserved picks right after it settle), a
+    later slot is reserved and recorded when it comes up, and a pick already made is
+    replaced (`replace` must say so). Every rule of a normal pick applies. Returns the
+    recorded pick for the first case, else None. The feed gets one event either way.
+    """
+    draft = await load_draft_for_update(db, season_id)
+    settings = await load_settings(db, season_id)
+    if draft.status not in STARTED:
+        raise DraftPickError("The draft has not started yet")
+    order = placed_order(draft)
+    if not 1 <= pick_number <= len(order) * draft.rounds:
+        raise DraftPickError("There is no such pick in this draft", code="no_such_pick")
+    picks = list(
+        (
+            await db.execute(
+                select(DraftPick)
+                .where(DraftPick.draft_id == draft.id)
+                .order_by(DraftPick.number_pick_overall)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    made = len(picks)
+    team = await _slot_team(db, draft, pick_number)
+    team_name = team.name or f"Team {team.id}"
+    new_name = await db.scalar(select(NFLPlayer.name).where(NFLPlayer.id == player_id))
+
+    replaced_name: str | None = None
+    result: PickResult | None = None
+    if pick_number <= made:
+        if not replace:
+            raise DraftPickError("That pick was already made", code="slot_filled")
+        replaced_name = await _replace_pick(
+            db, draft, settings, picks[pick_number - 1], player_id
+        )
+    elif replace:
+        raise DraftPickError("That pick has not been made yet", code="slot_open")
+    elif pick_number == made + 1:
+        if draft.status != DraftStatus.IN_PROGRESS.value:
+            raise DraftPickError(
+                "Resume the draft before assigning the pick on the clock"
+            )
+        store_reservations(
+            draft, {s: p for s, p in reservations(draft).items() if s != pick_number}
+        )
+        result = await record_pick(db, draft, settings, player_id, acting_user=None)
+    else:
+        if draft.status == DraftStatus.COMPLETED.value:
+            raise DraftPickError("The draft is already complete")
+        await validate_candidate(
+            db,
+            draft,
+            settings,
+            team_id=team.id,
+            player_id=player_id,
+            picks=picks,
+            skip_slot=pick_number,
+        )
+        store_reservations(draft, {**reservations(draft), pick_number: player_id})
+        await db.flush()
+
+    await activity.append(
+        db,
+        season_id,
+        DraftPickAssignedPayload(
+            pick_number=pick_number,
+            team_name=team_name,
+            player_id=player_id,
+            player_name=new_name or "",
+            scheduled=result is None and replaced_name is None,
+            replaced_player_name=replaced_name,
+        ),
+        team_id=team.id,
+        actor=actor,
+    )
+    return result
+
+
+async def _replace_pick(
+    db: AsyncSession,
+    draft: Draft,
+    settings: SeasonSettings,
+    pick: DraftPick,
+    player_id: int,
+) -> str:
+    """Swap the player of a pick already made; the old player is free again. Returns the
+    old player's name."""
+    if pick.player_id == player_id:
+        raise DraftPickError("That player is already at this pick")
+    picks = list(
+        (await db.execute(select(DraftPick).where(DraftPick.draft_id == draft.id)))
+        .scalars()
+        .all()
+    )
+    await validate_candidate(
+        db,
+        draft,
+        settings,
+        team_id=pick.team_id,
+        player_id=player_id,
+        picks=picks,
+        skip_slot=None,
+        replacing_player_id=pick.player_id,
+    )
+    old_id = pick.player_id
+    old_name = await db.scalar(select(NFLPlayer.name).where(NFLPlayer.id == old_id))
+    await db.execute(
+        delete(TeamPlayer).where(
+            TeamPlayer.team_id == pick.team_id, TeamPlayer.player_id == old_id
+        )
+    )
+    await db.execute(
+        delete(LineupSlot).where(
+            LineupSlot.team_id == pick.team_id, LineupSlot.player_id == old_id
+        )
+    )
+    pick.player_id = player_id
+    pick.autopick = False
+    db.add(
+        TeamPlayer(team_id=pick.team_id, season_id=draft.season_id, player_id=player_id)
+    )
+    await db.flush()
+    if draft.status == DraftStatus.COMPLETED.value:
+        await recompute_season_standings(db, draft.season_id)
+    return old_name or ""
+
+
+async def clear_reservation(
+    db: AsyncSession, season_id: int, pick_number: int
+) -> Draft:
+    draft = await load_draft_for_update(db, season_id)
+    reserved = reservations(draft)
+    if pick_number not in reserved:
+        raise DraftPickError("Nothing is reserved for that pick", code="not_reserved")
+    del reserved[pick_number]
+    store_reservations(draft, reserved)
+    await db.flush()
+    return draft

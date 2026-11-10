@@ -9,6 +9,7 @@ import {
 } from "../api/queries";
 import type { DraftSnapshot, DraftState } from "../api/types";
 import LoadingState from "../components/common/LoadingState";
+import AssignPickDialog from "../components/draft/AssignPickDialog";
 import CommissionerStrip from "../components/draft/CommissionerStrip";
 import { cappedPositions } from "../components/draft/caps";
 import DraftBoard from "../components/draft/DraftBoard";
@@ -49,6 +50,7 @@ const DraftPage = () => {
   const [view, setView] = useState<ViewKey>("players");
   const [editingOrder, setEditingOrder] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [assigning, setAssigning] = useState<{ pickNumber: number; teamName: string } | null>(null);
 
   const snapshot: DraftSnapshot | null = room.state;
   const state: DraftState | null = snapshot ?? info.data ?? null;
@@ -72,8 +74,13 @@ const DraftPage = () => {
     [pool.data],
   );
   const draftedIds = useMemo(
-    () => new Set([...(state?.picks.map((p) => p.playerId) ?? []), ...room.takenPlayerIds]),
-    [state?.picks, room.takenPlayerIds],
+    () =>
+      new Set([
+        ...(state?.picks.map((p) => p.playerId) ?? []),
+        ...(state?.reservedPicks.map((item) => item.playerId) ?? []),
+        ...room.takenPlayerIds,
+      ]),
+    [state?.picks, state?.reservedPicks, room.takenPlayerIds],
   );
   const myPicks = useMemo(
     () => (state?.picks ?? []).filter((pick) => pick.teamId === myTeamId),
@@ -134,6 +141,8 @@ const DraftPage = () => {
     );
   }
 
+  const canAssign = season.canCommission && !archived && live;
+  const onSelectSlot = canAssign ? setAssigning : undefined;
   const updateQueue = (next: number[]) => {
     room.setQueueLocal(next);
     saveQueue.mutate(next);
@@ -151,7 +160,7 @@ const DraftPage = () => {
         pendingPlayerId: room.pendingPlayerId,
         capped,
         queue,
-        takenIds: room.takenPlayerIds,
+        takenIds: [...draftedIds],
         onPick: room.makePick,
         onToggleQueue: toggleQueue,
       };
@@ -192,11 +201,21 @@ const DraftPage = () => {
       {season.canCommission && !archived && (
         <CommissionerStrip
           draft={state}
+          presence={snapshot?.presence ?? []}
           editingOrder={editingOrder}
           onEditOrder={() => setEditingOrder(!editingOrder)}
         />
       )}
       <DraftToast toast={room.toast} onClose={room.dismissToast} />
+      {assigning && (
+        <AssignPickDialog
+          draft={state}
+          pickNumber={assigning.pickNumber}
+          teamName={assigning.teamName}
+          pool={pool.data ?? []}
+          onClose={() => setAssigning(null)}
+        />
+      )}
       {archived && (
         <Box sx={{ px: 2, pt: 2 }}>
           <ArchivedNotice what="picks and the queue" />
@@ -228,7 +247,12 @@ const DraftPage = () => {
               overflowY: "auto",
             }}
           >
-            <DraftBoard state={state} myTeamId={myTeamId} sx={{ maxHeight: 440 }} />
+            <DraftBoard
+              state={state}
+              myTeamId={myTeamId}
+              onSelectSlot={onSelectSlot}
+              sx={{ maxHeight: 440 }}
+            />
             <RosterView seasonId={seasonId} picks={myPicks} />
           </Box>
         </Box>
@@ -277,7 +301,9 @@ const DraftPage = () => {
             ) : (
               <>
                 {view === "players" && !archived && playersView}
-                {view === "board" && <DraftBoard state={state} myTeamId={myTeamId} />}
+                {view === "board" && (
+                  <DraftBoard state={state} myTeamId={myTeamId} onSelectSlot={onSelectSlot} />
+                )}
                 {view === "roster" && <RosterView seasonId={seasonId} picks={myPicks} />}
                 {view === "queue" && !archived && queuePanel}
               </>

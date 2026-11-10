@@ -15,6 +15,7 @@ from api.dependencies.league import (
     SeasonMember,
 )
 from api.models.draft_models import (
+    AssignPickRequest,
     DraftOrderUpdate,
     DraftPickResponse,
     DraftSetup,
@@ -180,7 +181,49 @@ async def _commit_and_announce(
     events = await pick_events(db, draft, result)
     await db.commit()
     await announce_events(season_id, events)
-    return DraftStateResponse.model_validate(events[1]["data"])
+    state = next(e for e in events if e["eventType"] == "DRAFT_STATE")
+    return DraftStateResponse.model_validate(state["data"])
+
+
+@router.post("/{season_id}/assign", response_model=DraftStateResponse)
+async def assign_pick(
+    season_id: int,
+    payload: AssignPickRequest,
+    membership: SeasonCommissioner,
+    db: DbSession,
+) -> DraftStateResponse:
+    """Commissioner places a player at any pick: the one on the clock, a later slot
+    (reserved until it comes up) or one already made (`replace: true`)."""
+    try:
+        result = await draft_flow.assign_pick(
+            db,
+            season_id,
+            payload.pick_number,
+            payload.player_id,
+            replace=payload.replace,
+            actor=Actor.of(membership.user),
+        )
+    except DraftPickError as exc:
+        raise _conflict(exc) from exc
+    if result is None:
+        return await _broadcast_state(
+            db, await _draft_for(db, season_id), feed_event=True
+        )
+    state = await _commit_and_announce(db, season_id, result)
+    await announce_feed_change(season_id, "event")
+    return state
+
+
+@router.delete("/{season_id}/assign/{pick_number}", response_model=DraftStateResponse)
+async def clear_reserved_pick(
+    season_id: int, pick_number: int, _: SeasonCommissioner, db: DbSession
+) -> DraftStateResponse:
+    """Take back a player reserved for a later slot, before it comes up."""
+    try:
+        draft = await draft_flow.clear_reservation(db, season_id, pick_number)
+    except DraftPickError as exc:
+        raise _conflict(exc) from exc
+    return await _broadcast_state(db, draft)
 
 
 @router.post("/{season_id}/picks", response_model=DraftPickResponse)
