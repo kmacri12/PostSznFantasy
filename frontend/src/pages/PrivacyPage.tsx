@@ -20,6 +20,12 @@ const SECTIONS: LegalSection[] = [
     ],
   },
   {
+    heading: "Counting visits",
+    body: [
+      "We count visits with Cloudflare Web Analytics, which sets no cookies and does not follow you across other sites. We also keep totals such as signups, leagues and drafts to see how the game is used; these totals never include your email or name.",
+    ],
+  },
+  {
     heading: "Reporting a problem",
     body: [
       "More, Report a problem emails your message, any screenshots you attach and your account email to support@postsznfantasy.com, so we can reply. Diagnostic info (the page you were on, league, season and team ids, your device and browser, recent app errors and failed requests) is included only while its box is ticked, and you can read it before sending. It never includes passwords, sign-in tokens or chat messages. We do not keep the files on our servers; they live in the support inbox and in the email provider (Resend) that delivers it. You can also write to support@postsznfantasy.com directly.",

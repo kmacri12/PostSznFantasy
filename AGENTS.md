@@ -43,11 +43,11 @@ PostSznFantasy/
 ├── AGENTS.md                   # This agent operational playbook
 ├── ROADMAP.md                  # Active roadmap (phases 15+)
 ├── REWRITE_ROADMAP.md          # Archived modernization history (phases 1-14)
-├── docs/owner/                 # Owner launch guide: one page per step, in launch order
+├── docs/owner/                 # Owner launch guide: one page per step, in launch order (23-monitoring.md: Metabase on the metrics views, uptime, Cloudflare Web Analytics, Sentry alerts)
 ├── docs/ui/                    # Approved UI redesign decisions (#232) and the link to the final Claude Design canvas: navigation, pages, information placement
 ├── api/                        # Backend service (Python 3.13 + FastAPI)
 │   ├── alembic/                # Database migrations
-│   │   ├── versions/           # Migration revisions
+│   │   ├── versions/           # Migration revisions (0023 adds the `metrics_daily` / `metrics_leagues` / `metrics_users` views and the `metrics_reader` role, #358: aggregates only, never emails or names; `tests/postgres/test_metrics_views.py` runs the view SQL)
 │   │   └── env.py              # Alembic environment runner
 │   ├── core/                   # Centralized application configuration
 │   │   ├── rate_limit.py   # In-memory sliding-window `RateLimiter` (single API process, same reasoning as support) and the per-route dependencies: chat 20/min and 200/h, create-league 5/day, join 10/h, avatar PUT 10/h, login 30/min (all per user), invite preview 60/min per IP; 429 with `Retry-After` and a readable `detail`; `SocketThrottle` for the sockets; `reset_all()` runs before every test
