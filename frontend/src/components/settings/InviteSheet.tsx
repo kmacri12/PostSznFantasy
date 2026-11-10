@@ -1,6 +1,7 @@
 import { Box, Button, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useInvite, useRegenerateInvite, useRevokeInvite } from "../../api/queries";
+import { canShareInvite, shareInvite } from "../../utils/shareInvite";
 import ErrorState from "../common/ErrorState";
 import SettingsSheet from "./SettingsSheet";
 
@@ -61,6 +62,11 @@ const InviteSheet = ({ leagueId, onClose }: { leagueId: number; onClose: () => v
       <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
         {code && (
           <>
+            {canShareInvite() && (
+              <Button variant="contained" sx={{ minHeight: 44 }} onClick={() => shareInvite(link)}>
+                Share
+              </Button>
+            )}
             <Button variant="outlined" sx={{ minHeight: 44 }} onClick={() => copy(link, "link")}>
               {copied === "link" ? "Link copied" : "Copy link"}
             </Button>

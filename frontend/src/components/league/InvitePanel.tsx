@@ -1,5 +1,6 @@
 import { Box, Button, Card, Typography } from "@mui/material";
 import { useInvite, useRegenerateInvite, useRevokeInvite } from "../../api/queries";
+import { canShareInvite, shareInvite } from "../../utils/shareInvite";
 import ErrorState from "../common/ErrorState";
 
 const InvitePanel = ({ leagueId }: { leagueId: number }) => {
@@ -42,6 +43,11 @@ const InvitePanel = ({ leagueId }: { leagueId: number }) => {
       <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mt: 2 }}>
         {code && (
           <>
+            {canShareInvite() && (
+              <Button size="small" variant="contained" onClick={() => shareInvite(link)}>
+                Share
+              </Button>
+            )}
             <Button size="small" variant="outlined" onClick={() => copy(link)}>
               Copy link
             </Button>

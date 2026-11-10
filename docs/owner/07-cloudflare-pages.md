@@ -25,6 +25,8 @@ cd ~/code/PostSznFantasy
    - `VITE_SUPABASE_URL` = from the script
    - `VITE_SUPABASE_PUBLISHABLE_KEY` = from the script
 
+   Optional: `API_ORIGIN` = `https://api.postsznfantasy.com` is the default for invite link previews (`frontend/functions/join/[code].ts`); set it only if the API moves. Plain text variable, not a secret.
+
    Then **Deployments**, the latest one, **Retry deployment**. The site reads variables only when it is built. If the build log says "Missing build variables", the log names which ones to add; a variable must also be spelled exactly, with `https://` and `wss://` at the start of the two addresses.
 4. **Custom domain**: project, **Custom domains**, **Set up a custom domain**, `postsznfantasy.com`. Accept the DNS record Cloudflare suggests. Add `www.postsznfantasy.com` too if you want it.
 5. **API address.** The script runs `fly certs add api.postsznfantasy.com --app postszn-api` and prints DNS records. In Cloudflare, **DNS**, **Records**, **Add record**, add exactly those. **Set Proxy status to DNS only (grey cloud).** An orange cloud breaks the live draft. Wait until this says **Issued**:
@@ -49,6 +51,8 @@ curl -sI https://postsznfantasy.com/ | grep -i -E 'cache-control|x-frame'
 ```
 
 shows the headers from `frontend/public/_headers`. Close #92 and #106.
+
+Link previews: paste `https://postsznfantasy.com/join/<a real invite code>` into iMessage or WhatsApp. The card shows the league name, open spots and the bracket logo. The Pages **Functions** tab lists `/join/:code` once the deploy has built it.
 
 ## If it goes wrong
 

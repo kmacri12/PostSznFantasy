@@ -166,6 +166,7 @@ PostSznFantasy/
 │   ├── pyproject.toml          # uv backend project specification & tool settings
 │   └── uv.lock                 # Deterministic backend dependency lockfile
 └── frontend/                   # Frontend SPA (React + TypeScript + Vite)
+    ├── functions/join/[code].ts # Cloudflare Pages Function: link-preview crawlers get index.html with the invite's league name and open spots in the Open Graph / Twitter tags (public invite preview only, no member names); browsers get the SPA. `public/_routes.json` limits it to /join/*; optional `API_ORIGIN` variable. Tested in src/joinPreview.test.ts
     ├── package.json            # Scripts & dependencies
     ├── tsconfig.json           # Strict TypeScript configuration
     ├── vite.config.ts          # Vite build configuration
@@ -229,6 +230,7 @@ PostSznFantasy/
         │   ├── gifProvider.ts  # `GifProvider` interface plus the GIPHY adapter; `gifProvider()` is null without `VITE_GIPHY_API_KEY`, which hides the GIF button
         │   ├── logger.ts       # Leveled client logger (debug/info dev-only on the console) plus a 50-entry ring buffer of scrubbed messages, `recentLogEntries()`
         │   ├── diagnostics.ts  # `collectDiagnostics`: the optional, scrubbed diagnostic info for a problem report (versions, route, ids, device, time, logs, failed requests, latest Sentry event id)
+        │   ├── shareInvite.ts  # `canShareInvite` / `shareInvite`: the native share sheet for the invite link (Copy stays the fallback)
         │   ├── pageTitle.ts    # `pageTitle(pathname, leagueName)`: per-route `document.title` ("Standings · League · PostSzn Fantasy"), set from App
         │   ├── pushSetup.ts    # `registerServiceWorker()` (call once at startup) and browser feature detection
         │   ├── notificationPrompt.ts # When the opt-in may show: at most two prompts per device ever (second only after Not now, on another day), fails closed without localStorage; routes where it never shows
