@@ -44,7 +44,7 @@ def normalize_code(code: str) -> str:
 
 def invite_problem(invite: LeagueInvite, now: datetime) -> str | None:
     if invite.revoked:
-        return "This invite has been revoked"
+        return "This invite has been revoked. Ask your commissioner for a new link"
     if invite.expires_at is not None and invite.expires_at <= now:
         return "This invite link has expired. Ask your commissioner for a new link"
     if invite.max_uses is not None and invite.uses >= invite.max_uses:

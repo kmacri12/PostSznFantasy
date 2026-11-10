@@ -1,7 +1,7 @@
 import type { LeagueByUser } from "../../api/types";
 import { leaguePath, seasonPaths } from "../../routes";
 
-export type LeagueTabLabel = "League" | "Team" | "Draft" | "Feed" | "More";
+export type LeagueTabLabel = "League" | "Team" | "Draft" | "Players" | "Feed" | "More";
 
 export interface LeagueTab {
   label: LeagueTabLabel;
@@ -38,7 +38,8 @@ export function leagueTabs(league: LeagueByUser): LeagueTab[] {
       dot: false,
     },
     {
-      label: "Draft",
+      // After the draft this tab is only the league player list.
+      label: league.draftStatus === "completed" ? "Players" : "Draft",
       to: paths.draft,
       matches: (p) => page(p)?.startsWith("/draft") ?? false,
       dot: false,

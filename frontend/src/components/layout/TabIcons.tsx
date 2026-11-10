@@ -30,6 +30,12 @@ export const TAB_ICONS: Record<LeagueTabLabel, (props: SvgIconProps) => React.Re
       <path d="M9.3 4v16M14.7 4v16M4 9.3h16M4 14.7h16" />
     </>,
   ),
+  Players: strokeIcon(
+    <>
+      <circle cx="9" cy="8" r="3" />
+      <path d="M3 20c0-3.5 2.7-5.5 6-5.5s6 2 6 5.5M16 5.5a3 3 0 0 1 0 5.5M17.5 14.5c2 .6 3.5 2.3 3.5 5.5" />
+    </>,
+  ),
   Feed: strokeIcon(<path d="M4 5h16v11H9l-5 4z" />),
   More: strokeIcon(
     <>

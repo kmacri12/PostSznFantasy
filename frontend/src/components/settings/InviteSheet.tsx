@@ -1,4 +1,5 @@
 import { Box, Button, Typography } from "@mui/material";
+import { useEffect, useState } from "react";
 import { useInvite, useRegenerateInvite, useRevokeInvite } from "../../api/queries";
 import ErrorState from "../common/ErrorState";
 import SettingsSheet from "./SettingsSheet";
@@ -11,7 +12,22 @@ const InviteSheet = ({ leagueId, onClose }: { leagueId: number; onClose: () => v
   const code = invite.data && !invite.data.revoked ? invite.data.code : undefined;
   const link = code ? `${window.location.origin}/join/${code}` : "";
   const expiresAt = invite.data?.expiresAt;
-  const copy = (text: string) => navigator.clipboard?.writeText(text);
+  const [copied, setCopied] = useState<"link" | "code" | "failed" | null>(null);
+
+  useEffect(() => {
+    if (!copied) return;
+    const timer = window.setTimeout(() => setCopied(null), 2000);
+    return () => window.clearTimeout(timer);
+  }, [copied]);
+
+  const copy = async (text: string, what: "link" | "code") => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(what);
+    } catch {
+      setCopied("failed");
+    }
+  };
 
   return (
     <SettingsSheet title="Invite link" onClose={onClose}>
@@ -23,12 +39,16 @@ const InviteSheet = ({ leagueId, onClose }: { leagueId: number; onClose: () => v
       ) : code ? (
         <Box>
           <Typography
-            sx={{ fontFamily: "monospace", fontSize: 28, letterSpacing: 4 }}
+            sx={{ fontFamily: "monospace", fontSize: 28, letterSpacing: 4, userSelect: "all" }}
             aria-label="Invite code"
           >
             {code}
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ wordBreak: "break-all" }}>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ wordBreak: "break-all", userSelect: "all" }}
+          >
             {link}
           </Typography>
         </Box>
@@ -41,11 +61,11 @@ const InviteSheet = ({ leagueId, onClose }: { leagueId: number; onClose: () => v
       <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
         {code && (
           <>
-            <Button variant="outlined" sx={{ minHeight: 44 }} onClick={() => copy(link)}>
-              Copy link
+            <Button variant="outlined" sx={{ minHeight: 44 }} onClick={() => copy(link, "link")}>
+              {copied === "link" ? "Link copied" : "Copy link"}
             </Button>
-            <Button variant="outlined" sx={{ minHeight: 44 }} onClick={() => copy(code)}>
-              Copy code
+            <Button variant="outlined" sx={{ minHeight: 44 }} onClick={() => copy(code, "code")}>
+              {copied === "code" ? "Code copied" : "Copy code"}
             </Button>
           </>
         )}
@@ -68,6 +88,11 @@ const InviteSheet = ({ leagueId, onClose }: { leagueId: number; onClose: () => v
           </Button>
         )}
       </Box>
+      {copied === "failed" && (
+        <Typography role="alert" variant="body2" color="error">
+          Couldn't copy. Tap the link above to select it, then copy it yourself.
+        </Typography>
+      )}
       {code && (
         <Typography variant="caption" color="text.secondary">
           {expiresAt

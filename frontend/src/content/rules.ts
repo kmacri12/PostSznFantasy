@@ -62,7 +62,7 @@ export const HOW_TO_PLAY_SECTIONS: HowToPlaySection[] = [
     title: "Team QB and team K",
     body: [
       "Your commissioner decides if team QB and team K are on. DST is always a team unit.",
-      "With team QB on, you draft a QB by name, but the slot scores every QB on that NFL team in that game. Example: you draft Jalen Hurts and score every Eagles QB who plays. If a backup comes in, he counts too.",
+      "With team QB on, you draft a QB by name, but the slot scores every QB on that NFL team in that game. Example: you draft Jalen Hurts and score every Eagles QB who plays. If a backup comes in, that QB counts too.",
       "Team K works the same way for kickers.",
       "The pool then lists one QB (or K) per NFL team, and the whole team leaves the pool when one is drafted. A wide receiver who throws a pass still scores as a WR.",
     ],
@@ -115,8 +115,8 @@ export const PRE_DRAFT_RULES: string[] = [
   "Roster slots and caps lock when the draft starts.",
 ];
 export const PRE_DRAFT_UNLIMITED = "No limit";
-export const TEAM_QB_ON_NOTE = "Team QB is on: your QB scores every QB on his NFL team.";
-export const TEAM_K_ON_NOTE = "Team K is on: your K scores every K on his NFL team.";
+export const TEAM_QB_ON_NOTE = "Team QB is on: your QB scores every QB on that NFL team.";
+export const TEAM_K_ON_NOTE = "Team K is on: your K scores every K on that NFL team.";
 
 export const NOTES_TITLE = "Commissioner notes";
 export const NOTES_EMPTY_MEMBER = "No notes yet.";
@@ -195,9 +195,9 @@ export const TOUR_STEPS: TourStep[] = [
 // Tooltips on commissioner settings. Keep each to a sentence or two.
 export const SETTING_HELP = {
   teamQb:
-    "On: you draft a QB by name, but he scores every QB on his NFL team in each game. Example: you draft Jalen Hurts and score every Eagles QB who plays. Off: a QB scores only himself.",
+    "On: you draft a QB by name, but the slot scores every QB on that NFL team in each game. Example: you draft Jalen Hurts and score every Eagles QB who plays. Off: a QB scores only that player.",
   teamK:
-    "On: you draft a K by name, but he scores every K on his NFL team in each game. Example: you draft Jake Elliott and score every Eagles kicker who plays. Off: a K scores only himself.",
+    "On: you draft a K by name, but the slot scores every K on that NFL team in each game. Example: you draft Jake Elliott and score every Eagles kicker who plays. Off: a K scores only that player.",
   multiplier:
     "Multiplies every starter's points in this round. 1x leaves scores as they are, 2x doubles them. Bench points use it too, so they compare directly.",
   allowJoin:

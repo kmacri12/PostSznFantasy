@@ -1,7 +1,7 @@
 import type { LineupPlayer, LineupSlot, RoundLineup } from "../../api/types";
 import { BENCH_SLOT, formatKickoff, ROUND_LABELS } from "./lineup";
 
-/** How a row is drawn: white until his game starts, green while it is on, grey once done. */
+/** How a row is drawn: white until their game starts, green while it is on, grey once done. */
 export type RowState = "ready" | "live" | "done" | "eliminated";
 
 export const rowState = (player: LineupPlayer): RowState => {

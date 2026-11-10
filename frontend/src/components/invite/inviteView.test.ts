@@ -38,11 +38,11 @@ describe("inviteView", () => {
     const revoked = preview({
       full: true,
       joinable: false,
-      reason: "This invite has been revoked",
+      reason: "This invite has been revoked. Ask your commissioner for a new link",
     });
     expect(inviteView(revoked, true)).toEqual({
       kind: "unavailable",
-      reason: "This invite has been revoked",
+      reason: "This invite has been revoked. Ask your commissioner for a new link",
     });
   });
   it("names the commissioner", () => {
