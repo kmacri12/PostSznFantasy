@@ -1,6 +1,7 @@
+from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, Integer, String, false, true
+from sqlalchemy import Boolean, DateTime, Integer, String, false, func, true
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from api.db.base import Base
@@ -19,6 +20,10 @@ class User(Base):
     email: Mapped[str | None] = mapped_column(String(120), unique=True, nullable=True)
     # Key of the profile picture in the avatar store (services/avatars.py); None = initials.
     avatar_key: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    # Signup time for the metrics views (#358); rows from before it carry the migration's.
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
     # Which pushes this person wants (the device switch only grants permission). Chat is
     # off by default: a busy league would otherwise push every message to everyone.
     push_draft_alerts: Mapped[bool] = mapped_column(
