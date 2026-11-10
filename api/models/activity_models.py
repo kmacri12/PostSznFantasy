@@ -143,6 +143,20 @@ class DraftCompletedPayload(BaseSchema):
     picks: int
 
 
+class DraftPickAssignedPayload(BaseSchema):
+    """A commissioner placed a player at a pick by hand: on the clock now, reserved for a
+    later slot, or replacing a pick already made (`replaced_player_name`)."""
+
+    kind: ClassVar[ActivityKind] = ActivityKind.DRAFT_PICK_ASSIGNED
+
+    pick_number: int
+    team_name: str
+    player_id: int
+    player_name: str
+    scheduled: bool = False
+    replaced_player_name: str | None = None
+
+
 ActivityPayload = (
     LineupMovePayload
     | CommissionerOverridePayload
@@ -156,6 +170,7 @@ ActivityPayload = (
     | DraftOrderChangedPayload
     | DraftStartedPayload
     | DraftCompletedPayload
+    | DraftPickAssignedPayload
 )
 
 

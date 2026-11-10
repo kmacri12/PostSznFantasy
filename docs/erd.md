@@ -127,6 +127,7 @@ erDiagram
         bool cpu_autopick
         bool alphabetical_sort
         int_array draft_order_team_ids
+        jsonb reserved_picks
     }
     draft_picks {
         int id PK

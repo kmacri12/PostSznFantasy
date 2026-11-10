@@ -18,6 +18,7 @@ const state = () => ({
   presence: [],
   queue: [],
   picks: [],
+  reservedPicks: [],
   order: [{ slot: 1, teamId: 1, teamName: "Alpha", ownerName: null }],
   rounds: 2,
   draftType: "snake",

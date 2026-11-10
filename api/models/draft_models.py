@@ -29,6 +29,18 @@ class DraftSlot(BaseSchema):
     team_name: str
     team_avatar_url: str | None = None
     owner_name: str | None = None
+    owner_user_id: int | None = None
+
+
+class ReservedPick(BaseSchema):
+    """A player the commissioner assigned to a slot that has not come up yet."""
+
+    pick_number: int
+    team_id: int
+    player_id: int
+    player_name: str | None = None
+    position: str | None = None
+    team_abv: str | None = None
 
 
 class DraftStateResponse(BaseSchema):
@@ -50,6 +62,7 @@ class DraftStateResponse(BaseSchema):
     order: list[DraftSlot]
     unassigned_team_ids: list[int]
     picks: list[DraftPickResponse]
+    reserved_picks: list[ReservedPick] = Field(default_factory=list)
     total_picks: int
     current_pick_overall: int | None = None
     on_the_clock_team_id: int | None = None
@@ -69,6 +82,16 @@ class DraftSetup(BaseSchema):
     )
     draft_type: DraftType | None = None
     pick_timeout_action: PickTimeoutAction | None = None
+
+
+class AssignPickRequest(BaseSchema):
+    """A commissioner places `player_id` at overall pick `pick_number`. `replace` must be
+    true to overwrite a pick already made, so a pick that landed a moment ago is never
+    replaced by a tap that was meant for the open slot."""
+
+    pick_number: int = Field(ge=1)
+    player_id: int
+    replace: bool = False
 
 
 class DraftOrderUpdate(BaseSchema):
