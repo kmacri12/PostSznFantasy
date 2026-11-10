@@ -45,13 +45,13 @@ const TeamUnitChoice = ({ values, onChange }: Props) => (
             <FormControlLabel
               value="true"
               control={<Radio />}
-              label={`On: scores every ${noun} on his NFL team`}
+              label={`On: scores every ${noun} on that NFL team`}
               sx={{ minHeight: 44 }}
             />
             <FormControlLabel
               value="false"
               control={<Radio />}
-              label="Off: scores only himself"
+              label="Off: scores only that player"
               sx={{ minHeight: 44 }}
             />
           </RadioGroup>

@@ -135,11 +135,12 @@ const LineupBlock = ({
     weekday: "short",
     hour: "numeric",
     minute: "2-digit",
+    timeZoneName: "short",
   });
   return (
     <Block>
       <Title>Set your lineup</Title>
-      <Detail>Lineups lock {locks}</Detail>
+      <Detail>First lock: {locks}. Each player locks at their own kickoff.</Detail>
       {season.myTeamId !== null && <Action to={paths.team(season.myTeamId)}>Open my team</Action>}
     </Block>
   );

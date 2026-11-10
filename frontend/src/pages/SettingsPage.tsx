@@ -249,6 +249,12 @@ function SettingsPage() {
               value={`${info.members.length} members`}
               onClick={() => setSheet("members")}
             />
+            {canEdit && (
+              <Typography variant="body2" color="text.secondary" sx={{ px: 2, py: 1 }}>
+                The rows above save as soon as you confirm. Changes to the rules below save with the
+                bar at the bottom.
+              </Typography>
+            )}
             <SettingsGroup title="Roster">
               <RosterForm
                 values={roster}
@@ -397,7 +403,7 @@ function SettingsPage() {
           title="League name"
           label="League name"
           initial={info.name}
-          maxLength={60}
+          maxLength={100}
           failure={mutationError(updateLeague.error, "Couldn't save the league name. Try again.")}
           onClose={close}
           onSave={(value) => updateLeague.mutateAsync({ name: value })}

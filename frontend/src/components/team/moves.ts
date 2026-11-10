@@ -5,7 +5,7 @@ import { benchPlayersOf, slotNames, startersOf } from "./lineupView";
 export interface MoveOption {
   key: string;
   title: string;
-  /** Where he goes or what it costs: "WR1 · Sun 6:30 pm", "Empty slot", "FLEX · game started, locked". */
+  /** Where the player goes or what it costs: "WR1 · Sun 6:30 pm", "Empty slot", "FLEX · game started, locked". */
   detail: string;
   /** The word on the button; "Locked" when the option is greyed. */
   action: "Swap" | "Start" | "Bench" | "Override" | "Locked";

@@ -18,6 +18,7 @@ import DormantPage from "./pages/DormantPage";
 import HowToPlayPage from "./pages/HowToPlayPage";
 import LandingPage from "./pages/LandingPage";
 import { teamNamePrompted } from "./utils/displayName";
+import { pageTitle } from "./utils/pageTitle";
 import { isTourTrigger, tourSeen } from "./utils/tourSeen";
 
 const CreateLeaguePage = lazy(() => import("./pages/CreateLeaguePage"));
@@ -64,6 +65,10 @@ function App() {
     (!needsNameSetup && teamId !== null && isTourTrigger(state) && !teamNamePrompted(teamId));
   const tourBlocked = needsNameSetup || teamNameHolds;
   const tourHolds = tourOpen || (userId !== null && isTourTrigger(state) && !tourSeen(userId));
+  const leagueName = league?.name;
+  useEffect(() => {
+    document.title = pageTitle(pathname, leagueName);
+  }, [pathname, leagueName]);
 
   return (
     <AppShell

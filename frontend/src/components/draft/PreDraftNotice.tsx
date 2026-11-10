@@ -19,6 +19,7 @@ const PreDraftNotice = ({ state }: { state: DraftState }) => {
             weekday: "short",
             hour: "numeric",
             minute: "2-digit",
+            timeZoneName: "short",
           })}
           .
         </Alert>

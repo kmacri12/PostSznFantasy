@@ -213,7 +213,7 @@ const PlayerSheet = ({
 
       {player.status === "eliminated" && (
         <Typography sx={{ fontSize: 13, color: tokens.dangerMuted }}>
-          His team is out, so he can't start this round.
+          The player's team is out, so they can't start this round.
         </Typography>
       )}
       {canMove && options.length > 0 && (

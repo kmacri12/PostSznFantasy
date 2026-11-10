@@ -16,17 +16,17 @@ const POSITION_ROWS = [
   {
     prefix: "top",
     label: "Highest scoring",
-    help: "Highest scoring: the player who scored the most fantasy points at his position this season.",
+    help: "Highest scoring: the player who scored the most fantasy points at that position this season.",
   },
   {
     prefix: "best_value",
     label: "Best value",
-    help: "Best value: the player who finished furthest above where he was drafted, compared with the others at his position.",
+    help: "Best value: the player who finished furthest above where they were drafted, compared with the others at that position.",
   },
   {
     prefix: "bust",
     label: "Biggest bust",
-    help: "Biggest bust: the player who finished furthest below where he was drafted, compared with the others at his position.",
+    help: "Biggest bust: the player who finished furthest below where they were drafted, compared with the others at that position.",
   },
 ] as const;
 

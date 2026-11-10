@@ -294,7 +294,9 @@ async def test_revoked_full_and_started_invites_are_refused(
         ).status_code == 204
     async with client_as("newbie") as newbie:
         revoked = await newbie.get(f"/api/invites/{code}")
-    assert revoked.json()["reason"] == "This invite has been revoked"
+    assert revoked.json()["reason"] == (
+        "This invite has been revoked. Ask your commissioner for a new link"
+    )
 
 
 async def test_unknown_invite_is_404(client_as: ClientFactory) -> None:

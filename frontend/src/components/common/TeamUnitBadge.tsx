@@ -1,6 +1,6 @@
 import { Box, Chip, Tooltip } from "@mui/material";
 
-/** "Scores all PHI QBs" for a team QB or K, shown wherever his name appears. */
+/** "Scores all PHI QBs" for a team QB or K, shown wherever the player appears. */
 export const teamUnitHint = (position: string, teamAbv?: string | null): string =>
   `Scores all ${teamAbv || "team"} ${position === "K" ? "Ks" : "QBs"}`;
 

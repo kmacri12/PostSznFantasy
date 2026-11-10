@@ -127,9 +127,14 @@ describe("JoinPage when signed in", () => {
   });
 
   it("explains an invite that can't be used", () => {
-    mocks.preview = preview({ joinable: false, reason: "This invite has been revoked" });
+    mocks.preview = preview({
+      joinable: false,
+      reason: "This invite has been revoked. Ask your commissioner for a new link",
+    });
     renderJoin();
-    expect(screen.getByText("This invite has been revoked")).toBeTruthy();
+    expect(
+      screen.getByText("This invite has been revoked. Ask your commissioner for a new link"),
+    ).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Join league" })).toBeNull();
   });
 });
