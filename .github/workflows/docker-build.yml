@@ -46,7 +46,8 @@ jobs:
 
       - name: Start the API and wait for the Docker health check
         run: |
-          docker run -d --name api-${{ github.run_id }} --network host $CONTAINER_ENV postszn-api:ci
+          # Host networking shares ports across concurrent runs and the runner host, so each run picks its own.
+          docker run -d --name api-${{ github.run_id }} --network host -e PORT=$((20000 + ${{ github.run_id }} % 10000)) $CONTAINER_ENV postszn-api:ci
           for _ in $(seq 1 30); do
             status=$(docker inspect -f '{{.State.Health.Status}}' api-${{ github.run_id }})
             [ "$status" = "healthy" ] && exit 0
