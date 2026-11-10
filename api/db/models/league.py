@@ -15,6 +15,7 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
     false,
+    func,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -36,6 +37,10 @@ class League(Base):
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     notes: Mapped[str] = mapped_column(Text, nullable=False, server_default="")
     avatar_key: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    # For the metrics views (#358); rows from before it carry the migration's time.
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
     # Set by the league delete (rows are kept forever, #231).
     deleted_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
