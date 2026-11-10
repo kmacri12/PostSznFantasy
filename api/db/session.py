@@ -14,6 +14,10 @@ from api.core.config import get_settings
 
 logger = logging.getLogger(__name__)
 
+# Key in `Session.info` set on a request's own session (not on the scheduler's or a
+# script's, which live across ingests), so services may memoize reads for the request.
+REQUEST_SCOPED = "request_scoped"
+
 engine: AsyncEngine | None = None
 AsyncSessionLocal: async_sessionmaker[AsyncSession] | None = None
 
@@ -81,6 +85,7 @@ async def get_db() -> AsyncGenerator[AsyncSession]:
         )
 
     async with AsyncSessionLocal() as session:
+        session.info[REQUEST_SCOPED] = True
         try:
             yield session
             await session.commit()
