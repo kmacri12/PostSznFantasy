@@ -17,7 +17,7 @@ from api.tests.postgres.factories import make_season
 
 _spec = importlib.util.spec_from_file_location(
     "metrics_migration",
-    Path(__file__).parents[2] / "alembic/versions/0023_metrics_views.py",
+    Path(__file__).parents[2] / "alembic/versions/0024_metrics_views.py",
 )
 assert _spec and _spec.loader
 migration = importlib.util.module_from_spec(_spec)

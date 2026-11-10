@@ -4,8 +4,8 @@ Aggregate-only views for the owner's dashboards (#358): no emails, names or othe
 personal data leave the database through them. `metrics_reader` can read the views and
 nothing else; the owner sets its password (docs/owner/23-monitoring.md).
 
-Revision ID: 0023_metrics_views
-Revises: 0022_push_preferences
+Revision ID: 0024_metrics_views
+Revises: 0023_draft_reserved_picks
 Create Date: 2026-11-09 20:00:00
 
 """
@@ -16,8 +16,8 @@ import sqlalchemy as sa
 
 from alembic import op
 
-revision: str = "0023_metrics_views"
-down_revision: str | Sequence[str] | None = "0022_push_preferences"
+revision: str = "0024_metrics_views"
+down_revision: str | Sequence[str] | None = "0023_draft_reserved_picks"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
