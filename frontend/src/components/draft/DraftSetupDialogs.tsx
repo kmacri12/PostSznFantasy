@@ -16,6 +16,21 @@ import { useDraftSetup } from "../../api/queries";
 import type { DraftState, DraftType, PickTimeoutAction } from "../../api/types";
 import { mutationError } from "../common/friendlyError";
 
+export const PICK_SECONDS_MIN = 15;
+export const PICK_SECONDS_MAX = 600;
+
+/** The whole number a seconds field holds, or null when it is empty, fractional or out of range. */
+export const parsePickSeconds = (text: string): number | null => {
+  if (!/^\d+$/.test(text.trim())) return null;
+  const value = Number(text);
+  return value >= PICK_SECONDS_MIN && value <= PICK_SECONDS_MAX ? value : null;
+};
+
+const timeZoneName = (): string =>
+  new Intl.DateTimeFormat(undefined, { timeZoneName: "short" })
+    .formatToParts(new Date())
+    .find((part) => part.type === "timeZoneName")?.value ?? "";
+
 const toLocalInput = (iso: string | null): string => {
   if (!iso) return "";
   const date = new Date(iso);
@@ -52,6 +67,7 @@ export const DraftDateDialog = ({ draft, open, onClose }: Props) => {
           fullWidth
           type="datetime-local"
           label="Draft date & time"
+          helperText={`In your time zone (${timeZoneName()}). Everyone else sees it in theirs.`}
           slotProps={{ inputLabel: { shrink: true } }}
           value={value}
           onChange={(event) => setValue(event.target.value)}
@@ -74,10 +90,12 @@ export const DraftRulesDialog = ({ draft, open, onClose }: Props) => {
   const [draftType, setDraftType] = useState<DraftType>(draft.draftType);
   const [timeout, setTimeoutAction] = useState<PickTimeoutAction>(draft.pickTimeoutAction);
   const error = mutationError(setup.error, "Couldn't save the draft settings. Try again.");
+  const seconds = parsePickSeconds(timePerPick);
   const save = () =>
+    seconds !== null &&
     setup.mutate(
       {
-        timePerPickSeconds: Number(timePerPick),
+        timePerPickSeconds: seconds,
         ...(draft.orderLocked ? {} : { draftType, pickTimeoutAction: timeout }),
       },
       { onSuccess: onClose },
@@ -94,6 +112,9 @@ export const DraftRulesDialog = ({ draft, open, onClose }: Props) => {
           label="Seconds per pick"
           value={timePerPick}
           onChange={(event) => setTimePerPick(event.target.value)}
+          error={seconds === null}
+          helperText={`A whole number of seconds, ${PICK_SECONDS_MIN} to ${PICK_SECONDS_MAX}.`}
+          slotProps={{ htmlInput: { inputMode: "numeric" } }}
         />
         <FormControl fullWidth disabled={draft.orderLocked}>
           <InputLabel id="draft-type-label">Draft type</InputLabel>
@@ -125,7 +146,7 @@ export const DraftRulesDialog = ({ draft, open, onClose }: Props) => {
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
-        <Button variant="contained" disabled={setup.isPending} onClick={save}>
+        <Button variant="contained" disabled={setup.isPending || seconds === null} onClick={save}>
           Save settings
         </Button>
       </DialogActions>

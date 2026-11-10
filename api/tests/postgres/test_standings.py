@@ -158,6 +158,7 @@ async def test_a_manual_result_updates_standings(
                 "teamIdAway": 2,
                 "homePts": 10,
                 "awayPts": 20,
+                "create": True,
             },
         )
     get_settings.cache_clear()
