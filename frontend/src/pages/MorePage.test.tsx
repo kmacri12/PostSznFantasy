@@ -42,10 +42,10 @@ describe("MorePage", () => {
   });
 
   it("opens the support page in a new tab, safely, when VITE_SUPPORT_URL is set", () => {
-    vi.stubEnv("VITE_SUPPORT_URL", "https://buymeacoffee.com/example");
+    vi.stubEnv("VITE_SUPPORT_URL", "https://buymeacoffee.com/kmacri12");
     renderMore();
     const link = screen.getByRole("link", { name: /Support PostSzn/ });
-    expect(link).toHaveAttribute("href", "https://buymeacoffee.com/example");
+    expect(link).toHaveAttribute("href", "https://buymeacoffee.com/kmacri12");
     expect(link).toHaveAttribute("target", "_blank");
     expect(link).toHaveAttribute("rel", "noopener noreferrer");
     expect(link).toHaveTextContent("changes nothing in your league");
