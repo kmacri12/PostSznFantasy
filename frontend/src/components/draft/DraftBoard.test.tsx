@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { DraftState } from "../../api/types";
 import DraftBoard, { teamInitials } from "./DraftBoard";
 
@@ -18,8 +18,8 @@ const base: DraftState = {
   serverTime: "2030-01-01T00:00:00Z",
   orderLocked: true,
   order: [
-    { slot: 1, teamId: 10, teamName: "Alpha", ownerName: "ann" },
-    { slot: 2, teamId: 20, teamName: "Bravo", ownerName: null },
+    { slot: 1, teamId: 10, teamName: "Alpha", ownerName: "ann", ownerUserId: 1 },
+    { slot: 2, teamId: 20, teamName: "Bravo", ownerName: null, ownerUserId: null },
   ],
   unassignedTeamIds: [],
   picks: [
@@ -36,6 +36,7 @@ const base: DraftState = {
       autopick: false,
     },
   ],
+  reservedPicks: [],
   totalPicks: 4,
   currentPickOverall: 2,
   onTheClockTeamId: 20,
@@ -74,16 +75,10 @@ describe("DraftBoard", () => {
   });
 
   it("says who is on the clock for an empty cell and offers extra actions", () => {
-    render(
-      <DraftBoard
-        state={base}
-        myTeamId={null}
-        renderCellActions={(cell) => <button type="button">Assign {cell.overall}</button>}
-      />,
-    );
+    render(<DraftBoard state={base} myTeamId={null} onSelectSlot={vi.fn()} />);
     fireEvent.click(screen.getByTestId("pick-2"));
     expect(screen.getByText("Bravo is on the clock.")).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Assign 2" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Assign pick 2" })).toBeTruthy();
   });
 
   it("abbreviates team headers", () => {
@@ -107,5 +102,32 @@ describe("DraftBoard team QB / team K", () => {
   it("shows no badge for an ordinary pick", () => {
     render(<DraftBoard state={withFlag(false)} myTeamId={null} />);
     expect(screen.queryByRole("note")).toBeNull();
+  });
+
+  it("shows a reserved player and lets a commissioner tap a slot", () => {
+    const onSelectSlot = vi.fn();
+    render(
+      <DraftBoard
+        state={{
+          ...base,
+          reservedPicks: [
+            {
+              pickNumber: 3,
+              teamId: 20,
+              playerId: 9,
+              playerName: "Tyreek Hill",
+              position: "WR",
+              teamAbv: "MIA",
+            },
+          ],
+        }}
+        myTeamId={10}
+        onSelectSlot={onSelectSlot}
+      />,
+    );
+    expect(screen.getByText("Hill")).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("pick-3"));
+    fireEvent.click(screen.getByRole("button", { name: "Assign pick 3" }));
+    expect(onSelectSlot).toHaveBeenCalledWith({ pickNumber: 3, teamName: "Bravo" });
   });
 });

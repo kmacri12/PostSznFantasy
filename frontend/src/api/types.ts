@@ -302,6 +302,16 @@ export interface DraftSlot {
   teamName: string;
   teamAvatarUrl?: string | null;
   ownerName: string | null;
+  ownerUserId: number | null;
+}
+
+export interface ReservedPick {
+  pickNumber: number;
+  teamId: number;
+  playerId: number;
+  playerName: string | null;
+  position: string | null;
+  teamAbv: string | null;
 }
 
 export type DraftType = "snake" | "linear" | "third_round_reversal";
@@ -324,6 +334,8 @@ export interface DraftState {
   order: DraftSlot[];
   unassignedTeamIds: number[];
   picks: DraftPick[];
+  /** Players a commissioner assigned to slots that have not come up yet. */
+  reservedPicks: ReservedPick[];
   totalPicks: number;
   currentPickOverall: number | null;
   onTheClockTeamId: number | null;
@@ -384,7 +396,8 @@ export type ActivityKind =
   | "draft_order_randomized"
   | "draft_order_changed"
   | "draft_started"
-  | "draft_completed";
+  | "draft_completed"
+  | "draft_pick_assigned";
 
 interface ActivityBase {
   id: number;
@@ -453,6 +466,17 @@ export type ActivityEvent = ActivityBase &
       }
     | { kind: "draft_started"; payload: { teamCount: number; rounds: number } }
     | { kind: "draft_completed"; payload: { picks: number } }
+    | {
+        kind: "draft_pick_assigned";
+        payload: {
+          pickNumber: number;
+          teamName: string;
+          playerId: number;
+          playerName: string;
+          scheduled: boolean;
+          replacedPlayerName: string | null;
+        };
+      }
   );
 
 export interface ActivityFeed {

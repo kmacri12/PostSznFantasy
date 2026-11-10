@@ -41,6 +41,7 @@ async def test_entering_a_result_creates_the_game_and_eliminates_the_loser(
                 "teamIdAway": 2,
                 "homePts": 27,
                 "awayPts": 24,
+                "create": True,
             },
         )
     assert response.status_code == 200
@@ -57,7 +58,7 @@ async def test_correcting_a_result_flips_the_elimination(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:
     await _teams(db)
-    body = {"season": 2026, "teamIdHome": 1, "teamIdAway": 2}
+    body = {"season": 2026, "teamIdHome": 1, "teamIdAway": 2, "create": True}
     async with client_as("admin-uid") as admin:
         await admin.put(
             "/api/admin/games/g/result", json=body | {"homePts": 27, "awayPts": 24}
@@ -85,3 +86,48 @@ async def test_a_non_admin_cannot_enter_results(
             },
         )
     assert response.status_code == 403
+
+
+async def test_bad_results_are_refused_and_change_nothing(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    await _teams(db)
+    good = {"season": 2026, "teamIdHome": 1, "teamIdAway": 2, "homePts": 27}
+    good["awayPts"] = 24
+    async with client_as("admin-uid") as admin:
+        url = "/api/admin/games/real/result"
+        assert (await admin.put(url, json=good | {"create": True})).status_code == 200
+        bad = {
+            "unknown team": good | {"teamIdAway": 99},
+            "same team twice": good | {"teamIdAway": 1},
+            "negative score": good | {"homePts": -1},
+            "absurd score": good | {"awayPts": 1000},
+            "far-off season": good | {"season": 1850},
+            "other season": good | {"season": 2025},
+        }
+        for label, body in bad.items():
+            assert (await admin.put(url, json=body)).status_code == 422, label
+        unknown_game = await admin.put("/api/admin/games/typo/result", json=good)
+        eliminate = await admin.post(
+            "/api/admin/update/eliminate_teams", json={"teamIds": [1, 4242]}
+        )
+    assert unknown_game.status_code == 404
+    assert await db.get(NFLGame, "typo") is None
+    assert eliminate.status_code == 422
+    assert "4242" in eliminate.json()["detail"]
+    assert (await _team(db, 1)).is_active is True
+
+
+async def test_admin_actions_are_logged_with_who_and_what(
+    db: AsyncSession, client_as: ClientFactory, caplog: pytest.LogCaptureFixture
+) -> None:
+    await _teams(db)
+    body = {"season": 2026, "teamIdHome": 1, "teamIdAway": 2, "homePts": 3}
+    body["awayPts"] = 0
+    with caplog.at_level("INFO", logger="api.routers.admin"):
+        async with client_as("admin-uid") as admin:
+            await admin.put("/api/admin/games/x/result", json=body | {"create": True})
+    record = next(r for r in caplog.records if r.getMessage() == "Admin action")
+    assert record.__dict__["admin_uid"] == "admin-uid"
+    assert record.__dict__["path"] == "/api/admin/games/x/result"
+    assert "homePts" in record.__dict__["body"]

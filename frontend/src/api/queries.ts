@@ -556,6 +556,24 @@ export const useDraftControl = (seasonId: Id | undefined) => {
   });
 };
 
+export const useAssignPick = (seasonId: Id | undefined) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (body: { pickNumber: number; playerId: number; replace: boolean }) =>
+      (await api.post<DraftState>(`/api/drafts/${seasonId}/assign`, body)).data,
+    onSuccess: (data) => queryClient.setQueryData(keys.draft(seasonId ?? ""), data),
+  });
+};
+
+export const useClearReservedPick = (seasonId: Id | undefined) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (pickNumber: number) =>
+      (await api.delete<DraftState>(`/api/drafts/${seasonId}/assign/${pickNumber}`)).data,
+    onSuccess: (data) => queryClient.setQueryData(keys.draft(seasonId ?? ""), data),
+  });
+};
+
 export const useDraftSetup = (seasonId: Id | undefined) => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -578,7 +596,7 @@ export const useAdminSync = () =>
   useMutation({
     mutationFn: async () =>
       (
-        await api.post<SyncResult>("/api/admin/update/all", {
+        await api.post<SyncResult>("/api/admin/update/all?wait=true", {
           withStats: true,
           withBoxScores: false,
         })

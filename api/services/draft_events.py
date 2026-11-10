@@ -20,22 +20,24 @@ async def pick_events(
     db: AsyncSession, draft: Draft, result: PickResult
 ) -> list[dict[str, Any]]:
     """The broadcast pair for a recorded pick: the pick itself, then the new clock state."""
-    pick = result.pick
-    response = DraftPickResponse(
-        id=pick.id,
-        draft_id=pick.draft_id,
-        team_id=pick.team_id,
-        player_id=pick.player_id,
-        player_name=result.player_name,
-        number_round=pick.number_round,
-        number_pick_overall=pick.number_pick_overall,
-        number_pick_in_round=pick.number_pick_in_round,
-        autopick=pick.autopick,
-    )
-    events: list[dict[str, Any]] = [
-        {"eventType": "PICK_MADE", "data": response.model_dump(mode="json")},
-        await state_event(db, draft),
-    ]
+    events: list[dict[str, Any]] = []
+    for recorded in (result, *result.chained):
+        pick = recorded.pick
+        response = DraftPickResponse(
+            id=pick.id,
+            draft_id=pick.draft_id,
+            team_id=pick.team_id,
+            player_id=pick.player_id,
+            player_name=recorded.player_name,
+            number_round=pick.number_round,
+            number_pick_overall=pick.number_pick_overall,
+            number_pick_in_round=pick.number_pick_in_round,
+            autopick=pick.autopick,
+        )
+        events.append(
+            {"eventType": "PICK_MADE", "data": response.model_dump(mode="json")}
+        )
+    events.append(await state_event(db, draft))
     if result.draft_complete:
         events.append({"eventType": "DRAFT_COMPLETE"})
     return events

@@ -24,6 +24,7 @@ const snapshot = (overrides: Partial<DraftSnapshot> = {}): DraftSnapshot => ({
   order: [],
   unassignedTeamIds: [],
   picks: [],
+  reservedPicks: [],
   totalPicks: 4,
   currentPickOverall: 1,
   onTheClockTeamId: 10,

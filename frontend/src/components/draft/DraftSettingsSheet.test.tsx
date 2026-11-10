@@ -57,3 +57,25 @@ describe("DraftSettingsSheet", () => {
     expect(screen.getByRole("button", { name: /Seconds per pick/ })).toBeInTheDocument();
   });
 });
+
+describe("seconds per pick", () => {
+  it("parses only whole numbers inside the limits", async () => {
+    const { parsePickSeconds } = await import("./DraftSetupDialogs");
+    expect(parsePickSeconds("90")).toBe(90);
+    expect(parsePickSeconds(" 15 ")).toBe(15);
+    expect(parsePickSeconds("600")).toBe(600);
+    for (const bad of ["", "abc", "14", "601", "1.5", "-20"])
+      expect(parsePickSeconds(bad)).toBeNull();
+  });
+
+  it("shows the limits and will not save a bad value", () => {
+    open(draft(), true);
+    fireEvent.click(screen.getByRole("button", { name: /Seconds per pick/ }));
+    const field = screen.getByRole("textbox", { name: "Seconds per pick" });
+    expect(screen.getByText("A whole number of seconds, 15 to 600.")).toBeInTheDocument();
+    fireEvent.change(field, { target: { value: "abc" } });
+    expect(screen.getByRole("button", { name: "Save settings" })).toBeDisabled();
+    fireEvent.change(field, { target: { value: "45" } });
+    expect(screen.getByRole("button", { name: "Save settings" })).toBeEnabled();
+  });
+});

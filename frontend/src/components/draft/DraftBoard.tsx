@@ -1,8 +1,8 @@
-import { Box, Paper, Typography } from "@mui/material";
+import { Box, Button, Paper, Typography } from "@mui/material";
 import type { SxProps, Theme } from "@mui/material/styles";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
-import type { DraftPick, DraftState } from "../../api/types";
+import type { DraftPick, DraftState, ReservedPick } from "../../api/types";
 import { tokens } from "../../theme";
 import TeamUnitBadge from "../common/TeamUnitBadge";
 import SettingsSheet from "../settings/SettingsSheet";
@@ -14,8 +14,8 @@ interface Props {
   myTeamId: number | null;
   /** Frame size overrides: the page decides how tall the board may be. */
   sx?: SxProps<Theme>;
-  /** Extra actions for the tapped cell's sheet (the commissioner's assign-a-pick, #332). */
-  renderCellActions?: (cell: BoardCell) => React.ReactNode;
+  /** Commissioners get an "Assign pick" button in the tapped cell's sheet. */
+  onSelectSlot?: (slot: { pickNumber: number; teamName: string }) => void;
 }
 
 export interface BoardCell {
@@ -24,6 +24,7 @@ export interface BoardCell {
   teamId: number;
   teamName: string;
   pick: DraftPick | undefined;
+  reserved: ReservedPick | undefined;
   onClock: boolean;
 }
 
@@ -63,11 +64,12 @@ const gridLine = {
  * The grid scrolls both ways inside its own frame with the round and team headers pinned,
  * and follows the pick on the clock.
  */
-const DraftBoard: React.FC<Props> = ({ state, myTeamId, sx, renderCellActions }) => {
+const DraftBoard: React.FC<Props> = ({ state, myTeamId, sx, onSelectSlot }) => {
   const [selected, setSelected] = useState<BoardCell | null>(null);
   const teamCount = state.order.length;
   const columns = `${ROUND_COL}px repeat(${teamCount || 1}, minmax(${TEAM_COL}px, 1fr))`;
   const frameRef = useRef<HTMLDivElement>(null);
+  const reservedByOverall = new Map(state.reservedPicks.map((item) => [item.pickNumber, item]));
   const byOverall = new Map<number, DraftPick>(state.picks.map((p) => [p.numberPickOverall, p]));
 
   // Overall pick number for a team's cell in a round, honouring the draft type's direction.
@@ -208,6 +210,7 @@ const DraftBoard: React.FC<Props> = ({ state, myTeamId, sx, renderCellActions })
                 teamId: slot.teamId,
                 teamName: slot.teamName,
                 pick,
+                reserved: reservedByOverall.get(overall),
                 onClock,
               };
               return (
@@ -256,6 +259,20 @@ const DraftBoard: React.FC<Props> = ({ state, myTeamId, sx, renderCellActions })
                     {overall}
                     {onClock ? " · NOW" : ""}
                   </Box>
+                  {cell.reserved && !pick && (
+                    <>
+                      <Typography
+                        noWrap
+                        component="b"
+                        sx={{ display: "block", fontSize: 11, fontWeight: 600, color: tokens.text }}
+                      >
+                        {lastName(cell.reserved.playerName, cell.reserved.position)}
+                      </Typography>
+                      <Box component="span" sx={{ display: "block" }} aria-hidden>
+                        Reserved
+                      </Box>
+                    </>
+                  )}
                   {pick && (
                     <>
                       <Typography
@@ -279,7 +296,18 @@ const DraftBoard: React.FC<Props> = ({ state, myTeamId, sx, renderCellActions })
       {selected && (
         <SettingsSheet title={`Pick ${selected.overall}`} onClose={() => setSelected(null)}>
           <CellDetails cell={selected} />
-          {renderCellActions?.(selected)}
+          {onSelectSlot && (
+            <Button
+              variant="outlined"
+              sx={{ minHeight: 44 }}
+              onClick={() => {
+                onSelectSlot({ pickNumber: selected.overall, teamName: selected.teamName });
+                setSelected(null);
+              }}
+            >
+              {`Assign pick ${selected.overall}`}
+            </Button>
+          )}
         </SettingsSheet>
       )}
     </Paper>
@@ -292,8 +320,21 @@ const cellLabel = ({ overall, pick, teamName, onClock }: BoardCell): string =>
     : `Pick ${overall}, ${teamName}${onClock ? ", on the clock" : ""}`;
 
 const CellDetails = ({ cell }: { cell: BoardCell }) => {
-  const { pick, teamName, round, onClock } = cell;
+  const { pick, reserved, teamName, round, onClock } = cell;
   const lines = [`Round ${round}`, teamName];
+  if (!pick && reserved) {
+    return (
+      <Box>
+        <Typography sx={{ fontWeight: 700 }}>{reserved.playerName}</Typography>
+        <Typography color="text.secondary">
+          {[reserved.position, reserved.teamAbv].filter(Boolean).join(" · ")}
+        </Typography>
+        <Typography color="text.secondary">
+          {lines.join(" · ")} · Reserved by the commissioner
+        </Typography>
+      </Box>
+    );
+  }
   if (!pick) {
     return (
       <Box>
