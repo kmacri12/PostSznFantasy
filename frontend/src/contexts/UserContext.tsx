@@ -173,7 +173,11 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const signInWithGoogle = useCallback(async (next: string) => {
     const { error } = await supabaseAuth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: authCallbackUrl(window.location.origin, next) },
+      options: {
+        redirectTo: authCallbackUrl(window.location.origin, next),
+        // A phone with several Google accounts otherwise signs in as the last one used.
+        queryParams: { prompt: "select_account" },
+      },
     });
     if (error) logger.error("Error signing in with Google:", error);
     return error ? "Couldn't start Google sign-in. Try again." : null;

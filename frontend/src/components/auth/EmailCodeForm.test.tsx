@@ -1,5 +1,5 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import EmailCodeForm from "./EmailCodeForm";
 
 const submitEmail = (address: string) => {
@@ -15,7 +15,33 @@ const renderForm = (
   return { onSend, onVerify };
 };
 
+afterEach(() => vi.useRealTimers());
+
 describe("EmailCodeForm", () => {
+  it("shows the address masked, not in full", async () => {
+    renderForm();
+    submitEmail("pat@x.co");
+
+    expect(await screen.findByText("p**@x.co")).toBeInTheDocument();
+    expect(screen.queryByText("pat@x.co")).not.toBeInTheDocument();
+  });
+
+  it("counts down, then resends and says a new code is on its way", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const { onSend } = renderForm();
+    submitEmail("pat@x.co");
+    await screen.findByLabelText(/sign-in code/i);
+    expect(screen.getByRole("button", { name: "Resend code in 60s" })).toBeDisabled();
+    expect(screen.queryByText(/new code is on its way/i)).not.toBeInTheDocument();
+
+    for (let second = 0; second < 60; second++) await act(() => vi.advanceTimersByTimeAsync(1000));
+    fireEvent.click(screen.getByRole("button", { name: "Resend code" }));
+
+    expect(await screen.findByText(/new code is on its way/i)).toBeInTheDocument();
+    expect(onSend).toHaveBeenCalledTimes(2);
+    expect(screen.getByRole("button", { name: "Resend code in 60s" })).toBeDisabled();
+  });
+
   it("sends the trimmed address and asks for the code", async () => {
     const { onSend } = renderForm();
     submitEmail("  pat@x.co ");

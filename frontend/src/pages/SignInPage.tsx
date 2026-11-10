@@ -17,6 +17,7 @@ import LoadingState from "../components/common/LoadingState";
 import Logo from "../components/common/Logo";
 import { useUser } from "../contexts/UserContext";
 import { safeNextPath } from "../utils/authRedirect";
+import { isInAppBrowser } from "../utils/inAppBrowser";
 import { initialCallbackError } from "../utils/supabase";
 
 const CALLBACK_ERROR_MESSAGE = "We couldn't finish signing you in. Try again below.";
@@ -25,6 +26,7 @@ const SignInPage = () => {
   const { user, loading, signInWithGoogle, sendEmailCode, verifyEmailCode } = useUser();
   const [params] = useSearchParams();
   const next = safeNextPath(params.get("next"));
+  const inApp = isInAppBrowser();
   const [googleError, setGoogleError] = useState<string | null>(null);
   // Captured once: the URL error is stale after the visitor tries again.
   const [callbackError] = useState(initialCallbackError);
@@ -65,19 +67,26 @@ const SignInPage = () => {
 
         <Divider>or</Divider>
 
-        <Box sx={{ display: "grid", gap: 1 }}>
-          <Button
-            variant="outlined"
-            color="inherit"
-            size="large"
-            startIcon={<GoogleIcon />}
-            sx={{ minHeight: 48 }}
-            onClick={async () => setGoogleError(await signInWithGoogle(next))}
-          >
-            Continue with Google
-          </Button>
-          {googleError && <Alert severity="error">{googleError}</Alert>}
-        </Box>
+        {inApp ? (
+          <Alert severity="info">
+            Google sign-in doesn't work inside this app's browser. Use the emailed code above, or
+            open this page in Safari or Chrome.
+          </Alert>
+        ) : (
+          <Box sx={{ display: "grid", gap: 1 }}>
+            <Button
+              variant="outlined"
+              color="inherit"
+              size="large"
+              startIcon={<GoogleIcon />}
+              sx={{ minHeight: 48 }}
+              onClick={async () => setGoogleError(await signInWithGoogle(next))}
+            >
+              Continue with Google
+            </Button>
+            {googleError && <Alert severity="error">{googleError}</Alert>}
+          </Box>
+        )}
 
         <Typography variant="body2" color="text.secondary">
           By continuing you agree to the{" "}

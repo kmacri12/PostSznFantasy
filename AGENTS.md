@@ -230,6 +230,8 @@ PostSznFantasy/
         │   ├── logger.ts       # Leveled client logger (debug/info dev-only on the console) plus a 50-entry ring buffer of scrubbed messages, `recentLogEntries()`
         │   ├── diagnostics.ts  # `collectDiagnostics`: the optional, scrubbed diagnostic info for a problem report (versions, route, ids, device, time, logs, failed requests, latest Sentry event id)
         │   ├── pageTitle.ts    # `pageTitle(pathname, leagueName)`: per-route `document.title` ("Standings · League · PostSzn Fantasy"), set from App
+        │   ├── maskEmail.ts    # `p**@x.co`: the address shown on the sign-in code step
+        │   ├── inAppBrowser.ts # `isInAppBrowser`: Instagram / Facebook / Android web views, where the sign-in page swaps Google (refused there) for a note and the emailed code
         │   ├── pushSetup.ts    # `registerServiceWorker()` (call once at startup) and browser feature detection
         │   ├── notificationPrompt.ts # When the opt-in may show: at most two prompts per device ever (second only after Not now, on another day), fails closed without localStorage; routes where it never shows
         │   └── supabase.ts     # Supabase auth-only client (@supabase/auth-js), storage key "postszn-auth"
