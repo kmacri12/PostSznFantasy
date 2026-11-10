@@ -30,6 +30,9 @@ def supabase(monkeypatch: pytest.MonkeyPatch) -> list[httpx.Request]:
     return calls
 
 
+CONFIRM = {"confirm": "DELETE"}
+
+
 async def test_deleting_wipes_the_person_and_keeps_the_leagues_history(
     db: AsyncSession, client_as: ClientFactory, supabase: list[httpx.Request]
 ) -> None:
@@ -55,7 +58,7 @@ async def test_deleting_wipes_the_person_and_keeps_the_leagues_history(
     await db.flush()
 
     async with client_as("uid-1") as client:
-        response = await client.delete("/api/auth/me")
+        response = await client.request("DELETE", "/api/auth/me", json=CONFIRM)
     assert response.status_code == 204
 
     assert [r.method for r in supabase] == ["DELETE"]
@@ -81,7 +84,7 @@ async def test_the_only_commissioner_must_hand_over_first(
 ) -> None:
     await make_season(db, teams=2)
     async with client_as("uid-0") as client:
-        response = await client.delete("/api/auth/me")
+        response = await client.request("DELETE", "/api/auth/me", json=CONFIRM)
     assert response.status_code == 409
     assert "Test League" in response.json()["detail"]
     assert supabase == []
@@ -101,7 +104,9 @@ async def test_a_commissioner_may_leave_once_another_commissioner_exists(
     other.role = "commissioner"
     await db.flush()
     async with client_as("uid-0") as client:
-        assert (await client.delete("/api/auth/me")).status_code == 204
+        assert (
+            await client.request("DELETE", "/api/auth/me", json=CONFIRM)
+        ).status_code == 204
 
 
 async def test_nothing_changes_when_the_sign_in_identity_cannot_be_deleted(
@@ -115,7 +120,9 @@ async def test_nothing_changes_when_the_sign_in_identity_cannot_be_deleted(
         httpx.MockTransport(lambda request: httpx.Response(500)),
     )
     async with client_as("uid-1") as client:
-        assert (await client.delete("/api/auth/me")).status_code == 502
+        assert (
+            await client.request("DELETE", "/api/auth/me", json=CONFIRM)
+        ).status_code == 502
     await db.refresh(users[1])
     assert users[1].email == "u1@x.co"
 
@@ -126,4 +133,37 @@ async def test_deleting_is_unavailable_without_the_service_key(
     await make_season(db, teams=2)
     monkeypatch.setattr(get_settings(), "supabase_service_role_key", "")
     async with client_as("uid-1") as client:
-        assert (await client.delete("/api/auth/me")).status_code == 503
+        assert (
+            await client.request("DELETE", "/api/auth/me", json=CONFIRM)
+        ).status_code == 503
+
+
+async def test_deleting_needs_the_confirmation_phrase_in_the_body(
+    db: AsyncSession, client_as: ClientFactory, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _, users, _, _ = await make_season(db, teams=2)
+    monkeypatch.setattr(get_settings(), "supabase_service_role_key", "service-key")
+    calls: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(request)
+        return httpx.Response(200)
+
+    monkeypatch.setattr(account_deletion, "_transport", httpx.MockTransport(handler))
+    async with client_as("uid-1") as client:
+        bodies: list[dict[str, str] | None] = [
+            None,
+            {},
+            {"confirm": ""},
+            {"confirm": "delete"},
+            {"confirm": " DELETE"},
+            {"confirm": "yes"},
+        ]
+        for body in bodies:
+            response = await client.request("DELETE", "/api/auth/me", json=body)
+            assert response.status_code == 422, body
+        no_body = await client.delete("/api/auth/me")
+    assert no_body.status_code == 422
+    assert calls == []
+    await db.refresh(users[1])
+    assert users[1].email == "u1@x.co"

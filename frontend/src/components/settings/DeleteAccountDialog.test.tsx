@@ -19,16 +19,45 @@ beforeEach(() => {
   })) as unknown as typeof window.matchMedia;
 });
 
+const type = (text: string) =>
+  fireEvent.change(screen.getByLabelText("Confirmation"), { target: { value: text } });
+
 describe("DeleteAccountDialog", () => {
-  it("explains what is deleted and what stays, and signs out after deleting", () => {
+  it("keeps the delete button disabled until DELETE is typed exactly", () => {
+    render(<DeleteAccountDialog onDeleted={vi.fn()} onClose={vi.fn()} />);
+    const button = screen.getByRole("button", { name: "Delete my account" });
+    expect(button).toBeDisabled();
+    for (const wrong of ["", "delete", "DELET", "DELETE it", "yes"]) {
+      type(wrong);
+      expect(button).toBeDisabled();
+    }
+    type("  DELETE ");
+    expect(button).toBeEnabled();
+    expect(screen.getByText(/Ready: the button below/)).toBeInTheDocument();
+  });
+
+  it("explains what is deleted and what stays, sends the phrase and signs out", () => {
     const onDeleted = vi.fn();
     mocks.mutate.mockImplementation((_: unknown, options: { onSuccess: () => void }) =>
       options.onSuccess(),
     );
     render(<DeleteAccountDialog onDeleted={onDeleted} onClose={vi.fn()} />);
     expect(screen.getByText(/Former member/)).toBeInTheDocument();
+    type("DELETE");
     fireEvent.click(screen.getByRole("button", { name: "Delete my account" }));
+    expect(mocks.mutate).toHaveBeenCalledWith("DELETE", expect.anything());
     expect(onDeleted).toHaveBeenCalled();
+  });
+
+  it("does not delete on Enter unless the phrase matches", () => {
+    render(<DeleteAccountDialog onDeleted={vi.fn()} onClose={vi.fn()} />);
+    const field = screen.getByLabelText("Confirmation");
+    type("nope");
+    fireEvent.submit(field);
+    expect(mocks.mutate).not.toHaveBeenCalled();
+    type("DELETE");
+    fireEvent.submit(field);
+    expect(mocks.mutate).toHaveBeenCalledTimes(1);
   });
 
   it("shows the API's reason, such as handing over a league first", () => {

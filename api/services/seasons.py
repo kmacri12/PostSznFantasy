@@ -7,7 +7,7 @@ the draft is unscheduled again. The league's members and invite do not change.
 
 from datetime import date
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import class_mapper
 
@@ -75,27 +75,32 @@ async def season_summaries(
         .scalars()
         .all()
     )
+    season_ids = [season.id for season in seasons]
+    team_rows = await db.execute(
+        select(Team.season_id, func.min(Team.id))
+        .where(Team.season_id.in_(season_ids), Team.owner_id == user_id)
+        .group_by(Team.season_id)
+    )
+    team_ids: dict[int, int | None] = {row[0]: row[1] for row in team_rows}
+    status_rows = await db.execute(
+        select(Draft.season_id, Draft.status).where(Draft.season_id.in_(season_ids))
+    )
+    draft_statuses = {row[0]: row[1] for row in status_rows}
     summaries: list[SeasonSummary] = []
     for season in seasons:
         finished = await season_is_finished(db, season.year)
-        team_id = await db.scalar(
-            select(Team.id)
-            .where(Team.season_id == season.id, Team.owner_id == user_id)
-            .order_by(Team.id)
-            .limit(1)
-        )
+        team_id = team_ids.get(season.id)
         if former and not (finished and team_id is not None):
             continue
-        status = await db.scalar(
-            select(Draft.status).where(Draft.season_id == season.id)
-        )
         summaries.append(
             SeasonSummary(
                 id=season.id,
                 year=season.year,
                 finished=finished,
                 current=season is seasons[-1],
-                draft_status=DraftStatus(status or DraftStatus.UNSCHEDULED),
+                draft_status=DraftStatus(
+                    draft_statuses.get(season.id) or DraftStatus.UNSCHEDULED
+                ),
                 my_team_id=team_id,
             )
         )

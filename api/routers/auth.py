@@ -1,5 +1,5 @@
 import logging
-from typing import Any
+from typing import Any, Literal
 
 from fastapi import APIRouter, HTTPException, Response, status
 from pydantic import field_validator
@@ -120,10 +120,18 @@ async def _upsert(
     return (await db.execute(upsert_stmt)).one()
 
 
+class DeleteAccountRequest(BaseSchema):
+    # Defence in depth (#375): a stray request or an SPA bug cannot delete an account.
+    confirm: Literal["DELETE"]
+
+
 @router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_my_account(current_user_id: CurrentUser, db: DbSession) -> Response:
+async def delete_my_account(
+    _: DeleteAccountRequest, current_user_id: CurrentUser, db: DbSession
+) -> Response:
     """Delete the caller's account (#330): sign-in identity, push subscriptions and
-    picture go, the name and email are wiped, and the leagues keep "Former member"."""
+    picture go, the name and email are wiped, and the leagues keep "Former member".
+    The body must be `{"confirm": "DELETE"}`, else 422."""
     user = await db.scalar(select(User).where(User.supabase_uid == current_user_id))
     if user is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "User not found")

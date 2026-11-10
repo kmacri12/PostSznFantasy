@@ -8,13 +8,19 @@ in an earlier round.
 from dataclasses import dataclass
 from datetime import UTC, datetime
 
-from sqlalchemy import select
+from sqlalchemy import event, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import ORMExecuteState, Session
 
 from api.db.models.nfl import NFLGame
+from api.db.session import REQUEST_SCOPED
 from api.models.enums import GameState, PlayerRoundStatus
 from api.utils.calculations.standings_utils import postseason_round_index
 
+# Only a request's session memoizes the postseason games: a request reads the same year
+# several times (guards, summaries, standings), while the scheduler and scripts reuse a
+# session across ingests.
+_GAMES_MEMO = "postseason_games"
 ROUNDS = (1, 2, 3, 4)
 SUPER_BOWL = ROUNDS[-1]
 GAME_COMPLETED = "Completed"
@@ -141,7 +147,33 @@ def _kickoff(game_time_epoch: str | None) -> datetime | None:
         return None
 
 
+def _forget_games(session: Session) -> None:
+    session.info.pop(_GAMES_MEMO, None)
+
+
+@event.listens_for(Session, "after_flush")
+def _games_may_have_changed(session: Session, _: object) -> None:
+    _forget_games(session)
+
+
+@event.listens_for(Session, "do_orm_execute")
+def _games_may_have_changed_by_statement(state: ORMExecuteState) -> None:
+    if state.is_insert or state.is_update or state.is_delete:
+        _forget_games(state.session)
+
+
 async def load_games(db: AsyncSession, season: int) -> list[GameFacts]:
+    """The season's postseason games; within a request each year is read once."""
+    info = getattr(db, "info", None)  # test doubles of the session have none
+    if not isinstance(info, dict) or not info.get(REQUEST_SCOPED):
+        return await _read_games(db, season)
+    memo: dict[int, list[GameFacts]] = info.setdefault(_GAMES_MEMO, {})
+    if season not in memo:
+        memo[season] = await _read_games(db, season)
+    return memo[season]
+
+
+async def _read_games(db: AsyncSession, season: int) -> list[GameFacts]:
     rows = (
         await db.execute(
             select(NFLGame).where(
