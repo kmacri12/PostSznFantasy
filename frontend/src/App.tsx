@@ -10,11 +10,14 @@ import LoadingState from "./components/common/LoadingState";
 import ReconnectingBanner from "./components/connection/ReconnectingBanner";
 import AppShell from "./components/layout/AppShell";
 import NotificationOptIn from "./components/notifications/NotificationOptIn";
+import NameSetupDialog from "./components/onboarding/NameSetupDialog";
+import TeamNameDialog from "./components/onboarding/TeamNameDialog";
 import FirstRunTour from "./components/tour/FirstRunTour";
 import { useUser } from "./contexts/UserContext";
 import DormantPage from "./pages/DormantPage";
 import HowToPlayPage from "./pages/HowToPlayPage";
 import LandingPage from "./pages/LandingPage";
+import { teamNamePrompted } from "./utils/displayName";
 import { isTourTrigger, tourSeen } from "./utils/tourSeen";
 
 const CreateLeaguePage = lazy(() => import("./pages/CreateLeaguePage"));
@@ -33,7 +36,7 @@ const TeamPage = lazy(() => import("./pages/TeamPage"));
 const TermsPage = lazy(() => import("./pages/TermsPage"));
 
 function App() {
-  const { user, userId, syncError, retrySync, signIn, signOutUser } = useUser();
+  const { user, userId, needsNameSetup, syncError, retrySync, signIn, signOutUser } = useUser();
   const dormant = isDormant();
   const apiDown = useApiHealth() === "down";
   const queryClient = useQueryClient();
@@ -50,11 +53,17 @@ function App() {
   const { data: leagues = [] } = useUserLeagues(userId !== null && !dormant);
   const { pathname, state } = useLocation();
   const [tourOpen, setTourOpen] = useState(false);
-  // True from the render that sees the join or create until the tour is closed, so the
-  // notification prompt never opens underneath it.
-  const tourHolds = tourOpen || (userId !== null && isTourTrigger(state) && !tourSeen(userId));
+  const [teamNameOpen, setTeamNameOpen] = useState(false);
   const routeLeagueId = matchPath("/leagues/:leagueId/*", pathname)?.params.leagueId;
   const league = leagues.find((item) => String(item.id) === routeLeagueId);
+  const teamId = league?.userTeamId ?? null;
+  // Prompts go one at a time: name, then team name, then the tour, then notifications. Each
+  // flag is true from the render that sees its trigger until its dialog is closed.
+  const teamNameHolds =
+    teamNameOpen ||
+    (!needsNameSetup && teamId !== null && isTourTrigger(state) && !teamNamePrompted(teamId));
+  const tourBlocked = needsNameSetup || teamNameHolds;
+  const tourHolds = tourOpen || (userId !== null && isTourTrigger(state) && !tourSeen(userId));
 
   return (
     <AppShell
@@ -67,8 +76,18 @@ function App() {
     >
       <SessionExpiredBanner />
       {apiDown && !dormant && <ReconnectingBanner />}
-      {!dormant && <FirstRunTour open={tourOpen} onOpenChange={setTourOpen} />}
-      {!dormant && <NotificationOptIn hold={tourHolds} />}
+      {!dormant && user && <NameSetupDialog />}
+      {!dormant && (
+        <TeamNameDialog
+          teamId={teamId}
+          pending={!needsNameSetup && teamNameHolds && !teamNameOpen}
+          onOpenChange={setTeamNameOpen}
+        />
+      )}
+      {!dormant && (
+        <FirstRunTour open={tourOpen} onOpenChange={setTourOpen} blocked={tourBlocked} />
+      )}
+      {!dormant && <NotificationOptIn hold={tourBlocked || tourHolds} />}
       <Box component="main">
         <Suspense
           fallback={

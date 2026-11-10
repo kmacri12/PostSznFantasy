@@ -4,7 +4,7 @@ const SECTIONS: LegalSection[] = [
   {
     heading: "What we store",
     body: [
-      "When you sign in with Google or an emailed one-time code, we keep your email address and, if Google provides it, your name. Sign-in is handled by Supabase.",
+      "When you sign in with Google or an emailed one-time code, we keep your email address and, if Google provides it, your name. You choose the display name other members see; it is never taken from your email address. Sign-in is handled by Supabase.",
       "We also store what you do in the game: the leagues you create or join, your team and roster, your draft picks and queue, league settings, and the chat messages and GIF links you post in a league's Feed (each message keeps the name you had when you posted it).",
       "If you turn on notifications, we store your browser's push address and browser type for that device so we can send them. They are removed when you turn notifications off or sign out on that device, and a device that has not opened the app in 60 days is removed too.",
     ],

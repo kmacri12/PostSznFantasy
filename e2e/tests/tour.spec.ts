@@ -18,6 +18,10 @@ test.describe("first-run tour", () => {
 
     await page.goto(`/join/${code}`);
     await page.getByRole("button", { name: "Join league" }).click();
+    await page
+      .getByRole("dialog", { name: "Name your team" })
+      .getByRole("button", { name: "Skip for now" })
+      .click();
     const tour = page.getByRole("dialog", { name: TOUR });
     await expect(
       tour.getByRole("heading", { name: "Fantasy for the playoffs only" }),
@@ -54,6 +58,10 @@ test.describe("first-run tour", () => {
     await page.goto("/create-league");
     await page.getByLabel("League name").fill(unique("Created Tour"));
     await page.getByRole("button", { name: "Create league" }).click();
+    await page
+      .getByRole("dialog", { name: "Name your team" })
+      .getByRole("button", { name: "Skip for now" })
+      .click();
     await expect(page.getByRole("dialog", { name: TOUR })).toBeVisible();
     await page.getByRole("button", { name: "Skip" }).click();
 

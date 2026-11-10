@@ -15,6 +15,7 @@ export const signInAs = async (
   context: BrowserContext,
   uid: string,
   displayName = uid,
+  { askForName = false }: { askForName?: boolean } = {},
 ): Promise<void> => {
   const session = {
     access_token: stubToken(uid),
@@ -33,12 +34,13 @@ export const signInAs = async (
     },
   };
   await context.addInitScript(
-    ({ key, value }) => {
+    ({ key, value, skipName }) => {
       if (sessionStorage.getItem("e2e-signed-in")) return;
       localStorage.setItem(key, value);
+      if (skipName) localStorage.setItem(`postszn-name-skipped-${JSON.parse(value).user.id}`, "1");
       sessionStorage.setItem("e2e-signed-in", "1");
     },
-    { key: SESSION_STORAGE_KEY, value: JSON.stringify(session) },
+    { key: SESSION_STORAGE_KEY, value: JSON.stringify(session), skipName: !askForName },
   );
 };
 

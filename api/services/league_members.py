@@ -12,6 +12,7 @@ from api.models.activity_models import MembershipLeftPayload, RoleChangedPayload
 from api.models.enums import LeagueRole
 from api.models.league_models import MemberSummary
 from api.services.avatars import avatar_url
+from api.services.display_names import disambiguate
 from api.services.round_status import season_is_finished
 
 
@@ -122,13 +123,14 @@ def member_summaries(
 ) -> list[MemberSummary]:
     """Each member with the team they own in the given season's teams, if any."""
     team_by_owner = {team.owner_id: team for team in teams if team.owner_id}
+    listed_names = disambiguate([m.user.username for m in members])
     summaries = []
-    for m in members:
+    for m, listed_name in zip(members, listed_names, strict=True):
         team = team_by_owner.get(m.user_id)
         summaries.append(
             MemberSummary(
                 user_id=m.user_id,
-                username=m.user.username,
+                username=listed_name,
                 role=LeagueRole(m.role),
                 avatar_url=avatar_url(m.user.avatar_key),
                 team_id=team.id if team else None,

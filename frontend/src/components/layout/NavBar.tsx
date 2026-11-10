@@ -2,7 +2,7 @@ import { AppBar, Box, Button, IconButton, Toolbar, useMediaQuery, useTheme } fro
 import type { User as SupabaseUser } from "@supabase/auth-js";
 import { useState } from "react";
 import type { LeagueByUser } from "../../api/types";
-import { useUserAvatar } from "../../contexts/UserContext";
+import { useUserAvatar, useUsername } from "../../contexts/UserContext";
 import { HEADER_HEIGHT, tokens } from "../../theme";
 import PictureAvatar from "../common/PictureAvatar";
 import { DevQuickSync } from "../dev/DevQuickSync";
@@ -35,6 +35,7 @@ const NavBar = ({
 }: NavBarProps) => {
   const isMobile = useMediaQuery(useTheme().breakpoints.down("md"));
   const avatarUrl = useUserAvatar();
+  const username = useUsername();
   const [profileOpen, setProfileOpen] = useState(false);
 
   return (
@@ -57,10 +58,7 @@ const NavBar = ({
               aria-haspopup="dialog"
               onClick={() => setProfileOpen(true)}
             >
-              <PictureAvatar
-                url={avatarUrl}
-                name={user.user_metadata?.full_name || user.email || "?"}
-              />
+              <PictureAvatar url={avatarUrl} name={username || "?"} />
             </IconButton>
             {profileOpen && (
               <ProfileSheet
