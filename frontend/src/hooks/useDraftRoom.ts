@@ -24,6 +24,10 @@ export function useDraftRoom(seasonId: number | undefined, onRejected?: () => vo
     { getToken: getIdToken, onMessage: dispatch, onRejected },
   );
 
+  useEffect(() => {
+    if (!isConnected) dispatch({ eventType: "CONNECTION_LOST" });
+  }, [isConnected]);
+
   // Only drives re-rendering; the numbers come from the server deadline.
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 250);

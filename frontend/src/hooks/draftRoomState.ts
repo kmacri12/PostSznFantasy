@@ -18,6 +18,8 @@ export interface DraftRoom {
   /** Player whose MAKE_PICK is in flight; resolved by my team's PICK_MADE, ERROR or a new snapshot. */
   pendingPlayerId: number | null;
   complete: boolean;
+  /** Local time the socket dropped after the room had loaded; the next snapshot turns it into a "you were offline" note. */
+  connectionLostAt: number | null;
 }
 
 export const initialRoom: DraftRoom = {
@@ -27,6 +29,7 @@ export const initialRoom: DraftRoom = {
   takenPlayerIds: [],
   pendingPlayerId: null,
   complete: false,
+  connectionLostAt: null,
 };
 
 const withOffset = (room: DraftRoom, serverTime: string, now: number) => ({
@@ -45,6 +48,18 @@ const mergePick = (picks: DraftPick[], pick: DraftPick): DraftPick[] =>
     ? picks
     : [...picks, pick].sort((a, b) => a.numberPickOverall - b.numberPickOverall);
 
+/** Shorter gaps are reconnect noise (a tab switch), not something to tell the drafter about. */
+const MIN_OFFLINE_NOTE_MS = 3_000;
+
+const offlineNote = (room: DraftRoom, snapshot: DraftSnapshot, now: number): Toast | null => {
+  if (room.connectionLostAt === null || !room.state) return null;
+  const offlineMs = now - room.connectionLostAt;
+  const missed = snapshot.picks.length - room.state.picks.length;
+  if (offlineMs < MIN_OFFLINE_NOTE_MS && missed <= 0) return null;
+  const picks = missed > 0 ? `${missed} ${missed === 1 ? "pick" : "picks"} made` : "no new picks";
+  return nextToast(room, `You were offline for ${Math.round(offlineMs / 1000)}s, ${picks}`, "info");
+};
+
 /** Pure reducer for socket events, so reconnects and replays can't corrupt the room. */
 export function applyDraftEvent(room: DraftRoom, event: DraftMessage, now = Date.now()): DraftRoom {
   switch (event.eventType) {
@@ -55,8 +70,14 @@ export function applyDraftEvent(room: DraftRoom, event: DraftMessage, now = Date
         state: snapshot,
         takenPlayerIds: [],
         pendingPlayerId: null,
+        connectionLostAt: null,
+        toast: offlineNote(room, snapshot, now) ?? room.toast,
       };
     }
+    case "CONNECTION_LOST":
+      return room.state && room.connectionLostAt === null
+        ? { ...room, connectionLostAt: now }
+        : room;
     case "DRAFT_STATE": {
       if (!room.state) return room;
       const next = event.data as DraftState;

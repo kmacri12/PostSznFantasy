@@ -203,6 +203,16 @@ describe("useWebSocket hook", () => {
       expect(MockWebSocket.instances).toHaveLength(2);
     });
 
+    it("reports the connection as down when the browser goes offline", () => {
+      const { result } = renderHook(() => useWebSocket(URL));
+      act(() => socketAt(0).simulateOpen());
+      expect(result.current.isConnected).toBe(true);
+      act(() => {
+        window.dispatchEvent(new Event("offline"));
+      });
+      expect(result.current.isConnected).toBe(false);
+    });
+
     it("does not leave a stray backoff reconnect behind a forced one", () => {
       renderHook(() => useWebSocket(URL));
       act(() => socketAt(0).simulateDrop());

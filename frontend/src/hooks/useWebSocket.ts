@@ -135,13 +135,19 @@ export const useWebSocket = (url: string, options: Options = {}) => {
       if (document.visibilityState === "visible") reconnectNow();
     };
 
+    // A socket cut while offline can stay half-closed with no close event, so the browser's own
+    // signal is what tells the UI the connection is down.
+    const onOffline = () => setIsConnected(false);
+
     document.addEventListener("visibilitychange", onVisibilityChange);
     window.addEventListener("online", reconnectNow);
+    window.addEventListener("offline", onOffline);
     connect();
 
     return () => {
       document.removeEventListener("visibilitychange", onVisibilityChange);
       window.removeEventListener("online", reconnectNow);
+      window.removeEventListener("offline", onOffline);
       disposed = true;
       clearTimeout(reconnectTimer);
       clearInterval(heartbeatTimer);
