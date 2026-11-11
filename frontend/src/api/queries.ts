@@ -8,6 +8,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { type HourCycle, setDisplayPreferences } from "../utils/timeZone";
 import { api } from "./client";
+import { normalizeFeed, normalizeLeague } from "./normalize";
 import type {
   ActivityFeed,
   Bracket,
@@ -101,7 +102,8 @@ export const useBracket = (seasonId: Id | undefined) =>
 export const useUserLeagues = (enabled: boolean) =>
   useQuery({
     queryKey: keys.userLeagues,
-    queryFn: ({ signal }) => get<LeagueByUser[]>("/api/leagues/user-leagues", signal),
+    queryFn: async ({ signal }) =>
+      (await get<LeagueByUser[]>("/api/leagues/user-leagues", signal)).map(normalizeLeague),
     enabled,
     refetchInterval: 60_000, // the nav dot for new league activity
   });
@@ -617,9 +619,9 @@ const FEED_FALLBACK_POLL_MS = 30_000;
 export const useFeed = (seasonId: Id | undefined, socketConnected: boolean) =>
   useInfiniteQuery({
     queryKey: keys.feed(seasonId ?? ""),
-    queryFn: ({ signal, pageParam }) => {
+    queryFn: async ({ signal, pageParam }) => {
       const before = pageParam ? `?before=${encodeURIComponent(pageParam)}` : "";
-      return get<Feed>(`/api/seasons/${seasonId}/feed${before}`, signal);
+      return normalizeFeed(await get<Feed>(`/api/seasons/${seasonId}/feed${before}`, signal));
     },
     initialPageParam: "",
     getNextPageParam: (last) => last.nextBefore ?? undefined,
