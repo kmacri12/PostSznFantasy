@@ -5,9 +5,11 @@ import { createBrowserRouter, RouterProvider, ScrollRestoration } from "react-ro
 import App from "./App.tsx";
 import "./assets/fonts.css";
 import { recheckLeagueOnDeleted } from "./api/leagueDeleted";
+import RouteErrorScreen from "./components/connection/RouteErrorScreen";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { ThemeModeProvider } from "./contexts/ThemeModeContext";
 import { UserProvider } from "./contexts/UserContext";
+import { watchPreloadErrors } from "./utils/chunkError";
 import { captureInstallPrompt } from "./utils/install";
 import { registerServiceWorker } from "./utils/pushSetup";
 import { scrollKey } from "./utils/scrollKey";
@@ -16,6 +18,7 @@ import { initSentry } from "./utils/sentry";
 initSentry();
 registerServiceWorker();
 captureInstallPrompt();
+watchPreloadErrors();
 
 const queryClient: QueryClient = new QueryClient({
   // offlineFirst: a first load with no connection still asks, so the service worker can answer
@@ -37,6 +40,7 @@ const queryClient: QueryClient = new QueryClient({
 const router = createBrowserRouter([
   {
     path: "*",
+    errorElement: <RouteErrorScreen />,
     element: (
       <>
         <ScrollRestoration getKey={scrollKey} />
