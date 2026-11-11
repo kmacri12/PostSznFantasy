@@ -251,3 +251,7 @@ PostSznFantasy/
 ## End-to-end tests
 
 Playwright tests in `e2e/` drive the real app in a 375px iPhone viewport (primary) plus a small desktop smoke run. `make e2e-install` installs Chromium once; `make e2e` starts the API and Vite itself and runs the suite (`E2E_ARGS="--project=mobile -g draft"` to filter). A second suite (`e2e/live/`) replays a saved postseason through the real poll, scoring and elimination code and checks the app as games finish. CI runs both on every push to `main` and on every pull request, except a pull request whose changed files are all docs, Markdown, deploy and backup workflows, `scripts/`, `Dockerfile`, `fly.toml`, or backend-only changes under `api/` (the allowlist is `scripts/e2e-needed.sh`). Backend-only PRs skip it on purpose; the full run on every push to `main` is the safety net. `api/` paths the suite's setup depends on still run it: `scripts/seed_e2e.py`, `alembic/`, the test-auth stub (`dependencies/auth.py`, `core/config.py`), `pyproject.toml`, `uv.lock`. A skipped PR still gets a green "End-to-end" check. Anything else, `frontend/` and `e2e/` included, runs it.
+
+## License
+
+[MIT](LICENSE). NFL data comes from Tank01 through RapidAPI and stays subject to its terms; the raw samples in `docs/research/samples/` are reference material, not part of the licensed code.
