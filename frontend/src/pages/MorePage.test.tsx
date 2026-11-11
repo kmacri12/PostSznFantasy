@@ -20,6 +20,7 @@ vi.mock("../api/queries", () => ({
   useRegenerateInvite: () => ({ mutate: vi.fn(), isPending: false }),
   useRevokeInvite: () => ({ mutate: vi.fn(), isPending: false }),
   useReportProblem: () => ({ mutate: vi.fn(), isPending: false, isError: false, error: null }),
+  useSendFeedback: () => ({ mutate: vi.fn(), isPending: false, isError: false, error: null }),
   useApiVersion: () => ({ data: null }),
   useFeatures: () => ({ bracket: mocks.bracket }),
 }));
@@ -82,6 +83,12 @@ describe("MorePage", () => {
     renderMore({ isFormerMember: true });
     fireEvent.click(screen.getByRole("button", { name: /Report a problem/ }));
     expect(screen.getByRole("textbox", { name: /What went wrong/ })).toBeInTheDocument();
+  });
+
+  it("opens the feedback form from the Help group", () => {
+    renderMore();
+    fireEvent.click(screen.getByRole("button", { name: /Send feedback/ }));
+    expect(screen.getByRole("textbox", { name: "What was good?" })).toBeInTheDocument();
   });
 
   it("offers Past seasons only when the league has any, and opens them in a sheet", () => {
