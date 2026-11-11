@@ -1,10 +1,70 @@
 /**
- * The one place that decides which time zone a time is shown in. Today it is the browser's;
- * a saved account preference (#405) plugs in at `savedTimeZone` and nothing else changes.
+ * The one place that decides which time zone and clock a time is shown in: the member's saved
+ * account preference (#405) when they set one, the browser's otherwise.
  */
-const savedTimeZone = (): string | null => null;
+export type HourCycle = "12" | "24";
 
-const browserTimeZone = (): string => Intl.DateTimeFormat().resolvedOptions().timeZone;
+export interface DisplayPreferences {
+  timeZone: string | null;
+  hourCycle: HourCycle | null;
+}
+
+const STORAGE_KEY = "postszn-display-prefs";
+
+const isZone = (value: unknown): value is string => {
+  if (typeof value !== "string") return false;
+  try {
+    new Intl.DateTimeFormat(undefined, { timeZone: value });
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+/** Remembered per device so the first paint after a reload already uses the saved zone. */
+const readStored = (): DisplayPreferences => {
+  try {
+    const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null");
+    return {
+      timeZone: isZone(raw?.timeZone) ? raw.timeZone : null,
+      hourCycle: raw?.hourCycle === "12" || raw?.hourCycle === "24" ? raw.hourCycle : null,
+    };
+  } catch {
+    return { timeZone: null, hourCycle: null };
+  }
+};
+
+let preferences: DisplayPreferences | null = null;
+
+export const displayPreferences = (): DisplayPreferences => {
+  preferences ??= readStored();
+  return preferences;
+};
+
+/** Called with the account's saved values on sign-in and after the member changes them. */
+export const setDisplayPreferences = (next: DisplayPreferences): void => {
+  preferences = {
+    timeZone: isZone(next.timeZone) ? next.timeZone : null,
+    hourCycle: next.hourCycle ?? null,
+  };
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences));
+  } catch {
+    // Private mode: the preference still applies for this page load.
+  }
+};
+
+export const clearDisplayPreferences = (): void =>
+  setDisplayPreferences({ timeZone: null, hourCycle: null });
+
+const savedTimeZone = (): string | null => displayPreferences().timeZone;
+
+const hourCycleOption = (): Pick<Intl.DateTimeFormatOptions, "hourCycle"> => {
+  const { hourCycle } = displayPreferences();
+  return hourCycle ? { hourCycle: hourCycle === "24" ? "h23" : "h12" } : {};
+};
+
+export const browserTimeZone = (): string => Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 /** The IANA name, "America/New_York". */
 export const viewerTimeZone = (): string => savedTimeZone() ?? browserTimeZone();
@@ -12,10 +72,22 @@ export const viewerTimeZone = (): string => savedTimeZone() ?? browserTimeZone()
 /** Every schedule time carries its zone abbreviation, so "8:00 PM EST" is never ambiguous. */
 const zonedFormat = (options: Intl.DateTimeFormatOptions): Intl.DateTimeFormat =>
   new Intl.DateTimeFormat(undefined, {
+    ...hourCycleOption(),
     ...options,
     timeZone: viewerTimeZone(),
     timeZoneName: "short",
   });
+
+/** A date or time in the viewer's zone and clock, without the zone abbreviation. */
+export const formatPlainInViewerZone = (
+  iso: string | number | Date,
+  options: Intl.DateTimeFormatOptions,
+): string =>
+  new Intl.DateTimeFormat(undefined, {
+    ...hourCycleOption(),
+    ...options,
+    timeZone: viewerTimeZone(),
+  }).format(new Date(iso));
 
 export const formatInViewerZone = (
   iso: string | number | Date,

@@ -20,6 +20,7 @@ import { createLogger } from "../utils/logger";
 import { clearOfflineData } from "../utils/offlineCache";
 import { forgetThisDevice, refreshPushSubscription } from "../utils/pushSetup";
 import { supabaseAuth } from "../utils/supabase";
+import { clearDisplayPreferences, type HourCycle, setDisplayPreferences } from "../utils/timeZone";
 
 const logger = createLogger("UserContext");
 
@@ -51,6 +52,13 @@ interface UserContextType {
   /** Renames the signed-in user everywhere; resolves to an error message, or null once saved. */
   updateDisplayName: (name: string) => Promise<string | null>;
   signOutUser: () => Promise<void>;
+  /** Ends every session of this account on every device; resolves to an error message or null. */
+  signOutEverywhere: () => Promise<string | null>;
+  /**
+   * Asks Supabase to move the account to a new address: it emails a confirmation link and the
+   * address changes only once that is followed. Resolves to an error message, or null when sent.
+   */
+  changeEmail: (email: string) => Promise<string | null>;
   getIdToken: () => Promise<string | null>;
 }
 
@@ -129,6 +137,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setSyncError(null);
       if (hadUser.current) {
         hadUser.current = false;
+        clearDisplayPreferences();
         queryClient.clear();
         void clearOfflineData();
         setSessionExpired(!deliberateSignOut.current);
@@ -145,9 +154,15 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         avatarUrl?: string | null;
         username: string;
         namePrompt: boolean;
+        displayTimeZone: string | null;
+        hourCycle: HourCycle | null;
       }>("/api/auth/login", { username: providerName(user) })
       .then((response) => {
         if (cancelled) return;
+        setDisplayPreferences({
+          timeZone: response.data.displayTimeZone,
+          hourCycle: response.data.hourCycle,
+        });
         setUserId(response.data.userId);
         setUsername(response.data.username);
         setNamePrompt(response.data.namePrompt && !nameSkipped(user.id));
@@ -210,6 +225,36 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     navigate("/");
   }, [navigate]);
 
+  const signOutEverywhere = useCallback(async () => {
+    deliberateSignOut.current = true;
+    await forgetThisDevice();
+    try {
+      await api.delete("/api/account/devices");
+      const { error } = await supabaseAuth.signOut({ scope: "global" });
+      if (error) throw error;
+    } catch (error) {
+      deliberateSignOut.current = false;
+      logger.error("Error signing out everywhere:", error);
+      return "Couldn't sign you out everywhere. Try again.";
+    }
+    navigate("/");
+    return null;
+  }, [navigate]);
+
+  const changeEmail = useCallback(async (email: string) => {
+    const { error } = await supabaseAuth.updateUser(
+      { email },
+      { emailRedirectTo: window.location.origin },
+    );
+    if (error) logger.warn("Error changing the email:", error);
+    if (!error) return null;
+    if (error.code === "email_exists") return "That address already has an account.";
+    if (error.status === 429 || error.code === "over_email_send_rate_limit") {
+      return "Too many emails sent. Wait a minute and try again.";
+    }
+    return "Couldn't change the email. Check the address and try again.";
+  }, []);
+
   // The login sync above resends the Supabase name on every sign-in, so the name has to change
   // there too or the next sign-in would overwrite it.
   const updateDisplayName = useCallback(
@@ -267,6 +312,8 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       verifyEmailCode,
       updateDisplayName,
       signOutUser,
+      signOutEverywhere,
+      changeEmail,
       getIdToken,
     }),
     [
@@ -286,6 +333,8 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       verifyEmailCode,
       updateDisplayName,
       signOutUser,
+      signOutEverywhere,
+      changeEmail,
       getIdToken,
     ],
   );

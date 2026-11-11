@@ -1,7 +1,7 @@
 import { Box, Button, Typography } from "@mui/material";
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { useDraft, useStandings } from "../../api/queries";
+import { useDraft, useFeatures, useStandings } from "../../api/queries";
 import type { SeasonOverview, Standings } from "../../api/types";
 import { useSeasonContext } from "../../contexts/SeasonContext";
 import { tokens } from "../../theme";
@@ -229,14 +229,34 @@ const AfterDraft = ({ season }: { season: SeasonOverview }) => {
   return standings ? <PlayoffBlock season={season} standings={standings} /> : null;
 };
 
-/** The block that tops the League tab; a finished season shows the champion card instead. */
-const PhaseBlock = ({ season }: { season: SeasonOverview }) => {
-  if (season.finished) return null;
-  if (season.draftStatus === "unscheduled") {
-    return <Unscheduled season={season} />;
-  }
+/** Hidden while the owner's bracket kill switch is off. */
+const BracketLink = () => {
+  const { paths } = useSeasonContext();
+  const { bracket } = useFeatures();
+  if (!bracket) return null;
+  return (
+    <Button component={Link} to={paths.bracket} variant="outlined" fullWidth sx={{ minHeight: 48 }}>
+      See the NFL bracket
+    </Button>
+  );
+};
+
+const phaseBlock = (season: SeasonOverview) => {
+  if (season.draftStatus === "unscheduled") return <Unscheduled season={season} />;
   if (season.draftStatus !== "completed") return <DraftBlock season={season} />;
   return <AfterDraft season={season} />;
 };
+
+/**
+ * The block that tops the League tab, with the way into the NFL bracket underneath; a
+ * finished season shows the champion card instead.
+ */
+const PhaseBlock = ({ season }: { season: SeasonOverview }) =>
+  season.finished ? null : (
+    <>
+      {phaseBlock(season)}
+      <BracketLink />
+    </>
+  );
 
 export default PhaseBlock;

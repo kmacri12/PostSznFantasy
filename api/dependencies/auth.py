@@ -31,6 +31,8 @@ def _get_jwk_client(jwks_url: str) -> PyJWKClient:
 class AuthUser:
     sub: str
     email: str | None = None
+    # Supabase `app_metadata.providers`: how this identity can sign in ("google", "email").
+    providers: tuple[str, ...] = ()
 
 
 def verify_claims(token: str) -> AuthUser:
@@ -83,9 +85,14 @@ def verify_claims(token: str) -> AuthUser:
                 detail=INVALID_CREDENTIALS_DETAIL,
             )
         email = payload.get("email")
+        app_metadata = payload.get("app_metadata")
+        providers = (
+            app_metadata.get("providers") if isinstance(app_metadata, dict) else None
+        )
         return AuthUser(
             sub=str(sub),
             email=email.strip().lower() if isinstance(email, str) and email else None,
+            providers=tuple(p for p in providers or () if isinstance(p, str)),
         )
     except (PyJWTError, PyJWKClientError) as exc:
         logger.warning("Auth failure: invalid or expired token: %s", exc)
@@ -116,9 +123,17 @@ async def get_token_email(
     return verify_claims(credentials.credentials).email
 
 
+async def get_token_providers(
+    credentials: Annotated[HTTPAuthorizationCredentials, Depends(_bearer)],
+) -> tuple[str, ...]:
+    """The sign-in methods the verified token's identity has; empty for stub tokens."""
+    return verify_claims(credentials.credentials).providers
+
+
 # Convenience alias so route signatures read: user_id: CurrentUser
 CurrentUser = Annotated[str, Depends(get_current_user)]
 TokenEmail = Annotated[str | None, Depends(get_token_email)]
+TokenProviders = Annotated[tuple[str, ...], Depends(get_token_providers)]
 
 
 async def require_admin(supabase_uid: CurrentUser) -> str:

@@ -70,7 +70,7 @@ async def login_or_register(
             extra={"supabase_uid": current_user_id},
         )
         row = await _upsert(db, current_user_id, None, payload.username)
-    user_id, avatar_key, created, username = row
+    user_id, avatar_key, created, username, display_time_zone, hour_cycle = row
 
     return LoginResponse(
         message="User created successfully" if created else "Login successful",
@@ -78,6 +78,8 @@ async def login_or_register(
         avatar_url=avatar_url(avatar_key),
         username=username,
         name_prompt=created or username == placeholder_name(current_user_id),
+        display_time_zone=display_time_zone,
+        hour_cycle=hour_cycle,
     )
 
 
@@ -116,6 +118,8 @@ async def _upsert(
         User.avatar_key,
         literal_column("(xmax = 0)", Boolean).label("created"),
         User.username,
+        User.display_time_zone,
+        User.hour_cycle,
     )
     return (await db.execute(upsert_stmt)).one()
 

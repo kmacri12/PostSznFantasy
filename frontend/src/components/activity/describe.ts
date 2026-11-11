@@ -1,5 +1,5 @@
 import type { ActivityEvent } from "../../api/types";
-import { formatInViewerZone } from "../../utils/timeZone";
+import { formatInViewerZone, formatPlainInViewerZone } from "../../utils/timeZone";
 import { ROUND_LABELS } from "../team/lineup";
 
 const DRAFT_TIME_FORMAT: Intl.DateTimeFormatOptions = {
@@ -11,7 +11,7 @@ const DRAFT_TIME_FORMAT: Intl.DateTimeFormatOptions = {
 };
 
 export const formatWhen = (iso: string): string =>
-  new Date(iso).toLocaleString(undefined, {
+  formatPlainInViewerZone(iso, {
     month: "short",
     day: "numeric",
     hour: "numeric",

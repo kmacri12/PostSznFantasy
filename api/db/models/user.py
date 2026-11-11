@@ -1,7 +1,16 @@
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, DateTime, Integer, String, false, func, true
+from sqlalchemy import (
+    Boolean,
+    CheckConstraint,
+    DateTime,
+    Integer,
+    String,
+    false,
+    func,
+    true,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from api.db.base import Base
@@ -12,7 +21,10 @@ if TYPE_CHECKING:
 
 class User(Base):
     __tablename__ = "users"
-    __table_args__ = {"schema": "fantasy"}
+    __table_args__ = (
+        CheckConstraint("hour_cycle IN ('12', '24')", name="ck_users_hour_cycle"),
+        {"schema": "fantasy"},
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     supabase_uid: Mapped[str] = mapped_column(String(128), unique=True, nullable=False)
@@ -56,6 +68,9 @@ class User(Base):
         Boolean, nullable=False, default=False, server_default=false()
     )
     timezone: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    # Account center (#405): the zone and clock times are shown in; null follows the browser.
+    display_time_zone: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    hour_cycle: Mapped[str | None] = mapped_column(String(2), nullable=True)
 
     teams_owned: Mapped[list["Team"]] = relationship(
         "Team", back_populates="owner", cascade="all, delete-orphan"

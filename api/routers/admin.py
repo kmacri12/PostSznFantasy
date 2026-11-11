@@ -12,6 +12,7 @@ from api.db.models.nfl import NFLGame, NFLTeam
 from api.db.session import DbSession, get_session_factory
 from api.dependencies.auth import require_admin
 from api.models.base import BaseSchema
+from api.services import feature_flags
 from api.services.eliminations import mark_eliminated_teams
 from api.services.ingestion import (
     ingest_box_scores,
@@ -235,6 +236,27 @@ async def set_playoff_field_route(
     except PlayoffFieldError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     return {"teams": len(set(body.team_ids))}
+
+
+class FeatureFlagRequest(BaseSchema):
+    enabled: bool
+
+
+@router.get("/feature-flags")
+async def get_feature_flags(db: DbSession) -> dict[str, bool]:
+    return await feature_flags.all_flags(db)
+
+
+@router.put("/feature-flags/{key}")
+async def set_feature_flag_route(
+    key: str, body: FeatureFlagRequest, db: DbSession
+) -> dict[str, bool]:
+    """The owner's kill switch: turn a feature (today only `bracket`) off or on."""
+    try:
+        await feature_flags.set_flag(db, key, body.enabled)
+    except feature_flags.UnknownFlagError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return await feature_flags.all_flags(db)
 
 
 class RefreshResponse(BaseSchema):

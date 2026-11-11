@@ -20,6 +20,7 @@ from api.core.observability import init_sentry
 from api.core.security_headers import SecurityHeadersMiddleware
 from api.db.session import DbSession, close_db, init_db
 from api.routers import (
+    account,
     activity,
     admin,
     auth,
@@ -34,6 +35,7 @@ from api.routers import (
     support,
     teams,
 )
+from api.services import feature_flags
 from api.services.draft_clock import run_draft_clock
 from api.services.ingestion.guard import IngestionBusy
 from api.services.live_leagues import LeagueDeletedError
@@ -157,6 +159,7 @@ async def ingestion_busy_handler(_: Request, exc: IngestionBusy) -> JSONResponse
     )
 
 
+app.include_router(account.router, prefix="/api/account", tags=["account"])
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(leagues.router, prefix="/api/leagues", tags=["leagues"])
 app.include_router(seasons.router, prefix="/api/seasons", tags=["seasons"])
@@ -178,6 +181,12 @@ app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
 async def public_config() -> dict[str, int]:
     """Single source of truth for values the frontend must not hardcode."""
     return {"season": get_settings().season_year}
+
+
+@app.get("/api/features", tags=["config"])
+async def public_features(db: DbSession) -> dict[str, bool]:
+    """The owner's kill switches (`fantasy.feature_flags`); the SPA hides what is off."""
+    return await feature_flags.all_flags(db)
 
 
 # HEAD because UptimeRobot's free plan cannot send GET.

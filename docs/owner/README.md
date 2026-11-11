@@ -40,6 +40,7 @@ Data and launch
 - [Restore a deleted league](league-restore.md), 2 min, only when a commissioner asks (#231)
 - [Delete a member's account](account-deletion.md), 2 min, only when someone cannot do it in the app (#330)
 - [Set the playoff field](playoff-field.md), 5 min, once for the mock draft and again when the seeds are known (#214)
+- [Turn the NFL bracket off or on](bracket-kill-switch.md), 2 min, only if it misbehaves (#393)
 16. [Turn on live scoring before game day](16-scheduler.md), 10 min (#78)
 17. [Ordered deploys: API first, then the website](17-ordered-deploy.md), 10 min, in two sittings (#249)
 18. [Turn on push notifications](18-push-notifications.md), 15 min plus a phone test (#266)

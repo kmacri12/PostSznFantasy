@@ -47,7 +47,7 @@ async def test_login_refuses_an_overlong_name_and_treats_blank_as_absent(
         await async_client.post("/api/auth/login", json={"username": "x" * 21})
     ).status_code == 422
     mock_db_session.execute.return_value = MagicMock(
-        one=lambda: (1, None, False, "user_test-sup")
+        one=lambda: (1, None, False, "user_test-sup", None, None)
     )
     blank = await async_client.post("/api/auth/login", json={"username": "   "})
     assert blank.status_code == 200
