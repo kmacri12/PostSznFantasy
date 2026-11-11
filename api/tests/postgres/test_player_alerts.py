@@ -86,6 +86,9 @@ async def _setup(
         TeamPlayer(team_id=teams[0].id, season_id=season.id, player_id=pid)
         for pid in (QB, RB, BENCH_RB)
     )
+    db.add(NFLPlayer(id=1003, name="Player 3", position="QB", team_id=1000))
+    await db.flush()
+    db.add(TeamPlayer(team_id=teams[1].id, season_id=season.id, player_id=1003))
     db.add_all(
         LineupSlot(team_id=teams[0].id, round=1, player_id=pid, slot_index=index)
         for index, pid in enumerate((QB, RB, BENCH_RB))
@@ -212,7 +215,11 @@ async def test_quiet_hours_hold_the_push_in_the_members_own_zone(
 
 def test_quiet_hours_are_11pm_to_7am() -> None:
     zone = "America/Los_Angeles"
-    at = lambda hour: datetime(2027, 1, 9, hour, tzinfo=UTC) + timedelta(hours=8)  # noqa: E731
+
+    def at(local_hour: int) -> datetime:
+        # January: Los Angeles is UTC-8.
+        return datetime(2027, 1, 9, local_hour, tzinfo=UTC) + timedelta(hours=8)
+
     assert push.in_quiet_hours(zone, at(23))
     assert push.in_quiet_hours(zone, at(6))
     assert not push.in_quiet_hours(zone, at(7))

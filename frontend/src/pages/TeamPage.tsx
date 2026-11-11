@@ -26,6 +26,12 @@ import {
   formatKickoff,
   ROUND_LABELS,
 } from "../components/team/lineup";
+import {
+  BENCH_GROUP_ID,
+  benchPlayersOf,
+  hurtStarters,
+  hurtStartersMessage,
+} from "../components/team/lineupView";
 import OverrideDialog from "../components/team/OverrideDialog";
 import PlayerSheet from "../components/team/PlayerSheet";
 import PreDraftRoster from "../components/team/PreDraftRoster";
@@ -72,6 +78,8 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
     : mutationError(moveInLineup.error, "Couldn't move that player. Try again.");
 
   const lineup = team.lineups.find((entry) => entry.round === round);
+  const hurt = lineup ? hurtStarters(lineup) : [];
+  const hasBench = lineup ? benchPlayersOf(lineup).length > 0 : false;
   const warning = emptyLineupWarning(team.lineups, team.roster.length, now);
   const sheetPlayer =
     lineup && sheetPlayerId !== null
@@ -139,6 +147,27 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
           {ROUND_LABELS[warning.round]}: {warning.emptyStarterSlots} empty starter{" "}
           {warning.emptyStarterSlots === 1 ? "slot" : "slots"}. First game{" "}
           {formatKickoff(warning.firstKickoff)}.
+        </Alert>
+      )}
+      {hurt.length > 0 && canSetLineup && (
+        <Alert
+          severity="warning"
+          action={
+            hasBench && (
+              <Button
+                color="inherit"
+                size="small"
+                sx={{ minHeight: 44 }}
+                onClick={() =>
+                  document.getElementById(BENCH_GROUP_ID)?.scrollIntoView({ block: "start" })
+                }
+              >
+                Go to bench
+              </Button>
+            )
+          }
+        >
+          {hurtStartersMessage(hurt)}
         </Alert>
       )}
       {lineup && team.roster.length > 0 && (

@@ -387,6 +387,12 @@ export interface PushPreferences {
   draftAlerts: boolean;
   lineupReminders: boolean;
   chat: boolean;
+  starterAlerts: boolean;
+  scoreAlerts: boolean;
+  roundResults: boolean;
+  quietHours: boolean;
+  /** The IANA zone quiet hours are counted in, as this browser last reported it. */
+  timezone: string | null;
   mutedLeagueIds: number[];
 }
 
