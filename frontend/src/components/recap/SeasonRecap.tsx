@@ -10,6 +10,8 @@ import { celebrationSeen, markCelebrationSeen } from "../../utils/celebrationSee
 import Confetti from "../common/Confetti";
 import { mutationError } from "../common/friendlyError";
 import { formatPoints } from "../league/standingsView";
+import ShareCardButton from "../share/ShareCardButton";
+import { championCard } from "../share/shareCards";
 
 const points = (value: number) => `${formatPoints(value)} pts`;
 
@@ -256,9 +258,11 @@ const ChampionCelebration = ({ seasonId }: { seasonId: number }) => {
 /** A finished season's top: the champion, the awards, and the way on to the next season. */
 const SeasonRecap = ({
   recap,
+  leagueName,
   canStartSeason,
 }: {
   recap: Recap;
+  leagueName: string;
   /** The caller is a commissioner and no later season exists yet. */
   canStartSeason: boolean;
 }) => (
@@ -267,6 +271,7 @@ const SeasonRecap = ({
       <>
         <ChampionCelebration seasonId={recap.seasonId} />
         <ChampionCard recap={recap} />
+        <ShareCardButton card={championCard(leagueName, recap)} label="Share champion" />
       </>
     ) : (
       <Alert severity="info">The {recap.year} season is over, and this league never drafted.</Alert>
