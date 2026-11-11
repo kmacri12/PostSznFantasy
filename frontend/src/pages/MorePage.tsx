@@ -4,7 +4,7 @@ import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { Box, Container, Typography } from "@mui/material";
 import { type ReactNode, useState } from "react";
 import { Link } from "react-router-dom";
-import { useUserLeagues } from "../api/queries";
+import { useFeatures, useUserLeagues } from "../api/queries";
 import AppToast from "../components/common/AppToast";
 import { draftStatusLine } from "../components/league/draftStatusLine";
 import InviteSheet from "../components/settings/InviteSheet";
@@ -104,6 +104,7 @@ const Group = ({ label, children }: { label: string; children: ReactNode }) => (
 const MorePage = () => {
   const { leagueId, season, paths } = useSeasonContext();
   const { signOutUser } = useUser();
+  const features = useFeatures();
   const league = useUserLeagues(true).data?.find((item) => item.id === leagueId);
   const pastSeasons = (league?.seasons ?? []).filter((item) => !item.current).reverse();
   const [sheet, setSheet] = useState<"past" | "invite" | "report" | "tour" | null>(null);
@@ -118,6 +119,9 @@ const MorePage = () => {
           title={season.draftStatus === "completed" ? "Players" : "Draft room and players"}
           hint={draftStatusLine(season)}
         />
+        {features.bracket && (
+          <Row to={paths.bracket} title="NFL bracket" hint="Who plays whom, and your players" />
+        )}
         <Row to={paths.draftBoard} title="Draft board" />
         {pastSeasons.length > 0 && (
           <Row

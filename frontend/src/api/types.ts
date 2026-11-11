@@ -608,3 +608,58 @@ export interface Inbox {
   items: InboxItem[];
   unreadCount: number;
 }
+
+export interface BracketPlayer {
+  id: number;
+  name: string;
+  position: string;
+  /** Regular-season fantasy points under the league's scoring. */
+  points: number;
+}
+
+export interface BracketTeam {
+  id: number;
+  abbreviation: string;
+  city: string;
+  name: string;
+  logoUrl: string | null;
+  topPlayers: BracketPlayer[];
+}
+
+export interface BracketMyPlayer {
+  id: number;
+  name: string;
+  position: string;
+  teamId: number;
+  role: "starter" | "bench";
+}
+
+export interface BracketGame {
+  id: string | null;
+  kickoff: string | null;
+  state: GameState;
+  clock: string | null;
+  home: BracketTeam | null;
+  away: BracketTeam | null;
+  homePoints: number | null;
+  awayPoints: number | null;
+  winnerTeamId: number | null;
+  myPlayers: BracketMyPlayer[];
+}
+
+export interface BracketRound {
+  round: number;
+  games: BracketGame[];
+}
+
+export interface Bracket {
+  year: number;
+  currentRound: number;
+  rounds: BracketRound[];
+  /** Top seeds sitting out the Wild Card round. */
+  byes: BracketTeam[];
+}
+
+export interface Features {
+  bracket: boolean;
+}

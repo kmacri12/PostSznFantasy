@@ -21,6 +21,7 @@ import { teamNamePrompted } from "./utils/displayName";
 import { pageTitle } from "./utils/pageTitle";
 import { isTourTrigger, tourSeen } from "./utils/tourSeen";
 
+const BracketPage = lazy(() => import("./pages/BracketPage"));
 const CreateLeaguePage = lazy(() => import("./pages/CreateLeaguePage"));
 const DraftBoardPage = lazy(() => import("./pages/DraftBoardPage"));
 const DraftPage = lazy(() => import("./pages/DraftPage"));
@@ -118,6 +119,7 @@ function App() {
                   <Route path="draft" element={<DraftPage />} />
                   <Route path="settings" element={<SettingsPage />} />
                   <Route path="draft/board" element={<DraftBoardPage />} />
+                  <Route path="bracket" element={<BracketPage />} />
                   <Route path="feed" element={<FeedPage />} />
                   <Route path="more" element={<MorePage />} />
                   <Route path="how-to-play" element={<HowToPlayPage />} />

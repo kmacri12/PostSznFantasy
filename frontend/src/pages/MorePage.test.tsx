@@ -7,6 +7,7 @@ import { testSeason } from "../test/season";
 import MorePage from "./MorePage";
 
 const mocks = vi.hoisted(() => ({
+  bracket: true,
   seasons: [
     { id: 4, year: 2025, finished: true, draftStatus: "completed", current: false },
     { id: 9, year: 2026, finished: false, draftStatus: "scheduled", current: true },
@@ -20,6 +21,7 @@ vi.mock("../api/queries", () => ({
   useRevokeInvite: () => ({ mutate: vi.fn(), isPending: false }),
   useReportProblem: () => ({ mutate: vi.fn(), isPending: false, isError: false, error: null }),
   useApiVersion: () => ({ data: null }),
+  useFeatures: () => ({ bracket: mocks.bracket }),
 }));
 vi.mock("../contexts/UserContext", () => ({ useUser: () => ({ signOutUser: vi.fn() }) }));
 
@@ -60,6 +62,20 @@ describe("MorePage", () => {
       "href",
       "/leagues/3/draft/board",
     );
+  });
+
+  it("links to the NFL bracket unless the owner turned it off", () => {
+    mocks.bracket = true;
+    const { unmount } = renderMore();
+    expect(screen.getByRole("link", { name: /NFL bracket/ })).toHaveAttribute(
+      "href",
+      "/leagues/3/bracket",
+    );
+    unmount();
+    mocks.bracket = false;
+    renderMore();
+    expect(screen.queryByRole("link", { name: /NFL bracket/ })).toBeNull();
+    mocks.bracket = true;
   });
 
   it("opens the problem report from the Help group, for every member", () => {
