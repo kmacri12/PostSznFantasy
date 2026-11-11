@@ -55,11 +55,7 @@ test.describe("install, offline and updates", () => {
     await page.unrouteAll({ behavior: "wait" });
   });
 
-  test("the Draft shortcut opens the member's league draft", async ({
-    page,
-    context,
-    request,
-  }) => {
+  test("the Draft shortcut opens the member's league draft", async ({ page, context, request }) => {
     const host = new Api(request, unique("shortcut"));
     await host.signUp("shortcut");
     const league = await host.createLeague(unique("Shortcut League"));
