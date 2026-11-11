@@ -61,6 +61,7 @@ def resend(monkeypatch: pytest.MonkeyPatch) -> Resend:
     fake = Resend()
     monkeypatch.setattr(support, "_transport", httpx.MockTransport(fake.handler))
     support.rate_limiter.reset()
+    support.feedback_rate_limiter.reset()
     return fake
 
 
@@ -289,3 +290,46 @@ def test_production_refuses_a_redirected_provider_url() -> None:
     assert settings("test").resend_api_url.startswith("http://localhost")
     with pytest.raises(ValidationError, match="RESEND_API_URL"):
         settings("production")
+
+
+async def _feedback(payload: dict[str, Any]) -> httpx.Response:
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as client:
+        return await client.post("/api/support/feedback", json=payload)
+
+
+async def test_feedback_is_emailed_anonymously(
+    resend: Resend, post: Callable[..., Any]
+) -> None:
+    response = await _feedback({"rating": 4, "good": "Draft was fun", "bad": "Slow"})
+
+    assert response.status_code == 204
+    sent = resend.sent
+    assert sent["subject"] == "[PostSzn feedback] 4/5"
+    assert "Draft was fun" in sent["text"] and "Slow" in sent["text"]
+    assert "reply_to" not in sent
+    for private in ("kyle", "kyle@example.org", "user 7"):
+        assert private not in sent["text"] + sent["subject"]
+
+
+async def test_feedback_needs_something_and_a_valid_rating(
+    resend: Resend, post: Callable[..., Any]
+) -> None:
+    assert (await _feedback({})).status_code == 422
+    assert (await _feedback({"good": "   "})).status_code == 422
+    assert (await _feedback({"rating": 6})).status_code == 422
+    assert (await _feedback({"rating": 0, "good": "x"})).status_code == 422
+    assert (await _feedback({"good": "x" * 2001})).status_code == 422
+    assert resend.requests == []
+    assert (await _feedback({"rating": 5})).status_code == 204
+
+
+async def test_feedback_is_rate_limited(
+    resend: Resend, post: Callable[..., Any]
+) -> None:
+    for _ in range(support.FEEDBACK_PER_HOUR):
+        assert (await _feedback({"rating": 3})).status_code == 204
+    limited = await _feedback({"rating": 3})
+    assert limited.status_code == 429
+    assert "Retry-After" in limited.headers

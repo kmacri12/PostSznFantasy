@@ -1,6 +1,7 @@
 import logging
 
 from fastapi import APIRouter, HTTPException, Request, Response, status
+from pydantic import Field
 from sqlalchemy import select
 from starlette.datastructures import UploadFile
 from starlette.formparsers import MultiPartException
@@ -10,6 +11,7 @@ from api.core.logging import request_id_ctx
 from api.db.models.user import User
 from api.db.session import DbSession
 from api.dependencies.auth import CurrentUser, TokenEmail
+from api.models.base import BaseSchema
 from api.services import support
 
 logger = logging.getLogger(__name__)
@@ -90,4 +92,52 @@ async def report_problem(
     finally:
         await form.close()
     support.rate_limiter.record(user.id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+class FeedbackIn(BaseSchema):
+    rating: int | None = Field(default=None, ge=1, le=5)
+    good: str = Field(default="", max_length=support.MAX_FEEDBACK_CHARS)
+    bad: str = Field(default="", max_length=support.MAX_FEEDBACK_CHARS)
+
+
+@router.post("/feedback", status_code=status.HTTP_204_NO_CONTENT)
+async def send_feedback(
+    body: FeedbackIn, supabase_uid: CurrentUser, db: DbSession
+) -> Response:
+    """Email the support inbox an anonymous rating (1 to 5, optional) and two free
+    texts. Nothing is stored and the email carries no name, address or id."""
+    settings = get_settings()
+    if not settings.support_enabled:
+        raise HTTPException(
+            status.HTTP_503_SERVICE_UNAVAILABLE, "Feedback is not set up yet."
+        )
+    user = await db.scalar(select(User).where(User.supabase_uid == supabase_uid))
+    if user is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "User not found")
+    good, bad = body.good.strip(), body.bad.strip()
+    if body.rating is None and not good and not bad:
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_ENTITY,
+            "Add a rating or a few words before sending.",
+        )
+    limiter = support.feedback_rate_limiter
+    if (wait := limiter.retry_after(user.id)) is not None:
+        raise HTTPException(
+            status.HTTP_429_TOO_MANY_REQUESTS,
+            f"You've sent {support.FEEDBACK_PER_HOUR} pieces of feedback in the last "
+            "hour. Try again later.",
+            headers={"Retry-After": str(wait)},
+        )
+    try:
+        await support.send_report(
+            settings,
+            reply_to=None,
+            subject=support.feedback_subject(body.rating),
+            text=support.feedback_body(rating=body.rating, good=good, bad=bad),
+            attachments=[],
+        )
+    except support.SupportError as exc:
+        raise HTTPException(exc.status_code, exc.detail) from exc
+    limiter.record(user.id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

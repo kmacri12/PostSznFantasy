@@ -810,6 +810,19 @@ export const useReportProblem = () =>
     },
   });
 
+export interface Feedback {
+  rating: number | null;
+  good: string;
+  bad: string;
+}
+
+export const useSendFeedback = () =>
+  useMutation({
+    mutationFn: async (feedback: Feedback) => {
+      await api.post("/api/support/feedback", feedback);
+    },
+  });
+
 /** The API's build commit, for support reports; null while unknown or unreachable. */
 export const useApiVersion = () =>
   useQuery({

@@ -10,9 +10,13 @@ import InstallGuideSheet from "../components/install/InstallGuideSheet";
 import { draftStatusLine } from "../components/league/draftStatusLine";
 import InviteSheet from "../components/settings/InviteSheet";
 import PastSeasonsSheet from "../components/settings/PastSeasonsSheet";
+import FeedbackSheet from "../components/support/FeedbackSheet";
 import ReportProblemSheet from "../components/support/ReportProblemSheet";
 import TourDialog from "../components/tour/TourDialog";
 import {
+  FEEDBACK_HINT,
+  FEEDBACK_LABEL,
+  FEEDBACK_SENT,
   HOW_TO_PLAY_LABEL,
   INSTALL_HINT,
   INSTALL_LABEL,
@@ -111,10 +115,10 @@ const MorePage = () => {
   const features = useFeatures();
   const league = useUserLeagues(true).data?.find((item) => item.id === leagueId);
   const pastSeasons = (league?.seasons ?? []).filter((item) => !item.current).reverse();
-  const [sheet, setSheet] = useState<"past" | "invite" | "report" | "tour" | "install" | null>(
-    null,
-  );
-  const [sent, setSent] = useState(false);
+  const [sheet, setSheet] = useState<
+    "past" | "invite" | "report" | "feedback" | "tour" | "install" | null
+  >(null);
+  const [sent, setSent] = useState<string | null>(null);
   const installed =
     useSyncExternalStore(subscribeInstall, installKind, () => "desktop" as const) === "installed";
   const supportUrl = import.meta.env.VITE_SUPPORT_URL?.trim();
@@ -156,6 +160,7 @@ const MorePage = () => {
             hint={SUPPORT_HINT}
           />
         )}
+        <Row title={FEEDBACK_LABEL} hint={FEEDBACK_HINT} onClick={() => setSheet("feedback")} />
         <Row
           title={REPORT_PROBLEM_LABEL}
           hint={REPORT_PROBLEM_HINT}
@@ -187,15 +192,24 @@ const MorePage = () => {
           onClose={() => setSheet(null)}
           onSent={() => {
             setSheet(null);
-            setSent(true);
+            setSent(REPORT_PROBLEM_SENT);
+          }}
+        />
+      )}
+      {sheet === "feedback" && (
+        <FeedbackSheet
+          onClose={() => setSheet(null)}
+          onSent={() => {
+            setSheet(null);
+            setSent(FEEDBACK_SENT);
           }}
         />
       )}
       <AppToast
-        open={sent}
-        message={REPORT_PROBLEM_SENT}
+        open={sent !== null}
+        message={sent ?? ""}
         autoHideMs={6000}
-        onClose={() => setSent(false)}
+        onClose={() => setSent(null)}
       />
     </Container>
   );
