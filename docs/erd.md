@@ -39,6 +39,7 @@ erDiagram
     seasons ||--o{ activity_views : "read in"
     users ||--o{ push_subscriptions : "subscribes"
     teams ||--o{ lineup_reminders : "reminded"
+    teams ||--o{ alerts_sent : "alerted"
     users ||--o{ notifications : "receives"
     leagues ||--o{ notifications : "concerns"
     nfl_teams ||--o{ nfl_players : "employs"
@@ -60,6 +61,11 @@ erDiagram
         bool push_draft_alerts
         bool push_lineup_reminders
         bool push_chat
+        bool push_starter_alerts
+        bool push_score_alerts
+        bool push_round_results
+        bool quiet_hours
+        string timezone
     }
     leagues {
         int id PK
@@ -212,6 +218,11 @@ erDiagram
     lineup_reminders {
         int team_id PK,FK
         int round PK
+        datetime sent_at
+    }
+    alerts_sent {
+        int team_id PK,FK
+        string key PK
         datetime sent_at
     }
     notifications {

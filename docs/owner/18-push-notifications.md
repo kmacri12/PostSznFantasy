@@ -30,6 +30,8 @@ Use a league where you own a team and the draft is running or the field is set.
 
 **Lineup reminder:** needs a drafted league with an empty starter slot and the first kickoff of a round about an hour away, with `SCHEDULER_ENABLED=true`. You get "Lineup locks in about an hour" once per round.
 
+**Player and score alerts (#391):** in Profile settings, **Hurt starters** is on by default and **Touchdowns**, **Round results** and **Quiet hours** are off. Hurt starter: set a starter's injury tag to Out on a drafted league's player before his game (the tag comes from the roster sync, which runs every `SCHEDULER_ROSTER_SYNC_HOURS`, 24 by default: lower it, for example to 4, during the playoffs so a late scratch is seen in hours rather than a day, at the cost of more Tank01 requests); "<name> is ruled Out" arrives once, and the Team page shows a banner with **Go to bench**. Touchdowns and round results come from the live poll, so they need `SCHEDULER_ENABLED=true` (the replay suite, `make e2e`, exercises them against the fixture game). With **Quiet hours** on, a test between 11pm and 7am in your zone arrives only in the bell.
+
 ## If it goes wrong
 
 - The Notifications switch is off and greyed out in Profile settings (the avatar): the secrets are missing; `fly secrets list --app postszn-api` must list the three `VAPID_` names.

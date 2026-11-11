@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import time
-from collections.abc import Callable, Sequence
+from collections.abc import Awaitable, Callable, Sequence
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -24,6 +24,11 @@ from api.services.ingestion import (
 from api.services.ingestion.guard import IngestionBusy, IngestionKind
 from api.services.lineup_reminders import send_lock_reminders
 from api.services.notifications import prune_old as prune_old_notifications
+from api.services.player_alerts import (
+    send_round_alerts,
+    send_score_alerts,
+    send_starter_out_alerts,
+)
 from api.services.push import prune_stale_subscriptions
 from api.services.replay import ReplayClient, load_replay, virtual_clock
 from api.services.standings import recompute_standings
@@ -279,12 +284,25 @@ async def run_poll_cycle(
         await recompute_standings(db, season)
         await db.commit()
         logger.info("Polled %d live games; %d eliminations applied", polled, eliminated)
-    try:
-        await send_lock_reminders(db, season, datetime.fromtimestamp(now, UTC))
-    except Exception:
-        await db.rollback()
-        logger.exception("Lineup lock reminders failed")
-        sentry_sdk.capture_exception()
+    when = datetime.fromtimestamp(now, UTC)
+    # Each step is on its own: one failing never keeps the others from running.
+    alerts: list[tuple[str, Callable[[], Awaitable[object]]]] = [
+        ("Lineup lock reminders", lambda: send_lock_reminders(db, season, when)),
+        ("Starter out alerts", lambda: send_starter_out_alerts(db, season, when)),
+    ]
+    if polled:
+        alerts.append(
+            ("Score alerts", lambda: send_score_alerts(db, season, live_ids, when))
+        )
+    if polled or reconciled:
+        alerts.append(("Round alerts", lambda: send_round_alerts(db, season, when)))
+    for name, send in alerts:
+        try:
+            await send()
+        except Exception:
+            await db.rollback()
+            logger.exception("%s failed", name)
+            sentry_sdk.capture_exception()
     try:
         await send_draft_start_reminders(db, datetime.fromtimestamp(now, UTC))
     except Exception:

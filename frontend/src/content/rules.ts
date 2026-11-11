@@ -228,8 +228,27 @@ export const NOTIFICATION_KINDS = [
     label: "Lineup reminders",
     hint: "An hour before a round locks, if you have an empty starter slot.",
   },
+  {
+    key: "starterAlerts",
+    label: "Hurt starters",
+    hint: "A starter is ruled Out or Doubtful before his game locks.",
+  },
+  {
+    key: "scoreAlerts",
+    label: "Touchdowns",
+    hint: "One of your starters scores. Bursts are grouped into one alert.",
+  },
+  {
+    key: "roundResults",
+    label: "Round results",
+    hint: "How a round went and where you moved, or that your last player's team lost.",
+  },
   { key: "chat", label: "Chat messages", hint: "A message in any league you have not muted." },
 ] as const;
+export const QUIET_HOURS = {
+  label: "Quiet hours",
+  hint: "No player alerts from 11pm to 7am, your local time. They still wait in the bell.",
+} as const;
 export const NOTIFICATIONS_IPHONE_STEPS = [
   "Open this site in Safari.",
   "Tap the Share button, then Add to Home Screen.",

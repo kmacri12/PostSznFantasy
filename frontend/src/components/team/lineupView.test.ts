@@ -3,6 +3,8 @@ import { lineupPlayer, roundLineup, slot } from "../../test/lineup";
 import {
   benchPlayersOf,
   eliminatedLastRound,
+  hurtStarters,
+  hurtStartersMessage,
   playerDetail,
   roundIsFinal,
   roundScore,
@@ -94,5 +96,33 @@ describe("a round's lineup", () => {
     );
     expect([...names.values()]).toEqual(["WR1", "WR2", "QB", "DST"]);
     expect(slotLabel("DEF")).toBe("DST");
+  });
+});
+
+describe("hurt starters", () => {
+  const hurt = (overrides = {}) => lineupPlayer({ injuryStatus: "Out", ...overrides });
+
+  it("lists starters who are Out, Doubtful or on IR and can still be swapped", () => {
+    const lineup = roundLineup(1, {
+      slots: [
+        slot(0, "QB", hurt({ id: 1 })),
+        slot(1, "RB", hurt({ id: 2, injuryStatus: "Doubtful" })),
+        slot(2, "WR", hurt({ id: 3, injuryStatus: "Questionable" })),
+        slot(3, "TE", hurt({ id: 4, locked: true })),
+        slot(4, "K", hurt({ id: 5, status: "eliminated" })),
+        slot(5, "BENCH", hurt({ id: 6 })),
+        slot(6, "DEF", lineupPlayer({ id: 7 })),
+      ],
+    });
+    expect(hurtStarters(lineup).map((player) => player.id)).toEqual([1, 2]);
+  });
+
+  it("says who is hurt and that there is time", () => {
+    expect(hurtStartersMessage([hurt({ name: "Josh Allen" })])).toBe(
+      "Josh Allen is Out. Swap him out before his game starts.",
+    );
+    expect(
+      hurtStartersMessage([hurt({ name: "A" }), hurt({ name: "B", injuryStatus: "Doubtful" })]),
+    ).toBe("2 starters are hurt: A, B. Swap them out before their games start.");
   });
 });

@@ -13,6 +13,7 @@ from collections.abc import Awaitable, Callable, Iterable
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime, timedelta
 from typing import Concatenate, Literal
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from pywebpush import WebPushException, webpush
 from sqlalchemy import delete, func, select, true, update
@@ -38,13 +39,20 @@ REQUEST_TIMEOUT_SECONDS = 10
 CHAT_BURST_WINDOW = timedelta(minutes=10)
 
 Urgency = Literal["very-low", "low", "normal", "high"]
-PushKind = Literal["draft", "lineup", "chat"]
+PushKind = Literal["draft", "lineup", "chat", "starter", "score", "round"]
 # The users column holding each kind's preference.
 PREFERENCE_COLUMNS = {
     "draft": User.push_draft_alerts,
     "lineup": User.push_lineup_reminders,
     "chat": User.push_chat,
+    "starter": User.push_starter_alerts,
+    "score": User.push_score_alerts,
+    "round": User.push_round_results,
 }
+# Player alerts wait out the member's quiet hours; the inbox entry is written anyway.
+QUIET_KINDS = frozenset({"starter", "score", "round"})
+QUIET_START_HOUR = 23
+QUIET_END_HOUR = 7
 
 _pending: set[asyncio.Task[None]] = set()
 
@@ -64,6 +72,20 @@ class PushMessage:
     def payload(self) -> str:
         """What the service worker receives; the urgency is a header, not content."""
         return json.dumps({k: v for k, v in asdict(self).items() if k != "urgency"})
+
+
+def _now() -> datetime:
+    return datetime.now(UTC)
+
+
+def in_quiet_hours(zone_name: str | None, now: datetime) -> bool:
+    """11pm to 7am in the member's zone; UTC for a member who never reported one."""
+    try:
+        zone = ZoneInfo(zone_name) if zone_name else UTC
+    except (ZoneInfoNotFoundError, ValueError):
+        zone = UTC
+    hour = now.astimezone(zone).hour
+    return hour >= QUIET_START_HOUR or hour < QUIET_END_HOUR
 
 
 def _deliver(subscription: PushSubscription, message: PushMessage) -> int:
@@ -127,15 +149,20 @@ async def send_to_users(
     ids = set(user_ids)
     if not ids or not get_settings().push_enabled:
         return 0
-    ids = set(
-        (
-            await db.execute(
-                select(User.id).where(User.id.in_(ids), PREFERENCE_COLUMNS[kind])
+    now = _now()
+    ids = {
+        row.id
+        for row in await db.execute(
+            select(User.id, User.quiet_hours, User.timezone).where(
+                User.id.in_(ids), PREFERENCE_COLUMNS[kind]
             )
         )
-        .scalars()
-        .all()
-    )
+        if not (
+            kind in QUIET_KINDS
+            and row.quiet_hours
+            and in_quiet_hours(row.timezone, now)
+        )
+    }
     if not ids:
         return 0
     subscriptions = list(

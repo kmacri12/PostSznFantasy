@@ -92,6 +92,11 @@ async def _preferences(db: DbSession, user: User) -> PushPreferences:
         draft_alerts=user.push_draft_alerts,
         lineup_reminders=user.push_lineup_reminders,
         chat=user.push_chat,
+        starter_alerts=user.push_starter_alerts,
+        score_alerts=user.push_score_alerts,
+        round_results=user.push_round_results,
+        quiet_hours=user.quiet_hours,
+        timezone=user.timezone,
         muted_league_ids=await push.muted_league_ids(db, user.id),
     )
 
@@ -120,6 +125,16 @@ async def update_preferences(
         user.push_lineup_reminders = payload.lineup_reminders
     if payload.chat is not None:
         user.push_chat = payload.chat
+    if payload.starter_alerts is not None:
+        user.push_starter_alerts = payload.starter_alerts
+    if payload.score_alerts is not None:
+        user.push_score_alerts = payload.score_alerts
+    if payload.round_results is not None:
+        user.push_round_results = payload.round_results
+    if payload.quiet_hours is not None:
+        user.quiet_hours = payload.quiet_hours
+    if payload.timezone is not None:
+        user.timezone = payload.timezone
     await db.flush()
     return await _preferences(db, user)
 

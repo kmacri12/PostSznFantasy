@@ -43,6 +43,37 @@ export const benchPlayersOf = (lineup: RoundLineup): LineupPlayer[] => [
   ...lineup.unassigned,
 ];
 
+/** The page element the "Go to bench" button of the hurt-starter banner scrolls to. */
+export const BENCH_GROUP_ID = "lineup-bench";
+
+const HURT_LABELS: Record<string, string> = {
+  Out: "Out",
+  Doubtful: "Doubtful",
+  "Injured Reserve": "on injured reserve",
+};
+
+/** Starters ruled Out, Doubtful or on IR whose game has not started, so they can still be swapped. */
+export const hurtStarters = (lineup: RoundLineup): LineupPlayer[] =>
+  startersOf(lineup).flatMap(({ player }) =>
+    player &&
+    player.status === "alive" &&
+    !player.locked &&
+    player.injuryStatus &&
+    player.injuryStatus in HURT_LABELS
+      ? [player]
+      : [],
+  );
+
+/** The banner's sentence: who is hurt and that there is time to swap. */
+export const hurtStartersMessage = (hurt: LineupPlayer[]): string => {
+  const [first] = hurt;
+  if (hurt.length === 1 && first) {
+    const label = HURT_LABELS[first.injuryStatus ?? ""] ?? "hurt";
+    return `${first.name} is ${label}. Swap him out before his game starts.`;
+  }
+  return `${hurt.length} starters are hurt: ${hurt.map((player) => player.name).join(", ")}. Swap them out before their games start.`;
+};
+
 /** Only the players whose team went out last round; anyone out earlier is gone from the page. */
 export const eliminatedLastRound = (lineup: RoundLineup): LineupPlayer[] =>
   lineup.eliminated.filter((player) => player.eliminatedRound === lineup.round - 1);

@@ -52,6 +52,30 @@ export const describeNotification = (item: InboxItem): InboxLine => {
         body: `Your ${round ? `${round} ` : ""}lineup in ${league}.`,
         path: team ? paths.team(team) : paths.home,
       };
+    case "starter_out":
+      return {
+        title: "A starter is hurt",
+        body: `Check your ${round ? `${round} ` : ""}lineup in ${league}.`,
+        path: team ? paths.team(team) : paths.home,
+      };
+    case "player_scored":
+      return {
+        title: "Touchdown!",
+        body: `One of your starters scored in ${league}.`,
+        path: team ? paths.team(team) : paths.home,
+      };
+    case "round_result":
+      return {
+        title: `${round ? `${round} is` : "The round is"} final`,
+        body: `See how you moved in ${league}.`,
+        path: paths.home,
+      };
+    case "team_eliminated":
+      return {
+        title: "Your last player's team lost",
+        body: `You're out of players in ${league}.`,
+        path: paths.home,
+      };
     default:
       return {
         title: league,

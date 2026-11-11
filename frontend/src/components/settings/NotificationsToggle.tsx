@@ -1,4 +1,5 @@
 import { Alert, Box, Switch, Typography } from "@mui/material";
+import { useEffect } from "react";
 import { usePushPreferences, useUpdatePushPreferences } from "../../api/queries";
 import {
   NOTIFICATION_KINDS,
@@ -6,16 +7,30 @@ import {
   NOTIFICATIONS_DENIED_HELP,
   NOTIFICATIONS_STATUS_NOTE,
   NOTIFICATIONS_TIP,
+  QUIET_HOURS,
 } from "../../content/rules";
 import { usePushNotifications } from "../../hooks/usePushNotifications";
 import { pushDevice } from "../../utils/pushSetup";
 import HelpTip from "../common/HelpTip";
+
+const deviceZone = () => Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 /** The Settings row for web push: the switch asks for permission only when tapped. */
 const NotificationsToggle = () => {
   const { status, busy, error, enable, disable } = usePushNotifications();
   const preferences = usePushPreferences().data;
   const update = useUpdatePushPreferences();
+  const { mutate: save } = update;
+  const savedZone = preferences?.timezone;
+  const quiet = preferences?.quietHours;
+
+  // Quiet hours are counted in the zone the server last heard from this browser, so a
+  // member who travels keeps their own 11pm.
+  useEffect(() => {
+    if (quiet && savedZone !== undefined && savedZone !== deviceZone()) {
+      save({ timezone: deviceZone() });
+    }
+  }, [quiet, savedZone, save]);
 
   if (status === "loading") return null;
 
@@ -78,6 +93,32 @@ const NotificationsToggle = () => {
             />
           </Box>
         ))}
+      {status === "on" && preferences && (
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 1,
+            minHeight: 44,
+          }}
+        >
+          <Box sx={{ minWidth: 0 }}>
+            <Typography>{QUIET_HOURS.label}</Typography>
+            <Typography variant="caption" color="text.secondary">
+              {QUIET_HOURS.hint}
+            </Typography>
+          </Box>
+          <Switch
+            checked={preferences.quietHours}
+            disabled={update.isPending}
+            onChange={(event) =>
+              update.mutate({ quietHours: event.target.checked, timezone: deviceZone() })
+            }
+            slotProps={{ input: { "aria-label": QUIET_HOURS.label } }}
+          />
+        </Box>
+      )}
       {update.isError && (
         <Alert severity="error" sx={{ mt: 1 }}>
           Couldn't save that choice. Try again.

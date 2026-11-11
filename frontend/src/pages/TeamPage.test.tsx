@@ -108,6 +108,35 @@ describe("TeamPage", () => {
     expect(within(eliminated).getByText("Eliminated in Divisional")).toBeInTheDocument();
   });
 
+  it("warns about a hurt starter who can still be swapped and jumps to the bench", () => {
+    const scrollIntoView = vi.fn();
+    Element.prototype.scrollIntoView = scrollIntoView;
+    const original = team.lineups[2];
+    team.lineups[2] = roundLineup(3, {
+      slots: [
+        slot(0, "QB", { ...allen, gameState: null, injuryStatus: "Out" }),
+        slot(1, "BENCH", nacua),
+      ],
+      firstKickoff: "2099-01-01T00:00:00Z",
+    });
+    try {
+      renderTeam();
+      expect(
+        screen.getByText("Josh Allen is Out. Swap him out before his game starts."),
+      ).toBeInTheDocument();
+      fireEvent.click(screen.getByRole("button", { name: "Go to bench" }));
+      expect(scrollIntoView).toHaveBeenCalled();
+      expect(screen.getByRole("region", { name: "Bench" })).toHaveAttribute("id", "lineup-bench");
+    } finally {
+      team.lineups[2] = original as (typeof team.lineups)[number];
+    }
+  });
+
+  it("shows no hurt-starter banner when nobody is hurt", () => {
+    renderTeam();
+    expect(screen.queryByRole("button", { name: "Go to bench" })).toBeNull();
+  });
+
   it("switches round from the strip", () => {
     renderTeam();
     fireEvent.click(screen.getByRole("tab", { name: /Super Bowl/ }));

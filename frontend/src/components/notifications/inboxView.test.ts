@@ -43,6 +43,26 @@ describe("describeNotification", () => {
     });
   });
 
+  it("words the player alerts and links them to the team or the standings", () => {
+    const payload = { seasonId: 9, teamId: 12, round: 1 };
+    expect(describeNotification(item("starter_out", payload))).toEqual({
+      title: "A starter is hurt",
+      body: "Check your Wild Card lineup in Family League.",
+      path: "/leagues/3/teams/12",
+    });
+    expect(describeNotification(item("player_scored", payload)).path).toBe("/leagues/3/teams/12");
+    expect(describeNotification(item("round_result", payload))).toEqual({
+      title: "Wild Card is final",
+      body: "See how you moved in Family League.",
+      path: "/leagues/3",
+    });
+    expect(describeNotification(item("team_eliminated", { seasonId: 9, teamId: 12 }))).toEqual({
+      title: "Your last player's team lost",
+      body: "You're out of players in Family League.",
+      path: "/leagues/3",
+    });
+  });
+
   it("still links a kind this build does not know to its league", () => {
     expect(describeNotification(item("player_eliminated"))).toEqual({
       title: "Family League",

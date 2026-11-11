@@ -4,6 +4,7 @@ import type { LineupPlayer, RoundLineup } from "../../api/types";
 import { tokens } from "../../theme";
 import { formatPoints } from "../league/standingsView";
 import {
+  BENCH_GROUP_ID,
   benchPlayersOf,
   eliminatedLastRound,
   roundIsFinal,
@@ -15,6 +16,7 @@ import {
 import PlayerRow from "./PlayerRow";
 
 const Group = ({
+  id,
   title,
   total,
   prominent = false,
@@ -22,6 +24,7 @@ const Group = ({
   badge,
   children,
 }: {
+  id?: string;
   title: string;
   total: number | null;
   prominent?: boolean;
@@ -31,6 +34,7 @@ const Group = ({
 }) => (
   <Box
     component="section"
+    id={id}
     aria-label={title}
     sx={{
       bgcolor: tokens.surface,
@@ -128,7 +132,7 @@ const LineupRound = ({ lineup, onOpenPlayer }: Props) => {
       </Group>
       <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
         {bench.length > 0 && (
-          <Group title="Bench" total={sumPoints(bench)}>
+          <Group id={BENCH_GROUP_ID} title="Bench" total={sumPoints(bench)}>
             {bench.map((player) => (
               <PlayerRow
                 key={player.id}
