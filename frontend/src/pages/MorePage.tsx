@@ -1,10 +1,11 @@
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import LocalCafeIcon from "@mui/icons-material/LocalCafe";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
-import { Alert, Box, Container, Snackbar, Typography } from "@mui/material";
+import { Box, Container, Typography } from "@mui/material";
 import { type ReactNode, useState } from "react";
 import { Link } from "react-router-dom";
 import { useUserLeagues } from "../api/queries";
+import AppToast from "../components/common/AppToast";
 import { draftStatusLine } from "../components/league/draftStatusLine";
 import InviteSheet from "../components/settings/InviteSheet";
 import PastSeasonsSheet from "../components/settings/PastSeasonsSheet";
@@ -22,7 +23,6 @@ import {
 import { useSeasonContext } from "../contexts/SeasonContext";
 import { useUser } from "../contexts/UserContext";
 import { radii, tokens } from "../theme";
-import { E2E_BUILD } from "../utils/e2e";
 
 const rowSx = {
   display: "flex",
@@ -175,21 +175,12 @@ const MorePage = () => {
           }}
         />
       )}
-      <Snackbar
+      <AppToast
         open={sent}
-        autoHideDuration={E2E_BUILD ? null : 6000}
-        onClose={(_, reason) => reason !== "clickaway" && setSent(false)}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-      >
-        <Alert
-          severity="success"
-          variant="filled"
-          onClose={() => setSent(false)}
-          sx={{ width: "100%" }}
-        >
-          {REPORT_PROBLEM_SENT}
-        </Alert>
-      </Snackbar>
+        message={REPORT_PROBLEM_SENT}
+        autoHideMs={6000}
+        onClose={() => setSent(false)}
+      />
     </Container>
   );
 };

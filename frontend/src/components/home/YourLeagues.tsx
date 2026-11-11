@@ -2,6 +2,7 @@ import { Box, Button, Container, Link as MuiLink, Typography } from "@mui/materi
 import { Link } from "react-router-dom";
 import { useUserLeagues } from "../../api/queries";
 import { useUser } from "../../contexts/UserContext";
+import EmptyState from "../common/EmptyState";
 import ErrorState from "../common/ErrorState";
 import { friendlyError } from "../common/friendlyError";
 import LoadingState from "../common/LoadingState";
@@ -55,9 +56,11 @@ const YourLeagues = () => {
         {none ? "Welcome to PostSzn" : "Your leagues"}
       </Typography>
       {none && (
-        <Typography color="text.secondary" sx={{ mb: 2 }}>
-          Start a league for your group, or join one with a code from your commissioner.
-        </Typography>
+        <EmptyState
+          illustration="leagues"
+          title="No leagues yet"
+          description="Start a league for your group, or join one with a code from your commissioner."
+        />
       )}
       <Box sx={{ display: "grid", gap: 1.5 }}>
         {leagues.data.map((league) => (

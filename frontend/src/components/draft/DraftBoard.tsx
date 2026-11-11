@@ -1,10 +1,11 @@
-import { Box, Button, Paper, Typography } from "@mui/material";
+import { Box, Button, GlobalStyles, Paper, Typography } from "@mui/material";
 import type { SxProps, Theme } from "@mui/material/styles";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import type { DraftPick, DraftState, ReservedPick } from "../../api/types";
-import { prefersReducedMotion } from "../../hooks/useReducedMotion";
+import { prefersReducedMotion, useReducedMotion } from "../../hooks/useReducedMotion";
 import { tokens } from "../../theme";
+import { nflTeamColor } from "../../utils/nflColors";
 import TeamUnitBadge from "../common/TeamUnitBadge";
 import { visuallyHidden } from "../common/visuallyHidden";
 import SettingsSheet from "../settings/SettingsSheet";
@@ -68,6 +69,13 @@ const gridLine = {
  */
 const DraftBoard: React.FC<Props> = ({ state, myTeamId, sx, onSelectSlot }) => {
   const [selected, setSelected] = useState<BoardCell | null>(null);
+  const reducedMotion = useReducedMotion();
+  const picksOnArrival = useRef(state.picks.length);
+  // Only a pick that lands while the board is open gets the reveal, never the picks already there.
+  const revealOverall =
+    !reducedMotion && state.picks.length > picksOnArrival.current
+      ? Math.max(...state.picks.map((p) => p.numberPickOverall))
+      : null;
   const teamCount = state.order.length;
   const columns = `${ROUND_COL}px repeat(${teamCount || 1}, minmax(${TEAM_COL}px, 1fr))`;
   const frameRef = useRef<HTMLDivElement>(null);
@@ -135,6 +143,16 @@ const DraftBoard: React.FC<Props> = ({ state, myTeamId, sx, onSelectSlot }) => {
         ...sx,
       }}
     >
+      {revealOverall !== null && (
+        <GlobalStyles
+          styles={{
+            "@keyframes ps-pick-reveal": {
+              from: { transform: "translateX(-14px)", opacity: 0 },
+              to: { transform: "none", opacity: 1 },
+            },
+          }}
+        />
+      )}
       <Box
         sx={{
           display: "grid",
@@ -221,6 +239,7 @@ const DraftBoard: React.FC<Props> = ({ state, myTeamId, sx, onSelectSlot }) => {
                   component="button"
                   type="button"
                   data-testid={`pick-${overall}`}
+                  data-revealed={overall === revealOverall ? "true" : undefined}
                   onClick={() => setSelected(cell)}
                   sx={{
                     ...gridLine,
@@ -247,6 +266,17 @@ const DraftBoard: React.FC<Props> = ({ state, myTeamId, sx, onSelectSlot }) => {
                         ? positionColor(pick.position)
                         : tokens.bg,
                     boxShadow: mine ? `inset 0 0 0 2px ${tokens.accent}` : undefined,
+                    ...(overall === revealOverall && {
+                      position: "relative",
+                      animation: "ps-pick-reveal 420ms ease-out 1 both",
+                      "&::before": {
+                        content: '""',
+                        position: "absolute",
+                        inset: "0 auto 0 0",
+                        width: 4,
+                        bgcolor: nflTeamColor(pick?.teamAbv) ?? tokens.accent,
+                      },
+                    }),
                   }}
                 >
                   <Box
