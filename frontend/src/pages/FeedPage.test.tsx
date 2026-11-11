@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { normalizeFeed } from "../api/normalize";
 import type { Feed, FeedItem, FeedMessageItem, MemberSummary } from "../api/types";
 import { SeasonContext } from "../contexts/SeasonContext";
 import { testSeason } from "../test/season";
@@ -107,6 +108,22 @@ describe("FeedPage", () => {
       expect(screen.getByRole("menuitem", { name: "Reply" })).toBeInTheDocument();
       expect(screen.queryByRole("button", { name: /Delete message/ })).not.toBeInTheDocument();
       expect(screen.queryByRole("menuitem", { name: "Edit" })).not.toBeInTheDocument();
+    });
+
+    it("renders and opens the menu on a message from an API without reactions or mentions", () => {
+      const stale = message(2, 4, false) as Partial<FeedMessageItem>;
+      stale.reactions = undefined;
+      stale.mentions = undefined;
+      const { items } = normalizeFeed({
+        items: [stale as FeedItem],
+        nextBefore: null,
+        hasNew: false,
+        canPost: true,
+      });
+      useFeed.mockReturnValue(feedOf(items));
+      renderPage();
+      fireEvent.contextMenu(bubble(/Message from Dave/));
+      expect(screen.getByRole("toolbar", { name: "React to this message" })).toBeInTheDocument();
     });
 
     it("offers delete and edit on your own message", () => {
