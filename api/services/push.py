@@ -39,12 +39,13 @@ REQUEST_TIMEOUT_SECONDS = 10
 CHAT_BURST_WINDOW = timedelta(minutes=10)
 
 Urgency = Literal["very-low", "low", "normal", "high"]
-PushKind = Literal["draft", "lineup", "chat", "starter", "score", "round"]
+PushKind = Literal["draft", "lineup", "chat", "mention", "starter", "score", "round"]
 # The users column holding each kind's preference.
 PREFERENCE_COLUMNS = {
     "draft": User.push_draft_alerts,
     "lineup": User.push_lineup_reminders,
     "chat": User.push_chat,
+    "mention": User.push_mentions,
     "starter": User.push_starter_alerts,
     "score": User.push_score_alerts,
     "round": User.push_round_results,
@@ -213,6 +214,7 @@ async def notify_league_message(db: AsyncSession, message_id: int) -> None:
                 LeagueMessage.season_id,
                 LeagueMessage.author_user_id,
                 LeagueMessage.author_name,
+                LeagueMessage.mentioned_user_ids,
                 League.name,
             )
             .join(League, League.id == LeagueMessage.league_id)
@@ -232,6 +234,8 @@ async def notify_league_message(db: AsyncSession, message_id: int) -> None:
                     LeagueMember.league_id == row.league_id,
                     LeagueMember.left_at.is_(None),
                     LeagueMember.chat_muted.is_(False),
+                    # Tagged members get the mention notification instead.
+                    LeagueMember.user_id.not_in(row.mentioned_user_ids),
                     LeagueMember.user_id != row.author_user_id
                     if row.author_user_id is not None
                     else true(),

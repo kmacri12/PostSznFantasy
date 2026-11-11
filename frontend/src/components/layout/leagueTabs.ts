@@ -10,6 +10,8 @@ export interface LeagueTab {
   matches: (pathname: string) => boolean;
   /** Show the new-activity dot. */
   dot: boolean;
+  /** Unseen items, shown as a number in place of the dot. */
+  count: number;
 }
 
 /** Tabs open the league's latest season. */
@@ -30,12 +32,14 @@ export function leagueTabs(league: LeagueByUser): LeagueTab[] {
       to: paths.home,
       matches: (p) => page(p) === "" || page(p) === "/settings",
       dot: false,
+      count: 0,
     },
     {
       label: "Team",
       to: league.userTeamId === null ? paths.home : paths.team(league.userTeamId),
       matches: (p) => page(p)?.startsWith("/teams/") ?? false,
       dot: false,
+      count: 0,
     },
     {
       // After the draft this tab is only the league player list.
@@ -43,18 +47,21 @@ export function leagueTabs(league: LeagueByUser): LeagueTab[] {
       to: paths.draft,
       matches: (p) => page(p)?.startsWith("/draft") ?? false,
       dot: false,
+      count: 0,
     },
     {
       label: "Feed",
       to: paths.feed,
       matches: (p) => page(p) === "/feed",
       dot: league.hasNewActivity,
+      count: league.newActivityCount,
     },
     {
       label: "More",
       to: paths.more,
       matches: (p) => page(p) === "/more" || page(p) === "/how-to-play",
       dot: false,
+      count: 0,
     },
   ];
 }

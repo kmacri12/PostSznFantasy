@@ -1,4 +1,4 @@
-import type { FeedEventItem, FeedItem, FeedMessageItem } from "../../api/types";
+import type { FeedEventItem, FeedItem, FeedMessageItem, MessageReaction } from "../../api/types";
 import { describeEvent, detailLines } from "../activity/describe";
 
 export const itemKey = (item: FeedItem): string => `${item.type}-${item.id}`;
@@ -124,3 +124,13 @@ export const eventLine = (event: FeedEventItem): EventLine => {
       };
   }
 };
+
+/** Who reacted with what, for the message menu: "👍 Dave, Pat · 🔥 Kyle"; empty without reactions. */
+export const reactionSummary = (reactions: MessageReaction[]): string =>
+  reactions.map((r) => `${r.emoji} ${r.names.join(", ")}`).join(" · ");
+
+/** The server's edit window, so the menu stops offering Edit when it has closed. */
+export const EDIT_WINDOW_MS = 5 * 60 * 1000;
+
+export const canStillEdit = (message: FeedMessageItem, now = Date.now()): boolean =>
+  message.canEdit && now - new Date(message.createdAt).getTime() <= EDIT_WINDOW_MS;

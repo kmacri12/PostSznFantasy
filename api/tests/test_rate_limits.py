@@ -1,5 +1,6 @@
 import time
 from collections.abc import AsyncIterator
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -9,6 +10,7 @@ from api.core import rate_limit
 from api.core.body_limit import limit_for
 from api.dependencies.league import get_season_member
 from api.main import app
+from api.models.feed_models import FeedMessageItem
 from api.services import avatars
 
 
@@ -43,14 +45,20 @@ async def test_chat_is_refused_after_the_limit_with_retry_after(
 ) -> None:
     body = {"body": "hi"}
     app.dependency_overrides[get_season_member] = lambda: MagicMock()
+    item = FeedMessageItem(
+        id=1, created_at=datetime(2026, 1, 1, tzinfo=UTC), author_user_id=1,
+        author_name="a", body="hi", gif_url=None, can_delete=True, can_edit=True,
+        edited_at=None, is_new=False, reply_to=None, mentions=[], reactions=[],
+    )  # fmt: skip
     with patch("api.routers.activity.feed.post_message", new=AsyncMock()) as post:
-        post.return_value = MagicMock(
-            id=1, created_at="2026-01-01T00:00:00Z", author_user_id=1,
-            author_name="a", body="hi", gif_url=None,
-        )  # fmt: skip
+        post.return_value = MagicMock(id=1, mentioned_user_ids=[])
         with (
             patch("api.routers.activity.push.spawn") as spawn,
             patch("api.routers.activity.announce_feed_change", new=AsyncMock()),
+            patch(
+                "api.routers.activity.feed.message_items",
+                new=AsyncMock(return_value=[item]),
+            ),
         ):
             codes = [
                 (

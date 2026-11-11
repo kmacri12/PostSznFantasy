@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import type { LeagueByUser } from "../../api/types";
 import { RAIL_WIDTH, tokens } from "../../theme";
 import Brand from "./Brand";
+import { CountBadge } from "./CountBadge";
 import { activeTabIndex, leagueTabs } from "./leagueTabs";
 import { NewActivityDot } from "./NewActivityDot";
 import { TAB_ICONS } from "./TabIcons";
@@ -63,7 +64,11 @@ const LeagueRail = ({ league }: { league: LeagueByUser }) => {
               <Icon sx={{ fontSize: 20 }} />
               {tab.label}
             </Box>
-            {tab.dot && <NewActivityDot label="New activity" />}
+            {tab.count > 0 ? (
+              <CountBadge count={tab.count} />
+            ) : (
+              tab.dot && <NewActivityDot label="New activity" />
+            )}
           </Box>
         );
       })}

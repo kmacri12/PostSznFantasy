@@ -43,6 +43,7 @@ const league = (overrides: Partial<LeagueByUser> = {}): LeagueByUser => ({
   isCommissioner: true,
   userTeamId: 2,
   hasNewActivity: false,
+  newActivityCount: 0,
   finished: false,
   draftStatus: "completed",
   seasons: [],

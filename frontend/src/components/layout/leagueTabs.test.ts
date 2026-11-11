@@ -9,6 +9,7 @@ const league = {
   isCommissioner: false,
   userTeamId: 3,
   hasNewActivity: false,
+  newActivityCount: 0,
   finished: false,
   draftStatus: "unscheduled" as const,
   seasons: [],
@@ -46,6 +47,13 @@ describe("leagueTabs", () => {
     const dots = leagueTabs({ ...league, hasNewActivity: true }).map((t) => t.dot);
     expect(dots).toEqual([false, false, false, true, false]);
     expect(tabs.some((t) => t.dot)).toBe(false);
+  });
+
+  it("carries the unseen count on the Feed tab only", () => {
+    const counts = leagueTabs({ ...league, hasNewActivity: true, newActivityCount: 7 }).map(
+      (t) => t.count,
+    );
+    expect(counts).toEqual([0, 0, 0, 7, 0]);
   });
 
   it("falls back to the league page when the user has no team", () => {

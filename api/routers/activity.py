@@ -12,12 +12,19 @@ from fastapi import (
     status,
 )
 
-from api.core.rate_limit import ChatLimit, SocketThrottle
+from api.core.rate_limit import ChatLimit, ReactionLimit, SocketThrottle
 from api.db.session import DbSession
 from api.dependencies.league import SeasonMember, TeamMember
 from api.models.activity_models import ActivityFeed, ActivityViewed
-from api.models.feed_models import Feed, FeedMessageItem, FeedViewed, MessageCreate
-from api.services import activity, feed, push
+from api.models.feed_models import (
+    Feed,
+    FeedMessageItem,
+    FeedViewed,
+    MessageCreate,
+    MessageEdit,
+    ReactionUpdate,
+)
+from api.services import activity, feed, mentions, push
 from api.services.season_recap import ARCHIVED_MESSAGE
 from api.ws.auth import authenticate_socket, receive_guarded
 from api.ws.feed_manager import announce_feed_change, feed_manager
@@ -25,6 +32,16 @@ from api.ws.feed_manager import announce_feed_change, feed_manager
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+
+def _refusal(exc: feed.FeedError) -> HTTPException:
+    status_code = (
+        status.HTTP_409_CONFLICT
+        if str(exc) == ARCHIVED_MESSAGE
+        else status.HTTP_422_UNPROCESSABLE_CONTENT
+    )
+    return HTTPException(status_code, str(exc))
+
 
 PageSize = Annotated[int, Query(ge=1, le=activity.MAX_PAGE_SIZE)]
 Before = Annotated[int | None, Query(description="Return events older than this id")]
@@ -132,27 +149,86 @@ async def post_message(
 ) -> FeedMessageItem:
     """Chat in the league's current season; former members and archives get 403/409."""
     try:
-        message = await feed.post_message(db, membership, payload.body, payload.gif_url)
-    except feed.FeedError as exc:
-        status_code = (
-            status.HTTP_409_CONFLICT
-            if str(exc) == ARCHIVED_MESSAGE
-            else status.HTTP_422_UNPROCESSABLE_CONTENT
+        message = await feed.post_message(
+            db,
+            membership,
+            payload.body,
+            payload.gif_url,
+            payload.reply_to_id,
+            payload.mentioned_user_ids,
         )
-        raise HTTPException(status_code, str(exc)) from exc
+    except feed.FeedError as exc:
+        raise _refusal(exc) from exc
+    [item] = await feed.message_items(db, membership, [message])
     await db.commit()
     await announce_feed_change(season_id, "message", message.id)
     push.spawn(push.notify_league_message, message.id)
-    return FeedMessageItem(
-        id=message.id,
-        created_at=message.created_at,
-        author_user_id=message.author_user_id,
-        author_name=message.author_name,
-        body=message.body,
-        gif_url=message.gif_url,
-        can_delete=True,
-        is_new=False,
-    )
+    if message.mentioned_user_ids:
+        push.spawn(mentions.notify_mentioned, message.id, message.mentioned_user_ids)
+    return item
+
+
+@router.patch(
+    "/seasons/{season_id}/messages/{message_id}", response_model=FeedMessageItem
+)
+async def edit_message(
+    season_id: int,
+    message_id: int,
+    payload: MessageEdit,
+    membership: SeasonMember,
+    db: DbSession,
+    _: ChatLimit,
+) -> FeedMessageItem:
+    """The author rewrites their message within five minutes; it then reads "edited"."""
+    try:
+        message, newly_tagged = await feed.edit_message(
+            db, membership, message_id, payload.body, payload.mentioned_user_ids
+        )
+    except feed.MessageNotFound as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Message not found") from exc
+    except feed.NotYourMessage as exc:
+        raise HTTPException(
+            status.HTTP_403_FORBIDDEN, "You can only edit your own messages"
+        ) from exc
+    except feed.EditWindowClosed as exc:
+        raise HTTPException(
+            status.HTTP_409_CONFLICT,
+            "Messages can only be edited for 5 minutes after they are sent",
+        ) from exc
+    except feed.FeedError as exc:
+        raise _refusal(exc) from exc
+    [item] = await feed.message_items(db, membership, [message])
+    await db.commit()
+    await announce_feed_change(season_id, "message", message.id)
+    if newly_tagged:
+        push.spawn(mentions.notify_mentioned, message.id, newly_tagged)
+    return item
+
+
+@router.put(
+    "/seasons/{season_id}/messages/{message_id}/reactions",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def react_to_message(
+    season_id: int,
+    message_id: int,
+    payload: ReactionUpdate,
+    membership: SeasonMember,
+    db: DbSession,
+    _: ReactionLimit,
+) -> Response:
+    """Add (`reacted: true`) or remove the caller's emoji on a message."""
+    try:
+        await feed.set_reaction(
+            db, membership, message_id, payload.emoji, payload.reacted
+        )
+    except feed.MessageNotFound as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Message not found") from exc
+    except feed.FeedError as exc:
+        raise _refusal(exc) from exc
+    await db.commit()
+    await announce_feed_change(season_id, "message", message_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.delete(

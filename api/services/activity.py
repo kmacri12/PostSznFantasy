@@ -323,9 +323,9 @@ def _not_by(
     return or_(column.is_(None), column != user_id)
 
 
-async def leagues_with_new_activity(db: AsyncSession, viewer_id: int) -> set[int]:
-    """Leagues with a season feed holding events or messages the member hasn't seen
-    (nav dot)."""
+async def new_activity_counts(db: AsyncSession, viewer_id: int) -> dict[int, int]:
+    """Per league, how many feed events and messages the member hasn't seen (the Feed
+    tab's badge); leagues with none are absent."""
     member = and_(
         LeagueMember.league_id == Season.league_id,
         LeagueMember.user_id == viewer_id,
@@ -336,7 +336,7 @@ async def leagues_with_new_activity(db: AsyncSession, viewer_id: int) -> set[int
         ActivityView.team_id == LEAGUE_FEED,
     )
     events = (
-        select(Season.league_id)
+        select(Season.league_id, func.count())
         .join(ActivityEvent, ActivityEvent.season_id == Season.id)
         .where(Season.league_id.in_(live_league_ids()))
         .join(LeagueMember, member)
@@ -353,9 +353,10 @@ async def leagues_with_new_activity(db: AsyncSession, viewer_id: int) -> set[int
             ),
             _not_by(ActivityEvent.actor_user_id, viewer_id),
         )
+        .group_by(Season.league_id)
     )
     messages = (
-        select(Season.league_id)
+        select(Season.league_id, func.count())
         .join(LeagueMessage, LeagueMessage.season_id == Season.id)
         .where(Season.league_id.in_(live_league_ids()))
         .join(LeagueMember, member)
@@ -369,9 +370,13 @@ async def leagues_with_new_activity(db: AsyncSession, viewer_id: int) -> set[int
             LeagueMessage.created_at > LeagueMember.joined_at,
             _not_by(LeagueMessage.author_user_id, viewer_id),
         )
+        .group_by(Season.league_id)
     )
-    rows = await db.execute(events.union(messages))
-    return set(rows.scalars())
+    counts: dict[int, int] = {}
+    for query in (events, messages):
+        for league_id, count in await db.execute(query):
+            counts[league_id] = counts.get(league_id, 0) + count
+    return counts
 
 
 def derive_slot_marks(

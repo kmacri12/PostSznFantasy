@@ -279,6 +279,11 @@ export const NOTIFICATION_KINDS = [
     label: "Round results",
     hint: "How a round went and where you moved, or that your last player's team lost.",
   },
+  {
+    key: "mentions",
+    label: "Mentions",
+    hint: "Someone tags you with @ in a league chat, even if you muted that league.",
+  },
   { key: "chat", label: "Chat messages", hint: "A message in any league you have not muted." },
 ] as const;
 export const QUIET_HOURS = {

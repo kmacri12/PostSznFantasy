@@ -25,6 +25,8 @@ export interface LeagueByUser {
   userTeamId: number | null;
   /** Events in the league feed this member hasn't seen: drives the nav dot. */
   hasNewActivity: boolean;
+  /** Unseen feed events and messages: the number on the Feed tab. */
+  newActivityCount: number;
   finished: boolean;
   draftStatus: DraftStatus;
   /** Every season, oldest first. */
@@ -493,6 +495,27 @@ export interface ActivityFeed {
 
 export type FeedEventItem = ActivityEvent & { type: "event" };
 
+export interface ReplyQuote {
+  id: number;
+  authorName: string | null;
+  /** The start of the quoted text, or "GIF"; empty once the original was deleted. */
+  snippet: string;
+  deleted: boolean;
+}
+
+export interface MessageReaction {
+  emoji: string;
+  count: number;
+  mine: boolean;
+  /** Display names, oldest reaction first. */
+  names: string[];
+}
+
+export interface MessageMention {
+  userId: number;
+  name: string;
+}
+
 export interface FeedMessageItem {
   type: "message";
   id: number;
@@ -503,7 +526,13 @@ export interface FeedMessageItem {
   gifUrl: string | null;
   /** The author, or a commissioner. */
   canDelete: boolean;
+  /** The author, within five minutes of sending. */
+  canEdit: boolean;
+  editedAt: string | null;
   isNew: boolean;
+  replyTo: ReplyQuote | null;
+  mentions: MessageMention[];
+  reactions: MessageReaction[];
 }
 
 export type FeedItem = FeedEventItem | FeedMessageItem;
@@ -570,7 +599,7 @@ export interface InboxItem {
   leagueId: number;
   leagueName: string;
   /** Ids only: seasonId, and teamId and round where the kind has them. */
-  payload: { seasonId?: number; teamId?: number; round?: number };
+  payload: { seasonId?: number; teamId?: number; round?: number; messageId?: number };
   createdAt: string;
   read: boolean;
 }

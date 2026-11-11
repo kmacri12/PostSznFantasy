@@ -387,6 +387,7 @@ export interface PushPreferences {
   draftAlerts: boolean;
   lineupReminders: boolean;
   chat: boolean;
+  mentions: boolean;
   starterAlerts: boolean;
   scoreAlerts: boolean;
   roundResults: boolean;
@@ -543,6 +544,9 @@ export const useMarkFeedViewed = (seasonId: Id | undefined) => {
 export interface MessageDraft {
   body: string;
   gifUrl?: string;
+  replyToId?: number;
+  /** Members picked from the @ autocomplete; their `@name` is in the body. */
+  mentionedUserIds?: number[];
 }
 
 export const usePostMessage = (seasonId: Id | undefined) => {
@@ -550,6 +554,49 @@ export const usePostMessage = (seasonId: Id | undefined) => {
   return useMutation({
     mutationFn: async (draft: MessageDraft) =>
       (await api.post<FeedMessageItem>(`/api/seasons/${seasonId}/messages`, draft)).data,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: keys.feed(seasonId ?? "") }),
+  });
+};
+
+export const useEditMessage = (seasonId: Id | undefined) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      messageId,
+      body,
+      mentionedUserIds,
+    }: {
+      messageId: number;
+      body: string;
+      mentionedUserIds: number[];
+    }) =>
+      (
+        await api.patch<FeedMessageItem>(`/api/seasons/${seasonId}/messages/${messageId}`, {
+          body,
+          mentionedUserIds,
+        })
+      ).data,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: keys.feed(seasonId ?? "") }),
+  });
+};
+
+export const useReactToMessage = (seasonId: Id | undefined) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      messageId,
+      emoji,
+      reacted,
+    }: {
+      messageId: number;
+      emoji: string;
+      reacted: boolean;
+    }) => {
+      await api.put(`/api/seasons/${seasonId}/messages/${messageId}/reactions`, {
+        emoji,
+        reacted,
+      });
+    },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: keys.feed(seasonId ?? "") }),
   });
 };

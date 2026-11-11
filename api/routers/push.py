@@ -92,6 +92,7 @@ async def _preferences(db: DbSession, user: User) -> PushPreferences:
         draft_alerts=user.push_draft_alerts,
         lineup_reminders=user.push_lineup_reminders,
         chat=user.push_chat,
+        mentions=user.push_mentions,
         starter_alerts=user.push_starter_alerts,
         score_alerts=user.push_score_alerts,
         round_results=user.push_round_results,
@@ -125,6 +126,8 @@ async def update_preferences(
         user.push_lineup_reminders = payload.lineup_reminders
     if payload.chat is not None:
         user.push_chat = payload.chat
+    if payload.mentions is not None:
+        user.push_mentions = payload.mentions
     if payload.starter_alerts is not None:
         user.push_starter_alerts = payload.starter_alerts
     if payload.score_alerts is not None:

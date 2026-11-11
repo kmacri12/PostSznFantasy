@@ -56,6 +56,7 @@ class PushPreferences(BaseSchema):
     draft_alerts: bool
     lineup_reminders: bool
     chat: bool
+    mentions: bool
     starter_alerts: bool
     score_alerts: bool
     round_results: bool
@@ -71,6 +72,7 @@ class PushPreferencesUpdate(BaseSchema):
     draft_alerts: bool | None = None
     lineup_reminders: bool | None = None
     chat: bool | None = None
+    mentions: bool | None = None
     starter_alerts: bool | None = None
     score_alerts: bool | None = None
     round_results: bool | None = None

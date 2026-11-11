@@ -40,7 +40,7 @@ from api.models.league_models import (
     SeasonSummary,
 )
 from api.services import activity
-from api.services.activity import leagues_with_new_activity
+from api.services.activity import new_activity_counts
 from api.services.avatars import avatar_url
 from api.services.draft_picks import DraftPickError
 from api.services.invites import revoke_invites
@@ -222,7 +222,7 @@ async def get_user_leagues(
         .scalars()
         .all()
     )
-    with_new_activity = await leagues_with_new_activity(db, user.id)
+    new_activity = await new_activity_counts(db, user.id)
     result: list[LeaguesByUser] = []
     for member in members:
         seasons = await season_summaries(db, member.league_id, user.id)
@@ -238,7 +238,8 @@ async def get_user_leagues(
                 season=latest.year,
                 is_commissioner=member.role == LeagueRole.COMMISSIONER.value,
                 user_team_id=latest.my_team_id,
-                has_new_activity=member.league_id in with_new_activity,
+                has_new_activity=member.league_id in new_activity,
+                new_activity_count=new_activity.get(member.league_id, 0),
                 finished=latest.finished,
                 draft_status=latest.draft_status,
                 seasons=seasons,

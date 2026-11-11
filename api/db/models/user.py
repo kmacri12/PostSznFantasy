@@ -46,6 +46,10 @@ class User(Base):
     push_round_results: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False, server_default=false()
     )
+    # A chat message that @mentions the member: on by default, apart from `push_chat`.
+    push_mentions: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True, server_default=true()
+    )
     # No player-alert pushes between 11pm and 7am in `timezone` (an IANA name the
     # browser reports when the member turns this on).
     quiet_hours: Mapped[bool] = mapped_column(

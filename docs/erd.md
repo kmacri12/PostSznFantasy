@@ -35,6 +35,9 @@ erDiagram
     leagues ||--o{ league_messages : "chat in"
     seasons ||--o{ league_messages : "posted to"
     users |o--o{ league_messages : "written by"
+    league_messages |o--o{ league_messages : "replies to"
+    league_messages ||--o{ message_reactions : "reacted to"
+    users ||--o{ message_reactions : "reacts"
     users ||--o{ activity_views : "reads"
     seasons ||--o{ activity_views : "read in"
     users ||--o{ push_subscriptions : "subscribes"
@@ -61,6 +64,7 @@ erDiagram
         bool push_draft_alerts
         bool push_lineup_reminders
         bool push_chat
+        bool push_mentions
         bool push_starter_alerts
         bool push_score_alerts
         bool push_round_results
@@ -204,6 +208,15 @@ erDiagram
         datetime created_at
         datetime deleted_at
         int deleted_by FK
+        bigint reply_to_id FK
+        datetime edited_at
+        int[] mentioned_user_ids
+    }
+    message_reactions {
+        bigint message_id PK
+        int user_id PK
+        string emoji PK
+        datetime created_at
     }
     push_subscriptions {
         int id PK
