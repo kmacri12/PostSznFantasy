@@ -1,6 +1,9 @@
-import { expect, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 import { Api, seasonUrl, unique } from "../support/api";
 import { signInAs } from "../support/auth";
+
+const ownMessage = (page: Page, text: string) =>
+  page.getByRole("group", { name: "Message from You. Press Enter for actions." }).filter({ hasText: text });
 
 test.describe("the chat message menu", () => {
   test("right-click opens it: react, reply, edit and delete a message", async ({
@@ -31,7 +34,8 @@ test.describe("the chat message menu", () => {
     await expect(page.getByText("Replying to chatguest: who has the first pick")).toBeVisible();
     await page.getByRole("combobox", { name: "Message the league" }).fill("I do");
     await page.getByRole("button", { name: "Send message", exact: true }).click();
-    await expect(page.getByText("I do", { exact: true })).toBeVisible();
+    // A message you just sent is not interactive until the server confirms it.
+    await expect(ownMessage(page, "I do")).toBeVisible();
 
     // Edit and delete your own message.
     await page.getByText("I do", { exact: true }).click({ button: "right" });
@@ -40,6 +44,7 @@ test.describe("the chat message menu", () => {
     await page.getByRole("button", { name: "Save edit", exact: true }).click();
     await expect(page.getByText("I do, obviously", { exact: true })).toBeVisible();
     await expect(page.getByText("edited", { exact: true })).toBeVisible();
+    await expect(ownMessage(page, "I do, obviously")).toBeVisible();
 
     await page.getByText("I do, obviously", { exact: true }).click({ button: "right" });
     await page.getByRole("button", { name: "Delete message from You", exact: true }).click();
