@@ -359,6 +359,47 @@ export const OPT_IN_IPHONE_INSTALL =
   "On iPhone (iOS 16.4 or later), notifications work from the Home Screen app. In Safari tap Share, Add to Home Screen, open PostSzn from the new icon, then turn notifications on.";
 export const OPT_IN_MANAGE =
   "You can change this any time in your profile settings (tap your avatar, top right), Notifications.";
+// Offline, updates and install (#400).
+export const OFFLINE_BANNER = "You're offline.";
+export const offlineDataNote = (time: string | null): string =>
+  time === null
+    ? "Changes are turned off until you're back."
+    : `Showing data from ${time}. Changes are turned off until you're back.`;
+export const UPDATE_AVAILABLE = "Update available, tap to refresh";
+export const UPDATE_OUTDATED = "PostSzn has been updated. Please refresh to keep going.";
+export const UPDATE_REFRESH = "Refresh";
+
+export const INSTALL_LABEL = "Install the app";
+export const INSTALL_HINT = "Add PostSzn to your Home Screen";
+export const INSTALL_TITLE = "Install PostSzn";
+export const INSTALL_WHY =
+  "Open PostSzn like any other app, straight from your Home Screen. On iPhone it is also what lets notifications reach you.";
+export const INSTALL_NATIVE_BUTTON = "Install PostSzn";
+export const INSTALL_NOT_NOW = "Not now";
+export const INSTALL_DONE = "Got it";
+export const INSTALL_IN_APP_BROWSER =
+  "You're in another app's browser. Open this page in Safari (or Chrome on Android) first, then follow these steps.";
+export const INSTALL_STEPS = {
+  ios: [
+    { icon: "share", text: "In Safari, tap the Share button at the bottom of the screen." },
+    { icon: "add", text: "Scroll down and tap Add to Home Screen." },
+    { icon: "open", text: "Tap Add, then open PostSzn from its new icon." },
+  ],
+  android: [
+    { icon: "menu", text: "In Chrome, tap the menu (three dots) at the top right." },
+    { icon: "add", text: "Tap Install app (or Add to Home screen)." },
+    { icon: "open", text: "Confirm, then open PostSzn from its new icon." },
+  ],
+  desktop: [
+    {
+      icon: "add",
+      text: "In Chrome or Edge, click the install icon at the right of the address bar.",
+    },
+    { icon: "open", text: "Click Install; PostSzn opens in its own window." },
+  ],
+} as const;
+export const INSTALL_INSTALLED = "PostSzn is installed on this device.";
+
 export const LAST_COMMISSIONER_NOTE =
   "A league always keeps at least one commissioner. Removing a member frees their team in an unfinished season; finished seasons keep their name on it.";
 
@@ -378,6 +419,12 @@ export const REPORT_PROBLEM_HINT = "Something broken or confusing? Tell us";
 export const REPORT_PROBLEM_ATTACH_NOTE =
   "A screenshot and the diagnostic info each help. Including both gets it fixed faster.";
 export const REPORT_PROBLEM_SENT = "Sent. We'll reply by email.";
+
+export const FEEDBACK_LABEL = "Send feedback";
+export const FEEDBACK_HINT = "How is PostSzn going? Tell us";
+export const FEEDBACK_NOTE =
+  "Everything here is optional. Feedback is sent without your name or email, so we can't reply to it. Use Report a problem if you want an answer.";
+export const FEEDBACK_SENT = "Thanks, that helps.";
 
 export const ACCOUNT_DELETION_SUMMARY =
   "Your sign-in, email, profile picture and notifications are deleted. Your leagues keep your past teams, picks and chat under the name Former member, and your teams in seasons still under way become open. If you are the only commissioner of a league with other members, hand it over first.";

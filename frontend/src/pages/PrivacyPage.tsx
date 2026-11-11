@@ -32,6 +32,12 @@ const SECTIONS: LegalSection[] = [
     ],
   },
   {
+    heading: "Feedback",
+    body: [
+      "More, Send feedback emails the optional rating (1 to 5) and the two texts you write to support@postsznfantasy.com through the same email provider (Resend). It is sent without your name, email or account id, so we cannot tell who wrote it or reply to it. We do not store it in the app's database. Do not put anything in it you would not want us to read.",
+    ],
+  },
+  {
     heading: "Pictures",
     body: [
       "If you set a profile, team or league picture, the cropped image is stored in a private storage bucket run for us by Supabase. Anyone in your leagues can see a picture that appears in a league (your profile picture, your team's picture and the league's picture); someone who is not in your leagues cannot find it without its address. We re-save every uploaded picture at a small size, which also drops any location or camera information embedded in the original. Removing a picture deletes the file from storage; a browser that already loaded it may keep showing its own copy for up to a day.",

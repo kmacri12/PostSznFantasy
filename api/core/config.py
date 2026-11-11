@@ -143,6 +143,10 @@ class Settings(BaseSettings):
     # reads it from GET /api to learn what production runs. Empty outside Fly builds.
     git_sha: str = ""
 
+    # Oldest SPA build (its build time in epoch seconds, sent as `X-App-Version`) the API still
+    # serves; older tabs get 426 `app_outdated` and show "please refresh". 0 = never refuse.
+    min_app_version: int = 0
+
     # E2E only: accept `e2e-user:<uid>` bearer tokens instead of Supabase JWTs. Off by
     # default and refused outright outside the environments in TEST_AUTH_ENVIRONMENTS.
     test_auth_stub: bool = False
