@@ -1,5 +1,6 @@
 import { Box, Button, Container, Paper, Typography } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import SettingsGroup from "../components/settings/SettingsGroup";
 import TourDialog from "../components/tour/TourDialog";
 import {
@@ -12,6 +13,10 @@ import {
 /** The tour link, then the rules as accordions grouped by when a player needs them; copy lives in content/rules.ts. */
 const HowToPlayPage = () => {
   const [tourOpen, setTourOpen] = useState(false);
+  const target = useLocation().hash.slice(1);
+  useEffect(() => {
+    if (target) document.getElementById(target)?.scrollIntoView({ block: "start" });
+  }, [target]);
   return (
     <Container maxWidth="md" sx={{ py: { xs: 2, sm: 4 } }}>
       <Typography variant="h4" component="h1" gutterBottom>
@@ -37,7 +42,12 @@ const HowToPlayPage = () => {
             sx={{ overflow: "hidden", "&& > * + *": { borderTop: 1, borderColor: "divider" } }}
           >
             {group.rules.map((rule) => (
-              <SettingsGroup key={rule.id} title={rule.title}>
+              <SettingsGroup
+                key={rule.id}
+                id={`rule-${rule.id}`}
+                title={rule.title}
+                defaultExpanded={`rule-${rule.id}` === target}
+              >
                 <Typography sx={{ fontWeight: 700, mb: 1, maxWidth: "65ch" }}>
                   {rule.lead}
                 </Typography>

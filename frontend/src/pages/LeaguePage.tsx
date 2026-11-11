@@ -4,6 +4,7 @@ import type { SeasonOverview } from "../api/types";
 import DataFreshness from "../components/common/DataFreshness";
 import LeagueNotes from "../components/league/LeagueNotes";
 import PhaseBlock from "../components/league/PhaseBlock";
+import RoundWinToast from "../components/league/RoundWinToast";
 import Standings from "../components/league/Standings";
 import SeasonRecap from "../components/recap/SeasonRecap";
 import CogButton from "../components/settings/CogButton";
@@ -66,6 +67,7 @@ const LeagueContent = () => {
         ) : (
           <PhaseBlock season={season} />
         )}
+        {!season.finished && <RoundWinToast seasonId={seasonId} myTeamId={season.myTeamId} />}
         <Standings season={season} />
         {season.draftStatus === "completed" && !season.finished && <DataFreshness />}
         {info && <LeagueNotes league={info} />}

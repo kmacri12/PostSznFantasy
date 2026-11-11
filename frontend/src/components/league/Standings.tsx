@@ -15,8 +15,10 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useStandings } from "../../api/queries";
 import type { SeasonOverview, Standings as StandingsData, StandingsRow } from "../../api/types";
+import { HELP_TIPS } from "../../content/rules";
 import { useSeasonContext } from "../../contexts/SeasonContext";
 import { tint, tokens } from "../../theme";
+import HelpTip from "../common/HelpTip";
 import PictureAvatar from "../common/PictureAvatar";
 import QueryBoundary from "../common/QueryBoundary";
 import RankCell from "./RankCell";
@@ -53,6 +55,9 @@ const CardHeader = ({ finished }: { finished: boolean }) => (
     <Typography component="h2" sx={{ flexGrow: 1, fontSize: 14, fontWeight: 700 }}>
       {finished ? "Final standings" : "Standings"}
     </Typography>
+    <Box sx={{ my: -1.25, mr: -1 }}>
+      <HelpTip {...HELP_TIPS.ties} />
+    </Box>
     <Typography sx={{ fontSize: 12, fontWeight: 700 }}>Total</Typography>
     {!finished && <Badge>This rd</Badge>}
   </Box>
@@ -216,7 +221,14 @@ const DesktopTable = ({ rows, round, finished }: Omit<RowProps, "row" | "index">
       <TableHead>
         <TableRow>
           <TableCell width={72}>#</TableCell>
-          <TableCell>Team</TableCell>
+          <TableCell>
+            <Box sx={{ display: "flex", alignItems: "center" }}>
+              Team
+              <Box sx={{ my: -1.5 }}>
+                <HelpTip {...HELP_TIPS.ties} />
+              </Box>
+            </Box>
+          </TableCell>
           {ROUNDS.map(({ key, short }, i) => (
             <TableCell
               key={key}

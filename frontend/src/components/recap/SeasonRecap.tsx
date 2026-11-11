@@ -1,10 +1,13 @@
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import { Alert, Box, Button, ButtonBase, Card, Tooltip, Typography } from "@mui/material";
+import { useCallback, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useStartSeason } from "../../api/queries";
 import type { AwardWinner, SeasonRecap as Recap } from "../../api/types";
 import { seasonPaths } from "../../routes";
 import { tint, tokens } from "../../theme";
+import { celebrationSeen, markCelebrationSeen } from "../../utils/celebrationSeen";
+import Confetti from "../common/Confetti";
 import { mutationError } from "../common/friendlyError";
 import { formatPoints } from "../league/standingsView";
 
@@ -240,6 +243,16 @@ const StartSeason = ({ leagueId, year }: { leagueId: number; year: number }) => 
   );
 };
 
+/** Confetti once per device and season, the first time the champion is on screen. */
+const ChampionCelebration = ({ seasonId }: { seasonId: number }) => {
+  const [show, setShow] = useState(() => !celebrationSeen("champion", seasonId));
+  const done = useCallback(() => {
+    markCelebrationSeen("champion", seasonId);
+    setShow(false);
+  }, [seasonId]);
+  return show ? <Confetti onDone={done} /> : null;
+};
+
 /** A finished season's top: the champion, the awards, and the way on to the next season. */
 const SeasonRecap = ({
   recap,
@@ -251,7 +264,10 @@ const SeasonRecap = ({
 }) => (
   <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
     {recap.champions.length > 0 ? (
-      <ChampionCard recap={recap} />
+      <>
+        <ChampionCelebration seasonId={recap.seasonId} />
+        <ChampionCard recap={recap} />
+      </>
     ) : (
       <Alert severity="info">The {recap.year} season is over, and this league never drafted.</Alert>
     )}

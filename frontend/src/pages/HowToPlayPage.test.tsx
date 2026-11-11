@@ -1,11 +1,16 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 import { HOW_TO_PLAY_GROUPS } from "../content/rules";
 import HowToPlayPage from "./HowToPlayPage";
 
 describe("how to play", () => {
   it("groups the rules under four headings, one accordion row per rule", () => {
-    render(<HowToPlayPage />);
+    render(
+      <MemoryRouter>
+        <HowToPlayPage />
+      </MemoryRouter>,
+    );
     expect(HOW_TO_PLAY_GROUPS.map((g) => g.title)).toEqual([
       "Before the draft",
       "The draft",
@@ -21,13 +26,21 @@ describe("how to play", () => {
   });
 
   it("explains team QB with a concrete example once the rule is opened", () => {
-    render(<HowToPlayPage />);
+    render(
+      <MemoryRouter>
+        <HowToPlayPage />
+      </MemoryRouter>,
+    );
     fireEvent.click(screen.getByRole("button", { name: "Team QB and team K" }));
     expect(screen.getByText(/Jalen Hurts and score every Eagles QB/)).toBeVisible();
   });
 
   it("has no inline tour and opens it from the link at the top", () => {
-    render(<HowToPlayPage />);
+    render(
+      <MemoryRouter>
+        <HowToPlayPage />
+      </MemoryRouter>,
+    );
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Take the tour" }));
     expect(screen.getByRole("dialog")).toBeVisible();

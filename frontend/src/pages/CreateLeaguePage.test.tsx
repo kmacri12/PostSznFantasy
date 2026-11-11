@@ -169,7 +169,7 @@ describe("CreateLeaguePage customize rules", () => {
 
   it("explains each rule in a tooltip that opens on tap", async () => {
     await openCustomize();
-    fireEvent.touchStart(screen.getByRole("button", { name: "About Team QB" }));
+    fireEvent.click(screen.getByRole("button", { name: "About Team QB" }));
     expect(await screen.findByRole("tooltip")).toHaveProperty(
       "textContent",
       expect.stringMatching(/every QB on that NFL team/),

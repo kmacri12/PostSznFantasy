@@ -1,7 +1,9 @@
 import { Box, Typography } from "@mui/material";
 import type { ReactNode } from "react";
 import type { LineupPlayer, RoundLineup } from "../../api/types";
+import { HELP_TIPS, type HelpTipCopy } from "../../content/rules";
 import { tokens } from "../../theme";
+import HelpTip from "../common/HelpTip";
 import { formatPoints } from "../league/standingsView";
 import {
   BENCH_GROUP_ID,
@@ -22,6 +24,7 @@ const Group = ({
   prominent = false,
   danger = false,
   badge,
+  help,
   children,
 }: {
   id?: string;
@@ -30,6 +33,7 @@ const Group = ({
   prominent?: boolean;
   danger?: boolean;
   badge?: ReactNode;
+  help?: HelpTipCopy;
   children: ReactNode;
 }) => (
   <Box
@@ -62,6 +66,11 @@ const Group = ({
       >
         {title}
         {badge}
+        {help && (
+          <Box component="span" sx={{ my: -1.5, ml: -0.5 }}>
+            <HelpTip {...help} />
+          </Box>
+        )}
       </Typography>
       <Typography
         component="span"
@@ -100,6 +109,7 @@ const LineupRound = ({ lineup, onOpenPlayer }: Props) => {
     >
       <Group
         title="Starters"
+        help={HELP_TIPS.lineupLocks}
         total={roundScore(lineup)}
         prominent
         badge={
@@ -145,7 +155,7 @@ const LineupRound = ({ lineup, onOpenPlayer }: Props) => {
           </Group>
         )}
         {eliminated.length > 0 && (
-          <Group title="Eliminated" total={0} danger>
+          <Group title="Eliminated" total={0} danger help={HELP_TIPS.eliminated}>
             {eliminated.map((player) => (
               <PlayerRow
                 key={player.id}

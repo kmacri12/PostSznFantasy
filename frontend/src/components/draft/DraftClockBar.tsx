@@ -1,6 +1,9 @@
-import { Box, Typography } from "@mui/material";
+import { Box, GlobalStyles, Typography } from "@mui/material";
 import type { DraftState } from "../../api/types";
+import { HELP_TIPS } from "../../content/rules";
+import { useReducedMotion } from "../../hooks/useReducedMotion";
 import { HEADER_HEIGHT, tokens } from "../../theme";
+import HelpTip from "../common/HelpTip";
 import CogButton from "../settings/CogButton";
 import { clockText } from "./clockText";
 import DraftAnnouncer from "./DraftAnnouncer";
@@ -27,6 +30,7 @@ const DraftClockBar = ({
   onOpenSettings,
 }: Props) => {
   const text = clockText(state, myTeamId, secondsLeft, secondsToStart);
+  const reducedMotion = useReducedMotion();
   const urgent = text.myTurn && secondsLeft !== null && secondsLeft <= 10;
   return (
     <Box
@@ -44,8 +48,20 @@ const DraftClockBar = ({
         py: 1.25,
         bgcolor: text.myTurn ? tokens.accentSurface : tokens.surface,
         borderBottom: `1px solid ${text.myTurn ? tokens.accentBorder : tokens.border}`,
+        // One soft pulse when the turn arrives, so a glance at the phone catches it.
+        animation: text.myTurn && !reducedMotion ? "ps-turn-pulse 1.4s ease-out 1" : undefined,
       }}
     >
+      {text.myTurn && !reducedMotion && (
+        <GlobalStyles
+          styles={{
+            "@keyframes ps-turn-pulse": {
+              from: { boxShadow: `inset 0 0 0 3px ${tokens.accent}` },
+              to: { boxShadow: "inset 0 0 0 3px transparent" },
+            },
+          }}
+        />
+      )}
       <Box sx={{ minWidth: 0 }}>
         <Typography
           sx={{ fontSize: 16, fontWeight: 700, color: text.myTurn ? tokens.accent : tokens.text }}
@@ -80,6 +96,7 @@ const DraftClockBar = ({
             <Typography sx={{ fontSize: 11, color: tokens.warning }}>Reconnecting…</Typography>
           )}
         </Box>
+        <HelpTip {...HELP_TIPS.draft} />
         <CogButton label="Draft settings" onClick={onOpenSettings} />
       </Box>
       <DraftAnnouncer state={state} myTeamId={myTeamId} secondsLeft={secondsLeft} />
