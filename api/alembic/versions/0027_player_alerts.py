@@ -4,7 +4,7 @@ Player and score alerts (#391): three push preferences, quiet hours with the mem
 time zone, and the log that makes one event one push.
 
 Revision ID: 0027_player_alerts
-Revises: 0025_notifications
+Revises: 0026_draft_time_event
 Create Date: 2026-11-11 14:00:00
 
 """
@@ -16,7 +16,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "0027_player_alerts"
-down_revision: str | Sequence[str] | None = "0025_notifications"
+down_revision: str | Sequence[str] | None = "0026_draft_time_event"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

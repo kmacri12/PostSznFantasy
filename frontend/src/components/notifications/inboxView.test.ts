@@ -14,7 +14,13 @@ const item = (kind: string, payload: InboxItem["payload"] = { seasonId: 9 }): In
 
 describe("describeNotification", () => {
   it("links draft notifications to the draft room, as their pushes do", () => {
-    for (const kind of ["draft_turn", "draft_lobby", "draft_started", "draft_soon"]) {
+    for (const kind of [
+      "draft_turn",
+      "draft_lobby",
+      "draft_started",
+      "draft_soon",
+      "draft_scheduled",
+    ]) {
       expect(describeNotification(item(kind)).path).toBe("/leagues/3/draft");
     }
     expect(describeNotification(item("draft_turn"))).toMatchObject({

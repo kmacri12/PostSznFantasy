@@ -2,7 +2,8 @@ import { Box, useMediaQuery, useTheme } from "@mui/material";
 import type { User as SupabaseUser } from "@supabase/auth-js";
 import type { ReactNode } from "react";
 import type { LeagueByUser } from "../../api/types";
-import { TAB_BAR_HEIGHT } from "../../theme";
+import { TAB_BAR_HEIGHT, tokens } from "../../theme";
+import { visuallyHidden } from "../common/visuallyHidden";
 import BottomTabBar from "./BottomTabBar";
 import LeagueRail from "./LeagueRail";
 import NavBar from "./NavBar";
@@ -19,6 +20,32 @@ interface AppShellProps {
   children: ReactNode;
 }
 
+const SkipToContent = () => (
+  <Box
+    component="a"
+    href="#main"
+    sx={{
+      ...visuallyHidden,
+      "&:focus-visible": {
+        position: "fixed",
+        zIndex: 2000,
+        top: 8,
+        left: 8,
+        width: "auto",
+        height: "auto",
+        clip: "auto",
+        p: 1.5,
+        borderRadius: 1,
+        bgcolor: tokens.accentFill,
+        color: tokens.accentInk,
+        fontWeight: 600,
+      },
+    }}
+  >
+    Skip to content
+  </Box>
+);
+
 /**
  * Header plus navigation. Inside a league: bottom tabs on phones, a left rail from `md` up.
  * Everywhere else just the header.
@@ -33,6 +60,7 @@ const AppShell = ({ league, children, ...header }: AppShellProps) => {
   if (rail) {
     return (
       <Box sx={{ display: "flex" }}>
+        <SkipToContent />
         <LeagueRail league={league} />
         <Box sx={{ flex: 1, minWidth: 0 }}>
           {navBar}
@@ -43,6 +71,7 @@ const AppShell = ({ league, children, ...header }: AppShellProps) => {
   }
   return (
     <>
+      <SkipToContent />
       {navBar}
       {children}
       {tabs && (

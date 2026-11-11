@@ -3,6 +3,7 @@ import type { DraftState } from "../../api/types";
 import { HEADER_HEIGHT, tokens } from "../../theme";
 import CogButton from "../settings/CogButton";
 import { clockText } from "./clockText";
+import DraftAnnouncer from "./DraftAnnouncer";
 
 interface Props {
   state: DraftState;
@@ -13,7 +14,10 @@ interface Props {
   onOpenSettings: () => void;
 }
 
-/** Sticky bar: round and pick, the team on the clock and the countdown (green on my turn). */
+/**
+ * Sticky bar: round and pick, the team on the clock and the countdown (green on my turn). The bar
+ * is not a live region, as the clock changes every second; `DraftAnnouncer` speaks the changes.
+ */
 const DraftClockBar = ({
   state,
   myTeamId,
@@ -26,7 +30,7 @@ const DraftClockBar = ({
   const urgent = text.myTurn && secondsLeft !== null && secondsLeft <= 10;
   return (
     <Box
-      role="status"
+      component="section"
       aria-label="Draft clock"
       sx={{
         position: "sticky",
@@ -58,7 +62,8 @@ const DraftClockBar = ({
         <Box sx={{ textAlign: "right" }}>
           {text.timer !== null && (
             <Typography
-              aria-label="Pick clock"
+              role="timer"
+              aria-label={`Pick clock ${text.timer}`}
               sx={{
                 fontSize: 28,
                 fontWeight: 700,
@@ -77,6 +82,7 @@ const DraftClockBar = ({
         </Box>
         <CogButton label="Draft settings" onClick={onOpenSettings} />
       </Box>
+      <DraftAnnouncer state={state} myTeamId={myTeamId} secondsLeft={secondsLeft} />
     </Box>
   );
 };
