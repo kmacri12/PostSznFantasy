@@ -21,6 +21,8 @@ import { tint, tokens } from "../../theme";
 import HelpTip from "../common/HelpTip";
 import PictureAvatar from "../common/PictureAvatar";
 import QueryBoundary from "../common/QueryBoundary";
+import ShareCardButton from "../share/ShareCardButton";
+import { roundCard } from "../share/shareCards";
 import RankCell from "./RankCell";
 import { formatPoints, isOpenSpot, ROUNDS, rankLabel, rowDetail, tieNote } from "./standingsView";
 
@@ -415,7 +417,16 @@ const Standings = ({ season }: { season: SeasonOverview }) => {
         standings.phase === "pre_draft" ? (
           <SlotList rows={standings.teams} season={season} />
         ) : (
-          <LiveStandings standings={standings} finished={season.finished} />
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+            <LiveStandings standings={standings} finished={season.finished} />
+            {/* The finished season's recap carries the champion card instead. */}
+            {!season.finished && (
+              <ShareCardButton
+                card={roundCard(season.leagueName, season.year, standings)}
+                label="Share round result"
+              />
+            )}
+          </Box>
         )
       }
     </QueryBoundary>
