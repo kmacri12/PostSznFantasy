@@ -82,6 +82,26 @@ describe("draft room reducer", () => {
     expect(room.toast).toBeNull();
   });
 
+  it("tells me how long I was offline and how many picks I missed on the next snapshot", () => {
+    let room = applyDraftEvent(initialRoom, { eventType: "SNAPSHOT", data: snapshot() }, 1_000);
+    room = applyDraftEvent(room, { eventType: "CONNECTION_LOST" }, 2_000);
+    room = applyDraftEvent(room, { eventType: "CONNECTION_LOST" }, 5_000);
+    const later = { ...snapshot(), picks: [pick(1, 5)] };
+    room = applyDraftEvent(room, { eventType: "SNAPSHOT", data: later }, 14_000);
+    expect(room.toast?.message).toBe("You were offline for 12s, 1 pick made");
+    expect(room.toast?.severity).toBe("info");
+    expect(room.connectionLostAt).toBeNull();
+  });
+
+  it("stays quiet after a blip with nothing missed, and before the room first loads", () => {
+    let room = applyDraftEvent(initialRoom, { eventType: "CONNECTION_LOST" }, 0);
+    expect(room.connectionLostAt).toBeNull();
+    room = applyDraftEvent(room, { eventType: "SNAPSHOT", data: snapshot() }, 1_000);
+    room = applyDraftEvent(room, { eventType: "CONNECTION_LOST" }, 2_000);
+    room = applyDraftEvent(room, { eventType: "SNAPSHOT", data: snapshot() }, 3_000);
+    expect(room.toast).toBeNull();
+  });
+
   it("clears a pending pick when someone else drafts that player", () => {
     let room = applyDraftEvent(initialRoom, { eventType: "SNAPSHOT", data: snapshot() });
     room = applyDraftEvent(room, { eventType: "PICK_PENDING", data: { playerId: 5 } });

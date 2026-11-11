@@ -1,7 +1,8 @@
 import { Alert, Snackbar } from "@mui/material";
 import type { Toast } from "../../hooks/draftRoomState";
+import { E2E_BUILD } from "../../utils/e2e";
 
-const AUTO_HIDE_MS = 5000;
+const AUTO_HIDE_MS = E2E_BUILD ? null : 5000;
 
 interface Props {
   toast: Toast | null;

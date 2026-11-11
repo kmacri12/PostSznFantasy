@@ -1,0 +1,62 @@
+name: Draft load test
+
+# 12 teams and 30 sockets drafting every two seconds against the e2e stack (issue #401).
+# A lost or duplicated pick fails the job; the table lands in the run summary and is copied into
+# docs/deploy/performance.md when the numbers change.
+on:
+  schedule:
+    - cron: "41 5 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  load:
+    name: Draft room load (api.scripts.draft_load_test)
+    runs-on: ${{ fromJSON(vars.CI_RUNS_ON || '"ubuntu-latest"') }}
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PG_URI: postgresql://postgres:postgres@localhost:${{ job.services.postgres.ports['5432'] }}/postszn_test
+      SUPABASE_URL: http://localhost:54321
+      ENVIRONMENT: test
+      TEST_AUTH_STUB: "true"
+      PLAYOFF_FIELD_SIZE: "8"
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          cache-dependency-glob: api/uv.lock
+
+      - name: Set up Python
+        run: uv python install
+
+      - name: Install backend dependencies
+        run: cd api && uv sync --frozen
+
+      - name: Seed the database
+        run: uv run --project api python -m api.scripts.seed_e2e
+
+      - name: Start the API
+        run: |
+          uv run --project api uvicorn api.main:app --port 8190 &
+          API_URL=http://localhost:8190 scripts/wait-for-api.sh
+
+      - name: Run the draft and check the result
+        run: uv run --project api python -m api.scripts.draft_load_test --base-url http://localhost:8190 | tee -a "$GITHUB_STEP_SUMMARY"
