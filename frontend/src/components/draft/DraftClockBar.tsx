@@ -1,7 +1,9 @@
 import { Box, GlobalStyles, Typography } from "@mui/material";
 import type { DraftState } from "../../api/types";
+import { HELP_TIPS } from "../../content/rules";
 import { useReducedMotion } from "../../hooks/useReducedMotion";
 import { HEADER_HEIGHT, tokens } from "../../theme";
+import HelpTip from "../common/HelpTip";
 import CogButton from "../settings/CogButton";
 import { clockText } from "./clockText";
 import DraftAnnouncer from "./DraftAnnouncer";
@@ -94,6 +96,7 @@ const DraftClockBar = ({
             <Typography sx={{ fontSize: 11, color: tokens.warning }}>Reconnecting…</Typography>
           )}
         </Box>
+        <HelpTip {...HELP_TIPS.draft} />
         <CogButton label="Draft settings" onClick={onOpenSettings} />
       </Box>
       <DraftAnnouncer state={state} myTeamId={myTeamId} secondsLeft={secondsLeft} />

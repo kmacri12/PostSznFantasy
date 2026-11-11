@@ -228,6 +228,29 @@ export const TOUR_STEPS: TourStep[] = [
   },
 ];
 
+const ruleLead = (id: string, bodyIndex?: number): string => {
+  for (const group of HOW_TO_PLAY_GROUPS) {
+    const rule = group.rules.find((candidate) => candidate.id === id);
+    if (rule) return bodyIndex === undefined ? rule.lead : `${rule.lead} ${rule.body[bodyIndex]}`;
+  }
+  throw new Error(`No How to play rule ${id}`);
+};
+
+// "?" popovers beside terms members get stuck on. The text is the matching How to play lead, so
+// the two cannot drift; `ruleId` is the section its "Read more" link opens.
+export interface HelpTipCopy {
+  label: string;
+  text: string;
+  ruleId?: string;
+}
+
+export const HELP_TIPS = {
+  lineupLocks: { label: "lineup locks", ruleId: "locks", text: ruleLead("locks") },
+  eliminated: { label: "eliminated players", ruleId: "eliminated", text: ruleLead("eliminated") },
+  draft: { label: "the draft and position caps", ruleId: "draft", text: ruleLead("draft", 1) },
+  ties: { label: "standings and ties", ruleId: "ties", text: ruleLead("ties") },
+} satisfies Record<string, HelpTipCopy>;
+
 // Tooltips on commissioner settings. Keep each to a sentence or two.
 export const SETTING_HELP = {
   teamQb:
