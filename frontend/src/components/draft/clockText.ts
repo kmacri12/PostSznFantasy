@@ -1,4 +1,5 @@
 import type { DraftState } from "../../api/types";
+import { formatInViewerZone } from "../../utils/timeZone";
 import { formatCountdown } from "../league/countdown";
 
 export const formatClock = (seconds: number): string => {
@@ -11,12 +12,7 @@ export const formatClock = (seconds: number): string => {
 
 /** "Saturday 7:00 PM EST": the countdown under it says how far off that is. */
 const formatBarTime = (iso: string): string =>
-  new Date(iso).toLocaleString(undefined, {
-    weekday: "long",
-    hour: "numeric",
-    minute: "2-digit",
-    timeZoneName: "short",
-  });
+  formatInViewerZone(iso, { weekday: "long", hour: "numeric", minute: "2-digit" });
 
 export interface ClockText {
   title: string;

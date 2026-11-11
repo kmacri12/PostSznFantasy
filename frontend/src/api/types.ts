@@ -397,7 +397,8 @@ export type ActivityKind =
   | "draft_order_changed"
   | "draft_started"
   | "draft_completed"
-  | "draft_pick_assigned";
+  | "draft_pick_assigned"
+  | "draft_time_set";
 
 interface ActivityBase {
   id: number;
@@ -466,6 +467,10 @@ export type ActivityEvent = ActivityBase &
       }
     | { kind: "draft_started"; payload: { teamCount: number; rounds: number } }
     | { kind: "draft_completed"; payload: { picks: number } }
+    | {
+        kind: "draft_time_set";
+        payload: { startTime: string | null; previousStartTime: string | null };
+      }
     | {
         kind: "draft_pick_assigned";
         payload: {

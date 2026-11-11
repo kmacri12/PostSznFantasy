@@ -4,7 +4,14 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.db.models import Draft, DraftPick, LineupSlot, NFLTeam, TeamPlayer
+from api.db.models import (
+    ActivityEvent,
+    Draft,
+    DraftPick,
+    LineupSlot,
+    NFLTeam,
+    TeamPlayer,
+)
 from api.services import draft_clock, draft_flow
 from api.services.draft_picks import DraftPickError, PickNotDue
 from api.tests.postgres.conftest import ClientFactory
@@ -115,6 +122,43 @@ async def test_setup_schedules_the_draft(
     assert cleared.json()["status"] == "unscheduled"
     await db.refresh(draft)
     assert draft.start_time is None
+
+
+async def test_setting_moving_and_clearing_the_draft_time_posts_feed_events(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    season, _, _, _ = await make_season(db, draft_status="unscheduled", ordered=False)
+    async with client_as("uid-0") as commissioner:
+        for payload in (
+            {"startTime": "2030-01-05T18:00:00Z"},
+            {"startTime": "2030-01-05T18:00:00Z", "timePerPickSeconds": 60},
+            {"startTime": "2030-01-06T18:00:00Z"},
+            {"clearStartTime": True},
+        ):
+            assert (
+                await commissioner.patch(f"/api/drafts/{season.id}", json=payload)
+            ).status_code == 200
+    events = (
+        (
+            await db.execute(
+                select(ActivityEvent)
+                .where(
+                    ActivityEvent.season_id == season.id,
+                    ActivityEvent.kind == "draft_time_set",
+                )
+                .order_by(ActivityEvent.id)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    assert [
+        (e.payload["startTime"], e.payload["previousStartTime"]) for e in events
+    ] == [
+        ("2030-01-05T18:00:00Z", None),
+        ("2030-01-06T18:00:00Z", "2030-01-05T18:00:00Z"),
+        (None, "2030-01-06T18:00:00Z"),
+    ]
 
 
 async def test_pause_freezes_the_clock_and_resume_restores_it(

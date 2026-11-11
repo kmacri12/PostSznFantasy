@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { formatInViewerZone } from "../../utils/timeZone";
 
 const MINUTE = 60_000;
 const HOUR = 60 * MINUTE;
@@ -32,11 +33,10 @@ export const useNow = (intervalMs = 1000): number => {
 };
 
 export const formatDraftTime = (iso: string): string =>
-  new Date(iso).toLocaleString(undefined, {
+  formatInViewerZone(iso, {
     weekday: "long",
     month: "short",
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
-    timeZoneName: "short",
   });

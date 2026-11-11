@@ -1,4 +1,5 @@
 import type { RoundLineup } from "../../api/types";
+import { partsInViewerZone } from "../../utils/timeZone";
 
 export const BENCH_SLOT = "BENCH";
 
@@ -15,17 +16,13 @@ export interface Move {
   slotIndex: number | null;
 }
 
-/** "Sun 6:30 pm": the day and time of a game, never the word "kickoff". */
+/** "Sun 6:30 pm EST": the day and time of a game, never the word "kickoff". */
 export const formatKickoff = (iso: string): string => {
-  const parts = new Intl.DateTimeFormat(undefined, {
-    weekday: "short",
-    hour: "numeric",
-    minute: "2-digit",
-  }).formatToParts(new Date(iso));
+  const parts = partsInViewerZone(iso, { weekday: "short", hour: "numeric", minute: "2-digit" });
   const part = (type: string) => parts.find((entry) => entry.type === type)?.value ?? "";
   const clock = `${part("hour")}:${part("minute")}`;
   const period = part("dayPeriod").toLowerCase();
-  return `${part("weekday")} ${clock}${period ? ` ${period}` : ""}`;
+  return `${part("weekday")} ${clock}${period ? ` ${period}` : ""} ${part("timeZoneName")}`;
 };
 
 export interface EmptyLineupWarning {

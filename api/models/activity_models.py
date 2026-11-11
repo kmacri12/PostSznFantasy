@@ -157,6 +157,15 @@ class DraftPickAssignedPayload(BaseSchema):
     replaced_player_name: str | None = None
 
 
+class DraftTimeSetPayload(BaseSchema):
+    """The commissioner scheduled, moved or cleared the draft time (`start_time` None)."""
+
+    kind: ClassVar[ActivityKind] = ActivityKind.DRAFT_TIME_SET
+
+    start_time: datetime | None
+    previous_start_time: datetime | None
+
+
 ActivityPayload = (
     LineupMovePayload
     | CommissionerOverridePayload
@@ -171,6 +180,7 @@ ActivityPayload = (
     | DraftStartedPayload
     | DraftCompletedPayload
     | DraftPickAssignedPayload
+    | DraftTimeSetPayload
 )
 
 

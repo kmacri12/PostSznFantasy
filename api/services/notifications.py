@@ -28,6 +28,7 @@ NotificationKind = Literal[
     "draft_lobby",
     "draft_started",
     "draft_soon",
+    "draft_scheduled",
     "lineup_lock",
     "lineup_changed",
 ]
@@ -37,6 +38,7 @@ PUSH_KINDS: dict[NotificationKind, push.PushKind] = {
     "draft_lobby": "draft",
     "draft_started": "draft",
     "draft_soon": "draft",
+    "draft_scheduled": "draft",
     "lineup_lock": "lineup",
     "lineup_changed": "lineup",
 }
@@ -212,14 +214,24 @@ async def notify_on_the_clock(db: AsyncSession, season_id: int, team_id: int) ->
 
 
 async def notify_draft_phase(
-    db: AsyncSession, season_id: int, phase: Literal["lobby", "started"]
+    db: AsyncSession, season_id: int, phase: Literal["lobby", "started", "scheduled"]
 ) -> None:
-    """Tell every active member the draft lobby is open or the draft has started."""
+    """Tell every active member the draft lobby is open, the draft has started or its time is set."""
     title, body = {
         "lobby": ("The draft lobby is open", "Head in before it starts."),
         "started": ("The draft has started", "Your commissioner started the draft."),
+        # The server doesn't know each member's zone, so the time itself stays in the app.
+        "scheduled": (
+            "The draft time is set",
+            "Open the app to see it in your time zone.",
+        ),
     }[phase]
-    kind: NotificationKind = "draft_lobby" if phase == "lobby" else "draft_started"
+    kinds: dict[str, NotificationKind] = {
+        "lobby": "draft_lobby",
+        "started": "draft_started",
+        "scheduled": "draft_scheduled",
+    }
+    kind = kinds[phase]
     await _notify_draft_members(db, season_id, kind, title, body, f"draft-{phase}")
 
 
