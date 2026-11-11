@@ -203,6 +203,7 @@ PostSznFantasy/
         │   └── UserContext.tsx # Authentication & current user context (`updateDisplayName` changes the Supabase name and the backend username together)
         ├── api/
         │   ├── failedRequests.ts # Ring buffer of the last 10 failed API calls (method, scrubbed path, status, `X-Request-ID`; never bodies), fed by an axios response interceptor in client.ts; read by the support diagnostics
+        │   ├── normalize.ts    # `normalizeFeed` / `normalizeLeague`: fill fields an older API omits (reactions, mentions, replyTo, editedAt, newActivityCount) once in the query functions, so components treat them as always present
         │   ├── queries.ts      # React Query hooks for every endpoint (`useDeleteLeague` leaves for `/` before refreshing the league list)
         │   └── leagueDeleted.ts # Reads the `leagueDeleted` 404; QueryBoundary renders LeagueDeletedNotice for it, and the query/mutation caches (main.tsx) plus the draft socket's 1008 close refetch `league-seasons` so the season layout shows that page from any guarded call
         ├── hooks/
