@@ -8,7 +8,10 @@ export const liveAgo = (updatedAt: number, now: number): string => {
   return seconds < 60 ? `${seconds}s ago` : `${Math.floor(seconds / 60)} min ago`;
 };
 
-/** "Live, updated 20s ago" while a game is on; renders nothing otherwise, as nothing refreshes then. */
+/**
+ * "Live, updated 20s ago" while a game is on; renders nothing otherwise, as nothing refreshes then.
+ * Not a live region: the age changes every few seconds and would be read out each time.
+ */
 const LiveIndicator = ({ seasonId }: { seasonId: number }) => {
   const standings = useStandings(seasonId);
   const now = useNow(5000);
@@ -16,7 +19,7 @@ const LiveIndicator = ({ seasonId }: { seasonId: number }) => {
     return null;
   }
   return (
-    <Box role="status" sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
+    <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
       <Box
         aria-hidden
         sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: tokens.live, flex: "none" }}
