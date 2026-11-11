@@ -10,8 +10,9 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
+    text,
 )
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from api.db.base import Base
@@ -116,4 +117,37 @@ class LeagueMessage(Base):
     )
     deleted_by: Mapped[int | None] = mapped_column(
         Integer, ForeignKey("fantasy.users.id", ondelete="SET NULL"), nullable=True
+    )
+    # The quoted message; its row outlives a deletion, so the quote can say so.
+    reply_to_id: Mapped[int | None] = mapped_column(
+        BigInteger,
+        ForeignKey("fantasy.league_messages.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    edited_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    # League members the author tagged with @; the text carries the visible `@name`.
+    mentioned_user_ids: Mapped[list[int]] = mapped_column(
+        ARRAY(Integer), nullable=False, default=list, server_default=text("'{}'")
+    )
+
+
+class MessageReaction(Base):
+    """One member's one emoji on a message; adding twice is a no-op."""
+
+    __tablename__ = "message_reactions"
+    __table_args__ = {"schema": "fantasy"}
+
+    message_id: Mapped[int] = mapped_column(
+        BigInteger,
+        ForeignKey("fantasy.league_messages.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    user_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("fantasy.users.id", ondelete="CASCADE"), primary_key=True
+    )
+    emoji: Mapped[str] = mapped_column(String(32), primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC)
     )

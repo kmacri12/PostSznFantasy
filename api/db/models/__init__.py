@@ -1,5 +1,10 @@
 from api.db.base import Base
-from api.db.models.activity import ActivityEvent, ActivityView, LeagueMessage
+from api.db.models.activity import (
+    ActivityEvent,
+    ActivityView,
+    LeagueMessage,
+    MessageReaction,
+)
 from api.db.models.draft import Draft, DraftPick, DraftQueueItem
 from api.db.models.league import (
     League,
@@ -41,6 +46,7 @@ __all__ = [
     "LeagueMessage",
     "LineupReminder",
     "LineupSlot",
+    "MessageReaction",
     "NFLGame",
     "NFLPlayer",
     "NFLPlayerGameStats",

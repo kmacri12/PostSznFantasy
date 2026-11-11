@@ -218,6 +218,8 @@ class LeaguesByUser(BaseSchema):
     user_team_id: int | None = None
     # Events in the season feed this member hasn't seen, for the nav dot.
     has_new_activity: bool = False
+    # Unseen feed events and messages: the number on the Feed tab.
+    new_activity_count: int = 0
     avatar_url: str | None = None
     # The latest season's Super Bowl is final: it is a read-only archive.
     finished: bool = False

@@ -6,7 +6,8 @@ of those who want that kind (`push.send_to_users`). Every new kind of notificati
 (player alerts, mentions, announcements) goes through it: add the kind to
 `NotificationKind` and `PUSH_KINDS`, word it in the SPA (`components/notifications/
 inboxView.ts`), and call `notify`. Chat is the exception: it lives in the Feed with its
-own dot, so chat pushes skip the inbox.
+own dot, so chat pushes skip the inbox,
+except the one for a message that @mentions a member.
 """
 
 from collections.abc import Iterable
@@ -35,6 +36,7 @@ NotificationKind = Literal[
     "player_scored",
     "round_result",
     "team_eliminated",
+    "mention",
 ]
 # The push preference each kind follows; the inbox entry is written either way.
 PUSH_KINDS: dict[NotificationKind, push.PushKind] = {
@@ -49,6 +51,7 @@ PUSH_KINDS: dict[NotificationKind, push.PushKind] = {
     "player_scored": "score",
     "round_result": "round",
     "team_eliminated": "round",
+    "mention": "mention",
 }
 KEEP_FOR = timedelta(days=30)
 INBOX_LIMIT = 100

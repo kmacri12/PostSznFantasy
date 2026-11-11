@@ -329,6 +329,7 @@ async def test_preferences_round_trip_and_per_league_mute(
             "draftAlerts": True,
             "lineupReminders": True,
             "chat": False,
+            "mentions": True,
             "starterAlerts": True,
             "scoreAlerts": False,
             "roundResults": False,

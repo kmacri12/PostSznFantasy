@@ -101,6 +101,11 @@ CHAT = RateLimiter(
     (20, MINUTE),
     (200, HOUR),
 )
+REACTION = RateLimiter(
+    "reaction",
+    "You're reacting too fast. Give it a moment and try again.",
+    (60, MINUTE),
+)
 CREATE_LEAGUE = RateLimiter(
     "create-league",
     "You've created several leagues today. Try again tomorrow.",
@@ -128,6 +133,7 @@ LOGIN = RateLimiter(
 )
 
 ChatLimit = Annotated[None, Depends(per_user(CHAT))]
+ReactionLimit = Annotated[None, Depends(per_user(REACTION))]
 CreateLeagueLimit = Annotated[None, Depends(per_user(CREATE_LEAGUE))]
 JoinLimit = Annotated[None, Depends(per_user(JOIN))]
 AvatarLimit = Annotated[None, Depends(per_user(AVATAR))]
