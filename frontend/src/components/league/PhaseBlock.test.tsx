@@ -14,6 +14,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("../../api/queries", () => ({
   useDraft: () => mocks.draft,
   useStandings: () => mocks.standings,
+  useFeatures: () => ({ bracket: true }),
   useInvite: () => ({ data: { code: "ABC123" }, isLoading: false }),
   useRegenerateInvite: () => ({ mutate: vi.fn(), isPending: false }),
 }));
@@ -139,6 +140,14 @@ describe("PhaseBlock", () => {
     expect(screen.getByText("Conference Championship")).toBeInTheDocument();
     expect(screen.getByText("2 games live, 1 final")).toBeInTheDocument();
     expect(screen.getByText("Your lineup: 3 live, 1 to play")).toBeInTheDocument();
+  });
+
+  it("links to the NFL bracket from every phase, even before the draft", () => {
+    show({ draftStatus: "unscheduled", canCommission: false });
+    expect(screen.getByRole("link", { name: "See the NFL bracket" })).toHaveAttribute(
+      "href",
+      "/leagues/3/bracket",
+    );
   });
 
   it("leaves the top to the champion card when the season is over", () => {

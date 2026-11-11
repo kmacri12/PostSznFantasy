@@ -306,6 +306,11 @@ erDiagram
         string kind PK
         datetime last_synced_at
     }
+    feature_flags {
+        string key PK
+        boolean enabled
+        datetime updated_at
+    }
 ```
 
 ## Notes
@@ -316,3 +321,4 @@ erDiagram
 - **Lineups** are per fantasy team and round: `lineup_slots` holds only players the owner placed. Players on the roster but absent from `lineup_slots` for a round are unplaced and count as bench (see `product-rules.md`).
 - **Metrics views (not tables, so not drawn).** `fantasy.metrics_daily` (one row per UTC day: signups, leagues created, members joined, drafts scheduled / started / completed, active members, chat messages, push subscriptions), `fantasy.metrics_leagues` (one row per live league: members, teams, claimed and open teams, latest season year and draft status) and `fantasy.metrics_users` (user id, signup time, leagues joined) are defined in migration `0024_metrics_views` for the owner's dashboards (#358). They hold counts only: no emails, usernames, league names or other personal data. The `metrics_reader` role (no login until the owner sets a password) can read them and nothing else; `users.created_at` and `leagues.created_at` exist for them.
 - **Notifications** (#397) are the inbox: one row per member and thing addressed to them (`kind`, `league_id`, `payload` of ids only, `read_at`). Rows older than 30 days are deleted by the scheduler's roster sync, and a deleted account's rows go with it.
+- **Feature flags** (#393) are owner kill switches: one row per flag that was ever flipped (`key`, `enabled`). A missing row means the flag default in `services/feature_flags.py` (the bracket is on), so the table starts empty and no flag belongs to a league or user.

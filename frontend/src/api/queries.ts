@@ -3,7 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { api } from "./client";
 import type {
   ActivityFeed,
+  Bracket,
   DraftState,
+  Features,
   Feed,
   FeedMessageItem,
   Inbox,
@@ -30,6 +32,8 @@ type Id = string | number;
 
 export const keys = {
   config: ["config"] as const,
+  features: ["features"] as const,
+  bracket: (seasonId: Id) => ["bracket", String(seasonId)] as const,
   userLeagues: ["user-leagues"] as const,
   pastLeagues: ["past-leagues"] as const,
   leagueInfo: (leagueId: Id) => ["league-info", String(leagueId)] as const,
@@ -61,6 +65,30 @@ export const useConfig = () =>
     queryKey: keys.config,
     queryFn: ({ signal }) => get<{ season: number }>("/api/config", signal),
     staleTime: Number.POSITIVE_INFINITY,
+  });
+
+/** The owner's feature flags (kill switches). Off until loaded, so nothing flashes in and out. */
+export const useFeatures = (): Features => {
+  const { data } = useQuery({
+    queryKey: keys.features,
+    queryFn: ({ signal }) => get<Features>("/api/features", signal),
+    staleTime: 60_000,
+  });
+  return data ?? { bracket: false };
+};
+
+const BRACKET_LIVE_REFRESH_MS = 30_000;
+
+export const useBracket = (seasonId: Id | undefined) =>
+  useQuery({
+    queryKey: keys.bracket(seasonId ?? ""),
+    queryFn: ({ signal }) => get<Bracket>(`/api/seasons/${seasonId}/bracket`, signal),
+    enabled: seasonId !== undefined,
+    refetchInterval: (query) =>
+      query.state.data?.rounds.some((r) => r.games.some((g) => g.state === "live"))
+        ? BRACKET_LIVE_REFRESH_MS
+        : false,
+    refetchOnWindowFocus: true,
   });
 
 export const useUserLeagues = (enabled: boolean) =>

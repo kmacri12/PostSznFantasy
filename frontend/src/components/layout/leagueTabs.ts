@@ -30,7 +30,7 @@ export function leagueTabs(league: LeagueByUser): LeagueTab[] {
     {
       label: "League",
       to: paths.home,
-      matches: (p) => page(p) === "" || page(p) === "/settings",
+      matches: (p) => page(p) === "" || page(p) === "/settings" || page(p) === "/bracket",
       dot: false,
       count: 0,
     },

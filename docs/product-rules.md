@@ -92,6 +92,8 @@ Chat is text (up to 2000 characters) and GIFs, with emoji reactions, replies, @m
 
 Several rules are unfamiliar (team QB/K, per-round lineups, kickoff locks, eliminated players). Explain them where they matter: a How to play page in the nav, the empty pre-draft roster showing every slot with its caps and the lock rules, tooltips on commissioner settings, and a "locks at kickoff" note on the lineup screen. All of this copy lives in `frontend/src/content/rules.ts`. League notes are plain text of up to 5000 characters on the league page, which only commissioners edit; edits are not logged to the activity feed.
 
+**NFL bracket (#393).** A page shows the postseason from Wild Card to Super Bowl: who plays whom, results, byes, kickoffs, and in each game the top three players of each team (regular-season fantasy points under the league's scoring) plus the viewer's own players there (starter or bench in that round). It is open to every member before the draft, and the owner can turn it off with a database flag (`bracket`) without a deploy.
+
 ## 10. Season end and history
 
 - A league is permanent and has one season per year (`league`, `year` is unique). The league holds its name, notes, members and roles, and the invite; a season holds its settings, number of teams, teams and owners, draft, rosters, lineups, standings, activity feed, awards and recap.
