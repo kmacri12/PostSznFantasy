@@ -163,7 +163,8 @@ async def post_message(
     await db.commit()
     await announce_feed_change(season_id, "message", message.id)
     push.spawn(push.notify_league_message, message.id)
-    push.spawn(mentions.notify_mentioned, message.id, message.mentioned_user_ids)
+    if message.mentioned_user_ids:
+        push.spawn(mentions.notify_mentioned, message.id, message.mentioned_user_ids)
     return item
 
 
@@ -199,7 +200,8 @@ async def edit_message(
     [item] = await feed.message_items(db, membership, [message])
     await db.commit()
     await announce_feed_change(season_id, "message", message.id)
-    push.spawn(mentions.notify_mentioned, message.id, newly_tagged)
+    if newly_tagged:
+        push.spawn(mentions.notify_mentioned, message.id, newly_tagged)
     return item
 
 

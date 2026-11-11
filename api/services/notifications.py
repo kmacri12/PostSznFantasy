@@ -6,8 +6,8 @@ of those who want that kind (`push.send_to_users`). Every new kind of notificati
 (player alerts, mentions, announcements) goes through it: add the kind to
 `NotificationKind` and `PUSH_KINDS`, word it in the SPA (`components/notifications/
 inboxView.ts`), and call `notify`. Chat is the exception: it lives in the Feed with its
-own dot, so chat pushes skip the inbox,
-except the one for a message that @mentions a member.
+own dot, so chat pushes skip the inbox, except the one for a message that @mentions a
+member (`services/mentions.py`).
 """
 
 from collections.abc import Iterable
