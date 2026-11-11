@@ -226,11 +226,12 @@ async def notify_draft_phase(
             "Open the app to see it in your time zone.",
         ),
     }[phase]
-    kind: NotificationKind = {
+    kinds: dict[str, NotificationKind] = {
         "lobby": "draft_lobby",
         "started": "draft_started",
         "scheduled": "draft_scheduled",
-    }[phase]
+    }
+    kind = kinds[phase]
     await _notify_draft_members(db, season_id, kind, title, body, f"draft-{phase}")
 
 
