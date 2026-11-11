@@ -17,6 +17,7 @@ import { api } from "../api/client";
 import { authCallbackUrl, signInPath } from "../utils/authRedirect";
 import { markNameSkipped, nameProblem, nameSkipped, providerName } from "../utils/displayName";
 import { createLogger } from "../utils/logger";
+import { clearOfflineData } from "../utils/offlineCache";
 import { forgetThisDevice, refreshPushSubscription } from "../utils/pushSetup";
 import { supabaseAuth } from "../utils/supabase";
 
@@ -129,6 +130,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (hadUser.current) {
         hadUser.current = false;
         queryClient.clear();
+        void clearOfflineData();
         setSessionExpired(!deliberateSignOut.current);
         deliberateSignOut.current = false;
       }

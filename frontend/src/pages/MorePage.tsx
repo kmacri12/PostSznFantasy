@@ -2,10 +2,11 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import LocalCafeIcon from "@mui/icons-material/LocalCafe";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { Box, Container, Typography } from "@mui/material";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useState, useSyncExternalStore } from "react";
 import { Link } from "react-router-dom";
 import { useUserLeagues } from "../api/queries";
 import AppToast from "../components/common/AppToast";
+import InstallGuideSheet from "../components/install/InstallGuideSheet";
 import { draftStatusLine } from "../components/league/draftStatusLine";
 import InviteSheet from "../components/settings/InviteSheet";
 import PastSeasonsSheet from "../components/settings/PastSeasonsSheet";
@@ -13,6 +14,8 @@ import ReportProblemSheet from "../components/support/ReportProblemSheet";
 import TourDialog from "../components/tour/TourDialog";
 import {
   HOW_TO_PLAY_LABEL,
+  INSTALL_HINT,
+  INSTALL_LABEL,
   REPORT_PROBLEM_HINT,
   REPORT_PROBLEM_LABEL,
   REPORT_PROBLEM_SENT,
@@ -23,6 +26,7 @@ import {
 import { useSeasonContext } from "../contexts/SeasonContext";
 import { useUser } from "../contexts/UserContext";
 import { radii, tokens } from "../theme";
+import { installKind, subscribeInstall } from "../utils/install";
 
 const rowSx = {
   display: "flex",
@@ -106,8 +110,12 @@ const MorePage = () => {
   const { signOutUser } = useUser();
   const league = useUserLeagues(true).data?.find((item) => item.id === leagueId);
   const pastSeasons = (league?.seasons ?? []).filter((item) => !item.current).reverse();
-  const [sheet, setSheet] = useState<"past" | "invite" | "report" | "tour" | null>(null);
+  const [sheet, setSheet] = useState<"past" | "invite" | "report" | "tour" | "install" | null>(
+    null,
+  );
   const [sent, setSent] = useState(false);
+  const installed =
+    useSyncExternalStore(subscribeInstall, installKind, () => "desktop" as const) === "installed";
   const supportUrl = import.meta.env.VITE_SUPPORT_URL?.trim();
 
   return (
@@ -133,6 +141,9 @@ const MorePage = () => {
       <Group label="Help">
         <Row to={paths.howToPlay} title={HOW_TO_PLAY_LABEL} />
         <Row title={TOUR_LABEL} hint="A minute, in pictures" onClick={() => setSheet("tour")} />
+        {installed ? null : (
+          <Row title={INSTALL_LABEL} hint={INSTALL_HINT} onClick={() => setSheet("install")} />
+        )}
         {supportUrl && (
           <Row
             href={supportUrl}
@@ -158,6 +169,7 @@ const MorePage = () => {
         </Box>
       </Group>
       {sheet === "tour" && <TourDialog onClose={() => setSheet(null)} />}
+      {sheet === "install" && <InstallGuideSheet onClose={() => setSheet(null)} />}
       {sheet === "past" && (
         <PastSeasonsSheet
           leagueId={leagueId}

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { SeasonOverview } from "../api/types";
@@ -94,5 +94,20 @@ describe("MorePage", () => {
     renderMore({ canCommission: true });
     fireEvent.click(screen.getByRole("button", { name: /Invite members/ }));
     expect(screen.getByText("Invite link")).toBeInTheDocument();
+  });
+
+  it("offers the install guide, and hides the row in the installed app", () => {
+    renderMore();
+    fireEvent.click(screen.getByRole("button", { name: /Install the app/ }));
+    expect(screen.getByRole("dialog", { name: "Install PostSzn" })).toBeInTheDocument();
+    cleanup();
+    vi.stubGlobal("matchMedia", () => ({
+      matches: true,
+      addEventListener() {},
+      removeEventListener() {},
+    }));
+    renderMore();
+    expect(screen.queryByText("Install the app")).not.toBeInTheDocument();
+    vi.unstubAllGlobals();
   });
 });
