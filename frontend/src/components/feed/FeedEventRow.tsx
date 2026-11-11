@@ -74,6 +74,20 @@ const FeedEventRow = ({ event }: { event: FeedEventItem }) => {
       {line.lead && <Lead>{line.lead}</Lead>}
       {line.text}
       <Time iso={event.createdAt} />
+      {line.quote && (
+        <Box
+          sx={{
+            mt: 0.75,
+            fontSize: 13,
+            color: tokens.text,
+            textAlign: "left",
+            whiteSpace: "pre-wrap",
+            overflowWrap: "anywhere",
+          }}
+        >
+          {line.quote}
+        </Box>
+      )}
       {line.details.map((detail) => (
         <Box key={detail} sx={{ fontSize: 11, color: tokens.muted }}>
           {detail}

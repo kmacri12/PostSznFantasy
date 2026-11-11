@@ -37,6 +37,7 @@ NotificationKind = Literal[
     "round_result",
     "team_eliminated",
     "mention",
+    "announcement",
 ]
 # The push preference each kind follows; the inbox entry is written either way.
 PUSH_KINDS: dict[NotificationKind, push.PushKind] = {
@@ -52,9 +53,11 @@ PUSH_KINDS: dict[NotificationKind, push.PushKind] = {
     "round_result": "round",
     "team_eliminated": "round",
     "mention": "mention",
+    "announcement": "announcement",
 }
 KEEP_FOR = timedelta(days=30)
 INBOX_LIMIT = 100
+PREVIEW_LENGTH = 140
 
 
 @dataclass(frozen=True)
@@ -282,6 +285,37 @@ async def _notify_draft_members(
                 url=f"/leagues/{league.id}/draft",
                 tag=f"{tag_prefix}-{season_id}",
                 urgency="high",
+            ),
+        ),
+    )
+
+
+async def notify_announcement(
+    db: AsyncSession, league_id: int, season_id: int, author_id: int, body: str
+) -> None:
+    """Push a pinned announcement to the other active members who allow it; the text
+    is cut to fit a notification, the inbox entry only points at the league home."""
+    league_name = await db.scalar(
+        select(League.name).where(
+            League.id == league_id, League.id.in_(live_league_ids())
+        )
+    )
+    if league_name is None:
+        return
+    members = set(await _active_members(db, league_id)) - {author_id}
+    preview = body if len(body) <= PREVIEW_LENGTH else f"{body[:PREVIEW_LENGTH]}..."
+    await notify(
+        db,
+        members,
+        Notice(
+            kind="announcement",
+            league_id=league_id,
+            payload={"seasonId": season_id},
+            push=push.PushMessage(
+                title=f"Announcement from {league_name}",
+                body=preview,
+                url=f"/leagues/{league_id}",
+                tag=f"announcement-{league_id}",
             ),
         ),
     )

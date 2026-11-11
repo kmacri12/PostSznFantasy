@@ -82,6 +82,12 @@ export const describeNotification = (item: InboxItem): InboxLine => {
         body: `Someone tagged you in the ${league} chat.`,
         path: paths.feed,
       };
+    case "announcement":
+      return {
+        title: "New announcement",
+        body: `Your commissioner posted in ${league}.`,
+        path: leaguePath(item.leagueId),
+      };
     default:
       return {
         title: league,

@@ -318,6 +318,16 @@ export const useUpdateLeague = (leagueId: Id | undefined) =>
     await api.patch(`/api/leagues/${leagueId}`, body);
   });
 
+export const usePinAnnouncement = (leagueId: Id | undefined) =>
+  useLeagueMutation(async (body: { body: string; push: boolean }) => {
+    await api.put(`/api/leagues/${leagueId}/announcement`, body);
+  });
+
+export const useUnpinAnnouncement = (leagueId: Id | undefined) =>
+  useLeagueMutation(async () => {
+    await api.delete(`/api/leagues/${leagueId}/announcement`);
+  });
+
 export const useUpdateSeason = (seasonId: Id | undefined) =>
   useLeagueMutation(async (body: { numberTeams: number }) => {
     await api.patch(`/api/seasons/${seasonId}`, body);
@@ -493,6 +503,7 @@ export interface PushPreferences {
   starterAlerts: boolean;
   scoreAlerts: boolean;
   roundResults: boolean;
+  announcements: boolean;
   quietHours: boolean;
   /** The IANA zone quiet hours are counted in, as this browser last reported it. */
   timezone: string | null;

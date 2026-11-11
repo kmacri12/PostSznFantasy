@@ -64,7 +64,11 @@ const show = (canStartSeason: boolean, nextSeasonId: number | null = null) =>
   render(
     <QueryClientProvider client={new QueryClient()}>
       <MemoryRouter>
-        <SeasonRecap recap={{ ...recap, nextSeasonId }} canStartSeason={canStartSeason} />
+        <SeasonRecap
+          recap={{ ...recap, nextSeasonId }}
+          leagueName="The League"
+          canStartSeason={canStartSeason}
+        />
       </MemoryRouter>
     </QueryClientProvider>,
   );
@@ -83,7 +87,11 @@ describe("SeasonRecap", () => {
     render(
       <QueryClientProvider client={new QueryClient()}>
         <MemoryRouter>
-          <SeasonRecap recap={{ ...recap, champions: [], awards: [] }} canStartSeason={false} />
+          <SeasonRecap
+            recap={{ ...recap, champions: [], awards: [] }}
+            leagueName="The League"
+            canStartSeason={false}
+          />
         </MemoryRouter>
       </QueryClientProvider>,
     );

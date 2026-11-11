@@ -7,6 +7,8 @@ import { testSeason } from "../../test/season";
 import CommissionerStrip from "./CommissionerStrip";
 
 const mutate = vi.fn();
+const motion = vi.hoisted(() => ({ reduced: false }));
+vi.mock("../../hooks/useReducedMotion", () => ({ useReducedMotion: () => motion.reduced }));
 vi.mock("../../api/queries", () => ({
   useDraftControl: () => ({ mutate, isPending: false, error: null }),
   useDraftSetup: () => ({ mutate: vi.fn(), isPending: false, error: null }),
@@ -74,5 +76,28 @@ describe("CommissionerStrip confirmations", () => {
     const confirm = screen.getAllByRole("button", { name: "Start draft" }).at(-1);
     expect(confirm).toBeDisabled();
     expect(mutate).not.toHaveBeenCalled();
+  });
+
+  it("reveals the shuffled order after Randomize, unless motion is reduced", () => {
+    const shuffled = [
+      { slot: 1, teamId: 2, teamName: "Bravo", ownerName: null, ownerUserId: null },
+    ];
+    const two = [
+      ...shuffled,
+      { slot: 2, teamId: 1, teamName: "Alpha", ownerName: null, ownerUserId: null },
+    ];
+    mutate.mockImplementation((_action, options) => options?.onSuccess?.({ order: two }));
+    const state = draft({ status: "lobby", orderLocked: false, picks: [] });
+    const { unmount } = strip(state);
+    fireEvent.click(screen.getByRole("button", { name: "Randomize draft order" }));
+    expect(screen.getByText("The draft order")).toBeInTheDocument();
+    unmount();
+
+    motion.reduced = true;
+    strip(state);
+    fireEvent.click(screen.getByRole("button", { name: "Randomize draft order" }));
+    expect(screen.queryByText("The draft order")).not.toBeInTheDocument();
+    motion.reduced = false;
+    mutate.mockReset();
   });
 });

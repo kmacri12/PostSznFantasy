@@ -19,6 +19,7 @@ vi.mock("../../api/queries", () => ({
       starterAlerts: true,
       scoreAlerts: false,
       roundResults: false,
+      announcements: true,
       quietHours: mocks.quietHours.current,
       timezone: mocks.zone.current,
       mutedLeagueIds: [],

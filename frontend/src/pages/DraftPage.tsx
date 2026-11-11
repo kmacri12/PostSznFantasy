@@ -22,6 +22,8 @@ import RosterView from "../components/draft/RosterView";
 import ArchivedNotice from "../components/league/ArchivedNotice";
 import PlayersView, { type DraftActions } from "../components/players/PlayersView";
 import CogButton from "../components/settings/CogButton";
+import ShareCardButton from "../components/share/ShareCardButton";
+import { draftCard } from "../components/share/shareCards";
 import { useSeasonContext } from "../contexts/SeasonContext";
 import { useDraftRoom } from "../hooks/useDraftRoom";
 import { HEADER_HEIGHT, radii, tokens } from "../theme";
@@ -129,6 +131,10 @@ const DraftPage = () => {
           <CogButton label="Draft settings" onClick={() => setSettingsOpen(true)} />
         </Box>
         {archived && <ArchivedNotice what="picks and the queue" />}
+        <ShareCardButton
+          card={draftCard(season.leagueName, season.year, state)}
+          label="Share draft recap"
+        />
         <PlayersView
           seasonId={seasonId}
           year={season.year}

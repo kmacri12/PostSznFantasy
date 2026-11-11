@@ -37,6 +37,15 @@ class League(Base):
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     notes: Mapped[str] = mapped_column(Text, nullable=False, server_default="")
     avatar_key: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    # The pinned announcement (#403): one at a time, empty when none; every posting
+    # also lands in the feed as an `announcement` event.
+    announcement: Mapped[str] = mapped_column(Text, nullable=False, server_default="")
+    announcement_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    announcement_by: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("fantasy.users.id", ondelete="SET NULL"), nullable=True
+    )
     # For the metrics views (#358); rows from before it carry the migration's time.
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()

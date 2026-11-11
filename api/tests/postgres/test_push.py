@@ -333,6 +333,7 @@ async def test_preferences_round_trip_and_per_league_mute(
             "starterAlerts": True,
             "scoreAlerts": False,
             "roundResults": False,
+            "announcements": True,
             "quietHours": False,
             "timezone": None,
             "mutedLeagueIds": [],

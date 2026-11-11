@@ -60,6 +60,7 @@ class PushPreferences(BaseSchema):
     starter_alerts: bool
     score_alerts: bool
     round_results: bool
+    announcements: bool
     quiet_hours: bool
     timezone: str | None
     # Leagues whose chat the caller muted; the Feed header shows the toggle.
@@ -76,6 +77,7 @@ class PushPreferencesUpdate(BaseSchema):
     starter_alerts: bool | None = None
     score_alerts: bool | None = None
     round_results: bool | None = None
+    announcements: bool | None = None
     quiet_hours: bool | None = None
     # The browser's IANA zone, sent with quiet hours so "11pm to 7am" is the member's own.
     timezone: str | None = Field(default=None, max_length=64)
