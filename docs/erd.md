@@ -39,6 +39,8 @@ erDiagram
     seasons ||--o{ activity_views : "read in"
     users ||--o{ push_subscriptions : "subscribes"
     teams ||--o{ lineup_reminders : "reminded"
+    users ||--o{ notifications : "receives"
+    leagues ||--o{ notifications : "concerns"
     nfl_teams ||--o{ nfl_players : "employs"
     nfl_teams ||--o{ nfl_games : "plays home"
     nfl_teams ||--o{ nfl_games : "plays away"
@@ -212,6 +214,15 @@ erDiagram
         int round PK
         datetime sent_at
     }
+    notifications {
+        bigint id PK
+        int user_id FK
+        string kind
+        int league_id FK
+        jsonb payload
+        datetime created_at
+        datetime read_at
+    }
     nfl_teams {
         int id PK
         string team_abv
@@ -280,3 +291,4 @@ erDiagram
 - **No foreign key:** `nfl_player_game_stats.game_id` points at `nfl_games.id` by value only, and `activity_views.team_id` is a plain column (0 means the season feed).
 - **Lineups** are per fantasy team and round: `lineup_slots` holds only players the owner placed. Players on the roster but absent from `lineup_slots` for a round are unplaced and count as bench (see `product-rules.md`).
 - **Metrics views (not tables, so not drawn).** `fantasy.metrics_daily` (one row per UTC day: signups, leagues created, members joined, drafts scheduled / started / completed, active members, chat messages, push subscriptions), `fantasy.metrics_leagues` (one row per live league: members, teams, claimed and open teams, latest season year and draft status) and `fantasy.metrics_users` (user id, signup time, leagues joined) are defined in migration `0024_metrics_views` for the owner's dashboards (#358). They hold counts only: no emails, usernames, league names or other personal data. The `metrics_reader` role (no login until the owner sets a password) can read them and nothing else; `users.created_at` and `leagues.created_at` exist for them.
+- **Notifications** (#397) are the inbox: one row per member and thing addressed to them (`kind`, `league_id`, `payload` of ids only, `read_at`). Rows older than 30 days are deleted by the scheduler's roster sync, and a deleted account's rows go with it.

@@ -17,6 +17,7 @@ from api.models.league_models import (
     TeamDetails,
     TeamRename,
 )
+from api.services import notifications, push
 from api.services.avatars import avatar_url
 from api.services.league_admin import team_name_taken
 from api.services.lineups import (
@@ -252,4 +253,6 @@ async def move_in_round_lineup(
         ) from exc
     if scores_may_change:
         await refresh_standings_if_drafted(db, team.season_id)
+    if team.owner_id not in (None, membership.user.id):
+        push.spawn(notifications.notify_lineup_changed, team.id, payload.round)
     return await build_team_details(db, team, membership)

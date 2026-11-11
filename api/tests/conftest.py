@@ -20,6 +20,7 @@ from api.dependencies.league import (
     get_team_member,
 )
 from api.main import app
+from api.services import push
 
 
 @pytest.fixture
@@ -101,3 +102,10 @@ async def async_client(
 @pytest.fixture(autouse=True)
 def _fresh_rate_limits() -> None:
     reset_all()
+
+
+@pytest.fixture(autouse=True)
+def _no_background_notifications(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A spawned notification opens its own session on the configured database, not the
+    test one; tests call the notify functions directly instead."""
+    monkeypatch.setattr(push, "spawn", lambda *args, **kwargs: None)

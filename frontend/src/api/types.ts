@@ -557,3 +557,20 @@ export interface PlayerSeasonLine {
   playerId: number;
   [stat: string]: unknown;
 }
+
+/** One inbox entry; the inbox words and links each kind (inboxView.ts). */
+export interface InboxItem {
+  id: number;
+  kind: string;
+  leagueId: number;
+  leagueName: string;
+  /** Ids only: seasonId, and teamId and round where the kind has them. */
+  payload: { seasonId?: number; teamId?: number; round?: number };
+  createdAt: string;
+  read: boolean;
+}
+
+export interface Inbox {
+  items: InboxItem[];
+  unreadCount: number;
+}

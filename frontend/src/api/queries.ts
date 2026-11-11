@@ -6,6 +6,7 @@ import type {
   DraftState,
   Feed,
   FeedMessageItem,
+  Inbox,
   Invite,
   InvitePreview,
   JoinResult,
@@ -48,6 +49,7 @@ export const keys = {
   scoringDefaults: ["scoring-defaults"] as const,
   syncStatus: ["sync-status"] as const,
   feed: (seasonId: Id) => ["feed", String(seasonId)] as const,
+  inbox: ["inbox"] as const,
   activity: (scope: "seasons" | "teams", id: Id) => ["activity", scope, String(id)] as const,
 };
 
@@ -410,6 +412,26 @@ export const useMuteLeagueChat = (leagueId: Id | undefined) => {
       await api.put(`/api/push/chat-mute/${leagueId}`, { muted });
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["push-preferences"] }),
+  });
+};
+
+/** The notification inbox behind the header bell. */
+export const useInbox = (enabled: boolean) =>
+  useQuery({
+    queryKey: keys.inbox,
+    queryFn: ({ signal }) => get<Inbox>("/api/notifications", signal),
+    enabled,
+    refetchInterval: 60_000, // the bell's count
+  });
+
+/** Marks the given entries read, or every entry without `ids`. */
+export const useMarkInboxRead = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (ids?: number[]) => {
+      await api.post("/api/notifications/read", ids ? { ids } : {});
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: keys.inbox }),
   });
 };
 

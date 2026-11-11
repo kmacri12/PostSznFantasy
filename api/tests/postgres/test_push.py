@@ -19,7 +19,7 @@ from api.db.models import (
     TeamPlayer,
     User,
 )
-from api.services import draft_reminders, push
+from api.services import draft_reminders, notifications, push
 from api.services.draft_events import announce_events
 from api.services.lineup_reminders import send_lock_reminders
 from api.tests.postgres.conftest import ClientFactory
@@ -181,13 +181,14 @@ async def test_the_owner_on_the_clock_is_notified(
 ) -> None:
     season, users, teams, _ = await make_season(db, teams=2)
     await _subscribe(db, users[1])
-    await push.notify_on_the_clock(db, season.id, teams[1].id)
+    await notifications.notify_on_the_clock(db, season.id, teams[1].id)
     [(endpoint, message)] = sender.sent
     assert endpoint == BODY["endpoint"]
     assert message.title == "You're on the clock"
     assert message.url == f"/leagues/{season.league_id}/draft"
     assert message.urgency == "high"
-    await push.notify_on_the_clock(db, season.id, teams[0].id)  # owner has no device
+    # The owner of team 0 has no device.
+    await notifications.notify_on_the_clock(db, season.id, teams[0].id)
     assert len(sender.sent) == 1
 
 
@@ -308,7 +309,7 @@ async def test_draft_alerts_and_lineup_reminders_can_be_turned_off(
         update(User).where(User.id == users[1].id).values(push_draft_alerts=False)
     )
 
-    await push.notify_draft_phase(db, season.id, "lobby")
+    await notifications.notify_draft_phase(db, season.id, "lobby")
     assert [endpoint for endpoint, _ in sender.sent] == [CHROME + "ann"]
 
     message = push.PushMessage(title="t", body="b", url="/", tag="x")
@@ -360,7 +361,7 @@ async def test_draft_phase_push_reaches_every_active_member(
         .where(LeagueMember.user_id == users[2].id)
         .values(left_at=datetime.now(UTC))
     )
-    await push.notify_draft_phase(db, season.id, "lobby")
+    await notifications.notify_draft_phase(db, season.id, "lobby")
     assert len(sender.sent) == 2
     assert sender.sent[0][1].title == "The draft lobby is open"
     assert sender.sent[0][1].urgency == "high"
