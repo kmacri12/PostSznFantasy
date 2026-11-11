@@ -56,9 +56,7 @@ const RoundStrip = ({ lineups, round, onSelect }: Props) => (
           </Box>
           {score === null ? "-" : formatPoints(score)}
           {/* After the visible text, so the spoken name starts with what the tab shows (WCAG 2.5.3). */}
-          {full !== short && (
-            <Box component="span" sx={visuallyHidden}>{`, ${full}`}</Box>
-          )}
+          {full !== short && <Box component="span" sx={visuallyHidden}>{`, ${full}`}</Box>}
         </ButtonBase>
       );
     })}
