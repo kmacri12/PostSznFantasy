@@ -12,6 +12,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
+from api.core.app_version import AppVersionMiddleware
 from api.core.body_limit import BodyLimitMiddleware
 from api.core.config import get_settings
 from api.core.logging import RequestLoggingMiddleware, setup_logging
@@ -104,12 +105,15 @@ app = FastAPI(
     **docs_urls(get_settings().environment),
 )
 
+# Added before CORS so it sits inside it: a 426 then still carries the CORS headers the SPA
+# needs to read it.
+app.add_middleware(AppVersionMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=get_settings().cors_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type"],
+    allow_headers=["Authorization", "Content-Type", "X-App-Version"],
     # The support report quotes the id of a failed request so its log line can be found.
     expose_headers=["X-Request-ID"],
 )

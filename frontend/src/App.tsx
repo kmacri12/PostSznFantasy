@@ -7,13 +7,18 @@ import { useUserLeagues } from "./api/queries";
 import RequireSignIn from "./components/auth/RequireSignIn";
 import SessionExpiredBanner from "./components/auth/SessionExpiredBanner";
 import LoadingState from "./components/common/LoadingState";
+import OfflineBanner from "./components/connection/OfflineBanner";
 import ReconnectingBanner from "./components/connection/ReconnectingBanner";
+import UpdateBanner from "./components/connection/UpdateBanner";
+import InstallOffer from "./components/install/InstallOffer";
+import ShortcutRedirect from "./components/install/ShortcutRedirect";
 import AppShell from "./components/layout/AppShell";
 import NotificationOptIn from "./components/notifications/NotificationOptIn";
 import NameSetupDialog from "./components/onboarding/NameSetupDialog";
 import TeamNameDialog from "./components/onboarding/TeamNameDialog";
 import FirstRunTour from "./components/tour/FirstRunTour";
 import { useUser } from "./contexts/UserContext";
+import { useOnline } from "./hooks/useOnline";
 import DormantPage from "./pages/DormantPage";
 import HowToPlayPage from "./pages/HowToPlayPage";
 import LandingPage from "./pages/LandingPage";
@@ -56,6 +61,8 @@ function App() {
   const { pathname, state } = useLocation();
   const [tourOpen, setTourOpen] = useState(false);
   const [teamNameOpen, setTeamNameOpen] = useState(false);
+  const [optInActive, setOptInActive] = useState(false);
+  const online = useOnline();
   const routeLeagueId = matchPath("/leagues/:leagueId/*", pathname)?.params.leagueId;
   const league = leagues.find((item) => String(item.id) === routeLeagueId);
   const teamId = league?.userTeamId ?? null;
@@ -81,7 +88,9 @@ function App() {
       dormant={dormant}
     >
       <SessionExpiredBanner />
-      {apiDown && !dormant && <ReconnectingBanner />}
+      <UpdateBanner />
+      {!online && !dormant && <OfflineBanner />}
+      {online && apiDown && !dormant && <ReconnectingBanner />}
       {!dormant && user && <NameSetupDialog />}
       {!dormant && (
         <TeamNameDialog
@@ -93,7 +102,11 @@ function App() {
       {!dormant && (
         <FirstRunTour open={tourOpen} onOpenChange={setTourOpen} blocked={tourBlocked} />
       )}
-      {!dormant && <NotificationOptIn hold={tourBlocked || tourHolds} />}
+      {!dormant && (
+        <NotificationOptIn hold={tourBlocked || tourHolds} onActiveChange={setOptInActive} />
+      )}
+      {!dormant && <InstallOffer hold={tourBlocked || tourHolds || optInActive} />}
+      {!dormant && <ShortcutRedirect />}
       <Box component="main" id="main" tabIndex={-1} sx={{ outline: "none" }}>
         <Suspense
           fallback={

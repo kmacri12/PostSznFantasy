@@ -25,6 +25,15 @@ Vite copies `public/` into `dist/`, where Pages reads them:
 - `_redirects`: `/*  /index.html  200` is the SPA fallback, so deep links such as `/leagues/123/draft` and page refreshes serve the app instead of a 404. Real files (assets, `vite.svg`) are served first.
 - `_headers`: `index.html` is `no-cache` so a deploy is picked up on the next load; `/assets/*` is `immutable` for a year because Vite fingerprints those filenames; plus `nosniff`, `X-Frame-Options: DENY`, a strict referrer policy and a disabled-by-default permissions policy. There is deliberately no `Content-Security-Policy` yet: it would have to allow the Supabase, Google OAuth and API/WebSocket origins and needs testing against the real sign-in flow before it is enforced.
 
+## Updates and offline
+
+The service worker (`public/sw.js`, no-cache) does three jobs besides push (#400):
+
+- **App shell**: navigations are network-first and the last good `index.html` is kept, so the app opens with no connection; `/assets/*` (fingerprinted) and the icons are cache-first.
+- **Last-seen data (read only)**: GETs of the member's leagues, seasons, standings, teams and lineups (`/api/leagues/...`, `/api/seasons/{id}`, `.../standings`, `.../teams`, `/api/teams/{id}`) are network-first and the last answer is kept, stamped with `X-Cached-At`. Offline, the app shows an "Offline. Showing data from 3:42 PM" banner and refuses every write with a plain reason. Chat, the feed, avatars and everything else are never cached. The cache is cleared on sign-out. The e2e build registers `/sw.js?nocache=1`, which turns the caching off so `page.route` mocks keep working.
+- **Stale tabs**: every build writes `/version.json` (`{"builtAt": <epoch seconds>}`, no-cache). An open tab checks it on focus and every 10 minutes and shows "Update available, tap to refresh" (never during a draft or while a field has focus). The SPA also sends its build time as `X-App-Version`; when an API change breaks old tabs, set the Fly variable `MIN_APP_VERSION` to the new build's `builtAt` and older tabs get a 426 and "please refresh" instead of confusing errors.
+- **Install**: the manifests (`manifest.webmanifest` dark, `manifest-light.webmanifest`) carry Draft, Team and Feed shortcuts (`/?shortcut=...`, resolved by the SPA to the member's league).
+
 Bundle sizes, chunking rules and the Lighthouse mobile baseline: [performance.md](performance.md).
 
 ## How the production build finds the API

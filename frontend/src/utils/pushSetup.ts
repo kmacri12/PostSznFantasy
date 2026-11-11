@@ -1,13 +1,18 @@
 import { api } from "../api/client";
+import { E2E_BUILD } from "./e2e";
 import { createLogger } from "./logger";
 
 const log = createLogger("push");
 
-/** Registers the push service worker. The shell calls it once on startup (see #266). */
+/**
+ * Registers the service worker (push, #266, and the offline cache, #400). The shell calls it
+ * once on startup. The e2e build turns the caching off with `?nocache`, so `page.route` mocks
+ * (which a service worker's own fetches would bypass) keep working.
+ */
 export const registerServiceWorker = async (): Promise<void> => {
   if (!("serviceWorker" in navigator)) return;
   try {
-    await navigator.serviceWorker.register("/sw.js");
+    await navigator.serviceWorker.register(E2E_BUILD ? "/sw.js?nocache=1" : "/sw.js");
   } catch (error) {
     log.warn("Service worker registration failed", error);
   }
