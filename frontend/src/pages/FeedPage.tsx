@@ -8,6 +8,7 @@ import {
   useReactToMessage,
 } from "../api/queries";
 import type { FeedItem, FeedMessageItem } from "../api/types";
+import EmptyState from "../components/common/EmptyState";
 import ErrorState from "../components/common/ErrorState";
 import { friendlyError } from "../components/common/friendlyError";
 import LoadingState from "../components/common/LoadingState";
@@ -220,13 +221,17 @@ const FeedPage = () => {
           </Box>
         )}
         {rows.length === 0 && (
-          <Typography
-            component="li"
-            color="text.secondary"
-            sx={{ listStyle: "none", textAlign: "center" }}
-          >
-            Nothing has happened yet.
-          </Typography>
+          <Box component="li" sx={{ listStyle: "none" }}>
+            <EmptyState
+              illustration="messages"
+              title="It's quiet in here"
+              description={
+                first.canPost
+                  ? "Say hello to your league. Messages and league news show up here."
+                  : "League news will show up here."
+              }
+            />
+          </Box>
         )}
         {rows.map((row) => renderRow(row))}
       </Box>

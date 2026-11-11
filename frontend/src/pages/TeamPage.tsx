@@ -135,6 +135,7 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
       {team.roster.length === 0 && <PreDraftRoster seasonId={seasonId} />}
       {team.roster.length === 0 && (
         <EmptyState
+          illustration="lineup"
           title="No players yet"
           description="This lineup fills in as the draft happens."
           action={

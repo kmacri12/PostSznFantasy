@@ -46,6 +46,52 @@ const base: DraftState = {
   playoffFieldSet: true,
 };
 
+const reduced = vi.hoisted(() => ({ value: false }));
+vi.mock("../../hooks/useReducedMotion", () => ({
+  useReducedMotion: () => reduced.value,
+  prefersReducedMotion: () => reduced.value,
+}));
+
+const withSecondPick = (): DraftState => ({
+  ...base,
+  currentPickOverall: 3,
+  picks: [
+    ...base.picks,
+    {
+      ...(base.picks[0] as DraftState["picks"][number]),
+      id: 2,
+      teamId: 20,
+      playerId: 6,
+      playerName: "Sam RB",
+      position: "RB",
+      teamAbv: "KC",
+      numberPickOverall: 2,
+      numberPickInRound: 2,
+    },
+  ],
+});
+
+describe("DraftBoard pick reveal", () => {
+  const revealed = (node: HTMLElement) => node.dataset.revealed === "true";
+
+  it("animates only a pick that lands while the board is open", () => {
+    reduced.value = false;
+    const { rerender } = render(<DraftBoard state={base} myTeamId={null} />);
+    expect(revealed(screen.getByTestId("pick-1"))).toBe(false);
+    rerender(<DraftBoard state={withSecondPick()} myTeamId={null} />);
+    expect(revealed(screen.getByTestId("pick-2"))).toBe(true);
+    expect(revealed(screen.getByTestId("pick-1"))).toBe(false);
+  });
+
+  it("does not animate under reduced motion", () => {
+    reduced.value = true;
+    const { rerender } = render(<DraftBoard state={base} myTeamId={null} />);
+    rerender(<DraftBoard state={withSecondPick()} myTeamId={null} />);
+    expect(revealed(screen.getByTestId("pick-2"))).toBe(false);
+    reduced.value = false;
+  });
+});
+
 describe("DraftBoard", () => {
   it("renders teams as columns in assigned order with picks in their cells", () => {
     render(<DraftBoard state={base} myTeamId={10} />);
