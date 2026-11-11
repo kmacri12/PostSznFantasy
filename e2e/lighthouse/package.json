@@ -1,0 +1,13 @@
+{
+  "name": "e2e-lighthouse",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Kept apart from e2e/ so the pull request e2e job never installs Lighthouse.",
+  "devDependencies": {
+    "lighthouse": "12.8.2"
+  },
+  "engines": {
+    "node": ">=22.12"
+  }
+}

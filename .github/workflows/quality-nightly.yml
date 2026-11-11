@@ -1,0 +1,164 @@
+name: Quality nightly
+
+# Slow quality gates that would make every pull request wait: screenshots of the key pages
+# in Dark and Light on four device sizes (compared with the committed baselines), an axe
+# accessibility scan of the same pages, and a Lighthouse budget on the landing and league
+# pages. Run on demand too; set `update_baselines` to take new screenshots, download the
+# `visual-baselines-*` artifacts, and commit them under e2e/quality/__screenshots__ (see
+# "Visual regression and Lighthouse" in CONTRIBUTING.md).
+on:
+  schedule:
+    - cron: "43 5 * * *"
+  workflow_dispatch:
+    inputs:
+      update_baselines:
+        description: "Replace the screenshot baselines instead of comparing (uploads them as artifacts)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  visual:
+    name: Screenshots and axe (${{ matrix.project }})
+    runs-on: ${{ fromJSON(vars.CI_E2E_RUNS_ON || vars.CI_RUNS_ON || '"ubuntu-latest"') }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [iphone-se, small-android, ipad, desktop]
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Point the suite at the Postgres service port
+        run: echo "E2E_DATABASE_URL=postgresql://postgres:postgres@localhost:${{ job.services.postgres.ports['5432'] }}/postszn_e2e" >> "$GITHUB_ENV"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          cache-dependency-glob: api/uv.lock
+
+      - name: Set up Python
+        run: uv python install
+
+      - name: Install backend dependencies
+        run: cd api && uv sync --frozen
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: frontend/.nvmrc
+          cache: "npm"
+          cache-dependency-path: |
+            frontend/package-lock.json
+            e2e/package-lock.json
+
+      - name: Install frontend dependencies
+        run: cd frontend && npm ci
+
+      - name: Install Playwright and Chromium
+        run: cd e2e && npm ci && npx playwright install ${{ vars.CI_RUNS_ON == '' && '--with-deps' || '' }} chromium
+
+      - name: Compare screenshots and run axe
+        run: |
+          flock /tmp/postszn-e2e.lock bash -c 'cd e2e && npx playwright test -c playwright.quality.config.ts --project=${{ matrix.project }} ${{ inputs.update_baselines && '--update-snapshots=all' || '' }}'
+
+      - name: Upload the new baselines
+        if: ${{ always() && inputs.update_baselines }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: visual-baselines-${{ matrix.project }}
+          path: e2e/quality/__screenshots__/${{ matrix.project }}
+          retention-days: 14
+
+      # Expected, actual and diff images, plus traces, for every failed page.
+      - name: Upload the report
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: quality-report-${{ matrix.project }}
+          path: |
+            e2e/playwright-report-quality
+            e2e/test-results-quality
+          retention-days: 14
+
+  lighthouse:
+    name: Lighthouse budget
+    runs-on: ${{ fromJSON(vars.CI_E2E_RUNS_ON || vars.CI_RUNS_ON || '"ubuntu-latest"') }}
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Point the suite at the Postgres service port
+        run: echo "E2E_DATABASE_URL=postgresql://postgres:postgres@localhost:${{ job.services.postgres.ports['5432'] }}/postszn_e2e" >> "$GITHUB_ENV"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          cache-dependency-glob: api/uv.lock
+
+      - name: Set up Python
+        run: uv python install
+
+      - name: Install backend dependencies
+        run: cd api && uv sync --frozen
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: frontend/.nvmrc
+          cache: "npm"
+          cache-dependency-path: |
+            frontend/package-lock.json
+            e2e/package-lock.json
+            e2e/lighthouse/package-lock.json
+
+      - name: Install frontend dependencies
+        run: cd frontend && npm ci
+
+      - name: Install Playwright, Chromium and Lighthouse
+        run: |
+          cd e2e && npm ci && npx playwright install ${{ vars.CI_RUNS_ON == '' && '--with-deps' || '' }} chromium
+          cd lighthouse && npm ci
+
+      - name: Check the Lighthouse budget
+        run: flock /tmp/postszn-e2e.lock bash -c 'cd e2e && npx playwright test -c playwright.quality.config.ts --project=lighthouse'
+
+      - name: Upload the report
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: lighthouse-report
+          path: |
+            e2e/playwright-report-quality
+            e2e/test-results-quality
+          retention-days: 14
