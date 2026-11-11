@@ -94,7 +94,7 @@ describe("TeamPage", () => {
   it("opens on the current round with Starters, Bench and Eliminated groups", () => {
     renderTeam();
     expect(
-      screen.getByRole("tab", { name: "Conference Championship", selected: true }),
+      screen.getByRole("tab", { name: /Conference Championship/, selected: true }),
     ).toBeInTheDocument();
     const starters = screen.getByRole("region", { name: "Starters" });
     expect(within(starters).getByText("Josh Allen")).toBeInTheDocument();
@@ -110,8 +110,8 @@ describe("TeamPage", () => {
 
   it("switches round from the strip", () => {
     renderTeam();
-    fireEvent.click(screen.getByRole("tab", { name: "Super Bowl" }));
-    expect(screen.getByRole("tab", { name: "Super Bowl", selected: true })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("tab", { name: /Super Bowl/ }));
+    expect(screen.getByRole("tab", { name: /Super Bowl/, selected: true })).toBeInTheDocument();
     expect(screen.queryByText("Josh Allen")).toBeNull();
   });
 
