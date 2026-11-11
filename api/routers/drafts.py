@@ -85,14 +85,26 @@ async def _broadcast_state(
 
 @router.patch("/{season_id}", response_model=DraftStateResponse)
 async def update_setup(
-    season_id: int, payload: DraftSetup, _: SeasonCommissioner, db: DbSession
+    season_id: int,
+    payload: DraftSetup,
+    membership: SeasonCommissioner,
+    db: DbSession,
 ) -> DraftStateResponse:
     """Date/time, time per pick, type and timeout behaviour."""
+    previous_start = await db.scalar(
+        select(Draft.start_time).where(Draft.season_id == season_id)
+    )
     try:
-        draft = await draft_flow.apply_setup(db, season_id, payload)
+        draft = await draft_flow.apply_setup(
+            db, season_id, payload, Actor.of(membership.user)
+        )
     except DraftPickError as exc:
         raise _conflict(exc) from exc
-    return await _broadcast_state(db, draft)
+    time_changed = draft.start_time != previous_start
+    response = await _broadcast_state(db, draft, feed_event=time_changed)
+    if time_changed and draft.start_time is not None:
+        push.spawn(notifications.notify_draft_phase, season_id, "scheduled")
+    return response
 
 
 @router.put("/{season_id}/order", response_model=DraftStateResponse)
@@ -132,7 +144,7 @@ CONTROLS = {
 }
 
 
-PHASE_PUSHES: dict[str, Literal["lobby", "started"]] = {
+PHASE_PUSHES: dict[str, Literal["lobby", "started", "scheduled"]] = {
     "lobby": "lobby",
     "start": "started",
 }

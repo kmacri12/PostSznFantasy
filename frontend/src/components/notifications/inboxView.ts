@@ -28,6 +28,12 @@ export const describeNotification = (item: InboxItem): InboxLine => {
       return { title: "The draft lobby is open", body: league, path: paths.draft };
     case "draft_started":
       return { title: "The draft has started", body: league, path: paths.draft };
+    case "draft_scheduled":
+      return {
+        title: "The draft time is set",
+        body: `${league}. Open the draft page to see it in your time zone.`,
+        path: paths.draft,
+      };
     case "draft_soon":
       return {
         title: "Your draft is scheduled soon",

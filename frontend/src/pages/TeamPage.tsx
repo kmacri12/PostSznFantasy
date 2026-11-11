@@ -10,6 +10,7 @@ import {
   useTeam,
 } from "../api/queries";
 import type { TeamDetails } from "../api/types";
+import AddToCalendar from "../components/common/AddToCalendar";
 import DataFreshness from "../components/common/DataFreshness";
 import EmptyState from "../components/common/EmptyState";
 import { mutationError } from "../components/common/friendlyError";
@@ -32,6 +33,7 @@ import PreDraftRoster from "../components/team/PreDraftRoster";
 import RoundStrip from "../components/team/RoundStrip";
 import { useSeasonContext } from "../contexts/SeasonContext";
 import { tokens } from "../theme";
+import { lockCalendarEvent } from "../utils/calendar";
 
 /** Re-renders every 30s so the banner clears the moment a game starts. */
 const useNow = () => {
@@ -144,6 +146,22 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
       {lineup && team.roster.length > 0 && (
         <>
           <RoundStrip lineups={team.lineups} round={round} onSelect={setRound} />
+          {canSetLineup &&
+            lineup.firstKickoff &&
+            Date.parse(lineup.firstKickoff) > now.getTime() && (
+              <AddToCalendar
+                label={`Add ${ROUND_LABELS[round]} lock to calendar`}
+                filename={`round-${round}-lock.ics`}
+                event={lockCalendarEvent({
+                  seasonId,
+                  round,
+                  roundLabel: ROUND_LABELS[round] ?? `Round ${round}`,
+                  leagueName: season.leagueName,
+                  start: lineup.firstKickoff,
+                  url: window.location.href,
+                })}
+              />
+            )}
           <LineupRound lineup={lineup} onOpenPlayer={(player) => setSheetPlayerId(player.id)} />
         </>
       )}

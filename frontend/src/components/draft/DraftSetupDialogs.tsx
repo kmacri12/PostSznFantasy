@@ -14,6 +14,7 @@ import {
 import { useState } from "react";
 import { useDraftSetup } from "../../api/queries";
 import type { DraftState, DraftType, PickTimeoutAction } from "../../api/types";
+import { describeViewerZone, fromZonedInput, toZonedInput } from "../../utils/timeZone";
 import { mutationError } from "../common/friendlyError";
 
 export const PICK_SECONDS_MIN = 15;
@@ -26,18 +27,6 @@ export const parsePickSeconds = (text: string): number | null => {
   return value >= PICK_SECONDS_MIN && value <= PICK_SECONDS_MAX ? value : null;
 };
 
-const timeZoneName = (): string =>
-  new Intl.DateTimeFormat(undefined, { timeZoneName: "short" })
-    .formatToParts(new Date())
-    .find((part) => part.type === "timeZoneName")?.value ?? "";
-
-const toLocalInput = (iso: string | null): string => {
-  if (!iso) return "";
-  const date = new Date(iso);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
-};
-
 interface Props {
   draft: DraftState;
   open: boolean;
@@ -47,13 +36,11 @@ interface Props {
 /** Change the draft's date and time. */
 export const DraftDateDialog = ({ draft, open, onClose }: Props) => {
   const setup = useDraftSetup(draft.seasonId);
-  const [value, setValue] = useState(toLocalInput(draft.startTime));
+  const [value, setValue] = useState(toZonedInput(draft.startTime));
   const error = mutationError(setup.error, "Couldn't save the draft date. Try again.");
   const save = () =>
     setup.mutate(
-      value
-        ? { startTime: new Date(value).toISOString() }
-        : { clearStartTime: draft.startTime !== null },
+      value ? { startTime: fromZonedInput(value) } : { clearStartTime: draft.startTime !== null },
       { onSuccess: onClose },
     );
   return (
@@ -67,7 +54,7 @@ export const DraftDateDialog = ({ draft, open, onClose }: Props) => {
           fullWidth
           type="datetime-local"
           label="Draft date & time"
-          helperText={`In your time zone (${timeZoneName()}). Everyone else sees it in theirs.`}
+          helperText={`Times here are in ${describeViewerZone()}. Everyone else sees the same moment in their own time zone.`}
           slotProps={{ inputLabel: { shrink: true } }}
           value={value}
           onChange={(event) => setValue(event.target.value)}

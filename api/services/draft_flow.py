@@ -21,6 +21,7 @@ from api.models.activity_models import (
     DraftOrderSlot,
     DraftPickAssignedPayload,
     DraftStartedPayload,
+    DraftTimeSetPayload,
 )
 from api.models.draft_models import (
     DraftPickResponse,
@@ -233,8 +234,11 @@ async def _season_year(db: AsyncSession, season_id: int) -> int:
     return await db.scalar(select(Season.year).where(Season.id == season_id)) or 0
 
 
-async def apply_setup(db: AsyncSession, season_id: int, setup: DraftSetup) -> Draft:
+async def apply_setup(
+    db: AsyncSession, season_id: int, setup: DraftSetup, actor: activity.Actor
+) -> Draft:
     draft = await load_draft_for_update(db, season_id)
+    previous_start = draft.start_time
     if draft.status == DraftStatus.COMPLETED.value:
         raise DraftPickError("The draft is already complete")
     fields = setup.model_fields_set
@@ -259,6 +263,15 @@ async def apply_setup(db: AsyncSession, season_id: int, setup: DraftSetup) -> Dr
         draft.start_time = setup.start_time
         if draft.status == DraftStatus.UNSCHEDULED.value:
             draft.status = DraftStatus.SCHEDULED.value
+    if draft.start_time != previous_start:
+        await activity.append(
+            db,
+            season_id,
+            DraftTimeSetPayload(
+                start_time=draft.start_time, previous_start_time=previous_start
+            ),
+            actor=actor,
+        )
     await db.flush()
     return draft
 

@@ -1,5 +1,14 @@
 import type { ActivityEvent } from "../../api/types";
+import { formatInViewerZone } from "../../utils/timeZone";
 import { ROUND_LABELS } from "../team/lineup";
+
+const DRAFT_TIME_FORMAT: Intl.DateTimeFormatOptions = {
+  weekday: "short",
+  month: "short",
+  day: "numeric",
+  hour: "numeric",
+  minute: "2-digit",
+};
 
 export const formatWhen = (iso: string): string =>
   new Date(iso).toLocaleString(undefined, {
@@ -81,6 +90,14 @@ export const describeEvent = (event: ActivityEvent): string => {
       return `${who} started the draft`;
     case "draft_completed":
       return `The draft is complete after ${event.payload.picks} picks`;
+    case "draft_time_set": {
+      const { startTime, previousStartTime } = event.payload;
+      if (startTime === null) return `${who} cleared the draft time`;
+      const when = formatInViewerZone(startTime, DRAFT_TIME_FORMAT);
+      return previousStartTime === null
+        ? `${who} scheduled the draft for ${when}`
+        : `${who} moved the draft to ${when}`;
+    }
     case "draft_pick_assigned": {
       const { pickNumber, teamName, playerName, scheduled, replacedPlayerName } = event.payload;
       if (replacedPlayerName !== null)

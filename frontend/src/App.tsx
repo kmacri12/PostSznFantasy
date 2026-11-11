@@ -93,7 +93,7 @@ function App() {
         <FirstRunTour open={tourOpen} onOpenChange={setTourOpen} blocked={tourBlocked} />
       )}
       {!dormant && <NotificationOptIn hold={tourBlocked || tourHolds} />}
-      <Box component="main">
+      <Box component="main" id="main" tabIndex={-1} sx={{ outline: "none" }}>
         <Suspense
           fallback={
             <Container maxWidth="md" sx={{ py: 4 }}>

@@ -18,7 +18,8 @@ describe("LiveIndicator", () => {
   it("shows while a game is live", () => {
     useStandings.mockReturnValue({ data: { gamesInProgress: 2 }, dataUpdatedAt: Date.now() });
     render(<LiveIndicator seasonId={1} />);
-    expect(screen.getByRole("status")).toHaveTextContent(/Live, updated \d+s ago/);
+    expect(screen.getByText(/Live, updated \d+s ago/)).toBeInTheDocument();
+    expect(screen.queryByRole("status")).toBeNull();
   });
 
   it("is absent when no game is live", () => {

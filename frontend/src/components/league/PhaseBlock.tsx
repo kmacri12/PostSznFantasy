@@ -5,6 +5,9 @@ import { useDraft, useStandings } from "../../api/queries";
 import type { SeasonOverview, Standings } from "../../api/types";
 import { useSeasonContext } from "../../contexts/SeasonContext";
 import { tokens } from "../../theme";
+import { draftCalendarEvent, lockCalendarEvent } from "../../utils/calendar";
+import { formatInViewerZone } from "../../utils/timeZone";
+import AddToCalendar from "../common/AddToCalendar";
 import { ROUND_LABELS } from "../team/lineup";
 import { formatCountdown, formatDraftTime, ordinal, useNow } from "./countdown";
 import InviteLinkButton from "./InviteLinkButton";
@@ -116,6 +119,19 @@ const DraftBlock = ({ season }: { season: SeasonOverview }) => {
             : "Waiting for your commissioner to start it."}
         </Detail>
       )}
+      {countingDown && startTime && (
+        <Box sx={{ display: "flex", mt: 1 }}>
+          <AddToCalendar
+            event={draftCalendarEvent({
+              seasonId: season.id,
+              leagueName: season.leagueName,
+              start: startTime,
+              url: `${window.location.origin}${paths.draft}`,
+            })}
+            filename="draft.ics"
+          />
+        </Box>
+      )}
       <Action to={paths.draft}>
         {awaitingStart && season.canCommission ? "Start the draft" : "Enter draft"}
       </Action>
@@ -131,16 +147,31 @@ const LineupBlock = ({
   firstKickoff: string;
 }) => {
   const { paths } = useSeasonContext();
-  const locks = new Date(firstKickoff).toLocaleString(undefined, {
+  const locks = formatInViewerZone(firstKickoff, {
     weekday: "short",
     hour: "numeric",
     minute: "2-digit",
-    timeZoneName: "short",
   });
   return (
     <Block>
       <Title>Set your lineup</Title>
       <Detail>First lock: {locks}. Each player locks at their own kickoff.</Detail>
+      {Date.parse(firstKickoff) > Date.now() && (
+        <Box sx={{ display: "flex", mt: 1 }}>
+          <AddToCalendar
+            label="Add first lock to calendar"
+            event={lockCalendarEvent({
+              seasonId: season.id,
+              round: 1,
+              roundLabel: ROUND_LABELS[1] ?? "Wild Card",
+              leagueName: season.leagueName,
+              start: firstKickoff,
+              url: `${window.location.origin}${season.myTeamId !== null ? paths.team(season.myTeamId) : paths.home}`,
+            })}
+            filename="first-lock.ics"
+          />
+        </Box>
+      )}
       {season.myTeamId !== null && <Action to={paths.team(season.myTeamId)}>Open my team</Action>}
     </Block>
   );

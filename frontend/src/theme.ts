@@ -172,15 +172,15 @@ export const glassCard = {
   borderRadius: `${radii.card}px`,
 };
 
-// Playwright cannot tell a mid-animation element from a settled one, so the e2e build makes every
-// transition instant: dialogs, drawers and accordions are final as soon as React renders them.
-const instantMotion = E2E_BUILD;
-
-/** MUI computes hover and disabled shades from real colors, so the palette takes the raw hex. */
-export const createAppTheme = (mode: ThemeMode) => {
+/**
+ * MUI computes hover and disabled shades from real colors, so the palette takes the raw hex.
+ * `reducedMotion` (from `useReducedMotion`) makes every transition instant: dialogs, drawers and
+ * accordions are final as soon as React renders them, and CSS animations (skeleton pulse) stop.
+ */
+export const createAppTheme = (mode: ThemeMode, reducedMotion: boolean = E2E_BUILD) => {
   const raw = palettes[mode];
   return createTheme({
-    ...(instantMotion && {
+    ...(reducedMotion && {
       transitions: {
         duration: {
           shortest: 0,
@@ -197,6 +197,9 @@ export const createAppTheme = (mode: ThemeMode) => {
     }),
     palette: {
       mode,
+      // The ratio MUI needs before it puts white text on a filled Alert, Chip or Badge; its default
+      // of 3 put white on the dark-mode red (3.2:1).
+      contrastThreshold: 4.5,
       primary: { main: raw.accent, contrastText: mode === "dark" ? raw.accentInk : "#ffffff" },
       secondary: { main: raw.cyan },
       success: { main: raw.green },
@@ -218,7 +221,7 @@ export const createAppTheme = (mode: ThemeMode) => {
       button: { textTransform: "none", fontWeight: 600 },
     },
     components: {
-      ...(instantMotion && {
+      ...(reducedMotion && {
         MuiCssBaseline: {
           styleOverrides:
             "*, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }",

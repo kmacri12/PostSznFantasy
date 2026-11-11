@@ -1,5 +1,6 @@
 import { Alert } from "@mui/material";
 import type { DraftState } from "../../api/types";
+import { formatInViewerZone } from "../../utils/timeZone";
 
 const PRE_DRAFT = ["unscheduled", "scheduled", "lobby"];
 
@@ -15,11 +16,10 @@ const PreDraftNotice = ({ state }: { state: DraftState }) => {
       {state.draftCutoff && (
         <Alert severity="info" sx={{ mt: 2 }}>
           The draft must start before the first Wild Card kickoff,{" "}
-          {new Date(state.draftCutoff).toLocaleString([], {
+          {formatInViewerZone(state.draftCutoff, {
             weekday: "short",
             hour: "numeric",
             minute: "2-digit",
-            timeZoneName: "short",
           })}
           .
         </Alert>

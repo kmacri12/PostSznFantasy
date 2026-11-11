@@ -448,3 +448,14 @@ async def test_no_lock_reminder_outside_the_hour_before_kickoff(
     assert await send_lock_reminders(db, 2027, NOW) == 0
     assert await send_lock_reminders(db, 2027, NOW + timedelta(hours=4)) == 0
     assert sender.sent == []
+
+
+async def test_a_new_draft_time_pushes_without_the_time_itself(
+    db: AsyncSession, sender: FakeSender
+) -> None:
+    season, users, _, _ = await make_season(db, teams=2)
+    await _subscribe(db, users[1], CHROME + "dave")
+    await notifications.notify_draft_phase(db, season.id, "scheduled")
+    [(_, sent)] = sender.sent
+    assert sent.title == "The draft time is set"
+    assert sent.tag == f"draft-scheduled-{season.id}"
