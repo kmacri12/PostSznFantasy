@@ -2,7 +2,7 @@ import { SvgIcon, type SvgIconProps } from "@mui/material";
 import type { LeagueTabLabel } from "./leagueTabs";
 
 /** The stroke icons from the mockups; MUI's filled set does not match them. */
-const strokeIcon = (children: React.ReactNode) => (props: SvgIconProps) => (
+export const strokeIcon = (children: React.ReactNode) => (props: SvgIconProps) => (
   <SvgIcon
     {...props}
     // MUI's own `fill: currentColor` rule beats the attribute, so say it in the style.

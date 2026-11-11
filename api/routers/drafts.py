@@ -24,7 +24,7 @@ from api.models.draft_models import (
     QueueResponse,
     QueueUpdate,
 )
-from api.services import draft_flow, push
+from api.services import draft_flow, notifications, push
 from api.services.activity import Actor
 from api.services.draft_events import announce_events, pick_events, state_event
 from api.services.draft_picks import DraftPickError, PickResult, make_pick
@@ -158,7 +158,7 @@ async def control(
         raise _conflict(exc) from exc
     response = await _broadcast_state(db, draft, feed_event=action == "start")
     if action in PHASE_PUSHES:
-        push.spawn(push.notify_draft_phase, season_id, PHASE_PUSHES[action])
+        push.spawn(notifications.notify_draft_phase, season_id, PHASE_PUSHES[action])
     return response
 
 

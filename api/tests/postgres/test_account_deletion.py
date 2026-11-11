@@ -9,6 +9,7 @@ from api.core.config import get_settings
 from api.db.models import (
     LeagueMember,
     LeagueMessage,
+    Notification,
     PushSubscription,
     Team,
 )
@@ -55,6 +56,14 @@ async def test_deleting_wipes_the_person_and_keeps_the_leagues_history(
             body="hello",
         )
     )
+    db.add(
+        Notification(
+            user_id=member.id,
+            kind="draft_turn",
+            league_id=season.league_id,
+            payload={"seasonId": season.id},
+        )
+    )
     await db.flush()
 
     async with client_as("uid-1") as client:
@@ -67,6 +76,7 @@ async def test_deleting_wipes_the_person_and_keeps_the_leagues_history(
     assert (member.username, member.email) == ("Former member", None)
     assert member.supabase_uid != "uid-1"
     assert (await db.scalars(select(PushSubscription))).all() == []
+    assert (await db.scalars(select(Notification))).all() == []
     message = await db.scalar(select(LeagueMessage))
     assert message is not None
     assert message.author_name == "Former member"

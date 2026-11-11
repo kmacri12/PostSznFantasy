@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from api.db.models.draft import Draft
 from api.models.draft_models import DraftPickResponse
 from api.models.enums import DraftStatus
-from api.services import draft_flow, push
+from api.services import draft_flow, notifications, push
 from api.services.draft_picks import PickResult
 from api.ws.draft_manager import draft_manager
 from api.ws.feed_manager import announce_feed_change
@@ -59,4 +59,4 @@ async def announce_events(season_id: int, events: list[dict[str, Any]]) -> None:
         data: dict[str, Any] = event["data"]
         team_id = data["onTheClockTeamId"]
         if data["status"] == DraftStatus.IN_PROGRESS.value and team_id is not None:
-            push.spawn(push.notify_on_the_clock, season_id, team_id)
+            push.spawn(notifications.notify_on_the_clock, season_id, team_id)

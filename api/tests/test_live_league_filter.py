@@ -36,6 +36,7 @@ GUARDED_BY_CALLER = {
     "services/stat_corrections.py": "filtered through live_season_ids",
     "services/push.py": "filtered through live_season_ids",
     "services/lineup_reminders.py": "filtered through live_season_ids",
+    "services/notifications.py": "filtered through live_season_ids (moved from push.py)",
     "services/live_leagues.py": "the filter itself",
 }
 
