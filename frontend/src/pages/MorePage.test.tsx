@@ -84,6 +84,12 @@ describe("MorePage", () => {
     expect(screen.getByRole("textbox", { name: /What went wrong/ })).toBeInTheDocument();
   });
 
+  it("opens the feedback form from the Help group", () => {
+    renderMore();
+    fireEvent.click(screen.getByRole("button", { name: /Send feedback/ }));
+    expect(screen.getByRole("textbox", { name: "What was good?" })).toBeInTheDocument();
+  });
+
   it("offers Past seasons only when the league has any, and opens them in a sheet", () => {
     renderMore();
     fireEvent.click(screen.getByRole("button", { name: /Past seasons/ }));
