@@ -59,7 +59,7 @@ export function leagueTabs(league: LeagueByUser): LeagueTab[] {
     {
       label: "More",
       to: paths.more,
-      matches: (p) => page(p) === "/more",
+      matches: (p) => page(p) === "/more" || page(p) === "/how-to-play",
       dot: false,
       count: 0,
     },
