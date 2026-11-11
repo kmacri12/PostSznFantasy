@@ -46,6 +46,7 @@ const info = (myRole: LeagueInfo["myRole"]): LeagueInfo => ({
   id: 3,
   name: "Sunday League",
   notes: "House rules: no trading.",
+  announcement: null,
   myRole,
   currentSeasonId: 5,
   canStartSeason: false,

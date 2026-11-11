@@ -2,6 +2,7 @@ import { Alert, Box, Container, Typography } from "@mui/material";
 import { useLeagueInfo, useRecap } from "../api/queries";
 import type { SeasonOverview } from "../api/types";
 import DataFreshness from "../components/common/DataFreshness";
+import AnnouncementCard from "../components/league/AnnouncementCard";
 import LeagueNotes from "../components/league/LeagueNotes";
 import PhaseBlock from "../components/league/PhaseBlock";
 import RoundWinToast from "../components/league/RoundWinToast";
@@ -57,6 +58,7 @@ const LeagueContent = () => {
           </Box>
         )}
         <SeasonNotices season={season} />
+        {info && info.currentSeasonId === seasonId && <AnnouncementCard league={info} />}
         {season.finished ? (
           recap && (
             <SeasonRecap

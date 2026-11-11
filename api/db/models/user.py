@@ -62,6 +62,10 @@ class User(Base):
     push_mentions: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=True, server_default=true()
     )
+    # A commissioner's pinned announcement (#403), when they chose to push it.
+    push_announcements: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True, server_default=true()
+    )
     # No player-alert pushes between 11pm and 7am in `timezone` (an IANA name the
     # browser reports when the member turns this on).
     quiet_hours: Mapped[bool] = mapped_column(

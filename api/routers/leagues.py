@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from api.core.config import get_settings
-from api.core.rate_limit import CreateLeagueLimit
+from api.core.rate_limit import AnnouncementLimit, CreateLeagueLimit
 from api.db.models.draft import Draft
 from api.db.models.league import (
     League,
@@ -28,6 +28,7 @@ from api.dependencies.league import (
 from api.models.activity_models import LeagueCreatedPayload, MembershipJoinedPayload
 from api.models.enums import DraftStatus, DraftType, LeagueRole
 from api.models.league_models import (
+    AnnouncementUpdate,
     LeagueCreate,
     LeagueCreateResponse,
     LeagueDelete,
@@ -39,7 +40,7 @@ from api.models.league_models import (
     ScoringSettings,
     SeasonSummary,
 )
-from api.services import activity
+from api.services import activity, announcements, notifications, push
 from api.services.activity import new_activity_counts
 from api.services.avatars import avatar_url
 from api.services.draft_picks import DraftPickError
@@ -61,6 +62,7 @@ from api.services.seasons import (
     start_season,
 )
 from api.ws.disconnect import close_league_sockets
+from api.ws.feed_manager import announce_feed_change
 
 router = APIRouter()
 
@@ -316,6 +318,7 @@ async def _league_overview(
         name=league.name,
         avatar_url=avatar_url(league.avatar_key),
         notes=league.notes,
+        announcement=await announcements.current(db, league),
         my_role=LeagueRole(role),
         current_season_id=season.id,
         can_start_season=await can_start_season(db, season, today),
@@ -376,6 +379,44 @@ async def update_league(
     if payload.notes is not None:
         membership.league.notes = payload.notes
     await db.flush()
+    return await get_league(league_id, membership, db, today)
+
+
+@router.put("/{league_id}/announcement", response_model=LeagueOverview)
+async def pin_announcement(
+    league_id: int,
+    payload: AnnouncementUpdate,
+    membership: LeagueCommissioner,
+    db: DbSession,
+    today: Today,
+    _: AnnouncementLimit,
+) -> LeagueOverview:
+    """Pin an announcement on the league home (replacing the last one) and post it to
+    the feed; `push` also notifies the other members who allow it."""
+    season_id = await announcements.pin(
+        db, membership.league, membership.user, payload.body
+    )
+    overview = await get_league(league_id, membership, db, today)
+    if season_id is not None:
+        await db.commit()
+        await announce_feed_change(season_id, "event")
+        if payload.push:
+            push.spawn(
+                notifications.notify_announcement,
+                league_id,
+                season_id,
+                membership.user.id,
+                payload.body,
+            )
+    return overview
+
+
+@router.delete("/{league_id}/announcement", response_model=LeagueOverview)
+async def unpin_announcement(
+    league_id: int, membership: LeagueCommissioner, db: DbSession, today: Today
+) -> LeagueOverview:
+    """Take the pinned announcement down; its feed event stays."""
+    await announcements.unpin(db, membership.league)
     return await get_league(league_id, membership, db, today)
 
 
