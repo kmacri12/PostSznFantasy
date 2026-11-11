@@ -110,6 +110,8 @@ EXPECTED: dict[str, Policy] = {
     "GET /api/leagues/{league_id}/invite": COMMISSIONER,
     "POST /api/leagues/{league_id}/invite": COMMISSIONER,
     "DELETE /api/leagues/{league_id}/invite": COMMISSIONER,
+    "PUT /api/leagues/{league_id}/announcement": COMMISSIONER,
+    "DELETE /api/leagues/{league_id}/announcement": COMMISSIONER,
     "PATCH /api/leagues/{league_id}/members/{user_id}": COMMISSIONER,
     "DELETE /api/leagues/{league_id}/members/{user_id}": MEMBER_REMOVAL,
     "GET /api/leagues/{league_id}/seasons": LEAGUE_MEMBER,
