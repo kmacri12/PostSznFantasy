@@ -20,6 +20,7 @@ vi.mock("../api/queries", () => ({
   useRegenerateInvite: () => ({ mutate: vi.fn(), isPending: false }),
   useRevokeInvite: () => ({ mutate: vi.fn(), isPending: false }),
   useReportProblem: () => ({ mutate: vi.fn(), isPending: false, isError: false, error: null }),
+  useSendFeedback: () => ({ mutate: vi.fn(), isPending: false, isError: false, error: null }),
   useApiVersion: () => ({ data: null }),
   useFeatures: () => ({ bracket: mocks.bracket }),
 }));
