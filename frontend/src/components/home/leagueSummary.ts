@@ -1,4 +1,5 @@
 import type { DraftStatus, LeagueByUser, Standings } from "../../api/types";
+import { formatInViewerZone } from "../../utils/timeZone";
 
 const ROUND_NAMES = ["Wild Card", "Divisional", "Conference Championship", "Super Bowl"];
 
@@ -9,11 +10,7 @@ export const ordinal = (n: number): string => {
 };
 
 const draftDate = (iso: string): string =>
-  new Date(iso).toLocaleString(undefined, {
-    weekday: "short",
-    hour: "numeric",
-    minute: "2-digit",
-  });
+  formatInViewerZone(iso, { weekday: "short", hour: "numeric", minute: "2-digit" });
 
 export interface PhaseTag {
   label: string;

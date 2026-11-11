@@ -201,7 +201,7 @@ async def notify_on_the_clock(db: AsyncSession, season_id: int, team_id: int) ->
 
 
 async def notify_draft_phase(
-    db: AsyncSession, season_id: int, phase: Literal["lobby", "started"]
+    db: AsyncSession, season_id: int, phase: Literal["lobby", "started", "scheduled"]
 ) -> None:
     """Tell every active member the draft lobby is open or the draft has started."""
     if not get_settings().push_enabled:
@@ -209,6 +209,11 @@ async def notify_draft_phase(
     title, body = {
         "lobby": ("The draft lobby is open", "Head in before it starts."),
         "started": ("The draft has started", "Your commissioner started the draft."),
+        # The server doesn't know each member's zone, so the time itself stays in the app.
+        "scheduled": (
+            "The draft time is set",
+            "Open the app to see it in your time zone.",
+        ),
     }[phase]
     await _notify_league_members(db, season_id, title, body, f"draft-{phase}", "high")
 

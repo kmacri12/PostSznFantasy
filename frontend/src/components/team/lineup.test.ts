@@ -55,7 +55,7 @@ describe("defaultRound", () => {
 describe("formatKickoff", () => {
   it("is the day and time of the game, never the word kickoff", () => {
     const text = formatKickoff("2026-01-11T23:30:00Z");
-    expect(text).toMatch(/^[A-Z][a-z]{2} \d{1,2}:\d{2}( [ap]m)?$/);
+    expect(text).toMatch(/^[A-Z][a-z]{2} \d{1,2}:\d{2}( [ap]m)? \S+$/);
     expect(text.toLowerCase()).not.toContain("kickoff");
   });
 });
