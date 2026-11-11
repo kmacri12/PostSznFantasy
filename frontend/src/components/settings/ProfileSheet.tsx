@@ -7,6 +7,7 @@ import { nameProblem } from "../../utils/displayName";
 import AvatarSheet from "../avatar/AvatarSheet";
 import { mutationError } from "../common/friendlyError";
 import PictureAvatar from "../common/PictureAvatar";
+import AccountSheet from "./AccountSheet";
 import DeleteAccountDialog from "./DeleteAccountDialog";
 import EditTextSheet from "./EditTextSheet";
 import NotificationsToggle from "./NotificationsToggle";
@@ -26,9 +27,11 @@ const ProfileSheet = ({ user, onSignOut, onClose }: Props) => {
   const { updateDisplayName, avatarUrl, setAvatarUrl, username } = useUser();
   const picture = useSetAvatar({ kind: "me" });
   const [name, setName] = useState(username ?? "");
-  const [editing, setEditing] = useState<"name" | "picture" | null>(null);
+  const [editing, setEditing] = useState<"name" | "picture" | "account" | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  if (editing === "account") return <AccountSheet onClose={() => setEditing(null)} />;
 
   if (editing === "picture") {
     return (
@@ -81,7 +84,11 @@ const ProfileSheet = ({ user, onSignOut, onClose }: Props) => {
           onClick={() => setEditing("picture")}
         />
         <SettingsRow label="Display name" value={name} onClick={() => setEditing("name")} />
-        {user.email && <SettingsRow label="Email" value={user.email} />}
+        <SettingsRow
+          label="Account"
+          value={user.email ?? "Email, devices, your data"}
+          onClick={() => setEditing("account")}
+        />
         <ThemeModeRow />
         <NotificationsToggle />
         <SettingsRow

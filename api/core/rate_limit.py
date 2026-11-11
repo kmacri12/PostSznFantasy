@@ -131,6 +131,11 @@ LOGIN = RateLimiter(
     "Too many sign-in requests. Try again in a minute.",
     (30, MINUTE),
 )
+DATA_EXPORT = RateLimiter(
+    "data-export",
+    "You've downloaded your data several times this hour. Try again later.",
+    (3, HOUR),
+)
 
 ChatLimit = Annotated[None, Depends(per_user(CHAT))]
 ReactionLimit = Annotated[None, Depends(per_user(REACTION))]
@@ -138,6 +143,7 @@ CreateLeagueLimit = Annotated[None, Depends(per_user(CREATE_LEAGUE))]
 JoinLimit = Annotated[None, Depends(per_user(JOIN))]
 AvatarLimit = Annotated[None, Depends(per_user(AVATAR))]
 InvitePreviewLimit = Annotated[None, Depends(per_ip(INVITE_PREVIEW))]
+DataExportLimit = Annotated[None, Depends(per_user(DATA_EXPORT))]
 LoginLimit = Annotated[None, Depends(per_user(LOGIN))]
 
 

@@ -4,6 +4,8 @@ About 2 minutes, only when someone cannot use the app to do it themselves. Issue
 
 Members delete their own account in the app: tap the profile picture, scroll to the **Danger zone**, tap **Delete my account** and type DELETE to confirm. The Privacy Policy promises the same, and promises an answer to `support@postsznfantasy.com` within 30 days.
 
+A member can also download everything we hold about them before deleting: profile sheet, **Account**, **Download my data** (`GET /api/account/export`, #405: profile, memberships, teams, chat they wrote, device names; never push keys or other members' data; 3 downloads an hour). For a privacy request from someone who cannot sign in, run the same query by user id in the database. Deleting also clears the saved time zone and clock.
+
 ## One-time setup and live test
 
 1. Deleting accounts needs the same secret as pictures. If Step 20 is done, nothing to do; otherwise:
