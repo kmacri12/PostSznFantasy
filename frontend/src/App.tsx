@@ -120,6 +120,7 @@ function App() {
                   <Route path="draft/board" element={<DraftBoardPage />} />
                   <Route path="feed" element={<FeedPage />} />
                   <Route path="more" element={<MorePage />} />
+                  <Route path="how-to-play" element={<HowToPlayPage />} />
                   <Route path="teams/:teamId" element={<TeamPage />} />
                 </Route>
               ))}

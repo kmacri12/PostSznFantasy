@@ -15,6 +15,7 @@ export const seasonPaths = (leagueId: Id, year: Id, current: boolean) => {
     draftBoard: `${home}/draft/board`,
     feed: `${home}/feed`,
     more: `${home}/more`,
+    howToPlay: `${home}/how-to-play`,
     team: (teamId: Id) => `${home}/teams/${teamId}`,
   };
 };

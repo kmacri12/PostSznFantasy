@@ -5,6 +5,7 @@ const SECTIONS: [RegExp, string][] = [
   [/^\/draft$/, "Draft"],
   [/^\/feed$/, "Feed"],
   [/^\/more$/, "More"],
+  [/^\/how-to-play$/, "How to play"],
   [/^\/settings$/, "League settings"],
   [/^\/teams\/\d+$/, "Team"],
   [/^$/, "Standings"],

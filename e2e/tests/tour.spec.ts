@@ -66,13 +66,15 @@ test.describe("first-run tour", () => {
     await page.getByRole("button", { name: "Skip" }).click();
 
     await page.goto("/how-to-play");
-    const inline = page.getByRole("region", { name: TOUR });
+    await expect(page.getByRole("region", { name: TOUR })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "The four rounds", exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "Take the tour", exact: true }).click();
+    const howTo = page.getByRole("dialog", { name: TOUR });
     await expect(
-      inline.getByRole("heading", { name: "Fantasy for the playoffs only" }),
+      howTo.getByRole("heading", { name: "Fantasy for the playoffs only" }),
     ).toBeVisible();
-    await inline.getByRole("button", { name: "Next" }).click();
-    await expect(inline.getByRole("heading", { name: "Draft once" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "The four rounds" })).toBeVisible();
+    await howTo.getByRole("button", { name: "Next" }).click();
+    await expect(howTo.getByRole("heading", { name: "Draft once" })).toBeVisible();
   });
 
   test("a signed-out invite visitor can watch it before signing in", async ({ page, request }) => {
