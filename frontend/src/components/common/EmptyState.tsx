@@ -1,15 +1,19 @@
 import { Paper, Typography } from "@mui/material";
 import type { ReactNode } from "react";
+import Illustration, { type IllustrationName } from "./Illustration";
 
 interface EmptyStateProps {
   title: string;
   description?: string;
-  /** The next step, e.g. a button or link. */
+  /** A small drawing above the title. */
+  illustration?: IllustrationName;
+  /** The one next step, e.g. a button or link. */
   action?: ReactNode;
 }
 
-const EmptyState = ({ title, description, action }: EmptyStateProps) => (
+const EmptyState = ({ title, description, illustration, action }: EmptyStateProps) => (
   <Paper sx={{ p: { xs: 3, sm: 4 }, textAlign: "center" }}>
+    {illustration && <Illustration name={illustration} />}
     <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
       {title}
     </Typography>

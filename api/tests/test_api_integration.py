@@ -21,7 +21,7 @@ async def test_auth_login_create_and_sync(
 
     # 1. First login inserts the user (Postgres reports xmax = 0 for fresh rows)
     mock_db_session.execute.return_value = MagicMock(
-        one=lambda: (42, None, True, "playmaker")
+        one=lambda: (42, None, True, "playmaker", None, None)
     )
     response = await async_client.post(
         "/api/auth/login",
@@ -35,11 +35,13 @@ async def test_auth_login_create_and_sync(
         "avatarUrl": None,
         "username": "playmaker",
         "namePrompt": True,
+        "displayTimeZone": None,
+        "hourCycle": None,
     }
 
     # 2. Later logins hit the conflict branch of the same statement
     mock_db_session.execute.return_value = MagicMock(
-        one=lambda: (42, None, False, "playmaker")
+        one=lambda: (42, None, False, "playmaker", None, None)
     )
     response2 = await async_client.post(
         "/api/auth/login",
@@ -53,6 +55,8 @@ async def test_auth_login_create_and_sync(
         "avatarUrl": None,
         "username": "playmaker",
         "namePrompt": False,
+        "displayTimeZone": None,
+        "hourCycle": None,
     }
 
 
@@ -61,7 +65,7 @@ async def test_auth_login_without_profile_fields(
     async_client: AsyncClient, mock_db_session: AsyncMock
 ) -> None:
     mock_db_session.execute.return_value = MagicMock(
-        one=lambda: (7, None, False, "user_test-sup")
+        one=lambda: (7, None, False, "user_test-sup", None, None)
     )
     response = await async_client.post("/api/auth/login", json={})
     assert response.status_code == 200
@@ -74,7 +78,7 @@ async def test_auth_login_email_conflict_signs_in_without_email(
 ) -> None:
     mock_db_session.execute.side_effect = [
         IntegrityError("stmt", {}, Exception("dup")),
-        MagicMock(one=lambda: (9, None, True, "x")),
+        MagicMock(one=lambda: (9, None, True, "x", None, None)),
     ]
     response = await async_client.post("/api/auth/login", json={})
     assert response.status_code == 200

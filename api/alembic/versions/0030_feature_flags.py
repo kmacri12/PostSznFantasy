@@ -3,8 +3,8 @@
 Owner kill switches (#393): one row per flag that was flipped; a missing row means
 the flag's default.
 
-Revision ID: 0029_feature_flags
-Revises: 0028_chat_polish
+Revision ID: 0030_feature_flags
+Revises: 0029_account_center
 Create Date: 2026-11-11 18:00:00
 
 """
@@ -15,8 +15,8 @@ import sqlalchemy as sa
 
 from alembic import op
 
-revision: str = "0029_feature_flags"
-down_revision: str | Sequence[str] | None = "0028_chat_polish"
+revision: str = "0030_feature_flags"
+down_revision: str | Sequence[str] | None = "0029_account_center"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

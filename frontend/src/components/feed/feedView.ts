@@ -1,4 +1,5 @@
 import type { FeedEventItem, FeedItem, FeedMessageItem, MessageReaction } from "../../api/types";
+import { formatPlainInViewerZone } from "../../utils/timeZone";
 import { describeEvent, detailLines } from "../activity/describe";
 
 export const itemKey = (item: FeedItem): string => `${item.type}-${item.id}`;
@@ -10,16 +11,17 @@ export type TimelineRow =
   | { type: "message"; key: string; item: FeedMessageItem };
 
 const dayLabel = (iso: string): string =>
-  new Date(iso).toLocaleDateString(undefined, {
+  formatPlainInViewerZone(iso, {
     weekday: "short",
     month: "short",
     day: "numeric",
   });
 
 export const timeLabel = (iso: string): string =>
-  new Date(iso)
-    .toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })
-    .replace(/\s?([AP])M$/i, (_, half: string) => ` ${half.toLowerCase()}m`);
+  formatPlainInViewerZone(iso, { hour: "numeric", minute: "2-digit" }).replace(
+    /\s?([AP])M$/i,
+    (_, half: string) => ` ${half.toLowerCase()}m`,
+  );
 
 /**
  * The feed as the screen draws it: oldest first so the newest sits above the message box,

@@ -9,7 +9,11 @@ from jwt.exceptions import PyJWKClientError
 from pydantic import ValidationError
 
 from api.core.config import Settings
-from api.dependencies.auth import get_current_user, get_token_email
+from api.dependencies.auth import (
+    get_current_user,
+    get_token_email,
+    get_token_providers,
+)
 
 
 @pytest.fixture
@@ -117,6 +121,36 @@ async def test_token_email_is_read_from_the_verified_claims_and_lowercased(
         )
         creds = HTTPAuthorizationCredentials(scheme="Bearer", credentials=token)
         assert await get_token_email(creds) == "pat@example.com"
+    get_settings.cache_clear()
+
+
+@pytest.mark.asyncio
+async def test_token_providers_come_from_the_verified_app_metadata(
+    monkeypatch: pytest.MonkeyPatch,
+    ec_key_pair: tuple[ec.EllipticCurvePrivateKey, ec.EllipticCurvePublicKey],
+) -> None:
+    private_key, public_key = ec_key_pair
+    monkeypatch.setenv("PG_HOST", "localhost")
+    monkeypatch.setenv("SUPABASE_URL", "https://xyzcompany.supabase.co")
+    from api.core.config import get_settings
+
+    get_settings.cache_clear()
+    token = jwt.encode(
+        {
+            "sub": "u",
+            "aud": "authenticated",
+            "app_metadata": {"provider": "google", "providers": ["google", "email"]},
+        },
+        private_key,
+        algorithm="ES256",
+        headers={"kid": "k"},
+    )
+    with patch("api.dependencies.auth._get_jwk_client") as mock_get_client:
+        mock_get_client.return_value.get_signing_key_from_jwt.return_value = MagicMock(
+            key=public_key
+        )
+        creds = HTTPAuthorizationCredentials(scheme="Bearer", credentials=token)
+        assert await get_token_providers(creds) == ("google", "email")
     get_settings.cache_clear()
 
 

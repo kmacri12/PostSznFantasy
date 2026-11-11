@@ -18,7 +18,11 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
 from api.db.models import Base
 from api.db.session import get_db
-from api.dependencies.auth import get_current_user, get_token_email
+from api.dependencies.auth import (
+    get_current_user,
+    get_token_email,
+    get_token_providers,
+)
 from api.dependencies.clock import get_today
 from api.main import app
 
@@ -83,9 +87,12 @@ async def client_as(db: AsyncSession) -> AsyncGenerator[ClientFactory]:
     app.dependency_overrides[get_db] = override_db
     app.dependency_overrides[get_today] = lambda: TEST_TODAY
 
-    def build(uid: str, email: str | None = None) -> AsyncClient:
+    def build(
+        uid: str, email: str | None = None, providers: tuple[str, ...] = ()
+    ) -> AsyncClient:
         app.dependency_overrides[get_current_user] = lambda: uid
         app.dependency_overrides[get_token_email] = lambda: email
+        app.dependency_overrides[get_token_providers] = lambda: providers
         return AsyncClient(transport=ASGITransport(app=app), base_url="http://test")
 
     yield build
