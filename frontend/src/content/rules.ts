@@ -397,6 +397,13 @@ export const offlineDataNote = (time: string | null): string =>
 export const UPDATE_AVAILABLE = "Update available, tap to refresh";
 export const UPDATE_OUTDATED = "PostSzn has been updated. Please refresh to keep going.";
 export const UPDATE_REFRESH = "Refresh";
+export const UPDATE_AVAILABLE_TITLE = "A new version of PostSzn is available";
+export const ROUTE_ERROR_GENERIC_TITLE = "Something went wrong";
+export const ROUTE_ERROR_GENERIC_BODY = "This page hit a problem. Try again, or head back home.";
+export const ROUTE_ERROR_RETRY = "Try again";
+export const ROUTE_ERROR_RETRY_TITLE = "PostSzn still can't load this page";
+export const ROUTE_ERROR_RETRY_BODY = "Check your connection, then try again in a moment.";
+export const ROUTE_ERROR_HOME = "Go home";
 
 export const INSTALL_LABEL = "Install the app";
 export const INSTALL_HINT = "Add PostSzn to your Home Screen";
