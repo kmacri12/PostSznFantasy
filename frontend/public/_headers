@@ -20,6 +20,10 @@
 /sw.js
   Cache-Control: no-cache
 
+# The build's own timestamp; an open tab compares it with its own to offer an update.
+/version.json
+  Cache-Control: no-cache
+
 # Read by scripts/dormancy-check.sh; must never be served stale.
 /status.json
   Cache-Control: no-cache

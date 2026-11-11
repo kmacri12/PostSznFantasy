@@ -52,10 +52,30 @@ function statusFile(): Plugin {
   };
 }
 
+// Epoch seconds, so builds are ordered: an open tab compares it with /version.json, and the API's
+// MIN_APP_VERSION refuses older ones (utils/appVersion.ts).
+const BUILD_TIME = Math.floor(Date.now() / 1000);
+
+function versionFile(): Plugin {
+  return {
+    name: "version-file",
+    apply: "build",
+    generateBundle() {
+      this.emitFile({
+        type: "asset",
+        fileName: "version.json",
+        source: JSON.stringify({ builtAt: BUILD_TIME }),
+      });
+    },
+  };
+}
+
 // https://vitejs.dev/config/
-export default defineConfig({
-  plugins: [react(), requireProductionEnv(), statusFile()],
+export default defineConfig(({ command }) => ({
+  plugins: [react(), requireProductionEnv(), statusFile(), versionFile()],
   define: {
+    // 0 in the dev server, which has no /version.json and sends no X-App-Version.
+    __BUILD_TIME__: JSON.stringify(command === "build" ? BUILD_TIME : 0),
     // The commit this bundle was built from (Cloudflare Pages or GitHub Actions), for support reports.
     __WEB_VERSION__: JSON.stringify(
       process.env.CF_PAGES_COMMIT_SHA ?? process.env.GITHUB_SHA ?? "",
@@ -95,4 +115,4 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: "./src/test/setup.ts",
   },
-});
+}));

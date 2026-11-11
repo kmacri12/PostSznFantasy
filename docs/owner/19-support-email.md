@@ -2,7 +2,7 @@
 
 20 minutes. Issue #296. Needs Step 6 (the API on Fly), Step 3 (the domain on Cloudflare) and Step 9 (Resend with `postsznfantasy.com` verified). [Back to the list](README.md)
 
-More, **Report a problem** emails what a member writes, their screenshots and (optionally) diagnostic info to `support@postsznfantasy.com`. The reply-to is the member's account email, so you answer from your inbox. Nothing is stored by the app. Without the two Fly secrets below the row still shows, but sending says problem reports are not set up yet.
+More, **Report a problem** emails what a member writes, their screenshots and (optionally) diagnostic info to `support@postsznfantasy.com`. The reply-to is the member's account email, so you answer from your inbox. Nothing is stored by the app. More, **Send feedback** (an optional 1 to 5 rating plus "what was good" and "what was bad") uses the same two secrets and arrives in the same inbox as `[PostSzn feedback] 4/5`, with no name, email or id and no reply-to (#410); it has its own limit of 5 an hour per member. Without the two Fly secrets below the row still shows, but sending says problem reports are not set up yet.
 
 Resend's free plan is **100 emails a day, shared with sign-in codes** (Step 9). The app lets each member send 5 reports an hour; on a busy launch day watch the Resend dashboard, **Emails**, for the count.
 

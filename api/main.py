@@ -12,6 +12,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
+from api.core.app_version import AppVersionMiddleware
 from api.core.body_limit import BodyLimitMiddleware
 from api.core.config import get_settings
 from api.core.logging import RequestLoggingMiddleware, setup_logging
@@ -34,6 +35,7 @@ from api.routers import (
     support,
     teams,
 )
+from api.services import feature_flags
 from api.services.draft_clock import run_draft_clock
 from api.services.ingestion.guard import IngestionBusy
 from api.services.live_leagues import LeagueDeletedError
@@ -103,12 +105,15 @@ app = FastAPI(
     **docs_urls(get_settings().environment),
 )
 
+# Added before CORS so it sits inside it: a 426 then still carries the CORS headers the SPA
+# needs to read it.
+app.add_middleware(AppVersionMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=get_settings().cors_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type"],
+    allow_headers=["Authorization", "Content-Type", "X-App-Version"],
     # The support report quotes the id of a failed request so its log line can be found.
     expose_headers=["X-Request-ID"],
 )
@@ -176,6 +181,12 @@ app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
 async def public_config() -> dict[str, int]:
     """Single source of truth for values the frontend must not hardcode."""
     return {"season": get_settings().season_year}
+
+
+@app.get("/api/features", tags=["config"])
+async def public_features(db: DbSession) -> dict[str, bool]:
+    """The owner's kill switches (`fantasy.feature_flags`); the SPA hides what is off."""
+    return await feature_flags.all_flags(db)
 
 
 # HEAD because UptimeRobot's free plan cannot send GET.

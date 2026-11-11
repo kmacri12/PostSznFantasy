@@ -110,7 +110,14 @@ const OptInSheet = ({ onClose }: SheetProps) => {
  * signing in and right after joining a league. Creating a league never triggers it, and the
  * device's two-prompt cap (utils/notificationPrompt.ts) is enforced before anything opens.
  */
-const NotificationOptIn = ({ hold = false }: { hold?: boolean }) => {
+const NotificationOptIn = ({
+  hold = false,
+  onActiveChange,
+}: {
+  hold?: boolean;
+  /** Lets the shell keep the install offer from opening on top of this sheet. */
+  onActiveChange?: (active: boolean) => void;
+}) => {
   const { userId } = useUser();
   const { pathname, state } = useLocation();
   const [pending, setPending] = useState(false);
@@ -150,6 +157,10 @@ const NotificationOptIn = ({ hold = false }: { hold?: boolean }) => {
   useEffect(() => {
     if (ready) setActive(true);
   }, [ready]);
+
+  useEffect(() => {
+    onActiveChange?.(active);
+  }, [active, onActiveChange]);
 
   // Not worth looking again this visit once the device cannot or may not be asked.
   useEffect(() => {

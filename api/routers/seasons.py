@@ -11,6 +11,7 @@ from api.db.models.league import LeagueMember as LeagueMemberRow
 from api.db.models.league import SeasonSettings, Team
 from api.db.session import DbSession
 from api.dependencies.league import SeasonCommissioner, SeasonMember
+from api.models.bracket_models import Bracket
 from api.models.enums import DraftStatus, LeagueRole
 from api.models.league_models import (
     SeasonOverview,
@@ -24,8 +25,10 @@ from api.models.league_models import (
     merged_roster_updates,
 )
 from api.models.recap_models import SeasonRecap
+from api.services import feature_flags
 from api.services.activity import Actor
 from api.services.avatars import avatar_url
+from api.services.bracket import build_bracket
 from api.services.league_admin import (
     ROSTER_LOCKED_FIELDS,
     draft_has_started,
@@ -45,6 +48,27 @@ from api.services.standings_view import season_standings
 from api.services.team_units import newly_enabled, require_no_same_team_conflicts
 
 router = APIRouter()
+
+
+@router.get("/{season_id}/bracket", response_model=Bracket)
+async def get_bracket(
+    season_id: int, membership: SeasonMember, db: DbSession
+) -> Bracket:
+    """The NFL playoff bracket with the caller's players in each game. Open to every
+    member before the draft; 404 while the owner's `bracket` flag is off."""
+    if not await feature_flags.is_enabled(db, feature_flags.BRACKET):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="The bracket is turned off"
+        )
+    settings = (
+        await db.execute(
+            select(SeasonSettings).where(SeasonSettings.season_id == season_id)
+        )
+    ).scalar_one()
+    team = membership.team
+    return await build_bracket(
+        db, membership.season.year, settings, team.id if team else None
+    )
 
 
 @router.get("/{season_id}", response_model=SeasonOverview)

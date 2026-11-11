@@ -39,6 +39,7 @@ class GameFacts:
     away_points: int | None
     in_progress: bool = False
     clock: str | None = None
+    game_id: str | None = None
 
     @property
     def state(self) -> GameState:
@@ -197,6 +198,7 @@ async def _read_games(db: AsyncSession, season: int) -> list[GameFacts]:
                 completed=game.game_status == GAME_COMPLETED,
                 in_progress=(game.game_status or "").startswith(GAME_LIVE_PREFIX),
                 clock=game.game_clock,
+                game_id=game.id,
                 home_points=game.home_pts,
                 away_points=game.away_pts,
             )

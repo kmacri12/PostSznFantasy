@@ -6,6 +6,7 @@ from api.db.models.activity import (
     MessageReaction,
 )
 from api.db.models.draft import Draft, DraftPick, DraftQueueItem
+from api.db.models.feature_flag import FeatureFlag
 from api.db.models.league import (
     League,
     LeagueInvite,
@@ -39,6 +40,7 @@ __all__ = [
     "Draft",
     "DraftPick",
     "DraftQueueItem",
+    "FeatureFlag",
     "IngestionStatus",
     "League",
     "LeagueInvite",

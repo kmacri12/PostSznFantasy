@@ -3,7 +3,9 @@ import { Api, seasonUrl, unique } from "../support/api";
 import { signInAs } from "../support/auth";
 
 const ownMessage = (page: Page, text: string) =>
-  page.getByRole("group", { name: "Message from You. Press Enter for actions." }).filter({ hasText: text });
+  page
+    .getByRole("group", { name: "Message from You. Press Enter for actions." })
+    .filter({ hasText: text });
 
 test.describe("the chat message menu", () => {
   test("right-click opens it: react, reply, edit and delete a message", async ({
@@ -17,7 +19,9 @@ test.describe("the chat message menu", () => {
     const guest = new Api(request, unique("chat-guest"));
     await guest.signUp("chatguest");
     await guest.joinWith(await host.invite(league));
-    await guest.post(`/api/seasons/${league.seasonId}/messages`, { body: "who has the first pick" });
+    await guest.post(`/api/seasons/${league.seasonId}/messages`, {
+      body: "who has the first pick",
+    });
     await signInAs(context, host.uid);
 
     await page.goto(seasonUrl(league, "/feed"));

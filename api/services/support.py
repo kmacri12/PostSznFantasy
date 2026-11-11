@@ -25,6 +25,7 @@ MAX_IMAGES = 5
 MAX_IMAGE_BYTES = 5 * 1024 * 1024
 MAX_TOTAL_IMAGE_BYTES = 15 * 1024 * 1024
 MAX_MESSAGE_CHARS = 5000
+MAX_FEEDBACK_CHARS = 2000
 MAX_DIAGNOSTICS_BYTES = 100 * 1024
 # Multipart framing and the text fields ride along with the images.
 REQUEST_OVERHEAD_BYTES = 512 * 1024
@@ -183,6 +184,9 @@ class RateLimiter:
 
 rate_limiter = RateLimiter(REPORTS_PER_HOUR, RATE_WINDOW_SECONDS)
 
+FEEDBACK_PER_HOUR = 5
+feedback_rate_limiter = RateLimiter(FEEDBACK_PER_HOUR, RATE_WINDOW_SECONDS)
+
 # Tests install httpx.MockTransport here so the real Resend is never called.
 _transport: httpx.AsyncBaseTransport | None = None
 
@@ -190,6 +194,27 @@ _transport: httpx.AsyncBaseTransport | None = None
 def subject_for(username: str, message: str) -> str:
     first_line = " ".join(message.split())[:70]
     return f"[PostSzn support] {username}: {first_line}"
+
+
+def feedback_subject(rating: int | None) -> str:
+    return (
+        f"[PostSzn feedback] {rating}/5" if rating else "[PostSzn feedback] no rating"
+    )
+
+
+def feedback_body(*, rating: int | None, good: str, bad: str) -> str:
+    """Anonymous on purpose: no name, email or ids, so it is safe to read in a group."""
+    return "\n".join(
+        [
+            f"Rating: {rating}/5" if rating else "Rating: none",
+            "",
+            "What was good:",
+            good or "(nothing written)",
+            "",
+            "What was bad:",
+            bad or "(nothing written)",
+        ]
+    )
 
 
 def body_for(

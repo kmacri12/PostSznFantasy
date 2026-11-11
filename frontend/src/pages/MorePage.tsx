@@ -2,17 +2,24 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import LocalCafeIcon from "@mui/icons-material/LocalCafe";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { Box, Container, Typography } from "@mui/material";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useState, useSyncExternalStore } from "react";
 import { Link } from "react-router-dom";
-import { useUserLeagues } from "../api/queries";
+import { useFeatures, useUserLeagues } from "../api/queries";
 import AppToast from "../components/common/AppToast";
+import InstallGuideSheet from "../components/install/InstallGuideSheet";
 import { draftStatusLine } from "../components/league/draftStatusLine";
 import InviteSheet from "../components/settings/InviteSheet";
 import PastSeasonsSheet from "../components/settings/PastSeasonsSheet";
+import FeedbackSheet from "../components/support/FeedbackSheet";
 import ReportProblemSheet from "../components/support/ReportProblemSheet";
 import TourDialog from "../components/tour/TourDialog";
 import {
+  FEEDBACK_HINT,
+  FEEDBACK_LABEL,
+  FEEDBACK_SENT,
   HOW_TO_PLAY_LABEL,
+  INSTALL_HINT,
+  INSTALL_LABEL,
   REPORT_PROBLEM_HINT,
   REPORT_PROBLEM_LABEL,
   REPORT_PROBLEM_SENT,
@@ -23,6 +30,7 @@ import {
 import { useSeasonContext } from "../contexts/SeasonContext";
 import { useUser } from "../contexts/UserContext";
 import { radii, tokens } from "../theme";
+import { installKind, subscribeInstall } from "../utils/install";
 
 const rowSx = {
   display: "flex",
@@ -104,10 +112,15 @@ const Group = ({ label, children }: { label: string; children: ReactNode }) => (
 const MorePage = () => {
   const { leagueId, season, paths } = useSeasonContext();
   const { signOutUser } = useUser();
+  const features = useFeatures();
   const league = useUserLeagues(true).data?.find((item) => item.id === leagueId);
   const pastSeasons = (league?.seasons ?? []).filter((item) => !item.current).reverse();
-  const [sheet, setSheet] = useState<"past" | "invite" | "report" | "tour" | null>(null);
-  const [sent, setSent] = useState(false);
+  const [sheet, setSheet] = useState<
+    "past" | "invite" | "report" | "feedback" | "tour" | "install" | null
+  >(null);
+  const [sent, setSent] = useState<string | null>(null);
+  const installed =
+    useSyncExternalStore(subscribeInstall, installKind, () => "desktop" as const) === "installed";
   const supportUrl = import.meta.env.VITE_SUPPORT_URL?.trim();
 
   return (
@@ -118,6 +131,9 @@ const MorePage = () => {
           title={season.draftStatus === "completed" ? "Players" : "Draft room and players"}
           hint={draftStatusLine(season)}
         />
+        {features.bracket && (
+          <Row to={paths.bracket} title="NFL bracket" hint="Who plays whom, and your players" />
+        )}
         <Row to={paths.draftBoard} title="Draft board" />
         {pastSeasons.length > 0 && (
           <Row
@@ -133,6 +149,9 @@ const MorePage = () => {
       <Group label="Help">
         <Row to={paths.howToPlay} title={HOW_TO_PLAY_LABEL} />
         <Row title={TOUR_LABEL} hint="A minute, in pictures" onClick={() => setSheet("tour")} />
+        {installed ? null : (
+          <Row title={INSTALL_LABEL} hint={INSTALL_HINT} onClick={() => setSheet("install")} />
+        )}
         {supportUrl && (
           <Row
             href={supportUrl}
@@ -141,6 +160,7 @@ const MorePage = () => {
             hint={SUPPORT_HINT}
           />
         )}
+        <Row title={FEEDBACK_LABEL} hint={FEEDBACK_HINT} onClick={() => setSheet("feedback")} />
         <Row
           title={REPORT_PROBLEM_LABEL}
           hint={REPORT_PROBLEM_HINT}
@@ -158,6 +178,7 @@ const MorePage = () => {
         </Box>
       </Group>
       {sheet === "tour" && <TourDialog onClose={() => setSheet(null)} />}
+      {sheet === "install" && <InstallGuideSheet onClose={() => setSheet(null)} />}
       {sheet === "past" && (
         <PastSeasonsSheet
           leagueId={leagueId}
@@ -171,15 +192,24 @@ const MorePage = () => {
           onClose={() => setSheet(null)}
           onSent={() => {
             setSheet(null);
-            setSent(true);
+            setSent(REPORT_PROBLEM_SENT);
+          }}
+        />
+      )}
+      {sheet === "feedback" && (
+        <FeedbackSheet
+          onClose={() => setSheet(null)}
+          onSent={() => {
+            setSheet(null);
+            setSent(FEEDBACK_SENT);
           }}
         />
       )}
       <AppToast
-        open={sent}
-        message={REPORT_PROBLEM_SENT}
+        open={sent !== null}
+        message={sent ?? ""}
         autoHideMs={6000}
-        onClose={() => setSent(false)}
+        onClose={() => setSent(null)}
       />
     </Container>
   );

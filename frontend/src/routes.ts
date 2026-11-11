@@ -13,6 +13,7 @@ export const seasonPaths = (leagueId: Id, year: Id, current: boolean) => {
     draft: `${home}/draft`,
     settings: `${home}/settings`,
     draftBoard: `${home}/draft/board`,
+    bracket: `${home}/bracket`,
     feed: `${home}/feed`,
     more: `${home}/more`,
     howToPlay: `${home}/how-to-play`,
