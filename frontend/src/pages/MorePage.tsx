@@ -131,7 +131,7 @@ const MorePage = () => {
         )}
       </Group>
       <Group label="Help">
-        <Row to="/how-to-play" title={HOW_TO_PLAY_LABEL} />
+        <Row to={paths.howToPlay} title={HOW_TO_PLAY_LABEL} />
         <Row title={TOUR_LABEL} hint="A minute, in pictures" onClick={() => setSheet("tour")} />
         {supportUrl && (
           <Row
