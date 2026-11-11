@@ -77,6 +77,8 @@ test.describe("draft room on a bad network", () => {
     await expect(page.getByText("You're on the clock")).toBeVisible();
 
     await draftFirst(page, "QB");
+    // Going offline with the pick request still in flight would drop it, not the connection under test.
+    await expect.poll(async () => (await league.state()).picks.length).toBe(1);
     for (const _ of [1, 2, 3]) {
       await context.setOffline(true);
       await dropSockets(page);
