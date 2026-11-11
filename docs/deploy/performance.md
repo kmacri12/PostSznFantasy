@@ -189,3 +189,21 @@ What changed:
 - `season_summaries` fetches a league's teams and draft statuses for all its seasons in two queries instead of two per season.
 
 Not done here: batching the league list across leagues (it is still one set of queries per league), memoizing the draft's best-available list per pick (it runs only when a pick timer expires), and the standings refresh after a lineup move. `GET /api/players/player-list` stays unpaged because the e2e replay suite reads every eliminated player from it; the SPA no longer calls it (the unused `usePlayerList` hook is removed).
+
+## Draft room load (issue #401)
+
+`python -m api.scripts.draft_load_test --base-url http://localhost:8190` drives 12 teams (one socket each) plus 18 watching sockets through a full draft against the seeded e2e database (start the API as in the script docstring: `ENVIRONMENT=test TEST_AUTH_STUB=true PLAYOFF_FIELD_SIZE=8`). Each team picks 2 seconds after it comes on the clock. It fails (exit 1) if a pick is lost, any socket misses or repeats a pick, or the draft does not finish. `.github/workflows/draft-load.yml` runs it nightly and puts the table in the run summary. The e2e pool has 8 NFL teams (64 players), so the draft is 2 rounds of RB and WR (24 picks); a larger pool would only lengthen it, since a pick is one row-locked transaction plus one broadcast.
+
+Measured 2026-11-11 on a 4-core dev machine with Postgres 16 on the same host (so network latency is zero; real phones add their own round trip):
+
+| Metric | Result |
+| :-- | --: |
+| Teams / sockets | 12 / 30 |
+| Picks recorded | 24 of 24 |
+| Wall time | 48.6 s (2.03 s per pick, 2 s think time) |
+| Picks a socket never received | 0 |
+| Picks a socket received twice | 0 |
+| Pick to last socket, median / p95 / max | 20 / 35 / 41 ms |
+| Errors from the server | 0 |
+
+Not measured here: throttled 3G or packet loss with 12 browsers (the Playwright `network-flap` specs cover offline and flapping connections for a few browsers; emulating 3G needs a Chromium CDP session and was left out), and real-phone sleep and wake.
