@@ -39,6 +39,7 @@ PostSznFantasy/
 ├── docker-compose.yml          # PostgreSQL 17 container definition
 ├── Makefile                    # Single entry point for setup, run, lint, test
 ├── README.md                   # System documentation & developer quickstart
+├── LICENSE                     # MIT
 ├── CONTRIBUTING.md             # Contribution guidelines, branching, & DoD
 ├── AGENTS.md                   # This agent operational playbook
 ├── ROADMAP.md                  # Active roadmap (phases 15+)
