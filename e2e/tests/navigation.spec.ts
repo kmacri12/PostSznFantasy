@@ -13,7 +13,10 @@ test("back closes an open sheet instead of leaving the page", async ({
   await signInAs(context, host.uid);
 
   await page.goto(seasonUrl(league));
-  await page.getByRole("navigation", { name: "League sections" }).getByRole("link", { name: "More" }).click();
+  await page
+    .getByRole("navigation", { name: "League sections" })
+    .getByRole("link", { name: "More" })
+    .click();
   await expect(page).toHaveURL(seasonUrl(league, "/more"));
 
   await page.getByRole("button", { name: /^Report a problem/ }).click();
