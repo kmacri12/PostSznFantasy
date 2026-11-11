@@ -1,8 +1,8 @@
 """Delete a member's account (#330): their identity goes, the leagues' history stays.
 
-The Supabase Auth user, push subscriptions and picture are deleted; the `users` row is
-kept as a "Former member" with no email so finished seasons, drafts and chat still
-make sense for everyone else. Names copied into chat messages and feed events are
+The Supabase Auth user, push subscriptions, notifications and picture are deleted; the
+`users` row is kept as a "Former member" with no email so finished seasons, drafts and
+chat still make sense for everyone else. Names copied into chat messages and feed events are
 overwritten. Encrypted database backups age out on their own schedule.
 """
 
@@ -20,7 +20,7 @@ from api.db.models.league import League, LeagueMember, Season, Team
 from api.db.models.push import PushSubscription
 from api.db.models.user import User
 from api.models.enums import LeagueRole
-from api.services import avatars
+from api.services import avatars, notifications
 from api.services.live_leagues import live_league_ids
 from api.services.round_status import season_is_finished
 
@@ -143,6 +143,7 @@ async def delete_account(db: AsyncSession, user: User) -> DeletionResult:
     await db.execute(
         delete(PushSubscription).where(PushSubscription.user_id == user.id)
     )
+    await notifications.delete_for_user(db, user.id)
     await avatars.clear_avatar(user)
     await db.execute(
         update(LeagueMessage)
