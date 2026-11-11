@@ -1,5 +1,6 @@
-import { Box, Button, Dialog, Typography, useMediaQuery, useTheme } from "@mui/material";
+import { Box, Button, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { TOUR_SKIP, TOUR_TITLE } from "../../content/rules";
+import Dialog from "../common/AppDialog";
 import TourViewer from "./TourViewer";
 
 interface Props {

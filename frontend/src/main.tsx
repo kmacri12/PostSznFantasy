@@ -1,7 +1,7 @@
 import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, RouterProvider, ScrollRestoration } from "react-router-dom";
 import App from "./App.tsx";
 import "./assets/fonts.css";
 import { recheckLeagueOnDeleted } from "./api/leagueDeleted";
@@ -10,6 +10,7 @@ import { ThemeModeProvider } from "./contexts/ThemeModeContext";
 import { UserProvider } from "./contexts/UserContext";
 import { captureInstallPrompt } from "./utils/install";
 import { registerServiceWorker } from "./utils/pushSetup";
+import { scrollKey } from "./utils/scrollKey";
 import { initSentry } from "./utils/sentry";
 
 initSentry();
@@ -37,9 +38,12 @@ const router = createBrowserRouter([
   {
     path: "*",
     element: (
-      <UserProvider>
-        <App />
-      </UserProvider>
+      <>
+        <ScrollRestoration getKey={scrollKey} />
+        <UserProvider>
+          <App />
+        </UserProvider>
+      </>
     ),
   },
 ]);

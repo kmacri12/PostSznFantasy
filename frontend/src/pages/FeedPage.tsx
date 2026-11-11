@@ -133,7 +133,8 @@ const FeedPage = () => {
         key={row.key}
         message={row.item}
         own={row.item.authorUserId === userId}
-        interactive={first?.canPost ?? false}
+        // A message still being sent has no server id to react to or reply to yet.
+        interactive={(first?.canPost ?? false) && row.item.id > 0}
         onReact={(message, emoji, reacted) =>
           react.mutate({ messageId: message.id, emoji, reacted })
         }

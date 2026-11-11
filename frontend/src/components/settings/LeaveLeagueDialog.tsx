@@ -1,7 +1,6 @@
 import {
   Alert,
   Button,
-  Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
@@ -9,6 +8,7 @@ import {
 } from "@mui/material";
 import { useLeaveLeague } from "../../api/queries";
 import { LEAVE_LAST_COMMISSIONER_NOTE, LEAVE_LEAGUE_NOTE } from "../../content/rules";
+import Dialog from "../common/AppDialog";
 import { mutationError } from "../common/friendlyError";
 
 interface Props {

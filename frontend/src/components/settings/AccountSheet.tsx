@@ -2,7 +2,6 @@ import {
   Alert,
   Box,
   Button,
-  Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
@@ -12,6 +11,7 @@ import { useState } from "react";
 import { downloadMyData, useAccount, useRemoveDevice } from "../../api/queries";
 import { useUser } from "../../contexts/UserContext";
 import { browserTimeZone, formatPlainInViewerZone } from "../../utils/timeZone";
+import Dialog from "../common/AppDialog";
 import { friendlyError, mutationError } from "../common/friendlyError";
 import EditTextSheet from "./EditTextSheet";
 import SettingsCard from "./SettingsCard";

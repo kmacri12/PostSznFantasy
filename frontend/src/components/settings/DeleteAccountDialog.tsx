@@ -1,7 +1,6 @@
 import {
   Alert,
   Button,
-  Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
@@ -13,6 +12,7 @@ import {
 import { useState } from "react";
 import { useDeleteAccount } from "../../api/queries";
 import { ACCOUNT_DELETION_SUMMARY } from "../../content/rules";
+import Dialog from "../common/AppDialog";
 import { mutationError } from "../common/friendlyError";
 
 export const DELETE_PHRASE = "DELETE";

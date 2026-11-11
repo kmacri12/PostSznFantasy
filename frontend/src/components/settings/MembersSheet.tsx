@@ -2,7 +2,6 @@ import {
   Alert,
   Box,
   Button,
-  Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
@@ -14,6 +13,7 @@ import { useState } from "react";
 import { useRegenerateInvite, useRemoveMember, useSetMemberRole } from "../../api/queries";
 import type { MemberSummary } from "../../api/types";
 import { INVITE_RETIRED_NOTE, LAST_COMMISSIONER_NOTE } from "../../content/rules";
+import Dialog from "../common/AppDialog";
 import { mutationError } from "../common/friendlyError";
 import PictureAvatar from "../common/PictureAvatar";
 import { isLastCommissioner, removalWarning, toggledRole } from "./members";

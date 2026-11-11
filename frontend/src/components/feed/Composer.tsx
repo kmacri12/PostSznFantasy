@@ -14,6 +14,7 @@ import { useEditMessage, usePostMessage } from "../../api/queries";
 import type { FeedMessageItem, MemberSummary } from "../../api/types";
 import { tokens } from "../../theme";
 import { gifProvider } from "../../utils/gifProvider";
+import AppToast from "../common/AppToast";
 import { mutationError } from "../common/friendlyError";
 import GifPicker from "./GifPicker";
 import {
@@ -62,7 +63,12 @@ const Composer = ({ seasonId, members, selfId, replyTo, editing, onDone }: Props
   const [active, setActive] = useState(0);
   const picked = useRef(new Map<number, string>());
   const input = useRef<HTMLTextAreaElement | null>(null);
-  const post = usePostMessage(seasonId);
+  const author = members.find((member) => member.userId === selfId);
+  const post = usePostMessage(
+    seasonId,
+    author ? { userId: author.userId, name: author.username } : undefined,
+  );
+  const [failed, setFailed] = useState(false);
   const edit = useEditMessage(seasonId);
   const provider = gifProvider();
   const body = text.trim();
@@ -116,7 +122,21 @@ const Composer = ({ seasonId, members, selfId, replyTo, editing, onDone }: Props
       edit.mutate({ messageId: editing.id, body, mentionedUserIds }, { onSuccess: finish });
       return;
     }
-    post.mutate({ body, gifUrl, replyToId: replyTo?.id, mentionedUserIds }, { onSuccess: finish });
+    // The message is on screen already: clear the box now and put the text back if it fails.
+    const sent = { text, picked: new Map(picked.current) };
+    finish();
+    post.mutate(
+      { body, gifUrl, replyToId: replyTo?.id, mentionedUserIds },
+      {
+        onError: () => {
+          if (!gifUrl) {
+            setText(sent.text);
+            for (const [id, name] of sent.picked) picked.current.set(id, name);
+          }
+          setFailed(true);
+        },
+      },
+    );
   };
 
   const submit = (event: FormEvent) => {
@@ -164,10 +184,7 @@ const Composer = ({ seasonId, members, selfId, replyTo, editing, onDone }: Props
     }
   };
 
-  const error = mutationError(
-    editing ? edit.error : post.error,
-    editing ? "Couldn't save your edit. Try again." : "Couldn't send your message. Try again.",
-  );
+  const error = editing ? mutationError(edit.error, "Couldn't save your edit. Try again.") : null;
   const context = editing
     ? "Editing your message"
     : replyTo
@@ -319,6 +336,12 @@ const Composer = ({ seasonId, members, selfId, replyTo, editing, onDone }: Props
           {text.length} / {MAX_MESSAGE_LENGTH}
         </Typography>
       )}
+      <AppToast
+        open={failed}
+        severity="error"
+        message="Couldn't send your message. It's back in the box, try again."
+        onClose={() => setFailed(false)}
+      />
       {picking && provider && (
         <GifPicker
           provider={provider}

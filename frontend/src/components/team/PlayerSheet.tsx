@@ -1,6 +1,7 @@
 import { Alert, Box, ButtonBase, Drawer, Skeleton, Typography } from "@mui/material";
 import { usePlayerSeasonLine } from "../../api/queries";
 import type { LineupPlayer, RoundLineup } from "../../api/types";
+import { useBackClosesOverlay } from "../../hooks/useBackClosesOverlay";
 import { tokens } from "../../theme";
 import InjuryTag from "../common/InjuryTag";
 import { formatPoints } from "../league/standingsView";
@@ -125,6 +126,7 @@ const PlayerSheet = ({
   onMove,
   onClose,
 }: Props) => {
+  useBackClosesOverlay(onClose);
   const season = usePlayerSeasonLine(player.id);
   const started = player.gameState === "live" || player.gameState === "final";
   const rows = season.data ? seasonRows(player.position, season.data) : [];
