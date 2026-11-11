@@ -53,12 +53,13 @@ const MessageActionMenu = ({
   onDelete,
 }: Props) => {
   const [picking, setPicking] = useState(false);
-  const mine = (emoji: string) => message.reactions.some((r) => r.emoji === emoji && r.mine);
+  const mine = (emoji: string) =>
+    (message.reactions ?? []).some((r) => r.emoji === emoji && r.mine);
   const react = (emoji: string) => {
     onReact(emoji, !mine(emoji));
     onClose();
   };
-  const who = reactionSummary(message.reactions);
+  const who = reactionSummary(message.reactions ?? []);
 
   return (
     <Popover

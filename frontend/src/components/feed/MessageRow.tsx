@@ -174,7 +174,7 @@ const MessageRow = ({
           {message.replyTo && <Quote quote={message.replyTo} />}
           {message.body && (
             <Box sx={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>
-              {segmentBody(message.body, message.mentions).map((segment, index) =>
+              {segmentBody(message.body, message.mentions ?? []).map((segment, index) =>
                 segment.mention ? (
                   <Box
                     // biome-ignore lint/suspicious/noArrayIndexKey: segments of one string, never reordered
@@ -192,7 +192,7 @@ const MessageRow = ({
           )}
           {message.gifUrl && <Gif url={message.gifUrl} author={author} onLoad={onGifLoad} />}
         </Box>
-        {message.reactions.length > 0 && (
+        {(message.reactions ?? []).length > 0 && (
           <Box
             role="group"
             aria-label="Reactions"
@@ -203,7 +203,7 @@ const MessageRow = ({
               justifyContent: own ? "flex-end" : "flex-start",
             }}
           >
-            {message.reactions.map((reaction) => (
+            {(message.reactions ?? []).map((reaction) => (
               <ButtonBase
                 key={reaction.emoji}
                 disabled={!interactive}
