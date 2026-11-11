@@ -71,6 +71,14 @@ describe("describeNotification", () => {
     });
   });
 
+  it("words an announcement and opens the league home", () => {
+    expect(describeNotification(item("announcement", { seasonId: 9 }))).toEqual({
+      title: "New announcement",
+      body: "Your commissioner posted in Family League.",
+      path: "/leagues/3",
+    });
+  });
+
   it("still links a kind this build does not know to its league", () => {
     expect(describeNotification(item("player_eliminated"))).toEqual({
       title: "Family League",

@@ -104,6 +104,14 @@ describe("eventLine", () => {
     expect(correction.text).toContain("Henry");
   });
 
+  it("shows a pinned announcement's text in full", () => {
+    const line = eventLine(
+      event(7, { kind: "announcement", payload: { body: "Draft is Saturday at 8" } }),
+    );
+    expect(line.text).toBe(" posted an announcement");
+    expect(line.quote).toBe("Draft is Saturday at 8");
+  });
+
   it("lists the shuffled draft order by position", () => {
     const line = eventLine(
       event(3, {

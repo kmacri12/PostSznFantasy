@@ -66,6 +66,8 @@ export interface EventLine {
   warn: boolean;
   /** The resulting order, shown as a numbered list. */
   order?: string[];
+  /** An announcement's text, shown in full under the line. */
+  quote?: string;
 }
 
 const LABELLED: Partial<Record<FeedEventItem["kind"], string>> = {
@@ -100,6 +102,14 @@ export const eventLine = (event: FeedEventItem): EventLine => {
         order: [...event.payload.order]
           .sort((a, b) => a.position - b.position)
           .map((slot) => slot.teamName),
+      };
+    case "announcement":
+      return {
+        lead: event.actorName,
+        text: withoutLead(sentence, event.actorName),
+        details,
+        warn,
+        quote: event.payload.body,
       };
     case "draft_order_changed": {
       const [headline = "", moves = ""] = sentence.split(": ");

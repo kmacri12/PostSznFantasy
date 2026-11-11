@@ -11,6 +11,7 @@ const league = (extra: Partial<LeagueInfo> = {}): LeagueInfo => ({
   id: 1,
   name: "L",
   notes: "House rules: no trading",
+  announcement: null,
   myRole: "member",
   currentSeasonId: 1,
   canStartSeason: false,

@@ -68,6 +68,7 @@ erDiagram
         bool push_starter_alerts
         bool push_score_alerts
         bool push_round_results
+        bool push_announcements
         bool quiet_hours
         string timezone
         string display_time_zone
@@ -78,6 +79,9 @@ erDiagram
         string name
         string notes
         string avatar_key
+        string announcement
+        datetime announcement_at
+        int announcement_by FK
         datetime created_at
         datetime deleted_at
         int deleted_by FK

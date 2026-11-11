@@ -126,6 +126,7 @@ async def export_data(db: AsyncSession, user: User) -> dict[str, Any]:
                 "starterAlerts": user.push_starter_alerts,
                 "scoreAlerts": user.push_score_alerts,
                 "roundResults": user.push_round_results,
+                "announcements": user.push_announcements,
                 "quietHours": user.quiet_hours,
                 "quietHoursTimeZone": user.timezone,
             },

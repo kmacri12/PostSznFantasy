@@ -5,11 +5,13 @@ import { Link as RouterLink } from "react-router-dom";
 import { useDraftControl } from "../../api/queries";
 import type { DraftState } from "../../api/types";
 import { useSeasonContext } from "../../contexts/SeasonContext";
+import { useReducedMotion } from "../../hooks/useReducedMotion";
 import { radii, tokens } from "../../theme";
 import { mutationError } from "../common/friendlyError";
 import { formatDraftTime } from "../league/countdown";
 import ConfirmDraftAction from "./ConfirmDraftAction";
 import { DraftDateDialog } from "./DraftSetupDialogs";
+import LotteryReveal from "./LotteryReveal";
 import PreDraftNotice from "./PreDraftNotice";
 import { preflight } from "./preflight";
 
@@ -70,7 +72,14 @@ const CommissionerStrip = ({ draft, presence, editingOrder, onEditOrder }: Props
   const [open, setOpen] = useState(status === "lobby" || !preDraft);
   const [dateOpen, setDateOpen] = useState(false);
   const [confirming, setConfirming] = useState<Confirming | null>(null);
+  const [lottery, setLottery] = useState<DraftState["order"] | null>(null);
+  const reducedMotion = useReducedMotion();
   const run = (action: Parameters<typeof control.mutate>[0]) => () => control.mutate(action);
+  const randomize = () =>
+    control.mutate("randomize", {
+      // Motion-sensitive users and the e2e build get the Feed's list of the order instead.
+      onSuccess: (data) => !reducedMotion && data.order.length > 1 && setLottery(data.order),
+    });
   const confirmed = (action: Confirming) =>
     control.mutate(action, { onSuccess: () => setConfirming(null) });
   const error = mutationError(control.error, "Couldn't update the draft. Try again.");
@@ -115,7 +124,7 @@ const CommissionerStrip = ({ draft, presence, editingOrder, onEditOrder }: Props
           {error && <Alert severity="error">{error}</Alert>}
           {preDraft ? (
             <>
-              <Action disabled={draft.orderLocked || control.isPending} onClick={run("randomize")}>
+              <Action disabled={draft.orderLocked || control.isPending} onClick={randomize}>
                 Randomize draft order
               </Action>
               <Action disabled={draft.orderLocked} onClick={onEditOrder}>
@@ -174,6 +183,7 @@ const CommissionerStrip = ({ draft, presence, editingOrder, onEditOrder }: Props
           )}
         </Box>
       )}
+      {lottery && <LotteryReveal order={lottery} onClose={() => setLottery(null)} />}
       {confirming === "start" && (
         <ConfirmDraftAction
           title="Start the draft?"

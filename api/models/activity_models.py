@@ -166,6 +166,14 @@ class DraftTimeSetPayload(BaseSchema):
     previous_start_time: datetime | None
 
 
+class AnnouncementPayload(BaseSchema):
+    """The commissioner pinned an announcement on the league home."""
+
+    kind: ClassVar[ActivityKind] = ActivityKind.ANNOUNCEMENT
+
+    body: str
+
+
 ActivityPayload = (
     LineupMovePayload
     | CommissionerOverridePayload
@@ -181,6 +189,7 @@ ActivityPayload = (
     | DraftCompletedPayload
     | DraftPickAssignedPayload
     | DraftTimeSetPayload
+    | AnnouncementPayload
 )
 
 

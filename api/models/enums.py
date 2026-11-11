@@ -72,6 +72,7 @@ class ActivityKind(StrEnum):
     DRAFT_COMPLETED = "draft_completed"
     DRAFT_PICK_ASSIGNED = "draft_pick_assigned"
     DRAFT_TIME_SET = "draft_time_set"
+    ANNOUNCEMENT = "announcement"
 
 
 class TieRule(StrEnum):

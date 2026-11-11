@@ -160,6 +160,7 @@ class TeamUnitSettings(BaseSchema):
 
 
 NOTES_MAX_LENGTH = 5000
+ANNOUNCEMENT_MAX_LENGTH = 1000
 
 
 class LeagueCreate(BaseSchema):
@@ -284,6 +285,19 @@ class LeagueUpdate(BaseSchema):
     notes: CleanNote | None = Field(default=None, max_length=NOTES_MAX_LENGTH)
 
 
+class AnnouncementUpdate(BaseSchema):
+    """The pinned announcement; `push` also sends it to members' devices."""
+
+    body: CleanNote = Field(min_length=1, max_length=ANNOUNCEMENT_MAX_LENGTH)
+    push: bool = False
+
+
+class Announcement(BaseSchema):
+    body: str
+    posted_at: datetime
+    author_name: str | None
+
+
 class SeasonUpdate(BaseSchema):
     number_teams: int | None = Field(default=None, ge=2, le=14)
 
@@ -330,6 +344,8 @@ class LeagueOverview(BaseSchema):
     name: str
     avatar_url: str | None = None
     notes: str
+    # Pinned above everything else on the league home; None when there is none.
+    announcement: Announcement | None = None
     my_role: LeagueRole
     current_season_id: int
     # The latest season is over, so the commissioner may start the next one.

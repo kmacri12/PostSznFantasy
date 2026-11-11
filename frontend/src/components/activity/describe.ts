@@ -88,6 +88,8 @@ export const describeEvent = (event: ActivityEvent): string => {
       return `${who} changed the draft order: ${event.payload.moves.map(moveLine).join("; ")}`;
     case "draft_started":
       return `${who} started the draft`;
+    case "announcement":
+      return `${who} posted an announcement`;
     case "draft_completed":
       return `The draft is complete after ${event.payload.picks} picks`;
     case "draft_time_set": {

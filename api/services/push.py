@@ -39,7 +39,9 @@ REQUEST_TIMEOUT_SECONDS = 10
 CHAT_BURST_WINDOW = timedelta(minutes=10)
 
 Urgency = Literal["very-low", "low", "normal", "high"]
-PushKind = Literal["draft", "lineup", "chat", "mention", "starter", "score", "round"]
+PushKind = Literal[
+    "draft", "lineup", "chat", "mention", "starter", "score", "round", "announcement"
+]
 # The users column holding each kind's preference.
 PREFERENCE_COLUMNS = {
     "draft": User.push_draft_alerts,
@@ -49,6 +51,7 @@ PREFERENCE_COLUMNS = {
     "starter": User.push_starter_alerts,
     "score": User.push_score_alerts,
     "round": User.push_round_results,
+    "announcement": User.push_announcements,
 }
 # Player alerts wait out the member's quiet hours; the inbox entry is written anyway.
 QUIET_KINDS = frozenset({"starter", "score", "round"})

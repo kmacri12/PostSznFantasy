@@ -83,11 +83,19 @@ export interface SeasonOverview {
 }
 
 /** The permanent league: notes, members and its seasons. Not readable by former members. */
+export interface Announcement {
+  body: string;
+  postedAt: string;
+  authorName: string | null;
+}
+
 export interface LeagueInfo {
   id: number;
   name: string;
   avatarUrl?: string | null;
   notes: string;
+  /** Pinned on the league home above everything else; null when there is none. */
+  announcement: Announcement | null;
   myRole: LeagueRole;
   currentSeasonId: number;
   /** The latest season is over and no later one exists. */
@@ -400,7 +408,8 @@ export type ActivityKind =
   | "draft_started"
   | "draft_completed"
   | "draft_pick_assigned"
-  | "draft_time_set";
+  | "draft_time_set"
+  | "announcement";
 
 interface ActivityBase {
   id: number;
@@ -469,6 +478,7 @@ export type ActivityEvent = ActivityBase &
       }
     | { kind: "draft_started"; payload: { teamCount: number; rounds: number } }
     | { kind: "draft_completed"; payload: { picks: number } }
+    | { kind: "announcement"; payload: { body: string } }
     | {
         kind: "draft_time_set";
         payload: { startTime: string | null; previousStartTime: string | null };
