@@ -64,6 +64,7 @@ const SECTIONS: LegalSection[] = [
   {
     heading: "Deleting your data",
     body: [
+      "To see what we hold about you, open your profile (tap your picture), then Account, then Download my data. You get a JSON file with your profile, your league memberships, your teams and the chat messages you wrote. The same screen lets you change your email (we send a confirmation link to the new address), set your time zone and clock, remove notification devices and sign out everywhere.",
       "You can stop using PostSzn at any time. To delete your account, open your profile (tap your picture), then Delete my account. Your sign-in, email, profile picture and notification settings are deleted right away. Your leagues keep your past teams, picks and chat under the name Former member so other members' history still makes sense, and your teams in seasons still under way become open. If you are the only commissioner of a league with other members, hand it over first.",
       "We keep encrypted backups of the database for a limited time; your data ages out of them as they are replaced. If you cannot use the app, write to support@postsznfantasy.com and we will delete your account within 30 days.",
     ],

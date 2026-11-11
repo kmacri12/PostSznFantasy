@@ -70,6 +70,8 @@ erDiagram
         bool push_round_results
         bool quiet_hours
         string timezone
+        string display_time_zone
+        string hour_cycle
     }
     leagues {
         int id PK

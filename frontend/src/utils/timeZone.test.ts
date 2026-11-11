@@ -1,8 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
+  clearDisplayPreferences,
   describeViewerZone,
   formatInViewerZone,
+  formatPlainInViewerZone,
   fromZonedInput,
+  setDisplayPreferences,
   toZonedInput,
   viewerTimeZone,
 } from "./timeZone";
@@ -65,5 +68,43 @@ describe("datetime-local round trip", () => {
 
   it("is empty for no time", () => {
     expect(toZonedInput(null)).toBe("");
+  });
+});
+
+describe("saved display preferences", () => {
+  afterEach(() => clearDisplayPreferences());
+
+  it("shows times in the saved zone instead of the browser's", () => {
+    setDisplayPreferences({ timeZone: "America/Los_Angeles", hourCycle: null });
+    expect(viewerTimeZone()).toBe("America/Los_Angeles");
+    expect(formatInViewerZone("2027-01-10T01:00:00Z", TIME)).toMatch(/^5:00\s?PM PST$/);
+  });
+
+  it("follows the browser again once cleared", () => {
+    setDisplayPreferences({ timeZone: "Asia/Tokyo", hourCycle: null });
+    clearDisplayPreferences();
+    expect(viewerTimeZone()).toBe("America/New_York");
+  });
+
+  it("ignores a zone the browser does not know", () => {
+    setDisplayPreferences({ timeZone: "Mars/Base", hourCycle: null });
+    expect(viewerTimeZone()).toBe("America/New_York");
+  });
+
+  it("forces a 24-hour or a 12-hour clock", () => {
+    const iso = "2027-01-10T01:00:00Z";
+    setDisplayPreferences({ timeZone: null, hourCycle: "24" });
+    expect(formatInViewerZone(iso, TIME)).toMatch(/^20:00 EST$/);
+    expect(formatPlainInViewerZone(iso, TIME)).toBe("20:00");
+    setDisplayPreferences({ timeZone: null, hourCycle: "12" });
+    expect(formatPlainInViewerZone(iso, TIME)).toMatch(/^8:00\s?PM$/);
+  });
+
+  it("is remembered on this device for the next page load", () => {
+    setDisplayPreferences({ timeZone: "Europe/London", hourCycle: "24" });
+    expect(JSON.parse(localStorage.getItem("postszn-display-prefs") ?? "null")).toEqual({
+      timeZone: "Europe/London",
+      hourCycle: "24",
+    });
   });
 });

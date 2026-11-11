@@ -19,6 +19,7 @@ from api.core.observability import init_sentry
 from api.core.security_headers import SecurityHeadersMiddleware
 from api.db.session import DbSession, close_db, init_db
 from api.routers import (
+    account,
     activity,
     admin,
     auth,
@@ -153,6 +154,7 @@ async def ingestion_busy_handler(_: Request, exc: IngestionBusy) -> JSONResponse
     )
 
 
+app.include_router(account.router, prefix="/api/account", tags=["account"])
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(leagues.router, prefix="/api/leagues", tags=["leagues"])
 app.include_router(seasons.router, prefix="/api/seasons", tags=["seasons"])

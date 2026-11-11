@@ -1,5 +1,6 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
+import { type HourCycle, setDisplayPreferences } from "../utils/timeZone";
 import { api } from "./client";
 import type {
   ActivityFeed,
@@ -367,6 +368,71 @@ export const useDeleteAccount = () =>
       await api.delete("/api/auth/me", { data: { confirm } });
     },
   });
+
+export interface AccountDevice {
+  id: number;
+  label: string;
+  createdAt: string;
+  lastSeen: string;
+}
+
+export interface Account {
+  username: string;
+  email: string | null;
+  /** How this identity signs in: "google", "email". */
+  signInMethods: string[];
+  displayTimeZone: string | null;
+  hourCycle: HourCycle | null;
+  devices: AccountDevice[];
+}
+
+const accountKey = ["account"] as const;
+
+/** The account center (#405): sign-in methods, saved time zone and clock, devices. */
+export const useAccount = () =>
+  useQuery({
+    queryKey: accountKey,
+    queryFn: ({ signal }) => get<Account>("/api/account", signal),
+  });
+
+export const useSaveDisplayPreferences = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (body: { displayTimeZone?: string | null; hourCycle?: HourCycle | null }) =>
+      (
+        await api.patch<{ displayTimeZone: string | null; hourCycle: HourCycle | null }>(
+          "/api/account/preferences",
+          body,
+        )
+      ).data,
+    onSuccess: (saved) => {
+      setDisplayPreferences({ timeZone: saved.displayTimeZone, hourCycle: saved.hourCycle });
+      // Every shown time reads the preference when it renders, so refetching redraws them.
+      queryClient.invalidateQueries();
+    },
+  });
+};
+
+export const useRemoveDevice = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => {
+      await api.delete(`/api/account/devices/${id}`);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: accountKey }),
+  });
+};
+
+/** Downloads the member's data as a JSON file (the API's `Content-Disposition` names it). */
+export const downloadMyData = async (): Promise<void> => {
+  const { data } = await api.get<Blob>("/api/account/export", { responseType: "blob" });
+  const url = URL.createObjectURL(data);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "postszn-my-data.json";
+  link.click();
+  URL.revokeObjectURL(url);
+};
 
 /** For callers outside React Query (the draft socket): recheck whether the league still exists. */
 export const useRecheckLeague = () => {
