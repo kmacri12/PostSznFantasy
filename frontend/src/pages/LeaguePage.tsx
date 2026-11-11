@@ -63,6 +63,7 @@ const LeagueContent = () => {
           recap && (
             <SeasonRecap
               recap={recap}
+              leagueName={season.leagueName}
               canStartSeason={canStartSeason && info?.currentSeasonId === seasonId}
             />
           )
