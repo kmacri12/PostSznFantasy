@@ -221,7 +221,6 @@ const DraftBoard: React.FC<Props> = ({ state, myTeamId, sx, onSelectSlot }) => {
                   component="button"
                   type="button"
                   data-testid={`pick-${overall}`}
-                  aria-label={cellLabel(cell)}
                   onClick={() => setSelected(cell)}
                   sx={{
                     ...gridLine,
@@ -258,6 +257,9 @@ const DraftBoard: React.FC<Props> = ({ state, myTeamId, sx, onSelectSlot }) => {
                       color: onClock ? "inherit" : tokens.muted,
                     }}
                   >
+                    <Box component="span" sx={visuallyHidden}>
+                      Pick{" "}
+                    </Box>
                     {overall}
                     {onClock ? " · NOW" : ""}
                   </Box>
@@ -270,7 +272,7 @@ const DraftBoard: React.FC<Props> = ({ state, myTeamId, sx, onSelectSlot }) => {
                       >
                         {lastName(cell.reserved.playerName, cell.reserved.position)}
                       </Typography>
-                      <Box component="span" sx={{ display: "block" }} aria-hidden>
+                      <Box component="span" sx={{ display: "block" }}>
                         Reserved
                       </Box>
                     </>
@@ -284,11 +286,13 @@ const DraftBoard: React.FC<Props> = ({ state, myTeamId, sx, onSelectSlot }) => {
                       >
                         {lastName(pick.playerName, pick.position)}
                       </Typography>
-                      <Box component="span" sx={{ display: "block" }} aria-hidden>
+                      <Box component="span" sx={{ display: "block" }}>
                         {pick.position} {pick.teamAbv}
                       </Box>
                     </>
                   )}
+                  {/* Last so the spoken name starts with what the cell shows (WCAG 2.5.3). */}
+                  <Box component="span" sx={visuallyHidden}>{`, ${slot.teamName}`}</Box>
                 </Box>
               );
             })}
@@ -315,11 +319,6 @@ const DraftBoard: React.FC<Props> = ({ state, myTeamId, sx, onSelectSlot }) => {
     </Paper>
   );
 };
-
-const cellLabel = ({ overall, pick, teamName, onClock }: BoardCell): string =>
-  pick
-    ? `Pick ${overall}, ${teamName}: ${pick.playerName ?? "player"}`
-    : `Pick ${overall}, ${teamName}${onClock ? ", on the clock" : ""}`;
 
 const CellDetails = ({ cell }: { cell: BoardCell }) => {
   const { pick, reserved, teamName, round, onClock } = cell;

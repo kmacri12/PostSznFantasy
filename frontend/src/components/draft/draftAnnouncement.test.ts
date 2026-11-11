@@ -28,10 +28,10 @@ describe("draftAnnouncement", () => {
   it("announces a pick and who is on the clock next", () => {
     const before = announcedDraft(base, 20, 3);
     expect(draftAnnouncement(before, announcedDraft(afterPick, 20, 90))).toBe(
-      "Pick 1: Alpha took Josh Allen. You're on the clock.",
+      "Pick 1: Alpha took Josh Allen. You are on the clock.",
     );
     expect(draftAnnouncement(announcedDraft(base, 30, 3), announcedDraft(afterPick, 30, 90))).toBe(
-      "Pick 1: Alpha took Josh Allen. Bravo on the clock.",
+      "Pick 1: Alpha took Josh Allen. Bravo is on the clock.",
     );
   });
 
@@ -59,10 +59,27 @@ describe("draftAnnouncement", () => {
     ).toBeNull();
   });
 
+  it("says who picks next after every pick, even the same team again", () => {
+    const again = { ...afterPick, picks: [pick, { ...pick, teamId: 20, numberPickOverall: 2 }] };
+    expect(draftAnnouncement(announcedDraft(afterPick, 20, 5), announcedDraft(again, 20, 90))).toBe(
+      "Pick 2: Bravo took Josh Allen. You are on the clock.",
+    );
+  });
+
+  it("says nothing before the draft starts", () => {
+    const lobby = { ...base, status: "lobby", onTheClockTeamId: null } as DraftState;
+    expect(
+      draftAnnouncement(announcedDraft(lobby, 10, null), announcedDraft(lobby, 10, null)),
+    ).toBeNull();
+    expect(draftAnnouncement(announcedDraft(lobby, 20, null), announcedDraft(base, 20, 90))).toBe(
+      "Alpha is on the clock.",
+    );
+  });
+
   it("announces a pause", () => {
     const paused = { ...base, status: "paused" } as DraftState;
     expect(draftAnnouncement(announcedDraft(base, 20, 40), announcedDraft(paused, 20, 40))).toBe(
-      "Draft paused.",
+      "The draft is on hold.",
     );
   });
 });

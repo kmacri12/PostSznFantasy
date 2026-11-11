@@ -1,6 +1,7 @@
 import { Box, ButtonBase } from "@mui/material";
 import type { RoundLineup } from "../../api/types";
 import { tokens } from "../../theme";
+import { visuallyHidden } from "../common/visuallyHidden";
 import { formatPoints, ROUNDS } from "../league/standingsView";
 import { ROUND_LABELS } from "./lineup";
 import { roundScore } from "./lineupView";
@@ -21,12 +22,13 @@ const RoundStrip = ({ lineups, round, onSelect }: Props) => (
     {lineups.map((lineup) => {
       const selected = lineup.round === round;
       const score = roundScore(lineup);
+      const short = ROUNDS[lineup.round - 1]?.label;
+      const full = ROUND_LABELS[lineup.round];
       return (
         <ButtonBase
           key={lineup.round}
           role="tab"
           aria-selected={selected}
-          aria-label={ROUND_LABELS[lineup.round]}
           onClick={() => onSelect(lineup.round)}
           sx={{
             display: "block",
@@ -50,9 +52,13 @@ const RoundStrip = ({ lineups, round, onSelect }: Props) => (
               color: tokens.muted,
             }}
           >
-            {ROUNDS[lineup.round - 1]?.label}
+            {short}
           </Box>
           {score === null ? "-" : formatPoints(score)}
+          {/* After the visible text, so the spoken name starts with what the tab shows (WCAG 2.5.3). */}
+          {full !== short && (
+            <Box component="span" sx={visuallyHidden}>{`, ${full}`}</Box>
+          )}
         </ButtonBase>
       );
     })}
