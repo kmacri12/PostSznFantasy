@@ -1,8 +1,8 @@
 import {
   Alert,
+  Dialog as BlockerDialog,
   Button,
   Container,
-  Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
@@ -24,6 +24,7 @@ import {
   useUpdateSettings,
 } from "../api/queries";
 import AvatarSheet from "../components/avatar/AvatarSheet";
+import Dialog from "../components/common/AppDialog";
 import ErrorState from "../components/common/ErrorState";
 import { mutationError } from "../components/common/friendlyError";
 import LoadingState from "../components/common/LoadingState";
@@ -131,7 +132,11 @@ function SettingsPage() {
       Object.keys(multiplierErrors).length >
     0;
   const guarded = dirty && season.canCommission;
-  const blocker = useBlocker(guarded);
+  // Only leaving the page asks: sheets push history entries on the same path (back closes them).
+  const blocker = useBlocker(
+    ({ currentLocation, nextLocation }) =>
+      guarded && currentLocation.pathname !== nextLocation.pathname,
+  );
 
   useEffect(() => {
     if (!guarded) return;
@@ -369,7 +374,7 @@ function SettingsPage() {
           </Button>
         </DialogActions>
       </Dialog>
-      <Dialog open={blocker.state === "blocked"} aria-labelledby="leave-title">
+      <BlockerDialog open={blocker.state === "blocked"} aria-labelledby="leave-title">
         <DialogTitle id="leave-title">Leave without saving?</DialogTitle>
         <DialogContent>
           <DialogContentText>{UNSAVED_WARNING} They will be lost.</DialogContentText>
@@ -380,7 +385,7 @@ function SettingsPage() {
             Leave
           </Button>
         </DialogActions>
-      </Dialog>
+      </BlockerDialog>
 
       {sheet === "leaguePicture" && info && (
         <AvatarSheet

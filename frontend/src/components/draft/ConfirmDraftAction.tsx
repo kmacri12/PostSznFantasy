@@ -1,13 +1,13 @@
 import {
   Alert,
   Button,
-  Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   Typography,
 } from "@mui/material";
 import type { ReactNode } from "react";
+import Dialog from "../common/AppDialog";
 
 interface Props {
   title: string;

@@ -1,11 +1,5 @@
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Typography,
-} from "@mui/material";
+import { Button, DialogActions, DialogContent, DialogTitle, Typography } from "@mui/material";
+import Dialog from "../common/AppDialog";
 
 interface Props {
   onConfirm: () => void;

@@ -1,7 +1,6 @@
 import {
   Alert,
   Button,
-  Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
@@ -15,6 +14,7 @@ import { useState } from "react";
 import { useDraftSetup } from "../../api/queries";
 import type { DraftState, DraftType, PickTimeoutAction } from "../../api/types";
 import { describeViewerZone, fromZonedInput, toZonedInput } from "../../utils/timeZone";
+import Dialog from "../common/AppDialog";
 import { mutationError } from "../common/friendlyError";
 
 export const PICK_SECONDS_MIN = 15;

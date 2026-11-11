@@ -1,5 +1,6 @@
 import { Box, Button, Dialog, Drawer, Typography, useMediaQuery, useTheme } from "@mui/material";
 import type { ReactNode } from "react";
+import { useBackClosesOverlay } from "../../hooks/useBackClosesOverlay";
 
 interface Props {
   title: string;
@@ -10,6 +11,7 @@ interface Props {
 
 /** A bottom sheet on phones and a centered dialog on larger screens. */
 const SettingsSheet = ({ title, onClose, closeLabel = "Done", children }: Props) => {
+  useBackClosesOverlay(onClose);
   const phone = useMediaQuery(useTheme().breakpoints.down("sm"));
   const content = (
     // minmax(0, 1fr): without it a long row value (an ellipsized setting) widens the whole sheet past the screen.

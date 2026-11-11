@@ -1,7 +1,6 @@
 import {
   Alert,
   Button,
-  Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
@@ -12,6 +11,7 @@ import {
 } from "@mui/material";
 import { useState } from "react";
 import { useDeleteLeague } from "../../api/queries";
+import Dialog from "../common/AppDialog";
 import { mutationError } from "../common/friendlyError";
 
 interface Props {
