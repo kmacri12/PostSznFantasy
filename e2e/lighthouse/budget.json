@@ -1,0 +1,12 @@
+{
+  "landing": {
+    "scores": { "performance": 85, "accessibility": 95, "best-practices": 95, "seo": 90 },
+    "maxMilliseconds": { "largest-contentful-paint": 2500, "total-blocking-time": 300 },
+    "maxLayoutShift": 0.1
+  },
+  "league": {
+    "scores": { "performance": 80, "accessibility": 95, "best-practices": 95, "seo": 85 },
+    "maxMilliseconds": { "largest-contentful-paint": 3500, "total-blocking-time": 400 },
+    "maxLayoutShift": 0.15
+  }
+}

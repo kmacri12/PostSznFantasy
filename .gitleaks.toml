@@ -1,0 +1,23 @@
+title = "PostSzn Fantasy gitleaks"
+
+[extend]
+useDefault = true
+
+# Every entry below was reviewed and is not a credential. Keep entries narrow (one
+# file or one value) and say why, so a real secret elsewhere is still caught.
+[allowlist]
+description = "Placeholders and public test values, not credentials"
+regexTarget = "match"
+regexes = [
+  # RFC 6455's example Sec-WebSocket-Key, in the cutover runbook.
+  '''dGhlIHNhbXBsZSBub25jZQ==''',
+  # The `.env.example` bucket name is a default, not a key.
+  '''AVATAR_BUCKET=avatars''',
+]
+paths = [
+  # Fake tokens in unit tests, used to prove the scrubbers remove them.
+  '''api/tests/test_support\.py''',
+  '''frontend/src/utils/diagnostics\.test\.ts''',
+  # A public VAPID key from the web-push documentation, for the e2e push stub.
+  '''e2e/support/push\.ts''',
+]

@@ -54,7 +54,42 @@ make format     # auto-fix Ruff and Biome findings
 
 Narrower targets: `make lint`, `make typecheck`, `make test`, each with `-api` / `-web` variants. The backend is FastAPI on Python 3.13 managed by `uv` (Ruff, strict Mypy, pytest); the frontend is React 19 + TypeScript + Vite checked with Biome and Vitest. A pre-commit hook runs Ruff and Biome on staged files (`pre-commit install`).
 
-The CI "End-to-end (make e2e)" job always reports a result, but on a pull request whose files are all on the allowlist in `scripts/e2e-needed.sh` (docs, Markdown, deploy/backup/docker-build workflows, `scripts/`, `Dockerfile`, `fly.toml`, and backend-only changes under `api/`) its steps are skipped. Backend-only PRs skip on purpose, with the full run on every push to `main` as the safety net; `api/scripts/seed_e2e.py`, `api/alembic/**`, `api/dependencies/auth.py`, `api/core/config.py`, `api/pyproject.toml` and `api/uv.lock` still run it. Pushes to `main`, scheduled runs and everything else run it in full. Unlisted paths run e2e by default.
+The CI "End-to-end (make e2e)" job always reports a result, but on a pull request whose files are all on the allowlist in `scripts/e2e-needed.sh` (docs, Markdown, deploy/backup/docker-build/quality-nightly workflows, `scripts/`, `Dockerfile`, `fly.toml`, and backend-only changes under `api/`) its steps are skipped. Backend-only PRs skip on purpose, with the full run on every push to `main` as the safety net; `api/scripts/seed_e2e.py`, `api/alembic/**`, `api/dependencies/auth.py`, `api/core/config.py`, `api/pyproject.toml` and `api/uv.lock` still run it. Pushes to `main`, scheduled runs and everything else run it in full. Unlisted paths run e2e by default.
+
+### CI jobs and workflows
+
+Pull requests and pushes to `main` run `.github/workflows/ci.yml`; the other workflows are scheduled or manual. Every job picks its runner from the repo variables `CI_RUNS_ON` / `CI_E2E_RUNS_ON` (unset = GitHub-hosted).
+
+| Workflow / job | When | What it checks |
+| :--- | :--- | :--- |
+| CI, **Backend** (`make check-api`) | every PR and push, weekly | Ruff, strict Mypy, pytest including the Postgres tier (a `postgres:17` service) and the **API authorization matrix** (below) |
+| CI, **Frontend** (`make check-web`) | every PR and push, weekly | Biome, `lint-e2e`, tour check, `tsc`, Vitest, production build |
+| CI, **End-to-end** (`make e2e`) | every PR (steps skipped when `scripts/e2e-needed.sh` says nothing observable changed) and push | Playwright suite plus the replay suite |
+| CI, **Dependency audit** | every PR and push, weekly | `pip-audit` and `npm audit --omit=dev` |
+| CI, **Secret scan (gitleaks)** | every PR and push, weekly | gitleaks over the full git history with the default rules plus `.gitleaks.toml` |
+| `e2e-stress.yml` | nightly, manual | The whole e2e suite repeated 5 times; a spec that fails once is flaky |
+| `quality-nightly.yml`, **Screenshots and axe** | nightly, manual | Screenshots and an axe scan of the key pages (below), one job per device project |
+| `quality-nightly.yml`, **Lighthouse budget** | nightly, manual | Lighthouse scores and timings of the landing and league pages against `e2e/lighthouse/budget.json` |
+| `draft-load.yml` | nightly, manual | 12 teams and 30 sockets drafting against a seeded API |
+| `docker-build.yml`, `backup.yml`, `deploy.yml` | see [docs/deploy](docs/deploy) | Image build, database backup, deploy |
+
+The slow gates (device-matrix screenshots, Lighthouse) stay out of the pull request path on purpose: they run nightly and on demand from the Actions tab, so a red nightly is investigated the next morning rather than blocking a merge.
+
+### API authorization matrix
+
+`api/tests/authz_expectations.py` lists every route of the OpenAPI schema with the answer each kind of caller must get: anonymous, stranger (signed in, never in the league), former member, member, team and message owner, and commissioner. `api/tests/test_authz_coverage.py` fails when a route has no entry (or an entry has no route), and `api/tests/postgres/test_authorization_matrix.py` calls every route as every role against a real database. **A new route must add one line to `EXPECTED`** with the policy that fits (`PUBLIC`, `SIGNED_IN`, `LEAGUE_MEMBER`, `COMMISSIONER`, `TEAM_OWNER_OR_COMMISSIONER`, `ADMIN`, ...) or a one-off `Policy(...)`. The probe sends no body, so a permitted call usually answers 422 or 409; if the guard is inside the handler rather than a dependency (so validation answers first), give the route a valid body in `BODIES`. WebSocket routes are not in the OpenAPI schema; their authentication is covered by `test_draft_websocket.py`.
+
+### Abuse tests and secret scanning
+
+`api/tests/test_abuse.py` asks whether the rate limits and the invite code space hold against someone trying to get around them: guessing codes is cut off at the preview limit (and the code space cannot be covered at that rate), a forged `X-Forwarded-For` or a fresh code per attempt does not dodge a limit, every `RateLimiter` stops at its first rule, and a limiter that is defined but on no route fails. The route-level limits themselves are in `test_rate_limits.py`. gitleaks fails the build on a committed secret; a false positive goes in `.gitleaks.toml` as a narrow allowlist entry (one value or one file) with a comment saying why, never as a broad path.
+
+### Visual regression, accessibility and Lighthouse (nightly)
+
+`e2e/playwright.quality.config.ts` runs `e2e/quality/` against the same seeded stack as the main suite (`make e2e` never picks it up). `pages.spec.ts` visits landing, home, a league before its draft, the draft room, a drafted league's standings, team, feed, More and settings, in Dark and Light, at iPhone SE (375x667), small Android (360x640), iPad (768x1024) and desktop (1280x800). Each visit runs axe (WCAG 2 A/AA; anything above minor fails except what `e2e/quality/knownViolations.ts` waives per page and theme, with a reason) and compares a full-page screenshot with the baseline (`maxDiffPixelRatio` 1%; `<time>` elements are masked). `lighthouse.spec.ts` runs Lighthouse (mobile profile) on the landing page and a league page and fails below the scores and timings in `e2e/lighthouse/budget.json`; Lighthouse is its own package (`e2e/lighthouse`) so the PR e2e job never installs it. Lighthouse 12 has no PWA score, so installability stays with `e2e/tests/install-offline.spec.ts`.
+
+Run it locally with `make db-up`, then `cd e2e && npx playwright test -c playwright.quality.config.ts --project=iphone-se` (and `cd e2e/lighthouse && npm ci` once for `--project=lighthouse`).
+
+**Baselines** live in `e2e/quality/__screenshots__/<project>/` and must be rendered on the CI runner image (fonts differ by machine). To create or replace them, run the "Quality nightly" workflow from the Actions tab with `update_baselines` checked, download the `visual-baselines-*` artifacts and commit their contents under that folder. A page that changed on purpose gets new baselines in the same PR (run the workflow on the PR branch); a nightly diff you did not intend is a regression, and the failed job's `quality-report-*` artifact has the expected, actual and diff images.
 
 ### Writing stable e2e specs
 
@@ -93,6 +128,7 @@ A pull request is ready for merge only when all of the following criteria are me
 2. **Comprehensive Test Coverage**:
    - All existing tests pass (`make test`).
    - New business logic, scoring formulas, or API routes include corresponding unit/integration tests.
+   - A new API route declares who may call it in `api/tests/authz_expectations.py` (see "API authorization matrix"); `make test-api` fails without it.
 3. **Architectural Consistency**:
    - Database modifications include an Alembic migration (`make migration m="..."`).
    - Database modifications also update `docs/erd.md` (checked by `api/tests/test_erd.py`).

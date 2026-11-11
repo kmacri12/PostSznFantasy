@@ -31,13 +31,18 @@ export const createDraftLeague = async (
     roster?: RosterShape;
     status?: "unscheduled" | "lobby" | "in_progress";
     hostUid?: string;
+    /** Defaults to a unique name; the screenshot suite needs one that never changes. */
+    leagueName?: string;
   } = {},
 ): Promise<DraftLeague> => {
   const host = new Api(request, options.hostUid ?? unique("host"));
   const guest = new Api(request, unique("guest"));
   await host.signUp("host");
   await guest.signUp("guest");
-  const league = await host.createLeague(unique("Draft League"), options.roster);
+  const league = await host.createLeague(
+    options.leagueName ?? unique("Draft League"),
+    options.roster,
+  );
   const code = await host.invite(league);
   await guest.joinWith(code);
 

@@ -8,7 +8,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/../e2e"
 
-files=$(find tests live support -name '*.ts' | sort)
+files=$(find tests live support quality -name '*.ts' | sort)
 status=0
 
 banned='waitForTimeout|networkidle|page\.pause\(|\.only\(|test\.fixme\(|debugger'

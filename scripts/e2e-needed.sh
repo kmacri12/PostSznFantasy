@@ -9,7 +9,7 @@
 # included, runs e2e.
 set -euo pipefail
 
-safe='^(docs/.*|.*\.md|LICENSE|\.gitignore|\.pre-commit-config\.yaml|\.dockerignore|Dockerfile|fly\.toml|scripts/.*|\.github/dependabot\.yml|\.github/workflows/(deploy|backup|docker-build)\.yml)$'
+safe='^(docs/.*|.*\.md|LICENSE|\.gitignore|\.pre-commit-config\.yaml|\.dockerignore|Dockerfile|fly\.toml|scripts/.*|\.github/dependabot\.yml|\.github/workflows/(deploy|backup|docker-build|quality-nightly)\.yml)$'
 
 # Seeding, the schema, the test-auth stub and the backend's dependencies.
 must_run='^api/(scripts/seed_e2e\.py|alembic/.*|dependencies/auth\.py|core/config\.py|pyproject\.toml|uv\.lock)$'
