@@ -21,6 +21,7 @@ from api.db.models.nfl import (
     NFLPlayerSeasonStats,
     NFLTeam,
 )
+from api.db.models.notification import Notification
 from api.db.models.push import LineupReminder, PushSubscription
 from api.db.models.user import User
 
@@ -44,6 +45,7 @@ __all__ = [
     "NFLPlayerGameStats",
     "NFLPlayerSeasonStats",
     "NFLTeam",
+    "Notification",
     "PushSubscription",
     "Season",
     "SeasonSettings",

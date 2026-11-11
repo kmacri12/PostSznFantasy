@@ -23,6 +23,7 @@ from api.services.ingestion import (
 )
 from api.services.ingestion.guard import IngestionBusy, IngestionKind
 from api.services.lineup_reminders import send_lock_reminders
+from api.services.notifications import prune_old as prune_old_notifications
 from api.services.push import prune_stale_subscriptions
 from api.services.replay import ReplayClient, load_replay, virtual_clock
 from api.services.standings import recompute_standings
@@ -319,6 +320,7 @@ async def run_roster_sync() -> None:
         await db.commit()
     async with get_session_factory()() as db:
         await prune_stale_subscriptions(db)
+        await prune_old_notifications(db)
         await db.commit()
         try:
             await prune_orphans(db)

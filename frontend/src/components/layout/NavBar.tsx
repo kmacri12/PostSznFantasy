@@ -8,6 +8,7 @@ import PictureAvatar from "../common/PictureAvatar";
 import { DevQuickSync } from "../dev/DevQuickSync";
 import ProfileSheet from "../settings/ProfileSheet";
 import Brand from "./Brand";
+import InboxBell from "./InboxBell";
 import LeagueSwitcher from "./LeagueSwitcher";
 
 interface NavBarProps {
@@ -23,7 +24,7 @@ interface NavBarProps {
   dormant?: boolean;
 }
 
-/** The header: the full logo on the left; the league switcher and the avatar (profile settings) on the right. */
+/** The header: the full logo on the left; the league switcher, the notification bell and the avatar (profile settings) on the right. */
 const NavBar = ({
   user,
   leagues,
@@ -53,6 +54,7 @@ const NavBar = ({
 
         {user ? (
           <>
+            {!dormant && <InboxBell />}
             <IconButton
               aria-label="Profile settings"
               aria-haspopup="dialog"

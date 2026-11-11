@@ -3,6 +3,7 @@
 Nothing here may break the action that triggered it: failures are logged (ids and HTTP
 statuses only, never endpoints or message text) and swallowed, and a subscription the push
 service says is gone (404 or 410) is deleted. Without VAPID keys every call is a no-op.
+Everything but chat is sent through `notifications.notify`, which also fills the inbox.
 """
 
 import asyncio
@@ -19,7 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.core.config import get_settings
 from api.db.models.activity import LeagueMessage
-from api.db.models.league import League, LeagueMember, Season, Team
+from api.db.models.league import League, LeagueMember
 from api.db.models.push import PushSubscription
 from api.db.models.user import User
 from api.db.session import get_session_factory
@@ -166,112 +167,6 @@ async def send_to_users(
         await db.commit()
         logger.info("Removed dead push subscriptions", extra={"count": len(gone)})
     return delivered
-
-
-async def notify_on_the_clock(db: AsyncSession, season_id: int, team_id: int) -> None:
-    """Tell the owner of the team that is now picking."""
-    if not get_settings().push_enabled:
-        return
-    row = (
-        await db.execute(
-            select(Team.owner_id, League.id, League.name)
-            .join(Season, Season.id == Team.season_id)
-            .join(League, League.id == Season.league_id)
-            .where(
-                Team.id == team_id,
-                Team.season_id == season_id,
-                Season.id.in_(live_season_ids()),
-            )
-        )
-    ).one_or_none()
-    if row is None or row.owner_id is None:
-        return
-    await send_to_users(
-        db,
-        [row.owner_id],
-        PushMessage(
-            title="You're on the clock",
-            body=f"Your pick is up in {row.name}.",
-            url=f"/leagues/{row.id}/draft",
-            tag=f"on-the-clock-{season_id}",
-            urgency="high",
-        ),
-        "draft",
-    )
-
-
-async def notify_draft_phase(
-    db: AsyncSession, season_id: int, phase: Literal["lobby", "started", "scheduled"]
-) -> None:
-    """Tell every active member the draft lobby is open or the draft has started."""
-    if not get_settings().push_enabled:
-        return
-    title, body = {
-        "lobby": ("The draft lobby is open", "Head in before it starts."),
-        "started": ("The draft has started", "Your commissioner started the draft."),
-        # The server doesn't know each member's zone, so the time itself stays in the app.
-        "scheduled": (
-            "The draft time is set",
-            "Open the app to see it in your time zone.",
-        ),
-    }[phase]
-    await _notify_league_members(db, season_id, title, body, f"draft-{phase}", "high")
-
-
-async def notify_draft_soon(db: AsyncSession, season_id: int, minutes: int) -> None:
-    """The reminder shortly before the scheduled time; it says the start is manual."""
-    if not get_settings().push_enabled:
-        return
-    await _notify_league_members(
-        db,
-        season_id,
-        "Your draft is scheduled soon",
-        f"Scheduled in about {minutes} minutes. Your commissioner starts it.",
-        "draft-soon",
-        "high",
-    )
-
-
-async def _notify_league_members(
-    db: AsyncSession,
-    season_id: int,
-    title: str,
-    body: str,
-    tag_prefix: str,
-    urgency: Urgency,
-) -> None:
-    row = (
-        await db.execute(
-            select(League.id, League.name)
-            .join(Season, Season.league_id == League.id)
-            .where(Season.id == season_id, Season.id.in_(live_season_ids()))
-        )
-    ).one_or_none()
-    if row is None:
-        return
-    recipients = (
-        (
-            await db.execute(
-                select(LeagueMember.user_id).where(
-                    LeagueMember.league_id == row.id, LeagueMember.left_at.is_(None)
-                )
-            )
-        )
-        .scalars()
-        .all()
-    )
-    await send_to_users(
-        db,
-        recipients,
-        PushMessage(
-            title=title,
-            body=f"{body} ({row.name})",
-            url=f"/leagues/{row.id}/draft",
-            tag=f"{tag_prefix}-{season_id}",
-            urgency=urgency,
-        ),
-        "draft",
-    )
 
 
 async def notify_league_message(db: AsyncSession, message_id: int) -> None:

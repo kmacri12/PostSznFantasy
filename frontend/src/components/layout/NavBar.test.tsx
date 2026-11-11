@@ -5,6 +5,13 @@ import type { LeagueByUser } from "../../api/types";
 import NavBar from "./NavBar";
 
 vi.mock("../dev/DevQuickSync", () => ({ DevQuickSync: () => null }));
+vi.mock("./InboxBell", () => ({
+  default: () => (
+    <button type="button" aria-label="Notifications">
+      bell
+    </button>
+  ),
+}));
 vi.mock("../settings/ProfileSheet", () => ({
   default: ({ onSignOut }: { onSignOut: () => void }) => (
     <div role="dialog" aria-label="Profile settings">
@@ -109,6 +116,18 @@ describe("NavBar", () => {
     fireEvent.click(screen.getByRole("button", { name: /League 2/ }));
     fireEvent.click(screen.getByRole("menuitem", { name: /League 1/ }));
     expect(screen.getByTestId("where").textContent).toBe("/leagues/1");
+  });
+
+  it("puts the notification bell between the switcher and the avatar, only when signed in", () => {
+    const { unmount } = renderBar();
+    const switcher = screen.getByRole("button", { name: /League 2/ });
+    const bell = screen.getByRole("button", { name: "Notifications" });
+    const account = screen.getByRole("button", { name: "Profile settings" });
+    expect(switcher.compareDocumentPosition(bell) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(bell.compareDocumentPosition(account) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    unmount();
+    renderBar({ user: null });
+    expect(screen.queryByRole("button", { name: "Notifications" })).toBeNull();
   });
 
   it("opens profile settings from the avatar, and signing out from there signs out", () => {

@@ -2,8 +2,8 @@
 
 The activity kind that records the draft time being set, moved or cleared (#388).
 
-Revision ID: 0025_draft_time_event
-Revises: 0024_metrics_views
+Revision ID: 0026_draft_time_event
+Revises: 0025_notifications
 Create Date: 2026-11-11 12:00:00
 
 """
@@ -12,8 +12,8 @@ from collections.abc import Sequence
 
 from alembic import op
 
-revision: str = "0025_draft_time_event"
-down_revision: str | Sequence[str] | None = "0024_metrics_views"
+revision: str = "0026_draft_time_event"
+down_revision: str | Sequence[str] | None = "0025_notifications"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

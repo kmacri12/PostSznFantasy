@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.db.models.draft import Draft
 from api.models.enums import DraftStatus
-from api.services import push
+from api.services import notifications
 from api.services.live_leagues import live_season_ids
 
 REMINDER_LEAD = timedelta(minutes=15)
@@ -44,7 +44,7 @@ async def send_draft_start_reminders(db: AsyncSession, now: datetime) -> int:
         if key in _sent:
             continue
         _sent.add(key)
-        await push.notify_draft_soon(
+        await notifications.notify_draft_soon(
             db, season_id, round((start_time - now).total_seconds() / 60)
         )
         sent += 1
