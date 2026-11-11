@@ -35,6 +35,23 @@ class User(Base):
     push_chat: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False, server_default=false()
     )
+    # Player and score alerts (#391): a hurt starter is on by default, the rest are
+    # opt-in because a live game would otherwise buzz a phone every few minutes.
+    push_starter_alerts: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True, server_default=true()
+    )
+    push_score_alerts: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default=false()
+    )
+    push_round_results: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default=false()
+    )
+    # No player-alert pushes between 11pm and 7am in `timezone` (an IANA name the
+    # browser reports when the member turns this on).
+    quiet_hours: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default=false()
+    )
+    timezone: Mapped[str | None] = mapped_column(String(64), nullable=True)
 
     teams_owned: Mapped[list["Team"]] = relationship(
         "Team", back_populates="owner", cascade="all, delete-orphan"

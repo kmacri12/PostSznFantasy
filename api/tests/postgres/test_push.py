@@ -329,6 +329,11 @@ async def test_preferences_round_trip_and_per_league_mute(
             "draftAlerts": True,
             "lineupReminders": True,
             "chat": False,
+            "starterAlerts": True,
+            "scoreAlerts": False,
+            "roundResults": False,
+            "quietHours": False,
+            "timezone": None,
             "mutedLeagueIds": [],
         }
         changed = await client.patch(

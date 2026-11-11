@@ -1,4 +1,5 @@
 from urllib.parse import urlsplit
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from pydantic import Field, field_validator
 
@@ -55,6 +56,11 @@ class PushPreferences(BaseSchema):
     draft_alerts: bool
     lineup_reminders: bool
     chat: bool
+    starter_alerts: bool
+    score_alerts: bool
+    round_results: bool
+    quiet_hours: bool
+    timezone: str | None
     # Leagues whose chat the caller muted; the Feed header shows the toggle.
     muted_league_ids: list[int]
 
@@ -65,6 +71,22 @@ class PushPreferencesUpdate(BaseSchema):
     draft_alerts: bool | None = None
     lineup_reminders: bool | None = None
     chat: bool | None = None
+    starter_alerts: bool | None = None
+    score_alerts: bool | None = None
+    round_results: bool | None = None
+    quiet_hours: bool | None = None
+    # The browser's IANA zone, sent with quiet hours so "11pm to 7am" is the member's own.
+    timezone: str | None = Field(default=None, max_length=64)
+
+    @field_validator("timezone")
+    @classmethod
+    def _known_zone(cls, value: str | None) -> str | None:
+        if value is not None:
+            try:
+                ZoneInfo(value)
+            except (ZoneInfoNotFoundError, ValueError) as exc:
+                raise ValueError("Not a known time zone") from exc
+        return value
 
 
 class ChatMuteUpdate(BaseSchema):

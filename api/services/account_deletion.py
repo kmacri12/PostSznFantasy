@@ -157,6 +157,7 @@ async def delete_account(db: AsyncSession, user: User) -> DeletionResult:
     )
     user.username = FORMER_MEMBER
     user.email = None
+    user.timezone = None
     user.supabase_uid = f"deleted:{user.id}"
     await db.flush()
     logger.info("Account deleted", extra={"user_id": user.id})

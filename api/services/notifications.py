@@ -30,6 +30,10 @@ NotificationKind = Literal[
     "draft_soon",
     "lineup_lock",
     "lineup_changed",
+    "starter_out",
+    "player_scored",
+    "round_result",
+    "team_eliminated",
 ]
 # The push preference each kind follows; the inbox entry is written either way.
 PUSH_KINDS: dict[NotificationKind, push.PushKind] = {
@@ -39,6 +43,10 @@ PUSH_KINDS: dict[NotificationKind, push.PushKind] = {
     "draft_soon": "draft",
     "lineup_lock": "lineup",
     "lineup_changed": "lineup",
+    "starter_out": "starter",
+    "player_scored": "score",
+    "round_result": "round",
+    "team_eliminated": "round",
 }
 KEEP_FOR = timedelta(days=30)
 INBOX_LIMIT = 100

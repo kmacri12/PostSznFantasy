@@ -45,3 +45,23 @@ class LineupReminder(Base):
     sent_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC)
     )
+
+
+class AlertSent(Base):
+    """A player or score alert already sent to a team's owner, so one event is one push.
+
+    `key` names the event (`out:<round>:<player>`, `td:<game>:<player>:<n>`,
+    `eliminated`, `round:<round>`); `tdpush:<game>` records the last score push of a game
+    for the throttle.
+    """
+
+    __tablename__ = "alerts_sent"
+    __table_args__ = {"schema": "fantasy"}
+
+    team_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("fantasy.teams.id", ondelete="CASCADE"), primary_key=True
+    )
+    key: Mapped[str] = mapped_column(String(80), primary_key=True)
+    sent_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC)
+    )
