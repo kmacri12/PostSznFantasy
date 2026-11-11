@@ -53,6 +53,7 @@ const PlayerRow = ({ label, player, bench = false, mark = null, onOpen }: Props)
         <ButtonBase
           component="div"
           disabled={!player}
+          aria-label={player ? `${label} ${player.name}` : undefined}
           onClick={player ? () => onOpen(player) : undefined}
           sx={{
             flex: 1,
