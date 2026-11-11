@@ -183,7 +183,7 @@ PostSznFantasy/
         ├── theme.ts            # `palettes` (dark, light), `tokens` (CSS variables `--ps-*`; components use these, never hex), `createAppTheme(mode)`, `tint`
         ├── main.tsx            # Vite DOM mount point (a data router, `createBrowserRouter`, so `useBlocker` works); calls `registerServiceWorker()` once at startup
         ├── content/
-        │   └── rules.ts        # Every plain-language rule string: How to play, pre-draft roster, lock note, setting tooltips, notes copy
+        │   └── rules.ts        # Every plain-language rule string: How to play, pre-draft roster, lock note, setting tooltips, notes copy, `HELP_TIPS` ("?" popover copy built from the How to play leads, with the rule id its Read more link opens)
         ├── contexts/
         │   ├── SeasonContext.tsx # The route's season (`useSeasonContext`: ids, year, `season` with `canEdit` / `canCommission`, `paths`), provided by SeasonLayout
         │   ├── ThemeModeContext.tsx # `ThemeModeProvider` / `useThemeMode`: Dark or Light, remembered per device (`utils/themeMode.ts`; the inline script in index.html applies it before first paint)
@@ -205,7 +205,7 @@ PostSznFantasy/
         │   ├── JoinPage.tsx    # `/join/:code` invite preview (members, open slots), Sign in to join / Join league, a Take the tour button (works signed out), full-league state and the 409 `league_full` answer
         │   ├── DraftPage.tsx   # The Draft tab: sticky clock bar, commissioner strip, a cog for draft settings (`DraftSettingsSheet`), Players / Board / Roster / Queue views (all on screen from `lg` up); once the draft is complete just the league player list
         │   ├── DraftBoardPage.tsx # `/draft/board`: the board on its own, linked from More at any time
-        │   ├── HowToPlayPage.tsx # A Take the tour link (opens `TourDialog`) above the rules as accordions in four groups (Before the draft, The draft, Each round, Scoring and ties), a bold lead sentence per rule; served globally at `/how-to-play` and under the league at `<season home>/how-to-play` (keeps the tabs), copy from src/content/rules.ts
+        │   ├── HowToPlayPage.tsx # (a `#rule-<id>` hash opens and scrolls to that rule) A Take the tour link (opens `TourDialog`) above the rules as accordions in four groups (Before the draft, The draft, Each round, Scoring and ties), a bold lead sentence per rule; served globally at `/how-to-play` and under the league at `<season home>/how-to-play` (keeps the tabs), copy from src/content/rules.ts
         │   ├── SeasonLayout.tsx # `/leagues/:leagueId` (the current season) and `/leagues/:leagueId/seasons/:year` resolve to a season and provide SeasonContext to the pages below; the long form of the current season redirects (`replace`) to the clean one
         │   ├── FeedPage.tsx    # Feed tab: events and chat oldest-to-newest with the message box pinned above the tab bar, date rows, a "New" divider fixed when the page opens, read-only note in an archived season
         │   ├── MorePage.tsx    # More tab (no Settings entry, #315): Draft room and players (the Draft tab, with the draft status line; "Players" once the draft is complete), Draft board, Past seasons (sheet, only if any), Invite members (sheet, commissioners), How to play, Take the tour (full-screen `TourDialog`), Report a problem (sheet), Sign out
@@ -232,6 +232,7 @@ PostSznFantasy/
         ├── utils/
         │   ├── avatarUrl.ts    # `avatarSrc` (adds the API origin to a picture path) and `initialsOf`
         │   ├── timeZone.ts     # The one place that picks the display zone (`viewerTimeZone`, a saved preference plugs in at `savedTimeZone`, #405): `formatInViewerZone` (always with the zone abbreviation), `describeViewerZone`, `toZonedInput` / `fromZonedInput` for datetime-local pickers (DST edges tested). Schedule times go through it, never `toLocaleString`
+        │   ├── common/HelpTip.tsx # The "?" help popover (#419): button named "About <label>", tap/Enter/Space toggles, mouse hover shows, Escape and tap outside close, 44px target, optional "Read more" to `<how-to-play>#rule-<id>`; copy from `HELP_TIPS` / `SETTING_HELP` in content/rules.ts, never inline. Placed on Team (Starters lock, Eliminated), the draft clock bar (draft and caps), standings (ties) and the settings forms
         │   ├── calendar.ts     # `.ics` (reminder, folded lines, stable UID) and Google Calendar link builders, `draftCalendarEvent`, `lockCalendarEvent`; `components/common/AddToCalendar.tsx` is the one-tap menu
         │   ├── draftCue.ts     # Web Audio on-deck beep
         │   ├── numberField.ts  # `numberProblem(s)`: per-field validation (blank, half-typed, out of range) shared by the settings and create forms; never coerce a bad value to 0
