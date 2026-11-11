@@ -1,6 +1,12 @@
 import { Box, Button, Container, Typography } from "@mui/material";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useFeed, useMarkFeedViewed, useMuteLeagueChat, usePushPreferences } from "../api/queries";
+import {
+  useFeed,
+  useMarkFeedViewed,
+  useMuteLeagueChat,
+  usePushPreferences,
+  useReactToMessage,
+} from "../api/queries";
 import type { FeedItem, FeedMessageItem } from "../api/types";
 import ErrorState from "../components/common/ErrorState";
 import { friendlyError } from "../components/common/friendlyError";
@@ -73,6 +79,9 @@ const FeedPage = () => {
   const feed = useFeed(seasonId, live.isConnected);
   const markViewed = useMarkFeedViewed(seasonId);
   const [deleting, setDeleting] = useState<FeedMessageItem | null>(null);
+  const [replyTo, setReplyTo] = useState<FeedMessageItem | null>(null);
+  const [editing, setEditing] = useState<FeedMessageItem | null>(null);
+  const react = useReactToMessage(seasonId);
   // Fixed when the feed first shows, so reading it does not move the divider.
   const [divider, setDivider] = useState<{ key: string | null } | null>(null);
   const stickToBottom = useRef(true);
@@ -123,6 +132,18 @@ const FeedPage = () => {
         key={row.key}
         message={row.item}
         own={row.item.authorUserId === userId}
+        interactive={first?.canPost ?? false}
+        onReact={(message, emoji, reacted) =>
+          react.mutate({ messageId: message.id, emoji, reacted })
+        }
+        onReply={(message) => {
+          setEditing(null);
+          setReplyTo(message);
+        }}
+        onEdit={(message) => {
+          setReplyTo(null);
+          setEditing(message);
+        }}
         onDelete={setDeleting}
         onGifLoad={scrollToNewest}
       />
@@ -217,7 +238,17 @@ const FeedPage = () => {
         }}
       >
         {first.canPost ? (
-          <Composer seasonId={seasonId} />
+          <Composer
+            seasonId={seasonId}
+            members={season.members}
+            selfId={userId}
+            replyTo={replyTo}
+            editing={editing}
+            onDone={() => {
+              setReplyTo(null);
+              setEditing(null);
+            }}
+          />
         ) : (
           <Typography
             variant="body2"

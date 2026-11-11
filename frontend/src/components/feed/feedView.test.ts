@@ -30,7 +30,12 @@ const message = (id: number, partial: Partial<FeedMessageItem> = {}): FeedMessag
   body: "hi",
   gifUrl: null,
   canDelete: false,
+  canEdit: false,
+  editedAt: null,
   isNew: false,
+  replyTo: null,
+  mentions: [],
+  reactions: [],
   ...partial,
 });
 

@@ -15,6 +15,7 @@ vi.mock("../../api/queries", () => ({
       draftAlerts: true,
       lineupReminders: true,
       chat: false,
+      mentions: true,
       starterAlerts: true,
       scoreAlerts: false,
       roundResults: false,
@@ -48,6 +49,7 @@ describe("NotificationsToggle", () => {
     expect(screen.getByRole("switch", { name: "Draft alerts" })).toBeChecked();
     expect(screen.getByRole("switch", { name: "Lineup reminders" })).toBeChecked();
     expect(screen.getByRole("switch", { name: "Chat messages" })).not.toBeChecked();
+    expect(screen.getByRole("switch", { name: "Mentions" })).toBeChecked();
   });
 
   it("shows the player alerts: hurt starters on, touchdowns and round results off", () => {

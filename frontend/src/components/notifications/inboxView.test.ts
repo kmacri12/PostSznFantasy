@@ -63,6 +63,14 @@ describe("describeNotification", () => {
     });
   });
 
+  it("words a mention and opens the league's feed", () => {
+    expect(describeNotification(item("mention", { seasonId: 9, messageId: 41 }))).toEqual({
+      title: "You were mentioned",
+      body: "Someone tagged you in the Family League chat.",
+      path: "/leagues/3/feed",
+    });
+  });
+
   it("still links a kind this build does not know to its league", () => {
     expect(describeNotification(item("player_eliminated"))).toEqual({
       title: "Family League",

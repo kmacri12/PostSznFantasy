@@ -2,6 +2,7 @@ import { Box } from "@mui/material";
 import { Link, useLocation } from "react-router-dom";
 import type { LeagueByUser } from "../../api/types";
 import { TAB_BAR_HEIGHT, tokens } from "../../theme";
+import { CountBadge } from "./CountBadge";
 import { activeTabIndex, leagueTabs } from "./leagueTabs";
 import { NewActivityDot } from "./NewActivityDot";
 import { TAB_ICONS } from "./TabIcons";
@@ -55,11 +56,18 @@ const BottomTabBar = ({ league }: { league: LeagueByUser }) => {
           >
             <Icon />
             <span>{tab.label}</span>
-            {tab.dot && (
-              <NewActivityDot
-                sx={{ position: "absolute", top: 10, left: "calc(50% + 6px)" }}
-                label="New activity"
+            {tab.count > 0 ? (
+              <CountBadge
+                count={tab.count}
+                sx={{ position: "absolute", top: 4, left: "calc(50% + 4px)" }}
               />
+            ) : (
+              tab.dot && (
+                <NewActivityDot
+                  sx={{ position: "absolute", top: 10, left: "calc(50% + 6px)" }}
+                  label="New activity"
+                />
+              )
             )}
           </Box>
         );

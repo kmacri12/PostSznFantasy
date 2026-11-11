@@ -76,6 +76,12 @@ export const describeNotification = (item: InboxItem): InboxLine => {
         body: `You're out of players in ${league}.`,
         path: paths.home,
       };
+    case "mention":
+      return {
+        title: "You were mentioned",
+        body: `Someone tagged you in the ${league} chat.`,
+        path: paths.feed,
+      };
     default:
       return {
         title: league,

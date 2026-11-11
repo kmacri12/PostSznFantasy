@@ -30,6 +30,7 @@ const league = (id: number, finished: boolean, hasNewActivity = false): LeagueBy
   isCommissioner: false,
   userTeamId: id,
   hasNewActivity,
+  newActivityCount: hasNewActivity ? 1 : 0,
   finished,
   draftStatus: "completed",
   seasons: [],
