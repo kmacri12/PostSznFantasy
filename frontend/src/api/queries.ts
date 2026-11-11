@@ -1,4 +1,10 @@
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  type InfiniteData,
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { type HourCycle, setDisplayPreferences } from "../utils/timeZone";
 import { api } from "./client";
@@ -615,12 +621,66 @@ export interface MessageDraft {
   mentionedUserIds?: number[];
 }
 
-export const usePostMessage = (seasonId: Id | undefined) => {
+/** The sender, so a message shows in the Feed the moment it is sent. */
+export interface MessageAuthor {
+  userId: number | null;
+  name: string;
+}
+
+type FeedCache = InfiniteData<Feed, string>;
+
+/** Adds a message to the newest end of the cached feed; used for the optimistic send. */
+export const withPendingMessage = (
+  cache: FeedCache | undefined,
+  message: FeedMessageItem,
+): FeedCache | undefined =>
+  cache && {
+    ...cache,
+    pages: cache.pages.map((page, index) =>
+      index === 0 ? { ...page, items: [message, ...page.items] } : page,
+    ),
+  };
+
+/**
+ * Sends a chat message. It appears in the Feed at once; if the server refuses it the cache
+ * goes back to what it was and the caller's `onError` says so.
+ */
+export const usePostMessage = (seasonId: Id | undefined, author?: MessageAuthor) => {
   const queryClient = useQueryClient();
+  const feedKey = keys.feed(seasonId ?? "");
   return useMutation({
     mutationFn: async (draft: MessageDraft) =>
       (await api.post<FeedMessageItem>(`/api/seasons/${seasonId}/messages`, draft)).data,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: keys.feed(seasonId ?? "") }),
+    onMutate: async (draft) => {
+      await queryClient.cancelQueries({ queryKey: feedKey });
+      const previous = queryClient.getQueryData<FeedCache>(feedKey);
+      if (author) {
+        queryClient.setQueryData<FeedCache>(
+          feedKey,
+          withPendingMessage(previous, {
+            type: "message",
+            id: -Date.now(),
+            createdAt: new Date().toISOString(),
+            authorUserId: author.userId,
+            authorName: author.name,
+            body: draft.body,
+            gifUrl: draft.gifUrl ?? null,
+            canDelete: false,
+            canEdit: false,
+            editedAt: null,
+            isNew: false,
+            replyTo: null,
+            mentions: [],
+            reactions: [],
+          }),
+        );
+      }
+      return { previous };
+    },
+    onError: (_error, _draft, context) => {
+      if (context?.previous) queryClient.setQueryData(feedKey, context.previous);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: feedKey }),
   });
 };
 

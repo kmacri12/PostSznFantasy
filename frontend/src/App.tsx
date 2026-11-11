@@ -7,6 +7,7 @@ import { useUserLeagues } from "./api/queries";
 import RequireSignIn from "./components/auth/RequireSignIn";
 import SessionExpiredBanner from "./components/auth/SessionExpiredBanner";
 import LoadingState from "./components/common/LoadingState";
+import PullToRefresh from "./components/common/PullToRefresh";
 import ReconnectingBanner from "./components/connection/ReconnectingBanner";
 import AppShell from "./components/layout/AppShell";
 import NotificationOptIn from "./components/notifications/NotificationOptIn";
@@ -114,14 +115,35 @@ function App() {
               <Route path="/" element={<LandingPage />} />
               {["/leagues/:leagueId", "/leagues/:leagueId/seasons/:year"].map((path) => (
                 <Route key={path} path={path} element={<SeasonLayout />}>
-                  <Route index element={<LeaguePage />} />
+                  <Route
+                    index
+                    element={
+                      <PullToRefresh>
+                        <LeaguePage />
+                      </PullToRefresh>
+                    }
+                  />
                   <Route path="draft" element={<DraftPage />} />
                   <Route path="settings" element={<SettingsPage />} />
                   <Route path="draft/board" element={<DraftBoardPage />} />
-                  <Route path="feed" element={<FeedPage />} />
+                  <Route
+                    path="feed"
+                    element={
+                      <PullToRefresh>
+                        <FeedPage />
+                      </PullToRefresh>
+                    }
+                  />
                   <Route path="more" element={<MorePage />} />
                   <Route path="how-to-play" element={<HowToPlayPage />} />
-                  <Route path="teams/:teamId" element={<TeamPage />} />
+                  <Route
+                    path="teams/:teamId"
+                    element={
+                      <PullToRefresh>
+                        <TeamPage />
+                      </PullToRefresh>
+                    }
+                  />
                 </Route>
               ))}
               <Route path="/sign-in" element={<SignInPage />} />

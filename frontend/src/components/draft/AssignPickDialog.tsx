@@ -3,7 +3,6 @@ import {
   Box,
   Button,
   Chip,
-  Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
@@ -16,6 +15,7 @@ import {
 import { useMemo, useState } from "react";
 import { useAssignPick, useClearReservedPick } from "../../api/queries";
 import type { DraftState, PlayerSummary } from "../../api/types";
+import Dialog from "../common/AppDialog";
 import { mutationError } from "../common/friendlyError";
 import ConfirmDraftAction from "./ConfirmDraftAction";
 

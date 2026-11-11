@@ -1,13 +1,7 @@
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Typography,
-} from "@mui/material";
+import { Button, DialogActions, DialogContent, DialogTitle, Typography } from "@mui/material";
 import { useDeleteMessage } from "../../api/queries";
 import type { FeedMessageItem } from "../../api/types";
+import Dialog from "../common/AppDialog";
 import { mutationError } from "../common/friendlyError";
 
 interface Props {
