@@ -102,6 +102,30 @@ describe("draft room reducer", () => {
     expect(room.toast).toBeNull();
   });
 
+  it("says nothing after a long absence when no draft is running", () => {
+    for (const status of ["unscheduled", "scheduled", "lobby", "completed"] as const) {
+      let room = applyDraftEvent(
+        initialRoom,
+        { eventType: "SNAPSHOT", data: snapshot({ status }) },
+        1_000,
+      );
+      room = applyDraftEvent(room, { eventType: "CONNECTION_LOST" }, 2_000);
+      room = applyDraftEvent(
+        room,
+        { eventType: "SNAPSHOT", data: snapshot({ status }) },
+        2 * 3600_000,
+      );
+      expect(room.toast).toBeNull();
+    }
+  });
+
+  it("still says no new picks when I was away during a live draft", () => {
+    let room = applyDraftEvent(initialRoom, { eventType: "SNAPSHOT", data: snapshot() }, 1_000);
+    room = applyDraftEvent(room, { eventType: "CONNECTION_LOST" }, 2_000);
+    room = applyDraftEvent(room, { eventType: "SNAPSHOT", data: snapshot() }, 12_000);
+    expect(room.toast?.message).toBe("You were offline for 10s, no new picks");
+  });
+
   it("clears a pending pick when someone else drafts that player", () => {
     let room = applyDraftEvent(initialRoom, { eventType: "SNAPSHOT", data: snapshot() });
     room = applyDraftEvent(room, { eventType: "PICK_PENDING", data: { playerId: 5 } });

@@ -56,6 +56,8 @@ const offlineNote = (room: DraftRoom, snapshot: DraftSnapshot, now: number): Toa
   const offlineMs = now - room.connectionLostAt;
   const missed = snapshot.picks.length - room.state.picks.length;
   if (offlineMs < MIN_OFFLINE_NOTE_MS && missed <= 0) return null;
+  // "No new picks" only means something while picks are being made; the room also opens before and after the draft.
+  if (missed <= 0 && snapshot.status !== "in_progress" && snapshot.status !== "paused") return null;
   const picks = missed > 0 ? `${missed} ${missed === 1 ? "pick" : "picks"} made` : "no new picks";
   return nextToast(room, `You were offline for ${Math.round(offlineMs / 1000)}s, ${picks}`, "info");
 };
