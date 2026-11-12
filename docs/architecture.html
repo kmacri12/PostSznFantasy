@@ -1,0 +1,668 @@
+<title>PostSzn Architecture</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+/* Layout: one column of figures, each with a one-claim caption; wide SVGs scroll inside their own box on phones. */
+:root {
+  --bg: #f6f7f9;
+  --fg: #151a22;
+  --muted: #5a6475;
+  --line: #c3cad6;
+  --surface: #ffffff;
+  --client: #2563eb;
+  --api: #0f766e;
+  --data: #7c3aed;
+  --ext: #b45309;
+  --font-display: "Space Grotesk", "Inter", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1218; --fg: #e5e9f0; --muted: #98a2b4; --line: #384154; --surface: #161b24;
+    --client: #7aa6ff; --api: #2dd4bf; --data: #b9a0ff; --ext: #f3a95f;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1218; --fg: #e5e9f0; --muted: #98a2b4; --line: #384154; --surface: #161b24;
+  --client: #7aa6ff; --api: #2dd4bf; --data: #b9a0ff; --ext: #f3a95f;
+  color-scheme: dark;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.55;
+  padding-block: 32px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+main { max-width: 1040px; margin: 0 auto; display: flex; flex-direction: column; gap: 44px; }
+h1, h2 { font-family: var(--font-display); text-wrap: balance; margin: 0; line-height: 1.15; }
+h1 { font-size: clamp(28px, 5vw, 40px); font-weight: 700; letter-spacing: -0.01em; }
+h2 { font-size: 21px; font-weight: 700; }
+p { margin: 0; max-width: 68ch; }
+.lede { color: var(--muted); font-size: 16px; margin-top: 12px; }
+.eyebrow { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; margin-bottom: 8px; }
+
+nav { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+nav a {
+  color: var(--fg); text-decoration: none; font-size: 13px; padding: 7px 12px;
+  border: 1px solid var(--line); border-radius: 6px; background: var(--surface);
+}
+nav a:hover, nav a:focus-visible { border-color: var(--client); outline: none; }
+
+.key { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 18px; font-size: 13px; color: var(--muted); }
+.key span { display: inline-flex; align-items: center; gap: 8px; }
+.key i { width: 14px; height: 14px; border-radius: 3px; border: 1.5px solid; display: inline-block; }
+.key .c { border-color: var(--client); background: color-mix(in srgb, var(--client) 16%, var(--surface)); }
+.key .a { border-color: var(--api); background: color-mix(in srgb, var(--api) 16%, var(--surface)); }
+.key .d { border-color: var(--data); background: color-mix(in srgb, var(--data) 16%, var(--surface)); }
+.key .e { border-color: var(--ext); background: color-mix(in srgb, var(--ext) 16%, var(--surface)); }
+
+section { display: flex; flex-direction: column; gap: 14px; scroll-margin-top: 16px; min-width: 0; }
+figure { margin: 0; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.scroll {
+  overflow-x: auto; background: var(--surface); border: 1px solid var(--line);
+  border-radius: 10px; padding: 14px;
+}
+.scroll svg { display: block; width: 100%; min-width: 880px; height: auto; }
+figcaption { color: var(--muted); font-size: 13.5px; max-width: 80ch; }
+
+ul.rules { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; max-width: 76ch; }
+code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 0.9em; }
+
+/* SVG vocabulary */
+svg text { font-family: var(--font-body); }
+.t { fill: var(--fg); font-size: 13px; font-weight: 600; }
+.s { fill: var(--muted); font-size: 11.5px; }
+.m { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; fill: var(--fg); font-size: 11.5px; }
+.lbl { fill: var(--muted); font-size: 11px; paint-order: stroke; stroke: var(--surface); stroke-width: 4px; stroke-linejoin: round; }
+.n { fill: var(--surface); stroke: var(--line); stroke-width: 1.3; }
+.client { stroke: var(--client); fill: color-mix(in srgb, var(--client) 13%, var(--surface)); }
+.api { stroke: var(--api); fill: color-mix(in srgb, var(--api) 13%, var(--surface)); }
+.data { stroke: var(--data); fill: color-mix(in srgb, var(--data) 13%, var(--surface)); }
+.ext { stroke: var(--ext); fill: color-mix(in srgb, var(--ext) 13%, var(--surface)); }
+.zone.client { fill: color-mix(in srgb, var(--client) 5%, var(--surface)); }
+.zone.api { fill: color-mix(in srgb, var(--api) 5%, var(--surface)); }
+.zone.data { fill: color-mix(in srgb, var(--data) 5%, var(--surface)); }
+.zone.ext { fill: color-mix(in srgb, var(--ext) 5%, var(--surface)); }
+.inner { fill: var(--surface); }
+.a1 { fill: none; stroke: var(--fg); stroke-width: 1.4; opacity: 0.8; marker-end: url(#ah); }
+.a2 { fill: none; stroke: var(--fg); stroke-width: 1.4; opacity: 0.8; marker-end: url(#ah); marker-start: url(#ah); }
+.dash { stroke-dasharray: 5 4; }
+.dashed-box { stroke-dasharray: 5 4; }
+#ah path { fill: var(--fg); opacity: 0.85; }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z"/>
+    </marker>
+  </defs>
+</svg>
+
+<main>
+  <header>
+    <div class="eyebrow">System architecture</div>
+    <h1>PostSzn Fantasy</h1>
+    <p class="lede">Fantasy football for the NFL postseason, where a team's players are eliminated as their real teams lose. A React single-page app talks to one FastAPI service backed by PostgreSQL. Sign-in is Supabase, and scores come from Tank01. Eight diagrams follow, from the whole system down to each mechanism.</p>
+    <nav aria-label="Diagrams">
+      <a href="#system">System map</a>
+      <a href="#request">Request path</a>
+      <a href="#realtime">Live rooms</a>
+      <a href="#scores">Score pipeline</a>
+      <a href="#notify">Notifications</a>
+      <a href="#draft">Draft states</a>
+      <a href="#data">Data model</a>
+      <a href="#delivery">Delivery</a>
+    </nav>
+    <div class="key" aria-label="Color key">
+      <span><i class="c"></i>Browser side</span>
+      <span><i class="a"></i>API process</span>
+      <span><i class="d"></i>Stored data</span>
+      <span><i class="e"></i>Outside service</span>
+    </div>
+  </header>
+
+  <!-- 1. System map -->
+  <section id="system">
+    <h2>System map</h2>
+    <figure>
+      <div class="scroll">
+        <svg viewBox="0 0 960 680" role="img" aria-label="The browser talks directly to Cloudflare Pages, Supabase for sign-in, and the API; the API alone talks to PostgreSQL, Tank01, Resend, push services and Sentry.">
+          <!-- client column -->
+          <rect class="n client" x="20" y="50" width="200" height="90" rx="8"/>
+          <text class="t" x="32" y="73">Cloudflare Pages</text>
+          <text class="s" x="32" y="93">React 19 SPA · Vite · MUI</text>
+          <text class="s" x="32" y="109">/join/:code link previews</text>
+          <text class="s" x="32" y="125">(Pages Function)</text>
+
+          <rect class="zone client n" x="20" y="180" width="200" height="170" rx="8"/>
+          <text class="t" x="32" y="202">Browser or installed PWA</text>
+          <rect class="n inner" x="32" y="214" width="176" height="50" rx="6"/>
+          <text class="t" x="44" y="234">React Query</text>
+          <text class="s" x="44" y="251">UserContext · useWebSocket</text>
+          <rect class="n inner" x="32" y="276" width="176" height="62" rx="6"/>
+          <text class="t" x="44" y="296">Service worker</text>
+          <text class="s" x="44" y="313">app shell + last data cached</text>
+          <text class="s" x="44" y="329">push + notification tap</text>
+
+          <rect class="n ext" x="20" y="390" width="200" height="46" rx="8"/>
+          <text class="t" x="32" y="410">GIPHY</text>
+          <text class="s" x="32" y="427">GIF picker, optional</text>
+
+          <!-- API column -->
+          <rect class="n zone api" x="360" y="50" width="300" height="390" rx="10"/>
+          <text class="t" x="376" y="73">API · FastAPI on Fly.io</text>
+          <g>
+            <rect class="n inner api" x="376" y="88" width="268" height="54" rx="6"/>
+            <text class="t" x="388" y="110">Middleware</text>
+            <text class="s" x="388" y="128">request-ID · 426 gate · size + rate limits</text>
+            <rect class="n inner api" x="376" y="158" width="268" height="54" rx="6"/>
+            <text class="t" x="388" y="180">Routers</text>
+            <text class="s" x="388" y="198">Supabase JWT, then member guards</text>
+            <rect class="n inner api" x="376" y="228" width="268" height="54" rx="6"/>
+            <text class="t" x="388" y="250">Services (the rules live here)</text>
+            <text class="s" x="388" y="268">drafts · lineups · scoring · standings</text>
+            <rect class="n inner api" x="376" y="298" width="268" height="54" rx="6"/>
+            <text class="t" x="388" y="320">Background loops</text>
+            <text class="s" x="388" y="338">scheduler tick · draft clock (1 s)</text>
+            <rect class="n inner api" x="376" y="368" width="268" height="54" rx="6"/>
+            <text class="t" x="388" y="390">WebSocket rooms</text>
+            <text class="s" x="388" y="408">draft + feed managers, optional relay</text>
+          </g>
+
+          <rect class="n data" x="360" y="480" width="300" height="90" rx="8"/>
+          <text class="t" x="376" y="504">PostgreSQL 17</text>
+          <text class="s" x="376" y="524">async SQLAlchemy 2.0 · asyncpg</text>
+          <text class="s" x="376" y="542">Alembic migrations · LISTEN/NOTIFY</text>
+
+          <rect class="n ext" x="360" y="606" width="300" height="50" rx="8"/>
+          <text class="t" x="376" y="627">Metabase</text>
+          <text class="s" x="376" y="644">metrics_reader role · aggregate views only</text>
+
+          <!-- outside services -->
+          <rect class="n zone ext" x="750" y="50" width="190" height="110" rx="8"/>
+          <text class="t" x="762" y="72">Supabase</text>
+          <rect class="n inner" x="762" y="82" width="166" height="30" rx="5"/>
+          <text class="s" x="772" y="101">Auth · Google, email code</text>
+          <rect class="n inner" x="762" y="120" width="166" height="30" rx="5"/>
+          <text class="s" x="772" y="139">Storage · private avatars</text>
+
+          <rect class="n ext" x="750" y="182" width="190" height="56" rx="8"/>
+          <text class="t" x="762" y="204">Tank01 (RapidAPI)</text>
+          <text class="s" x="762" y="222">scores, rosters, depth charts</text>
+          <rect class="n ext" x="750" y="252" width="190" height="56" rx="8"/>
+          <text class="t" x="762" y="274">Resend</text>
+          <text class="s" x="762" y="292">support email</text>
+          <rect class="n ext" x="750" y="324" width="190" height="56" rx="8"/>
+          <text class="t" x="762" y="346">Push services</text>
+          <text class="s" x="762" y="364">FCM · APNs · Mozilla</text>
+          <rect class="n ext" x="750" y="397" width="190" height="56" rx="8"/>
+          <text class="t" x="762" y="419">Sentry</text>
+          <text class="s" x="762" y="437">errors, PII scrubbed</text>
+
+          <!-- arrows -->
+          <line class="a1" x1="120" y1="140" x2="120" y2="180"/>
+          <text class="lbl" x="128" y="164">SPA bundle</text>
+          <line class="a1" x1="120" y1="350" x2="120" y2="390"/>
+          <text class="lbl" x="128" y="374">GIF search</text>
+          <polyline class="a1" points="220,196 300,196 300,22 845,22 845,50"/>
+          <text class="lbl" x="572" y="15" text-anchor="middle">sign in, receive a JWT</text>
+          <line class="a2" x1="220" y1="250" x2="360" y2="250"/>
+          <text class="lbl" x="290" y="238" text-anchor="middle">REST + WebSocket</text>
+          <text class="lbl" x="290" y="270" text-anchor="middle">Bearer JWT</text>
+          <line class="a1" x1="510" y1="440" x2="510" y2="480"/>
+          <text class="lbl" x="518" y="464">asyncpg</text>
+          <line class="a1" x1="510" y1="606" x2="510" y2="570"/>
+          <text class="lbl" x="518" y="592">reads views</text>
+          <line class="a1" x1="660" y1="105" x2="750" y2="105"/>
+          <text class="lbl" x="705" y="97" text-anchor="middle">verify JWT</text>
+          <text class="lbl" x="705" y="124" text-anchor="middle">avatars</text>
+          <line class="a1" x1="660" y1="210" x2="750" y2="210"/>
+          <text class="lbl" x="705" y="202" text-anchor="middle">ingest</text>
+          <line class="a1" x1="660" y1="280" x2="750" y2="280"/>
+          <text class="lbl" x="705" y="272" text-anchor="middle">email</text>
+          <line class="a1" x1="660" y1="352" x2="750" y2="352"/>
+          <text class="lbl" x="705" y="344" text-anchor="middle">push</text>
+          <line class="a1" x1="660" y1="425" x2="750" y2="425"/>
+          <text class="lbl" x="705" y="417" text-anchor="middle">errors</text>
+        </svg>
+      </div>
+      <figcaption>The browser reaches three things directly: Cloudflare Pages for the bundle, Supabase for sign-in, and the API. Everything else (database, NFL data, email, push, error tracking) sits behind the API, so no other credential ever reaches a device.</figcaption>
+    </figure>
+    <ul class="rules">
+      <li>The API only verifies Supabase JWTs. It never sees a password, and the member's email comes from the verified token, not the request body.</li>
+      <li>Avatars live in a private Storage bucket that only the API reads, with the service-role key. The browser never talks to Storage.</li>
+      <li>Rate limits and the support limiter are in memory, which assumes one API process. The relay below is what changes if that stops being true.</li>
+    </ul>
+  </section>
+
+  <!-- 2. Request path -->
+  <section id="request">
+    <h2>Request path</h2>
+    <figure>
+      <div class="scroll">
+        <svg viewBox="0 0 960 190" role="img" aria-label="A request passes middleware, authentication, authorization guards, a router and service, then the database, and the response travels back as camelCase JSON.">
+          <polyline class="a1" points="864,44 864,18 96,18 96,44"/>
+          <text class="lbl" x="480" y="12" text-anchor="middle">response: Pydantic model, camelCase JSON, X-Request-ID header</text>
+
+          <rect class="n api" x="12" y="44" width="168" height="60" rx="8"/>
+          <text class="t" x="96" y="79" text-anchor="middle">Middleware</text>
+          <rect class="n api" x="204" y="44" width="168" height="60" rx="8"/>
+          <text class="t" x="288" y="79" text-anchor="middle">Authenticate</text>
+          <rect class="n api" x="396" y="44" width="168" height="60" rx="8"/>
+          <text class="t" x="480" y="79" text-anchor="middle">Authorize</text>
+          <rect class="n api" x="588" y="44" width="168" height="60" rx="8"/>
+          <text class="t" x="672" y="79" text-anchor="middle">Route + service</text>
+          <rect class="n data" x="780" y="44" width="168" height="60" rx="8"/>
+          <text class="t" x="864" y="79" text-anchor="middle">Database</text>
+
+          <line class="a1" x1="180" y1="74" x2="204" y2="74"/>
+          <line class="a1" x1="372" y1="74" x2="396" y2="74"/>
+          <line class="a1" x1="564" y1="74" x2="588" y2="74"/>
+          <line class="a1" x1="756" y1="74" x2="780" y2="74"/>
+
+          <text class="s" x="96" y="128" text-anchor="middle">request ID + JSON log</text>
+          <text class="s" x="96" y="145" text-anchor="middle">426 if the SPA is too old</text>
+          <text class="s" x="96" y="162" text-anchor="middle">413 size cap · 429 limits</text>
+
+          <text class="s" x="288" y="128" text-anchor="middle">verify Supabase JWT</text>
+          <text class="s" x="288" y="145" text-anchor="middle">algorithms pinned</text>
+          <text class="s" x="288" y="162" text-anchor="middle">email from verified claim</text>
+
+          <text class="s" x="480" y="128" text-anchor="middle">League / Season guards</text>
+          <text class="s" x="480" y="145" text-anchor="middle">Team / Draft guards</text>
+          <text class="s" x="480" y="162" text-anchor="middle">403 · 404 leagueDeleted · 409</text>
+
+          <text class="s" x="672" y="128" text-anchor="middle">Pydantic v2 in and out</text>
+          <text class="s" x="672" y="145" text-anchor="middle">rules live in services</text>
+          <text class="s" x="672" y="162" text-anchor="middle">one DbSession per request</text>
+
+          <text class="s" x="864" y="128" text-anchor="middle">async SQLAlchemy 2.0</text>
+          <text class="s" x="864" y="145" text-anchor="middle">deleted leagues filtered</text>
+          <text class="s" x="864" y="162" text-anchor="middle">row locks on lineup moves</text>
+        </svg>
+      </div>
+      <figcaption>A request is refused as early as it can be. Authorization is a dependency, not code inside each route, and a former member passes only for reads of a finished season they owned a team in.</figcaption>
+    </figure>
+  </section>
+
+  <!-- 3. Real-time -->
+  <section id="realtime">
+    <h2>Live rooms</h2>
+    <figure>
+      <div class="scroll">
+        <svg viewBox="0 0 960 430" role="img" aria-label="Two browsers hold WebSockets to two API instances; a pick is committed in Postgres, which relays it by NOTIFY so both instances broadcast to their own sockets.">
+          <rect class="n client" x="20" y="60" width="170" height="80" rx="8"/>
+          <text class="t" x="32" y="84">Manager A</text>
+          <text class="s" x="32" y="102">useWebSocket</text>
+          <text class="s" x="32" y="118">countdown from deadline</text>
+          <rect class="n client" x="20" y="260" width="170" height="80" rx="8"/>
+          <text class="t" x="32" y="284">Manager B</text>
+          <text class="s" x="32" y="302">another device</text>
+          <text class="s" x="32" y="318">or the Feed page</text>
+
+          <rect class="n zone api" x="330" y="30" width="250" height="210" rx="10"/>
+          <text class="t" x="346" y="53">API instance 1</text>
+          <rect class="n inner api" x="346" y="66" width="218" height="44" rx="6"/>
+          <text class="t" x="358" y="85">POST picks</text>
+          <text class="s" x="358" y="101">validate turn, caps, record</text>
+          <rect class="n inner api" x="346" y="120" width="218" height="44" rx="6"/>
+          <text class="t" x="358" y="139">Draft + feed managers</text>
+          <text class="s" x="358" y="155">PICK_MADE · DRAFT_STATE</text>
+          <rect class="n inner api" x="346" y="174" width="218" height="44" rx="6"/>
+          <text class="t" x="358" y="193">Draft clock, 1 s loop</text>
+          <text class="s" x="358" y="209">auto-picks expired deadlines</text>
+
+          <rect class="n zone api" x="330" y="270" width="250" height="110" rx="10"/>
+          <text class="t" x="346" y="292">API instance 2 (optional)</text>
+          <rect class="n inner api" x="346" y="304" width="218" height="60" rx="6"/>
+          <text class="t" x="358" y="326">Draft + feed managers</text>
+          <text class="s" x="358" y="344">broadcast to local sockets</text>
+
+          <rect class="n zone data" x="730" y="80" width="210" height="280" rx="10"/>
+          <text class="t" x="746" y="104">PostgreSQL</text>
+          <text class="s" x="746" y="130">draft_picks, deadline stored</text>
+          <text class="s" x="746" y="147">commit first, announce after</text>
+          <text class="t" x="746" y="190">NOTIFY channels</text>
+          <text class="m" x="746" y="210">draft_events</text>
+          <text class="m" x="746" y="228">feed_events</text>
+          <text class="s" x="746" y="262">Relay is opt-in:</text>
+          <text class="s" x="746" y="279">DRAFT_BROADCAST=postgres.</text>
+          <text class="s" x="746" y="296">One instance needs none.</text>
+
+          <line class="a2" x1="190" y1="100" x2="330" y2="100"/>
+          <text class="lbl" x="260" y="90" text-anchor="middle">WebSocket</text>
+          <text class="lbl" x="260" y="118" text-anchor="middle">AUTH, then events</text>
+          <line class="a2" x1="190" y1="300" x2="330" y2="300"/>
+          <text class="lbl" x="260" y="290" text-anchor="middle">WebSocket</text>
+          <text class="lbl" x="260" y="318" text-anchor="middle">AUTH, then events</text>
+          <line class="a1" x1="580" y1="142" x2="730" y2="142"/>
+          <text class="lbl" x="655" y="132" text-anchor="middle">commit + NOTIFY</text>
+          <line class="a1" x1="730" y1="336" x2="580" y2="336"/>
+          <text class="lbl" x="655" y="326" text-anchor="middle">LISTEN, then relay</text>
+
+          <text class="s" x="480" y="414" text-anchor="middle">On connect the server sends a full snapshot, so a dropped socket resyncs by reconnecting.</text>
+        </svg>
+      </div>
+      <figcaption>The pick is saved before anyone is told. The deadline is stored on the server and clients draw their countdown from it, so a slow or reconnecting device cannot disagree about whose turn it is. The Feed socket sends only a content-free change signal, and the client refetches.</figcaption>
+    </figure>
+  </section>
+
+  <!-- 4. Score pipeline -->
+  <section id="scores">
+    <h2>Score pipeline</h2>
+    <figure>
+      <div class="scroll">
+        <svg viewBox="0 0 960 340" role="img" aria-label="The scheduler polls Tank01, ingestion upserts NFL tables, scoring computes points on read, a standings snapshot is recomputed, and alerts and the standings view read from it.">
+          <rect class="n api" x="15" y="10" width="920" height="34" rx="6"/>
+          <text class="s" x="30" y="31" style="fill:var(--fg)">Scheduler tick (opt-in, SCHEDULER_ENABLED): live poll, eliminations, standings recompute, alerts</text>
+
+          <rect class="n ext" x="15" y="90" width="140" height="90" rx="8"/>
+          <text class="t" x="27" y="114">Tank01</text>
+          <text class="s" x="27" y="134">box scores, rosters,</text>
+          <text class="s" x="27" y="150">depth charts. Daily</text>
+          <text class="s" x="27" y="166">request budget.</text>
+          <rect class="n api" x="210" y="90" width="140" height="90" rx="8"/>
+          <text class="t" x="222" y="114">Ingestion</text>
+          <text class="s" x="222" y="134">string stats to typed</text>
+          <text class="s" x="222" y="150">batch upserts</text>
+          <text class="s" x="222" y="166">lock per sync type</text>
+          <rect class="n data" x="405" y="90" width="140" height="90" rx="8"/>
+          <text class="t" x="417" y="114">NFL tables</text>
+          <text class="s" x="417" y="134">games, player stats</text>
+          <text class="s" x="417" y="150">players, depth chart</text>
+          <text class="s" x="417" y="166">eliminated teams</text>
+          <rect class="n api" x="600" y="90" width="140" height="90" rx="8"/>
+          <text class="t" x="612" y="114">Scoring</text>
+          <text class="s" x="612" y="134">per-season settings</text>
+          <text class="s" x="612" y="150">round multipliers</text>
+          <text class="s" x="612" y="166">computed on read</text>
+          <rect class="n data" x="795" y="90" width="140" height="90" rx="8"/>
+          <text class="t" x="807" y="114">Standings snapshot</text>
+          <text class="s" x="807" y="134">round points, rank</text>
+          <text class="s" x="807" y="150">players left</text>
+          <text class="s" x="807" y="166">old rows kept on failure</text>
+
+          <line class="a1" x1="155" y1="135" x2="210" y2="135"/>
+          <text class="lbl" x="182" y="126" text-anchor="middle">httpx</text>
+          <line class="a1" x1="350" y1="135" x2="405" y2="135"/>
+          <text class="lbl" x="378" y="126" text-anchor="middle">upsert</text>
+          <line class="a1" x1="545" y1="135" x2="600" y2="135"/>
+          <text class="lbl" x="572" y="126" text-anchor="middle">feeds</text>
+          <line class="a1" x1="740" y1="135" x2="795" y2="135"/>
+          <text class="lbl" x="768" y="126" text-anchor="middle">snapshot</text>
+
+          <line class="a1" x1="280" y1="44" x2="280" y2="90"/>
+          <text class="lbl" x="288" y="72">poll games</text>
+          <line class="a1" x1="475" y1="44" x2="475" y2="90"/>
+          <text class="lbl" x="483" y="72">eliminations</text>
+          <line class="a1" x1="865" y1="44" x2="865" y2="90"/>
+          <text class="lbl" x="873" y="72">recompute</text>
+
+          <rect class="n api" x="210" y="250" width="140" height="70" rx="8"/>
+          <text class="t" x="222" y="274">notify()</text>
+          <text class="s" x="222" y="294">inbox row, then push</text>
+          <rect class="n api" x="405" y="250" width="140" height="70" rx="8"/>
+          <text class="t" x="417" y="274">Player alerts</text>
+          <text class="s" x="417" y="294">starter out, touchdown,</text>
+          <text class="s" x="417" y="310">round result</text>
+          <rect class="n client" x="600" y="250" width="140" height="70" rx="8"/>
+          <text class="t" x="612" y="274">League page</text>
+          <text class="s" x="612" y="294">polls every 30 s</text>
+          <text class="s" x="612" y="310">while a game is live</text>
+          <rect class="n api" x="795" y="250" width="140" height="70" rx="8"/>
+          <text class="t" x="807" y="274">Standings view</text>
+          <text class="s" x="807" y="294">GET: tiebreaker re-rank</text>
+          <text class="s" x="807" y="310">and tie reasons</text>
+
+          <line class="a1" x1="865" y1="180" x2="865" y2="250"/>
+          <text class="lbl" x="873" y="218">read</text>
+          <line class="a1" x1="795" y1="285" x2="740" y2="285"/>
+          <text class="lbl" x="768" y="277" text-anchor="middle">JSON</text>
+          <line class="a1" x1="475" y1="180" x2="475" y2="250"/>
+          <text class="lbl" x="483" y="218">games, injuries</text>
+          <line class="a1" x1="405" y1="285" x2="350" y2="285"/>
+          <text class="lbl" x="378" y="277" text-anchor="middle">send</text>
+        </svg>
+      </div>
+      <figcaption>Fantasy points are never stored per player. They are computed on read from stats and the season's settings, so a changed scoring rule or a corrected stat line applies everywhere. Only the standings are snapshotted, then re-ranked on every read with the tiebreaker chain.</figcaption>
+    </figure>
+  </section>
+
+  <!-- 5. Notifications -->
+  <section id="notify">
+    <h2>Notifications</h2>
+    <figure>
+      <div class="scroll">
+        <svg viewBox="0 0 960 370" role="img" aria-label="Triggers call notify, which writes an inbox row for every recipient, commits, then pushes through the member's preferences to push services and the device; chat messages skip the inbox.">
+          <rect class="n dashed-box" x="15" y="10" width="190" height="40" rx="8"/>
+          <text class="t" x="27" y="28">Chat message</text>
+          <text class="s" x="27" y="43">no inbox entry</text>
+          <polyline class="a1 dash" points="205,30 562,30 562,70"/>
+          <text class="lbl" x="383" y="22" text-anchor="middle">push only, if chat is on</text>
+
+          <rect class="n" x="15" y="80" width="190" height="46" rx="8"/>
+          <text class="t" x="27" y="99">Draft events</text>
+          <text class="s" x="27" y="116">on the clock, lobby, start</text>
+          <rect class="n" x="15" y="140" width="190" height="46" rx="8"/>
+          <text class="t" x="27" y="159">Scheduler tick</text>
+          <text class="s" x="27" y="176">lock, draft soon, alerts</text>
+          <rect class="n" x="15" y="200" width="190" height="46" rx="8"/>
+          <text class="t" x="27" y="219">Member actions</text>
+          <text class="s" x="27" y="236">edits, @mentions, notices</text>
+
+          <rect class="n api" x="240" y="70" width="190" height="170" rx="8"/>
+          <text class="t" x="252" y="94">notify()</text>
+          <text class="s" x="252" y="120">1  inbox row per recipient</text>
+          <text class="s" x="252" y="138">2  commit</text>
+          <text class="s" x="252" y="156">3  push, if the kind's switch</text>
+          <text class="s" x="252" y="172">    is on for that member</text>
+          <text class="s" x="252" y="204">payload holds ids only</text>
+          <text class="s" x="252" y="222">one call for every kind</text>
+
+          <rect class="n api" x="475" y="70" width="175" height="170" rx="8"/>
+          <text class="t" x="487" y="94">push.send_to_users</text>
+          <text class="s" x="487" y="120">drops members who turned</text>
+          <text class="s" x="487" y="136">the kind off</text>
+          <text class="s" x="487" y="164">quiet hours hold player</text>
+          <text class="s" x="487" y="180">alerts only</text>
+          <text class="s" x="487" y="208">turn and lock go urgent</text>
+          <text class="s" x="487" y="224">so Android wakes</text>
+
+          <rect class="n ext" x="695" y="70" width="245" height="60" rx="8"/>
+          <text class="t" x="707" y="94">Push services</text>
+          <text class="s" x="707" y="112">FCM · APNs · Mozilla, signed with VAPID</text>
+          <rect class="n client" x="695" y="170" width="245" height="70" rx="8"/>
+          <text class="t" x="707" y="194">Device service worker</text>
+          <text class="s" x="707" y="212">shows the notice</text>
+          <text class="s" x="707" y="228">a tap opens the matching page</text>
+
+          <rect class="n data" x="240" y="290" width="190" height="60" rx="8"/>
+          <text class="t" x="252" y="314">notifications table</text>
+          <text class="s" x="252" y="332">kept 30 days</text>
+          <rect class="n client" x="475" y="290" width="175" height="60" rx="8"/>
+          <text class="t" x="487" y="314">Header bell</text>
+          <text class="s" x="487" y="332">tap marks read, opens page</text>
+
+          <line class="a1" x1="205" y1="103" x2="240" y2="103"/>
+          <line class="a1" x1="205" y1="163" x2="240" y2="163"/>
+          <line class="a1" x1="205" y1="223" x2="240" y2="223"/>
+          <line class="a1" x1="430" y1="155" x2="475" y2="155"/>
+          <text class="lbl" x="452" y="146" text-anchor="middle">then</text>
+          <line class="a1" x1="650" y1="100" x2="695" y2="100"/>
+          <line class="a1" x1="817" y1="130" x2="817" y2="170"/>
+          <text class="lbl" x="825" y="154">deliver</text>
+          <line class="a1" x1="335" y1="240" x2="335" y2="290"/>
+          <text class="lbl" x="343" y="268">always</text>
+          <line class="a1" x1="430" y1="320" x2="475" y2="320"/>
+          <text class="lbl" x="452" y="311" text-anchor="middle">GET</text>
+        </svg>
+      </div>
+      <figcaption>The inbox row is written for every recipient whether or not push is on, so turning push off never loses a notification. A new kind needs one entry in the notification types, one in the SPA's wording table, and one <code>notify</code> call.</figcaption>
+    </figure>
+  </section>
+
+  <!-- 6. Draft states -->
+  <section id="draft">
+    <h2>Draft states</h2>
+    <figure>
+      <div class="scroll">
+        <svg viewBox="0 0 960 270" role="img" aria-label="A draft moves from unscheduled to scheduled, lobby, in progress and completed, and can pause and resume while in progress.">
+          <rect class="n client" x="15" y="60" width="130" height="50" rx="8"/>
+          <text class="t" x="80" y="90" text-anchor="middle">unscheduled</text>
+          <rect class="n client" x="205" y="60" width="130" height="50" rx="8"/>
+          <text class="t" x="270" y="90" text-anchor="middle">scheduled</text>
+          <rect class="n client" x="395" y="60" width="130" height="50" rx="8"/>
+          <text class="t" x="460" y="90" text-anchor="middle">lobby</text>
+          <rect class="n api" x="585" y="60" width="130" height="50" rx="8"/>
+          <text class="t" x="650" y="90" text-anchor="middle">in_progress</text>
+          <rect class="n data" x="775" y="60" width="130" height="50" rx="8"/>
+          <text class="t" x="840" y="90" text-anchor="middle">completed</text>
+          <rect class="n ext" x="585" y="180" width="130" height="50" rx="8"/>
+          <text class="t" x="650" y="210" text-anchor="middle">paused</text>
+
+          <line class="a1" x1="145" y1="85" x2="205" y2="85"/>
+          <text class="lbl" x="175" y="76" text-anchor="middle">schedule</text>
+          <line class="a1" x1="335" y1="85" x2="395" y2="85"/>
+          <text class="lbl" x="365" y="76" text-anchor="middle">open lobby</text>
+          <line class="a1" x1="525" y1="85" x2="585" y2="85"/>
+          <text class="lbl" x="555" y="76" text-anchor="middle">start</text>
+          <line class="a1" x1="715" y1="85" x2="775" y2="85"/>
+          <text class="lbl" x="745" y="76" text-anchor="middle">final pick</text>
+          <line class="a1" x1="630" y1="110" x2="630" y2="180"/>
+          <text class="lbl" x="622" y="150" text-anchor="end">pause</text>
+          <line class="a1" x1="670" y1="180" x2="670" y2="110"/>
+          <text class="lbl" x="678" y="150">resume</text>
+          <path class="a1" d="M 612 60 C 600 22, 700 22, 688 60"/>
+          <text class="lbl" x="650" y="26" text-anchor="middle">undo, force pick</text>
+
+          <text class="s" x="15" y="190">Only a commissioner action starts the draft.</text>
+          <text class="s" x="15" y="208">Scheduling or starting after the first Wild Card</text>
+          <text class="s" x="15" y="226">kickoff is refused (409). Teams with no owner</text>
+          <text class="s" x="15" y="244">are auto-picked within one clock tick.</text>
+        </svg>
+      </div>
+      <figcaption>Every transition is an explicit commissioner action except the last pick, which completes the draft by itself. The pick deadline is persisted, so pausing and resuming survive a restart.</figcaption>
+    </figure>
+  </section>
+
+  <!-- 7. Data model -->
+  <section id="data">
+    <h2>Data model</h2>
+    <figure>
+      <div class="scroll">
+        <svg viewBox="0 0 960 440" role="img" aria-label="Five groups of tables: identity and membership, season play, NFL data, draft, and member alerts and feed, connected by ownership and reference arrows.">
+          <rect class="n zone client" x="15" y="30" width="280" height="150" rx="10"/>
+          <text class="t" x="29" y="54">Identity and membership</text>
+          <text class="m" x="29" y="82">User</text>
+          <text class="m" x="29" y="100">League · soft delete, notes</text>
+          <text class="m" x="29" y="118">LeagueMember · role, left_at</text>
+          <text class="m" x="29" y="136">invite code · one per league</text>
+
+          <rect class="n zone api" x="340" y="30" width="280" height="150" rx="10"/>
+          <text class="t" x="354" y="54">Season play</text>
+          <text class="m" x="354" y="82">Season</text>
+          <text class="m" x="354" y="100">SeasonSettings · scoring, roster</text>
+          <text class="m" x="354" y="118">Team · owner, name</text>
+          <text class="m" x="354" y="136">Roster · lineup slot per round</text>
+          <text class="m" x="354" y="154">SeasonStanding · snapshot</text>
+
+          <rect class="n zone data" x="665" y="30" width="280" height="150" rx="10"/>
+          <text class="t" x="679" y="54">NFL data</text>
+          <text class="m" x="679" y="82">NFLTeam · in_playoffs</text>
+          <text class="m" x="679" y="100">NFLPlayer · plus one DST each</text>
+          <text class="m" x="679" y="118">Game · Stat (box score lines)</text>
+          <text class="m" x="679" y="136">depth_chart_starters</text>
+
+          <rect class="n zone data" x="15" y="250" width="280" height="150" rx="10"/>
+          <text class="t" x="29" y="274">Member alerts</text>
+          <text class="m" x="29" y="302">Notification</text>
+          <text class="m" x="29" y="320">PushSubscription · per device</text>
+          <text class="m" x="29" y="338">LineupReminder · sent per round</text>
+          <text class="m" x="29" y="356">alerts_sent · one push per event</text>
+
+          <rect class="n zone api" x="340" y="250" width="280" height="100" rx="10"/>
+          <text class="t" x="354" y="274">Draft</text>
+          <text class="m" x="354" y="302">Draft · deadline, reserved picks</text>
+          <text class="m" x="354" y="320">DraftPick</text>
+
+          <rect class="n zone client" x="665" y="250" width="280" height="150" rx="10"/>
+          <text class="t" x="679" y="274">Feed</text>
+          <text class="m" x="679" y="302">ActivityEvent · append-only</text>
+          <text class="m" x="679" y="320">LeagueMessage · soft delete</text>
+          <text class="m" x="679" y="338">MessageReaction</text>
+          <text class="m" x="679" y="356">ActivityView · read markers</text>
+
+          <line class="a1" x1="295" y1="105" x2="340" y2="105"/>
+          <text class="lbl" x="317" y="96" text-anchor="middle">seasons</text>
+          <line class="a1" x1="620" y1="105" x2="665" y2="105"/>
+          <text class="lbl" x="642" y="96" text-anchor="middle">players</text>
+          <line class="a1" x1="155" y1="180" x2="155" y2="250"/>
+          <text class="lbl" x="163" y="218">per member</text>
+          <line class="a1" x1="480" y1="180" x2="480" y2="250"/>
+          <text class="lbl" x="488" y="218">one per season</text>
+          <polyline class="a1" points="600,180 600,215 805,215 805,250"/>
+          <text class="lbl" x="702" y="208" text-anchor="middle">events and chat</text>
+
+          <text class="s" x="480" y="428" text-anchor="middle">Column-level diagram: docs/erd.md. A test fails when it drifts from the models.</text>
+        </svg>
+      </div>
+      <figcaption>Everything that can be recomputed is not stored. Lineups, picks, stats and settings are facts; points, round progress and awards are derived on read, and only the standings are snapshotted.</figcaption>
+    </figure>
+  </section>
+
+  <!-- 8. Delivery -->
+  <section id="delivery">
+    <h2>Delivery</h2>
+    <figure>
+      <div class="scroll">
+        <svg viewBox="0 0 960 250" role="img" aria-label="A pull request runs CI, a push to main runs the deploy workflow, the API deploys to Fly and the SPA to Cloudflare Pages, and open tabs are prompted to update.">
+          <rect class="n" x="15" y="60" width="160" height="90" rx="8"/>
+          <text class="t" x="27" y="84">Pull request</text>
+          <text class="s" x="27" y="104">check-api, check-web</text>
+          <text class="s" x="27" y="120">e2e, secret scan</text>
+          <text class="s" x="27" y="136">authz coverage test</text>
+
+          <rect class="n api" x="205" y="60" width="160" height="90" rx="8"/>
+          <text class="t" x="217" y="84">Deploy workflow</text>
+          <text class="s" x="217" y="104">push to main</text>
+          <text class="s" x="217" y="120">gate: no live drafts</text>
+          <text class="s" x="217" y="136">plan, retry every 15 min</text>
+
+          <rect class="n api" x="395" y="60" width="160" height="90" rx="8"/>
+          <text class="t" x="407" y="84">API on Fly</text>
+          <text class="s" x="407" y="104">GIT_SHA is the version</text>
+          <text class="s" x="407" y="120">smoke check:</text>
+          <text class="s" x="407" y="136">wait-for-api</text>
+
+          <rect class="n client" x="585" y="60" width="160" height="90" rx="8"/>
+          <text class="t" x="597" y="84">Cloudflare Pages</text>
+          <text class="s" x="597" y="104">deploy hook, SPA build</text>
+          <text class="s" x="597" y="120">writes /version.json</text>
+
+          <rect class="n client" x="775" y="60" width="160" height="90" rx="8"/>
+          <text class="t" x="787" y="84">Open tabs</text>
+          <text class="s" x="787" y="104">newer build: banner</text>
+          <text class="s" x="787" y="120">older than minimum:</text>
+          <text class="s" x="787" y="136">API answers 426</text>
+
+          <line class="a1" x1="175" y1="105" x2="205" y2="105"/>
+          <line class="a1" x1="365" y1="105" x2="395" y2="105"/>
+          <line class="a1" x1="555" y1="105" x2="585" y2="105"/>
+          <line class="a1" x1="745" y1="105" x2="775" y2="105"/>
+
+          <text class="s" x="15" y="190">Nightly, not per PR: e2e stress repeats, a 12-team draft load test, axe and screenshots on key pages,</text>
+          <text class="s" x="15" y="208">and a Lighthouse budget. Never remove an endpoint in the same PR that stops using it.</text>
+        </svg>
+      </div>
+      <figcaption>The API ships before the SPA, so a new client never calls a route that does not exist yet. The app never reloads itself; an update is always the member's tap, and never during a draft or while typing.</figcaption>
+    </figure>
+  </section>
+</main>
