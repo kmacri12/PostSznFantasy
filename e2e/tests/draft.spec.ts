@@ -410,11 +410,9 @@ test.describe("commissioner draft setup", () => {
     await expect(page.getByText("Draft not scheduled yet")).toBeVisible();
     await openControls(page);
     await page.getByRole("button", { name: "Change date" }).click();
-    const soon = new Date(Date.now() + 2 * 24 * 3600_000);
-    const pad = (n: number) => String(n).padStart(2, "0");
-    await page
-      .getByLabel("Draft date & time")
-      .fill(`${soon.getFullYear()}-${pad(soon.getMonth() + 1)}-${pad(soon.getDate())}T19:00`);
+    // Today is the first day the calendar allows; late evening keeps the time ahead of now.
+    await page.getByRole("button", { name: new RegExp(`^${new Date().getDate()} `) }).click();
+    await page.getByLabel("Draft time").fill("23:59");
     await page.getByRole("button", { name: "Save date" }).click();
     await expect(page.getByText(/^Draft scheduled for /)).toBeVisible();
   });
