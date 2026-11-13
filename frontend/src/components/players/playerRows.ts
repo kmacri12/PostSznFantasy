@@ -1,4 +1,5 @@
 import type { DraftPick, LeagueSettings, PlayerSummary } from "../../api/types";
+import { normalizePosition } from "../team/moves";
 
 /** One regular-season stat row of `GET /api/players/player-season-stats`. */
 export interface SeasonStatsRow {
@@ -161,16 +162,17 @@ export function buildPlayerRows(pool: PlayerSummary[], stats: SeasonStatsRow[]):
         });
   return players.map((player) => {
     const row = byId.get(player.id);
+    const position = normalizePosition(player.position);
     return {
       id: player.id,
       name: player.name,
-      position: player.position,
+      position,
       team: player.team?.teamAbv ?? player.teamAbv ?? "FA",
       eliminated: player.eliminated ?? false,
       injuryStatus: player.injuryStatus ?? null,
       scoresWholeTeam: player.scoresWholeTeam ?? false,
       points: row?.fantasyPoints ?? null,
-      line: statLine(player.position, row),
+      line: statLine(position, row),
       stats: row,
     };
   });

@@ -62,6 +62,15 @@ describe("statLine", () => {
 });
 
 describe("buildPlayerRows", () => {
+  it("reads the upstream's PK and DEF as K and DST so the position filters match", () => {
+    const built = buildPlayerRows(
+      [player(20, "Harrison Butker", "PK"), player(21, "Bills", "DEF")],
+      [],
+    );
+    expect(built.map((row) => row.position)).toEqual(["K", "DST"]);
+    expect(filterRows(built, { ...none, position: "K" }, new Map(), null)).toHaveLength(1);
+  });
+
   it("lists the pool, with a missing stat row unscored", () => {
     expect(rows.map((row) => [row.name, row.points])).toEqual([
       ["Josh Allen", 318.4],
