@@ -16,6 +16,7 @@ from api.services import feature_flags
 from api.services.eliminations import mark_eliminated_teams
 from api.services.ingestion import (
     ingest_box_scores,
+    ingest_kicker_distances,
     ingest_nfl_players,
     ingest_nfl_teams,
     ingest_season_stats,
@@ -192,6 +193,7 @@ async def update_nfl_players_and_stats(
 ) -> JobStarted:
     async def job(session: AsyncSession) -> None:
         await ingest_season_stats(session)
+        await ingest_kicker_distances(session)
 
     if wait:
         await job(db)

@@ -158,6 +158,7 @@ PostSznFantasy/
 │   │       ├── guard.py    # Per-type advisory lock (skip overlapping runs) + last-synced record
 │   │       ├── players_ingest.py # Chunked active player upserts
 │   │       ├── season_stats_ingest.py # Chunked regular season stat upserts
+│   │       ├── kicker_distances_ingest.py # Regular-season FG distances: Tank01 season stats carry no per-kick distance (`fgYds` is 0), so each completed regular-season box score is read once (the `season_type="reg"` game row marks it done, kicker lines only) and every kicker's season row gets `kicking_fg_yards_made`, which the per-yard scoring needs. Runs after season stats in the pipeline, the admin stats trigger and `seed_nfl_data`
 │   │       └── box_scores_ingest.py # Playoff games & player box score upserts
 │   ├── utils/
 │   │   ├── calculations/       # Deterministic scoring & elimination logic

@@ -12,6 +12,7 @@ from api.services.ingestion.box_scores_ingest import (
 )
 from api.services.ingestion.depth_chart_ingest import ingest_depth_charts
 from api.services.ingestion.guard import IngestionBusy
+from api.services.ingestion.kicker_distances_ingest import ingest_kicker_distances
 from api.services.ingestion.players_ingest import ingest_nfl_players
 from api.services.ingestion.season_stats_ingest import ingest_season_stats
 from api.services.ingestion.teams_ingest import ingest_nfl_teams
@@ -55,6 +56,7 @@ async def run_full_ingestion_pipeline(
     stats_count = 0
     if with_stats:
         stats_count = await ingest_season_stats(db, season=season, client=client)
+        await ingest_kicker_distances(db, season=season, client=client)
     games_count = 0
     if with_box_scores:
         games_count = await ingest_box_scores(
@@ -80,6 +82,7 @@ __all__ = [
     "ingest_depth_charts",
     "ingest_nfl_teams",
     "ingest_nfl_players",
+    "ingest_kicker_distances",
     "ingest_season_stats",
     "ingest_box_scores",
     "ingest_games_list",

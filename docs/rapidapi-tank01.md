@@ -132,6 +132,7 @@ value was `"0"`.
 | Stat | Source | Status | Evidence |
 | :-- | :-- | :-- | :-- |
 | Made FG distance | `scoringPlays` (`scoreType` `FG`, `"... 46 Yd Field Goal"`, kicker = `playerIDs[0]`) | Confirmed | 45 FG plays across 13 games; count equals `Kicking.fgMade` and the maximum equals `fgLong` |
+| **Regular-season FG distance** | Roster `getStats` season `Kicking.fgYds` is `"0.0"` (no total, no list), so distances come from each regular-season box score's `scoringPlays`, as in the old Sheets script (`docs/legacy/old_scripts_for_sheets/calculateScores.gs`) | Confirmed (season value), parsed from box scores | `roster_CAR_with_stats.json`; `services/ingestion/kicker_distances_ingest.py` (one call per completed regular-season game, once) |
 | Missed FG count | `Kicking.fgMissed` | Confirmed | `20260125_NE@DEN`: Lutz 2, Borregales 2 (`fgAttempts - fgMade` held in every game) |
 | **Missed FG distance** | **`allPlayByPlay[].playerStats[kicker].Kicking.fgYds`** on plays with `fgAttempts` and no `fgMade` (needs `playByPlay=true`) | Confirmed | `20260125_NE@DEN`: Lutz 54 (wide right) and 45 (blocked), Borregales 63 and 46 (both wide), matching `fgMissed`; fixture `api/tests/fixtures/box_score_ne_den_kicks.json` |
 | `FGYardsMissed` key | n/a | **Does not exist** | Absent from every box score, roster stat and play. Stored as `kicking_fg_yards_missed` from the play-by-play instead |
