@@ -21,6 +21,7 @@ class IngestionKind(IntEnum):
     BOX_SCORES = 4
     GAMES = 5
     DEPTH_CHARTS = 6
+    KICKER_DISTANCES = 7
 
 
 class IngestionBusy(Exception):

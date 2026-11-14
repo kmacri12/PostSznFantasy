@@ -158,6 +158,7 @@ PostSznFantasy/
 │   │       ├── guard.py    # Per-type advisory lock (skip overlapping runs) + last-synced record
 │   │       ├── players_ingest.py # Chunked active player upserts
 │   │       ├── season_stats_ingest.py # Chunked regular season stat upserts
+│   │       ├── kicker_distances_ingest.py # Regular-season FG distances for kickers on `in_playoffs` teams only (a no-op until the field is set): Tank01 season stats carry no per-kick distance (`fgYds` is 0), so one `getNFLGamesForPlayer` call per kicker supplies `scoringPlays` "23 Yd Field Goal" text, and box scores are fetched only for his team's games that response left out, until the distances add up to `fgMade`; stored on the season row's `kicking_fg_yards_made` for the per-yard scoring. Runs after season stats in the pipeline, the admin stats trigger and `seed_nfl_data`; re-run the stats trigger after setting the playoff field
 │   │       └── box_scores_ingest.py # Playoff games & player box score upserts
 │   ├── utils/
 │   │   ├── calculations/       # Deterministic scoring & elimination logic

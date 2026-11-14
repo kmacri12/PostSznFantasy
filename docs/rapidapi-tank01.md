@@ -28,7 +28,7 @@ real response. Parsers live in `api/services/ingestion/schemas.py`, the client i
 | `getNFLDepthCharts` | none (a team filter is unverified) | Team QB / team K starter: `QB1` and `PK1` per team (`services/ingestion/depth_chart_ingest.py`; one call per roster sync). Provenance and refresh cadence are unknown, so a team without a usable entry falls back to the most pass attempts / kicks. See `docs/research/team-qb-k-starter-source.md` |
 | `getNFLGamesForWeek` | `week=all`, `seasonType=post`, `season` | Playoff game list (schedule, `gameTime_epoch`, `espnLink`) |
 | `getNFLBoxScore` | `gameID` (e.g. `20260110_LAR@CAR`), `playByPlay=true` | Playoff box scores and per-game player stats. The client always sends `playByPlay=true`: same one call, adds `allPlayByPlay` (missed FG distances) |
-| `getNFLGamesForPlayer` | `playerID`, `season`, `numberOfGames` | Not used yet: per-game stats in the same nested shape |
+| `getNFLGamesForPlayer` | `playerID`, `season`, `numberOfGames` | Playoff-field kickers' regular-season FG distances (`services/ingestion/kicker_distances_ingest.py`): per-game `Kicking` plus a player-filtered `scoringPlays`. It can omit games (8 of 17 for one kicker), so missing games are filled from box scores. Sample: `docs/research/samples/games_for_player_borregales.json` |
 | `getNFLPlayerInfo` | not recorded | Not used |
 | `getNFLTeamRoster` + `archiveDate=YYYYMMDD` | | Player id lists only, no stats |
 
@@ -132,6 +132,7 @@ value was `"0"`.
 | Stat | Source | Status | Evidence |
 | :-- | :-- | :-- | :-- |
 | Made FG distance | `scoringPlays` (`scoreType` `FG`, `"... 46 Yd Field Goal"`, kicker = `playerIDs[0]`) | Confirmed | 45 FG plays across 13 games; count equals `Kicking.fgMade` and the maximum equals `fgLong` |
+| **Regular-season FG distance** | Roster `getStats` season `Kicking.fgYds` is `"0.0"` (no total, no list), so distances come from `scoringPlays` ("23 Yd Field Goal"): `getNFLGamesForPlayer` per kicker, then box scores for the games it omits, as in the old Sheets script (`docs/legacy/old_scripts_for_sheets/calculateScores.gs`) | Confirmed | `roster_CAR_with_stats.json`, `games_for_player_borregales.json`; `services/ingestion/kicker_distances_ingest.py` |
 | Missed FG count | `Kicking.fgMissed` | Confirmed | `20260125_NE@DEN`: Lutz 2, Borregales 2 (`fgAttempts - fgMade` held in every game) |
 | **Missed FG distance** | **`allPlayByPlay[].playerStats[kicker].Kicking.fgYds`** on plays with `fgAttempts` and no `fgMade` (needs `playByPlay=true`) | Confirmed | `20260125_NE@DEN`: Lutz 54 (wide right) and 45 (blocked), Borregales 63 and 46 (both wide), matching `fgMissed`; fixture `api/tests/fixtures/box_score_ne_den_kicks.json` |
 | `FGYardsMissed` key | n/a | **Does not exist** | Absent from every box score, roster stat and play. Stored as `kicking_fg_yards_missed` from the play-by-play instead |
