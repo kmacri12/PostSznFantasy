@@ -2,38 +2,43 @@ import logging
 from typing import Any
 
 from sqlalchemy import select
-from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.core.config import get_settings
-from api.db.models.nfl import (
-    NFLGame,
-    NFLPlayer,
-    NFLPlayerGameStats,
-    NFLPlayerSeasonStats,
-    NFLTeam,
-)
+from api.db.models.nfl import NFLPlayer, NFLPlayerSeasonStats, NFLTeam
+from api.models.enums import PlayerPosition
 from api.services.ingestion.box_scores_ingest import (
     GAME_COMPLETED,
     normalise_game_status,
-    parse_game_player_stats,
 )
 from api.services.ingestion.guard import IngestionKind, guarded
-from api.services.ingestion.schemas import safe_int, safe_str
+from api.services.ingestion.schemas import (
+    field_goal_yards_by_kicker,
+    safe_str,
+)
 from api.utils.rapidapi.rapidapi import RapidApiClient, get_rapidapi_client
 
 logger = logging.getLogger(__name__)
 
 REGULAR_SEASON = "reg"
+# A season is 17 games, 18 weeks, plus preseason and playoff games in the same response.
+PLAYER_GAMES_REQUESTED = 30
 
 
-def _kicked(row: dict[str, Any]) -> bool:
-    return bool(
-        row["kicking_fg_made"]
-        or row["kicking_fg_missed"]
-        or row["kicking_xp_made"]
-        or row["kicking_xp_missed"]
-    )
+def _team_game_ids(games: list[dict[str, Any]]) -> dict[str, list[str]]:
+    """Completed regular-season game ids by team abbreviation (`20251109_LAR@SEA`)."""
+    by_team: dict[str, list[str]] = {}
+    for game in games:
+        game_id = safe_str(game.get("gameID"))
+        if (
+            not game_id
+            or normalise_game_status(game.get("gameStatus")) != GAME_COMPLETED
+        ):
+            continue
+        _, _, matchup = game_id.partition("_")
+        for abbreviation in matchup.split("@"):
+            by_team.setdefault(abbreviation, []).append(game_id)
+    return by_team
 
 
 @guarded(IngestionKind.KICKER_DISTANCES)
@@ -42,109 +47,87 @@ async def ingest_kicker_distances(
     season: str | None = None,
     client: RapidApiClient | None = None,
 ) -> int:
-    """Give every kicker's season row the distance of each field goal.
+    """Give each playoff-field kicker's season row the distance of every field goal.
 
     Tank01's season stats carry only a made count (`fgYds` is always 0), so under a
     per-yard scoring rule a kicker scored nothing for his field goals. Distances exist
-    only in a box score's scoring plays and play-by-play, so each completed regular-season
-    game is fetched once (the game row is the "done" marker) and its kickers' lines are
-    kept; the season row is then rebuilt from those lines. Returns the games fetched.
+    only in `scoringPlays` text ("23 Yd Field Goal"). One `getNFLGamesForPlayer` call per
+    kicker returns most of his games with that text, but it can leave games out, so a
+    kicker whose distances still number fewer than his made FGs gets the box scores of
+    his team's missing games, one at a time, until they add up. Only kickers on teams in
+    `nfl_teams.in_playoffs` are read (the draft pool), so nothing runs before the field
+    is set. Returns the Tank01 calls made.
     """
     season = season or str(get_settings().season_year)
     client = client or get_rapidapi_client()
 
-    listed = [
-        game
-        for game in await client.get_nfl_games_list(season, REGULAR_SEASON, "all")
-        if normalise_game_status(game.get("gameStatus")) == GAME_COMPLETED
-        and safe_str(game.get("gameID"))
-    ]
-    done = set(
-        (
-            await db.execute(
-                select(NFLGame.id).where(
-                    NFLGame.season == int(season),
-                    NFLGame.season_type == REGULAR_SEASON,
-                )
-            )
-        )
-        .scalars()
-        .all()
-    )
-    valid_team_ids = set((await db.execute(select(NFLTeam.id))).scalars().all())
-    valid_player_ids = set((await db.execute(select(NFLPlayer.id))).scalars().all())
-
-    fetched = 0
-    for summary in listed:
-        game_id = str(summary["gameID"])
-        if game_id in done:
-            continue
-        box = await client.get_nfl_box_score(game_id)
-        if not box:
-            continue
-        home_id = safe_int(box.get("teamIDHome"))
-        away_id = safe_int(box.get("teamIDAway"))
+    kickers = (
         await db.execute(
-            insert(NFLGame)
-            .values(
-                id=game_id,
-                game_status=GAME_COMPLETED,
-                season=int(season),
-                season_type=REGULAR_SEASON,
-                team_id_home=home_id if home_id in valid_team_ids else None,
-                team_id_away=away_id if away_id in valid_team_ids else None,
+            select(NFLPlayerSeasonStats, NFLTeam.team_abv)
+            .join(NFLPlayer, NFLPlayer.id == NFLPlayerSeasonStats.player_id)
+            .join(NFLTeam, NFLTeam.id == NFLPlayer.team_id)
+            .where(
+                NFLPlayerSeasonStats.season == season,
+                NFLPlayer.position == PlayerPosition.K,
+                NFLTeam.in_playoffs,
+                NFLPlayerSeasonStats.kicking_fg_made > 0,
             )
-            .on_conflict_do_nothing(index_elements=["id"])
-        )
-        kicker_rows = [
-            row
-            for row in parse_game_player_stats(game_id, box, valid_player_ids)
-            if _kicked(row)
-        ]
-        if kicker_rows:
-            stmt = insert(NFLPlayerGameStats).values(kicker_rows)
-            await db.execute(
-                stmt.on_conflict_do_update(
-                    index_elements=["game_id", "player_id"],
-                    set_={
-                        key: stmt.excluded[key]
-                        for key in kicker_rows[0]
-                        if key not in ("game_id", "player_id")
-                    },
-                )
-            )
-        fetched += 1
-
-    await _rebuild_season_distances(db, int(season))
-    logger.info("Fetched %d regular-season box scores for kicker distances", fetched)
-    return fetched
-
-
-async def _rebuild_season_distances(db: AsyncSession, season: int) -> None:
-    lines = (
-        await db.execute(
-            select(
-                NFLPlayerGameStats.player_id,
-                NFLPlayerGameStats.kicking_fg_yards_made,
-            )
-            .join(NFLGame, NFLGame.id == NFLPlayerGameStats.game_id)
-            .where(NFLGame.season == season, NFLGame.season_type == REGULAR_SEASON)
         )
     ).all()
-    made: dict[int, list[int]] = {}
-    for player_id, made_yards in lines:
-        made.setdefault(player_id, []).extend(made_yards or [])
-    season_rows = (
-        (
-            await db.execute(
-                select(NFLPlayerSeasonStats).where(
-                    NFLPlayerSeasonStats.season == str(season),
-                    NFLPlayerSeasonStats.player_id.in_(made),
-                )
-            )
-        )
-        .scalars()
-        .all()
+    pending = [
+        (row, abbreviation)
+        for row, abbreviation in kickers
+        if abbreviation and len(row.kicking_fg_yards_made) < row.kicking_fg_made
+    ]
+    if not pending:
+        return 0
+
+    regular_season = _team_game_ids(
+        await client.get_nfl_games_list(season, REGULAR_SEASON, "all")
     )
-    for row in season_rows:
-        row.kicking_fg_yards_made = made[row.player_id]
+    calls = 1
+    box_score_yards: dict[str, dict[int, list[int]]] = {}
+
+    for row, abbreviation in pending:
+        team_games = regular_season.get(abbreviation, [])
+        player_games = await client.get_nfl_games_for_player(
+            row.player_id, season, PLAYER_GAMES_REQUESTED
+        )
+        calls += 1
+        yards_by_game: dict[str, list[int]] = {}
+        for game_id in team_games:
+            entry = player_games.get(game_id)
+            if entry is not None:
+                yards_by_game[game_id] = field_goal_yards_by_kicker(
+                    entry.get("scoringPlays")
+                ).get(row.player_id, [])
+
+        for game_id in team_games:
+            if sum(map(len, yards_by_game.values())) >= row.kicking_fg_made:
+                break
+            if game_id in yards_by_game:
+                continue
+            if game_id not in box_score_yards:
+                box = await client.get_nfl_box_score(game_id)
+                calls += 1
+                box_score_yards[game_id] = field_goal_yards_by_kicker(
+                    box.get("scoringPlays")
+                )
+            yards_by_game[game_id] = box_score_yards[game_id].get(row.player_id, [])
+
+        distances = [
+            y for game_id in sorted(yards_by_game) for y in yards_by_game[game_id]
+        ]
+        if len(distances) != row.kicking_fg_made:
+            logger.warning(
+                "Kicker %d: %d field goal distances found for %d made",
+                row.player_id,
+                len(distances),
+                row.kicking_fg_made,
+            )
+        row.kicking_fg_yards_made = distances
+
+    logger.info(
+        "Read field goal distances for %d kickers in %d calls", len(pending), calls
+    )
+    return calls

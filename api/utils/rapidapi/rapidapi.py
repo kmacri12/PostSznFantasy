@@ -233,6 +233,17 @@ class RapidApiClient:
         data = await self._get("/getNFLBoxScore", params=params)
         return dict(data.get("body", {}))
 
+    async def get_nfl_games_for_player(
+        self, player_id: int, season: str, number_of_games: int
+    ) -> dict[str, dict[str, Any]]:
+        params = {
+            "playerID": str(player_id),
+            "season": season,
+            "numberOfGames": str(number_of_games),
+        }
+        data = await self._get("/getNFLGamesForPlayer", params=params)
+        return dict(data.get("body") or {})
+
     async def get_stats_for_team(
         self, team_id: str, team_abv: str
     ) -> list[dict[str, Any]]:
