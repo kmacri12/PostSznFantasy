@@ -8,7 +8,7 @@ from api.db.models.nfl import NFLPlayer, NFLPlayerSeasonStats, NFLTeam
 from api.models.enums import PlayerPosition
 from api.services.ingestion.kicker_distances_ingest import ingest_kicker_distances
 
-BOX = json.loads(
+BOX: dict[str, Any] = json.loads(
     (Path(__file__).parents[1] / "fixtures/box_score_ne_den_kicks.json").read_text()
 )["body"]
 GAME_ID = BOX["gameID"]
