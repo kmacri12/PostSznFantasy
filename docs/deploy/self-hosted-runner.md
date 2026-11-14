@@ -18,6 +18,7 @@ gh variable delete CI_RUNS_ON                                       # back to Gi
 - Postgres service containers publish a **random** host port (`job.services.postgres.ports['5432']`), because 5432 is taken by the local database. Never hard-code 5432 in a workflow.
 - `playwright install` skips `--with-deps` when `CI_RUNS_ON` is set (no sudo on the runner); install the browser libraries once by hand.
 - The repository is private, so a self-hosted runner never runs a stranger's pull request. Do not make the repository public without removing the runners.
+- Every Postgres service mounts `--tmpfs /var/lib/postgresql/data`. The image declares that path as a volume, and the runner removes service containers without `-v`, so without the tmpfs each job leaves an unnamed 50 MB volume behind (183 piled up in a week, 9 GB). Keep the option on any new Postgres service; `docker volume ls -f dangling=true` should stay short.
 - If the machine is off, jobs queue and deploys wait. Set `CI_RUNS_ON` back to fall back to GitHub-hosted runners.
 
 ## Owner setup (runs once, on the Ubuntu machine)

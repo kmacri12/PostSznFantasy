@@ -25,7 +25,9 @@ jobs:
           POSTGRES_DB: postszn
         ports:
           - 5432
+        # tmpfs: without it every job leaves an unnamed 50 MB data volume on the runner
         options: >-
+          --tmpfs /var/lib/postgresql/data
           --health-cmd "pg_isready -U postgres -d postszn"
           --health-interval 5s
           --health-timeout 5s
