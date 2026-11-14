@@ -131,3 +131,21 @@ async def ingest_kicker_distances(
         "Read field goal distances for %d kickers in %d calls", len(pending), calls
     )
     return calls
+
+
+async def refresh_kicker_distances(
+    db: AsyncSession,
+    season: str | None = None,
+    client: RapidApiClient | None = None,
+) -> int:
+    """`ingest_kicker_distances` that can never undo the season stats it follows.
+
+    Callers run it in the same transaction as the stats sync, so a Tank01 error or a
+    spent daily budget must cost only the distances, not the stats already written.
+    """
+    try:
+        async with db.begin_nested():
+            return await ingest_kicker_distances(db, season, client)
+    except Exception:
+        logger.exception("Kicker distance sync failed; kickers keep their distances")
+        return 0

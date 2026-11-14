@@ -4,7 +4,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.db.models.nfl import NFLPlayer, NFLPlayerSeasonStats, NFLTeam
 from api.models.enums import PlayerPosition
-from api.services.ingestion.kicker_distances_ingest import ingest_kicker_distances
+from api.services.ingestion.kicker_distances_ingest import (
+    ingest_kicker_distances,
+    refresh_kicker_distances,
+)
 
 KICKER_ID = 4569923
 OTHER_KICKER_ID = 4569924
@@ -106,3 +109,22 @@ async def test_a_complete_player_response_needs_no_box_scores(
 
     assert kicker.kicking_fg_yards_made == [23, 41, 30]
     assert client.calls == ["games", f"player {KICKER_ID}"]
+
+
+class BrokenClient(FakeClient):
+    async def get_nfl_games_list(self, *_: Any) -> list[dict[str, Any]]:
+        raise RuntimeError("Tank01 is down")
+
+
+async def test_a_failed_refresh_leaves_everything_else_alone(
+    db: AsyncSession,
+) -> None:
+    team = NFLTeam(id=22, team_abv="NE", in_playoffs=True)
+    db.add(team)
+    await db.flush()
+    kicker = await _kicker(db, KICKER_ID, team, fg_made=3)
+
+    assert await refresh_kicker_distances(db, "2026", BrokenClient()) == 0  # type: ignore[arg-type]
+
+    assert kicker.kicking_fg_yards_made == []
+    assert await db.get(NFLPlayerSeasonStats, ("2026", KICKER_ID)) is kicker
