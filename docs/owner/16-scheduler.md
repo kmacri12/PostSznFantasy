@@ -25,7 +25,7 @@ During the first real game:
 fly logs --app postszn-api
 ```
 
-shows a line every 3 minutes like `Scheduler cycle: 1 polled, 0 reconciled; RapidAPI calls today 12/700, plan requests remaining 905`. On the site, standings change and "Stats updated X min ago" stays under a few minutes.
+shows a line every 3 minutes like `Scheduler cycle: 1 polled, 0 reconciled; RapidAPI calls today 12/700, plan requests remaining 905`. On the site, standings change, and pulling down on the League or Team page shows "Live stats auto-sync during games · synced X min ago" staying under a few minutes.
 
 Close #78.
 

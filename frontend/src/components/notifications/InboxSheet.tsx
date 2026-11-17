@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useMarkInboxRead } from "../../api/queries";
 import type { Inbox, InboxItem } from "../../api/types";
 import { tokens } from "../../theme";
-import { formatAgo } from "../common/DataFreshness";
+import { formatAgo } from "../common/LiveStatsNotice";
 import { NewActivityDot } from "../layout/NewActivityDot";
 import SettingsSheet from "../settings/SettingsSheet";
 import { describeNotification } from "./inboxView";

@@ -7,7 +7,11 @@ import { lineupPlayer, roundLineup, slot } from "../test/lineup";
 import { testSeason } from "../test/season";
 import TeamPage from "./TeamPage";
 
-const mocks = vi.hoisted(() => ({ archived: false }));
+const mocks = vi.hoisted(() => ({
+  archived: false,
+  team: null as unknown,
+  settings: undefined as unknown,
+}));
 
 const allen = lineupPlayer({
   id: 1,
@@ -50,7 +54,8 @@ const team = {
 
 vi.mock("../api/queries", () => ({
   needsOverrideConfirmation: () => false,
-  useTeam: () => ({ isLoading: false, isError: false, data: team }),
+  useTeam: () => ({ isLoading: false, isError: false, data: mocks.team ?? team }),
+  useLeagueSettings: () => ({ data: mocks.settings }),
   useStandings: () => ({ data: { teams: [{ teamId: 7, rank: 2, total: 71.6 }] } }),
   usePlayerSeasonLine: () => ({ isPending: false, data: null }),
   useMoveInLineup: () => ({ mutate: vi.fn(), reset: vi.fn(), error: null, isPending: false }),
@@ -58,8 +63,18 @@ vi.mock("../api/queries", () => ({
   useRenameTeam: () => ({ mutateAsync: vi.fn(), error: null, isPending: false }),
   useSetAvatar: () => ({ mutateAsync: vi.fn(), reset: vi.fn(), error: null }),
 }));
-vi.mock("../components/common/DataFreshness", () => ({ default: () => null }));
-vi.mock("../components/team/PreDraftRoster", () => ({ default: () => null }));
+vi.mock("../components/common/LiveStatsNotice", () => ({ default: () => null }));
+
+const undrafted = {
+  ...team,
+  roster: [],
+  lineups: [1, 2, 3, 4].map((round) =>
+    roundLineup(round, {
+      slots: [slot(0, "QB"), slot(1, "RB"), slot(2, "K"), slot(3, "BENCH"), slot(4, "BENCH")],
+      emptyStarterSlots: 3,
+    }),
+  ),
+} as unknown as TeamDetails;
 
 const renderTeam = (myTeamId: number | null = 7) =>
   render(
@@ -79,6 +94,8 @@ const renderTeam = (myTeamId: number | null = 7) =>
 
 beforeEach(() => {
   mocks.archived = false;
+  mocks.team = null;
+  mocks.settings = undefined;
 });
 
 describe("TeamPage", () => {
@@ -106,6 +123,20 @@ describe("TeamPage", () => {
     ).toBeInTheDocument();
     const eliminated = screen.getByRole("region", { name: "Eliminated" });
     expect(within(eliminated).getByText("Eliminated in Divisional")).toBeInTheDocument();
+  });
+
+  it("shows the same lineup, empty, before the draft, with team QB help", () => {
+    mocks.team = undrafted;
+    mocks.settings = { teamQb: true, teamK: false };
+    renderTeam();
+    expect(screen.getByRole("tab", { name: /Wild Card/, selected: true })).toBeInTheDocument();
+    const starters = screen.getByRole("region", { name: "Starters" });
+    expect(within(starters).getAllByText("Empty")).toHaveLength(3);
+    expect(within(starters).getByRole("button", { name: "About team QB" })).toBeInTheDocument();
+    expect(within(starters).queryByRole("button", { name: "About team K" })).toBeNull();
+    expect(screen.getByRole("region", { name: "Bench" })).toHaveTextContent("No players yet");
+    expect(screen.getByRole("region", { name: "Eliminated" })).toHaveTextContent("No one yet");
+    expect(screen.queryByText("Plan your draft")).toBeNull();
   });
 
   it("warns about a hurt starter who can still be swapped and jumps to the bench", () => {

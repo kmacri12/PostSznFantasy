@@ -1,7 +1,7 @@
 import { Alert, Box, Container, Typography } from "@mui/material";
 import { useLeagueInfo, useRecap } from "../api/queries";
 import type { SeasonOverview } from "../api/types";
-import DataFreshness from "../components/common/DataFreshness";
+import LiveStatsNotice from "../components/common/LiveStatsNotice";
 import PictureAvatar from "../components/common/PictureAvatar";
 import AnnouncementCard from "../components/league/AnnouncementCard";
 import LeagueNotes from "../components/league/LeagueNotes";
@@ -76,7 +76,7 @@ const LeagueContent = () => {
         )}
         {!season.finished && <RoundWinToast seasonId={seasonId} myTeamId={season.myTeamId} />}
         <Standings season={season} />
-        {season.draftStatus === "completed" && !season.finished && <DataFreshness />}
+        {season.draftStatus === "completed" && !season.finished && <LiveStatsNotice />}
         {info && <LeagueNotes league={info} />}
       </Box>
     </Container>

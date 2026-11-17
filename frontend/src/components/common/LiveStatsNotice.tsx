@@ -1,5 +1,5 @@
 import RefreshIcon from "@mui/icons-material/Refresh";
-import { Alert, Box, Button, CircularProgress, Snackbar, Typography } from "@mui/material";
+import { Alert, Box, Button, CircularProgress, Snackbar } from "@mui/material";
 import { useState } from "react";
 import { useRefreshLive, useSyncStatus } from "../../api/queries";
 import { useUser } from "../../contexts/UserContext";
@@ -40,37 +40,31 @@ const isAdminHint = (userId: string | undefined): boolean =>
     .map((id: string) => id.trim())
     .includes(userId);
 
-/** "Stats updated X min ago" for pages showing live scores, plus an admin-only "Refresh now". */
-const DataFreshness = () => {
+/**
+ * Pages with live scores: a warning only when live stats have stopped syncing for the day, and
+ * the admin-only "Refresh now". The routine sync time lives in the pull-to-refresh indicator.
+ */
+const LiveStatsNotice = () => {
   const { user } = useUser();
   const status = useSyncStatus();
   const refresh = useRefreshLive();
   const [toast, setToast] = useState<Toast | null>(null);
   const boxScores = status.data?.find((item) => item.kind === BOX_SCORES);
   const syncedAt = boxScores?.lastSyncedAt;
+  const paused = boxScores?.budgetExhausted && syncedAt;
+  const admin = isAdminHint(user?.id);
 
-  if (status.isLoading) return null;
-
-  // A failed refetch keeps the previous data, so the last known time stays on screen.
-  const message = !status.data
-    ? "Update time unavailable"
-    : !syncedAt
-      ? "Stats haven't synced yet"
-      : `Stats updated ${formatAgo(syncedAt)}`;
+  if (!paused && !admin) return null;
 
   return (
     <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
-      {boxScores?.budgetExhausted && syncedAt ? (
+      {paused && (
         <Alert severity="warning" role="status" sx={{ width: "100%" }}>
           Live updates paused for today (API daily limit). Showing the last update from{" "}
           {formatAgo(syncedAt)}.
         </Alert>
-      ) : (
-        <Typography variant="body2" color="text.secondary">
-          {message}
-        </Typography>
       )}
-      {isAdminHint(user?.id) && (
+      {admin && (
         <Button
           size="small"
           variant="outlined"
@@ -112,4 +106,4 @@ const DataFreshness = () => {
   );
 };
 
-export default DataFreshness;
+export default LiveStatsNotice;

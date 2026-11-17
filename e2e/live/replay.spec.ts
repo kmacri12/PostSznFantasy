@@ -65,7 +65,7 @@ test("eliminations reach the team pages as each replayed game finishes", async (
   await test.step("the roster is on the team page", async () => {
     await page.goto(seasonUrl(main.league, `/teams/${main.hostTeamId}`));
     for (const player of HOST_ROWS) await expect(page.getByText(player)).toBeVisible();
-    await expect(page.getByRole("region", { name: "Eliminated" })).toHaveCount(0);
+    await expect(page.getByRole("region", { name: "Eliminated" })).toContainText("No one yet");
   });
 
   for (const [index, team] of ELIMINATION_ORDER.entries()) {
@@ -75,7 +75,7 @@ test("eliminations reach the team pages as each replayed game finishes", async (
 
       // The host loses a player for each of the first three eliminations; DET is the guest's.
       await page.goto(seasonUrl(main.league, `/teams/${main.hostTeamId}`));
-      await expect(page.getByText(/Stats updated/)).toBeVisible();
+      await expect(page.getByRole("region", { name: "Starters" })).toBeVisible();
       if (index < 3) {
         await inEliminatedSection(page, HOST_ROWS[index]);
       }
