@@ -16,7 +16,8 @@ export interface HowToPlayGroup {
   rules: HowToPlayRule[];
 }
 
-export const HOW_TO_PLAY_TOUR_PROMPT = "Want the quick visual tour?";
+export const HOW_TO_PLAY_TOUR_PROMPT =
+  "The quickest way in: a real league\u2019s playoffs, a screen at a time. The rules in full are below.";
 
 export const HOW_TO_PLAY_GROUPS: HowToPlayGroup[] = [
   {

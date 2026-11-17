@@ -8,9 +8,11 @@ import {
   HOW_TO_PLAY_LABEL,
   HOW_TO_PLAY_TOUR_PROMPT,
   TOUR_LABEL,
+  TOUR_TITLE,
 } from "../content/rules";
+import { tokens } from "../theme";
 
-/** The tour link, then the rules as accordions grouped by when a player needs them; copy lives in content/rules.ts. */
+/** The tour card, then the rules in full as accordions grouped by when a player needs them; copy lives in content/rules.ts. */
 const HowToPlayPage = () => {
   const [tourOpen, setTourOpen] = useState(false);
   const target = useLocation().hash.slice(1);
@@ -22,9 +24,29 @@ const HowToPlayPage = () => {
       <Typography variant="h4" component="h1" gutterBottom>
         {HOW_TO_PLAY_LABEL}
       </Typography>
-      <Box sx={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 1, mb: 1 }}>
-        <Typography color="text.secondary">{HOW_TO_PLAY_TOUR_PROMPT}</Typography>
-        <Button onClick={() => setTourOpen(true)} sx={{ minHeight: 44 }}>
+      <Box
+        component="section"
+        aria-labelledby="tour-card-title"
+        sx={{
+          p: 2,
+          mb: 3,
+          borderRadius: "20px",
+          bgcolor: tokens.accentSurface,
+          border: `1px solid ${tokens.accentBorder}`,
+        }}
+      >
+        <Typography id="tour-card-title" component="h2" sx={{ fontSize: 17, fontWeight: 600 }}>
+          {TOUR_TITLE}
+        </Typography>
+        <Typography variant="body2" sx={{ color: tokens.accentSoft }}>
+          {HOW_TO_PLAY_TOUR_PROMPT}
+        </Typography>
+        <Button
+          variant="contained"
+          fullWidth
+          onClick={() => setTourOpen(true)}
+          sx={{ minHeight: 48, mt: 1.5 }}
+        >
           {TOUR_LABEL}
         </Button>
       </Box>
