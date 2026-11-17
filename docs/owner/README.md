@@ -46,7 +46,7 @@ Data and launch
 18. [Turn on push notifications](18-push-notifications.md), 15 min plus a phone test (#266)
 19. [Turn on "Report a problem" email](19-support-email.md), 20 min (#296)
 20. [Turn on profile, team and league pictures](20-avatars.md), 10 min (#316)
-21. [Add a Cloudflare rate-limiting rule](21-rate-limiting.md), 5 min (#323)
+21. [Cloudflare rate limiting: skip it](21-rate-limiting.md), nothing to do: the API is not behind Cloudflare's proxy (#323)
 22. [Turn on HSTS and enforce the CSP](22-security-headers.md), 10 min (#324)
 T. [Show the "Support PostSzn" coffee link](24-support-link.md), 5 min, optional (#362)
 
