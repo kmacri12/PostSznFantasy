@@ -119,19 +119,20 @@ const MorePage = () => {
 
   return (
     <Container maxWidth="sm" sx={{ pt: 2, pb: 3 }}>
-      <Group label="League">
-        {features.bracket && (
-          <Row to={paths.bracket} title="NFL bracket" hint="Who plays whom, and your players" />
-        )}
-        <Row to={paths.draftBoard} title="Draft board" />
-        {pastSeasons.length > 0 && (
-          <Row
-            title="Past seasons"
-            hint={pastSeasons.map((item) => item.year).join(", ")}
-            onClick={() => setSheet("past")}
-          />
-        )}
-      </Group>
+      {(features.bracket || pastSeasons.length > 0) && (
+        <Group label="League">
+          {features.bracket && (
+            <Row to={paths.bracket} title="NFL bracket" hint="Who plays whom, and your players" />
+          )}
+          {pastSeasons.length > 0 && (
+            <Row
+              title="Past seasons"
+              hint={pastSeasons.map((item) => item.year).join(", ")}
+              onClick={() => setSheet("past")}
+            />
+          )}
+        </Group>
+      )}
       <Group label="Help">
         <Row to={paths.howToPlay} title={HOW_TO_PLAY_LABEL} />
         {installed ? null : (

@@ -64,7 +64,7 @@ A swipeable tour of real screenshots, 6 steps: what this is (standings), the dra
 - Outside a league (home, leagues page, signed out): the same logo, no switcher; the avatar, or Sign in, on the right.
 - Desktop: the same bar; inside a league the left rail's brand block shows the full logo (so the bar holds only the switcher and avatar on the right), and the draft room's top bar follows the same layout.
 - Switcher: the user's leagues with feed dots, then "Create a league". No "All leagues" (the logo does that) and no "Join with a code" (landing only).
-- Bottom tabs inside a league: **League**, **Team**, **Draft**, **Feed** (dot), **More**. The first tab is called League, not Home. The third tab is Draft in every state, before, during and after the draft; there is no Players tab.
+- Bottom tabs inside a league: **League**, **Team**, **Draft**, **Feed** (dot), **More**. The first tab is called League, not Home. The third tab is **Draft** before and during the draft and **Players** once it is complete (the same page, now the league player list with a Players / Board switch).
 - The tab bar is also visible inside the draft room (Draft highlighted), so a member never loses the other tabs while drafting.
 - Tapping Team opens your own team. The same page opens for anyone's team from the standings.
 - No tab bar outside a league.
@@ -161,7 +161,7 @@ Offered right after a member's first sign-in and right after they join a league 
 
 ## More
 
-- More: NFL bracket, Draft board, Past seasons (**only if the league has any**), Help: How to play and **Report a problem** (opens the modal below), Account: Sign out. **There is no Settings entry** (#315): settings live behind the avatar and the cogs below. No privacy and terms (landing footer only).
+- More: NFL bracket, Past seasons (**only if the league has any**), Help: How to play and **Report a problem** (opens the modal below), Account: Sign out. **There is no Settings entry** (#315): settings live behind the avatar and the cogs below. No privacy and terms (landing footer only).
 - **Report a problem** (#296) is a modal, a bottom sheet on phones and a dialog on desktop, opened only from this More row (no other entry point). Fields: **What went wrong?** (required, multiline), **Screenshots (optional)** (images only, up to 5, 5 MB each, 15 MB together; the phone picker accepts `image/*`; one line says a screenshot and the diagnostic info each help and both together get it fixed faster; an inline warning next to the picker explains any image or file that was not attached, for example "That image is 7.2 MB. The limit is 5.0 MB per image."; a running line "3 of 5 images, 9.1 MB of 15.0 MB"), and an **Include diagnostic info** checkbox (on by default) with an expandable **What's included** preview that shows exactly what is sent. States: empty (Send disabled), filled, with images, too-large image message, sending ("Sending…"), error (inline, the message stays), sent (the sheet closes and a toast says "Sent. We'll reply by email."). Colors come from theme tokens only. The Claude Design canvas still needs this board added.
 ## Settings (#315)
 
@@ -222,7 +222,7 @@ Frontend:
 - Team page DST: built as `<NFL team> Defense` with a line of sacks, INTs, fumble recoveries, touchdowns, safeties and points allowed; before the game it shows the day and time like any player.
 - Player sheet: the round's scoring breakdown (each stat and its points) is not on the board. The sheet shows the round's stat line ("This round") once the game has started, above the regular season line; a per-stat points breakdown is still open.
 - The live game clock is shown as the upstream reports it ("Live 8:42"); the quarter is not stored, so the board's "Q3" is not built yet.
-- Decided (#264): More keeps a **Draft board** row (`/draft/board`), so the board is reachable before, during and after the draft; the Draft tab after the draft shows only the player list. More has no row for the Draft tab itself: the tab bar already has it, and the draft date shows on the League phase block and the Draft tab's clock bar. No Invite members row either: commissioners invite from League settings (Invite link) and the League tab's "Invite your friends" block.
+- Decided (#264, revised): the board stays reachable before, during and after the draft from the Draft tab itself. In the draft room it is the Board view; once the draft is complete the tab (labelled Players) opens on the player list with a **Players / Board** switch at the top. More has no Draft board row and no row for the Draft tab: the tab bar already has it, and the draft date shows on the League phase block and the Draft tab's clock bar. No Invite members row either: commissioners invite from League settings (Invite link) and the League tab's "Invite your friends" block.
 - Draft room details the canvas leaves open: the date, seconds per pick, draft type and clock-expiry rules live behind the draft room's cog (#315); "Edit draft order" saves with one button so a reshuffle is one Feed event.
 - Awards: DST has no per-position section on the board; the awards boards show `[PLAYER]` placeholders for values to be computed.
 - The desktop Team page board still shows older wording ("BN", "Ravens out in Divisional", `[TEAM] D/ST`); the phone Team boards and the rules above apply to desktop too.

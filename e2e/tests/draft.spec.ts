@@ -69,6 +69,11 @@ test.describe("draft room", () => {
       await expect(view.getByRole("button", { name: "Commissioner controls" })).toHaveCount(0);
       await expect(view.getByText("Draft complete")).toHaveCount(0);
     }
+    await page.getByRole("tab", { name: "Board", exact: true }).click();
+    await expect(page.getByLabel("Draft board")).toBeVisible();
+    await page.getByRole("tab", { name: "Players", exact: true }).click();
+    await expect(page.getByRole("list", { name: "Players" })).toBeVisible();
+
     const final = await league.state();
     expect(final.status).toBe("completed");
     expect(new Set(final.picks.map((pick) => pick.playerId)).size).toBe(8);

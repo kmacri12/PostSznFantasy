@@ -121,11 +121,14 @@ describe("DraftPage", () => {
     expect(screen.queryByText("draft players")).toBeNull();
   });
 
-  it("is only the league player list once the draft is complete, with no socket", () => {
+  it("is the league player list with the board a tap away once the draft is complete, with no socket", () => {
     mocks.status = "completed";
     renderDraft();
     expect(screen.getByText("league players")).toBeInTheDocument();
-    expect(screen.queryByRole("tab")).toBeNull();
+    expect(screen.getAllByRole("tab").map((tab) => tab.textContent)).toEqual(["Players", "Board"]);
+    fireEvent.click(screen.getByRole("tab", { name: "Board" }));
+    expect(screen.getByText("board")).toBeInTheDocument();
+    expect(screen.queryByText("league players")).toBeNull();
     expect(mocks.socketSeason).toBeUndefined();
   });
 

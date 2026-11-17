@@ -51,15 +51,12 @@ describe("MorePage", () => {
     expect(link).toHaveTextContent("changes nothing in your league");
   });
 
-  it("lists the league rows, with no Settings or Draft tab duplicate", () => {
+  it("has no rows the tabs and settings already cover", () => {
     renderMore({ draftStatus: "unscheduled" });
     expect(screen.queryByRole("link", { name: /Settings/ })).toBeNull();
     expect(screen.queryByRole("link", { name: /Draft room|^Players/ })).toBeNull();
     expect(screen.getByText("How to play")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Draft board" })).toHaveAttribute(
-      "href",
-      "/leagues/3/draft/board",
-    );
+    expect(screen.queryByRole("link", { name: "Draft board" })).toBeNull();
   });
 
   it("links to the NFL bracket unless the owner turned it off", () => {
