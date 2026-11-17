@@ -2,6 +2,7 @@ import { Alert, Box, Container, Typography } from "@mui/material";
 import { useLeagueInfo, useRecap } from "../api/queries";
 import type { SeasonOverview } from "../api/types";
 import DataFreshness from "../components/common/DataFreshness";
+import PictureAvatar from "../components/common/PictureAvatar";
 import AnnouncementCard from "../components/league/AnnouncementCard";
 import LeagueNotes from "../components/league/LeagueNotes";
 import PhaseBlock from "../components/league/PhaseBlock";
@@ -48,12 +49,15 @@ const LeagueContent = () => {
           <Box
             sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 1 }}
           >
-            <Typography
-              variant="h1"
-              sx={{ fontSize: { xs: 20, md: 26 }, fontWeight: 700, overflowWrap: "anywhere" }}
-            >
-              {info.name}
-            </Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, minWidth: 0 }}>
+              <PictureAvatar url={info.avatarUrl} name={info.name} size={40} fallback="tile" />
+              <Typography
+                variant="h1"
+                sx={{ fontSize: { xs: 20, md: 26 }, fontWeight: 700, overflowWrap: "anywhere" }}
+              >
+                {info.name}
+              </Typography>
+            </Box>
             <CogButton label="League settings" to={paths.settings} />
           </Box>
         )}
