@@ -100,7 +100,9 @@ test.describe("data freshness and admin refresh", () => {
     await page.goto(seasonUrl(league.league));
     await standingsLoaded(page);
     await pullDown(page);
-    await expect(page.getByText("Live stats auto-sync during games · synced 5 h ago")).toBeVisible();
+    await expect(
+      page.getByText("Live stats auto-sync during games · synced 5 h ago"),
+    ).toBeVisible();
     await touch(page, "touchend", 100);
 
     await page.getByRole("button", { name: "Refresh now" }).click();
