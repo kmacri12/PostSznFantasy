@@ -116,6 +116,11 @@ test.describe("pictures", () => {
 
     await page.goto(seasonUrl(league));
     await expect(page.locator('img[src*="/api/avatars/"]').first()).toBeVisible(); // any standings row picture will do
+    const homeHeader = page.getByRole("heading", { level: 1, name });
+    await expect(homeHeader).toBeVisible();
+    await expect(homeHeader.locator("xpath=..").locator('img[src*="/api/avatars/"]')).toHaveCount(
+      1,
+    );
   });
 
   test("a plain member sees the league picture but cannot set it", async ({
