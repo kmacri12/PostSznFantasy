@@ -39,6 +39,8 @@ Each league drafts once, before the Wild Card round, from players on the 14 play
 
 Two independent league settings with a tooltip. The "Customize rules" path of create league shows both choices (off preselected). The short create path (league name and team count only) sets both off, standard individual QB and K; a commissioner can change them in settings at any time. The off default for the short path is a product decision awaiting the owner's confirmation.
 
+Why: there is no free agency in PostSzn, and available players get scarce as the playoffs go on, so nobody can replace a QB who gets hurt or benched. The intent is that a team's QB (or K) points keep going to whoever drafted that team's starter: the owner drafts a team's quarterback rather than one individual player. How to play says the same to members.
+
 - When on, the owner drafts a QB (or K) by name, but the slot scores every player whose official roster position is QB (or K) on that NFL team in that game. A WR who throws a touchdown pass scores as a WR.
 - The draft pool lists one QB (or K) per NFL team, the starter; the whole team's QBs (or Ks) leave the pool when one is drafted. The starter is the first name on the NFL team's depth chart (QB1, PK1 from Tank01's `getNFLDepthCharts`); if a team has no usable entry the player with the most pass attempts (or kicks) in the latest season stats starts, and a warning is logged. The roster, lineup and draft board show the drafted name with a tooltip such as "scores all PHI QBs".
 - Who counts as a QB or K is the player's official roster position on that NFL team (Tank01 calls kickers `PK`). A position cap then means different NFL teams: with the setting on, a team can never draft two QBs from one NFL team.
