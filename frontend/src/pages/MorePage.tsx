@@ -7,12 +7,9 @@ import { Link } from "react-router-dom";
 import { useFeatures, useUserLeagues } from "../api/queries";
 import AppToast from "../components/common/AppToast";
 import InstallGuideSheet from "../components/install/InstallGuideSheet";
-import { draftStatusLine } from "../components/league/draftStatusLine";
-import InviteSheet from "../components/settings/InviteSheet";
 import PastSeasonsSheet from "../components/settings/PastSeasonsSheet";
 import FeedbackSheet from "../components/support/FeedbackSheet";
 import ReportProblemSheet from "../components/support/ReportProblemSheet";
-import TourDialog from "../components/tour/TourDialog";
 import {
   FEEDBACK_HINT,
   FEEDBACK_LABEL,
@@ -25,7 +22,6 @@ import {
   REPORT_PROBLEM_SENT,
   SUPPORT_HINT,
   SUPPORT_LABEL,
-  TOUR_LABEL,
 } from "../content/rules";
 import { useSeasonContext } from "../contexts/SeasonContext";
 import { useUser } from "../contexts/UserContext";
@@ -110,14 +106,12 @@ const Group = ({ label, children }: { label: string; children: ReactNode }) => (
 
 /** The More tab: where the rest of the league lives, then help and the account. */
 const MorePage = () => {
-  const { leagueId, season, paths } = useSeasonContext();
+  const { leagueId, paths } = useSeasonContext();
   const { signOutUser } = useUser();
   const features = useFeatures();
   const league = useUserLeagues(true).data?.find((item) => item.id === leagueId);
   const pastSeasons = (league?.seasons ?? []).filter((item) => !item.current).reverse();
-  const [sheet, setSheet] = useState<
-    "past" | "invite" | "report" | "feedback" | "tour" | "install" | null
-  >(null);
+  const [sheet, setSheet] = useState<"past" | "report" | "feedback" | "install" | null>(null);
   const [sent, setSent] = useState<string | null>(null);
   const installed =
     useSyncExternalStore(subscribeInstall, installKind, () => "desktop" as const) === "installed";
@@ -125,30 +119,22 @@ const MorePage = () => {
 
   return (
     <Container maxWidth="sm" sx={{ pt: 2, pb: 3 }}>
-      <Group label="League">
-        <Row
-          to={paths.draft}
-          title={season.draftStatus === "completed" ? "Players" : "Draft room and players"}
-          hint={draftStatusLine(season)}
-        />
-        {features.bracket && (
-          <Row to={paths.bracket} title="NFL bracket" hint="Who plays whom, and your players" />
-        )}
-        <Row to={paths.draftBoard} title="Draft board" />
-        {pastSeasons.length > 0 && (
-          <Row
-            title="Past seasons"
-            hint={pastSeasons.map((item) => item.year).join(", ")}
-            onClick={() => setSheet("past")}
-          />
-        )}
-        {season.canCommission && !season.finished && (
-          <Row title="Invite members" hint="Commissioner" onClick={() => setSheet("invite")} />
-        )}
-      </Group>
+      {(features.bracket || pastSeasons.length > 0) && (
+        <Group label="League">
+          {features.bracket && (
+            <Row to={paths.bracket} title="NFL bracket" hint="Who plays whom, and your players" />
+          )}
+          {pastSeasons.length > 0 && (
+            <Row
+              title="Past seasons"
+              hint={pastSeasons.map((item) => item.year).join(", ")}
+              onClick={() => setSheet("past")}
+            />
+          )}
+        </Group>
+      )}
       <Group label="Help">
         <Row to={paths.howToPlay} title={HOW_TO_PLAY_LABEL} />
-        <Row title={TOUR_LABEL} hint="A minute, in pictures" onClick={() => setSheet("tour")} />
         {installed ? null : (
           <Row title={INSTALL_LABEL} hint={INSTALL_HINT} onClick={() => setSheet("install")} />
         )}
@@ -177,7 +163,6 @@ const MorePage = () => {
           Sign out
         </Box>
       </Group>
-      {sheet === "tour" && <TourDialog onClose={() => setSheet(null)} />}
       {sheet === "install" && <InstallGuideSheet onClose={() => setSheet(null)} />}
       {sheet === "past" && (
         <PastSeasonsSheet
@@ -186,7 +171,6 @@ const MorePage = () => {
           onClose={() => setSheet(null)}
         />
       )}
-      {sheet === "invite" && <InviteSheet leagueId={leagueId} onClose={() => setSheet(null)} />}
       {sheet === "report" && (
         <ReportProblemSheet
           onClose={() => setSheet(null)}

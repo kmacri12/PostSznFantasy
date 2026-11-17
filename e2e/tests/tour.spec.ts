@@ -38,7 +38,7 @@ test.describe("first-run tour", () => {
     ).toBeVisible();
     await expect(tour).toBeHidden();
 
-    await page.goto(seasonUrl(league, "/more"));
+    await page.goto(seasonUrl(league, "/how-to-play"));
     await page.getByRole("button", { name: "Take the tour" }).click();
     for (let step = 0; step < 5; step++) await tour.getByRole("button", { name: "Next" }).click();
     await expect(tour.getByRole("heading", { name: "A champion and awards" })).toBeVisible();
@@ -66,7 +66,7 @@ test.describe("first-run tour", () => {
     await page.getByRole("button", { name: "Skip" }).click();
 
     await page.goto("/how-to-play");
-    await expect(page.getByRole("region", { name: TOUR })).toHaveCount(0);
+    await expect(page.getByRole("region", { name: TOUR })).toBeVisible();
     await expect(page.getByRole("button", { name: "The four rounds", exact: true })).toBeVisible();
     await page.getByRole("button", { name: "Take the tour", exact: true }).click();
     const howTo = page.getByRole("dialog", { name: TOUR });

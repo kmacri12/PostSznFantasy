@@ -35,13 +35,17 @@ describe("how to play", () => {
     expect(screen.getByText(/Jalen Hurts and score every Eagles QB/)).toBeVisible();
   });
 
-  it("has no inline tour and opens it from the link at the top", () => {
+  it("leads with the tour card and opens the tour from it", () => {
     render(
       <MemoryRouter>
         <HowToPlayPage />
       </MemoryRouter>,
     );
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    const card = screen.getByRole("region", { name: "PostSzn Fantasy in a minute" });
+    expect(
+      card.compareDocumentPosition(screen.getByRole("heading", { name: "Before the draft" })),
+    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
     fireEvent.click(screen.getByRole("button", { name: "Take the tour" }));
     expect(screen.getByRole("dialog")).toBeVisible();
   });

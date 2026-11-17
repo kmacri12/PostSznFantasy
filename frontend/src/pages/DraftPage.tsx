@@ -34,9 +34,61 @@ type ViewKey = "players" | "board" | "roster" | "queue";
 /** The sticky clock bar is about this tall; the board column sticks below it. */
 const CLOCK_BAR_HEIGHT = 64;
 const PRE_DRAFT = ["unscheduled", "scheduled", "lobby"];
+const FINISHED_VIEWS: { key: ViewKey; label: string }[] = [
+  { key: "players", label: "Players" },
+  { key: "board", label: "Board" },
+];
+
+const ViewTabs = ({
+  label,
+  views,
+  view,
+  onChange,
+}: {
+  label: string;
+  views: { key: ViewKey; label: string }[];
+  view: ViewKey;
+  onChange: (key: ViewKey) => void;
+}) => (
+  <Box
+    role="tablist"
+    aria-label={label}
+    sx={{
+      display: "grid",
+      gridTemplateColumns: `repeat(${views.length}, 1fr)`,
+      gap: 0.75,
+      px: 2,
+      pt: 1.5,
+      pb: 1,
+    }}
+  >
+    {views.map((item) => {
+      const selected = view === item.key;
+      return (
+        <Button
+          key={item.key}
+          role="tab"
+          aria-selected={selected}
+          onClick={() => onChange(item.key)}
+          sx={{
+            border: `${selected ? 2 : 1}px solid ${selected ? tokens.accent : tokens.borderStrong}`,
+            borderRadius: `${radii.button - 2}px`,
+            bgcolor: selected ? tokens.accentSurface : "transparent",
+            color: selected ? tokens.accent : tokens.textSoft,
+            fontSize: 13,
+            fontWeight: selected ? 600 : 400,
+            px: 0.5,
+          }}
+        >
+          {item.label}
+        </Button>
+      );
+    })}
+  </Box>
+);
 
 /**
- * The Draft tab. A finished draft is just the league's player list; before and during the
+ * The Draft tab. A finished draft is the league's player list with the board a tap away; before and during the
  * draft it is the room: sticky clock, commissioner strip, and Players / Board / Roster /
  * Queue (all on screen at once from `lg` up).
  */
@@ -135,13 +187,27 @@ const DraftPage = () => {
           card={draftCard(season.leagueName, season.year, state)}
           label="Share draft recap"
         />
-        <PlayersView
-          seasonId={seasonId}
-          year={season.year}
-          picks={state.picks}
-          teams={teams}
-          myTeamId={myTeamId}
-        />
+        <Box sx={{ mx: -2 }}>
+          <ViewTabs
+            label="Draft tab views"
+            views={FINISHED_VIEWS}
+            view={view === "board" ? "board" : "players"}
+            onChange={setView}
+          />
+        </Box>
+        {view === "board" ? (
+          <Box sx={{ mx: { xs: -2, sm: 0 } }}>
+            <DraftBoard state={state} myTeamId={myTeamId} />
+          </Box>
+        ) : (
+          <PlayersView
+            seasonId={seasonId}
+            year={season.year}
+            picks={state.picks}
+            teams={teams}
+            myTeamId={myTeamId}
+          />
+        )}
         {settingsSheet}
       </Container>
     );
@@ -264,43 +330,14 @@ const DraftPage = () => {
         </Box>
       ) : (
         <>
-          <Box
-            role="tablist"
-            aria-label="Draft room views"
-            sx={{
-              display: "grid",
-              gridTemplateColumns: `repeat(${archived ? 2 : 4}, 1fr)`,
-              gap: 0.75,
-              px: 2,
-              pt: 1.5,
-              pb: 1,
-            }}
-          >
-            {views
-              .filter((item) => !archived || item.key === "board" || item.key === "roster")
-              .map((item) => {
-                const selected = view === item.key;
-                return (
-                  <Button
-                    key={item.key}
-                    role="tab"
-                    aria-selected={selected}
-                    onClick={() => setView(item.key)}
-                    sx={{
-                      border: `${selected ? 2 : 1}px solid ${selected ? tokens.accent : tokens.borderStrong}`,
-                      borderRadius: `${radii.button - 2}px`,
-                      bgcolor: selected ? tokens.accentSurface : "transparent",
-                      color: selected ? tokens.accent : tokens.textSoft,
-                      fontSize: 13,
-                      fontWeight: selected ? 600 : 400,
-                      px: 0.5,
-                    }}
-                  >
-                    {item.label}
-                  </Button>
-                );
-              })}
-          </Box>
+          <ViewTabs
+            label="Draft room views"
+            views={views.filter(
+              (item) => !archived || item.key === "board" || item.key === "roster",
+            )}
+            view={view}
+            onChange={setView}
+          />
           <Box sx={{ px: view === "board" ? 0 : 2, pb: 2 }}>
             {showEditor ? (
               <Box sx={{ px: view === "board" ? 2 : 0 }}>{orderEditor}</Box>

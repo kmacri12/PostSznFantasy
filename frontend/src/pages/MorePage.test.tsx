@@ -16,9 +16,6 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("../api/queries", () => ({
   useUserLeagues: () => ({ data: [{ id: 3, seasons: mocks.seasons }] }),
-  useInvite: () => ({ data: undefined, isError: false }),
-  useRegenerateInvite: () => ({ mutate: vi.fn(), isPending: false }),
-  useRevokeInvite: () => ({ mutate: vi.fn(), isPending: false }),
   useReportProblem: () => ({ mutate: vi.fn(), isPending: false, isError: false, error: null }),
   useSendFeedback: () => ({ mutate: vi.fn(), isPending: false, isError: false, error: null }),
   useApiVersion: () => ({ data: null }),
@@ -54,15 +51,12 @@ describe("MorePage", () => {
     expect(link).toHaveTextContent("changes nothing in your league");
   });
 
-  it("lists the league rows with the draft status under Players", () => {
+  it("has no rows the tabs and settings already cover", () => {
     renderMore({ draftStatus: "unscheduled" });
     expect(screen.queryByRole("link", { name: /Settings/ })).toBeNull();
-    expect(screen.getByText("Draft not scheduled")).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /Draft room|^Players/ })).toBeNull();
     expect(screen.getByText("How to play")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Draft board" })).toHaveAttribute(
-      "href",
-      "/leagues/3/draft/board",
-    );
+    expect(screen.queryByRole("link", { name: "Draft board" })).toBeNull();
   });
 
   it("links to the NFL bracket unless the owner turned it off", () => {
@@ -108,15 +102,9 @@ describe("MorePage", () => {
     expect(screen.queryByText("Past seasons")).not.toBeInTheDocument();
   });
 
-  it("shows Invite members to commissioners only", () => {
-    renderMore({ canCommission: false });
-    expect(screen.queryByText("Invite members")).not.toBeInTheDocument();
-  });
-
-  it("opens the invite sheet for a commissioner", () => {
+  it("has no invite row, even for a commissioner (League settings has it)", () => {
     renderMore({ canCommission: true });
-    fireEvent.click(screen.getByRole("button", { name: /Invite members/ }));
-    expect(screen.getByText("Invite link")).toBeInTheDocument();
+    expect(screen.queryByText("Invite members")).not.toBeInTheDocument();
   });
 
   it("offers the install guide, and hides the row in the installed app", () => {
