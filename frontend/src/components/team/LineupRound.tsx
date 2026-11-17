@@ -1,7 +1,7 @@
 import { Box, Typography } from "@mui/material";
 import type { ReactNode } from "react";
 import type { LineupPlayer, RoundLineup } from "../../api/types";
-import { HELP_TIPS, type HelpTipCopy } from "../../content/rules";
+import { BENCH_EMPTY, ELIMINATED_EMPTY, HELP_TIPS, type HelpTipCopy } from "../../content/rules";
 import { tokens } from "../../theme";
 import HelpTip from "../common/HelpTip";
 import { formatPoints } from "../league/standingsView";
@@ -89,13 +89,47 @@ const Group = ({
   </Box>
 );
 
+/** The one row of a group with nobody in it, so the groups keep their place before the draft. */
+const EmptyRow = ({ text }: { text: string }) => (
+  <Box
+    component="li"
+    sx={{
+      borderTop: `1px solid ${tokens.border}`,
+      minHeight: 56,
+      display: "flex",
+      alignItems: "center",
+      px: 1.75,
+    }}
+  >
+    <Typography component="span" sx={{ fontSize: 14, color: tokens.muted }}>
+      {text}
+    </Typography>
+  </Box>
+);
+
+export interface TeamUnits {
+  qb: boolean;
+  k: boolean;
+}
+
 interface Props {
   lineup: RoundLineup;
+  /** Team QB / team K: those slots get a "?" saying they score the whole NFL team. */
+  teamUnits?: TeamUnits;
   onOpenPlayer: (player: LineupPlayer) => void;
 }
 
-/** One round of a team: Starters, Bench, and who went out last round. */
-const LineupRound = ({ lineup, onOpenPlayer }: Props) => {
+const slotHelp = (slot: string, units: TeamUnits | undefined): HelpTipCopy | undefined => {
+  if (slot === "QB" && units?.qb) return HELP_TIPS.teamQb;
+  if (slot === "K" && units?.k) return HELP_TIPS.teamK;
+  return undefined;
+};
+
+/**
+ * One round of a team: Starters, Bench, and who went out last round. The same groups show
+ * before the draft, empty, as after it.
+ */
+const LineupRound = ({ lineup, teamUnits, onOpenPlayer }: Props) => {
   const bench = benchPlayersOf(lineup);
   const eliminated = eliminatedLastRound(lineup);
   return (
@@ -136,36 +170,35 @@ const LineupRound = ({ lineup, onOpenPlayer }: Props) => {
             label={slotLabel(slot.slot)}
             player={slot.player}
             mark={slot.mark}
+            help={slotHelp(slot.slot, teamUnits)}
             onOpen={onOpenPlayer}
           />
         ))}
       </Group>
       <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-        {bench.length > 0 && (
-          <Group id={BENCH_GROUP_ID} title="Bench" total={sumPoints(bench)}>
-            {bench.map((player) => (
-              <PlayerRow
-                key={player.id}
-                label={player.position}
-                player={player}
-                bench
-                onOpen={onOpenPlayer}
-              />
-            ))}
-          </Group>
-        )}
-        {eliminated.length > 0 && (
-          <Group title="Eliminated" total={0} danger help={HELP_TIPS.eliminated}>
-            {eliminated.map((player) => (
-              <PlayerRow
-                key={player.id}
-                label={player.position}
-                player={player}
-                onOpen={onOpenPlayer}
-              />
-            ))}
-          </Group>
-        )}
+        <Group id={BENCH_GROUP_ID} title="Bench" total={bench.length > 0 ? sumPoints(bench) : null}>
+          {bench.length === 0 && <EmptyRow text={BENCH_EMPTY} />}
+          {bench.map((player) => (
+            <PlayerRow
+              key={player.id}
+              label={player.position}
+              player={player}
+              bench
+              onOpen={onOpenPlayer}
+            />
+          ))}
+        </Group>
+        <Group title="Eliminated" total={0} danger help={HELP_TIPS.eliminated}>
+          {eliminated.length === 0 && <EmptyRow text={ELIMINATED_EMPTY} />}
+          {eliminated.map((player) => (
+            <PlayerRow
+              key={player.id}
+              label={player.position}
+              player={player}
+              onOpen={onOpenPlayer}
+            />
+          ))}
+        </Group>
       </Box>
     </Box>
   );

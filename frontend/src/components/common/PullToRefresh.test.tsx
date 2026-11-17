@@ -1,8 +1,21 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { api } from "../../api/client";
 import PullToRefresh from "./PullToRefresh";
-import { latestUpdate, PULL_MAX, pullDistance, shouldRefresh } from "./pullToRefresh";
+import {
+  latestUpdate,
+  liveStatsLine,
+  PULL_MAX,
+  pullDistance,
+  screenLine,
+  shouldRefresh,
+} from "./pullToRefresh";
+
+vi.mock("../../api/client", () => ({ api: { get: vi.fn() } }));
+
+const NOW = Date.parse("2026-01-10T12:00:00Z");
+const minutesAgo = (minutes: number) => new Date(NOW - minutes * 60_000).toISOString();
 
 const touch = (type: string, clientY: number) =>
   fireEvent(
@@ -27,8 +40,40 @@ describe("pull distance", () => {
   });
 });
 
+describe("indicator lines", () => {
+  it("speaks of this screen for what the pull itself does", () => {
+    expect(screenLine({ done: false, armed: false, updatedAt: NOW - 120_000 }, NOW)).toBe(
+      "This screen updated 2 min ago",
+    );
+    expect(screenLine({ done: false, armed: false, updatedAt: 0 }, NOW)).toBe(
+      "Pull to refresh this screen",
+    );
+    expect(screenLine({ done: false, armed: true, updatedAt: NOW }, NOW)).toBe(
+      "Release to refresh this screen",
+    );
+    expect(screenLine({ done: true, armed: false, updatedAt: NOW }, NOW)).toBe(
+      "This screen is up to date",
+    );
+  });
+
+  it("says live stats sync on their own, and when they last did", () => {
+    expect(liveStatsLine(undefined, NOW)).toBeNull();
+    expect(liveStatsLine([], NOW)).toBe("Live stats auto-sync once games start");
+    const synced = { kind: "box_scores", lastSyncedAt: minutesAgo(4), budgetExhausted: false };
+    expect(liveStatsLine([synced], NOW)).toBe(
+      "Live stats auto-sync during games · synced 4 min ago",
+    );
+    expect(liveStatsLine([{ ...synced, budgetExhausted: true }], NOW)).toBe(
+      "Live stats paused for today · synced 4 min ago",
+    );
+  });
+});
+
 describe("PullToRefresh", () => {
   const setup = () => {
+    vi.mocked(api.get).mockResolvedValue({
+      data: [{ kind: "box_scores", lastSyncedAt: new Date(Date.now() - 4 * 60_000).toISOString() }],
+    });
     const client = new QueryClient();
     const refetch = vi.spyOn(client, "refetchQueries").mockResolvedValue();
     render(
@@ -50,6 +95,28 @@ describe("PullToRefresh", () => {
     });
     await waitFor(() => expect(refetch).toHaveBeenCalledWith({ type: "active" }));
     expect(screen.getByText("Page")).toBeInTheDocument();
+  });
+
+  it("shows no update lines at rest, and both only briefly after a refresh", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      setup();
+      await waitFor(() => expect(api.get).toHaveBeenCalled());
+      expect(screen.queryByText(/This screen/)).toBeNull();
+      expect(screen.queryByText(/Live stats/)).toBeNull();
+      act(() => {
+        touch("touchstart", 10);
+        touch("touchmove", 160);
+        touch("touchend", 160);
+      });
+      const status = await screen.findByRole("status");
+      expect(status).toHaveTextContent("This screen is up to date");
+      expect(status).toHaveTextContent("Live stats auto-sync during games · synced 4 min ago");
+      await act(() => vi.advanceTimersByTimeAsync(2100));
+      expect(screen.queryByText("This screen is up to date")).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("ignores a short pull", () => {

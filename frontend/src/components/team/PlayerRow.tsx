@@ -1,8 +1,10 @@
 import { Box, ButtonBase, Typography } from "@mui/material";
 import type { LineupPlayer, SlotMark } from "../../api/types";
+import type { HelpTipCopy } from "../../content/rules";
 import { tokens } from "../../theme";
 import ChangedScore from "../activity/ChangedScore";
 import SlotMarker from "../activity/SlotMarker";
+import HelpTip from "../common/HelpTip";
 import InjuryTag from "../common/InjuryTag";
 import TeamUnitBadge from "../common/TeamUnitBadge";
 import { formatPoints } from "../league/standingsView";
@@ -32,11 +34,13 @@ interface Props {
   /** A benched player's name and score are muted. */
   bench?: boolean;
   mark?: SlotMark | null;
+  /** A "?" about the slot itself, beside the score (team QB / team K). */
+  help?: HelpTipCopy;
   onOpen: (player: LineupPlayer) => void;
 }
 
 /** One lineup line. The whole left side opens the player sheet; the score stays its own target. */
-const PlayerRow = ({ label, player, bench = false, mark = null, onOpen }: Props) => {
+const PlayerRow = ({ label, player, bench = false, mark = null, help, onOpen }: Props) => {
   const state = player ? rowState(player) : "ready";
   const colors = COLORS[state];
   const muted = bench && state === "ready";
@@ -113,6 +117,7 @@ const PlayerRow = ({ label, player, bench = false, mark = null, onOpen }: Props)
             </Typography>
           )}
         </ButtonBase>
+        {help && <HelpTip {...help} />}
         <Box sx={{ pr: 1.75, pl: 0.5, minWidth: 52, textAlign: "right" }}>
           {player?.scoreChange ? (
             <ChangedScore

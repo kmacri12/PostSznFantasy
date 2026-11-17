@@ -15,7 +15,7 @@ vi.mock("../components/league/RoundWinToast", () => ({ default: () => null }));
 vi.mock("../components/league/PhaseBlock", () => ({ default: () => null }));
 vi.mock("../components/league/Standings", () => ({ default: () => null }));
 vi.mock("../components/league/LeagueNotes", () => ({ default: () => null }));
-vi.mock("../components/common/DataFreshness", () => ({ default: () => null }));
+vi.mock("../components/common/LiveStatsNotice", () => ({ default: () => null }));
 
 const renderLeague = (seasonOverrides = {}) =>
   render(

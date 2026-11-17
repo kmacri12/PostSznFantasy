@@ -137,22 +137,9 @@ export const HOW_TO_PLAY_GROUPS: HowToPlayGroup[] = [
   },
 ];
 
-/** One-line pointers shown on the pre-draft roster view and the lineup screen. */
-export const LOCK_NOTE =
-  "Players lock when their game starts. A locked player can't be moved, swapped or dropped.";
-export const LOCK_NOTE_OVERRIDE = " As commissioner you can move them, after you confirm.";
-
-export const PRE_DRAFT_TITLE = "Plan your draft";
-export const PRE_DRAFT_INTRO =
-  "Your roster is empty until the draft. This is what you will be able to fill.";
-export const PRE_DRAFT_RULES: string[] = [
-  "Nobody is in a lineup after the draft. You place your players, round by round.",
-  "Only starters score. An empty starter slot scores 0.",
-  LOCK_NOTE,
-  "When a real team loses, its players are eliminated from the next round on.",
-  "Roster slots and caps lock when the draft starts.",
-];
-export const PRE_DRAFT_UNLIMITED = "No limit";
+/** The one row of an empty Bench or Eliminated group on the Team page. */
+export const BENCH_EMPTY = "No players yet";
+export const ELIMINATED_EMPTY = "No one yet";
 export const TEAM_QB_ON_NOTE = "Team QB is on: your QB scores every QB on that NFL team.";
 export const TEAM_K_ON_NOTE = "Team K is on: your K scores every K on that NFL team.";
 
@@ -274,6 +261,8 @@ export const HELP_TIPS = {
   eliminated: { label: "eliminated players", ruleId: "eliminated", text: ruleLead("eliminated") },
   draft: { label: "the draft and position caps", ruleId: "draft", text: ruleLead("draft", 1) },
   ties: { label: "standings and ties", ruleId: "ties", text: ruleLead("ties") },
+  teamQb: { label: "team QB", ruleId: "team-units", text: TEAM_QB_ON_NOTE },
+  teamK: { label: "team K", ruleId: "team-units", text: TEAM_K_ON_NOTE },
 } satisfies Record<string, HelpTipCopy>;
 
 // Tooltips on commissioner settings. Keep each to a sentence or two.

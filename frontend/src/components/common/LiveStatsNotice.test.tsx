@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { api } from "../../api/client";
-import DataFreshness, { formatAgo } from "./DataFreshness";
+import LiveStatsNotice, { formatAgo } from "./LiveStatsNotice";
 
 const NOW = Date.parse("2026-01-10T12:00:00Z");
 const ago = (minutes: number) => new Date(NOW - minutes * 60_000).toISOString();
@@ -17,7 +17,7 @@ const renderBar = () =>
     <QueryClientProvider
       client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}
     >
-      <DataFreshness />
+      <LiveStatsNotice />
     </QueryClientProvider>,
   );
 
@@ -35,7 +35,7 @@ describe("formatAgo", () => {
   });
 });
 
-describe("DataFreshness", () => {
+describe("LiveStatsNotice", () => {
   beforeEach(() => {
     vi.useRealTimers();
     userState.user = null;
@@ -46,9 +46,10 @@ describe("DataFreshness", () => {
     });
   });
 
-  it("says how old the stats are, without a refresh button for regular users", async () => {
-    renderBar();
-    expect(await screen.findByText("Stats updated 7 min ago")).toBeInTheDocument();
+  it("takes no space for regular users while stats sync normally", async () => {
+    const { container } = renderBar();
+    await waitFor(() => expect(api.get).toHaveBeenCalled());
+    expect(container).toBeEmptyDOMElement();
     expect(screen.queryByRole("button", { name: "Refresh now" })).toBeNull();
   });
 
@@ -67,32 +68,6 @@ describe("DataFreshness", () => {
     expect(notice).toHaveTextContent(
       "Live updates paused for today (API daily limit). Showing the last update from 42 min ago.",
     );
-    expect(screen.queryByText(/^Stats updated/)).toBeNull();
-  });
-
-  it("says the update time is unavailable when the status request fails", async () => {
-    vi.mocked(api.get).mockRejectedValue(new Error("down"));
-    renderBar();
-    expect(await screen.findByText("Update time unavailable")).toBeInTheDocument();
-  });
-
-  it("keeps showing the last known update time when a later status request fails", async () => {
-    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-    render(
-      <QueryClientProvider client={client}>
-        <DataFreshness />
-      </QueryClientProvider>,
-    );
-    expect(await screen.findByText("Stats updated 7 min ago")).toBeInTheDocument();
-    vi.mocked(api.get).mockRejectedValue(new Error("down"));
-    await client.refetchQueries({ queryKey: ["sync-status"] });
-    expect(await screen.findByText("Stats updated 7 min ago")).toBeInTheDocument();
-  });
-
-  it("says so when stats have never synced", async () => {
-    vi.mocked(api.get).mockResolvedValue({ data: [] });
-    renderBar();
-    expect(await screen.findByText("Stats haven't synced yet")).toBeInTheDocument();
   });
 
   it("lets an admin refresh live stats", async () => {
@@ -115,7 +90,7 @@ describe("DataFreshness", () => {
     const invalidate = vi.spyOn(client, "invalidateQueries");
     render(
       <QueryClientProvider client={client}>
-        <DataFreshness />
+        <LiveStatsNotice />
       </QueryClientProvider>,
     );
     fireEvent.click(await screen.findByRole("button", { name: "Refresh now" }));

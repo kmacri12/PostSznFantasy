@@ -1,11 +1,21 @@
 import { Box, CircularProgress, Typography } from "@mui/material";
-import { useIsFetching, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import { useSyncStatus } from "../../api/queries";
 import { tokens } from "../../theme";
-import { formatAgo } from "./DataFreshness";
-import { latestUpdate, PULL_THRESHOLD, pullDistance, shouldRefresh } from "./pullToRefresh";
+import { E2E_BUILD } from "../../utils/e2e";
+import {
+  latestUpdate,
+  liveStatsLine,
+  PULL_THRESHOLD,
+  pullDistance,
+  screenLine,
+  shouldRefresh,
+} from "./pullToRefresh";
 
-const TICK_MS = 30_000;
+/** How long "This screen is up to date" stays after a refresh before the indicator folds away. */
+const DONE_MS = 2000;
+const OPEN_HEIGHT = PULL_THRESHOLD + 8;
 
 /** A modal (sheet, dialog) is open: a pull then belongs to the modal, not the page behind it. */
 const modalOpen = (): boolean => document.querySelector(".MuiModal-root") !== null;
@@ -16,31 +26,19 @@ interface Props {
 
 /**
  * Pull down at the top of the page to refetch what it shows (touch only; the browser's own
- * reload gesture is suppressed while a pull is ours), with a small "Updated X ago" line that
- * works without a gesture.
+ * reload gesture is suppressed while a pull is ours). Two lines show only while pulling and for
+ * a moment after a refresh: when this screen last loaded, which the pull controls, and when live
+ * stats last synced, which the server does on its own schedule. At rest they take no space.
  */
 const PullToRefresh = ({ children }: Props) => {
   const queryClient = useQueryClient();
-  // Subscribes to fetch activity so the line moves forward as soon as any refetch lands.
-  useIsFetching();
+  const syncStatus = useSyncStatus().data;
   const [distance, setDistance] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
-  const [now, setNow] = useState(() => Date.now());
+  const [done, setDone] = useState(false);
   const startY = useRef<number | null>(null);
   const pulled = useRef(0);
   const busy = useRef(false);
-
-  const updatedAt = latestUpdate(
-    queryClient
-      .getQueryCache()
-      .findAll({ type: "active" })
-      .map((query) => query.state.dataUpdatedAt),
-  );
-
-  useEffect(() => {
-    const timer = window.setInterval(() => setNow(Date.now()), TICK_MS);
-    return () => window.clearInterval(timer);
-  }, []);
 
   const refresh = useCallback(async () => {
     busy.current = true;
@@ -50,9 +48,16 @@ const PullToRefresh = ({ children }: Props) => {
     } finally {
       busy.current = false;
       setRefreshing(false);
-      setNow(Date.now());
+      setDone(true);
     }
   }, [queryClient]);
+
+  // The e2e build never races a timer, so there the line stays until the next pull.
+  useEffect(() => {
+    if (!done || E2E_BUILD) return;
+    const timer = window.setTimeout(() => setDone(false), DONE_MS);
+    return () => window.clearTimeout(timer);
+  }, [done]);
 
   useEffect(() => {
     const onStart = (event: TouchEvent) => {
@@ -60,6 +65,7 @@ const PullToRefresh = ({ children }: Props) => {
       startY.current =
         atTop && !busy.current && !modalOpen() ? (event.touches[0]?.clientY ?? null) : null;
       pulled.current = 0;
+      if (startY.current !== null) setDone(false);
     };
     const onMove = (event: TouchEvent) => {
       if (startY.current === null) return;
@@ -97,32 +103,55 @@ const PullToRefresh = ({ children }: Props) => {
     };
   }, [refresh]);
 
-  const height = refreshing ? PULL_THRESHOLD * 0.75 : distance;
+  const pulling = distance > 0 && !refreshing;
+  const updatedAt = pulling
+    ? latestUpdate(
+        queryClient
+          .getQueryCache()
+          .findAll({ type: "active" })
+          .map((query) => query.state.dataUpdatedAt),
+      )
+    : 0;
+  const screen = screenLine({ done, armed: shouldRefresh(distance), updatedAt });
+  const stats = liveStatsLine(syncStatus);
+  const height = refreshing || done ? OPEN_HEIGHT : distance;
   return (
     <Box>
       <Box
-        aria-hidden={!refreshing && distance === 0}
+        aria-hidden={height === 0}
         sx={{
           height,
           overflow: "hidden",
           display: "flex",
+          flexDirection: "column",
           alignItems: "center",
-          justifyContent: "center",
-          transition: distance === 0 ? "height 150ms ease" : "none",
+          // Anchored to the bottom, so a short pull shows the update times first.
+          justifyContent: "flex-end",
+          gap: 0.5,
+          px: 2,
+          pb: height > 0 ? 0.75 : 0,
+          textAlign: "center",
+          transition: pulling ? "none" : "height 150ms ease",
         }}
       >
-        <CircularProgress
-          size={24}
-          variant={refreshing ? "indeterminate" : "determinate"}
-          value={Math.min(100, (distance / PULL_THRESHOLD) * 100)}
-          aria-label={refreshing ? "Refreshing" : "Pull to refresh"}
-        />
+        {!done && (
+          <CircularProgress
+            size={24}
+            variant={refreshing ? "indeterminate" : "determinate"}
+            value={Math.min(100, (distance / PULL_THRESHOLD) * 100)}
+            aria-label={refreshing ? "Refreshing" : "Pull to refresh"}
+            sx={{ flexShrink: 0 }}
+          />
+        )}
+        {height > 0 && (
+          <Box role={done ? "status" : undefined} sx={{ flexShrink: 0 }}>
+            {!refreshing && (
+              <Typography sx={{ fontSize: 13, color: tokens.text }}>{screen}</Typography>
+            )}
+            {stats && <Typography sx={{ fontSize: 12, color: tokens.muted }}>{stats}</Typography>}
+          </Box>
+        )}
       </Box>
-      {updatedAt > 0 && (
-        <Typography sx={{ textAlign: "center", fontSize: 12, color: tokens.muted, pt: 0.5 }}>
-          Updated {formatAgo(new Date(updatedAt).toISOString(), now)}
-        </Typography>
-      )}
       {children}
     </Box>
   );

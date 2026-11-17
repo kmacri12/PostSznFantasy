@@ -1,19 +1,18 @@
 import { Alert, Box, Button, Container, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import {
   type LineupMoveRequest,
   needsOverrideConfirmation,
   useLeagueInfo,
+  useLeagueSettings,
   useMoveInLineup,
   useStandings,
   useTeam,
 } from "../api/queries";
 import type { TeamDetails } from "../api/types";
-import AddToCalendar from "../components/common/AddToCalendar";
-import DataFreshness from "../components/common/DataFreshness";
-import EmptyState from "../components/common/EmptyState";
 import { mutationError } from "../components/common/friendlyError";
+import LiveStatsNotice from "../components/common/LiveStatsNotice";
 import PictureAvatar from "../components/common/PictureAvatar";
 import QueryBoundary from "../components/common/QueryBoundary";
 import ArchivedNotice from "../components/league/ArchivedNotice";
@@ -35,11 +34,9 @@ import {
 } from "../components/team/lineupView";
 import OverrideDialog from "../components/team/OverrideDialog";
 import PlayerSheet from "../components/team/PlayerSheet";
-import PreDraftRoster from "../components/team/PreDraftRoster";
 import RoundStrip from "../components/team/RoundStrip";
 import { useSeasonContext } from "../contexts/SeasonContext";
 import { tokens } from "../theme";
-import { lockCalendarEvent } from "../utils/calendar";
 
 /** Re-renders every 30s so the banner clears the moment a game starts. */
 const useNow = () => {
@@ -53,7 +50,7 @@ const useNow = () => {
 
 const TeamContent = ({ team }: { team: TeamDetails }) => {
   const teamId = team.id;
-  const { season, seasonId, paths } = useSeasonContext();
+  const { season, seasonId } = useSeasonContext();
   const archived = season.finished;
   const canEdit = team.canEdit && season.canEdit;
   const canSetLineup = team.canSetLineup && season.canEdit;
@@ -62,6 +59,8 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
   const members = useLeagueInfo(season.leagueId, canAssignOwner).data?.members;
   const now = useNow();
   const standing = useStandings(seasonId).data?.teams.find((row) => row.teamId === teamId);
+  const settings = useLeagueSettings(seasonId).data;
+  const teamUnits = settings && { qb: settings.teamQb === true, k: settings.teamK === true };
   const currentRound = defaultRound(team.lineups, now);
   const [round, setRound] = useState(currentRound);
   const [sheetPlayerId, setSheetPlayerId] = useState<number | null>(null);
@@ -130,21 +129,8 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
         )}
       </Box>
 
-      <DataFreshness />
+      <LiveStatsNotice />
       {archived && <ArchivedNotice what="names and lineups" />}
-      {team.roster.length === 0 && <PreDraftRoster seasonId={seasonId} />}
-      {team.roster.length === 0 && (
-        <EmptyState
-          illustration="lineup"
-          title="No players yet"
-          description="This lineup fills in as the draft happens."
-          action={
-            <Button component={Link} to={paths.draft} variant="outlined">
-              Open the draft room
-            </Button>
-          }
-        />
-      )}
       {warning && canSetLineup && (
         <Alert severity="warning">
           {ROUND_LABELS[warning.round]}: {warning.emptyStarterSlots} empty starter{" "}
@@ -173,26 +159,14 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
           {hurtStartersMessage(hurt)}
         </Alert>
       )}
-      {lineup && team.roster.length > 0 && (
+      {lineup && (
         <>
           <RoundStrip lineups={team.lineups} round={round} onSelect={setRound} />
-          {canSetLineup &&
-            lineup.firstKickoff &&
-            Date.parse(lineup.firstKickoff) > now.getTime() && (
-              <AddToCalendar
-                label={`Add ${ROUND_LABELS[round]} lock to calendar`}
-                filename={`round-${round}-lock.ics`}
-                event={lockCalendarEvent({
-                  seasonId,
-                  round,
-                  roundLabel: ROUND_LABELS[round] ?? `Round ${round}`,
-                  leagueName: season.leagueName,
-                  start: lineup.firstKickoff,
-                  url: window.location.href,
-                })}
-              />
-            )}
-          <LineupRound lineup={lineup} onOpenPlayer={(player) => setSheetPlayerId(player.id)} />
+          <LineupRound
+            lineup={lineup}
+            teamUnits={teamUnits}
+            onOpenPlayer={(player) => setSheetPlayerId(player.id)}
+          />
         </>
       )}
       {sheetPlayer && lineup && (
