@@ -30,13 +30,16 @@ jobs:
           --health-timeout 5s
           --health-retries 10
     env:
-      PG_URI: postgresql://postgres:postgres@localhost:${{ job.services.postgres.ports['5432'] }}/postszn_test
       SUPABASE_URL: http://localhost:54321
       ENVIRONMENT: test
       TEST_AUTH_STUB: "true"
       PLAYOFF_FIELD_SIZE: "8"
     steps:
       - uses: actions/checkout@v7
+
+      # The job context (service ports) exists only inside steps, not in jobs.<id>.env.
+      - name: Point the API at the service database
+        run: echo "PG_URI=postgresql://postgres:postgres@localhost:${{ job.services.postgres.ports['5432'] }}/postszn_test" >> "$GITHUB_ENV"
 
       - name: Install uv
         uses: astral-sh/setup-uv@v7
