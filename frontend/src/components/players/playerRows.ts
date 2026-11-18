@@ -71,7 +71,7 @@ export function statLine(position: string, stats: SeasonStatsRow | undefined): s
       return `${fg}/${fg + n("kickingFgMissed")} FG, ${xp}/${xp + n("kickingXpMissed")} XP`;
     }
     case "DST":
-      return `${n("dstSacks")} sacks, ${n("dstInterceptions")} INT, ${n("dstDefTd")} TD`;
+      return `${n("dstSacks")} sacks, ${n("dstInterceptions")} INT, ${n("dstFumblesRecovered")} FR, ${n("dstDefTd")} TD, ${count(n("dstPointsAllowed"))} pts allowed`;
     default:
       return "";
   }
