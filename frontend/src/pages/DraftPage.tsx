@@ -10,6 +10,7 @@ import {
 import type { DraftSnapshot, DraftState } from "../api/types";
 import LoadingState from "../components/common/LoadingState";
 import AssignPickDialog from "../components/draft/AssignPickDialog";
+import AutopilotSwitch from "../components/draft/AutopilotSwitch";
 import CommissionerStrip from "../components/draft/CommissionerStrip";
 import { cappedPositions } from "../components/draft/caps";
 import DraftBoard from "../components/draft/DraftBoard";
@@ -35,8 +36,8 @@ type ViewKey = "players" | "board" | "roster" | "queue";
 const CLOCK_BAR_HEIGHT = 64;
 const PRE_DRAFT = ["unscheduled", "scheduled", "lobby"];
 const FINISHED_VIEWS: { key: ViewKey; label: string }[] = [
+  { key: "board", label: "Draft board" },
   { key: "players", label: "Players" },
-  { key: "board", label: "Board" },
 ];
 
 const ViewTabs = ({
@@ -101,7 +102,7 @@ const DraftPage = () => {
   const leagueTeams = useLeagueTeams(seasonId).data;
   const saveQueue = useSaveQueue(seasonId);
   const wide = useMediaQuery(useTheme().breakpoints.up("lg"));
-  const [view, setView] = useState<ViewKey>("players");
+  const [view, setView] = useState<ViewKey>(finishedOnLoad ? "board" : "players");
   const [editingOrder, setEditingOrder] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [assigning, setAssigning] = useState<{ pickNumber: number; teamName: string } | null>(null);
@@ -191,11 +192,11 @@ const DraftPage = () => {
           <ViewTabs
             label="Draft tab views"
             views={FINISHED_VIEWS}
-            view={view === "board" ? "board" : "players"}
+            view={view === "players" ? "players" : "board"}
             onChange={setView}
           />
         </Box>
-        {view === "board" ? (
+        {view !== "players" ? (
           <Box sx={{ mx: { xs: -2, sm: 0 } }}>
             <DraftBoard state={state} myTeamId={myTeamId} />
           </Box>
@@ -253,8 +254,8 @@ const DraftPage = () => {
   const showEditor = editingOrder && PRE_DRAFT.includes(state.status);
   const queued = queue.filter((id) => !draftedIds.has(id)).length;
   const views: { key: ViewKey; label: string }[] = [
+    { key: "board", label: "Draft board" },
     { key: "players", label: "Players" },
-    { key: "board", label: "Board" },
     { key: "roster", label: "Roster" },
     { key: "queue", label: queued > 0 ? `Queue ${queued}` : "Queue" },
   ];
@@ -270,6 +271,9 @@ const DraftPage = () => {
         onOpenSettings={() => setSettingsOpen(true)}
       />
       {settingsSheet}
+      {myTeamId !== null && !archived && (live || state.status === "lobby") && (
+        <AutopilotSwitch draft={state} teamId={myTeamId} />
+      )}
       {season.canCommission && !archived && (
         <CommissionerStrip
           draft={state}

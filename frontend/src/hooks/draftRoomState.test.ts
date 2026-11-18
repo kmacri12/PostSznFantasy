@@ -32,6 +32,7 @@ const snapshot = (overrides: Partial<DraftSnapshot> = {}): DraftSnapshot => ({
   positionCaps: {},
   draftCutoff: null,
   playoffFieldSet: true,
+  autopilotTeamIds: [],
   queue: [5, 6],
   presence: [],
   myTeamId: 10,
@@ -49,6 +50,7 @@ const pick = (overall: number, playerId: number): DraftPick => ({
   numberPickOverall: overall,
   numberPickInRound: overall,
   autopick: false,
+  source: "manager",
 });
 
 const NOW = new Date("2030-01-01T00:00:00Z").getTime();
@@ -66,9 +68,9 @@ describe("draft room reducer", () => {
 
   it("toasts my team once when a pick is auto-made for me, not on replays or others' picks", () => {
     let room = applyDraftEvent(initialRoom, { eventType: "SNAPSHOT", data: snapshot() });
-    const auto = { ...pick(1, 5), autopick: true };
+    const auto = { ...pick(1, 5), autopick: true, source: "timer" as const };
     room = applyDraftEvent(room, { eventType: "PICK_MADE", data: auto });
-    expect(room.toast?.message).toBe("Auto-pick: P5 was drafted for you");
+    expect(room.toast?.message).toBe("Time ran out: P5 was auto-picked for you");
     expect(room.toast?.severity).toBe("info");
 
     room = applyDraftEvent(room, { eventType: "DISMISS_TOAST" });
@@ -80,6 +82,20 @@ describe("draft room reducer", () => {
       data: { ...auto, numberPickOverall: 2, playerId: 6, teamId: 99 },
     });
     expect(room.toast).toBeNull();
+  });
+
+  it("tells everyone when the commissioner made or forced a pick", () => {
+    let room = applyDraftEvent(initialRoom, { eventType: "SNAPSHOT", data: snapshot() });
+    room = applyDraftEvent(room, {
+      eventType: "PICK_MADE",
+      data: { ...pick(1, 5), autopick: true, source: "commissioner_auto" },
+    });
+    expect(room.toast?.message).toBe("The commissioner auto-picked P5 for you");
+    room = applyDraftEvent(room, {
+      eventType: "PICK_MADE",
+      data: { ...pick(2, 6), teamId: 99, source: "commissioner_assigned" },
+    });
+    expect(room.toast?.message).toBe("The commissioner picked P6 for a team");
   });
 
   it("tells me how long I was offline and how many picks I missed on the next snapshot", () => {

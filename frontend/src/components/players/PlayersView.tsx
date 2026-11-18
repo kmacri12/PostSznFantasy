@@ -20,6 +20,7 @@ import ErrorState from "../common/ErrorState";
 import InjuryTag from "../common/InjuryTag";
 import LoadingState from "../common/LoadingState";
 import TeamUnitBadge from "../common/TeamUnitBadge";
+import { positionChipSx } from "../draft/positions";
 import FilterMenu from "./FilterMenu";
 import {
   type Availability,
@@ -49,7 +50,7 @@ export interface DraftActions {
   /** Position to the reason this team can't draft it (it reached the cap). */
   capped: Record<string, string>;
   queue: number[];
-  /** Players the server rejected as already drafted. */
+  /** Players the list should hide as unavailable (server-rejected or reserved) unless a pick shows them as owned. */
   takenIds: number[];
   onPick: (playerId: number) => void;
   onToggleQueue: (playerId: number) => void;
@@ -140,7 +141,10 @@ const PlayerListItem = ({ row, owner, myTeamId, year, draft, armed, onDraft }: R
           )}
         </Typography>
         <Typography sx={{ fontSize: 12, color: tokens.muted, mt: 0.125 }}>
-          {row.position} {row.team}
+          <Box component="span" sx={positionChipSx(row.position)}>
+            {row.position}
+          </Box>{" "}
+          {row.team}
           {" · "}
           {drafted && owner ? ownerText(owner) : row.line}
           {row.eliminated && " · Eliminated"}
@@ -245,7 +249,8 @@ const PlayersView = ({ seasonId, year, picks, teams, myTeamId, draft }: Props) =
     () =>
       sortRows(
         filterRows(
-          rows.filter((row) => !taken.has(row.id)),
+          // Owned players stay: the Drafted and fantasy-team filters list them.
+          rows.filter((row) => !taken.has(row.id) || owners.has(row.id)),
           { search, position, nflTeam, fantasyTeamId, availability },
           owners,
           flex,
@@ -351,7 +356,11 @@ const PlayersView = ({ seasonId, year, picks, teams, myTeamId, draft }: Props) =
             { value: "", label: "any" },
             ...teams.map((team) => ({ value: String(team.id), label: team.name })),
           ]}
-          onChange={(value) => setFantasyTeamId(value ? Number(value) : null)}
+          onChange={(value) => {
+            setFantasyTeamId(value ? Number(value) : null);
+            // A team's players are drafted by definition; Available would always be empty.
+            if (value && availability === "available") setAvailability("all");
+          }}
         />
         <Box sx={{ ml: "auto" }}>
           <FilterMenu

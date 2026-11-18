@@ -22,6 +22,7 @@ class IngestionKind(IntEnum):
     GAMES = 5
     DEPTH_CHARTS = 6
     KICKER_DISTANCES = 7
+    DST_SEASON_STATS = 8
 
 
 class IngestionBusy(Exception):

@@ -14,6 +14,7 @@ from api.db.models import (
     SeasonStanding,
     TeamPlayer,
 )
+from api.models.enums import PickSource
 from api.services.draft_flow import undo_last_pick
 from api.services.draft_picks import record_pick
 from api.services.scheduler import run_poll_cycle
@@ -214,7 +215,14 @@ async def test_finishing_the_draft_creates_a_zero_point_table(
     assert await _stored(db, season.id) == {}
 
     for player in (qb, rb):
-        await record_pick(db, draft, settings, player.id, acting_user=None)
+        await record_pick(
+            db,
+            draft,
+            settings,
+            player.id,
+            acting_user=None,
+            source=PickSource.MANAGER,
+        )
 
     assert draft.status == "completed"
     rows = await _stored(db, season.id)
@@ -234,7 +242,14 @@ async def test_undoing_the_final_pick_removes_the_table(db: AsyncSession) -> Non
     )
     assert settings is not None
     for player in players:
-        await record_pick(db, draft, settings, player.id, acting_user=None)
+        await record_pick(
+            db,
+            draft,
+            settings,
+            player.id,
+            acting_user=None,
+            source=PickSource.MANAGER,
+        )
 
     assert len(await _stored(db, season.id)) == 2
     await undo_last_pick(db, season.id)

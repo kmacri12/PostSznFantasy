@@ -34,6 +34,7 @@ from api.models.enums import (
     DRAFTABLE_POSITION_VALUES,
     DraftStatus,
     DraftType,
+    PickSource,
     PickTimeoutAction,
     PlayerPosition,
 )
@@ -43,6 +44,7 @@ from api.services.draft_picks import (
     DraftPickError,
     PickNotDue,
     PickResult,
+    autopilot_due,
     check_roster_limits,
     load_draft_for_update,
     load_settings,
@@ -51,6 +53,7 @@ from api.services.draft_picks import (
     record_pick,
     reservations,
     reserved_positions,
+    set_team_autopilot,
     store_reservations,
     team_on_the_clock,
     validate_candidate,
@@ -131,6 +134,7 @@ async def build_state(db: AsyncSession, draft: Draft) -> DraftStateResponse:
             number_pick_overall=p.number_pick_overall,
             number_pick_in_round=p.number_pick_in_round,
             autopick=p.autopick,
+            source=PickSource(p.source),
         )
         for p, name, position, team_abv in pick_rows
     ]
@@ -181,6 +185,7 @@ async def build_state(db: AsyncSession, draft: Draft) -> DraftStateResponse:
         ),
         playoff_field_set=await playoff_team_count(db)
         == get_settings().playoff_field_size,
+        autopilot_team_ids=list(draft.autopilot_team_ids),
     )
 
 
@@ -570,13 +575,19 @@ async def _best_available_ids(
 
 
 async def auto_pick(
-    db: AsyncSession, season_id: int, *, only_if_overdue: bool = False
+    db: AsyncSession,
+    season_id: int,
+    *,
+    only_if_overdue: bool = False,
+    commissioner: activity.Actor | None = None,
 ) -> PickResult:
     """Pick for whoever is on the clock: their queue first (if configured), then best available.
 
     The clock sets `only_if_overdue` because it scans for expired deadlines before taking
     the lock; a drafter may have picked in between, which would burn the next team's turn.
-    A team with no owner is always due: nobody is there to wait for.
+    A team with no owner is always due: nobody is there to wait for; a team on
+    autopilot is due a few seconds into its turn. `commissioner` is set for the
+    commissioner's "Auto-pick now", which also posts to the feed.
     """
     draft = await load_draft_for_update(db, season_id)
     settings = await load_settings(db, season_id)
@@ -591,13 +602,24 @@ async def auto_pick(
         .where(DraftPick.draft_id == draft.id)
     )
     team_id = team_on_the_clock(placed_order(draft), picks_made or 0, draft.draft_type)
+    owned = await _has_owner(db, team_id)
+    now = datetime.now(UTC)
     if (
         only_if_overdue
         and draft.current_pick_deadline is not None
-        and draft.current_pick_deadline > datetime.now(UTC)
-        and await _has_owner(db, team_id)
+        and draft.current_pick_deadline > now
+        and owned
+        and not autopilot_due(draft, team_id, now)
     ):
         raise PickNotDue("The pick deadline has not passed")
+    if commissioner is not None:
+        source = PickSource.COMMISSIONER_AUTO
+    elif not owned:
+        source = PickSource.NO_OWNER
+    elif team_id in draft.autopilot_team_ids:
+        source = PickSource.AUTOPILOT
+    else:
+        source = PickSource.TIMER
 
     best_available = await _best_available_ids(db, draft, settings)
     pool = set(best_available)
@@ -635,10 +657,54 @@ async def auto_pick(
             )
         except DraftPickError:
             continue
-        return await record_pick(
-            db, draft, settings, player_id, acting_user=None, autopick=True
+        result = await record_pick(
+            db, draft, settings, player_id, acting_user=None, source=source
         )
+        if commissioner is not None:
+            team = await db.get(Team, team_id)
+            await activity.append(
+                db,
+                season_id,
+                DraftPickAssignedPayload(
+                    pick_number=result.pick.number_pick_overall,
+                    team_name=(team.name if team else None) or f"Team {team_id}",
+                    player_id=player_id,
+                    player_name=result.player_name,
+                    auto_pick=True,
+                ),
+                team_id=team_id,
+                actor=commissioner,
+            )
+        return result
     raise DraftPickError("No eligible player is available to auto-pick")
+
+
+class AutopilotForbidden(DraftPickError):
+    """Someone other than the team's manager (or a commissioner switching it off)."""
+
+
+async def set_autopilot(
+    db: AsyncSession,
+    season_id: int,
+    team_id: int,
+    enabled: bool,
+    *,
+    user_id: int,
+    is_commissioner: bool,
+) -> Draft:
+    """The team's manager switches autopilot on or off; a commissioner can only switch
+    it off (for a manager who is back but missed the switch)."""
+    draft = await load_draft_for_update(db, season_id)
+    team = await db.get(Team, team_id)
+    if team is None or team.season_id != season_id:
+        raise DraftPickError("Team not found", code="no_such_team")
+    if team.owner_id != user_id and (enabled or not is_commissioner):
+        raise AutopilotForbidden("Only this team's manager can change its autopilot")
+    if draft.status == DraftStatus.COMPLETED.value:
+        raise DraftPickError("The draft is already complete")
+    set_team_autopilot(draft, team_id, enabled)
+    await db.flush()
+    return draft
 
 
 async def _has_owner(db: AsyncSession, team_id: int) -> bool:
@@ -724,7 +790,14 @@ async def assign_pick(
         store_reservations(
             draft, {s: p for s, p in reservations(draft).items() if s != pick_number}
         )
-        result = await record_pick(db, draft, settings, player_id, acting_user=None)
+        result = await record_pick(
+            db,
+            draft,
+            settings,
+            player_id,
+            acting_user=None,
+            source=PickSource.COMMISSIONER_ASSIGNED,
+        )
     else:
         if draft.status == DraftStatus.COMPLETED.value:
             raise DraftPickError("The draft is already complete")
@@ -797,6 +870,7 @@ async def _replace_pick(
     )
     pick.player_id = player_id
     pick.autopick = False
+    pick.source = PickSource.COMMISSIONER_ASSIGNED.value
     db.add(
         TeamPlayer(team_id=pick.team_id, season_id=draft.season_id, player_id=player_id)
     )
