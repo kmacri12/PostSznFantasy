@@ -7,6 +7,7 @@ import SlotMarker from "../activity/SlotMarker";
 import HelpTip from "../common/HelpTip";
 import InjuryTag from "../common/InjuryTag";
 import TeamUnitBadge from "../common/TeamUnitBadge";
+import { positionChipSx } from "../draft/positions";
 import { formatPoints } from "../league/standingsView";
 import { playerDetail, type RowState, rowState } from "./lineupView";
 
@@ -81,6 +82,9 @@ const PlayerRow = ({ label, player, bench = false, mark = null, help, onOpen }: 
               fontSize: 12,
               textAlign: "center",
               color: player ? colors.label : tokens.muted,
+              ...(player && !eliminated
+                ? { ...positionChipSx(player.position), px: 0, py: 0.25 }
+                : {}),
             }}
           >
             {label}
