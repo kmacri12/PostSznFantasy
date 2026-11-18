@@ -121,8 +121,8 @@ describe("PlayersView in the draft room", () => {
   });
 
   it("disables Draft off my turn and explains a full position", () => {
-    renderView(actions({ canPick: false, capped: { QB: "You already have 2 QBs" } }));
-    expect(screen.getByText("You already have 2 QBs")).toBeInTheDocument();
+    renderView(actions({ canPick: false, capped: { QB: "Position max reached" } }));
+    expect(screen.getByText("Position max reached")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Draft James Cook" })).toBeDisabled();
   });
 
