@@ -396,6 +396,7 @@ def derive_slot_marks(
             kind=(
                 "override"
                 if event.kind == ActivityKind.COMMISSIONER_OVERRIDE.value
+                and event.payload.get("locked", True)
                 else "commissioner_set"
             ),
             actor_name=event.actor_name,

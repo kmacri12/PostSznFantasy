@@ -70,9 +70,29 @@ export interface EventLine {
   quote?: string;
 }
 
+export const COMMISSIONER_ACTION = "Commissioner action";
+
 const LABELLED: Partial<Record<FeedEventItem["kind"], string>> = {
-  commissioner_override: "Commissioner override",
   stat_correction: "Stat correction",
+};
+
+/** Events a commissioner causes on behalf of others all lead with the same words. */
+const isCommissionerAction = (event: FeedEventItem): boolean => {
+  switch (event.kind) {
+    case "commissioner_override":
+    case "draft_order_randomized":
+    case "draft_order_changed":
+    case "draft_started":
+    case "draft_time_set":
+    case "draft_pick_assigned":
+    case "settings_change":
+    case "role_changed":
+      return event.actorName !== null;
+    case "membership_left":
+      return event.actorName !== null && event.actorUserId !== event.payload.userId;
+    default:
+      return false;
+  }
 };
 
 const withoutLead = (sentence: string, lead: string | null): string =>
@@ -82,9 +102,15 @@ const withoutLead = (sentence: string, lead: string | null): string =>
 export const eventLine = (event: FeedEventItem): EventLine => {
   const sentence = describeEvent(event);
   const details = detailLines(event);
-  const warn = event.kind === "commissioner_override";
-  const label = LABELLED[event.kind];
-  if (label) return { lead: label, text: ` · ${sentence}`, details, warn };
+  const warn = event.kind === "commissioner_override" && event.payload.locked !== false;
+  const label = isCommissionerAction(event) ? COMMISSIONER_ACTION : LABELLED[event.kind];
+  if (label) {
+    const order =
+      event.kind === "draft_order_randomized"
+        ? [...event.payload.order].sort((a, b) => a.position - b.position).map((s) => s.teamName)
+        : undefined;
+    return { lead: label, text: ` · ${sentence}`, details, warn, ...(order && { order }) };
+  }
   switch (event.kind) {
     case "draft_completed":
       return {

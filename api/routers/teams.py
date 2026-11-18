@@ -245,6 +245,7 @@ async def move_in_round_lineup(
             content={
                 "detail": str(exc),
                 "code": "override_confirmation_required",
+                "locked": exc.locked,
             },
         )
     except LineupError as exc:

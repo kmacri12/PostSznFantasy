@@ -56,12 +56,19 @@ class LineupError(Exception):
 
 
 class OverrideConfirmationRequired(LineupError):
-    """A commissioner's move would be an override and they haven't confirmed it."""
+    """A commissioner's move on another team (or of a locked player) isn't confirmed.
 
-    def __init__(self) -> None:
+    `locked` is the stronger case: a player whose game has kicked off.
+    """
+
+    def __init__(self, locked: bool) -> None:
+        self.locked = locked
         super().__init__(
             "That player is locked: their game has kicked off. This is a "
             "commissioner-only move and the league will be notified"
+            if locked
+            else "This is a commissioner action on another team's lineup and the "
+            "league will be notified"
         )
 
 
@@ -69,7 +76,7 @@ class OverrideConfirmationRequired(LineupError):
 class LineupActor:
     user: User
     is_commissioner: bool
-    # The commissioner agreed that a locked slot or past round may be changed.
+    # The commissioner agreed to a move on another team's lineup or of a locked slot.
     confirmed_override: bool = False
 
 
@@ -233,9 +240,10 @@ async def _placements(
 def _visible_mark(
     mark: SlotMark | None, player: LineupPlayer | None
 ) -> SlotMark | None:
-    """An override marker stays for good; the asterisk only while its player can move."""
+    """An override marker stays for good; the asterisk stays on an emptied slot and
+    on a player who can still move."""
     if mark is not None and mark.kind == "commissioner_set":
-        return mark if player is not None and not player.locked else None
+        return mark if player is None or not player.locked else None
     return mark
 
 
@@ -463,8 +471,9 @@ async def move_in_lineup(
         if was != now_
     ]
     is_override = actor.is_commissioner and _touches(placement, moved, changed, locked)
-    if is_override and not actor.confirmed_override:
-        raise OverrideConfirmationRequired()
+    for_others = actor.is_commissioner and team.owner_id != actor.user.id
+    if (is_override or for_others) and not actor.confirmed_override:
+        raise OverrideConfirmationRequired(locked=is_override)
     await db.execute(
         delete(LineupSlot).where(
             LineupSlot.team_id == team.id, LineupSlot.round == round_
@@ -482,13 +491,13 @@ async def move_in_lineup(
             specs, placement, moved, changed, by_id, round_, player_id, slot_index
         )
         move_fields = move.model_dump(by_alias=False)
-        if is_override:
+        if is_override or for_others:
             move_fields["by_commissioner"] = True
-            payload: LineupMovePayload = CommissionerOverridePayload(**move_fields)
-        else:
-            move_fields["by_commissioner"] = (
-                actor.is_commissioner and team.owner_id != actor.user.id
+            payload: LineupMovePayload = CommissionerOverridePayload(
+                **move_fields, locked=is_override
             )
+        else:
+            move_fields["by_commissioner"] = False
             payload = LineupMovePayload(**move_fields)
         await activity.append(
             db,

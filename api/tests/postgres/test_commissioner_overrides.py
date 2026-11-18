@@ -36,15 +36,18 @@ async def test_a_commissioner_can_set_an_unlocked_slot_on_another_team(
 ) -> None:
     s = await activity_league(db)
     async with client_as("uid-0") as commissioner:
-        response = await commissioner.post(s.lineup_url, json=s.move(s.players[1], RB))
+        response = await commissioner.post(
+            s.lineup_url, json=s.move(s.players[1], RB, confirmOverride=True)
+        )
         feed = (await commissioner.get(f"/api/teams/{s.team.id}/activity")).json()
     assert response.status_code == 200
     mark = slot_of(response.json(), RB)["mark"]
     assert (mark["kind"], mark["actorName"]) == ("commissioner_set", "user0")
     assert mark["at"]
     event = feed["events"][0]
-    assert event["kind"] == "lineup_move"
+    assert event["kind"] == "commissioner_override"
     assert event["payload"]["byCommissioner"] is True
+    assert event["payload"]["locked"] is False
 
 
 async def test_the_asterisk_goes_when_the_player_locks(
@@ -52,7 +55,9 @@ async def test_the_asterisk_goes_when_the_player_locks(
 ) -> None:
     s = await activity_league(db)
     async with client_as("uid-0") as commissioner:
-        await commissioner.post(s.lineup_url, json=s.move(s.players[1], RB))
+        await commissioner.post(
+            s.lineup_url, json=s.move(s.players[1], RB, confirmOverride=True)
+        )
         kickoff = await db.get(NFLGame, "g1")
         assert kickoff is not None
         kickoff.game_time_epoch = str(int(KICKED_OFF.timestamp()))
@@ -67,8 +72,12 @@ async def test_an_owner_overwriting_a_commissioner_set_slot_clears_the_asterisk(
 ) -> None:
     s = await activity_league(db)
     async with client_as("uid-0") as commissioner:
-        await commissioner.post(s.lineup_url, json=s.move(s.players[1], RB))
-        await commissioner.post(s.lineup_url, json=s.move(s.players[0], QB))
+        await commissioner.post(
+            s.lineup_url, json=s.move(s.players[1], RB, confirmOverride=True)
+        )
+        await commissioner.post(
+            s.lineup_url, json=s.move(s.players[0], QB, confirmOverride=True)
+        )
     async with client_as("uid-1") as owner:
         body = (await owner.post(s.lineup_url, json=s.move(s.players[2], RB))).json()
     assert slot_of(body, RB)["player"]["id"] == s.players[2].id
@@ -237,3 +246,52 @@ async def test_a_commissioner_override_changes_the_standings(
         ).json()
     by_team = {row["teamId"]: row for row in standings["teams"]}
     assert by_team[s.team.id]["wildCard"] == 12.0
+
+
+async def test_a_commissioner_move_on_another_team_needs_confirming_before_kickoff(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    s = await activity_league(db)
+    async with client_as("uid-0") as commissioner:
+        refused = await commissioner.post(s.lineup_url, json=s.move(s.players[1], RB))
+        feed = (await commissioner.get(f"/api/seasons/{s.season.id}/activity")).json()
+    assert refused.status_code == 409
+    assert refused.json()["code"] == "override_confirmation_required"
+    assert refused.json()["locked"] is False
+    assert feed["events"] == []
+    assert (await db.execute(select(LineupSlot))).scalars().all() == []
+
+
+async def test_a_locked_move_says_it_is_locked_in_the_confirmation(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    s = await _kc_started_league(db)
+    async with client_as("uid-0") as commissioner:
+        refused = await commissioner.post(s.lineup_url, json=s.move(s.players[1], RB))
+    assert refused.json()["locked"] is True
+
+
+async def test_emptying_a_slot_before_kickoff_marks_it_and_posts_to_the_feed(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    s = await activity_league(db)
+    async with client_as("uid-0") as commissioner:
+        await commissioner.post(
+            s.lineup_url, json=s.move(s.players[1], RB, confirmOverride=True)
+        )
+        body = (
+            await commissioner.post(
+                s.lineup_url,
+                json={
+                    "round": 1,
+                    "playerId": s.players[1].id,
+                    "slotIndex": None,
+                    "confirmOverride": True,
+                },
+            )
+        ).json()
+        feed = (await commissioner.get(f"/api/seasons/{s.season.id}/feed")).json()
+    assert slot_of(body, RB)["player"] is None
+    assert slot_of(body, RB)["mark"]["kind"] == "commissioner_set"
+    kinds = [item.get("kind") for item in feed["items"]]
+    assert kinds.count("commissioner_override") == 2

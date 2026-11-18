@@ -595,6 +595,10 @@ export const needsOverrideConfirmation = (error: unknown): boolean =>
   (error as { response?: { data?: { code?: unknown } } } | null)?.response?.data?.code ===
   "override_confirmation_required";
 
+/** Whether the server's confirmation is the after-kickoff kind (a locked player is involved). */
+export const overrideIsLocked = (error: unknown): boolean =>
+  (error as { response?: { data?: { locked?: unknown } } } | null)?.response?.data?.locked === true;
+
 /** One feed, newest first, a page at a time. `scope` is the season or one team. */
 export const useActivityFeed = (scope: "seasons" | "teams", id: Id | undefined) =>
   useInfiniteQuery({

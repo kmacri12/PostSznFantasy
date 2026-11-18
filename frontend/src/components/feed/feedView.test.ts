@@ -104,6 +104,28 @@ describe("eventLine", () => {
     expect(correction.text).toContain("Henry");
   });
 
+  it("leads a commissioner's lineup move with the standard label, red only after kickoff", () => {
+    const payload = {
+      round: 1,
+      playerId: 1,
+      playerName: "Stafford",
+      fromSlot: "QB",
+      toSlot: "BENCH",
+      displaced: null,
+      changedSlots: [0],
+      byCommissioner: true,
+    };
+    const before = eventLine(
+      event(5, { kind: "commissioner_override", payload: { ...payload, locked: false } }),
+    );
+    expect(before.lead).toBe("Commissioner action");
+    expect(before.warn).toBe(false);
+    const after = eventLine(
+      event(6, { kind: "commissioner_override", payload: { ...payload, locked: true } }),
+    );
+    expect(after.warn).toBe(true);
+  });
+
   it("shows a pinned announcement's text in full", () => {
     const line = eventLine(
       event(7, { kind: "announcement", payload: { body: "Draft is Saturday at 8" } }),
@@ -124,7 +146,8 @@ describe("eventLine", () => {
         },
       }),
     );
-    expect(line.text).toBe(" randomized the draft order");
+    expect(line.lead).toBe("Commissioner action");
+    expect(line.text).toBe(" · Kyle randomized the draft order");
     expect(line.order).toEqual(["Dave's Dawgs", "Sam's Squad"]);
   });
 
@@ -137,8 +160,8 @@ describe("eventLine", () => {
         },
       }),
     );
-    expect(line.lead).toBe("Kyle");
-    expect(line.text).toBe(" changed the draft order · Sam's Squad moved from 2 to 4");
+    expect(line.lead).toBe("Commissioner action");
+    expect(line.text).toBe(" · Kyle changed the draft order: Sam's Squad moved from 2 to 4");
   });
 
   it("reports the pick count when the draft completes", () => {

@@ -50,8 +50,16 @@ describe("describeEvent", () => {
       kind: "commissioner_override",
       payload: { ...move, byCommissioner: true },
     };
-    expect(describeEvent(event)).toContain("(commissioner)");
     expect(describeEvent(event)).toContain("after kickoff");
+  });
+
+  it("does not say after kickoff for a commissioner move on another team before kickoff", () => {
+    const event: ActivityEvent = {
+      ...base,
+      kind: "commissioner_override",
+      payload: { ...move, byCommissioner: true, locked: false },
+    };
+    expect(describeEvent(event)).not.toContain("after kickoff");
   });
 
   it("reports a taken-out player", () => {

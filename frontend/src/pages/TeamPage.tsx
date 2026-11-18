@@ -4,6 +4,7 @@ import { useParams } from "react-router-dom";
 import {
   type LineupMoveRequest,
   needsOverrideConfirmation,
+  overrideIsLocked,
   useLeagueInfo,
   useLeagueSettings,
   useMoveInLineup,
@@ -68,7 +69,10 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
   const [fillSlotIndex, setFillSlotIndex] = useState<number | null>(null);
   const moveInLineup = useMoveInLineup(teamId);
   // A locked move the server wants confirmed first; held until the commissioner answers.
-  const [pendingOverride, setPendingOverride] = useState<LineupMoveRequest | null>(null);
+  const [pendingOverride, setPendingOverride] = useState<{
+    request: LineupMoveRequest;
+    locked: boolean;
+  } | null>(null);
   const move = (request: LineupMoveRequest) =>
     moveInLineup.mutate(request, {
       onSuccess: () => {
@@ -76,7 +80,8 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
         setFillSlotIndex(null);
       },
       onError: (error) => {
-        if (needsOverrideConfirmation(error)) setPendingOverride(request);
+        if (needsOverrideConfirmation(error))
+          setPendingOverride({ request, locked: overrideIsLocked(error) });
       },
     });
   const moveError = needsOverrideConfirmation(moveInLineup.error)
@@ -210,9 +215,12 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
       {pendingOverride && (
         <OverrideDialog
           pending={moveInLineup.isPending}
+          teamName={team.name}
+          ownTeam={isMine}
+          locked={pendingOverride.locked}
           onCancel={() => setPendingOverride(null)}
           onConfirm={() => {
-            move({ ...pendingOverride, confirmOverride: true });
+            move({ ...pendingOverride.request, confirmOverride: true });
             setPendingOverride(null);
           }}
         />

@@ -309,7 +309,8 @@ async def test_a_commissioner_changing_someone_elses_lineup_tells_the_owner(
     async with client_as("uid-0") as commissioner:
         assert (
             await commissioner.post(
-                f"/api/teams/{teams[1].id}/lineup", json={**move, "slotIndex": 1}
+                f"/api/teams/{teams[1].id}/lineup",
+                json={**move, "slotIndex": 1, "confirmOverride": True},
             )
         ).status_code == 200
     assert spawned == [(notifications.notify_lineup_changed, teams[1].id, 1)]

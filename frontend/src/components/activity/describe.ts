@@ -49,9 +49,12 @@ export const describeEvent = (event: ActivityEvent): string => {
           ? `took ${p.playerName} out of the ${round} lineup`
           : `moved ${p.playerName} to ${slotName(p.toSlot)} in the ${round} lineup`;
       const swap = p.displaced ? `, swapping out ${p.displaced.playerName}` : "";
-      const after = event.kind === "commissioner_override" ? " after kickoff" : "";
+      const override = event.kind === "commissioner_override";
+      const after = override && p.locked !== false ? " after kickoff" : "";
       const on = event.teamName && event.actorName !== null ? ` for ${event.teamName}` : "";
-      return `${who}${p.byCommissioner ? " (commissioner)" : ""} ${action}${swap}${after}${on}`;
+      // The feed's "Commissioner action" lead says it already.
+      const tag = p.byCommissioner && !override ? " (commissioner)" : "";
+      return `${who}${tag} ${action}${swap}${after}${on}`;
     }
     case "stat_correction": {
       const p = event.payload;

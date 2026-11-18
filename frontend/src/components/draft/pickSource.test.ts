@@ -9,7 +9,7 @@ describe("pick source wording", () => {
   it("tells a commissioner's auto-pick now apart from a timer auto pick", () => {
     expect(sourceDetail("timer")).toBe("Auto-picked: time ran out");
     expect(sourceDetail("commissioner_auto")).toBe(
-      "Auto-picked by the commissioner (Auto-pick now)",
+      "Commissioner action · auto-picked (Auto-pick now)",
     );
     expect(pickSentence(pick("timer"), "Alpha")).toBe(
       "Pick 3: time ran out, Josh Allen was auto-picked for Alpha",
