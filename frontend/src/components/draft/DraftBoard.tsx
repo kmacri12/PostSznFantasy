@@ -10,6 +10,7 @@ import TeamUnitBadge from "../common/TeamUnitBadge";
 import { visuallyHidden } from "../common/visuallyHidden";
 import SettingsSheet from "../settings/SettingsSheet";
 import { centeredScroll } from "./boardScroll";
+import { isReversedRound } from "./pickOrder";
 import { positionColor } from "./positions";
 
 interface Props {
@@ -83,14 +84,8 @@ const DraftBoard: React.FC<Props> = ({ state, myTeamId, sx, onSelectSlot }) => {
   const byOverall = new Map<number, DraftPick>(state.picks.map((p) => [p.numberPickOverall, p]));
 
   // Overall pick number for a team's cell in a round, honouring the draft type's direction.
-  const isReversed = (round: number): boolean =>
-    state.draftType === "snake"
-      ? round % 2 === 1
-      : state.draftType === "third_round_reversal"
-        ? round === 1 || (round >= 2 && round % 2 === 0)
-        : false;
   const overallFor = (round: number, slotIndex: number): number => {
-    const reversed = isReversed(round);
+    const reversed = isReversedRound(state.draftType, round);
     return round * teamCount + (reversed ? teamCount - 1 - slotIndex : slotIndex) + 1;
   };
 
@@ -213,10 +208,10 @@ const DraftBoard: React.FC<Props> = ({ state, myTeamId, sx, onSelectSlot }) => {
             >
               {round + 1}
               <Box component="span" aria-hidden sx={{ fontSize: 11 }}>
-                {isReversed(round) ? "←" : "→"}
+                {isReversedRound(state.draftType, round) ? "←" : "→"}
               </Box>
               <Box component="span" sx={visuallyHidden}>
-                {isReversed(round) ? "right to left" : "left to right"}
+                {isReversedRound(state.draftType, round) ? "right to left" : "left to right"}
               </Box>
             </Box>
             {state.order.map((slot, slotIndex) => {
