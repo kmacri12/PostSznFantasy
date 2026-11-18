@@ -72,7 +72,7 @@ describe("PlayerSheet", () => {
 
   it("greys out a swap with a locked starter and says why", () => {
     sheet();
-    const locked = screen.getByRole("button", { name: /Swap with James Cook/ });
+    const locked = screen.getByRole("button", { name: /James Cook/ });
     expect(locked).toBeDisabled();
     expect(locked).toHaveTextContent("game started, locked");
   });

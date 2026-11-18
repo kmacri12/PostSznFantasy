@@ -364,6 +364,8 @@ export interface DraftState {
   positionCaps: Record<string, number>;
   /** First Wild Card kickoff: no draft can be scheduled or started after it. */
   draftCutoff: string | null;
+  /** Teams the clock picks for about 10 seconds into their turn. */
+  autopilotTeamIds: number[];
   playoffFieldSet: boolean;
 }
 

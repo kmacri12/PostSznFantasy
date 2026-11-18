@@ -45,6 +45,7 @@ const base: DraftState = {
   positionCaps: {},
   draftCutoff: null,
   playoffFieldSet: true,
+  autopilotTeamIds: [],
 };
 
 const reduced = vi.hoisted(() => ({ value: false }));
@@ -141,6 +142,12 @@ describe("DraftBoard", () => {
     fireEvent.click(screen.getByTestId("pick-2"));
     expect(screen.getByText("Bravo is on the clock.")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Assign pick 2" })).toBeTruthy();
+  });
+
+  it("marks a team on autopilot in its header", () => {
+    render(<DraftBoard state={{ ...base, autopilotTeamIds: [20] }} myTeamId={null} />);
+    expect(screen.getByText(", Autopilot")).toBeTruthy();
+    expect(screen.getAllByText(/, Autopilot/)).toHaveLength(1);
   });
 
   it("abbreviates team headers", () => {

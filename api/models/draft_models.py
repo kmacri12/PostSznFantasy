@@ -73,6 +73,8 @@ class DraftStateResponse(BaseSchema):
     # First Wild Card kickoff: no draft can be scheduled or started after it.
     draft_cutoff: datetime | None = None
     playoff_field_set: bool = False
+    # Teams on autopilot: auto-picked a few seconds into their turn.
+    autopilot_team_ids: list[int] = Field(default_factory=list)
 
 
 class DraftSetup(BaseSchema):
@@ -97,6 +99,10 @@ class AssignPickRequest(BaseSchema):
 
 class DraftOrderUpdate(BaseSchema):
     team_ids: list[int | None]
+
+
+class AutopilotUpdate(BaseSchema):
+    enabled: bool
 
 
 class PickRequest(BaseSchema):

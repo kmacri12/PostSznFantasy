@@ -10,7 +10,7 @@ import TeamUnitBadge from "../common/TeamUnitBadge";
 import { visuallyHidden } from "../common/visuallyHidden";
 import SettingsSheet from "../settings/SettingsSheet";
 import { centeredScroll } from "./boardScroll";
-import { PickSourceIcon, PickSourceLegend } from "./PickSourceBadge";
+import { AutopilotMark, PickSourceIcon, PickSourceLegend } from "./PickSourceBadge";
 import { SOURCE_LEGEND, sourceDetail } from "./pickSource";
 import { positionColor } from "./positions";
 
@@ -192,6 +192,7 @@ const DraftBoard: React.FC<Props> = ({ state, myTeamId, sx, onSelectSlot }) => {
               >
                 {teamInitials(slot.teamName)}
                 <Box component="span" sx={visuallyHidden}>{` ${slot.teamName}`}</Box>
+                {state.autopilotTeamIds.includes(slot.teamId) && <AutopilotMark />}
               </Typography>
             </Box>
           ))}

@@ -16,6 +16,7 @@ from api.dependencies.league import (
 )
 from api.models.draft_models import (
     AssignPickRequest,
+    AutopilotUpdate,
     DraftOrderUpdate,
     DraftPickResponse,
     DraftSetup,
@@ -28,6 +29,7 @@ from api.models.enums import PickSource
 from api.services import draft_flow, notifications, push
 from api.services.activity import Actor
 from api.services.draft_events import announce_events, pick_events, state_event
+from api.services.draft_flow import AutopilotForbidden
 from api.services.draft_picks import DraftPickError, PickResult, make_pick
 from api.services.season_recap import ARCHIVED_MESSAGE, season_is_archived
 from api.ws.auth import authenticate_socket, receive_guarded
@@ -241,6 +243,37 @@ async def clear_reserved_pick(
     except DraftPickError as exc:
         raise _conflict(exc) from exc
     return await _broadcast_state(db, draft)
+
+
+@router.put("/{season_id}/autopilot/{team_id}", response_model=DraftStateResponse)
+async def set_autopilot(
+    season_id: int,
+    team_id: int,
+    payload: AutopilotUpdate,
+    membership: SeasonMember,
+    db: DbSession,
+) -> DraftStateResponse:
+    """A manager switches autopilot on or off for their team; a commissioner can switch
+    any team's off."""
+    try:
+        draft = await draft_flow.set_autopilot(
+            db,
+            season_id,
+            team_id,
+            payload.enabled,
+            user_id=membership.user.id,
+            is_commissioner=membership.is_commissioner,
+        )
+    except AutopilotForbidden as exc:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, str(exc)) from exc
+    except DraftPickError as exc:
+        raise _conflict(exc) from exc
+    await db.commit()
+    # Straight to the room: a state broadcast through `announce_events` would push
+    # "you're on the clock" to the team on the clock again.
+    event = await state_event(db, draft)
+    await draft_manager.broadcast(season_id, event)
+    return DraftStateResponse.model_validate(event["data"])
 
 
 @router.post("/{season_id}/picks", response_model=DraftPickResponse)

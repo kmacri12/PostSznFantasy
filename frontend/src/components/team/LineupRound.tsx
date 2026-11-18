@@ -117,6 +117,8 @@ interface Props {
   /** Team QB / team K: those slots get a "?" saying they score the whole NFL team. */
   teamUnits?: TeamUnits;
   onOpenPlayer: (player: LineupPlayer) => void;
+  /** Present when the lineup can be changed: empty starter rows open the slot picker. */
+  onFillSlot?: (slotIndex: number) => void;
 }
 
 const slotHelp = (slot: string, units: TeamUnits | undefined): HelpTipCopy | undefined => {
@@ -129,7 +131,7 @@ const slotHelp = (slot: string, units: TeamUnits | undefined): HelpTipCopy | und
  * One round of a team: Starters, Bench, and who went out last round. The same groups show
  * before the draft, empty, as after it.
  */
-const LineupRound = ({ lineup, teamUnits, onOpenPlayer }: Props) => {
+const LineupRound = ({ lineup, teamUnits, onOpenPlayer, onFillSlot }: Props) => {
   const bench = benchPlayersOf(lineup);
   const eliminated = eliminatedLastRound(lineup);
   return (
@@ -172,6 +174,7 @@ const LineupRound = ({ lineup, teamUnits, onOpenPlayer }: Props) => {
             mark={slot.mark}
             help={slotHelp(slot.slot, teamUnits)}
             onOpen={onOpenPlayer}
+            onFillEmpty={slot.player || !onFillSlot ? undefined : () => onFillSlot(slot.index)}
           />
         ))}
       </Group>

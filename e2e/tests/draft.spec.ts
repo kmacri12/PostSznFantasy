@@ -183,6 +183,11 @@ test.describe("draft room", () => {
     const [pick] = (await league.state()).picks;
     expect(pick.autopick).toBe(true);
     await expect(page.getByText("Round 1, pick 2")).toBeVisible();
+    // A timed-out team goes on autopilot until its manager picks or switches it off.
+    const autopilot = page.getByRole("switch", { name: "Autopilot" });
+    await expect(autopilot).toBeChecked();
+    await autopilot.click();
+    await expect(autopilot).not.toBeChecked();
   });
 
   test("auto-pick takes the queued player first", async ({ browser, page, context, request }) => {
@@ -279,9 +284,7 @@ test.describe("position caps", () => {
     await showPlayers(page);
     await page.getByRole("button", { name: "QB", exact: true }).click();
     const first = page.getByRole("list", { name: "Players" }).getByRole("listitem").first(); // The list is sorted from fixed fixtures; the top QB row is the same on every run.
-    await expect(
-      first.getByText("You already have 2 QBs, the most your league allows"),
-    ).toBeVisible();
+    await expect(first.getByText("Position max reached")).toBeVisible();
     await expect(first.getByRole("button", { name: "Position full" })).toBeDisabled();
     if (process.env.SHOT_DIR) await page.screenshot({ path: `${process.env.SHOT_DIR}/capped.png` });
   });
