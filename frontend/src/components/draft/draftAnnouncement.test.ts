@@ -2,7 +2,12 @@ import { describe, expect, it } from "vitest";
 import type { DraftPick, DraftState } from "../../api/types";
 import { announcedDraft, draftAnnouncement } from "./draftAnnouncement";
 
-const pick = { teamId: 10, playerName: "Josh Allen", numberPickOverall: 1 } as DraftPick;
+const pick = {
+  teamId: 10,
+  playerName: "Josh Allen",
+  numberPickOverall: 1,
+  source: "manager",
+} as DraftPick;
 
 const base = {
   status: "in_progress",
@@ -32,6 +37,13 @@ describe("draftAnnouncement", () => {
     );
     expect(draftAnnouncement(announcedDraft(base, 30, 3), announcedDraft(afterPick, 30, 90))).toBe(
       "Pick 1: Alpha took Josh Allen. Bravo is on the clock.",
+    );
+  });
+
+  it("says when the commissioner made or forced the pick", () => {
+    const forced = { ...afterPick, picks: [{ ...pick, source: "commissioner_auto" as const }] };
+    expect(draftAnnouncement(announcedDraft(base, 30, 3), announcedDraft(forced, 30, 90))).toBe(
+      "Pick 1: the commissioner auto-picked Josh Allen for Alpha. Bravo is on the clock.",
     );
   });
 

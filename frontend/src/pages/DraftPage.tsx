@@ -10,6 +10,7 @@ import {
 import type { DraftSnapshot, DraftState } from "../api/types";
 import LoadingState from "../components/common/LoadingState";
 import AssignPickDialog from "../components/draft/AssignPickDialog";
+import AutopilotSwitch from "../components/draft/AutopilotSwitch";
 import CommissionerStrip from "../components/draft/CommissionerStrip";
 import { cappedPositions } from "../components/draft/caps";
 import DraftBoard from "../components/draft/DraftBoard";
@@ -276,6 +277,9 @@ const DraftPage = () => {
         onOpenSettings={() => setSettingsOpen(true)}
       />
       {settingsSheet}
+      {myTeamId !== null && !archived && (live || state.status === "lobby") && (
+        <AutopilotSwitch draft={state} teamId={myTeamId} />
+      )}
       {season.canCommission && !archived && (
         <CommissionerStrip
           draft={state}
