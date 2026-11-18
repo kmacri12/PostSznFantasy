@@ -17,7 +17,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from api.db.base import Base
-from api.models.enums import DraftStatus, DraftType, PickTimeoutAction
+from api.models.enums import DraftStatus, DraftType, PickSource, PickTimeoutAction
 
 if TYPE_CHECKING:
     from api.db.models.league import Season, Team
@@ -110,6 +110,9 @@ class DraftPick(Base):
     __table_args__ = (
         UniqueConstraint("draft_id", "player_id"),
         UniqueConstraint("draft_id", "number_pick_overall"),
+        CheckConstraint(
+            f"source IN ({_sql_list(PickSource)})", name="ck_draft_picks_source"
+        ),
         {"schema": "fantasy"},
     )
 
@@ -135,7 +138,14 @@ class DraftPick(Base):
     number_round: Mapped[int] = mapped_column(Integer, nullable=False)
     number_pick_overall: Mapped[int] = mapped_column(Integer, nullable=False)
     number_pick_in_round: Mapped[int] = mapped_column(Integer, nullable=False)
+    # True for every auto `source`; kept because older API builds still write it.
     autopick: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    source: Mapped[str] = mapped_column(
+        String(24),
+        nullable=False,
+        default=PickSource.MANAGER.value,
+        server_default=PickSource.MANAGER.value,
+    )
 
     draft: Mapped["Draft"] = relationship("Draft", back_populates="draft_picks")
     team: Mapped["Team"] = relationship("Team", back_populates="draft_picks")

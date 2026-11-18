@@ -1,4 +1,5 @@
 import type { DraftPick, DraftSnapshot, DraftState } from "../api/types";
+import { pickToast } from "../components/draft/pickSource";
 import type { DraftMessage } from "./useWebSocket";
 
 export interface Toast {
@@ -92,18 +93,14 @@ export function applyDraftEvent(room: DraftRoom, event: DraftMessage, now = Date
       if (!room.state) return room;
       const pick = event.data as DraftPick;
       const picks = mergePick(room.state.picks, pick);
-      const autoPickedForMe =
-        pick.autopick && pick.teamId === room.state.myTeamId && picks !== room.state.picks;
+      const teamName =
+        room.state.order.find((slot) => slot.teamId === pick.teamId)?.teamName ?? "a team";
+      const message =
+        picks !== room.state.picks ? pickToast(pick, room.state.myTeamId, teamName) : null;
       // A queued player that just got drafted (by anyone) leaves everyone's queue.
       return {
         ...room,
-        toast: autoPickedForMe
-          ? nextToast(
-              room,
-              `Auto-pick: ${pick.playerName ?? "a player"} was drafted for you`,
-              "info",
-            )
-          : room.toast,
+        toast: message ? nextToast(room, message, "info") : room.toast,
         pendingPlayerId:
           pick.teamId === room.state.myTeamId || pick.playerId === room.pendingPlayerId
             ? null

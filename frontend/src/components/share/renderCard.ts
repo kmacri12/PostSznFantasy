@@ -192,7 +192,9 @@ const drawDraft = (ctx: Ctx, card: ShareCard, p: Palette, width: number) => {
       ctx.fillStyle = p.text;
       ctx.font = `700 20px ${FONT}`;
       const names = wrap(ctx, line.text, textW, 2);
-      names.forEach((name, i) => ctx.fillText(name, x + 10, y + 27 + i * 22));
+      names.forEach((name, i) => {
+        ctx.fillText(name, x + 10, y + 27 + i * 22);
+      });
       if (line.position) {
         ctx.fillStyle = p.textSoft;
         ctx.font = `600 16px ${FONT}`;

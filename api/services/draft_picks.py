@@ -10,7 +10,7 @@ from api.db.models.league import SeasonSettings, Team, TeamPlayer
 from api.db.models.nfl import NFLPlayer, NFLTeam
 from api.db.models.user import User
 from api.models.activity_models import DraftCompletedPayload
-from api.models.enums import DraftStatus, DraftType, PlayerPosition
+from api.models.enums import DraftStatus, DraftType, PickSource, PlayerPosition
 from api.services import activity
 from api.services.standings import recompute_season_standings
 from api.services.team_units import unavailable_in_pool
@@ -236,7 +236,7 @@ async def _record_one(
     player_id: int,
     *,
     acting_user: User | None,
-    autopick: bool,
+    source: PickSource,
 ) -> PickResult:
     order = placed_order(draft)
     if not order:
@@ -278,7 +278,8 @@ async def _record_one(
         number_round=pick_index // len(order) + 1,
         number_pick_overall=pick_index + 1,
         number_pick_in_round=pick_index % len(order) + 1,
-        autopick=autopick,
+        autopick=source.is_auto,
+        source=source.value,
     )
     db.add(pick)
     db.add(TeamPlayer(team_id=team_id, season_id=draft.season_id, player_id=player_id))
@@ -339,7 +340,7 @@ async def settle_reservations(
                     settings,
                     player_id,
                     acting_user=None,
-                    autopick=False,
+                    source=PickSource.COMMISSIONER_ASSIGNED,
                 )
             )
         except DraftPickError as exc:
@@ -361,17 +362,17 @@ async def record_pick(
     player_id: int,
     *,
     acting_user: User | None,
-    autopick: bool = False,
+    source: PickSource,
 ) -> PickResult:
     """Validate and persist the next pick, then advance the server-side clock.
 
     `acting_user` is None for server-initiated picks (auto-pick, forced pick, a
     commissioner's assignment), which skip the ownership check but obey every other
-    rule. Reserved picks that fall due right after it are recorded too (`chained`).
-    The draft row must be locked.
+    rule; `source` records which of those it was. Reserved picks that fall due right
+    after it are recorded too (`chained`). The draft row must be locked.
     """
     first = await _record_one(
-        db, draft, settings, player_id, acting_user=acting_user, autopick=autopick
+        db, draft, settings, player_id, acting_user=acting_user, source=source
     )
     chained = await settle_reservations(db, draft, settings)
     if not chained:
@@ -402,7 +403,11 @@ async def make_pick(
         .scalars()
         .first()
     )
-    if latest is not None and latest.player_id == player_id and not latest.autopick:
+    if (
+        latest is not None
+        and latest.player_id == player_id
+        and latest.source == PickSource.MANAGER.value
+    ):
         owner = await db.scalar(select(Team.owner_id).where(Team.id == latest.team_id))
         if owner == user.id:
             player = await db.get(NFLPlayer, player_id)
@@ -413,4 +418,6 @@ async def make_pick(
                 draft_complete=draft.status == DraftStatus.COMPLETED.value,
                 already_recorded=True,
             )
-    return await record_pick(db, draft, settings, player_id, acting_user=user)
+    return await record_pick(
+        db, draft, settings, player_id, acting_user=user, source=PickSource.MANAGER
+    )
