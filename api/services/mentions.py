@@ -2,8 +2,7 @@
 
 A mention goes through `notifications.notify`, so it lands in the inbox and pushes on the
 member's own `push_mentions` choice, whatever they set for chat or the league's mute.
-Like every chat push the text never leaves the Feed: the notification names the author
-and the league only.
+The push shows a trimmed preview of the message (#492); the inbox entry holds ids only.
 """
 
 from sqlalchemy import select
@@ -26,6 +25,8 @@ async def notify_mentioned(
                 LeagueMessage.league_id,
                 LeagueMessage.season_id,
                 LeagueMessage.author_name,
+                LeagueMessage.body,
+                LeagueMessage.gif_url,
                 League.name,
             )
             .join(League, League.id == LeagueMessage.league_id)
@@ -47,7 +48,9 @@ async def notify_mentioned(
             payload={"seasonId": row.season_id, "messageId": message_id},
             push=push.PushMessage(
                 title=row.name,
-                body=f"{row.author_name or 'Someone'} mentioned you in the chat.",
+                body=push.message_preview(
+                    row.author_name, row.body, row.gif_url, mention=True
+                ),
                 url=f"/leagues/{row.league_id}/feed",
                 tag=f"mention-{message_id}",
             ),
