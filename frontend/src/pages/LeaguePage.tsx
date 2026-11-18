@@ -3,9 +3,9 @@ import { useLeagueInfo, useRecap } from "../api/queries";
 import type { SeasonOverview } from "../api/types";
 import LiveStatsNotice from "../components/common/LiveStatsNotice";
 import PictureAvatar from "../components/common/PictureAvatar";
-import AnnouncementCard from "../components/league/AnnouncementCard";
+import AnnouncementCard, { PostAnnouncementAction } from "../components/league/AnnouncementCard";
 import LeagueNotes from "../components/league/LeagueNotes";
-import PhaseBlock from "../components/league/PhaseBlock";
+import PhaseBlock, { BracketLink } from "../components/league/PhaseBlock";
 import RoundWinToast from "../components/league/RoundWinToast";
 import Standings from "../components/league/Standings";
 import SeasonRecap from "../components/recap/SeasonRecap";
@@ -76,8 +76,10 @@ const LeagueContent = () => {
         )}
         {!season.finished && <RoundWinToast seasonId={seasonId} myTeamId={season.myTeamId} />}
         <Standings season={season} />
+        {!season.finished && <BracketLink />}
         {season.draftStatus === "completed" && !season.finished && <LiveStatsNotice />}
         {info && <LeagueNotes league={info} />}
+        {info && info.currentSeasonId === seasonId && <PostAnnouncementAction league={info} />}
       </Box>
     </Container>
   );

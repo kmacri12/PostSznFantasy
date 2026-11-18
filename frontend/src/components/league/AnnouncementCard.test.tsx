@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { LeagueInfo } from "../../api/types";
-import AnnouncementCard from "./AnnouncementCard";
+import AnnouncementCard, { PostAnnouncementAction } from "./AnnouncementCard";
 
 const mocks = vi.hoisted(() => ({ pin: vi.fn(), unpin: vi.fn() }));
 vi.mock("../../api/queries", () => ({
@@ -42,8 +42,16 @@ describe("AnnouncementCard", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
+  it("shows a commissioner no card while nothing is pinned", () => {
+    const { container } = render(<AnnouncementCard league={league({ myRole: "commissioner" })} />);
+    expect(container).toBeEmptyDOMElement();
+  });
+
   it("lets a commissioner post one, choosing whether it also pushes", () => {
-    render(<AnnouncementCard league={league({ myRole: "commissioner" })} />);
+    render(<PostAnnouncementAction league={league({ myRole: "commissioner" })} />);
+    expect(
+      screen.getByText("Announcements post to the Feed. League notes stay on this page."),
+    ).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Post an announcement" }));
     expect(screen.getByRole("button", { name: "Post" })).toBeDisabled();
     fireEvent.change(screen.getByRole("textbox", { name: /^Announcement/ }), {

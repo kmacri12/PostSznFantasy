@@ -25,14 +25,15 @@ describe("how to play", () => {
     }
   });
 
-  it("explains team QB with a concrete example once the rule is opened", () => {
+  it("explains team QB with a concrete example and its reason once the rule is opened", () => {
     render(
       <MemoryRouter>
         <HowToPlayPage />
       </MemoryRouter>,
     );
     fireEvent.click(screen.getByRole("button", { name: "Team QB and team K" }));
-    expect(screen.getByText(/Jalen Hurts and score every Eagles QB/)).toBeVisible();
+    expect(screen.getByText(/Draft Jalen Hurts and you score any Eagles QB/)).toBeVisible();
+    expect(screen.getByText(/no free agency in PostSzn/)).toBeVisible();
   });
 
   it("leads with the tour card and opens the tour from it", () => {

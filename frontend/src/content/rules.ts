@@ -36,15 +36,13 @@ export const HOW_TO_PLAY_GROUPS: HowToPlayGroup[] = [
       {
         id: "team-units",
         title: "Team QB and team K",
-        lead: "With team QB or team K on, your slot scores every QB or K on that NFL team.",
+        lead: "With team QB or team K on, you draft a team's quarterback (or kicker) rather than one player.",
         body: [
-          "Your commissioner decides if team QB and team K are on.",
-          "Why: there's no free agency in PostSzn, so nobody can pick up a replacement.",
-          "You're drafting a team's quarterback, rather than one individual player.",
-          "Available players get scarce as the playoffs go on, so if a quarterback gets hurt or benched, the points his backup scores go to whoever drafted that team's starter.",
-          "With team QB on, you draft a QB by name, but the slot scores every QB on that NFL team in that game. Example: you draft Jalen Hurts and score every Eagles QB who plays. If a backup comes in, that QB counts too.",
-          "Team K works the same way for kickers.",
-          "The draft pool then lists one QB (or K) per NFL team, and the whole team leaves the pool when one is drafted. A wide receiver who throws a pass still scores as a WR.",
+          "Your commissioner turns team QB and team K on or off in the league settings.",
+          "Your QB slot scores every QB that NFL team plays. Draft Jalen Hurts and you score any Eagles QB who plays, backups included.",
+          "Why: there's no free agency in PostSzn. If a QB gets hurt or benched, his backup's points still go to whoever drafted that team's starter.",
+          "Kickers work the same way. The draft pool lists one QB (or K) per NFL team.",
+          "If a running back, receiver or tight end throws a pass, those points stay with that player, not the team QB.",
         ],
       },
       {
@@ -157,6 +155,7 @@ export const NOTES_MAX_LENGTH = 5000;
 export const ANNOUNCEMENT = {
   title: "Announcement",
   post: "Post an announcement",
+  help: "Announcements post to the Feed. League notes stay on this page.",
   edit: "Edit",
   remove: "Remove",
   maxLength: 1000,
@@ -451,8 +450,7 @@ export const LEAVE_LAST_COMMISSIONER_NOTE =
   "You are the only commissioner. Make someone else a commissioner in the members list first, then you can leave.";
 
 export const SUPPORT_LABEL = "Support PostSzn";
-export const SUPPORT_HINT =
-  "Enjoying PostSzn? Buy the developer a coffee. Optional, and it changes nothing in your league.";
+export const SUPPORT_HINT = "Enjoying PostSzn? Buy the developer a coffee.";
 
 export const REPORT_PROBLEM_LABEL = "Report a problem";
 export const REPORT_PROBLEM_HINT = "Something broken or confusing? Tell us";

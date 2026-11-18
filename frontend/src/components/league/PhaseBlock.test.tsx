@@ -138,16 +138,12 @@ describe("PhaseBlock", () => {
     mocks.standings = { data: standings() };
     show({ draftStatus: "completed" });
     expect(screen.getByText("Conference Championship")).toBeInTheDocument();
-    expect(screen.getByText("2 games live, 1 final")).toBeInTheDocument();
-    expect(screen.getByText("Your lineup: 3 live, 1 to play")).toBeInTheDocument();
+    expect(screen.getByText("2 games live, 1 final · 3 live, 1 to play")).toBeInTheDocument();
   });
 
-  it("links to the NFL bracket from every phase, even before the draft", () => {
+  it("leaves the NFL bracket link to the row under the standings", () => {
     show({ draftStatus: "unscheduled", canCommission: false });
-    expect(screen.getByRole("link", { name: "NFL bracket" })).toHaveAttribute(
-      "href",
-      "/leagues/3/bracket",
-    );
+    expect(screen.queryByRole("link", { name: "NFL bracket" })).not.toBeInTheDocument();
   });
 
   it("leaves the top to the champion card when the season is over", () => {
