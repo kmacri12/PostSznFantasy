@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { lineupPlayer, roundLineup, slot } from "../../test/lineup";
-import { moveOptions, normalizePosition } from "./moves";
+import { moveOptions, normalizePosition, slotFillOptions } from "./moves";
 
 const josh = lineupPlayer({ id: 1, name: "Josh Allen", position: "QB" });
 const diggs = lineupPlayer({
@@ -137,5 +137,25 @@ describe("normalizePosition", () => {
       "RB",
       "WR",
     ]);
+  });
+});
+
+describe("slotFillOptions", () => {
+  it("lists the bench players who can play the empty slot, named after the player", () => {
+    const options = slotFillOptions(
+      roundLineup(2, {
+        slots: [
+          slot(0, "WR", lineupPlayer({ id: 2, name: "Stefon Diggs", position: "WR" })),
+          slot(1, "WR"),
+          slot(2, "BENCH", lineupPlayer({ id: 3, name: "Brian Thomas Jr.", position: "WR" })),
+          slot(3, "BENCH", lineupPlayer({ id: 4, name: "James Cook", position: "RB" })),
+        ],
+      }),
+      1,
+      false,
+    );
+    expect(options.map((option) => option.title)).toEqual(["Brian Thomas Jr."]);
+    expect(options[0]?.move).toEqual({ playerId: 3, slotIndex: 1 });
+    expect(options[0]?.action).toBe("Start");
   });
 });

@@ -162,3 +162,22 @@ describe("describeEvent for membership", () => {
     );
   });
 });
+
+describe("describeEvent for draft picks", () => {
+  const assigned = {
+    pickNumber: 5,
+    teamName: "Alpha",
+    playerId: 9,
+    playerName: "Josh Allen",
+    scheduled: false,
+    replacedPlayerName: null,
+  };
+
+  it("tells the commissioner's auto-pick now apart from a hand-picked player", () => {
+    const pick: ActivityEvent = { ...base, kind: "draft_pick_assigned", payload: assigned };
+    expect(describeEvent(pick)).toBe("ann assigned Josh Allen to Alpha at pick 5");
+    expect(describeEvent({ ...pick, payload: { ...assigned, autoPick: true } })).toBe(
+      "ann used Auto-pick now: Josh Allen to Alpha at pick 5",
+    );
+  });
+});
