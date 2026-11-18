@@ -29,6 +29,7 @@ import ErrorState from "../components/common/ErrorState";
 import { mutationError } from "../components/common/friendlyError";
 import LoadingState from "../components/common/LoadingState";
 import PictureAvatar from "../components/common/PictureAvatar";
+import BackHeader from "../components/layout/BackHeader";
 import ArchivedNotice from "../components/league/ArchivedNotice";
 import DeleteLeagueDialog from "../components/settings/DeleteLeagueDialog";
 import { valuesEqual } from "../components/settings/dirty";
@@ -83,7 +84,7 @@ const teamCountProblem = (value: string) => {
  * commissioners edit them (rows that open sheets, rules as accordions), members only read.
  */
 function SettingsPage() {
-  const { leagueId, seasonId, season } = useSeasonContext();
+  const { leagueId, seasonId, season, paths } = useSeasonContext();
   const { userId } = useUser();
   const info = useLeagueInfo(leagueId, !season.isFormerMember).data;
   const archived = season.finished;
@@ -213,9 +214,7 @@ function SettingsPage() {
 
   return (
     <Container maxWidth="sm" sx={{ py: 3 }}>
-      <Typography variant="h4" component="h1" gutterBottom>
-        League settings
-      </Typography>
+      <BackHeader title="League settings" fallback={paths.home} />
 
       {info && (
         <>
