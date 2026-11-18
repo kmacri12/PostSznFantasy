@@ -106,7 +106,7 @@ async def test_the_two_settings_are_checked_independently(
 ) -> None:
     season, _, teams, _ = await make_season(db)
     phi = await nfl_team_with(
-        db, "PHI", 21, ("Jake Elliott", "PK"), ("Backup Kicker", "PK")
+        db, "PHI", 21, ("Jake Elliott", "K"), ("Backup Kicker", "K")
     )
     await hold(db, teams[0], *phi)
 
@@ -207,7 +207,7 @@ async def test_switching_a_setting_is_logged_but_a_refused_switch_is_not(
 ) -> None:
     season, _, teams, _ = await make_season(db)
     phi = await nfl_team_with(
-        db, "PHI", 21, ("Jake Elliott", "PK"), ("Backup Kicker", "PK")
+        db, "PHI", 21, ("Jake Elliott", "K"), ("Backup Kicker", "K")
     )
     await hold(db, teams[0], *phi)
 

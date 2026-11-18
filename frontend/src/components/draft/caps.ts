@@ -8,7 +8,7 @@ export interface CappedPositions {
 
 /**
  * Positions this team can't draft more of, each with the reason to show the drafter.
- * Picks carry the position as Tank01 stored it (kickers are "PK", defenses "DEF").
+ * Picks carry the position as Tank01 stored it (defenses may be "DEF").
  */
 export function cappedPositions(
   caps: Record<string, number>,

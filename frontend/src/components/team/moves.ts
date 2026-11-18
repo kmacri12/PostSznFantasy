@@ -33,7 +33,6 @@ const SLOT_POSITIONS: Record<string, string[] | undefined> = {
 export const normalizePosition = (position: string): string => {
   const cleaned = position.trim().toUpperCase();
   if (cleaned === "DEF" || cleaned === "D/ST") return "DST";
-  if (cleaned === "PK") return "K";
   if (cleaned === "FB") return "RB";
   return cleaned;
 };
