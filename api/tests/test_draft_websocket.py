@@ -164,6 +164,29 @@ def test_rejected_pick_returns_error_only_to_sender(
     db.rollback.assert_awaited()
 
 
+def test_unexpected_failure_keeps_the_socket_open(
+    client: TestClient, db: AsyncMock
+) -> None:
+    """The last pick runs extra work; if it crashes the room must not go silent."""
+    verify, membership, snapshot = as_member()
+    with (
+        verify,
+        membership,
+        snapshot,
+        patch(
+            "api.routers.drafts.make_pick",
+            new=AsyncMock(side_effect=RuntimeError("boom")),
+        ),
+        client.websocket_connect(WS_URL) as ws,
+    ):
+        join(ws)
+        ws.send_json({"eventType": "MAKE_PICK", "data": {"playerId": 3}})
+        assert ws.receive_json()["eventType"] == "ERROR"
+        ws.send_json({"eventType": "PING", "timestamp": 1})
+        assert ws.receive_json()["eventType"] == "PONG"
+    db.rollback.assert_awaited()
+
+
 def test_valid_pick_is_committed_and_broadcast(
     client: TestClient, db: AsyncMock
 ) -> None:

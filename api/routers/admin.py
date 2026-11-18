@@ -19,6 +19,7 @@ from api.services.ingestion import (
     ingest_nfl_players,
     ingest_nfl_teams,
     ingest_season_stats,
+    refresh_dst_season_stats,
     refresh_kicker_distances,
     run_full_ingestion_pipeline,
 )
@@ -194,6 +195,7 @@ async def update_nfl_players_and_stats(
     async def job(session: AsyncSession) -> None:
         await ingest_season_stats(session)
         await refresh_kicker_distances(session)
+        await refresh_dst_season_stats(session)
 
     if wait:
         await job(db)

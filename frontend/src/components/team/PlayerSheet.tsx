@@ -2,8 +2,10 @@ import { Alert, Box, Button, ButtonBase, Drawer, Skeleton, Typography } from "@m
 import { usePlayerSeasonLine } from "../../api/queries";
 import type { LineupPlayer, RoundLineup } from "../../api/types";
 import { useBackClosesOverlay } from "../../hooks/useBackClosesOverlay";
+import { useSwipeDismiss } from "../../hooks/useSwipeDismiss";
 import { tokens } from "../../theme";
 import InjuryTag from "../common/InjuryTag";
+import TeamLogo from "../common/TeamLogo";
 import { formatPoints } from "../league/standingsView";
 import { formatKickoff, type Move, ROUND_LABELS } from "./lineup";
 import { slotNames } from "./lineupView";
@@ -51,7 +53,7 @@ const StatBox = ({ rows }: { rows: { label: string; value: string }[] }) => (
   </Box>
 );
 
-const MoveRow = ({
+export const MoveRow = ({
   option,
   disabled,
   onMove,
@@ -127,16 +129,12 @@ const PlayerSheet = ({
   onClose,
 }: Props) => {
   useBackClosesOverlay(onClose);
+  const swipe = useSwipeDismiss(onClose);
   const season = usePlayerSeasonLine(player.id);
   const started = player.gameState === "live" || player.gameState === "final";
   const rows = season.data ? seasonRows(player.position, season.data) : [];
   const options = canMove ? moveOptions(lineup, player, canOverride) : [];
-  const where = [
-    player.position,
-    player.teamAbv || "FA",
-    placement(lineup, player),
-    ROUND_LABELS[lineup.round],
-  ];
+  const where = [placement(lineup, player), ROUND_LABELS[lineup.round]];
 
   return (
     <Drawer
@@ -146,6 +144,7 @@ const PlayerSheet = ({
       slotProps={{
         paper: {
           "aria-label": player.name,
+          ...swipe,
           sx: {
             maxWidth: 560,
             mx: "auto",
@@ -177,7 +176,8 @@ const PlayerSheet = ({
             {player.name}
           </Typography>
           <Typography component="span" sx={{ fontSize: 12, color: tokens.muted }}>
-            {where.join(" · ")}
+            {player.position} · <TeamLogo abbreviation={player.teamAbv} />
+            {player.teamAbv || "FA"} · {where.join(" · ")}
           </Typography>
           <InjuryTag status={player.injuryStatus} />
         </Box>

@@ -6,10 +6,13 @@ import type { DraftPick, DraftState, ReservedPick } from "../../api/types";
 import { prefersReducedMotion, useReducedMotion } from "../../hooks/useReducedMotion";
 import { tokens } from "../../theme";
 import { nflTeamColor } from "../../utils/nflColors";
+import TeamLogo from "../common/TeamLogo";
 import TeamUnitBadge from "../common/TeamUnitBadge";
 import { visuallyHidden } from "../common/visuallyHidden";
 import SettingsSheet from "../settings/SettingsSheet";
 import { centeredScroll } from "./boardScroll";
+import { AutopilotMark, PickSourceIcon, PickSourceLegend } from "./PickSourceBadge";
+import { SOURCE_LEGEND, sourceDetail } from "./pickSource";
 import { positionColor } from "./positions";
 
 interface Props {
@@ -34,7 +37,7 @@ export interface BoardCell {
 const ROUND_COL = 28;
 // 6 teams (the default league) fit a 375px phone; bigger leagues scroll with pinned headers.
 const TEAM_COL = 56;
-const HEADER_ROW = 44;
+const HEADER_ROW = 52;
 const CELL_HEIGHT = 56;
 
 /** Initials for the narrow column header; the full name opens with the cell. */
@@ -130,227 +133,256 @@ const DraftBoard: React.FC<Props> = ({ state, myTeamId, sx, onSelectSlot }) => {
   }
 
   return (
-    <Paper
-      ref={frameRef}
-      aria-label="Draft board"
-      tabIndex={0}
-      sx={{
-        position: "relative",
-        overflow: "auto",
-        overscrollBehavior: "contain",
-        minHeight: 240,
-        maxHeight: "calc(100dvh - 330px)",
-        ...sx,
-      }}
-    >
-      {revealOverall !== null && (
-        <GlobalStyles
-          styles={{
-            "@keyframes ps-pick-reveal": {
-              from: { transform: "translateX(-14px)", opacity: 0 },
-              to: { transform: "none", opacity: 1 },
-            },
-          }}
-        />
-      )}
-      <Box
+    <>
+      <Paper
+        ref={frameRef}
+        aria-label="Draft board"
+        tabIndex={0}
         sx={{
-          display: "grid",
-          gridTemplateColumns: columns,
-          minWidth: ROUND_COL + teamCount * TEAM_COL,
+          position: "relative",
+          overflow: "auto",
+          overscrollBehavior: "contain",
+          minHeight: 240,
+          maxHeight: "calc(100dvh - 330px)",
+          ...sx,
         }}
       >
-        <Box sx={{ ...pinned, ...gridLine, top: 0, left: 0, zIndex: 3, height: HEADER_ROW }} />
-        {state.order.map((slot) => (
-          <Box
-            key={slot.teamId}
-            sx={{
-              ...pinned,
-              ...gridLine,
-              top: 0,
-              zIndex: 2,
-              height: HEADER_ROW,
-              px: 0.5,
-              display: "flex",
-              alignItems: "center",
-              minWidth: 0,
+        {revealOverall !== null && (
+          <GlobalStyles
+            styles={{
+              "@keyframes ps-pick-reveal": {
+                from: { transform: "translateX(-14px)", opacity: 0 },
+                to: { transform: "none", opacity: 1 },
+              },
             }}
-          >
-            <Typography
-              title={slot.teamName}
-              sx={{
-                fontSize: 11,
-                fontWeight: 700,
-                lineHeight: 1.15,
-                width: "100%",
-                textAlign: "center",
-                overflowWrap: "anywhere",
-                display: "-webkit-box",
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: "vertical",
-                overflow: "hidden",
-                color: slot.teamId === myTeamId ? tokens.accent : tokens.text,
-              }}
-            >
-              {slot.teamName}
-            </Typography>
-          </Box>
-        ))}
-        {Array.from({ length: state.rounds }, (_, round) => (
-          <Box key={`round-${round + 1}`} sx={{ display: "contents" }}>
+          />
+        )}
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: columns,
+            minWidth: ROUND_COL + teamCount * TEAM_COL,
+          }}
+        >
+          <Box sx={{ ...pinned, ...gridLine, top: 0, left: 0, zIndex: 3, height: HEADER_ROW }} />
+          {state.order.map((slot) => (
             <Box
+              key={slot.teamId}
               sx={{
                 ...pinned,
                 ...gridLine,
-                left: 0,
-                zIndex: 1,
-                height: CELL_HEIGHT,
+                top: 0,
+                zIndex: 2,
+                height: HEADER_ROW,
+                px: 0.5,
                 display: "flex",
-                flexDirection: "column",
                 alignItems: "center",
-                justifyContent: "center",
-                color: tokens.muted,
-                fontSize: 12,
-                fontWeight: 600,
-                lineHeight: 1.2,
+                minWidth: 0,
               }}
             >
-              {round + 1}
-              <Box component="span" aria-hidden sx={{ fontSize: 11 }}>
-                {isReversed(round) ? "←" : "→"}
-              </Box>
-              <Box component="span" sx={visuallyHidden}>
-                {isReversed(round) ? "right to left" : "left to right"}
-              </Box>
-            </Box>
-            {state.order.map((slot, slotIndex) => {
-              const overall = overallFor(round, slotIndex);
-              const pick = byOverall.get(overall);
-              const onClock = overall === onClockOverall && state.status !== "completed";
-              const mine = slot.teamId === myTeamId;
-              const cell: BoardCell = {
-                overall,
-                round: round + 1,
-                teamId: slot.teamId,
-                teamName: slot.teamName,
-                pick,
-                reserved: reservedByOverall.get(overall),
-                onClock,
-              };
-              return (
+              <Typography
+                title={slot.teamName}
+                sx={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  lineHeight: 1.15,
+                  width: "100%",
+                  textAlign: "center",
+                  overflowWrap: "anywhere",
+                  color: slot.teamId === myTeamId ? tokens.accent : tokens.text,
+                }}
+              >
                 <Box
-                  key={`${round}-${slot.teamId}`}
-                  component="button"
-                  type="button"
-                  data-testid={`pick-${overall}`}
-                  data-revealed={overall === revealOverall ? "true" : undefined}
-                  onClick={() => setSelected(cell)}
+                  component="span"
                   sx={{
-                    ...gridLine,
-                    appearance: "none",
-                    font: "inherit",
-                    textAlign: "left",
-                    cursor: "pointer",
-                    height: CELL_HEIGHT,
-                    minWidth: 0,
-                    minHeight: 44,
-                    px: 0.5,
-                    py: 0.5,
-                    fontSize: 10,
-                    lineHeight: 1.25,
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical",
                     overflow: "hidden",
-                    border: 0,
-                    borderRight: `1px solid ${tokens.border}`,
-                    borderBottom: `1px solid ${tokens.border}`,
-                    color: onClock ? tokens.accentInk : tokens.textSoft,
-                    fontWeight: onClock ? 700 : 400,
-                    bgcolor: onClock
-                      ? tokens.accentFill
-                      : pick
-                        ? positionColor(pick.position)
-                        : tokens.bg,
-                    boxShadow: mine ? `inset 0 0 0 2px ${tokens.accent}` : undefined,
-                    ...(overall === revealOverall && {
-                      position: "relative",
-                      animation: "ps-pick-reveal 420ms ease-out 1 both",
-                      "&::before": {
-                        content: '""',
-                        position: "absolute",
-                        inset: "0 auto 0 0",
-                        width: 4,
-                        bgcolor: nflTeamColor(pick?.teamAbv) ?? tokens.accent,
-                      },
-                    }),
                   }}
                 >
+                  {slot.teamName}
+                </Box>
+                {state.autopilotTeamIds.includes(slot.teamId) && <AutopilotMark />}
+              </Typography>
+            </Box>
+          ))}
+          {Array.from({ length: state.rounds }, (_, round) => (
+            <Box key={`round-${round + 1}`} sx={{ display: "contents" }}>
+              <Box
+                sx={{
+                  ...pinned,
+                  ...gridLine,
+                  left: 0,
+                  zIndex: 1,
+                  height: CELL_HEIGHT,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: tokens.muted,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  lineHeight: 1.2,
+                }}
+              >
+                {round + 1}
+                <Box component="span" aria-hidden sx={{ fontSize: 11 }}>
+                  {isReversed(round) ? "←" : "→"}
+                </Box>
+                <Box component="span" sx={visuallyHidden}>
+                  {isReversed(round) ? "right to left" : "left to right"}
+                </Box>
+              </Box>
+              {state.order.map((slot, slotIndex) => {
+                const overall = overallFor(round, slotIndex);
+                const pick = byOverall.get(overall);
+                const onClock = overall === onClockOverall && state.status !== "completed";
+                const mine = slot.teamId === myTeamId;
+                const cell: BoardCell = {
+                  overall,
+                  round: round + 1,
+                  teamId: slot.teamId,
+                  teamName: slot.teamName,
+                  pick,
+                  reserved: reservedByOverall.get(overall),
+                  onClock,
+                };
+                return (
                   <Box
-                    component="span"
+                    key={`${round}-${slot.teamId}`}
+                    component="button"
+                    type="button"
+                    data-testid={`pick-${overall}`}
+                    data-revealed={overall === revealOverall ? "true" : undefined}
+                    onClick={() => setSelected(cell)}
                     sx={{
-                      display: "block",
-                      fontSize: 9,
-                      color: onClock ? "inherit" : tokens.muted,
+                      ...gridLine,
+                      appearance: "none",
+                      font: "inherit",
+                      textAlign: "left",
+                      cursor: "pointer",
+                      height: CELL_HEIGHT,
+                      minWidth: 0,
+                      minHeight: 44,
+                      px: 0.5,
+                      py: 0.5,
+                      fontSize: 10,
+                      lineHeight: 1.25,
+                      overflow: "hidden",
+                      border: 0,
+                      borderRight: `1px solid ${tokens.border}`,
+                      borderBottom: `1px solid ${tokens.border}`,
+                      color: onClock ? tokens.accentInk : tokens.textSoft,
+                      fontWeight: onClock ? 700 : 400,
+                      bgcolor: onClock
+                        ? tokens.accentFill
+                        : pick
+                          ? positionColor(pick.position)
+                          : tokens.bg,
+                      boxShadow: mine ? `inset 0 0 0 2px ${tokens.accent}` : undefined,
+                      ...(overall === revealOverall && {
+                        position: "relative",
+                        animation: "ps-pick-reveal 420ms ease-out 1 both",
+                        "&::before": {
+                          content: '""',
+                          position: "absolute",
+                          inset: "0 auto 0 0",
+                          width: 4,
+                          bgcolor: nflTeamColor(pick?.teamAbv) ?? tokens.accent,
+                        },
+                      }),
                     }}
                   >
-                    <Box component="span" sx={visuallyHidden}>
-                      Pick{" "}
+                    <Box
+                      component="span"
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        fontSize: 9,
+                        color: onClock ? "inherit" : tokens.muted,
+                      }}
+                    >
+                      <span>
+                        <Box component="span" sx={visuallyHidden}>
+                          Pick{" "}
+                        </Box>
+                        {overall}
+                        {onClock ? " · NOW" : ""}
+                      </span>
+                      {pick && <PickSourceIcon source={pick.source} />}
                     </Box>
-                    {overall}
-                    {onClock ? " · NOW" : ""}
+                    {cell.reserved && !pick && (
+                      <>
+                        <Typography
+                          noWrap
+                          component="b"
+                          sx={{
+                            display: "block",
+                            fontSize: 11,
+                            fontWeight: 600,
+                            color: tokens.text,
+                          }}
+                        >
+                          {lastName(cell.reserved.playerName, cell.reserved.position)}
+                        </Typography>
+                        <Box component="span" sx={{ display: "block" }}>
+                          Reserved
+                        </Box>
+                      </>
+                    )}
+                    {pick && (
+                      <>
+                        <Typography
+                          noWrap
+                          component="b"
+                          sx={{
+                            display: "block",
+                            fontSize: 11,
+                            fontWeight: 600,
+                            color: tokens.text,
+                          }}
+                        >
+                          {lastName(pick.playerName, pick.position)}
+                        </Typography>
+                        <Box component="span" sx={{ display: "block" }}>
+                          {pick.position} <TeamLogo abbreviation={pick.teamAbv} size={12} />
+                          {pick.teamAbv}
+                        </Box>
+                      </>
+                    )}
+                    {/* Last so the spoken name starts with what the cell shows (WCAG 2.5.3). */}
+                    <Box component="span" sx={visuallyHidden}>
+                      {`, ${slot.teamName}`}
+                      {pick && pick.source !== "manager" ? `, ${SOURCE_LEGEND[pick.source]}` : ""}
+                    </Box>
                   </Box>
-                  {cell.reserved && !pick && (
-                    <>
-                      <Typography
-                        noWrap
-                        component="b"
-                        sx={{ display: "block", fontSize: 11, fontWeight: 600, color: tokens.text }}
-                      >
-                        {lastName(cell.reserved.playerName, cell.reserved.position)}
-                      </Typography>
-                      <Box component="span" sx={{ display: "block" }}>
-                        Reserved
-                      </Box>
-                    </>
-                  )}
-                  {pick && (
-                    <>
-                      <Typography
-                        noWrap
-                        component="b"
-                        sx={{ display: "block", fontSize: 11, fontWeight: 600, color: tokens.text }}
-                      >
-                        {lastName(pick.playerName, pick.position)}
-                      </Typography>
-                      <Box component="span" sx={{ display: "block" }}>
-                        {pick.position} {pick.teamAbv}
-                      </Box>
-                    </>
-                  )}
-                  {/* Last so the spoken name starts with what the cell shows (WCAG 2.5.3). */}
-                  <Box component="span" sx={visuallyHidden}>{`, ${slot.teamName}`}</Box>
-                </Box>
-              );
-            })}
-          </Box>
-        ))}
-      </Box>
-      {selected && (
-        <SettingsSheet title={`Pick ${selected.overall}`} onClose={() => setSelected(null)}>
-          <CellDetails cell={selected} />
-          {onSelectSlot && (
-            <Button
-              variant="outlined"
-              sx={{ minHeight: 44 }}
-              onClick={() => {
-                onSelectSlot({ pickNumber: selected.overall, teamName: selected.teamName });
-                setSelected(null);
-              }}
-            >
-              {`Assign pick ${selected.overall}`}
-            </Button>
-          )}
-        </SettingsSheet>
-      )}
-    </Paper>
+                );
+              })}
+            </Box>
+          ))}
+        </Box>
+        {selected && (
+          <SettingsSheet title={`Pick ${selected.overall}`} onClose={() => setSelected(null)}>
+            <CellDetails cell={selected} />
+            {onSelectSlot && (
+              <Button
+                variant="outlined"
+                sx={{ minHeight: 44 }}
+                onClick={() => {
+                  onSelectSlot({ pickNumber: selected.overall, teamName: selected.teamName });
+                  setSelected(null);
+                }}
+              >
+                {`Assign pick ${selected.overall}`}
+              </Button>
+            )}
+          </SettingsSheet>
+        )}
+      </Paper>
+      <PickSourceLegend picks={state.picks} />
+    </>
   );
 };
 
@@ -384,11 +416,13 @@ const CellDetails = ({ cell }: { cell: BoardCell }) => {
     <Box>
       <Typography sx={{ fontWeight: 700 }}>{pick.playerName}</Typography>
       <Typography color="text.secondary">
-        {[pick.position, pick.teamAbv].filter(Boolean).join(" · ")}
+        {pick.position} · <TeamLogo abbreviation={pick.teamAbv} />
+        {pick.teamAbv}
       </Typography>
-      <Typography color="text.secondary">
-        {lines.join(" · ")}
-        {pick.autopick ? " · Auto-pick" : ""}
+      <Typography color="text.secondary">{lines.join(" · ")}</Typography>
+      <Typography sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 0.5 }}>
+        <PickSourceIcon source={pick.source} size={16} />
+        {sourceDetail(pick.source)}
       </Typography>
       {pick.scoresWholeTeam && (
         <Box sx={{ mt: 0.5 }}>

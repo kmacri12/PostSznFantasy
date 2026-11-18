@@ -1,6 +1,7 @@
 import type { DraftState } from "../../api/types";
 import { formatInViewerZone } from "../../utils/timeZone";
 import { formatCountdown } from "../league/countdown";
+import { picksAwayLabel } from "./pickOrder";
 
 export const formatClock = (seconds: number): string => {
   const hours = Math.floor(seconds / 3600);
@@ -19,8 +20,10 @@ export interface ClockText {
   subtitle: string;
   /** The pick clock, or the time to the start; null when neither runs. */
   timer: string | null;
-  /** My pick: the bar turns green. */
+  /** My pick: the bar takes the accent fill. */
   myTurn: boolean;
+  /** "On deck" or "3 picks away" until my next pick; null on my turn or with none left. */
+  picksAway: string | null;
 }
 
 /** Round and pick of the pick on the clock, "Round 2, pick 4". */
@@ -41,14 +44,14 @@ export function clockText(
 ): ClockText {
   const teamName = state.order.find((slot) => slot.teamId === state.onTheClockTeamId)?.teamName;
   const myTurn = myTeamId !== null && state.onTheClockTeamId === myTeamId;
-  const onDeck = myTeamId !== null && state.onDeckTeamId === myTeamId;
   const place = roundAndPick(state) ?? "Finishing up";
 
   switch (state.status) {
     case "in_progress":
       return {
         title: myTurn ? "You're on the clock" : `${teamName ?? "…"} on the clock`,
-        subtitle: !myTurn && onDeck ? `${place} · you're on deck` : place,
+        subtitle: place,
+        picksAway: picksAwayLabel(state, myTeamId),
         timer: secondsLeft === null ? null : formatClock(secondsLeft),
         myTurn,
       };
@@ -58,6 +61,7 @@ export function clockText(
         subtitle: `${place} · ${myTurn ? "you're" : `${teamName ?? "…"} is`} on the clock`,
         timer: secondsLeft === null ? null : formatClock(secondsLeft),
         myTurn: false,
+        picksAway: picksAwayLabel(state, myTeamId),
       };
     case "completed":
       return {
@@ -65,6 +69,7 @@ export function clockText(
         subtitle: `${state.totalPicks} picks`,
         timer: null,
         myTurn: false,
+        picksAway: null,
       };
     default:
       if (!state.startTime) {
@@ -73,6 +78,7 @@ export function clockText(
           subtitle: "No clock yet",
           timer: null,
           myTurn: false,
+          picksAway: null,
         };
       }
       if (secondsToStart !== null && secondsToStart <= 0) {
@@ -81,6 +87,7 @@ export function clockText(
           subtitle: "Waiting for the commissioner to start it",
           timer: null,
           myTurn: false,
+          picksAway: null,
         };
       }
       return {
@@ -88,6 +95,7 @@ export function clockText(
         subtitle: secondsToStart === null ? "" : `${formatCountdown(secondsToStart * 1000)} to go`,
         timer: null,
         myTurn: false,
+        picksAway: null,
       };
   }
 }
