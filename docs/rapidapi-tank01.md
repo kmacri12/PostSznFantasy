@@ -177,3 +177,5 @@ Nothing here has been confirmed against the official endpoint list. Add the endp
 from RapidAPI here when available, along with any parameters we have not exercised (for
 example `week` values other than `all`, and whether `getNFLGamesForWeek` accepts
 `seasonType=reg`).
+
+**DST season lines.** `getNFLTeamRoster` stats never include the synthetic DST players, so `services/ingestion/dst_season_ingest.py` builds each playoff-field DST's regular-season row by summing the per-game rows of `dst_stats.py` over that team's completed `reg` games (one `getNFLBoxScore` call per game, about 200 calls for 14 teams, once; teams with a row are skipped).

@@ -56,6 +56,17 @@ describe("statLine", () => {
     );
   });
 
+  it("reads a defense's turnovers, scores and points allowed", () => {
+    const dst = stat(5, 1, {
+      dstSacks: 44,
+      dstInterceptions: 14,
+      dstFumblesRecovered: 8,
+      dstDefTd: 2,
+      dstPointsAllowed: 310,
+    });
+    expect(statLine("DST", dst)).toBe("44 sacks, 14 INT, 8 FR, 2 TD, 310 pts allowed");
+  });
+
   it("gives a running back his receiving and a quarterback his rushing", () => {
     const rb = stat(3, 1, {
       rushingYards: 1009,

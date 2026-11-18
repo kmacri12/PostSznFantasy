@@ -5,6 +5,7 @@ import {
   eliminatedLastRound,
   hurtStarters,
   hurtStartersMessage,
+  nameWithTeam,
   playerDetail,
   roundIsFinal,
   roundScore,
@@ -124,5 +125,16 @@ describe("hurt starters", () => {
     expect(
       hurtStartersMessage([hurt({ name: "A" }), hurt({ name: "B", injuryStatus: "Doubtful" })]),
     ).toBe("2 starters are hurt: A, B. Swap them out before their games start.");
+  });
+});
+
+describe("nameWithTeam", () => {
+  it("adds the NFL team, except for a defense that is already named for it", () => {
+    expect(
+      nameWithTeam(lineupPlayer({ name: "Baker Mayfield", position: "QB", teamAbv: "TB" })),
+    ).toBe("Baker Mayfield · TB");
+    expect(
+      nameWithTeam(lineupPlayer({ name: "Buffalo Bills", position: "DST", teamAbv: "BUF" })),
+    ).toBe("Buffalo Bills");
   });
 });

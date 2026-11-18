@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { lineupPlayer, roundLineup, slot } from "../../test/lineup";
-import { moveOptions, normalizePosition } from "./moves";
+import { moveOptions, normalizePosition, slotFillOptions } from "./moves";
 
 const josh = lineupPlayer({ id: 1, name: "Josh Allen", position: "QB" });
 const diggs = lineupPlayer({
@@ -31,7 +31,7 @@ const titles = (options: ReturnType<typeof moveOptions>) => options.map((option)
 describe("moves for a bench player", () => {
   it("offers a swap with each starter he can replace and every empty slot he can fill", () => {
     const options = moveOptions(lineup(), brian, false);
-    expect(titles(options)).toEqual(["Swap with Stefon Diggs", "Start at FLEX"]);
+    expect(titles(options)).toEqual(["Stefon Diggs", "Start at FLEX"]);
     expect(options[0]).toMatchObject({
       detail: expect.stringMatching(/^WR · [A-Z][a-z]{2} /),
       action: "Swap",
@@ -50,7 +50,7 @@ describe("moves for a bench player", () => {
     ).toEqual(["Start at FLEX"]);
     const bench = lineupPlayer({ id: 8, name: "Backup QB", position: "QB" });
     expect(titles(moveOptions(lineup({ unassigned: [bench] }), bench, false))).toEqual([
-      "Swap with Josh Allen",
+      "Josh Allen",
     ]);
   });
 
@@ -61,7 +61,7 @@ describe("moves for a bench player", () => {
       brian,
       false,
     );
-    expect(titles(options)).toEqual(["Start at FLEX", "Swap with Stefon Diggs"]);
+    expect(titles(options)).toEqual(["Start at FLEX", "Stefon Diggs"]);
     expect(options[1]).toMatchObject({
       detail: "WR · game started, locked",
       action: "Locked",
@@ -112,7 +112,7 @@ describe("moves for a starter", () => {
 
   it("swaps with the bench players eligible for his slot", () => {
     const options = moveOptions(lineup(), diggs, false);
-    expect(titles(options)).toEqual(["Move to bench", "Swap with Brian Thomas"]);
+    expect(titles(options)).toEqual(["Move to bench", "Brian Thomas"]);
     expect(options[1]?.move).toEqual({ playerId: 3, slotIndex: 1 });
   });
 
@@ -136,5 +136,25 @@ describe("normalizePosition", () => {
       "RB",
       "WR",
     ]);
+  });
+});
+
+describe("slotFillOptions", () => {
+  it("lists the bench players who can play the empty slot, named after the player", () => {
+    const options = slotFillOptions(
+      roundLineup(2, {
+        slots: [
+          slot(0, "WR", lineupPlayer({ id: 2, name: "Stefon Diggs", position: "WR" })),
+          slot(1, "WR"),
+          slot(2, "BENCH", lineupPlayer({ id: 3, name: "Brian Thomas Jr.", position: "WR" })),
+          slot(3, "BENCH", lineupPlayer({ id: 4, name: "James Cook", position: "RB" })),
+        ],
+      }),
+      1,
+      false,
+    );
+    expect(options.map((option) => option.title)).toEqual(["Brian Thomas Jr."]);
+    expect(options[0]?.move).toEqual({ playerId: 3, slotIndex: 1 });
+    expect(options[0]?.action).toBe("Start");
   });
 });

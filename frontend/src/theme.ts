@@ -300,6 +300,12 @@ export const createAppTheme = (mode: ThemeMode, reducedMotion: boolean = E2E_BUI
           },
         },
       },
+      MuiInputBase: {
+        styleOverrides: {
+          root: { "@media (max-width:899.95px)": { fontSize: 16 } },
+          input: { "@media (max-width:899.95px)": { fontSize: 16 } },
+        },
+      },
       MuiOutlinedInput: {
         styleOverrides: {
           root: {

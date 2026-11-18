@@ -15,6 +15,7 @@ from api.services.draft_events import announce_events, pick_events
 from api.services.draft_picks import (
     DraftPickError,
     PickNotDue,
+    autopilot_due,
     next_deadline,
     placed_order,
     team_on_the_clock,
@@ -26,7 +27,8 @@ logger = logging.getLogger(__name__)
 TICK_SECONDS = 1
 
 
-async def _unowned_team_on_clock(db: AsyncSession, draft: Draft) -> bool:
+async def _due_before_deadline(db: AsyncSession, draft: Draft, now: datetime) -> bool:
+    """The team on the clock has no owner, or is on autopilot and had its seconds."""
     picks_made = await db.scalar(
         select(func.count())
         .select_from(DraftPick)
@@ -34,11 +36,12 @@ async def _unowned_team_on_clock(db: AsyncSession, draft: Draft) -> bool:
     )
     team_id = team_on_the_clock(placed_order(draft), picks_made or 0, draft.draft_type)
     owner_id = await db.scalar(select(Team.owner_id).where(Team.id == team_id))
-    return owner_id is None
+    return owner_id is None or autopilot_due(draft, team_id, now)
 
 
 async def expire_overdue_picks() -> int:
-    """Auto-pick for every draft whose deadline has passed or whose team on the clock has no owner."""
+    """Auto-pick for every draft whose deadline has passed or whose team on the clock
+    has no owner or is on autopilot."""
     now = datetime.now(UTC)
     async with get_session_factory()() as db:
         drafts = (
@@ -57,7 +60,7 @@ async def expire_overdue_picks() -> int:
             draft.season_id
             for draft in drafts
             if (draft.current_pick_deadline or now) <= now
-            or await _unowned_team_on_clock(db, draft)
+            or await _due_before_deadline(db, draft, now)
         ]
 
     handled = 0
