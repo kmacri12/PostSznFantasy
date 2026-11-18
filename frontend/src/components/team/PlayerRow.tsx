@@ -38,10 +38,20 @@ interface Props {
   /** A "?" about the slot itself, beside the score (team QB / team K). */
   help?: HelpTipCopy;
   onOpen: (player: LineupPlayer) => void;
+  /** Makes an empty row tappable: opens the list of bench players who can fill it. */
+  onFillEmpty?: () => void;
 }
 
 /** One lineup line. The whole left side opens the player sheet; the score stays its own target. */
-const PlayerRow = ({ label, player, bench = false, mark = null, help, onOpen }: Props) => {
+const PlayerRow = ({
+  label,
+  player,
+  bench = false,
+  mark = null,
+  help,
+  onOpen,
+  onFillEmpty,
+}: Props) => {
   const state = player ? rowState(player) : "ready";
   const colors = COLORS[state];
   const muted = bench && state === "ready";
@@ -57,9 +67,15 @@ const PlayerRow = ({ label, player, bench = false, mark = null, help, onOpen }: 
       >
         <ButtonBase
           component="div"
-          disabled={!player}
-          aria-label={player ? `${label} ${player.name}` : undefined}
-          onClick={player ? () => onOpen(player) : undefined}
+          disabled={!player && !onFillEmpty}
+          aria-label={
+            player
+              ? `${label} ${player.name}`
+              : onFillEmpty
+                ? `${label} empty, choose a player`
+                : undefined
+          }
+          onClick={player ? () => onOpen(player) : onFillEmpty}
           sx={{
             flex: 1,
             minWidth: 0,
@@ -116,9 +132,19 @@ const PlayerRow = ({ label, player, bench = false, mark = null, help, onOpen }: 
               )}
             </Box>
           ) : (
-            <Typography component="span" sx={{ fontSize: 14, color: tokens.muted }}>
-              Empty
-            </Typography>
+            <>
+              <Typography component="span" sx={{ fontSize: 14, color: tokens.muted }}>
+                Empty
+              </Typography>
+              {onFillEmpty && (
+                <Typography
+                  component="span"
+                  sx={{ ml: "auto", fontSize: 13, color: tokens.accent }}
+                >
+                  Choose
+                </Typography>
+              )}
+            </>
           )}
         </ButtonBase>
         {help && <HelpTip {...help} />}
