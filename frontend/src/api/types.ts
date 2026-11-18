@@ -304,7 +304,17 @@ export interface DraftPick {
   numberPickOverall: number;
   numberPickInRound: number;
   autopick: boolean;
+  source: PickSource;
 }
+
+/** How a pick was made: by its manager, by auto-pick (and why) or by the commissioner. */
+export type PickSource =
+  | "manager"
+  | "timer"
+  | "autopilot"
+  | "no_owner"
+  | "commissioner_auto"
+  | "commissioner_assigned";
 
 export interface DraftSlot {
   slot: number;
@@ -354,6 +364,8 @@ export interface DraftState {
   positionCaps: Record<string, number>;
   /** First Wild Card kickoff: no draft can be scheduled or started after it. */
   draftCutoff: string | null;
+  /** Teams the clock picks for about 10 seconds into their turn. */
+  autopilotTeamIds: number[];
   playoffFieldSet: boolean;
 }
 
@@ -492,6 +504,8 @@ export type ActivityEvent = ActivityBase &
           playerName: string;
           scheduled: boolean;
           replacedPlayerName: string | null;
+          /** The commissioner's "Auto-pick now"; missing on older events. */
+          autoPick?: boolean;
         };
       }
   );
