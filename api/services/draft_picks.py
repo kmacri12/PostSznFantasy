@@ -29,6 +29,10 @@ class DraftPickError(Exception):
         self.code = code
 
 
+# A team on autopilot is picked for this long after it comes on the clock.
+AUTOPILOT_DELAY_SECONDS = 10
+
+
 class PickNotDue(DraftPickError):
     """The draft moved on (a pick, pause or completion) between the clock's scan and
     its lock."""
@@ -100,6 +104,21 @@ async def _in_draft_pool(db: AsyncSession, player: NFLPlayer) -> bool:
 
 def next_deadline(draft: Draft, now: datetime) -> datetime:
     return now + timedelta(seconds=draft.time_per_pick_seconds)
+
+
+def autopilot_due(draft: Draft, team_id: int, now: datetime) -> bool:
+    """The team on the clock is on autopilot and has had its few seconds."""
+    return (
+        team_id in draft.autopilot_team_ids
+        and draft.pick_started_at is not None
+        and draft.pick_started_at + timedelta(seconds=AUTOPILOT_DELAY_SECONDS) <= now
+    )
+
+
+def set_team_autopilot(draft: Draft, team_id: int, enabled: bool) -> None:
+    current = set(draft.autopilot_team_ids)
+    current = current | {team_id} if enabled else current - {team_id}
+    draft.autopilot_team_ids = sorted(current)
 
 
 async def load_draft_for_update(db: AsyncSession, season_id: int) -> Draft:
@@ -283,6 +302,11 @@ async def _record_one(
     )
     db.add(pick)
     db.add(TeamPlayer(team_id=team_id, season_id=draft.season_id, player_id=player_id))
+    # A team that timed out stays on autopilot until its manager picks again.
+    if source == PickSource.TIMER:
+        set_team_autopilot(draft, team_id, True)
+    elif source == PickSource.MANAGER:
+        set_team_autopilot(draft, team_id, False)
     store_reservations(
         draft, {s: p for s, p in reservations(draft).items() if s != pick_index + 1}
     )
