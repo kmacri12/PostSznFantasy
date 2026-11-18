@@ -158,6 +158,7 @@ PostSznFantasy/
 │   │       ├── guard.py    # Per-type advisory lock (skip overlapping runs) + last-synced record
 │   │       ├── players_ingest.py # Chunked active player upserts
 │   │       ├── season_stats_ingest.py # Chunked regular season stat upserts
+│   │       ├── dst_season_ingest.py # Regular-season line for each playoff-field DST (Tank01 roster stats cover real players only): sums the per-game `dst_stats` rows over that team's completed regular-season box scores into its `nfl_player_season_stats` row (one box score per game, skipped for a team that already has a row; runs after kicker distances in the pipeline, the admin stats trigger and `seed_nfl_data`; re-run after setting the playoff field)
 │   │       ├── kicker_distances_ingest.py # Regular-season FG distances for kickers on `in_playoffs` teams only (a no-op until the field is set): Tank01 season stats carry no per-kick distance (`fgYds` is 0), so one `getNFLGamesForPlayer` call per kicker supplies `scoringPlays` "23 Yd Field Goal" text, and box scores are fetched only for his team's games that response left out, until the distances add up to `fgMade`; stored on the season row's `kicking_fg_yards_made` for the per-yard scoring. Runs after season stats in the pipeline, the admin stats trigger and `seed_nfl_data`; re-run the stats trigger after setting the playoff field
 │   │       └── box_scores_ingest.py # Playoff games & player box score upserts
 │   ├── utils/
@@ -213,6 +214,7 @@ PostSznFantasy/
         │   ├── useAppUpdate.ts # "available" (newer /version.json, held back in the draft room and while a field has focus) or "outdated" (the API answered 426), polled on focus and every 10 minutes
         │   ├── usePushNotifications.ts # Push state machine (unsupported / needs-install / denied / off / on); permission asked only from `enable()`, which must be called from a tap
         │   ├── useWebSocket.ts # Native RFC 6455 WebSocket hook (reconnects on drop, on the tab becoming visible and on `online`; the server's snapshot on connect is the resync). `draftRoomState.ts` turns the gap into the "You were offline for 12s, 1 pick made" toast on the next snapshot (`CONNECTION_LOST` event; quiet under 3s with nothing missed)
+        │   ├── useSwipeDismiss.ts # Swipe a bottom sheet down to close it (touch; starts only on content scrolled to its top, snaps back under 100px, instant under reduced motion); spread on the paper of `SettingsSheet` and `PlayerSheet`
         │   ├── useLongPress.ts # Touch long press that never prevents the scroll (moves, early lifts and browser cancels do not fire)
         │   ├── useBackClosesOverlay.ts # Browser/Android back closes an open sheet or dialog: opening pushes a history entry (a stack of overlay ids in the location state), back pops it and calls `onClose`, closing in the UI pops it again; used by `SettingsSheet`, `PlayerSheet` and `components/common/AppDialog`; no-op outside a router
         │   ├── useFeedLive.ts  # Feed socket: each content-free `FEED_CHANGED` refetches the feed; the page polls every 30s while it is down
