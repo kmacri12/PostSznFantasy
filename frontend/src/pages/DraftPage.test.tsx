@@ -9,6 +9,8 @@ const mocks = vi.hoisted(() => ({
   archived: false,
   status: "in_progress",
   socketSeason: undefined as number | undefined,
+  seconds: 47 as number | null,
+  cues: { onDeck: vi.fn(), onTheClock: vi.fn(), tick: vi.fn() },
   connected: true,
   infoStatus: null as string | null,
 }));
@@ -57,7 +59,7 @@ vi.mock("../hooks/useDraftRoom", () => ({
       isConnected: mocks.connected,
       takenPlayerIds: [],
       pendingPlayerId: null,
-      secondsLeft: 47,
+      secondsLeft: mocks.seconds,
       secondsToStart: null,
       toast: null,
       dismissToast: vi.fn(),
@@ -82,26 +84,35 @@ vi.mock("../components/draft/CommissionerStrip", () => ({
     </button>
   ),
 }));
-vi.mock("../utils/draftCue", () => ({ playOnDeckCue: vi.fn(), vibrateOnTurn: vi.fn() }));
+vi.mock("../utils/draftCue", () => ({
+  playOnDeckCue: mocks.cues.onDeck,
+  playOnTheClockCue: mocks.cues.onTheClock,
+  playCountdownTick: mocks.cues.tick,
+  unlockDraftAudio: vi.fn(),
+  vibrateOnTurn: vi.fn(),
+}));
 
-const renderDraft = () =>
-  render(
-    <MemoryRouter>
-      <SeasonContext.Provider
-        value={testSeason(
-          mocks.archived
-            ? { finished: true, canEdit: false, canCommission: false }
-            : { canCommission: true, myTeamId: 1 },
-        )}
-      >
-        <DraftPage />
-      </SeasonContext.Provider>
-    </MemoryRouter>,
-  );
+const draftPage = () => (
+  <MemoryRouter>
+    <SeasonContext.Provider
+      value={testSeason(
+        mocks.archived
+          ? { finished: true, canEdit: false, canCommission: false }
+          : { canCommission: true, myTeamId: 1 },
+      )}
+    >
+      <DraftPage />
+    </SeasonContext.Provider>
+  </MemoryRouter>
+);
+
+const renderDraft = () => render(draftPage());
 
 beforeEach(() => {
+  vi.clearAllMocks();
   mocks.archived = false;
   mocks.status = "in_progress";
+  mocks.seconds = 47;
   mocks.connected = true;
   mocks.infoStatus = null;
 });

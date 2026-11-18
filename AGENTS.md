@@ -264,7 +264,7 @@ PostSznFantasy/
         │   ├── calendar.ts     # `.ics` (reminder, folded lines, stable UID) and Google Calendar link builders, `draftCalendarEvent`, `lockCalendarEvent`; `components/common/AddToCalendar.tsx` is the one-tap menu
         │   ├── celebrationSeen.ts # `celebrationSeen` / `markCelebrationSeen`: once-only celebrations per device (confetti per season, round win per season and round); fails closed without localStorage
         │   ├── nflColors.ts    # NFL team primary colors by abbreviation (pick reveal edge only)
-        │   ├── draftCue.ts     # Web Audio on-deck beep
+        │   ├── draftCue.ts     # Web Audio cues (#474, #475): a soft on-deck beep, a loud three-note on-the-clock alert plus vibration, and one tick a second in the last 10 seconds of my pick; one shared `AudioContext` that the first tap unlocks (`unlockDraftAudio`), nothing plays before that and never in the e2e build
         │   ├── numberField.ts  # `numberProblem(s)`: per-field validation (blank, half-typed, out of range) shared by the settings and create forms; never coerce a bad value to 0
         │   ├── scoring.ts      # Numeric coercion + defaults diff for league forms
         │   ├── gifProvider.ts  # `GifProvider` interface plus the GIPHY adapter; `gifProvider()` is null without `VITE_GIPHY_API_KEY`, which hides the GIF button

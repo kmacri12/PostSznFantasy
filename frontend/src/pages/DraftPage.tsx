@@ -29,7 +29,13 @@ import { draftCard } from "../components/share/shareCards";
 import { useSeasonContext } from "../contexts/SeasonContext";
 import { useDraftRoom } from "../hooks/useDraftRoom";
 import { HEADER_HEIGHT, radii, tokens } from "../theme";
-import { playOnDeckCue, vibrateOnTurn } from "../utils/draftCue";
+import {
+  playCountdownTick,
+  playOnDeckCue,
+  playOnTheClockCue,
+  unlockDraftAudio,
+  vibrateOnTurn,
+} from "../utils/draftCue";
 
 type ViewKey = "players" | "board" | "roster" | "queue";
 
@@ -165,8 +171,21 @@ const DraftPage = () => {
   }, [onDeck, myTurn]);
 
   useEffect(() => {
-    if (myTurn) vibrateOnTurn();
+    if (!myTurn) return;
+    playOnTheClockCue();
+    vibrateOnTurn();
   }, [myTurn]);
+
+  useEffect(unlockDraftAudio, []);
+
+  const secondsLeft = room.secondsLeft;
+  const pickSent = room.pendingPlayerId !== null;
+  // biome-ignore lint/correctness/useExhaustiveDependencies: one tick per whole second left
+  useEffect(() => {
+    if (myTurn && !pickSent && secondsLeft !== null && secondsLeft >= 1 && secondsLeft <= 10) {
+      playCountdownTick();
+    }
+  }, [myTurn, pickSent, secondsLeft]);
 
   if (!state) {
     return (
