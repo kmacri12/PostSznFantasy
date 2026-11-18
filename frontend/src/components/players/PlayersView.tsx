@@ -18,6 +18,7 @@ import EmptyState from "../common/EmptyState";
 import ErrorState from "../common/ErrorState";
 import InjuryTag from "../common/InjuryTag";
 import LoadingState from "../common/LoadingState";
+import TeamLogo from "../common/TeamLogo";
 import TeamUnitBadge from "../common/TeamUnitBadge";
 import { positionChipSx } from "../draft/positions";
 import { useConfirmedPick } from "../draft/useConfirmedPick";
@@ -143,6 +144,7 @@ const PlayerListItem = ({ row, owner, myTeamId, year, draft, armed, onDraft }: R
           <Box component="span" sx={positionChipSx(row.position)}>
             {row.position}
           </Box>{" "}
+          <TeamLogo abbreviation={row.team} />
           {row.team}
           {" · "}
           {drafted && owner ? ownerText(owner) : row.line}

@@ -6,6 +6,7 @@ import type { DraftPick, DraftState, ReservedPick } from "../../api/types";
 import { prefersReducedMotion, useReducedMotion } from "../../hooks/useReducedMotion";
 import { tokens } from "../../theme";
 import { nflTeamColor } from "../../utils/nflColors";
+import TeamLogo from "../common/TeamLogo";
 import TeamUnitBadge from "../common/TeamUnitBadge";
 import { visuallyHidden } from "../common/visuallyHidden";
 import SettingsSheet from "../settings/SettingsSheet";
@@ -336,7 +337,8 @@ const DraftBoard: React.FC<Props> = ({ state, myTeamId, sx, onSelectSlot }) => {
                           {lastName(pick.playerName, pick.position)}
                         </Typography>
                         <Box component="span" sx={{ display: "block" }}>
-                          {pick.position} {pick.teamAbv}
+                          {pick.position} <TeamLogo abbreviation={pick.teamAbv} size={12} />
+                          {pick.teamAbv}
                         </Box>
                       </>
                     )}
@@ -404,7 +406,8 @@ const CellDetails = ({ cell }: { cell: BoardCell }) => {
     <Box>
       <Typography sx={{ fontWeight: 700 }}>{pick.playerName}</Typography>
       <Typography color="text.secondary">
-        {[pick.position, pick.teamAbv].filter(Boolean).join(" · ")}
+        {pick.position} · <TeamLogo abbreviation={pick.teamAbv} />
+        {pick.teamAbv}
       </Typography>
       <Typography color="text.secondary">{lines.join(" · ")}</Typography>
       <Typography sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 0.5 }}>
