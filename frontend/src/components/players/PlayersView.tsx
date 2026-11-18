@@ -10,16 +10,17 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useDraftPool, useLeagueSettings, usePlayerSeasonStats } from "../../api/queries";
 import type { DraftPick } from "../../api/types";
 import { radii, tokens } from "../../theme";
-import { E2E_BUILD } from "../../utils/e2e";
 import EmptyState from "../common/EmptyState";
 import ErrorState from "../common/ErrorState";
 import InjuryTag from "../common/InjuryTag";
 import LoadingState from "../common/LoadingState";
 import TeamUnitBadge from "../common/TeamUnitBadge";
+import { positionChipSx } from "../draft/positions";
+import { useConfirmedPick } from "../draft/useConfirmedPick";
 import FilterMenu from "./FilterMenu";
 import {
   type Availability,
@@ -36,7 +37,6 @@ import {
 } from "./playerRows";
 
 const MAX_ROWS = 200;
-const CONFIRM_WINDOW_MS = E2E_BUILD ? 10 * 60_000 : 3000;
 
 /** What the draft room adds to the list: the Draft and queue buttons and the availability filter. */
 export interface DraftActions {
@@ -49,7 +49,7 @@ export interface DraftActions {
   /** Position to the reason this team can't draft it (it reached the cap). */
   capped: Record<string, string>;
   queue: number[];
-  /** Players the server rejected as already drafted. */
+  /** Players the list should hide as unavailable (server-rejected or reserved) unless a pick shows them as owned. */
   takenIds: number[];
   onPick: (playerId: number) => void;
   onToggleQueue: (playerId: number) => void;
@@ -140,7 +140,10 @@ const PlayerListItem = ({ row, owner, myTeamId, year, draft, armed, onDraft }: R
           )}
         </Typography>
         <Typography sx={{ fontSize: 12, color: tokens.muted, mt: 0.125 }}>
-          {row.position} {row.team}
+          <Box component="span" sx={positionChipSx(row.position)}>
+            {row.position}
+          </Box>{" "}
+          {row.team}
           {" · "}
           {drafted && owner ? ownerText(owner) : row.line}
           {row.eliminated && " · Eliminated"}
@@ -219,13 +222,7 @@ const PlayersView = ({ seasonId, year, picks, teams, myTeamId, draft }: Props) =
   const [fantasyTeamId, setFantasyTeamId] = useState<number | null>(null);
   const [availability, setAvailability] = useState<Availability>(draft ? "available" : "all");
   const [sortKey, setSortKey] = useState("points");
-  const [armedId, setArmedId] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (armedId === null) return;
-    const timer = setTimeout(() => setArmedId(null), CONFIRM_WINDOW_MS);
-    return () => clearTimeout(timer);
-  }, [armedId]);
+  const { armedId, tap: handleDraft } = useConfirmedPick(draft?.onPick);
 
   const owners = useMemo(
     () => ownersByPlayer(picks, (id) => teams.find((team) => team.id === id)?.name ?? `Team ${id}`),
@@ -245,7 +242,8 @@ const PlayersView = ({ seasonId, year, picks, teams, myTeamId, draft }: Props) =
     () =>
       sortRows(
         filterRows(
-          rows.filter((row) => !taken.has(row.id)),
+          // Owned players stay: the Drafted and fantasy-team filters list them.
+          rows.filter((row) => !taken.has(row.id) || owners.has(row.id)),
           { search, position, nflTeam, fantasyTeamId, availability },
           owners,
           flex,
@@ -259,15 +257,6 @@ const PlayersView = ({ seasonId, year, picks, teams, myTeamId, draft }: Props) =
     setPosition(next);
     // A stat sort only makes sense for the position it came from.
     setSortKey("points");
-  };
-
-  const handleDraft = (id: number) => {
-    if (armedId !== id) {
-      setArmedId(id);
-      return;
-    }
-    setArmedId(null);
-    draft?.onPick(id);
   };
 
   if (pool.isLoading || stats.isLoading) return <LoadingState what="players" />;
@@ -351,7 +340,11 @@ const PlayersView = ({ seasonId, year, picks, teams, myTeamId, draft }: Props) =
             { value: "", label: "any" },
             ...teams.map((team) => ({ value: String(team.id), label: team.name })),
           ]}
-          onChange={(value) => setFantasyTeamId(value ? Number(value) : null)}
+          onChange={(value) => {
+            setFantasyTeamId(value ? Number(value) : null);
+            // A team's players are drafted by definition; Available would always be empty.
+            if (value && availability === "available") setAvailability("all");
+          }}
         />
         <Box sx={{ ml: "auto" }}>
           <FilterMenu

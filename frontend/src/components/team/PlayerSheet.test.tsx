@@ -44,6 +44,13 @@ const sheet = (props: Partial<Parameters<typeof PlayerSheet>[0]> = {}) => {
 };
 
 describe("PlayerSheet", () => {
+  it("always has a Close button", () => {
+    const onClose = vi.fn();
+    sheet({ onClose });
+    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    expect(onClose).toHaveBeenCalled();
+  });
+
   it("heads the sheet with the player's position, team, place in the lineup and round", () => {
     sheet();
     expect(screen.getByRole("heading", { name: "Brian Thomas Jr." })).toBeInTheDocument();
@@ -65,7 +72,7 @@ describe("PlayerSheet", () => {
 
   it("greys out a swap with a locked starter and says why", () => {
     sheet();
-    const locked = screen.getByRole("button", { name: /Swap with James Cook/ });
+    const locked = screen.getByRole("button", { name: /James Cook/ });
     expect(locked).toBeDisabled();
     expect(locked).toHaveTextContent("game started, locked");
   });

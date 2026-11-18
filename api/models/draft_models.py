@@ -3,7 +3,7 @@ from datetime import datetime
 from pydantic import Field
 
 from api.models.base import BaseSchema
-from api.models.enums import DraftStatus, DraftType, PickTimeoutAction
+from api.models.enums import DraftStatus, DraftType, PickSource, PickTimeoutAction
 from api.models.league_models import PICK_SECONDS_MAX, PICK_SECONDS_MIN
 
 
@@ -21,6 +21,7 @@ class DraftPickResponse(BaseSchema):
     number_pick_overall: int
     number_pick_in_round: int
     autopick: bool = False
+    source: PickSource = PickSource.MANAGER
 
 
 class DraftSlot(BaseSchema):
@@ -72,6 +73,8 @@ class DraftStateResponse(BaseSchema):
     # First Wild Card kickoff: no draft can be scheduled or started after it.
     draft_cutoff: datetime | None = None
     playoff_field_set: bool = False
+    # Teams on autopilot: auto-picked a few seconds into their turn.
+    autopilot_team_ids: list[int] = Field(default_factory=list)
 
 
 class DraftSetup(BaseSchema):
@@ -96,6 +99,10 @@ class AssignPickRequest(BaseSchema):
 
 class DraftOrderUpdate(BaseSchema):
     team_ids: list[int | None]
+
+
+class AutopilotUpdate(BaseSchema):
+    enabled: bool
 
 
 class PickRequest(BaseSchema):
