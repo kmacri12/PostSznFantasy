@@ -13,6 +13,7 @@ from api.services.ingestion.schemas import (
     StatsShapeError,
     field_goal_yards_by_kicker,
     field_goal_yards_missed_by_kicker,
+    normalise_position,
     parse_injury_status,
     parse_stat_line,
     safe_int,
@@ -163,3 +164,10 @@ def test_injury_status_keeps_only_the_four_game_day_tags(
     injury: Any, expected: str | None
 ) -> None:
     assert parse_injury_status(injury) == expected
+
+
+def test_normalise_position_stores_fullbacks_as_rb_and_kickers_as_k() -> None:
+    assert normalise_position("FB") == "RB"
+    assert normalise_position("PK") == "K"
+    assert normalise_position(" QB ") == "QB"
+    assert normalise_position(None) is None

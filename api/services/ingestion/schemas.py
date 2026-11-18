@@ -82,9 +82,9 @@ def safe_str(val: Any) -> str | None:
 
 
 def normalise_position(raw: Any) -> str | None:
-    """Fullbacks are running backs everywhere in the app."""
+    """Fullbacks are running backs and Tank01's `PK` kickers are `K` everywhere in the app."""
     position = safe_str(raw)
-    return "RB" if position == "FB" else position
+    return {"FB": "RB", "PK": "K"}.get(position or "", position)
 
 
 _INJURY_TAGS = {

@@ -20,6 +20,7 @@ from api.models.enums import PlayerPosition
 from api.services.awards import Award, compute_awards
 from api.services.ingestion.box_scores_ingest import parse_game_player_stats
 from api.services.ingestion.dst_stats import dst_player_id
+from api.services.ingestion.schemas import normalise_position
 from api.services.lineups import BENCH, slot_layout
 from api.services.round_points import (
     PointsLine,
@@ -64,7 +65,9 @@ class RealLeague:
                 label = f"{row['name']} ({row['team']}) {row['pos']}"
                 self.ids[label] = row["playerId"]
                 self.players[row["playerId"]] = NFLPlayer(
-                    id=row["playerId"], name=row["name"], position=row["pos"]
+                    id=row["playerId"],
+                    name=row["name"],
+                    position=normalise_position(row["pos"]),
                 )
         for abv, nfl_team_id in replay.team_ids.items():
             player_id = dst_player_id(nfl_team_id)

@@ -81,9 +81,9 @@ describe("statLine", () => {
 });
 
 describe("buildPlayerRows", () => {
-  it("reads the upstream's PK and DEF as K and DST so the position filters match", () => {
+  it("reads the upstream's DEF as DST so the position filters match", () => {
     const built = buildPlayerRows(
-      [player(20, "Harrison Butker", "PK"), player(21, "Bills", "DEF")],
+      [player(20, "Harrison Butker", "K"), player(21, "Bills", "DEF")],
       [],
     );
     expect(built.map((row) => row.position)).toEqual(["K", "DST"]);
