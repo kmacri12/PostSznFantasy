@@ -220,7 +220,7 @@ const DraftPage = () => {
         />
         <ShareCardButton
           card={draftCard(season.leagueName, season.year, state)}
-          label="Share draft recap"
+          label="Share draft board"
         />
         <Box sx={{ mx: -2 }}>
           <ViewTabs
