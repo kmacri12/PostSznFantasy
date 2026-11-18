@@ -34,7 +34,7 @@ export interface BoardCell {
 const ROUND_COL = 28;
 // 6 teams (the default league) fit a 375px phone; bigger leagues scroll with pinned headers.
 const TEAM_COL = 56;
-const HEADER_ROW = 40;
+const HEADER_ROW = 44;
 const CELL_HEIGHT = 56;
 
 /** Initials for the narrow column header; the full name opens with the cell. */
@@ -177,18 +177,22 @@ const DraftBoard: React.FC<Props> = ({ state, myTeamId, sx, onSelectSlot }) => {
             }}
           >
             <Typography
-              noWrap
               title={slot.teamName}
               sx={{
-                fontSize: 12,
+                fontSize: 11,
                 fontWeight: 700,
+                lineHeight: 1.15,
                 width: "100%",
                 textAlign: "center",
+                overflowWrap: "anywhere",
+                display: "-webkit-box",
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
                 color: slot.teamId === myTeamId ? tokens.accent : tokens.text,
               }}
             >
-              {teamInitials(slot.teamName)}
-              <Box component="span" sx={visuallyHidden}>{` ${slot.teamName}`}</Box>
+              {slot.teamName}
             </Typography>
           </Box>
         ))}
