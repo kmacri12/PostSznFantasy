@@ -1,57 +1,39 @@
-import GavelIcon from "@mui/icons-material/Gavel";
-import { Box, Typography } from "@mui/material";
+import { IconButton, Tooltip } from "@mui/material";
 import type { SlotMark } from "../../api/types";
-import { tokens } from "../../theme";
+import CommissionerMark from "../common/CommissionerMark";
 import { formatWhen } from "./describe";
 
 interface Props {
   mark: SlotMark;
-  /** The slot has no player now (an override took them out). */
+  /** The slot has no player now (a commissioner took them out). */
   empty: boolean;
 }
 
+/** What a commissioner did to a slot, in words (the gavel's tap-to-read text). */
+export const slotMarkText = (mark: SlotMark, empty: boolean): string => {
+  const who = `${mark.actorName ?? "A commissioner"} · ${formatWhen(mark.at)}`;
+  const verb = empty ? "Emptied" : "Set";
+  return mark.kind === "override"
+    ? `${verb} by a commissioner after kickoff: ${who}`
+    : `${verb} by a commissioner: ${who}`;
+};
+
 /**
- * What a commissioner did to a slot. An override is a bordered block with an icon and
- * words (never colour alone) and stays for good; the asterisk is a quiet line that goes
- * when the player locks.
+ * A gavel on the lineup row that opens the wording on tap (or hover or focus), so the mark never
+ * adds a line. After kickoff the words say so ("after kickoff"); the colour is not the signal.
  */
 const SlotMarker = ({ mark, empty }: Props) => {
-  const who = `${mark.actorName ?? "A commissioner"} · ${formatWhen(mark.at)}`;
-  if (mark.kind === "commissioner_set") {
-    return (
-      <Typography
-        variant="caption"
-        data-testid="commissioner-set-mark"
-        sx={{ display: "block", px: 1, pb: 0.5, color: tokens.accent }}
-      >
-        * {empty ? "Emptied" : "Set"} by {who}
-      </Typography>
-    );
-  }
+  const text = slotMarkText(mark, empty);
   return (
-    <Box
-      data-testid="override-mark"
-      sx={{
-        display: "flex",
-        alignItems: "flex-start",
-        gap: 1,
-        mx: 1,
-        mb: 0.75,
-        p: 1,
-        border: `2px solid ${tokens.red}`,
-        borderRadius: 1,
-      }}
-    >
-      <GavelIcon fontSize="small" sx={{ color: tokens.red, mt: 0.25 }} />
-      <Box sx={{ minWidth: 0 }}>
-        <Typography sx={{ fontWeight: 700, fontSize: 14, lineHeight: 1.3 }}>
-          Commissioner action · {empty ? "emptied" : "changed"} after kickoff
-        </Typography>
-        <Typography variant="caption" color="text.secondary">
-          {who}
-        </Typography>
-      </Box>
-    </Box>
+    <Tooltip title={text} arrow placement="top" enterTouchDelay={0} leaveTouchDelay={5000}>
+      <IconButton
+        aria-label={text}
+        data-testid={mark.kind === "override" ? "override-mark" : "commissioner-set-mark"}
+        sx={{ width: 44, height: 44, fontSize: 18 }}
+      >
+        <CommissionerMark />
+      </IconButton>
+    </Tooltip>
   );
 };
 
