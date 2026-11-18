@@ -1,5 +1,6 @@
 import { Avatar, Box, Card, Typography } from "@mui/material";
 import type { InvitePreview } from "../../api/types";
+import CommissionerMark from "../common/CommissionerMark";
 
 const initials = (name: string): string =>
   name
@@ -47,11 +48,7 @@ const InviteMembers = ({ preview }: { preview: InvitePreview }) => {
               {initials(member.displayName)}
             </Avatar>
             <Typography sx={{ flex: 1, fontWeight: 600 }}>{member.displayName}</Typography>
-            {member.isCommissioner && (
-              <Typography variant="caption" color="text.secondary">
-                Commissioner
-              </Typography>
-            )}
+            {member.isCommissioner && <CommissionerMark />}
           </Row>
         ))}
         {Array.from({ length: preview.openSpots }, (_, index) => (

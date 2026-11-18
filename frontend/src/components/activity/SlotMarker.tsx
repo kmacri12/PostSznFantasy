@@ -1,7 +1,6 @@
-import GavelIcon from "@mui/icons-material/Gavel";
 import { IconButton, Tooltip } from "@mui/material";
 import type { SlotMark } from "../../api/types";
-import { tokens } from "../../theme";
+import CommissionerMark from "../common/CommissionerMark";
 import { formatWhen } from "./describe";
 
 interface Props {
@@ -21,8 +20,7 @@ export const slotMarkText = (mark: SlotMark, empty: boolean): string => {
 
 /**
  * A gavel on the lineup row that opens the wording on tap (or hover or focus), so the mark never
- * adds a line. Red after kickoff, where the league is told prominently; the words carry the
- * meaning, never the colour alone.
+ * adds a line. After kickoff the words say so ("after kickoff"); the colour is not the signal.
  */
 const SlotMarker = ({ mark, empty }: Props) => {
   const text = slotMarkText(mark, empty);
@@ -31,13 +29,9 @@ const SlotMarker = ({ mark, empty }: Props) => {
       <IconButton
         aria-label={text}
         data-testid={mark.kind === "override" ? "override-mark" : "commissioner-set-mark"}
-        sx={{
-          width: 44,
-          height: 44,
-          color: mark.kind === "override" ? tokens.red : tokens.warning,
-        }}
+        sx={{ width: 44, height: 44, fontSize: 18 }}
       >
-        <GavelIcon sx={{ fontSize: 18 }} />
+        <CommissionerMark />
       </IconButton>
     </Tooltip>
   );
