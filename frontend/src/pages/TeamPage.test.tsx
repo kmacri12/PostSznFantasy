@@ -114,12 +114,12 @@ describe("TeamPage", () => {
       screen.getByRole("tab", { name: /Conference Championship/, selected: true }),
     ).toBeInTheDocument();
     const starters = screen.getByRole("region", { name: "Starters" });
-    expect(within(starters).getByText("Josh Allen")).toBeInTheDocument();
+    expect(within(starters).getByText("Josh Allen · KC")).toBeInTheDocument();
     expect(
       within(starters).getByText("Live 8:42 · 14/21, 168 yds, 2 TD, 0 INT"),
     ).toBeInTheDocument();
     expect(
-      within(screen.getByRole("region", { name: "Bench" })).getByText("Puka Nacua"),
+      within(screen.getByRole("region", { name: "Bench" })).getByText("Puka Nacua · KC"),
     ).toBeInTheDocument();
     const eliminated = screen.getByRole("region", { name: "Eliminated" });
     expect(within(eliminated).getByText("Eliminated in Divisional")).toBeInTheDocument();
