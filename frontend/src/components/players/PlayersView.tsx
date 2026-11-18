@@ -20,6 +20,7 @@ import ErrorState from "../common/ErrorState";
 import InjuryTag from "../common/InjuryTag";
 import LoadingState from "../common/LoadingState";
 import TeamUnitBadge from "../common/TeamUnitBadge";
+import { positionChipSx } from "../draft/positions";
 import FilterMenu from "./FilterMenu";
 import {
   type Availability,
@@ -140,7 +141,10 @@ const PlayerListItem = ({ row, owner, myTeamId, year, draft, armed, onDraft }: R
           )}
         </Typography>
         <Typography sx={{ fontSize: 12, color: tokens.muted, mt: 0.125 }}>
-          {row.position} {row.team}
+          <Box component="span" sx={positionChipSx(row.position)}>
+            {row.position}
+          </Box>{" "}
+          {row.team}
           {" · "}
           {drafted && owner ? ownerText(owner) : row.line}
           {row.eliminated && " · Eliminated"}
