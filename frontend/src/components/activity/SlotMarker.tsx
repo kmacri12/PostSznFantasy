@@ -24,7 +24,7 @@ const SlotMarker = ({ mark, empty }: Props) => {
         data-testid="commissioner-set-mark"
         sx={{ display: "block", px: 1, pb: 0.5, color: tokens.accent }}
       >
-        * Set by {who}
+        * {empty ? "Emptied" : "Set"} by {who}
       </Typography>
     );
   }
@@ -45,7 +45,7 @@ const SlotMarker = ({ mark, empty }: Props) => {
       <GavelIcon fontSize="small" sx={{ color: tokens.red, mt: 0.25 }} />
       <Box sx={{ minWidth: 0 }}>
         <Typography sx={{ fontWeight: 700, fontSize: 14, lineHeight: 1.3 }}>
-          {empty ? "Emptied" : "Changed"} by commissioner after kickoff
+          Commissioner action · {empty ? "emptied" : "changed"} after kickoff
         </Typography>
         <Typography variant="caption" color="text.secondary">
           {who}

@@ -122,7 +122,7 @@ describe("DraftBoard", () => {
     fireEvent.click(screen.getByTestId("pick-1"));
     expect(screen.getByText("Pat QB")).toBeTruthy();
     expect(screen.getByText("Round 1 · Alpha")).toBeTruthy();
-    expect(screen.getByText("Auto-picked by the commissioner (Auto-pick now)")).toBeTruthy();
+    expect(screen.getByText("Commissioner action · auto-picked (Auto-pick now)")).toBeTruthy();
   });
 
   it("badges picks the manager did not make and lists only those badges in the legend", () => {

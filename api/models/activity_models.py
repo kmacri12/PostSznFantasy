@@ -35,6 +35,9 @@ class CommissionerOverridePayload(LineupMovePayload):
     kind: ClassVar[ActivityKind] = ActivityKind.COMMISSIONER_OVERRIDE
 
     by_commissioner: bool = True
+    # True after kickoff (a locked player or past round); false for a commissioner's
+    # ordinary move on another team's lineup.
+    locked: bool = True
 
 
 class StatCorrectionPayload(BaseSchema):

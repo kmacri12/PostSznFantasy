@@ -106,7 +106,7 @@ const ActivityFeed = ({ scope, id, title, defaultOpen = false }: Props) => {
               sx={{
                 listStyle: "none",
                 p: 1.25,
-                border: `1px solid ${event.kind === "commissioner_override" ? tokens.red : tokens.border}`,
+                border: `1px solid ${event.kind === "commissioner_override" && event.payload.locked !== false ? tokens.red : tokens.border}`,
                 borderRadius: 1,
               }}
             >
@@ -115,7 +115,12 @@ const ActivityFeed = ({ scope, id, title, defaultOpen = false }: Props) => {
                   <Chip size="small" label="New" color="primary" sx={{ mr: 1 }} />
                 )}
                 {event.kind === "commissioner_override" && (
-                  <Chip size="small" variant="outlined" label="Override" sx={{ mr: 1 }} />
+                  <Chip
+                    size="small"
+                    variant="outlined"
+                    label={event.payload.locked !== false ? "Override" : "Commissioner"}
+                    sx={{ mr: 1 }}
+                  />
                 )}
                 {describeEvent(event)}
               </Typography>

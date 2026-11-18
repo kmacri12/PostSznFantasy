@@ -55,7 +55,9 @@ async def test_slot_markers_appear_in_the_breakdown(
         await commissioner.post(
             s.lineup_url, json=s.move(s.players[0], QB, confirmOverride=True)
         )
-        await commissioner.post(s.lineup_url, json=s.move(s.players[3], FLEX))
+        await commissioner.post(
+            s.lineup_url, json=s.move(s.players[3], FLEX, confirmOverride=True)
+        )
     starters = {
         slot["index"]: slot
         for slot in (await _breakdown(client_as, s))["rounds"][0]["starters"]

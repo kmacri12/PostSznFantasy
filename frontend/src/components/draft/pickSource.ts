@@ -21,9 +21,9 @@ export const sourceDetail = (source: PickSource): string => {
     case "no_owner":
       return "Auto-picked: the team has no manager";
     case "commissioner_auto":
-      return "Auto-picked by the commissioner (Auto-pick now)";
+      return "Commissioner action · auto-picked (Auto-pick now)";
     case "commissioner_assigned":
-      return "Picked by the commissioner";
+      return "Commissioner action · picked for the team";
   }
 };
 

@@ -443,6 +443,8 @@ export interface LineupMovePayload {
   displaced: { playerId: number; playerName: string; toSlot: string | null } | null;
   changedSlots: number[];
   byCommissioner: boolean;
+  /** On a `commissioner_override`: after kickoff (a locked player or past round), flagged red. */
+  locked?: boolean;
 }
 
 export type ActivityEvent = ActivityBase &
