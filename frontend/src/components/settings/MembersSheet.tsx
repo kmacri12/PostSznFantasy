@@ -14,6 +14,7 @@ import { useRegenerateInvite, useRemoveMember, useSetMemberRole } from "../../ap
 import type { MemberSummary } from "../../api/types";
 import { INVITE_RETIRED_NOTE, LAST_COMMISSIONER_NOTE } from "../../content/rules";
 import Dialog from "../common/AppDialog";
+import CommissionerMark from "../common/CommissionerMark";
 import { mutationError } from "../common/friendlyError";
 import PictureAvatar from "../common/PictureAvatar";
 import { isLastCommissioner, removalWarning, toggledRole } from "./members";
@@ -93,11 +94,7 @@ const MembersSheet = ({ leagueId, members, currentUserId, readOnly = false, onCl
                 </Typography>
               </Box>
               {readOnly ? (
-                member.role === "commissioner" && (
-                  <Typography variant="caption" color="text.secondary">
-                    Commissioner
-                  </Typography>
-                )
+                member.role === "commissioner" && <CommissionerMark />
               ) : (
                 <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
                   <Box component="label" sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>

@@ -18,6 +18,7 @@ import type { SeasonOverview, Standings as StandingsData, StandingsRow } from ".
 import { HELP_TIPS } from "../../content/rules";
 import { useSeasonContext } from "../../contexts/SeasonContext";
 import { tint, tokens } from "../../theme";
+import CommissionerMark from "../common/CommissionerMark";
 import HelpTip from "../common/HelpTip";
 import PictureAvatar from "../common/PictureAvatar";
 import QueryBoundary from "../common/QueryBoundary";
@@ -25,6 +26,17 @@ import ShareCardButton from "../share/ShareCardButton";
 import { roundCard } from "../share/shareCards";
 import RankCell from "./RankCell";
 import { formatPoints, isOpenSpot, ROUNDS, rankLabel, rowDetail, tieNote } from "./standingsView";
+
+const RowDetail = ({ row, live }: { row: StandingsRow; live: boolean }) => {
+  const { owner, rest } = rowDetail(row, live);
+  return (
+    <>
+      {owner}
+      {row.isCommissioner && <CommissionerMark />}
+      {rest && ` · ${rest}`}
+    </>
+  );
+};
 
 const PLACE_COLORS = [tokens.gold, "grey.400", "warning.dark"];
 
@@ -154,7 +166,7 @@ const PhoneRow = ({
               {row.teamName}
             </Typography>
             <Typography variant="caption" component="div" sx={{ color: color ?? "text.secondary" }}>
-              {rowDetail(row, !finished)}
+              <RowDetail row={row} live={!finished} />
             </Typography>
           </Box>
           <Box sx={{ textAlign: "right", flexShrink: 0 }}>
@@ -271,7 +283,7 @@ const DesktopTable = ({ rows, round, finished }: Omit<RowProps, "row" | "index">
                   <Box>
                     <Typography sx={{ fontWeight: 600, color }}>{row.teamName}</Typography>
                     <Typography variant="caption" sx={{ color: color ?? "text.secondary" }}>
-                      {rowDetail(row, !finished)}
+                      <RowDetail row={row} live={!finished} />
                     </Typography>
                   </Box>
                 </Box>
@@ -354,7 +366,7 @@ const SlotList = ({ rows, season }: { rows: StandingsRow[]; season: SeasonOvervi
                   {open ? "Open slot" : row.teamName}
                 </Typography>
                 <Typography variant="caption" color="text.secondary" noWrap component="div">
-                  {rowDetail(row, false)}
+                  <RowDetail row={row} live={false} />
                 </Typography>
               </Box>
               {scheduled && (
