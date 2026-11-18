@@ -116,7 +116,7 @@ export const draftCard = (
   return {
     kind: "draft",
     leagueName,
-    eyebrow: `${year} draft board`,
+    eyebrow: `${year} draft recap`,
     headline: leagueName,
     subhead: `${draft.picks.length} picks, ${draft.rounds} rounds`,
     rows: [],
@@ -125,20 +125,8 @@ export const draftCard = (
   };
 };
 
-export const BOARD_MARGIN = 40;
-export const BOARD_ROUND_COL = 56;
-export const BOARD_TEAM_COL = 168;
-export const BOARD_HEADER = 190;
-export const BOARD_TEAM_ROW = 80;
-export const BOARD_CELL = 76;
-export const BOARD_FOOTER = 90;
-
-/** Picture size: the podium cards are a fixed portrait; the board grows with teams and rounds. */
-export const cardSize = (card: ShareCard): { width: number; height: number } => {
-  if (card.kind !== "draft") return { width: CARD_WIDTH, height: CARD_HEIGHT };
-  const rounds = Math.max(1, ...card.columns.map((column) => column.lines.length));
-  return {
-    width: BOARD_MARGIN * 2 + BOARD_ROUND_COL + card.columns.length * BOARD_TEAM_COL,
-    height: BOARD_HEADER + BOARD_TEAM_ROW + rounds * BOARD_CELL + BOARD_FOOTER,
-  };
+/** Three teams across for a small league, four above six. */
+export const draftGridShape = (teams: number): { cols: number; rows: number } => {
+  const cols = teams <= 6 ? 3 : 4;
+  return { cols, rows: Math.max(1, Math.ceil(teams / cols)) };
 };

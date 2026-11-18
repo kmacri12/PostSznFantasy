@@ -185,7 +185,7 @@ const DraftPage = () => {
         {archived && <ArchivedNotice what="picks and the queue" />}
         <ShareCardButton
           card={draftCard(season.leagueName, season.year, state)}
-          label="Share draft board"
+          label="Share draft recap"
         />
         <Box sx={{ mx: -2 }}>
           <ViewTabs

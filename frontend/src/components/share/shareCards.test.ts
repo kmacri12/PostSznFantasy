@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { DraftState, SeasonRecap, Standings, StandingsRow } from "../../api/types";
-import { cardSize, championCard, draftCard, roundCard, roundIsComplete } from "./shareCards";
+import { championCard, draftCard, draftGridShape, roundCard, roundIsComplete } from "./shareCards";
 
 const row = (id: number, name: string, wildCard: number, extra: Partial<StandingsRow> = {}) =>
   ({
@@ -107,14 +107,8 @@ describe("draftCard", () => {
   it("has no card until the draft is complete", () => {
     expect(draftCard("L", 2026, { ...draft, status: "in_progress" })).toBeNull();
   });
-  it("sizes the board by teams and rounds", () => {
-    const card = draftCard("L", 2026, draft);
-    const small = card ? cardSize(card) : null;
-    expect(small?.width).toBeLessThan(
-      cardSize({
-        ...(card as NonNullable<typeof card>),
-        columns: [...(card?.columns ?? []), ...(card?.columns ?? [])],
-      }).width,
-    );
+  it("shapes the grid by team count", () => {
+    expect(draftGridShape(6)).toEqual({ cols: 3, rows: 2 });
+    expect(draftGridShape(12)).toEqual({ cols: 4, rows: 3 });
   });
 });
