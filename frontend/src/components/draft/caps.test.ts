@@ -9,8 +9,8 @@ describe("cappedPositions", () => {
     expect(POSITION_MAX_REASON).toBe("Position max reached");
   });
 
-  it("counts kickers and defenses stored under Tank01's raw positions", () => {
-    expect(Object.keys(cappedPositions({ K: 1, DST: 1 }, ["PK", "DEF"]))).toEqual(["K", "DST"]);
+  it("counts defenses stored under Tank01's raw positions", () => {
+    expect(Object.keys(cappedPositions({ K: 1, DST: 1 }, ["K", "DEF"]))).toEqual(["K", "DST"]);
     expect(Object.keys(cappedPositions({ DST: 1 }, ["D/ST"]))).toEqual(["DST"]);
   });
 

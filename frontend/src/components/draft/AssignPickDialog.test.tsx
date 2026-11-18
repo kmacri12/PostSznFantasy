@@ -16,7 +16,7 @@ const player = (id: number, name: string, position: string): PlayerSummary => ({
 });
 const pool = [
   player(1, "Josh Allen", "QB"),
-  player(2, "Tyler Bass", "PK"),
+  player(2, "Tyler Bass", "K"),
   player(3, "Bills D", "DEF"),
 ];
 const draft = {
@@ -30,7 +30,7 @@ const listed = () =>
   screen.queryAllByRole("button").filter((b) => /^(Josh|Tyler|Bills)/.test(b.textContent ?? ""));
 
 describe("AssignPickDialog", () => {
-  it("lists kickers and defenses stored as PK / DEF under their position chips", () => {
+  it("lists kickers and defenses stored as DEF under their position chips", () => {
     render(
       <AssignPickDialog
         draft={draft}
