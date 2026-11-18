@@ -1,3 +1,4 @@
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { Box, Button, Typography } from "@mui/material";
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
@@ -20,13 +21,22 @@ const Block = ({ children }: { children: ReactNode }) => (
   <Box
     sx={{
       borderRadius: 2,
-      p: 2,
+      px: 2,
+      py: 1.25,
       bgcolor: tokens.accentSurface,
       border: `1px solid ${tokens.accentBorder}`,
       display: "flex",
       flexDirection: "column",
       gap: 0.5,
     }}
+  >
+    {children}
+  </Box>
+);
+
+const Row = ({ children }: { children: ReactNode }) => (
+  <Box
+    sx={{ display: "flex", alignItems: "center", flexWrap: "wrap", columnGap: 1.5, rowGap: 0.5 }}
   >
     {children}
   </Box>
@@ -154,10 +164,10 @@ const LineupBlock = ({
   });
   return (
     <Block>
-      <Title>Set your lineup</Title>
-      <Detail>First lock: {locks}. Each player locks at their own kickoff.</Detail>
-      {Date.parse(firstKickoff) > Date.now() && (
-        <Box sx={{ display: "flex", mt: 1 }}>
+      <Row>
+        <Title>Set your lineup</Title>
+        <Detail>First lock {locks}</Detail>
+        {Date.parse(firstKickoff) > Date.now() && (
           <AddToCalendar
             label="Add first lock to calendar"
             event={lockCalendarEvent({
@@ -170,9 +180,19 @@ const LineupBlock = ({
             })}
             filename="first-lock.ics"
           />
-        </Box>
-      )}
-      {season.myTeamId !== null && <Action to={paths.team(season.myTeamId)}>Open my team</Action>}
+        )}
+        {season.myTeamId !== null && (
+          <Button
+            component={Link}
+            to={paths.team(season.myTeamId)}
+            variant="contained"
+            size="small"
+            sx={{ minHeight: 44, ml: "auto" }}
+          >
+            Open my team
+          </Button>
+        )}
+      </Row>
     </Block>
   );
 };
@@ -193,18 +213,19 @@ const lineupLine = (standings: Standings, teamId: number | null): string | null 
   const parts = [live > 0 ? `${live} live` : null, toPlay > 0 ? `${toPlay} to play` : null].filter(
     Boolean,
   );
-  if (parts.length > 0) return `Your lineup: ${parts.join(", ")}`;
-  return finished > 0 ? "Your lineup: all games final" : null;
+  if (parts.length > 0) return parts.join(", ");
+  return finished > 0 ? "all games final" : null;
 };
 
 const PlayoffBlock = ({ season, standings }: { season: SeasonOverview; standings: Standings }) => {
   const mine = lineupLine(standings, season.myTeamId);
   return (
     <Block>
-      <Title>{ROUND_LABELS[standings.round]}</Title>
-      <Detail>{gamesLine(standings)}</Detail>
-      {mine && <Detail>{mine}</Detail>}
-      <LiveIndicator seasonId={season.id} />
+      <Row>
+        <Title>{ROUND_LABELS[standings.round]}</Title>
+        <Detail>{[gamesLine(standings), mine].filter(Boolean).join(" · ")}</Detail>
+        <LiveIndicator seasonId={season.id} />
+      </Row>
     </Block>
   );
 };
@@ -229,13 +250,18 @@ const AfterDraft = ({ season }: { season: SeasonOverview }) => {
   return standings ? <PlayoffBlock season={season} standings={standings} /> : null;
 };
 
-/** Hidden while the owner's bracket kill switch is off. */
-const BracketLink = () => {
+/** A small link row under the standings; hidden while the owner's bracket kill switch is off. */
+export const BracketLink = () => {
   const { paths } = useSeasonContext();
   const { bracket } = useFeatures();
   if (!bracket) return null;
   return (
-    <Button component={Link} to={paths.bracket} variant="outlined" fullWidth sx={{ minHeight: 48 }}>
+    <Button
+      component={Link}
+      to={paths.bracket}
+      endIcon={<ChevronRightIcon aria-hidden />}
+      sx={{ minHeight: 44, alignSelf: "flex-start", fontWeight: 600 }}
+    >
       NFL bracket
     </Button>
   );
@@ -247,16 +273,8 @@ const phaseBlock = (season: SeasonOverview) => {
   return <AfterDraft season={season} />;
 };
 
-/**
- * The block that tops the League tab, with the way into the NFL bracket underneath; a
- * finished season shows the champion card instead.
- */
+/** The block that tops the League tab; a finished season shows the champion card instead. */
 const PhaseBlock = ({ season }: { season: SeasonOverview }) =>
-  season.finished ? null : (
-    <>
-      {phaseBlock(season)}
-      <BracketLink />
-    </>
-  );
+  season.finished ? null : phaseBlock(season);
 
 export default PhaseBlock;
