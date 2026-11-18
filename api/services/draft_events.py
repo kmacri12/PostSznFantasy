@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.db.models.draft import Draft
 from api.models.draft_models import DraftPickResponse
-from api.models.enums import DraftStatus
+from api.models.enums import DraftStatus, PickSource
 from api.services import draft_flow, notifications, push
 from api.services.draft_picks import PickResult
 from api.ws.draft_manager import draft_manager
@@ -33,6 +33,7 @@ async def pick_events(
             number_pick_overall=pick.number_pick_overall,
             number_pick_in_round=pick.number_pick_in_round,
             autopick=pick.autopick,
+            source=PickSource(pick.source),
         )
         events.append(
             {"eventType": "PICK_MADE", "data": response.model_dump(mode="json")}
