@@ -1,4 +1,4 @@
-import { Alert, Box, ButtonBase, Drawer, Skeleton, Typography } from "@mui/material";
+import { Alert, Box, Button, ButtonBase, Drawer, Skeleton, Typography } from "@mui/material";
 import { usePlayerSeasonLine } from "../../api/queries";
 import type { LineupPlayer, RoundLineup } from "../../api/types";
 import { useBackClosesOverlay } from "../../hooks/useBackClosesOverlay";
@@ -156,7 +156,9 @@ const PlayerSheet = ({
             display: "flex",
             flexDirection: "column",
             gap: 1.5,
-            maxHeight: "90vh",
+            // dvh follows Safari's dynamic toolbar; vh is the fallback for older browsers.
+            maxHeight: ["90vh", "90dvh"],
+            overflow: "hidden",
           },
         },
       }}
@@ -184,48 +186,62 @@ const PlayerSheet = ({
             {gameWhen(player)}
           </Typography>
         </Box>
+        <Button onClick={onClose} sx={{ minHeight: 44, minWidth: 44, flexShrink: 0 }}>
+          Close
+        </Button>
       </Box>
 
-      <Box>
-        {season.isPending ? (
-          <Skeleton variant="rounded" height={64} />
-        ) : (
-          <>
-            {season.data && (
-              <Typography sx={{ fontSize: 12, color: tokens.muted, mb: 0.75 }}>
-                {season.data.season} regular season
-              </Typography>
-            )}
-            <StatBox
-              rows={[
-                ...(started && player.statLine
-                  ? [{ label: "This round", value: player.statLine }]
-                  : []),
-                ...(rows.length > 0
-                  ? rows
-                  : [{ label: "Regular season", value: "No stats on record" }]),
-              ]}
-            />
-          </>
-        )}
-      </Box>
-
-      {player.status === "eliminated" && (
-        <Typography sx={{ fontSize: 13, color: tokens.dangerMuted }}>
-          The player's team is out, so they can't start this round.
-        </Typography>
-      )}
-      {canMove && options.length > 0 && (
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-          <Typography sx={{ fontSize: 12, color: tokens.muted }}>
-            {ownTeam ? "Move in your lineup" : "Move in this lineup"}
-          </Typography>
-          {options.map((option) => (
-            <MoveRow key={option.key} option={option} disabled={pending} onMove={onMove} />
-          ))}
+      <Box
+        sx={{
+          flex: 1,
+          minHeight: 0,
+          overflowY: "auto",
+          display: "flex",
+          flexDirection: "column",
+          gap: 1.5,
+        }}
+      >
+        <Box>
+          {season.isPending ? (
+            <Skeleton variant="rounded" height={64} />
+          ) : (
+            <>
+              {season.data && (
+                <Typography sx={{ fontSize: 12, color: tokens.muted, mb: 0.75 }}>
+                  {season.data.season} regular season
+                </Typography>
+              )}
+              <StatBox
+                rows={[
+                  ...(started && player.statLine
+                    ? [{ label: "This round", value: player.statLine }]
+                    : []),
+                  ...(rows.length > 0
+                    ? rows
+                    : [{ label: "Regular season", value: "No stats on record" }]),
+                ]}
+              />
+            </>
+          )}
         </Box>
-      )}
-      {error && <Alert severity="error">{error}</Alert>}
+
+        {player.status === "eliminated" && (
+          <Typography sx={{ fontSize: 13, color: tokens.dangerMuted }}>
+            The player's team is out, so they can't start this round.
+          </Typography>
+        )}
+        {canMove && options.length > 0 && (
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+            <Typography sx={{ fontSize: 12, color: tokens.muted }}>
+              {ownTeam ? "Move in your lineup" : "Move in this lineup"}
+            </Typography>
+            {options.map((option) => (
+              <MoveRow key={option.key} option={option} disabled={pending} onMove={onMove} />
+            ))}
+          </Box>
+        )}
+        {error && <Alert severity="error">{error}</Alert>}
+      </Box>
     </Drawer>
   );
 };

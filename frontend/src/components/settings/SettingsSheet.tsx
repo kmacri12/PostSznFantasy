@@ -30,7 +30,17 @@ const SettingsSheet = ({ title, onClose, closeLabel = "Done", children }: Props)
           sx={{ width: 40, height: 4, borderRadius: 2, bgcolor: "divider", mx: "auto", mb: 0.5 }}
         />
       )}
-      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          position: "sticky",
+          top: 0,
+          zIndex: 1,
+          bgcolor: "background.paper",
+        }}
+      >
         <Typography variant="h6" component="h2">
           {title}
         </Typography>
@@ -52,7 +62,9 @@ const SettingsSheet = ({ title, onClose, closeLabel = "Done", children }: Props)
           "aria-label": title,
           sx: {
             borderRadius: "20px 20px 0 0",
-            maxHeight: "90dvh",
+            maxHeight: ["90vh", "90dvh"],
+            overflowY: "auto",
+            pb: "env(safe-area-inset-bottom)",
             border: 1,
             borderColor: "divider",
           },
