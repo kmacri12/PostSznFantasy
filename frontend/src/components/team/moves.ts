@@ -104,7 +104,7 @@ export function moveOptions(
       options.push(
         option(
           `swap-${other.id}`,
-          `Swap with ${other.name}`,
+          other.name,
           `Bench · ${gameWhen(other)}`,
           "Swap",
           { playerId: other.id, slotIndex: placement.index },
@@ -121,7 +121,7 @@ export function moveOptions(
       slot.player
         ? option(
             `swap-${slot.index}`,
-            `Swap with ${slot.player.name}`,
+            slot.player.name,
             `${names.get(slot.index)} · ${gameWhen(slot.player)}`,
             "Swap",
             { playerId: player.id, slotIndex: slot.index },

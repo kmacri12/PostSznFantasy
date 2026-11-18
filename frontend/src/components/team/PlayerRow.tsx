@@ -9,7 +9,7 @@ import InjuryTag from "../common/InjuryTag";
 import TeamUnitBadge from "../common/TeamUnitBadge";
 import { positionChipSx } from "../draft/positions";
 import { formatPoints } from "../league/standingsView";
-import { playerDetail, type RowState, rowState } from "./lineupView";
+import { nameWithTeam, playerDetail, type RowState, rowState } from "./lineupView";
 
 const COLORS: Record<RowState, { label: string; name: string; detail: string; points: string }> = {
   ready: { label: tokens.text, name: tokens.text, detail: tokens.muted, points: tokens.text },
@@ -118,7 +118,7 @@ const PlayerRow = ({
                   textDecoration: eliminated ? "line-through" : "none",
                 }}
               >
-                {player.name}
+                {nameWithTeam(player)}
               </Typography>
               <Typography
                 component="span"
