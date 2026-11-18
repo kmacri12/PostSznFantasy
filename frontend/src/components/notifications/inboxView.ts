@@ -21,7 +21,7 @@ export const describeNotification = (item: InboxItem): InboxLine => {
     case "draft_turn":
       return {
         title: "You're on the clock",
-        body: `Your pick is up in ${league}.`,
+        body: "It's your turn to pick!",
         path: paths.draft,
       };
     case "draft_lobby":

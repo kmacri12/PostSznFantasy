@@ -130,12 +130,7 @@ describe("moves for nobody", () => {
 
 describe("normalizePosition", () => {
   it("reads the upstream's spellings", () => {
-    expect(["DEF", "D/ST", "FB", "wr"].map(normalizePosition)).toEqual([
-      "DST",
-      "DST",
-      "RB",
-      "WR",
-    ]);
+    expect(["DEF", "D/ST", "FB", "wr"].map(normalizePosition)).toEqual(["DST", "DST", "RB", "WR"]);
   });
 });
 
