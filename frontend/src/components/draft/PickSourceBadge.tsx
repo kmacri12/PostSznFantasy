@@ -6,7 +6,9 @@ import SmartToyOutlinedIcon from "@mui/icons-material/SmartToyOutlined";
 import TimerOffOutlinedIcon from "@mui/icons-material/TimerOffOutlined";
 import { Box, Typography } from "@mui/material";
 import type { DraftPick, PickSource } from "../../api/types";
+import { AUTOPILOT } from "../../content/rules";
 import { tokens } from "../../theme";
+import { visuallyHidden } from "../common/visuallyHidden";
 import { SOURCE_LEGEND, sourcesOnBoard } from "./pickSource";
 
 const ICONS: Record<Exclude<PickSource, "manager">, SvgIconComponent> = {
@@ -35,6 +37,16 @@ export const PickSourceIcon = ({ source, size = 11 }: { source: PickSource; size
     />
   );
 };
+
+/** A robot beside a team on autopilot in the board header. */
+export const AutopilotMark = () => (
+  <Box component="span" sx={{ ml: 0.5, color: tokens.warning, whiteSpace: "nowrap" }}>
+    <SmartToyOutlinedIcon aria-hidden sx={{ fontSize: "1em", verticalAlign: "-0.12em" }} />
+    <Box component="span" sx={visuallyHidden}>
+      {`, ${AUTOPILOT.label}`}
+    </Box>
+  </Box>
+);
 
 /** One line under the board naming each badge on it; nothing while every pick is the manager's. */
 export const PickSourceLegend = ({ picks }: { picks: DraftPick[] }) => {

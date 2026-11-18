@@ -98,6 +98,10 @@ class Draft(Base):
     reserved_picks: Mapped[dict[str, int]] = mapped_column(
         JSONB, nullable=False, default=dict, server_default="{}"
     )
+    # Teams the clock auto-picks for shortly after they come on the clock (#463).
+    autopilot_team_ids: Mapped[list[int]] = mapped_column(
+        ARRAY(Integer), nullable=False, default=list, server_default="{}"
+    )
 
     season: Mapped["Season"] = relationship("Season", back_populates="draft")
     draft_picks: Mapped[list["DraftPick"]] = relationship(

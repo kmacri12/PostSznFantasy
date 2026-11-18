@@ -1,6 +1,6 @@
 import { Box, GlobalStyles, Typography } from "@mui/material";
 import type { DraftState } from "../../api/types";
-import { HELP_TIPS } from "../../content/rules";
+import { AUTOPILOT, HELP_TIPS } from "../../content/rules";
 import { useReducedMotion } from "../../hooks/useReducedMotion";
 import { HEADER_HEIGHT, tokens } from "../../theme";
 import HelpTip from "../common/HelpTip";
@@ -31,6 +31,10 @@ const DraftClockBar = ({
 }: Props) => {
   const text = clockText(state, myTeamId, secondsLeft, secondsToStart);
   const reducedMotion = useReducedMotion();
+  const onAutopilot =
+    state.status === "in_progress" &&
+    state.onTheClockTeamId !== null &&
+    state.autopilotTeamIds.includes(state.onTheClockTeamId);
   return (
     <Box
       component="section"
@@ -73,6 +77,18 @@ const DraftClockBar = ({
           }}
         >
           {text.title}
+          {onAutopilot && (
+            <Box
+              component="span"
+              sx={{
+                ml: 0.75,
+                fontSize: 12,
+                color: text.myTurn ? tokens.accentInk : tokens.warning,
+              }}
+            >
+              · {AUTOPILOT.marker}
+            </Box>
+          )}
         </Typography>
         {text.subtitle && (
           <Typography sx={{ fontSize: 12, color: text.myTurn ? tokens.accentInk : tokens.muted }}>

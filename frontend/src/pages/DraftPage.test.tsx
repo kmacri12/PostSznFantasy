@@ -9,6 +9,8 @@ const mocks = vi.hoisted(() => ({
   archived: false,
   status: "in_progress",
   socketSeason: undefined as number | undefined,
+  connected: true,
+  infoStatus: null as string | null,
 }));
 
 const state = () => ({
@@ -19,6 +21,7 @@ const state = () => ({
   queue: [],
   picks: [],
   reservedPicks: [],
+  autopilotTeamIds: [],
   order: [{ slot: 1, teamId: 1, teamName: "Alpha", ownerName: null }],
   rounds: 2,
   draftType: "snake",
@@ -32,10 +35,18 @@ const state = () => ({
 });
 
 vi.mock("../api/queries", () => ({
-  useDraft: () => ({ data: mocks.status === "completed" ? state() : undefined }),
+  useDraft: () => ({
+    data:
+      mocks.status === "completed"
+        ? state()
+        : mocks.infoStatus
+          ? { ...state(), status: mocks.infoStatus }
+          : undefined,
+  }),
   useDraftPool: () => ({ data: [] }),
   useLeagueTeams: () => ({ data: [{ id: 1, name: "Alpha" }] }),
   useSaveQueue: () => ({ mutate: vi.fn() }),
+  useSetAutopilot: () => ({ mutate: vi.fn(), isPending: false, isError: false }),
   useRecheckLeague: () => vi.fn(),
 }));
 vi.mock("../hooks/useDraftRoom", () => ({
@@ -43,7 +54,7 @@ vi.mock("../hooks/useDraftRoom", () => ({
     mocks.socketSeason = seasonId;
     return {
       state: seasonId === undefined ? null : state(),
-      isConnected: true,
+      isConnected: mocks.connected,
       takenPlayerIds: [],
       pendingPlayerId: null,
       secondsLeft: 47,
@@ -91,6 +102,8 @@ const renderDraft = () =>
 beforeEach(() => {
   mocks.archived = false;
   mocks.status = "in_progress";
+  mocks.connected = true;
+  mocks.infoStatus = null;
 });
 
 describe("DraftPage", () => {
@@ -133,6 +146,27 @@ describe("DraftPage", () => {
     fireEvent.click(screen.getByRole("tab", { name: "Players" }));
     expect(screen.getByText("league players")).toBeInTheDocument();
     expect(mocks.socketSeason).toBeUndefined();
+  });
+
+  it("announces a finished draft with links to the board and my team", () => {
+    mocks.status = "completed";
+    renderDraft();
+    expect(screen.getByRole("heading", { name: "Draft complete" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Go to my team" })).toHaveAttribute(
+      "href",
+      expect.stringContaining("/teams/1"),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "See the draft board" }));
+    expect(screen.getByText("board")).toBeInTheDocument();
+  });
+
+  it("shows Draft complete, not a stale clock, when the socket is down and the server says it is over", () => {
+    mocks.connected = false;
+    mocks.infoStatus = "completed";
+    renderDraft();
+    expect(screen.getByRole("heading", { name: "Draft complete" })).toBeInTheDocument();
+    expect(screen.queryByText("Reconnecting…")).toBeNull();
+    expect(screen.queryByRole("timer")).toBeNull();
   });
 
   it("drops commissioner controls and the Players and Queue views for an archived season", () => {
