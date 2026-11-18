@@ -48,7 +48,7 @@ describe("MorePage", () => {
     expect(link).toHaveAttribute("href", "https://buymeacoffee.com/kmacri12");
     expect(link).toHaveAttribute("target", "_blank");
     expect(link).toHaveAttribute("rel", "noopener noreferrer");
-    expect(link).toHaveTextContent("changes nothing in your league");
+    expect(link).toHaveTextContent("Enjoying PostSzn? Buy the developer a coffee.");
   });
 
   it("has no rows the tabs and settings already cover", () => {

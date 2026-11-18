@@ -1,5 +1,4 @@
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import LocalCafeIcon from "@mui/icons-material/LocalCafe";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { Box, Container, Typography } from "@mui/material";
 import { type ReactNode, useState, useSyncExternalStore } from "react";
@@ -57,7 +56,6 @@ interface RowProps {
   to?: string;
   /** A third-party page, opened in a new tab. */
   href?: string;
-  icon?: ReactNode;
   onClick?: () => void;
 }
 
@@ -67,9 +65,8 @@ const rowProps = ({ to, href, onClick }: Pick<RowProps, "to" | "href" | "onClick
   return { component: "button", type: "button", onClick };
 };
 
-const Row = ({ to, href, icon, title, hint, onClick }: RowProps) => (
+const Row = ({ to, href, title, hint, onClick }: RowProps) => (
   <Box {...rowProps({ to, href, onClick })} sx={rowSx}>
-    {icon}
     <span style={{ flex: 1 }}>
       {title}
       {hint && (
@@ -138,14 +135,7 @@ const MorePage = () => {
         {installed ? null : (
           <Row title={INSTALL_LABEL} hint={INSTALL_HINT} onClick={() => setSheet("install")} />
         )}
-        {supportUrl && (
-          <Row
-            href={supportUrl}
-            icon={<LocalCafeIcon sx={{ color: tokens.muted }} />}
-            title={SUPPORT_LABEL}
-            hint={SUPPORT_HINT}
-          />
-        )}
+        {supportUrl && <Row href={supportUrl} title={SUPPORT_LABEL} hint={SUPPORT_HINT} />}
         <Row title={FEEDBACK_LABEL} hint={FEEDBACK_HINT} onClick={() => setSheet("feedback")} />
         <Row
           title={REPORT_PROBLEM_LABEL}
