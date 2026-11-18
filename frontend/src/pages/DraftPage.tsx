@@ -247,7 +247,13 @@ const DraftPage = () => {
     />
   );
   const queuePanel = (
-    <QueuePanel queue={queue} players={players} draftedIds={draftedIds} onChange={updateQueue} />
+    <QueuePanel
+      queue={queue}
+      players={players}
+      draftedIds={draftedIds}
+      onChange={updateQueue}
+      draft={actions}
+    />
   );
   const orderEditor = <DraftOrderEditor draft={state} onDone={() => setEditingOrder(false)} />;
   const showEditor = editingOrder && PRE_DRAFT.includes(state.status);

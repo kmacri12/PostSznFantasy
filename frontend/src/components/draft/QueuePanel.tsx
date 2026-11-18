@@ -1,19 +1,31 @@
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import CloseIcon from "@mui/icons-material/Close";
-import { Box, IconButton, Typography } from "@mui/material";
+import { Box, Button, IconButton, Typography } from "@mui/material";
 import type { PlayerSummary } from "../../api/types";
 import { radii, tokens } from "../../theme";
+import { normalizePosition } from "../team/moves";
+import { useConfirmedPick } from "./useConfirmedPick";
 
 interface Props {
   queue: number[];
   players: Map<number, PlayerSummary>;
   draftedIds: Set<number>;
   onChange: (next: number[]) => void;
+  /** Present in the draft room: the same Draft button and confirmation as the Players list. */
+  draft?: {
+    live: boolean;
+    canPick: boolean;
+    isConnected: boolean;
+    pendingPlayerId: number | null;
+    capped: Record<string, string>;
+    onPick: (playerId: number) => void;
+  };
 }
 
 /** Pre-ranked wish list; auto-pick takes the first player still available. */
-const QueuePanel = ({ queue, players, draftedIds, onChange }: Props) => {
+const QueuePanel = ({ queue, players, draftedIds, onChange, draft }: Props) => {
+  const { armedId, tap } = useConfirmedPick(draft?.onPick);
   const available = queue.filter((id) => !draftedIds.has(id));
   const move = (index: number, delta: number) => {
     const next = [...available];
@@ -48,6 +60,8 @@ const QueuePanel = ({ queue, players, draftedIds, onChange }: Props) => {
         <Box component="ol" aria-label="Pick queue" sx={{ m: 0, p: 0, listStyle: "none" }}>
           {available.map((id, index) => {
             const player = players.get(id);
+            const capped = player ? draft?.capped[normalizePosition(player.position)] : undefined;
+            const armed = armedId === id;
             return (
               <Box
                 component="li"
@@ -70,6 +84,33 @@ const QueuePanel = ({ queue, players, draftedIds, onChange }: Props) => {
                     {player?.position} {player?.team?.teamAbv ?? player?.teamAbv}
                   </Box>
                 </Box>
+                {draft?.live && (
+                  <Button
+                    variant={capped ? "outlined" : "contained"}
+                    color={armed ? "warning" : "primary"}
+                    aria-label={
+                      capped
+                        ? undefined
+                        : `${armed ? "Confirm" : "Draft"} ${player?.name ?? "player"}`
+                    }
+                    disabled={
+                      !draft.canPick ||
+                      !draft.isConnected ||
+                      draft.pendingPlayerId !== null ||
+                      !!capped
+                    }
+                    onClick={() => tap(id)}
+                    sx={{ minWidth: 68, px: 1.5, fontWeight: 700, lineHeight: 1.1 }}
+                  >
+                    {capped
+                      ? "Position full"
+                      : draft.pendingPlayerId === id
+                        ? "Drafting…"
+                        : armed
+                          ? "Confirm"
+                          : "Draft"}
+                  </Button>
+                )}
                 <IconButton
                   aria-label={`Move ${player?.name ?? "player"} up`}
                   disabled={index === 0}
