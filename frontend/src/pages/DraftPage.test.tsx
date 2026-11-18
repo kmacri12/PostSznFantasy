@@ -21,6 +21,7 @@ const state = () => ({
   queue: [],
   picks: [],
   reservedPicks: [],
+  autopilotTeamIds: [],
   order: [{ slot: 1, teamId: 1, teamName: "Alpha", ownerName: null }],
   rounds: 2,
   draftType: "snake",
@@ -45,6 +46,7 @@ vi.mock("../api/queries", () => ({
   useDraftPool: () => ({ data: [] }),
   useLeagueTeams: () => ({ data: [{ id: 1, name: "Alpha" }] }),
   useSaveQueue: () => ({ mutate: vi.fn() }),
+  useSetAutopilot: () => ({ mutate: vi.fn(), isPending: false, isError: false }),
   useRecheckLeague: () => vi.fn(),
 }));
 vi.mock("../hooks/useDraftRoom", () => ({

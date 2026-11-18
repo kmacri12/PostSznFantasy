@@ -44,6 +44,7 @@ from api.services.draft_picks import (
     DraftPickError,
     PickNotDue,
     PickResult,
+    autopilot_due,
     check_roster_limits,
     load_draft_for_update,
     load_settings,
@@ -52,6 +53,7 @@ from api.services.draft_picks import (
     record_pick,
     reservations,
     reserved_positions,
+    set_team_autopilot,
     store_reservations,
     team_on_the_clock,
     validate_candidate,
@@ -183,6 +185,7 @@ async def build_state(db: AsyncSession, draft: Draft) -> DraftStateResponse:
         ),
         playoff_field_set=await playoff_team_count(db)
         == get_settings().playoff_field_size,
+        autopilot_team_ids=list(draft.autopilot_team_ids),
     )
 
 
@@ -582,8 +585,9 @@ async def auto_pick(
 
     The clock sets `only_if_overdue` because it scans for expired deadlines before taking
     the lock; a drafter may have picked in between, which would burn the next team's turn.
-    A team with no owner is always due: nobody is there to wait for. `commissioner` is
-    set for the commissioner's "Auto-pick now", which also posts to the feed.
+    A team with no owner is always due: nobody is there to wait for; a team on
+    autopilot is due a few seconds into its turn. `commissioner` is set for the
+    commissioner's "Auto-pick now", which also posts to the feed.
     """
     draft = await load_draft_for_update(db, season_id)
     settings = await load_settings(db, season_id)
@@ -599,17 +603,23 @@ async def auto_pick(
     )
     team_id = team_on_the_clock(placed_order(draft), picks_made or 0, draft.draft_type)
     owned = await _has_owner(db, team_id)
+    now = datetime.now(UTC)
     if (
         only_if_overdue
         and draft.current_pick_deadline is not None
-        and draft.current_pick_deadline > datetime.now(UTC)
+        and draft.current_pick_deadline > now
         and owned
+        and not autopilot_due(draft, team_id, now)
     ):
         raise PickNotDue("The pick deadline has not passed")
     if commissioner is not None:
         source = PickSource.COMMISSIONER_AUTO
+    elif not owned:
+        source = PickSource.NO_OWNER
+    elif team_id in draft.autopilot_team_ids:
+        source = PickSource.AUTOPILOT
     else:
-        source = PickSource.TIMER if owned else PickSource.NO_OWNER
+        source = PickSource.TIMER
 
     best_available = await _best_available_ids(db, draft, settings)
     pool = set(best_available)
@@ -667,6 +677,34 @@ async def auto_pick(
             )
         return result
     raise DraftPickError("No eligible player is available to auto-pick")
+
+
+class AutopilotForbidden(DraftPickError):
+    """Someone other than the team's manager (or a commissioner switching it off)."""
+
+
+async def set_autopilot(
+    db: AsyncSession,
+    season_id: int,
+    team_id: int,
+    enabled: bool,
+    *,
+    user_id: int,
+    is_commissioner: bool,
+) -> Draft:
+    """The team's manager switches autopilot on or off; a commissioner can only switch
+    it off (for a manager who is back but missed the switch)."""
+    draft = await load_draft_for_update(db, season_id)
+    team = await db.get(Team, team_id)
+    if team is None or team.season_id != season_id:
+        raise DraftPickError("Team not found", code="no_such_team")
+    if team.owner_id != user_id and (enabled or not is_commissioner):
+        raise AutopilotForbidden("Only this team's manager can change its autopilot")
+    if draft.status == DraftStatus.COMPLETED.value:
+        raise DraftPickError("The draft is already complete")
+    set_team_autopilot(draft, team_id, enabled)
+    await db.flush()
+    return draft
 
 
 async def _has_owner(db: AsyncSession, team_id: int) -> bool:

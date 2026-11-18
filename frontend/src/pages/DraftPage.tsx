@@ -10,6 +10,7 @@ import {
 import type { DraftSnapshot, DraftState } from "../api/types";
 import LoadingState from "../components/common/LoadingState";
 import AssignPickDialog from "../components/draft/AssignPickDialog";
+import AutopilotSwitch from "../components/draft/AutopilotSwitch";
 import CommissionerStrip from "../components/draft/CommissionerStrip";
 import { cappedPositions } from "../components/draft/caps";
 import DraftBoard from "../components/draft/DraftBoard";
@@ -262,7 +263,13 @@ const DraftPage = () => {
     />
   );
   const queuePanel = (
-    <QueuePanel queue={queue} players={players} draftedIds={draftedIds} onChange={updateQueue} />
+    <QueuePanel
+      queue={queue}
+      players={players}
+      draftedIds={draftedIds}
+      onChange={updateQueue}
+      draft={actions}
+    />
   );
   const orderEditor = <DraftOrderEditor draft={state} onDone={() => setEditingOrder(false)} />;
   const showEditor = editingOrder && PRE_DRAFT.includes(state.status);
@@ -285,6 +292,9 @@ const DraftPage = () => {
         onOpenSettings={() => setSettingsOpen(true)}
       />
       {settingsSheet}
+      {myTeamId !== null && !archived && (live || state.status === "lobby") && (
+        <AutopilotSwitch draft={state} teamId={myTeamId} />
+      )}
       {season.canCommission && !archived && (
         <CommissionerStrip
           draft={state}
