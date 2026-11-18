@@ -44,6 +44,13 @@ const sheet = (props: Partial<Parameters<typeof PlayerSheet>[0]> = {}) => {
 };
 
 describe("PlayerSheet", () => {
+  it("always has a Close button", () => {
+    const onClose = vi.fn();
+    sheet({ onClose });
+    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    expect(onClose).toHaveBeenCalled();
+  });
+
   it("heads the sheet with the player's position, team, place in the lineup and round", () => {
     sheet();
     expect(screen.getByRole("heading", { name: "Brian Thomas Jr." })).toBeInTheDocument();
