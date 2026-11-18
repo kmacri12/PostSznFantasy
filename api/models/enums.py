@@ -52,6 +52,27 @@ class PickTimeoutAction(StrEnum):
     BEST_AVAILABLE = "best_available"
 
 
+class PickSource(StrEnum):
+    """How a draft pick was made."""
+
+    MANAGER = "manager"
+    TIMER = "timer"
+    AUTOPILOT = "autopilot"
+    NO_OWNER = "no_owner"
+    COMMISSIONER_AUTO = "commissioner_auto"
+    COMMISSIONER_ASSIGNED = "commissioner_assigned"
+
+    @property
+    def is_auto(self) -> bool:
+        """Chosen by auto-pick (queue, then best available), not by a person."""
+        return self in (
+            PickSource.TIMER,
+            PickSource.AUTOPILOT,
+            PickSource.NO_OWNER,
+            PickSource.COMMISSIONER_AUTO,
+        )
+
+
 class LeagueRole(StrEnum):
     COMMISSIONER = "commissioner"
     MEMBER = "member"

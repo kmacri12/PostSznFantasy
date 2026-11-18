@@ -34,6 +34,7 @@ const base: DraftState = {
       numberPickOverall: 1,
       numberPickInRound: 1,
       autopick: false,
+      source: "manager",
     },
   ],
   reservedPicks: [],
@@ -113,11 +114,26 @@ describe("DraftBoard", () => {
   });
 
   it("shows the full pick, and who made it, in a sheet when a cell is tapped", () => {
-    const picks = [{ ...base.picks[0], autopick: true }] as DraftState["picks"];
+    const picks = [
+      { ...base.picks[0], autopick: true, source: "commissioner_auto" },
+    ] as DraftState["picks"];
     render(<DraftBoard state={{ ...base, picks }} myTeamId={10} />);
     fireEvent.click(screen.getByTestId("pick-1"));
     expect(screen.getByText("Pat QB")).toBeTruthy();
-    expect(screen.getByText(/Round 1 · Alpha · Auto-pick/)).toBeTruthy();
+    expect(screen.getByText("Round 1 · Alpha")).toBeTruthy();
+    expect(screen.getByText("Auto-picked by the commissioner (Auto-pick now)")).toBeTruthy();
+  });
+
+  it("badges picks the manager did not make and lists only those badges in the legend", () => {
+    const { rerender } = render(<DraftBoard state={base} myTeamId={null} />);
+    expect(screen.queryByRole("list", { name: "Pick marks" })).toBeNull();
+
+    const picks = [{ ...base.picks[0], autopick: true, source: "timer" }] as DraftState["picks"];
+    rerender(<DraftBoard state={{ ...base, picks }} myTeamId={null} />);
+    expect(screen.getByTestId("pick-1").querySelector('[data-testid="source-timer"]')).toBeTruthy();
+    expect(screen.getByRole("button", { name: /Alpha, Time ran out$/ })).toBeTruthy();
+    const legend = screen.getByRole("list", { name: "Pick marks" });
+    expect(legend.textContent).toBe("Time ran out");
   });
 
   it("says who is on the clock for an empty cell and offers extra actions", () => {
