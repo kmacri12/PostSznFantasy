@@ -1,5 +1,9 @@
+import { Box, Button } from "@mui/material";
 import { useState } from "react";
+import { useSetAutopilot } from "../../api/queries";
 import type { DraftState, DraftType, PickTimeoutAction } from "../../api/types";
+import { AUTOPILOT } from "../../content/rules";
+import { visuallyHidden } from "../common/visuallyHidden";
 import { formatDraftTime } from "../league/countdown";
 import SettingsCard from "../settings/SettingsCard";
 import SettingsRow from "../settings/SettingsRow";
@@ -55,6 +59,9 @@ const DraftSettingsSheet = ({ draft, canEdit, onClose }: Props) => {
           onClick={openRules}
         />
       </SettingsCard>
+      {draft.autopilotTeamIds.length > 0 && draft.status !== "completed" && (
+        <AutopilotTeams draft={draft} canTurnOff={canEdit} />
+      )}
       {editing === "date" && (
         <DraftDateDialog draft={draft} open onClose={() => setEditing(null)} />
       )}
@@ -62,6 +69,37 @@ const DraftSettingsSheet = ({ draft, canEdit, onClose }: Props) => {
         <DraftRulesDialog draft={draft} open onClose={() => setEditing(null)} />
       )}
     </SettingsSheet>
+  );
+};
+
+/** Who the clock is picking for early; a commissioner can switch a team back to its timer. */
+const AutopilotTeams = ({ draft, canTurnOff }: { draft: DraftState; canTurnOff: boolean }) => {
+  const setAutopilot = useSetAutopilot(draft.seasonId);
+  return (
+    <SettingsCard title={AUTOPILOT.settingsTitle}>
+      {draft.autopilotTeamIds.map((teamId) => {
+        const name = draft.order.find((slot) => slot.teamId === teamId)?.teamName ?? "A team";
+        return (
+          <SettingsRow
+            key={teamId}
+            label={name}
+            trailing={
+              canTurnOff ? (
+                <Button
+                  size="small"
+                  sx={{ minHeight: 44 }}
+                  disabled={setAutopilot.isPending}
+                  onClick={() => setAutopilot.mutate({ teamId, enabled: false })}
+                >
+                  {AUTOPILOT.turnOff}{" "}
+                  <Box component="span" sx={visuallyHidden}>{`autopilot for ${name}`}</Box>
+                </Button>
+              ) : undefined
+            }
+          />
+        );
+      })}
+    </SettingsCard>
   );
 };
 

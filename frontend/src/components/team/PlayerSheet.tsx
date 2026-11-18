@@ -52,7 +52,7 @@ const StatBox = ({ rows }: { rows: { label: string; value: string }[] }) => (
   </Box>
 );
 
-const MoveRow = ({
+export const MoveRow = ({
   option,
   disabled,
   onMove,

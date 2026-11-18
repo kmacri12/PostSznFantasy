@@ -32,6 +32,7 @@ const snapshot = (overrides: Partial<DraftSnapshot> = {}): DraftSnapshot => ({
   positionCaps: {},
   draftCutoff: null,
   playoffFieldSet: true,
+  autopilotTeamIds: [],
   queue: [5, 6],
   presence: [],
   myTeamId: 10,
