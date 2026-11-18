@@ -67,7 +67,10 @@ export function useBackClosesOverlay(onClose: () => void, active = true): void {
         queueMicrotask(() => {
           // The page already moved on (a delete that leaves for the home page): going back
           // would return to the page the overlay was opened on.
-          if (owedBacks > 0 && window.location.pathname === path) navigator.go(-owedBacks);
+          // Only a browser router keeps its position in history.state; a memory router has none.
+          const inBrowser = typeof window.history.state?.idx === "number";
+          const moved = inBrowser && window.location.pathname !== path;
+          if (owedBacks > 0 && !moved) navigator.go(-owedBacks);
           owedBacks = 0;
         });
       }
