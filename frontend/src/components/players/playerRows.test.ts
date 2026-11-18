@@ -52,8 +52,27 @@ describe("statLine", () => {
     expect(statLine("WR", stats[1])).toBe("129 rec, 1,715 yds, 10 TD");
     expect(statLine("K", stats[2])).toBe("31/35 FG, 38/39 XP");
     expect(statLine("RB", stat(3, 1, { rushingYards: 1009, rushingTouchdowns: 16 }))).toBe(
-      "1,009 yds, 16 TD",
+      "1,009 rush yds, 16 TD",
     );
+  });
+
+  it("gives a running back his receiving and a quarterback his rushing", () => {
+    const rb = stat(3, 1, {
+      rushingYards: 1009,
+      rushingTouchdowns: 16,
+      receivingReceptions: 50,
+      receivingYards: 400,
+      receivingTouchdowns: 3,
+    });
+    expect(statLine("RB", rb)).toBe("1,009 rush yds, 16 TD · 50 rec, 400 yds, 3 TD");
+    const qb = stat(4, 1, {
+      passingYards: 4306,
+      passingTouchdowns: 31,
+      passingInterceptions: 11,
+      rushingYards: 531,
+      rushingTouchdowns: 12,
+    });
+    expect(statLine("QB", qb)).toBe("4,306 yds, 31 TD, 11 INT · 531 rush yds, 12 rush TD");
   });
 
   it("says so when a player has no regular season stats", () => {
