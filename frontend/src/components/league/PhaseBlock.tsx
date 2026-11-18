@@ -236,7 +236,7 @@ const BracketLink = () => {
   if (!bracket) return null;
   return (
     <Button component={Link} to={paths.bracket} variant="outlined" fullWidth sx={{ minHeight: 48 }}>
-      See the NFL bracket
+      NFL bracket
     </Button>
   );
 };

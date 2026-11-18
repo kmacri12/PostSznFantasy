@@ -144,7 +144,7 @@ describe("PhaseBlock", () => {
 
   it("links to the NFL bracket from every phase, even before the draft", () => {
     show({ draftStatus: "unscheduled", canCommission: false });
-    expect(screen.getByRole("link", { name: "See the NFL bracket" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "NFL bracket" })).toHaveAttribute(
       "href",
       "/leagues/3/bracket",
     );
