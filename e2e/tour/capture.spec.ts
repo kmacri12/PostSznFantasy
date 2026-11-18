@@ -107,7 +107,7 @@ test("tour captures", async ({ page, context, request }) => {
     });
     if (pick === names.length * 3) {
       await page.goto(seasonUrl(league, "/draft"));
-      await page.getByRole("tab", { name: "Board" }).click();
+      await page.getByRole("tab", { name: "Draft board" }).click();
       await expect(page.getByTestId("pick-1")).toBeVisible();
       // The board scrolls itself to the pick on the clock; show it from the first round.
       await expect
