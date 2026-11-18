@@ -140,4 +140,19 @@ describe("PlayersView in the draft room", () => {
     renderView(actions({ takenIds: [1] }));
     expect(names()).toEqual(["James Cook"]);
   });
+
+  it("lists drafted players under Drafted even when the room marks them taken", () => {
+    renderView(actions({ takenIds: [2] }));
+    expect(names()).toEqual(["Josh Allen", "James Cook"]);
+    fireEvent.click(screen.getByRole("button", { name: "Drafted" }));
+    expect(names()).toEqual(["Puka Nacua"]);
+  });
+
+  it("lists a fantasy team's drafted players, leaving Available for All", () => {
+    renderView(actions({ takenIds: [2] }));
+    fireEvent.click(screen.getByRole("button", { name: /Fantasy team/ }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Sam's Squad" }));
+    expect(names()).toEqual(["Puka Nacua"]);
+    expect(screen.getByRole("button", { name: "Available", pressed: false })).toBeInTheDocument();
+  });
 });
