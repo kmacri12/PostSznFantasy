@@ -33,7 +33,7 @@ test.describe("draft room", () => {
 
     const drafted = await draftFirst(page, "QB");
     await expect(page.getByText("Round 1, pick 2")).toBeVisible();
-    await showView(page, "Board");
+    await showView(page, "Draft board");
     await expect(
       page.getByLabel("Draft board").getByText(drafted.split(" ").pop() ?? ""),
     ).toBeVisible();
@@ -69,7 +69,7 @@ test.describe("draft room", () => {
       await expect(view.getByRole("button", { name: "Commissioner controls" })).toHaveCount(0);
       await expect(view.getByText("Draft complete")).toHaveCount(0);
     }
-    await page.getByRole("tab", { name: "Board", exact: true }).click();
+    await page.getByRole("tab", { name: "Draft board", exact: true }).click();
     await expect(page.getByLabel("Draft board")).toBeVisible();
     await page.getByRole("tab", { name: "Players", exact: true }).click();
     await expect(page.getByRole("list", { name: "Players" })).toBeVisible();
@@ -155,7 +155,7 @@ test.describe("draft room", () => {
     const league = await createDraftLeague(request, { seconds: 60, status: "in_progress" });
     await signInAs(context, league.host.uid);
     await page.goto(seasonUrl(league.league, "/draft"));
-    await showView(page, "Board");
+    await showView(page, "Draft board");
 
     await page.getByRole("button", { name: /^Pick 1 / }).click();
     await page.getByRole("button", { name: "Assign pick 1", exact: true }).click();
