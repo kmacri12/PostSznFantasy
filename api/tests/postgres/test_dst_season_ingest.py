@@ -10,6 +10,7 @@ from api.services.ingestion.dst_season_ingest import (
 )
 
 NE, MIA, NYG = 22, 14, 23
+ABBREVIATIONS = {NE: "NE", MIA: "MIA", NYG: "NYG"}
 
 
 def _box(
@@ -58,7 +59,9 @@ class FakeClient:
 
 
 async def _defense(db: AsyncSession, team_id: int, in_playoffs: bool) -> None:
-    db.add(NFLTeam(id=team_id, team_abv=str(team_id), in_playoffs=in_playoffs))
+    db.add(
+        NFLTeam(id=team_id, team_abv=ABBREVIATIONS[team_id], in_playoffs=in_playoffs)
+    )
     await db.flush()
     db.add(
         NFLPlayer(id=-team_id, name="DST", position=PlayerPosition.DST, team_id=team_id)

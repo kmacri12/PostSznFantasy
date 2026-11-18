@@ -22,6 +22,10 @@ from api.utils.rapidapi.rapidapi import RapidApiClient, get_rapidapi_client
 logger = logging.getLogger(__name__)
 
 REGULAR_SEASON = "reg"
+# The season table has no columns for blocked kicks or 2-point returns.
+SEASON_COLUMNS = tuple(
+    column for column in DST_STAT_COLUMNS if hasattr(NFLPlayerSeasonStats, column)
+)
 
 
 def _completed_game_ids(
@@ -80,19 +84,20 @@ async def ingest_dst_season_stats(
     calls = 1
     valid_player_ids = {dst_player_id(team_id) for team_id in pending_ids}
     totals: dict[int, dict[str, int]] = defaultdict(
-        lambda: dict.fromkeys(DST_STAT_COLUMNS, 0)
+        lambda: dict.fromkeys(SEASON_COLUMNS, 0)
     )
     for game_id in game_ids:
         box = await client.get_nfl_box_score(game_id)
         calls += 1
         for row in parse_dst_stat_rows(game_id, box, valid_player_ids):
-            for column in DST_STAT_COLUMNS:
+            for column in SEASON_COLUMNS:
                 totals[row["player_id"]][column] += row[column]
 
     db.add_all(
         NFLPlayerSeasonStats(season=season, player_id=player_id, **columns)
         for player_id, columns in totals.items()
     )
+    await db.flush()
     logger.info("Read %d DST season lines in %d calls", len(totals), calls)
     return calls
 
