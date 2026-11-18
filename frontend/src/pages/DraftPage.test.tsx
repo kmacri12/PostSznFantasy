@@ -105,7 +105,7 @@ describe("DraftPage", () => {
 
   it("switches between Board, Roster and Queue", () => {
     renderDraft();
-    fireEvent.click(screen.getByRole("tab", { name: "Board" }));
+    fireEvent.click(screen.getByRole("tab", { name: "Draft board" }));
     expect(screen.getByText("board")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("tab", { name: "Roster" }));
     expect(screen.getByText("roster")).toBeInTheDocument();
@@ -121,14 +121,17 @@ describe("DraftPage", () => {
     expect(screen.queryByText("draft players")).toBeNull();
   });
 
-  it("is the league player list with the board a tap away once the draft is complete, with no socket", () => {
+  it("opens on the board with the player list a tap away once the draft is complete, with no socket", () => {
     mocks.status = "completed";
     renderDraft();
-    expect(screen.getByText("league players")).toBeInTheDocument();
-    expect(screen.getAllByRole("tab").map((tab) => tab.textContent)).toEqual(["Players", "Board"]);
-    fireEvent.click(screen.getByRole("tab", { name: "Board" }));
+    expect(screen.getAllByRole("tab").map((tab) => tab.textContent)).toEqual([
+      "Draft board",
+      "Players",
+    ]);
     expect(screen.getByText("board")).toBeInTheDocument();
     expect(screen.queryByText("league players")).toBeNull();
+    fireEvent.click(screen.getByRole("tab", { name: "Players" }));
+    expect(screen.getByText("league players")).toBeInTheDocument();
     expect(mocks.socketSeason).toBeUndefined();
   });
 
@@ -138,7 +141,7 @@ describe("DraftPage", () => {
     expect(screen.queryByRole("button", { name: "Edit draft order" })).toBeNull();
     expect(screen.queryByRole("tab", { name: "Players" })).toBeNull();
     expect(screen.queryByRole("tab", { name: "Queue" })).toBeNull();
-    expect(screen.getByRole("tab", { name: "Board" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Draft board" })).toBeInTheDocument();
     expect(screen.getByText(/archived/i)).toBeInTheDocument();
   });
 });

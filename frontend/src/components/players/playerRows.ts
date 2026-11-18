@@ -56,11 +56,17 @@ export function statLine(position: string, stats: SeasonStatsRow | undefined): s
   if (!stats) return "No regular season stats";
   const n = (key: string) => num(stats, key);
   switch (position) {
-    case "QB":
-      return `${count(n("passingYards"))} yds, ${n("passingTouchdowns")} TD, ${n("passingInterceptions")} INT`;
+    case "QB": {
+      const passing = `${count(n("passingYards"))} yds, ${n("passingTouchdowns")} TD, ${n("passingInterceptions")} INT`;
+      return n("rushingYards") || n("rushingTouchdowns")
+        ? `${passing} · ${count(n("rushingYards"))} rush yds, ${n("rushingTouchdowns")} rush TD`
+        : passing;
+    }
     case "RB": {
-      const base = `${count(n("rushingYards"))} yds, ${n("rushingTouchdowns")} TD`;
-      return n("receivingReceptions") > 0 ? `${base}, ${n("receivingReceptions")} rec` : base;
+      const rushing = `${count(n("rushingYards"))} rush yds, ${n("rushingTouchdowns")} TD`;
+      return n("receivingReceptions") > 0
+        ? `${rushing} · ${n("receivingReceptions")} rec, ${count(n("receivingYards"))} yds, ${n("receivingTouchdowns")} TD`
+        : rushing;
     }
     case "WR":
     case "TE":
