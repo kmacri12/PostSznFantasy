@@ -114,7 +114,10 @@ export const openControls = async (page: Page) => {
 const TWO_PANE_WIDTH = 1200;
 
 /** Shows one draft room view (a tab on phones, always on screen on wide screens). */
-export const showView = async (page: Page, view: "Players" | "Board" | "Roster" | "Queue") => {
+export const showView = async (
+  page: Page,
+  view: "Players" | "Draft board" | "Roster" | "Queue",
+) => {
   if ((page.viewportSize()?.width ?? 0) < TWO_PANE_WIDTH)
     await page.getByRole("tab", { name: view }).click();
 };
