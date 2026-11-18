@@ -60,6 +60,7 @@ const PlayerRow = ({
     <Box component="li" sx={{ borderTop: `1px solid ${tokens.border}` }}>
       <Box
         sx={{
+          position: "relative",
           display: "flex",
           alignItems: "center",
           bgcolor: eliminated ? tokens.dangerSurface : "transparent",
@@ -79,7 +80,8 @@ const PlayerRow = ({
           sx={{
             flex: 1,
             minWidth: 0,
-            minHeight: 56,
+            // A "?" sits under the slot label, so the points and "Choose" keep one column.
+            minHeight: help ? 72 : 56,
             display: "flex",
             alignItems: "center",
             justifyContent: "flex-start",
@@ -95,6 +97,7 @@ const PlayerRow = ({
             sx={{
               width: 34,
               flexShrink: 0,
+              ...(help ? { alignSelf: "flex-start", mt: 1.25 } : {}),
               fontSize: 12,
               textAlign: "center",
               color: player ? colors.label : tokens.muted,
@@ -147,7 +150,11 @@ const PlayerRow = ({
             </>
           )}
         </ButtonBase>
-        {help && <HelpTip {...help} />}
+        {help && (
+          <Box sx={{ position: "absolute", left: 9, bottom: 0, zIndex: 1 }}>
+            <HelpTip {...help} />
+          </Box>
+        )}
         <Box sx={{ pr: 1.75, pl: 0.5, minWidth: 52, textAlign: "right" }}>
           {player?.scoreChange ? (
             <ChangedScore
