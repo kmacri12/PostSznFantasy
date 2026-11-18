@@ -38,10 +38,10 @@ class Field:
         await db.flush()
         rows = [
             (10, "Mahomes", "QB", KC), (11, "Minshew", "QB", KC),
-            (12, "Butker", "PK", KC), (13, "Backup Kicker KC", "PK", KC),
+            (12, "Butker", "K", KC), (13, "Backup Kicker KC", "K", KC),
             (14, "Kelce Back", "RB", KC),
             (20, "Hurts", "QB", PHI), (21, "McKee", "QB", PHI),
-            (22, "Elliott", "PK", PHI), (23, "Backup Kicker PHI", "PK", PHI),
+            (22, "Elliott", "K", PHI), (23, "Backup Kicker PHI", "K", PHI),
             (30, "Out QB", "QB", 3),
         ]  # fmt: skip
         db.add_all(
@@ -100,7 +100,7 @@ async def test_team_k_lists_one_kicker_per_team(
 
     pool = await field.pool(client_as, season.id)
 
-    assert {pid for pid, p in pool.items() if p["position"] == "PK"} == {12, 22}
+    assert {pid for pid, p in pool.items() if p["position"] == "K"} == {12, 22}
     assert {10, 11, 20, 21} <= set(pool)
 
 

@@ -11,7 +11,7 @@ const player = (id: number, name: string, position: string): PlayerSummary => ({
 });
 const players = new Map([
   [1, player(1, "Josh Allen", "QB")],
-  [2, player(2, "Tyler Bass", "PK")],
+  [2, player(2, "Tyler Bass", "K")],
 ]);
 
 const draft = (overrides = {}) => ({
@@ -55,7 +55,7 @@ describe("QueuePanel Draft button", () => {
     expect(screen.getByRole("button", { name: "Draft Josh Allen" })).toBeDisabled();
   });
 
-  it("is disabled for a capped position, kickers stored as PK included", () => {
+  it("is disabled for a capped position", () => {
     renderPanel(draft({ capped: { K: "Position max reached" } }));
     expect(screen.getByRole("button", { name: "Position full" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Draft Josh Allen" })).toBeEnabled();

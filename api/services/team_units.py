@@ -33,10 +33,10 @@ def combined_positions(settings: SeasonSettings) -> frozenset[PlayerPosition]:
     )
 
 
-# The raw `pos` values Tank01 stores for each combinable position (kickers are PK).
+# The raw `pos` values Tank01 stores for each combinable position (kickers are stored as K).
 RAW_POSITIONS: dict[PlayerPosition, tuple[str, ...]] = {
     PlayerPosition.QB: ("QB",),
-    PlayerPosition.K: ("K", "PK"),
+    PlayerPosition.K: ("K",),
 }
 
 

@@ -37,7 +37,7 @@ describe("seasonRows", () => {
 
   it("covers the kicker and the defense, under any spelling of the position", () => {
     expect(
-      seasonRows("PK", line({ kickingFgMade: 30, kickingFgMissed: 3, kickingXpMade: 40 })),
+      seasonRows("K", line({ kickingFgMade: 30, kickingFgMissed: 3, kickingXpMade: 40 })),
     ).toEqual([{ label: "Kicking", value: "30/33 FG · 40/40 XP" }]);
     expect(seasonRows("DEF", line({ dstSacks: 50 }))[0]?.label).toBe("Defense");
     expect(seasonRows("LB", line({}))).toEqual([]);

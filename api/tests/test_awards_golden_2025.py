@@ -37,6 +37,7 @@ from api.db.models.nfl import NFLPlayer, NFLPlayerGameStats
 from api.services.awards import Award, DraftValue, compute_awards
 from api.services.ingestion.box_scores_ingest import parse_game_player_stats
 from api.services.ingestion.dst_stats import dst_player_id
+from api.services.ingestion.schemas import normalise_position
 from api.services.lineups import BENCH, slot_layout
 from api.services.round_points import PointsLine, StatsByPlayer, point_lines
 from api.tests.test_golden_2025 import FIXTURES, Replay, _sheet_settings
@@ -101,7 +102,7 @@ class League:
     def _players(self, replay: Replay) -> dict[int, NFLPlayer]:
         players = {
             r["playerId"]: NFLPlayer(
-                id=r["playerId"], name=r["name"], position=r["pos"]
+                id=r["playerId"], name=r["name"], position=normalise_position(r["pos"])
             )
             for r in self.sheet
             if r["playerId"]

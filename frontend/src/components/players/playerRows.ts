@@ -163,7 +163,7 @@ export function buildPlayerRows(pool: PlayerSummary[], stats: SeasonStatsRow[]):
     pool.length > 0
       ? pool
       : stats.flatMap((row) => {
-          const player = row["player"] as PlayerSummary | undefined;
+          const player = row.player as PlayerSummary | undefined;
           return player ? [player] : [];
         });
   return players.map((player) => {

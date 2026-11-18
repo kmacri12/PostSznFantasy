@@ -148,7 +148,7 @@ value was `"0"`.
 | Blocked kicks, by kind | own `teamStats.blockedPunt`, `blockedFG`, `blockedXP`, each stored in its own column and summed for scoring (the blocking team is credited). Tank01 sends all three kinds as separate keys; the sample had punt and FG blocks, no XP block | Confirmed | `20260125_NE@DEN`: NE `blockedFG` 1, and Lutz's 45-yard FG "is BLOCKED (L.Taylor)" in the play-by-play; `20260110_LAR@CAR`: CAR `blockedPunt` 1. `blockedXP` is Present only |
 | Safeties | `DST[team].safeties` | Present | `"0"` in all 26 team-games, so there is no real sample. Credit direction (scoring team) is assumed. There is no `scoreType` for safeties in `scoringPlays` (only `TD` and `FG` occurred), so the old `SF` lookup was dropped |
 | 2-point returns | `teamStats.defensiveTwoPointConversionReturns` | Present | `"0"` in all 26 team-games; the 2025 postseason had no defensive 2-point return, so the credit direction is unverified |
-| Official position | `getNFLPlayerList` `pos` | Confirmed | every kicker with a `fgMade` key (26 kicker-games) is `PK` (we store `K`), every passer with 4+ attempts (27) is `QB` |
+| Official position | `getNFLPlayerList` `pos` | Confirmed | every kicker with a `fgMade` key (26 kicker-games) is `PK` (we store `K`, `normalise_position`), every passer with 4+ attempts (27) is `QB` |
 
 Not observed in the 2025 postseason, so their semantics stay unproven: safeties, defensive
 2-point returns, blocked extra points, punt return TDs, a fumble-return TD against the

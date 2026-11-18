@@ -18,8 +18,6 @@ class PlayerPosition(StrEnum):
         # Handle common abbreviations/variants
         if cleaned in ("DEF", "D/ST"):
             cleaned = "DST"
-        elif cleaned == "PK":
-            cleaned = "K"
         elif cleaned == "FB":
             cleaned = "RB"
         try:
@@ -29,7 +27,7 @@ class PlayerPosition(StrEnum):
 
 
 # Raw `pos` values Tank01 may store for the six draftable positions (see from_str).
-DRAFTABLE_POSITION_VALUES = (*(p.value for p in PlayerPosition), "DEF", "D/ST", "PK")
+DRAFTABLE_POSITION_VALUES = (*(p.value for p in PlayerPosition), "DEF", "D/ST")
 
 
 class DraftStatus(StrEnum):
