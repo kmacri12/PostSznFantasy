@@ -138,3 +138,32 @@ export function moveOptions(
     )
     .sort((a, b) => Number(a.move === null) - Number(b.move === null));
 }
+
+/**
+ * The bench players who can start in one empty slot, each as a Start option named after the
+ * player (the slot is already known), unlocked ones first. A locked player is greyed unless the
+ * caller may override.
+ */
+export function slotFillOptions(
+  lineup: RoundLineup,
+  slotIndex: number,
+  canOverride: boolean,
+): MoveOption[] {
+  return benchPlayersOf(lineup)
+    .flatMap((player) => {
+      const start = moveOptions(lineup, player, canOverride).find(
+        (option) => option.key === `start-${slotIndex}`,
+      );
+      if (!start) return [];
+      const where = [player.position, player.teamAbv, gameWhen(player)].filter(Boolean);
+      return [
+        {
+          ...start,
+          key: `fill-${player.id}`,
+          title: player.name,
+          detail: start.move === null ? `${where[0]} · ${LOCKED_REASON}` : where.join(" · "),
+        },
+      ];
+    })
+    .sort((a, b) => Number(a.move === null) - Number(b.move === null));
+}
