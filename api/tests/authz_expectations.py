@@ -165,6 +165,7 @@ EXPECTED: dict[str, Policy] = {
     "GET /api/players/player-list": SIGNED_IN,
     "GET /api/players/player-season-stats": SIGNED_IN,
     "GET /api/players/sync-status": SIGNED_IN,
+    "GET /api/players/team-logos": SIGNED_IN,
     # Admin (ADMIN_SUPABASE_UIDS only; no test role is one)
     "GET /api/admin/feature-flags": ADMIN,
     "PUT /api/admin/feature-flags/{key}": ADMIN,

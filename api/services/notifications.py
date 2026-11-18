@@ -218,7 +218,7 @@ async def notify_on_the_clock(db: AsyncSession, season_id: int, team_id: int) ->
             payload={"seasonId": season_id, "teamId": team_id},
             push=push.PushMessage(
                 title="You're on the clock",
-                body=f"Your pick is up in {row.name}.",
+                body="It's your turn to pick!",
                 url=f"/leagues/{row.id}/draft",
                 tag=f"on-the-clock-{season_id}",
                 urgency="high",

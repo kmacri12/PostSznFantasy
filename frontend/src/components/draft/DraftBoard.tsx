@@ -6,6 +6,7 @@ import type { DraftPick, DraftState, ReservedPick } from "../../api/types";
 import { prefersReducedMotion, useReducedMotion } from "../../hooks/useReducedMotion";
 import { tokens } from "../../theme";
 import { nflTeamColor } from "../../utils/nflColors";
+import TeamLogo from "../common/TeamLogo";
 import TeamUnitBadge from "../common/TeamUnitBadge";
 import { visuallyHidden } from "../common/visuallyHidden";
 import SettingsSheet from "../settings/SettingsSheet";
@@ -36,7 +37,7 @@ export interface BoardCell {
 const ROUND_COL = 28;
 // 6 teams (the default league) fit a 375px phone; bigger leagues scroll with pinned headers.
 const TEAM_COL = 56;
-const HEADER_ROW = 40;
+const HEADER_ROW = 52;
 const CELL_HEIGHT = 56;
 
 /** Initials for the narrow column header; the full name opens with the cell. */
@@ -180,18 +181,28 @@ const DraftBoard: React.FC<Props> = ({ state, myTeamId, sx, onSelectSlot }) => {
               }}
             >
               <Typography
-                noWrap
                 title={slot.teamName}
                 sx={{
-                  fontSize: 12,
+                  fontSize: 11,
                   fontWeight: 700,
+                  lineHeight: 1.15,
                   width: "100%",
                   textAlign: "center",
+                  overflowWrap: "anywhere",
                   color: slot.teamId === myTeamId ? tokens.accent : tokens.text,
                 }}
               >
-                {teamInitials(slot.teamName)}
-                <Box component="span" sx={visuallyHidden}>{` ${slot.teamName}`}</Box>
+                <Box
+                  component="span"
+                  sx={{
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical",
+                    overflow: "hidden",
+                  }}
+                >
+                  {slot.teamName}
+                </Box>
                 {state.autopilotTeamIds.includes(slot.teamId) && <AutopilotMark />}
               </Typography>
             </Box>
@@ -336,7 +347,8 @@ const DraftBoard: React.FC<Props> = ({ state, myTeamId, sx, onSelectSlot }) => {
                           {lastName(pick.playerName, pick.position)}
                         </Typography>
                         <Box component="span" sx={{ display: "block" }}>
-                          {pick.position} {pick.teamAbv}
+                          {pick.position} <TeamLogo abbreviation={pick.teamAbv} size={12} />
+                          {pick.teamAbv}
                         </Box>
                       </>
                     )}
@@ -404,7 +416,8 @@ const CellDetails = ({ cell }: { cell: BoardCell }) => {
     <Box>
       <Typography sx={{ fontWeight: 700 }}>{pick.playerName}</Typography>
       <Typography color="text.secondary">
-        {[pick.position, pick.teamAbv].filter(Boolean).join(" · ")}
+        {pick.position} · <TeamLogo abbreviation={pick.teamAbv} />
+        {pick.teamAbv}
       </Typography>
       <Typography color="text.secondary">{lines.join(" · ")}</Typography>
       <Typography sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 0.5 }}>

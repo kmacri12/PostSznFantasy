@@ -25,7 +25,7 @@ describe("describeNotification", () => {
     }
     expect(describeNotification(item("draft_turn"))).toMatchObject({
       title: "You're on the clock",
-      body: "Your pick is up in Family League.",
+      body: "It's your turn to pick!",
     });
   });
 

@@ -200,13 +200,29 @@ async def send_to_users(
     return delivered
 
 
+PREVIEW_LENGTH = 120
+
+
+def message_preview(
+    author_name: str | None, body: str, gif_url: str | None, mention: bool = False
+) -> str:
+    """ "Ann: text" ("Ann mentioned you: text"), trimmed; a GIF-only one says so."""
+    author = author_name or "Someone"
+    text = " ".join(body.split())
+    if not text:
+        return f"{author} {'mentioned you in' if mention else 'sent'} a GIF"
+    if len(text) > PREVIEW_LENGTH:
+        text = f"{text[: PREVIEW_LENGTH - 1].rstrip()}…"
+    return f"{author} mentioned you: {text}" if mention else f"{author}: {text}"
+
+
 async def notify_league_message(db: AsyncSession, message_id: int) -> None:
     """Tell the league's other active members about a new chat message.
 
-    The text carries the author's name and the league's, never the message itself, since
-    it shows on lock screens. Only members who turned chat on and have not muted this
+    The push shows the author and a trimmed preview of the text (owner decision, #492;
+    it shows on lock screens, and the text is never logged). Only members who turned chat on and have not muted this
     league get it; a burst within `CHAT_BURST_WINDOW` collapses into one notification
-    (same tag) that says how many messages it stands for.
+    (same tag) that carries the latest message and says how many it stands for.
     """
     if not get_settings().push_enabled:
         return
@@ -217,6 +233,8 @@ async def notify_league_message(db: AsyncSession, message_id: int) -> None:
                 LeagueMessage.season_id,
                 LeagueMessage.author_user_id,
                 LeagueMessage.author_name,
+                LeagueMessage.body,
+                LeagueMessage.gif_url,
                 LeagueMessage.mentioned_user_ids,
                 League.name,
             )
@@ -259,16 +277,13 @@ async def notify_league_message(db: AsyncSession, message_id: int) -> None:
             )
         )
     ) or 1
-    body = (
-        f"{recent} new messages in the chat."
-        if recent > 1
-        else f"{row.author_name or 'Someone'} posted in the chat."
-    )
+    title = f"{row.name} · {recent} new messages" if recent > 1 else row.name
+    body = message_preview(row.author_name, row.body, row.gif_url)
     await send_to_users(
         db,
         recipients,
         PushMessage(
-            title=row.name,
+            title=title,
             body=body,
             url=f"/leagues/{row.league_id}/feed",
             tag=f"chat-{row.season_id}",

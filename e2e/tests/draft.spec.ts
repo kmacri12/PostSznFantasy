@@ -67,7 +67,7 @@ test.describe("draft room", () => {
     for (const view of [page, guestPage]) {
       await expect(view.getByRole("list", { name: "Players" })).toBeVisible();
       await expect(view.getByRole("button", { name: "Commissioner controls" })).toHaveCount(0);
-      await expect(view.getByText("Draft complete")).toHaveCount(0);
+      await expect(view.getByRole("heading", { name: "Draft complete" })).toBeVisible();
     }
     await page.getByRole("tab", { name: "Draft board", exact: true }).click();
     await expect(page.getByLabel("Draft board")).toBeVisible();

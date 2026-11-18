@@ -25,13 +25,15 @@ describe("clockText", () => {
       subtitle: "Round 2, pick 4",
       timer: "00:47",
       myTurn: true,
+      picksAway: null,
     });
   });
 
   it("names the team on the clock, and says when I am on deck", () => {
     const text = clockText(base, 20, 5, null);
     expect(text.title).toBe("Charlie on the clock");
-    expect(text.subtitle).toBe("Round 2, pick 4 · you're on deck");
+    expect(text.subtitle).toBe("Round 2, pick 4");
+    expect(text.picksAway).toBe("On deck");
     expect(text.myTurn).toBe(false);
   });
 
