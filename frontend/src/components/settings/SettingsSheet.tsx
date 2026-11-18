@@ -1,6 +1,7 @@
 import { Box, Button, Dialog, Drawer, Typography, useMediaQuery, useTheme } from "@mui/material";
 import type { ReactNode } from "react";
 import { useBackClosesOverlay } from "../../hooks/useBackClosesOverlay";
+import { useSwipeDismiss } from "../../hooks/useSwipeDismiss";
 
 interface Props {
   title: string;
@@ -12,6 +13,7 @@ interface Props {
 /** A bottom sheet on phones and a centered dialog on larger screens. */
 const SettingsSheet = ({ title, onClose, closeLabel = "Done", children }: Props) => {
   useBackClosesOverlay(onClose);
+  const swipe = useSwipeDismiss(onClose);
   const phone = useMediaQuery(useTheme().breakpoints.down("sm"));
   const content = (
     // minmax(0, 1fr): without it a long row value (an ellipsized setting) widens the whole sheet past the screen.
@@ -60,6 +62,7 @@ const SettingsSheet = ({ title, onClose, closeLabel = "Done", children }: Props)
       slotProps={{
         paper: {
           "aria-label": title,
+          ...swipe,
           sx: {
             borderRadius: "20px 20px 0 0",
             maxHeight: ["90vh", "90dvh"],

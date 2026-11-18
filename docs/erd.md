@@ -156,6 +156,7 @@ erDiagram
         int number_pick_overall
         int number_pick_in_round
         bool autopick
+        string source
     }
     draft_queue {
         int draft_id PK,FK
