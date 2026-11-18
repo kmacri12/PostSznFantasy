@@ -51,6 +51,17 @@ def _to_player(player: NFLPlayer, whole_team: bool = False) -> Player:
     )
 
 
+@router.get("/team-logos")
+async def get_team_logos(db: DbSession, supabase_uid: CurrentUser) -> dict[str, str]:
+    """NFL team abbreviation to logo URL, for the SPA's one cached lookup."""
+    rows = await db.execute(
+        select(NFLTeam.team_abv, NFLTeam.team_logo_url).where(
+            NFLTeam.team_abv.is_not(None), NFLTeam.team_logo_url.is_not(None)
+        )
+    )
+    return {abv: url for abv, url in rows.all() if abv and url}
+
+
 @router.get("/sync-status", response_model=list[IngestionStatusResponse])
 async def get_sync_status(db: DbSession) -> list[IngestionStatusResponse]:
     """When each kind of NFL data last synced, so the UI can show how fresh it is.
