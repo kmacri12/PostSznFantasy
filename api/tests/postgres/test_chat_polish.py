@@ -407,8 +407,7 @@ async def test_a_mention_pushes_the_member_through_the_inbox_even_with_chat_mute
     [(endpoint, sent)] = delivered
     assert endpoint.endswith("/user1")
     assert sent.title == "Test League"
-    assert sent.body == "Ann mentioned you in the chat."
-    assert "secret" not in sent.body
+    assert sent.body == "Ann mentioned you: secret plan"
     assert sent.url == f"/leagues/{season.league_id}/feed"
     inbox = (
         (await db.execute(select(Notification).order_by(Notification.user_id)))

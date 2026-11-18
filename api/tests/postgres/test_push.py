@@ -185,6 +185,7 @@ async def test_the_owner_on_the_clock_is_notified(
     [(endpoint, message)] = sender.sent
     assert endpoint == BODY["endpoint"]
     assert message.title == "You're on the clock"
+    assert message.body == "It's your turn to pick!"
     assert message.url == f"/leagues/{season.league_id}/draft"
     assert message.urgency == "high"
     # The owner of team 0 has no device.
@@ -211,7 +212,7 @@ async def test_only_a_running_drafts_clock_change_triggers_a_push(
     assert spawned == [(7, 3)]
 
 
-async def test_a_chat_message_notifies_the_other_members_without_its_text(
+async def test_a_chat_message_notifies_the_other_members_with_a_preview(
     db: AsyncSession, sender: FakeSender
 ) -> None:
     season, users, _, _ = await make_season(db, teams=3)
@@ -239,7 +240,7 @@ async def test_a_chat_message_notifies_the_other_members_without_its_text(
     [(endpoint, sent)] = sender.sent
     assert endpoint.endswith("/other")
     assert sent.url == f"/leagues/{season.league_id}/feed"
-    assert "secret" not in sent.title + sent.body
+    assert sent.body == "Ann: secret trade talk"
     assert sent.urgency == "normal"
 
     message.deleted_at = datetime.now(UTC)
@@ -295,7 +296,8 @@ async def test_a_burst_of_chat_says_how_many_messages_it_stands_for(
     await push.notify_league_message(db, last.id)
 
     [(_, sent)] = sender.sent
-    assert sent.body == "3 new messages in the chat."
+    assert sent.title == "Test League · 3 new messages"
+    assert sent.body == "Ann: hi"
     assert sent.tag == f"chat-{season.id}"
 
 
