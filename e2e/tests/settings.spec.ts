@@ -90,7 +90,7 @@ test.describe("league settings", () => {
 
     await page.getByRole("button", { name: /^Members/ }).click();
     const members = page.getByRole("dialog", { name: "Members" });
-    await expect(members.getByText("Commissioner", { exact: true })).toBeVisible();
+    await expect(members.getByText(", commissioner", { exact: true })).toBeAttached();
     await expect(members.getByRole("switch")).toHaveCount(0);
   });
 });

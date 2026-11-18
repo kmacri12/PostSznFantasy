@@ -1,7 +1,8 @@
+import GavelIcon from "@mui/icons-material/Gavel";
 import { Box, Typography } from "@mui/material";
 import type { FeedEventItem } from "../../api/types";
 import { tint, tokens } from "../../theme";
-import { eventLine, timeLabel } from "./feedView";
+import { COMMISSIONER_ACTION, eventLine, timeLabel } from "./feedView";
 
 const pillSx = {
   alignSelf: "center",
@@ -26,6 +27,13 @@ const Time = ({ iso }: { iso: string }) => (
 
 const Lead = ({ children }: { children: string }) => (
   <Box component="b" sx={{ color: tokens.textSoft, fontWeight: 600 }}>
+    {children === COMMISSIONER_ACTION && (
+      // Decorative: the words already say it.
+      <GavelIcon
+        aria-hidden
+        sx={{ fontSize: "1em", verticalAlign: "-0.12em", mr: 0.5, color: tokens.warning }}
+      />
+    )}
     {children}
   </Box>
 );

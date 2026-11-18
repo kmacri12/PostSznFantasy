@@ -26,15 +26,17 @@ export const PickSourceIcon = ({ source, size = 11 }: { source: PickSource; size
   if (source === "manager") return null;
   const Icon = ICONS[source];
   return (
-    <Icon
+    <Box
+      component="span"
       aria-hidden
       data-testid={`source-${source}`}
-      sx={{
-        fontSize: size,
-        verticalAlign: "-0.15em",
-        color: isCommissioner(source) ? tokens.warning : tokens.muted,
-      }}
-    />
+      sx={{ color: isCommissioner(source) ? tokens.warning : tokens.muted, whiteSpace: "nowrap" }}
+    >
+      {source === "commissioner_auto" && (
+        <GavelIcon sx={{ fontSize: size, verticalAlign: "-0.15em" }} />
+      )}
+      <Icon sx={{ fontSize: size, verticalAlign: "-0.15em" }} />
+    </Box>
   );
 };
 
