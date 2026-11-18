@@ -183,6 +183,11 @@ test.describe("draft room", () => {
     const [pick] = (await league.state()).picks;
     expect(pick.autopick).toBe(true);
     await expect(page.getByText("Round 1, pick 2")).toBeVisible();
+    // A timed-out team goes on autopilot until its manager picks or switches it off.
+    const autopilot = page.getByRole("switch", { name: "Autopilot" });
+    await expect(autopilot).toBeChecked();
+    await autopilot.click();
+    await expect(autopilot).not.toBeChecked();
   });
 
   test("auto-pick takes the queued player first", async ({ browser, page, context, request }) => {

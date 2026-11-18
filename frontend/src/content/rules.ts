@@ -71,6 +71,7 @@ export const HOW_TO_PLAY_GROUPS: HowToPlayGroup[] = [
         body: [
           "It is a snake draft: the order reverses every round.",
           "There are position caps. Once you reach a cap, that position is greyed out and tells you why. The commissioner sets the caps and your roster slots before the draft. They lock when the draft starts.",
+          "If your time runs out, we pick for you (your queue first, then the best available) and put your team on autopilot: from then on we pick about 10 seconds into your turn, until you make a pick yourself or switch autopilot off. You can switch it on yourself in the draft room too.",
         ],
       },
     ],
@@ -166,6 +167,16 @@ export const ANNOUNCEMENT = {
     "Members who allow announcements get a push. Everyone sees it in their notifications either way.",
   removeConfirm: "Take this announcement down? It stays in the Feed.",
   save: "Post",
+} as const;
+
+// Autopilot in the draft room (#463).
+export const AUTOPILOT = {
+  label: "Autopilot",
+  on: "On: we pick for you 10 seconds into your turn. Picking yourself turns it off.",
+  off: "Off. Stepping away? Turn it on and we pick 10 seconds into your turn.",
+  settingsTitle: "Teams on autopilot",
+  turnOff: "Turn off",
+  marker: "Auto",
 } as const;
 
 // Draft lottery reveal (#403).
