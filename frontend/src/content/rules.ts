@@ -157,6 +157,7 @@ export const NOTES_MAX_LENGTH = 5000;
 export const ANNOUNCEMENT = {
   title: "Announcement",
   post: "Post an announcement",
+  help: "Announcements post to the Feed. League notes stay on this page.",
   edit: "Edit",
   remove: "Remove",
   maxLength: 1000,

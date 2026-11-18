@@ -20,7 +20,7 @@ const AnnouncementCard = ({ league }: { league: LeagueInfo }) => {
   const unpin = useUnpinAnnouncement(league.id);
   const failure = mutationError(unpin.error, "Couldn't remove the announcement. Try again.");
 
-  if (!announcement && !isCommissioner) return null;
+  if (!announcement) return null;
 
   return (
     <>
@@ -86,16 +86,7 @@ const AnnouncementCard = ({ league }: { league: LeagueInfo }) => {
             </Box>
           )}
         </Box>
-      ) : (
-        <Button
-          variant="outlined"
-          fullWidth
-          sx={{ minHeight: 48 }}
-          onClick={() => setEditing(true)}
-        >
-          {ANNOUNCEMENT.post}
-        </Button>
-      )}
+      ) : null}
       {editing && (
         <AnnouncementSheet
           leagueId={league.id}
@@ -108,3 +99,22 @@ const AnnouncementCard = ({ league }: { league: LeagueInfo }) => {
 };
 
 export default AnnouncementCard;
+
+/** With none pinned, a commissioner's small way to post one, kept at the bottom by the notes. */
+export const PostAnnouncementAction = ({ league }: { league: LeagueInfo }) => {
+  const [editing, setEditing] = useState(false);
+  if (league.myRole !== "commissioner" || league.announcement) return null;
+  return (
+    <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+      <Button sx={{ minHeight: 44, fontWeight: 600 }} onClick={() => setEditing(true)}>
+        {ANNOUNCEMENT.post}
+      </Button>
+      <Typography variant="caption" color="text.secondary" sx={{ px: 1 }}>
+        {ANNOUNCEMENT.help}
+      </Typography>
+      {editing && (
+        <AnnouncementSheet leagueId={league.id} initial="" onClose={() => setEditing(false)} />
+      )}
+    </Box>
+  );
+};
