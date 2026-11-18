@@ -85,15 +85,15 @@ describe("rowDetail", () => {
     progress: { finished: 0, live: 3, toPlay: 1, notPlaying: 5 },
   });
 
-  it("names the owner, the commissioner mark, players left and live", () => {
-    expect(rowDetail(lead, true)).toBe("Dave · commissioner · 5 left · 3 live");
+  it("splits the owner from players left and live", () => {
+    expect(rowDetail(lead, true)).toEqual({ owner: "Dave", rest: "5 left · 3 live" });
   });
 
   it("stops at the owner once the season is over", () => {
-    expect(rowDetail(lead, false)).toBe("Dave · commissioner");
+    expect(rowDetail(lead, false)).toEqual({ owner: "Dave", rest: "" });
   });
 
   it("says an open slot is waiting", () => {
-    expect(rowDetail(row(2, 0, { owner: null }), false)).toBe("Waiting for a player");
+    expect(rowDetail(row(2, 0, { owner: null }), false).owner).toBe("Waiting for a player");
   });
 });

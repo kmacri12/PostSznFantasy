@@ -35,13 +35,8 @@ export const ROUNDS = [
   { key: "superBowl", label: "Super Bowl", short: "Super Bowl" },
 ] as const;
 
-/** One-line detail under a team name: owner, commissioner mark and, while live, players left. */
-export const rowDetail = (row: StandingsRow, live: boolean): string =>
-  [
-    row.owner ?? "Waiting for a player",
-    row.isCommissioner ? "commissioner" : null,
-    live ? `${row.playersLeft} left` : null,
-    live ? `${row.progress.live} live` : null,
-  ]
-    .filter(Boolean)
-    .join(" · ");
+/** The owner, then the rest of the detail line (players left, live) once a round is on. */
+export const rowDetail = (row: StandingsRow, live: boolean): { owner: string; rest: string } => ({
+  owner: row.owner ?? "Waiting for a player",
+  rest: live ? `${row.playersLeft} left · ${row.progress.live} live` : "",
+});

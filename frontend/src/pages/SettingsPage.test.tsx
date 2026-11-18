@@ -134,7 +134,7 @@ describe("League settings", () => {
     fireEvent.click(screen.getByRole("button", { name: /^Members/ }));
     const sheet = screen.getByRole("dialog", { name: "Members" });
     expect(within(sheet).getByText("Kyle")).toBeInTheDocument();
-    expect(within(sheet).getByText("Commissioner")).toBeInTheDocument();
+    expect(within(sheet).getByText(", commissioner")).toBeInTheDocument();
     expect(within(sheet).queryByRole("switch")).toBeNull();
     expect(within(sheet).queryByRole("button", { name: "Remove from league" })).toBeNull();
   });
