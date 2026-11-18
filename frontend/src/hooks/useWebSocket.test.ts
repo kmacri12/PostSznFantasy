@@ -124,8 +124,22 @@ describe("useWebSocket hook", () => {
     act(() => socketAt(0).simulateDrop());
     act(() => vi.advanceTimersByTime(backoffDelay(0)));
     act(() => socketAt(1).simulateOpen());
+    act(() => vi.advanceTimersByTime(11_000));
     act(() => socketAt(1).simulateDrop());
     act(() => vi.advanceTimersByTime(backoffDelay(0)));
+    expect(MockWebSocket.instances).toHaveLength(3);
+  });
+
+  it("keeps backing off when a connection drops right after opening", () => {
+    renderHook(() => useWebSocket(URL));
+    act(() => socketAt(0).simulateOpen());
+    act(() => socketAt(0).simulateDrop());
+    act(() => vi.advanceTimersByTime(backoffDelay(0)));
+    act(() => socketAt(1).simulateOpen());
+    act(() => socketAt(1).simulateDrop());
+    act(() => vi.advanceTimersByTime(backoffDelay(0)));
+    expect(MockWebSocket.instances).toHaveLength(2);
+    act(() => vi.advanceTimersByTime(backoffDelay(1)));
     expect(MockWebSocket.instances).toHaveLength(3);
   });
 
@@ -133,11 +147,18 @@ describe("useWebSocket hook", () => {
     expect(backoffDelay(20)).toBe(30_000);
   });
 
-  it.each([1000, 1008])("does not reconnect after close code %i", (code) => {
+  it("does not reconnect after the policy-violation close", () => {
     renderHook(() => useWebSocket(URL));
-    act(() => socketAt(0).simulateDrop(code));
+    act(() => socketAt(0).simulateDrop(1008));
     act(() => vi.advanceTimersByTime(60_000));
     expect(MockWebSocket.instances).toHaveLength(1);
+  });
+
+  it("reconnects when the server ends the socket with a normal close", () => {
+    renderHook(() => useWebSocket(URL));
+    act(() => socketAt(0).simulateDrop(1000));
+    act(() => vi.advanceTimersByTime(backoffDelay(0)));
+    expect(MockWebSocket.instances).toHaveLength(2);
   });
 
   it("tells the caller when the server refuses the connection", () => {

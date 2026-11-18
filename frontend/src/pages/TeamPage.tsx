@@ -35,6 +35,7 @@ import {
 import OverrideDialog from "../components/team/OverrideDialog";
 import PlayerSheet from "../components/team/PlayerSheet";
 import RoundStrip from "../components/team/RoundStrip";
+import SlotPickerSheet from "../components/team/SlotPickerSheet";
 import { useSeasonContext } from "../contexts/SeasonContext";
 import { tokens } from "../theme";
 
@@ -64,12 +65,16 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
   const currentRound = defaultRound(team.lineups, now);
   const [round, setRound] = useState(currentRound);
   const [sheetPlayerId, setSheetPlayerId] = useState<number | null>(null);
+  const [fillSlotIndex, setFillSlotIndex] = useState<number | null>(null);
   const moveInLineup = useMoveInLineup(teamId);
   // A locked move the server wants confirmed first; held until the commissioner answers.
   const [pendingOverride, setPendingOverride] = useState<LineupMoveRequest | null>(null);
   const move = (request: LineupMoveRequest) =>
     moveInLineup.mutate(request, {
-      onSuccess: () => setSheetPlayerId(null),
+      onSuccess: () => {
+        setSheetPlayerId(null);
+        setFillSlotIndex(null);
+      },
       onError: (error) => {
         if (needsOverrideConfirmation(error)) setPendingOverride(request);
       },
@@ -166,6 +171,7 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
             lineup={lineup}
             teamUnits={teamUnits}
             onOpenPlayer={(player) => setSheetPlayerId(player.id)}
+            onFillSlot={canSetLineup && round >= currentRound ? setFillSlotIndex : undefined}
           />
         </>
       )}
@@ -182,6 +188,21 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
           onClose={() => {
             moveInLineup.reset();
             setSheetPlayerId(null);
+          }}
+        />
+      )}
+
+      {fillSlotIndex !== null && lineup && (
+        <SlotPickerSheet
+          lineup={lineup}
+          slotIndex={fillSlotIndex}
+          canOverride={team.canOverride && season.canEdit}
+          pending={moveInLineup.isPending}
+          error={moveError}
+          onMove={(request) => move({ round, ...request })}
+          onClose={() => {
+            moveInLineup.reset();
+            setFillSlotIndex(null);
           }}
         />
       )}

@@ -304,7 +304,8 @@ const Composer = ({ seasonId, members, selfId, replyTo, editing, onDone }: Props
             minHeight: 44,
             px: 2,
             py: 0.75,
-            fontSize: 14,
+            // iOS zooms the page when a focused field is under 16px.
+            fontSize: 16,
             borderRadius: "22px",
             border: `1px solid ${tokens.borderStrong}`,
             bgcolor: tokens.surface,

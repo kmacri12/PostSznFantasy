@@ -10,10 +10,12 @@ import {
 import type { DraftSnapshot, DraftState } from "../api/types";
 import LoadingState from "../components/common/LoadingState";
 import AssignPickDialog from "../components/draft/AssignPickDialog";
+import AutopilotSwitch from "../components/draft/AutopilotSwitch";
 import CommissionerStrip from "../components/draft/CommissionerStrip";
 import { cappedPositions } from "../components/draft/caps";
 import DraftBoard from "../components/draft/DraftBoard";
 import DraftClockBar from "../components/draft/DraftClockBar";
+import DraftCompleteNotice from "../components/draft/DraftCompleteNotice";
 import DraftOrderEditor from "../components/draft/DraftOrderEditor";
 import DraftSettingsSheet from "../components/draft/DraftSettingsSheet";
 import DraftToast from "../components/draft/DraftToast";
@@ -27,7 +29,13 @@ import { draftCard } from "../components/share/shareCards";
 import { useSeasonContext } from "../contexts/SeasonContext";
 import { useDraftRoom } from "../hooks/useDraftRoom";
 import { HEADER_HEIGHT, radii, tokens } from "../theme";
-import { playOnDeckCue, vibrateOnTurn } from "../utils/draftCue";
+import {
+  playCountdownTick,
+  playOnDeckCue,
+  playOnTheClockCue,
+  unlockDraftAudio,
+  vibrateOnTurn,
+} from "../utils/draftCue";
 
 type ViewKey = "players" | "board" | "roster" | "queue";
 
@@ -93,8 +101,11 @@ const ViewTabs = ({
  * Queue (all on screen at once from `lg` up).
  */
 const DraftPage = () => {
-  const { seasonId, season } = useSeasonContext();
-  const info = useDraft(seasonId);
+  const { seasonId, season, paths } = useSeasonContext();
+  const [socketDown, setSocketDown] = useState(false);
+  // While the socket is down the page asks the server for the state directly, so a draft that
+  // finished meanwhile does not sit on a stale clock.
+  const info = useDraft(seasonId, socketDown ? 5_000 : undefined);
   const finishedOnLoad = info.data?.status === "completed";
   const room = useDraftRoom(finishedOnLoad ? undefined : seasonId, useRecheckLeague());
   const pool = useDraftPool(seasonId);
@@ -107,7 +118,9 @@ const DraftPage = () => {
   const [assigning, setAssigning] = useState<{ pickNumber: number; teamName: string } | null>(null);
 
   const snapshot: DraftSnapshot | null = room.state;
-  const state: DraftState | null = snapshot ?? info.data ?? null;
+  const infoFinished = info.data?.status === "completed";
+  const state: DraftState | null =
+    (!room.isConnected && infoFinished ? info.data : (snapshot ?? info.data)) ?? null;
   const myTeamId = snapshot?.myTeamId ?? season.myTeamId;
   const archived = season.finished;
   const live = state?.status === "in_progress" || state?.status === "paused";
@@ -116,6 +129,10 @@ const DraftPage = () => {
   const onDeck =
     state?.status === "in_progress" && myTeamId !== null && state.onDeckTeamId === myTeamId;
   const queue = snapshot?.queue ?? [];
+  useEffect(
+    () => setSocketDown(!room.isConnected && !finishedOnLoad),
+    [room.isConnected, finishedOnLoad],
+  );
 
   const teams = useMemo(
     () =>
@@ -154,8 +171,21 @@ const DraftPage = () => {
   }, [onDeck, myTurn]);
 
   useEffect(() => {
-    if (myTurn) vibrateOnTurn();
+    if (!myTurn) return;
+    playOnTheClockCue();
+    vibrateOnTurn();
   }, [myTurn]);
+
+  useEffect(unlockDraftAudio, []);
+
+  const secondsLeft = room.secondsLeft;
+  const pickSent = room.pendingPlayerId !== null;
+  // biome-ignore lint/correctness/useExhaustiveDependencies: one tick per whole second left
+  useEffect(() => {
+    if (myTurn && !pickSent && secondsLeft !== null && secondsLeft >= 1 && secondsLeft <= 10) {
+      playCountdownTick();
+    }
+  }, [myTurn, pickSent, secondsLeft]);
 
   if (!state) {
     return (
@@ -183,6 +213,11 @@ const DraftPage = () => {
           <CogButton label="Draft settings" onClick={() => setSettingsOpen(true)} />
         </Box>
         {archived && <ArchivedNotice what="picks and the queue" />}
+        <DraftCompleteNotice
+          totalPicks={state.totalPicks}
+          teamHref={myTeamId === null ? null : paths.team(myTeamId)}
+          onShowBoard={() => setView("board")}
+        />
         <ShareCardButton
           card={draftCard(season.leagueName, season.year, state)}
           label="Share draft board"
@@ -247,7 +282,13 @@ const DraftPage = () => {
     />
   );
   const queuePanel = (
-    <QueuePanel queue={queue} players={players} draftedIds={draftedIds} onChange={updateQueue} />
+    <QueuePanel
+      queue={queue}
+      players={players}
+      draftedIds={draftedIds}
+      onChange={updateQueue}
+      draft={actions}
+    />
   );
   const orderEditor = <DraftOrderEditor draft={state} onDone={() => setEditingOrder(false)} />;
   const showEditor = editingOrder && PRE_DRAFT.includes(state.status);
@@ -270,6 +311,9 @@ const DraftPage = () => {
         onOpenSettings={() => setSettingsOpen(true)}
       />
       {settingsSheet}
+      {myTeamId !== null && !archived && (live || state.status === "lobby") && (
+        <AutopilotSwitch draft={state} teamId={myTeamId} />
+      )}
       {season.canCommission && !archived && (
         <CommissionerStrip
           draft={state}

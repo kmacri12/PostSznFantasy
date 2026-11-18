@@ -146,6 +146,7 @@ erDiagram
         bool alphabetical_sort
         int_array draft_order_team_ids
         jsonb reserved_picks
+        int_array autopilot_team_ids
     }
     draft_picks {
         int id PK
