@@ -101,7 +101,10 @@ export const describeEvent = (event: ActivityEvent): string => {
         : `${who} moved the draft to ${when}`;
     }
     case "draft_pick_assigned": {
-      const { pickNumber, teamName, playerName, scheduled, replacedPlayerName } = event.payload;
+      const { pickNumber, teamName, playerName, scheduled, replacedPlayerName, autoPick } =
+        event.payload;
+      if (autoPick)
+        return `${who} used Auto-pick now: ${playerName} to ${teamName} at pick ${pickNumber}`;
       if (replacedPlayerName !== null)
         return `${who} replaced ${replacedPlayerName} with ${playerName} at pick ${pickNumber} (${teamName})`;
       return scheduled

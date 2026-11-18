@@ -1,4 +1,5 @@
 import type { DraftState } from "../../api/types";
+import { pickSentence } from "./pickSource";
 
 /** Seconds left on my pick at which a screen reader hears a warning, latest first. */
 const WARNINGS = [10, 30];
@@ -35,9 +36,7 @@ export const announcedDraft = (
       : undefined;
   return {
     picks: state.picks.length,
-    lastPick: pick
-      ? `Pick ${pick.numberPickOverall}: ${teamName(pick.teamId)} took ${pick.playerName ?? "a player"}`
-      : null,
+    lastPick: pick ? pickSentence(pick, teamName(pick.teamId)) : null,
     turn,
     warning: limit === undefined ? null : `Under ${limit} seconds to make your pick`,
   };

@@ -304,7 +304,17 @@ export interface DraftPick {
   numberPickOverall: number;
   numberPickInRound: number;
   autopick: boolean;
+  source: PickSource;
 }
+
+/** How a pick was made: by its manager, by auto-pick (and why) or by the commissioner. */
+export type PickSource =
+  | "manager"
+  | "timer"
+  | "autopilot"
+  | "no_owner"
+  | "commissioner_auto"
+  | "commissioner_assigned";
 
 export interface DraftSlot {
   slot: number;
@@ -492,6 +502,8 @@ export type ActivityEvent = ActivityBase &
           playerName: string;
           scheduled: boolean;
           replacedPlayerName: string | null;
+          /** The commissioner's "Auto-pick now"; missing on older events. */
+          autoPick?: boolean;
         };
       }
   );

@@ -24,6 +24,7 @@ from api.models.draft_models import (
     QueueResponse,
     QueueUpdate,
 )
+from api.models.enums import PickSource
 from api.services import draft_flow, notifications, push
 from api.services.activity import Actor
 from api.services.draft_events import announce_events, pick_events, state_event
@@ -176,14 +177,18 @@ async def control(
 
 @router.post("/{season_id}/force-pick", response_model=DraftStateResponse)
 async def force_pick(
-    season_id: int, _: SeasonCommissioner, db: DbSession
+    season_id: int, membership: SeasonCommissioner, db: DbSession
 ) -> DraftStateResponse:
     """Auto-pick now for whoever is on the clock."""
     try:
-        result = await draft_flow.auto_pick(db, season_id)
+        result = await draft_flow.auto_pick(
+            db, season_id, commissioner=Actor.of(membership.user)
+        )
     except DraftPickError as exc:
         raise _conflict(exc) from exc
-    return await _commit_and_announce(db, season_id, result)
+    state = await _commit_and_announce(db, season_id, result)
+    await announce_feed_change(season_id, "event")
+    return state
 
 
 async def _commit_and_announce(
@@ -260,6 +265,7 @@ async def submit_pick(
         number_pick_overall=pick.number_pick_overall,
         number_pick_in_round=pick.number_pick_in_round,
         autopick=pick.autopick,
+        source=PickSource(pick.source),
     )
 
 
