@@ -35,7 +35,7 @@ async def ingest_nfl_teams(
                 "team_abv": safe_str(raw.get("teamAbv")),
                 "team_city": safe_str(raw.get("teamCity")),
                 "team_name": safe_str(raw.get("teamName")),
-                "team_logo_url": safe_str(raw.get("teamLogoUrl")),
+                "team_logo_url": safe_str(raw.get("espnLogo1")),
                 "is_active": True,
             }
         )

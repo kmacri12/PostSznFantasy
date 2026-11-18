@@ -4,6 +4,7 @@ import type { LineupPlayer, RoundLineup } from "../../api/types";
 import { useBackClosesOverlay } from "../../hooks/useBackClosesOverlay";
 import { tokens } from "../../theme";
 import InjuryTag from "../common/InjuryTag";
+import TeamLogo from "../common/TeamLogo";
 import { formatPoints } from "../league/standingsView";
 import { formatKickoff, type Move, ROUND_LABELS } from "./lineup";
 import { slotNames } from "./lineupView";
@@ -131,12 +132,7 @@ const PlayerSheet = ({
   const started = player.gameState === "live" || player.gameState === "final";
   const rows = season.data ? seasonRows(player.position, season.data) : [];
   const options = canMove ? moveOptions(lineup, player, canOverride) : [];
-  const where = [
-    player.position,
-    player.teamAbv || "FA",
-    placement(lineup, player),
-    ROUND_LABELS[lineup.round],
-  ];
+  const where = [placement(lineup, player), ROUND_LABELS[lineup.round]];
 
   return (
     <Drawer
@@ -175,7 +171,8 @@ const PlayerSheet = ({
             {player.name}
           </Typography>
           <Typography component="span" sx={{ fontSize: 12, color: tokens.muted }}>
-            {where.join(" · ")}
+            {player.position} · <TeamLogo abbreviation={player.teamAbv} />
+            {player.teamAbv || "FA"} · {where.join(" · ")}
           </Typography>
           <InjuryTag status={player.injuryStatus} />
         </Box>
