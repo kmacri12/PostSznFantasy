@@ -31,7 +31,6 @@ const DraftClockBar = ({
 }: Props) => {
   const text = clockText(state, myTeamId, secondsLeft, secondsToStart);
   const reducedMotion = useReducedMotion();
-  const urgent = text.myTurn && secondsLeft !== null && secondsLeft <= 10;
   const onAutopilot =
     state.status === "in_progress" &&
     state.onTheClockTeamId !== null &&
@@ -50,40 +49,79 @@ const DraftClockBar = ({
         gap: 2,
         px: 2,
         py: 1.25,
-        bgcolor: text.myTurn ? tokens.accentSurface : tokens.surface,
-        borderBottom: `1px solid ${text.myTurn ? tokens.accentBorder : tokens.border}`,
-        // One soft pulse when the turn arrives, so a glance at the phone catches it.
-        animation: text.myTurn && !reducedMotion ? "ps-turn-pulse 1.4s ease-out 1" : undefined,
+        // My turn fills the whole bar with the accent so it reads from across the room.
+        bgcolor: text.myTurn ? tokens.accentFill : tokens.surface,
+        color: text.myTurn ? tokens.accentInk : undefined,
+        borderBottom: `1px solid ${text.myTurn ? tokens.accentInk : tokens.border}`,
+        animation:
+          text.myTurn && !reducedMotion ? "ps-turn-pulse 1.6s ease-out infinite" : undefined,
       }}
     >
       {text.myTurn && !reducedMotion && (
         <GlobalStyles
           styles={{
             "@keyframes ps-turn-pulse": {
-              from: { boxShadow: `inset 0 0 0 3px ${tokens.accent}` },
-              to: { boxShadow: "inset 0 0 0 3px transparent" },
+              from: { boxShadow: `inset 0 0 0 4px ${tokens.accentInk}` },
+              to: { boxShadow: "inset 0 0 0 4px transparent" },
             },
           }}
         />
       )}
       <Box sx={{ minWidth: 0 }}>
         <Typography
-          sx={{ fontSize: 16, fontWeight: 700, color: text.myTurn ? tokens.accent : tokens.text }}
+          sx={{
+            fontSize: text.myTurn ? 20 : 16,
+            fontWeight: text.myTurn ? 800 : 700,
+            lineHeight: 1.2,
+            color: text.myTurn ? tokens.accentInk : tokens.text,
+          }}
         >
           {text.title}
           {onAutopilot && (
-            <Box component="span" sx={{ ml: 0.75, fontSize: 12, color: tokens.warning }}>
+            <Box
+              component="span"
+              sx={{
+                ml: 0.75,
+                fontSize: 12,
+                color: text.myTurn ? tokens.accentInk : tokens.warning,
+              }}
+            >
               · {AUTOPILOT.marker}
             </Box>
           )}
         </Typography>
         {text.subtitle && (
-          <Typography sx={{ fontSize: 12, color: text.myTurn ? tokens.accentSoft : tokens.muted }}>
+          <Typography sx={{ fontSize: 12, color: text.myTurn ? tokens.accentInk : tokens.muted }}>
             {text.subtitle}
           </Typography>
         )}
+        {text.picksAway && (
+          <Typography
+            component="span"
+            sx={{
+              display: "inline-block",
+              mt: 0.5,
+              px: 1,
+              borderRadius: 1,
+              fontSize: 12,
+              fontWeight: 700,
+              color: tokens.accentInk,
+              bgcolor: tokens.accentFill,
+            }}
+          >
+            {text.picksAway}
+          </Typography>
+        )}
       </Box>
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexShrink: 0 }}>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+          flexShrink: 0,
+          "& .MuiIconButton-root": { color: text.myTurn ? tokens.accentInk : undefined },
+        }}
+      >
         <Box sx={{ textAlign: "right" }}>
           {text.timer !== null && (
             <Typography
@@ -94,7 +132,7 @@ const DraftClockBar = ({
                 fontWeight: 700,
                 lineHeight: 1.1,
                 fontVariantNumeric: "tabular-nums",
-                color: urgent && isConnected ? tokens.red : tokens.text,
+                color: text.myTurn ? tokens.accentInk : tokens.text,
                 opacity: isConnected ? 1 : 0.4,
               }}
             >
