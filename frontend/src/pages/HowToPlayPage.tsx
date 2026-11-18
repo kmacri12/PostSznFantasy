@@ -1,6 +1,7 @@
 import { Box, Button, Container, Paper, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
+import BackHeader from "../components/layout/BackHeader";
 import SettingsGroup from "../components/settings/SettingsGroup";
 import TourDialog from "../components/tour/TourDialog";
 import {
@@ -15,15 +16,16 @@ import { tokens } from "../theme";
 /** The tour card, then the rules in full as accordions grouped by when a player needs them; copy lives in content/rules.ts. */
 const HowToPlayPage = () => {
   const [tourOpen, setTourOpen] = useState(false);
-  const target = useLocation().hash.slice(1);
+  const location = useLocation();
+  const target = location.hash.slice(1);
+  // Inside a league the page lives at `<season home>/how-to-play`; Back falls to that home.
+  const home = location.pathname.replace(/\/how-to-play$/, "") || "/";
   useEffect(() => {
     if (target) document.getElementById(target)?.scrollIntoView({ block: "start" });
   }, [target]);
   return (
     <Container maxWidth="md" sx={{ py: { xs: 2, sm: 4 } }}>
-      <Typography variant="h4" component="h1" gutterBottom>
-        {HOW_TO_PLAY_LABEL}
-      </Typography>
+      <BackHeader title={HOW_TO_PLAY_LABEL} fallback={home} />
       <Box
         component="section"
         aria-labelledby="tour-card-title"

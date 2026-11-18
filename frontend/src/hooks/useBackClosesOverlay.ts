@@ -39,6 +39,7 @@ export function useBackClosesOverlay(onClose: () => void, active = true): void {
   // True once the pushed entry is current, so the render before the push lands is not read as a back.
   const seen = useRef(false);
   const settled = useRef(false);
+  const pushedPath = useRef("");
 
   useEffect(() => {
     if (!active || !navigator) return;
@@ -50,6 +51,7 @@ export function useBackClosesOverlay(onClose: () => void, active = true): void {
     const timer = window.setTimeout(() => {
       const current = locationRef.current;
       if (!current) return;
+      pushedPath.current = current.pathname;
       navigator.push(
         `${current.pathname}${current.search}${current.hash}`,
         { ...(current.state as object | null), [STACK_KEY]: [...stackOf(current.state), id] },
@@ -60,9 +62,15 @@ export function useBackClosesOverlay(onClose: () => void, active = true): void {
       window.clearTimeout(timer);
       idRef.current = null;
       if (seen.current && !settled.current) {
+        const path = pushedPath.current;
         owedBacks += 1;
         queueMicrotask(() => {
-          if (owedBacks > 0) navigator.go(-owedBacks);
+          // The page already moved on (a delete that leaves for the home page): going back
+          // would return to the page the overlay was opened on.
+          // Only a browser router keeps its position in history.state; a memory router has none.
+          const inBrowser = typeof window.history.state?.idx === "number";
+          const moved = inBrowser && window.location.pathname !== path;
+          if (owedBacks > 0 && !moved) navigator.go(-owedBacks);
           owedBacks = 0;
         });
       }
