@@ -146,6 +146,7 @@ erDiagram
         bool alphabetical_sort
         int_array draft_order_team_ids
         jsonb reserved_picks
+        int_array autopilot_team_ids
     }
     draft_picks {
         int id PK
@@ -156,6 +157,7 @@ erDiagram
         int number_pick_overall
         int number_pick_in_round
         bool autopick
+        string source
     }
     draft_queue {
         int draft_id PK,FK

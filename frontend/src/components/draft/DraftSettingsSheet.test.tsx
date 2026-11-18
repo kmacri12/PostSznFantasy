@@ -3,14 +3,17 @@ import { describe, expect, it, vi } from "vitest";
 import type { DraftState } from "../../api/types";
 import DraftSettingsSheet from "./DraftSettingsSheet";
 
+const setAutopilot = vi.hoisted(() => vi.fn());
 vi.mock("../../api/queries", () => ({
   useDraftSetup: () => ({ mutate: vi.fn(), isPending: false, error: null }),
+  useSetAutopilot: () => ({ mutate: setAutopilot, isPending: false }),
 }));
 
 const draft = (overrides: Partial<DraftState> = {}) =>
   ({
     seasonId: 5,
     status: "scheduled",
+    autopilotTeamIds: [],
     startTime: null,
     draftType: "snake",
     timePerPickSeconds: 90,
@@ -55,6 +58,26 @@ describe("DraftSettingsSheet", () => {
     open(draft({ status: "in_progress" }), true);
     expect(screen.queryByRole("button", { name: /Draft date/ })).toBeNull();
     expect(screen.getByRole("button", { name: /Seconds per pick/ })).toBeInTheDocument();
+  });
+});
+
+describe("teams on autopilot", () => {
+  const order = [
+    { slot: 1, teamId: 10, teamName: "Alpha", ownerName: "ann", ownerUserId: 1 },
+    { slot: 2, teamId: 20, teamName: "Bravo", ownerName: "bob", ownerUserId: 2 },
+  ];
+
+  it("lists them, and lets a commissioner switch one off", () => {
+    open(draft({ status: "in_progress", order, autopilotTeamIds: [20] }), true);
+    expect(screen.getByText("Teams on autopilot")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Turn off autopilot for Bravo" }));
+    expect(setAutopilot).toHaveBeenCalledWith({ teamId: 20, enabled: false });
+  });
+
+  it("shows members the list without the switch", () => {
+    open(draft({ status: "in_progress", order, autopilotTeamIds: [20] }), false);
+    expect(screen.getByText("Bravo")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Turn off/ })).toBeNull();
   });
 });
 

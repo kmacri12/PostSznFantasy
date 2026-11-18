@@ -10,17 +10,18 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useDraftPool, useLeagueSettings, usePlayerSeasonStats } from "../../api/queries";
 import type { DraftPick } from "../../api/types";
 import { radii, tokens } from "../../theme";
-import { E2E_BUILD } from "../../utils/e2e";
 import EmptyState from "../common/EmptyState";
 import ErrorState from "../common/ErrorState";
 import InjuryTag from "../common/InjuryTag";
 import LoadingState from "../common/LoadingState";
 import TeamLogo from "../common/TeamLogo";
 import TeamUnitBadge from "../common/TeamUnitBadge";
+import { positionChipSx } from "../draft/positions";
+import { useConfirmedPick } from "../draft/useConfirmedPick";
 import FilterMenu from "./FilterMenu";
 import {
   type Availability,
@@ -37,7 +38,6 @@ import {
 } from "./playerRows";
 
 const MAX_ROWS = 200;
-const CONFIRM_WINDOW_MS = E2E_BUILD ? 10 * 60_000 : 3000;
 
 /** What the draft room adds to the list: the Draft and queue buttons and the availability filter. */
 export interface DraftActions {
@@ -141,7 +141,10 @@ const PlayerListItem = ({ row, owner, myTeamId, year, draft, armed, onDraft }: R
           )}
         </Typography>
         <Typography sx={{ fontSize: 12, color: tokens.muted, mt: 0.125 }}>
-          {row.position} <TeamLogo abbreviation={row.team} />
+          <Box component="span" sx={positionChipSx(row.position)}>
+            {row.position}
+          </Box>{" "}
+          <TeamLogo abbreviation={row.team} />
           {row.team}
           {" · "}
           {drafted && owner ? ownerText(owner) : row.line}
@@ -221,13 +224,7 @@ const PlayersView = ({ seasonId, year, picks, teams, myTeamId, draft }: Props) =
   const [fantasyTeamId, setFantasyTeamId] = useState<number | null>(null);
   const [availability, setAvailability] = useState<Availability>(draft ? "available" : "all");
   const [sortKey, setSortKey] = useState("points");
-  const [armedId, setArmedId] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (armedId === null) return;
-    const timer = setTimeout(() => setArmedId(null), CONFIRM_WINDOW_MS);
-    return () => clearTimeout(timer);
-  }, [armedId]);
+  const { armedId, tap: handleDraft } = useConfirmedPick(draft?.onPick);
 
   const owners = useMemo(
     () => ownersByPlayer(picks, (id) => teams.find((team) => team.id === id)?.name ?? `Team ${id}`),
@@ -262,15 +259,6 @@ const PlayersView = ({ seasonId, year, picks, teams, myTeamId, draft }: Props) =
     setPosition(next);
     // A stat sort only makes sense for the position it came from.
     setSortKey("points");
-  };
-
-  const handleDraft = (id: number) => {
-    if (armedId !== id) {
-      setArmedId(id);
-      return;
-    }
-    setArmedId(null);
-    draft?.onPick(id);
   };
 
   if (pool.isLoading || stats.isLoading) return <LoadingState what="players" />;

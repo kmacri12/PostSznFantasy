@@ -145,7 +145,8 @@ class DraftCompletedPayload(BaseSchema):
 
 class DraftPickAssignedPayload(BaseSchema):
     """A commissioner placed a player at a pick by hand: on the clock now, reserved for a
-    later slot, or replacing a pick already made (`replaced_player_name`)."""
+    later slot, or replacing a pick already made (`replaced_player_name`). `auto_pick`
+    marks the commissioner's "Auto-pick now": auto-pick chose the player."""
 
     kind: ClassVar[ActivityKind] = ActivityKind.DRAFT_PICK_ASSIGNED
 
@@ -155,6 +156,7 @@ class DraftPickAssignedPayload(BaseSchema):
     player_name: str
     scheduled: bool = False
     replaced_player_name: str | None = None
+    auto_pick: bool = False
 
 
 class DraftTimeSetPayload(BaseSchema):
