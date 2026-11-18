@@ -156,6 +156,7 @@ EXPECTED: dict[str, Policy] = {
     "POST /api/drafts/{season_id}/force-pick": COMMISSIONER,
     "PUT /api/drafts/{season_id}/order": COMMISSIONER,
     "POST /api/drafts/{season_id}/order/randomize": COMMISSIONER,
+    "PUT /api/drafts/{season_id}/autopilot/{team_id}": TEAM_OWNER_OR_COMMISSIONER,
     "POST /api/drafts/{season_id}/picks": LEAGUE_MEMBER,
     "GET /api/drafts/{season_id}/queue": LEAGUE_MEMBER,
     "PUT /api/drafts/{season_id}/queue": LEAGUE_MEMBER,
@@ -164,6 +165,7 @@ EXPECTED: dict[str, Policy] = {
     "GET /api/players/player-list": SIGNED_IN,
     "GET /api/players/player-season-stats": SIGNED_IN,
     "GET /api/players/sync-status": SIGNED_IN,
+    "GET /api/players/team-logos": SIGNED_IN,
     # Admin (ADMIN_SUPABASE_UIDS only; no test role is one)
     "GET /api/admin/feature-flags": ADMIN,
     "PUT /api/admin/feature-flags/{key}": ADMIN,
@@ -186,4 +188,5 @@ BODIES: dict[str, dict[str, object]] = {
     "PATCH /api/teams/{team_id}": {"name": "Renamed"},
     "POST /api/teams/{team_id}/lineup": {"round": 1, "playerId": 1, "slotIndex": None},
     "PUT /api/push/chat-mute/{league_id}": {"muted": True},
+    "PUT /api/drafts/{season_id}/autopilot/{team_id}": {"enabled": False},
 }

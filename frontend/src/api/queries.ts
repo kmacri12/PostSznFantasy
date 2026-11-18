@@ -816,6 +816,15 @@ export const useClearReservedPick = (seasonId: Id | undefined) => {
   });
 };
 
+export const useSetAutopilot = (seasonId: Id | undefined) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ teamId, enabled }: { teamId: number; enabled: boolean }) =>
+      (await api.put<DraftState>(`/api/drafts/${seasonId}/autopilot/${teamId}`, { enabled })).data,
+    onSuccess: (data) => queryClient.setQueryData(keys.draft(seasonId ?? ""), data),
+  });
+};
+
 export const useDraftSetup = (seasonId: Id | undefined) => {
   const queryClient = useQueryClient();
   return useMutation({

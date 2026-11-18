@@ -17,6 +17,7 @@ import { useAssignPick, useClearReservedPick } from "../../api/queries";
 import type { DraftState, PlayerSummary } from "../../api/types";
 import Dialog from "../common/AppDialog";
 import { mutationError } from "../common/friendlyError";
+import { normalizePosition } from "../team/moves";
 import ConfirmDraftAction from "./ConfirmDraftAction";
 
 const POSITIONS = ["QB", "RB", "WR", "TE", "K", "DST"];
@@ -56,7 +57,7 @@ const AssignPickDialog = ({ draft, pickNumber, teamName, pool, onClose }: Props)
     const needle = query.trim().toLowerCase();
     return pool
       .filter((player) => !unavailable.has(player.id))
-      .filter((player) => position === null || player.position === position)
+      .filter((player) => position === null || normalizePosition(player.position) === position)
       .filter((player) => needle === "" || player.name.toLowerCase().includes(needle))
       .sort((a, b) => a.name.localeCompare(b.name))
       .slice(0, MAX_ROWS);
@@ -131,6 +132,7 @@ const AssignPickDialog = ({ draft, pickNumber, teamName, pool, onClose }: Props)
         <TextField
           fullWidth
           size="small"
+          type="search"
           label="Search players"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
@@ -141,20 +143,34 @@ const AssignPickDialog = ({ draft, pickNumber, teamName, pool, onClose }: Props)
               key={item}
               label={item}
               clickable
+              aria-pressed={position === item}
               color={position === item ? "primary" : "default"}
               onClick={() => setPosition(position === item ? null : item)}
-              sx={{ minHeight: 36 }}
+              sx={{ height: 36, minWidth: 48 }}
             />
           ))}
         </Box>
-        <List dense disablePadding sx={{ maxHeight: 280, overflowY: "auto" }}>
+        <List
+          aria-label="Available players"
+          disablePadding
+          sx={{ maxHeight: "min(50vh, 360px)", overflowY: "auto", mx: -1 }}
+        >
           {matches.map((player) => (
             <ListItemButton
               key={player.id}
               onClick={() => setChosen(player)}
-              sx={{ minHeight: 48 }}
+              sx={{
+                minHeight: 52,
+                borderTop: 1,
+                borderColor: "divider",
+                "&:first-of-type": { borderTop: 0 },
+              }}
             >
-              <ListItemText primary={player.name} secondary={`${player.position} ${abv(player)}`} />
+              <ListItemText
+                primary={player.name}
+                secondary={`${normalizePosition(player.position)} ${abv(player)}`}
+                slotProps={{ primary: { sx: { overflowWrap: "anywhere" } } }}
+              />
             </ListItemButton>
           ))}
           {matches.length === 0 && (

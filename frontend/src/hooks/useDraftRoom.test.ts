@@ -51,6 +51,7 @@ const myPick = {
   playerName: "P5",
   numberPickOverall: 1,
   autopick: false,
+  source: "manager",
 };
 
 describe("useDraftRoom pick flow", () => {

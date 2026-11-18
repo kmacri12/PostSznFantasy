@@ -104,7 +104,7 @@ export function moveOptions(
       options.push(
         option(
           `swap-${other.id}`,
-          `Swap with ${other.name}`,
+          other.name,
           `Bench · ${gameWhen(other)}`,
           "Swap",
           { playerId: other.id, slotIndex: placement.index },
@@ -121,7 +121,7 @@ export function moveOptions(
       slot.player
         ? option(
             `swap-${slot.index}`,
-            `Swap with ${slot.player.name}`,
+            slot.player.name,
             `${names.get(slot.index)} · ${gameWhen(slot.player)}`,
             "Swap",
             { playerId: player.id, slotIndex: slot.index },
@@ -136,5 +136,34 @@ export function moveOptions(
             null,
           ),
     )
+    .sort((a, b) => Number(a.move === null) - Number(b.move === null));
+}
+
+/**
+ * The bench players who can start in one empty slot, each as a Start option named after the
+ * player (the slot is already known), unlocked ones first. A locked player is greyed unless the
+ * caller may override.
+ */
+export function slotFillOptions(
+  lineup: RoundLineup,
+  slotIndex: number,
+  canOverride: boolean,
+): MoveOption[] {
+  return benchPlayersOf(lineup)
+    .flatMap((player) => {
+      const start = moveOptions(lineup, player, canOverride).find(
+        (option) => option.key === `start-${slotIndex}`,
+      );
+      if (!start) return [];
+      const where = [player.position, player.teamAbv, gameWhen(player)].filter(Boolean);
+      return [
+        {
+          ...start,
+          key: `fill-${player.id}`,
+          title: player.name,
+          detail: start.move === null ? `${where[0]} · ${LOCKED_REASON}` : where.join(" · "),
+        },
+      ];
+    })
     .sort((a, b) => Number(a.move === null) - Number(b.move === null));
 }

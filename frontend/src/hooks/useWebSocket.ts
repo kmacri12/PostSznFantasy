@@ -28,6 +28,8 @@ const HEARTBEAT_MS = 20_000;
 const DEAD_AFTER_MS = 2 * HEARTBEAT_MS;
 const BASE_BACKOFF_MS = 1_000;
 const MAX_BACKOFF_MS = 30_000;
+// A socket that lived this long was healthy, so the next drop starts the backoff over.
+const HEALTHY_AFTER_MS = 10_000;
 const NORMAL_CLOSURE = 1000;
 // The server closes with 1008 when auth or league membership fails; retrying cannot help.
 const POLICY_VIOLATION = 1008;
@@ -55,6 +57,7 @@ export const useWebSocket = (url: string, options: Options = {}) => {
     let reconnectTimer: ReturnType<typeof setTimeout> | undefined;
     let heartbeatTimer: ReturnType<typeof setInterval> | undefined;
     let lastHeardAt = Date.now();
+    let openedAt = 0;
 
     const connect = () => {
       lastHeardAt = Date.now();
@@ -62,7 +65,7 @@ export const useWebSocket = (url: string, options: Options = {}) => {
       socketRef.current = socket;
 
       socket.onopen = () => {
-        attempt = 0;
+        openedAt = Date.now();
         setIsConnected(true);
         addBreadcrumb("draft.connection", "connected");
         logger.info("Connection established", url);
@@ -102,9 +105,11 @@ export const useWebSocket = (url: string, options: Options = {}) => {
         logger.info("Connection closed", event.code, event.reason);
 
         if (event.code === POLICY_VIOLATION && !disposed) onRejectedRef.current?.();
-        if (disposed || event.code === NORMAL_CLOSURE || event.code === POLICY_VIOLATION) {
-          return;
-        }
+        // Our own closes detach this handler or set `disposed`, so a normal close that lands here
+        // came from the server (a crashed handler ends the socket that way) and must reconnect.
+        if (disposed || event.code === POLICY_VIOLATION) return;
+        if (openedAt > 0 && Date.now() - openedAt > HEALTHY_AFTER_MS) attempt = 0;
+        openedAt = 0;
         const delay = backoffDelay(attempt++);
         logger.info(`Reconnecting in ${delay}ms`);
         addBreadcrumb("draft.connection", "reconnecting", { delay });
