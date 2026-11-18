@@ -31,7 +31,7 @@ const titles = (options: ReturnType<typeof moveOptions>) => options.map((option)
 describe("moves for a bench player", () => {
   it("offers a swap with each starter he can replace and every empty slot he can fill", () => {
     const options = moveOptions(lineup(), brian, false);
-    expect(titles(options)).toEqual(["Swap with Stefon Diggs", "Start at FLEX"]);
+    expect(titles(options)).toEqual(["Stefon Diggs", "Start at FLEX"]);
     expect(options[0]).toMatchObject({
       detail: expect.stringMatching(/^WR · [A-Z][a-z]{2} /),
       action: "Swap",
@@ -50,7 +50,7 @@ describe("moves for a bench player", () => {
     ).toEqual(["Start at FLEX"]);
     const bench = lineupPlayer({ id: 8, name: "Backup QB", position: "QB" });
     expect(titles(moveOptions(lineup({ unassigned: [bench] }), bench, false))).toEqual([
-      "Swap with Josh Allen",
+      "Josh Allen",
     ]);
   });
 
@@ -61,7 +61,7 @@ describe("moves for a bench player", () => {
       brian,
       false,
     );
-    expect(titles(options)).toEqual(["Start at FLEX", "Swap with Stefon Diggs"]);
+    expect(titles(options)).toEqual(["Start at FLEX", "Stefon Diggs"]);
     expect(options[1]).toMatchObject({
       detail: "WR · game started, locked",
       action: "Locked",
@@ -112,7 +112,7 @@ describe("moves for a starter", () => {
 
   it("swaps with the bench players eligible for his slot", () => {
     const options = moveOptions(lineup(), diggs, false);
-    expect(titles(options)).toEqual(["Move to bench", "Swap with Brian Thomas"]);
+    expect(titles(options)).toEqual(["Move to bench", "Brian Thomas"]);
     expect(options[1]?.move).toEqual({ playerId: 3, slotIndex: 1 });
   });
 
