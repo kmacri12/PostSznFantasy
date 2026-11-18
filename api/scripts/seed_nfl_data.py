@@ -8,6 +8,7 @@ from api.core.logging import setup_logging
 from api.db.session import close_db, get_session_factory
 from api.services.ingestion.box_scores_ingest import ingest_box_scores
 from api.services.ingestion.depth_chart_ingest import ingest_depth_charts
+from api.services.ingestion.dst_season_ingest import refresh_dst_season_stats
 from api.services.ingestion.kicker_distances_ingest import refresh_kicker_distances
 from api.services.ingestion.players_ingest import ingest_nfl_players
 from api.services.ingestion.season_stats_ingest import ingest_season_stats
@@ -121,6 +122,9 @@ async def main() -> None:
                     calls = await refresh_kicker_distances(session, season=args.season)
                     await session.commit()
                     logger.info(f"{calls} Tank01 calls made for kicker distances.")
+                    calls = await refresh_dst_season_stats(session, season=args.season)
+                    await session.commit()
+                    logger.info(f"{calls} Tank01 calls made for DST season stats.")
                     logger.info(f"{stats_count} player season stats synced.")
 
                 if args.with_box_scores:

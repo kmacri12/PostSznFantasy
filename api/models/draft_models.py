@@ -3,7 +3,7 @@ from datetime import datetime
 from pydantic import Field
 
 from api.models.base import BaseSchema
-from api.models.enums import DraftStatus, DraftType, PickTimeoutAction
+from api.models.enums import DraftStatus, DraftType, PickSource, PickTimeoutAction
 from api.models.league_models import PICK_SECONDS_MAX, PICK_SECONDS_MIN
 
 
@@ -21,6 +21,7 @@ class DraftPickResponse(BaseSchema):
     number_pick_overall: int
     number_pick_in_round: int
     autopick: bool = False
+    source: PickSource = PickSource.MANAGER
 
 
 class DraftSlot(BaseSchema):
