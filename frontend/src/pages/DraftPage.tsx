@@ -15,6 +15,7 @@ import CommissionerStrip from "../components/draft/CommissionerStrip";
 import { cappedPositions } from "../components/draft/caps";
 import DraftBoard from "../components/draft/DraftBoard";
 import DraftClockBar from "../components/draft/DraftClockBar";
+import DraftCompleteNotice from "../components/draft/DraftCompleteNotice";
 import DraftOrderEditor from "../components/draft/DraftOrderEditor";
 import DraftSettingsSheet from "../components/draft/DraftSettingsSheet";
 import DraftToast from "../components/draft/DraftToast";
@@ -94,8 +95,11 @@ const ViewTabs = ({
  * Queue (all on screen at once from `lg` up).
  */
 const DraftPage = () => {
-  const { seasonId, season } = useSeasonContext();
-  const info = useDraft(seasonId);
+  const { seasonId, season, paths } = useSeasonContext();
+  const [socketDown, setSocketDown] = useState(false);
+  // While the socket is down the page asks the server for the state directly, so a draft that
+  // finished meanwhile does not sit on a stale clock.
+  const info = useDraft(seasonId, socketDown ? 5_000 : undefined);
   const finishedOnLoad = info.data?.status === "completed";
   const room = useDraftRoom(finishedOnLoad ? undefined : seasonId, useRecheckLeague());
   const pool = useDraftPool(seasonId);
@@ -108,7 +112,9 @@ const DraftPage = () => {
   const [assigning, setAssigning] = useState<{ pickNumber: number; teamName: string } | null>(null);
 
   const snapshot: DraftSnapshot | null = room.state;
-  const state: DraftState | null = snapshot ?? info.data ?? null;
+  const infoFinished = info.data?.status === "completed";
+  const state: DraftState | null =
+    (!room.isConnected && infoFinished ? info.data : (snapshot ?? info.data)) ?? null;
   const myTeamId = snapshot?.myTeamId ?? season.myTeamId;
   const archived = season.finished;
   const live = state?.status === "in_progress" || state?.status === "paused";
@@ -117,6 +123,10 @@ const DraftPage = () => {
   const onDeck =
     state?.status === "in_progress" && myTeamId !== null && state.onDeckTeamId === myTeamId;
   const queue = snapshot?.queue ?? [];
+  useEffect(
+    () => setSocketDown(!room.isConnected && !finishedOnLoad),
+    [room.isConnected, finishedOnLoad],
+  );
 
   const teams = useMemo(
     () =>
@@ -184,6 +194,11 @@ const DraftPage = () => {
           <CogButton label="Draft settings" onClick={() => setSettingsOpen(true)} />
         </Box>
         {archived && <ArchivedNotice what="picks and the queue" />}
+        <DraftCompleteNotice
+          totalPicks={state.totalPicks}
+          teamHref={myTeamId === null ? null : paths.team(myTeamId)}
+          onShowBoard={() => setView("board")}
+        />
         <ShareCardButton
           card={draftCard(season.leagueName, season.year, state)}
           label="Share draft recap"

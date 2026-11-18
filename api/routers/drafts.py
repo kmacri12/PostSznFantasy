@@ -458,5 +458,11 @@ async def _handle_make_pick(
             await db.rollback()
             await _send_error(websocket, str(exc), exc.code)
             return
+        except Exception:
+            # Anything else must not end this socket: the client would sit on a dead room.
+            logger.exception("Pick failed unexpectedly", extra={"season_id": season_id})
+            await db.rollback()
+            await _send_error(websocket, "That pick didn't go through. Try again.")
+            return
 
     await announce_events(season_id, events)
