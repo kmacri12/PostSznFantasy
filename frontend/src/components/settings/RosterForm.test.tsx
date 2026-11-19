@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import RosterForm from "./RosterForm";
 
@@ -44,5 +44,27 @@ describe("RosterForm when locked", () => {
       ),
     ).toBeInTheDocument();
     expect(screen.getByText("Roster size: 17")).toBeInTheDocument();
+  });
+});
+
+describe("RosterForm position limits of 99", () => {
+  const open = { ...values, roster_max_rb: 99, roster_max_wr: 99 };
+
+  it("says No limit in the locked summary and never 99", () => {
+    const { container } = render(<RosterForm values={open} onChange={() => {}} disabled />);
+    expect(container.textContent).toContain("RB: No limit");
+    expect(container.textContent).not.toContain("99");
+  });
+
+  it("shows an empty field with a No limit placeholder and saves a cleared field as 99", () => {
+    const changes: Record<string, number | string>[] = [];
+    const { container } = render(<RosterForm values={open} onChange={(v) => changes.push(v)} />);
+    expect(container.textContent).not.toContain("99");
+    fireEvent.click(screen.getByRole("button", { name: /Position limits/ }));
+    const field = screen.getByLabelText("Max RB");
+    expect(field).toHaveValue("");
+    expect(field).toHaveAttribute("placeholder", "No limit");
+    fireEvent.change(screen.getByLabelText("Max QB"), { target: { value: "" } });
+    expect(changes.at(-1)?.roster_max_qb).toBe("99");
   });
 });
