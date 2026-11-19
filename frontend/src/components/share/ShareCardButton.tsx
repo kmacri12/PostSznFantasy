@@ -1,11 +1,10 @@
 import IosShareIcon from "@mui/icons-material/IosShare";
-import { Box, Button } from "@mui/material";
+import { Button, IconButton } from "@mui/material";
 import { useState } from "react";
 import { useThemeMode } from "../../contexts/ThemeModeContext";
 import { createLogger } from "../../utils/logger";
 import { shareImage } from "../../utils/shareImage";
 import AppToast from "../common/AppToast";
-import { visuallyHidden } from "../common/visuallyHidden";
 import { renderShareCard } from "./renderCard";
 import type { ShareCard } from "./shareCards";
 
@@ -15,11 +14,12 @@ const logger = createLogger("share-card");
 const ShareCardButton = ({
   card,
   label,
-  compact = false,
+  iconOnly = false,
 }: {
   card: ShareCard | null;
   label: string;
-  compact?: boolean;
+  /** An icon button beside other icon actions (the cog); the label is its accessible name. */
+  iconOnly?: boolean;
 }) => {
   const { mode } = useThemeMode();
   const [busy, setBusy] = useState(false);
@@ -44,25 +44,26 @@ const ShareCardButton = ({
 
   return (
     <>
-      <Button
-        variant="outlined"
-        size={compact ? "small" : "medium"}
-        startIcon={<IosShareIcon aria-hidden />}
-        disabled={busy}
-        onClick={share}
-        sx={{ minHeight: 44, alignSelf: "flex-start" }}
-      >
-        {compact ? (
-          <>
-            Share{" "}
-            <Box component="span" sx={visuallyHidden}>
-              {label.replace(/^Share /, "")}
-            </Box>
-          </>
-        ) : (
-          label
-        )}
-      </Button>
+      {iconOnly ? (
+        <IconButton
+          aria-label={label}
+          disabled={busy}
+          onClick={share}
+          sx={{ color: "text.secondary" }}
+        >
+          <IosShareIcon />
+        </IconButton>
+      ) : (
+        <Button
+          variant="outlined"
+          startIcon={<IosShareIcon aria-hidden />}
+          disabled={busy}
+          onClick={share}
+          sx={{ minHeight: 44, alignSelf: "flex-start" }}
+        >
+          {label}
+        </Button>
+      )}
       <AppToast
         open={toast !== null}
         message={toast?.message ?? ""}

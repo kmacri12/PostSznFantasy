@@ -212,10 +212,11 @@ const DraftPage = () => {
         {archived && <ArchivedNotice what="picks and the queue" />}
         <DraftCompleteNotice
           totalPicks={state.totalPicks}
+          lineupReminder={!archived}
           actions={
             <>
               <ShareCardButton
-                compact
+                iconOnly
                 card={draftCard(season.leagueName, season.year, state)}
                 label="Share draft board"
               />
