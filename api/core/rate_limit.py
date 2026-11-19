@@ -17,8 +17,9 @@ _SWEEP_EVERY = 1024
 
 class RateLimiter:
     """Sliding windows per key, in memory: the API is one process (docs/deploy/fly.md),
-    and a restart forgetting the windows only loosens them briefly. Cloudflare's rule
-    in front (docs/owner/21-rate-limiting.md) is the outer layer."""
+    and a restart forgetting the windows only loosens them briefly. These are the only
+    limits: the API's DNS record is not proxied by Cloudflare, so no Cloudflare rule
+    sees its traffic (docs/owner/21-rate-limiting.md)."""
 
     def __init__(self, name: str, message: str, *rules: tuple[int, int]) -> None:
         self.name = name

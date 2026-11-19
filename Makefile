@@ -108,8 +108,8 @@ lint-e2e: ## Fail on fixed sleeps, test.only and unjustified .first()/.last() in
 
 e2e-stress: ## Run the whole e2e suite E2E_STRESS_REPEAT (5) times to expose flaky specs; needs Postgres
 	cd e2e && npx playwright test --pass-with-no-tests --repeat-each=$(E2E_STRESS_REPEAT) $(E2E_ARGS)
-	@# A replay changes the NFL data it runs on, so each run starts from a freshly seeded database.
+	@# A replay changes the NFL data it runs on, so it runs once per invocation: the live
+	@# config's web server reseeds its own database each time Playwright starts it.
 	for run in $$(seq $(E2E_STRESS_REPEAT)); do \
-		PG_URI="$${E2E_DATABASE_URL:-postgresql://postgres:postgres@localhost:5433/postszn_e2e}" $(UV) python -m api.scripts.seed_e2e || exit 1; \
 		(cd e2e && npx playwright test -c playwright.live.config.ts --pass-with-no-tests $(E2E_ARGS)) || exit 1; \
 	done
