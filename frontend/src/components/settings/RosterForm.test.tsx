@@ -40,7 +40,7 @@ describe("RosterForm when locked", () => {
         (_, node) =>
           node?.tagName === "P" &&
           node.textContent ===
-            "Starters: 1 QB · 2 RB · 2 WR · 1 TE · 1 FLEX (WR/RB/TE) · 1 K · 1 DEF · 8 bench",
+            "Starters:\n1 QB\n2 RB\n2 WR\n1 TE\n1 FLEX (WR/RB/TE)\n1 K\n1 DEF\n8 bench",
       ),
     ).toBeInTheDocument();
     expect(screen.getByText("Roster size: 17")).toBeInTheDocument();

@@ -3,10 +3,18 @@ import { SCORING_GROUPS } from "./scoringGroups";
 import type { SettingsValues } from "./types";
 
 // Mirrors pydantic's to_camel, which is not reversible for numeric bands like `yards_allowed_100_199`.
+// Like Python's str.title(), it also capitalises a letter after a digit: `passing_2pt` is `passing2Pt`.
 export const toCamel = (snake: string): string =>
   snake
     .split("_")
-    .map((word, index) => (index === 0 ? word : word.charAt(0).toUpperCase() + word.slice(1)))
+    .map((word, index) =>
+      index === 0
+        ? word
+        : word.replace(
+            /(^|[^a-zA-Z])([a-z])/g,
+            (_, before, letter) => before + letter.toUpperCase(),
+          ),
+    )
     .join("");
 
 const keysOf = (groups: { fields: { key: string }[] }[]) =>

@@ -32,7 +32,7 @@ const SettingsGroup = ({
       <Box sx={{ minWidth: 0 }}>
         <Typography sx={{ fontWeight: 600 }}>{title}</Typography>
         {summary && (
-          <Typography variant="body2" color="text.secondary" noWrap>
+          <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: "pre-line" }}>
             {summary}
           </Typography>
         )}

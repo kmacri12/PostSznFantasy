@@ -25,8 +25,8 @@ export const SCORING_GROUPS: SettingGroup[] = [
       { key: "scoring_rushing_td", label: "TD" },
       { key: "scoring_rushing_2pt", label: "2-Pt Conversion" },
       { key: "scoring_rushing_attempt", label: "Attempt" },
-      { key: "scoring_rushing_bonus_100_yards", label: "Bonus 100 Yards" },
-      { key: "scoring_rushing_bonus_200_yards", label: "Bonus 200 Yards" },
+      { key: "scoring_rushing_bonus_100_yards", label: "100+ yard bonus" },
+      { key: "scoring_rushing_bonus_200_yards", label: "200+ yard bonus" },
     ],
   },
   {
@@ -41,8 +41,8 @@ export const SCORING_GROUPS: SettingGroup[] = [
       { key: "scoring_receiving_reception_bonus_rb", label: "Reception Bonus RB" },
       { key: "scoring_receiving_reception_bonus_wr", label: "Reception Bonus WR" },
       { key: "scoring_receiving_reception_bonus_te", label: "Reception Bonus TE" },
-      { key: "scoring_receiving_bonus_100_yards", label: "Bonus 100 Yards" },
-      { key: "scoring_receiving_bonus_200_yards", label: "Bonus 200 Yards" },
+      { key: "scoring_receiving_bonus_100_yards", label: "100+ yard bonus" },
+      { key: "scoring_receiving_bonus_200_yards", label: "200+ yard bonus" },
     ],
   },
   {

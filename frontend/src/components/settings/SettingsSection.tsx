@@ -32,9 +32,9 @@ interface SettingsSectionProps {
 /** "Yard 0.04 · TD 4": the fields that score, so a collapsed block says what is in it. */
 export const groupSummary = (group: SettingGroup, values: SettingsValues): string =>
   group.fields
-    .filter((field) => Number(values[field.key]) !== 0)
+    .filter((field) => values[field.key] !== undefined && Number(values[field.key]) !== 0)
     .map((field) => `${field.label} ${values[field.key]}`)
-    .join(" · ") || "Nothing scored";
+    .join("\n") || "Nothing scored";
 
 /** One collapsible block of numeric rows (label left, small field right), generated from a field schema. */
 const SettingsSection = ({
@@ -53,8 +53,10 @@ const SettingsSection = ({
   const heading = title ?? group.title;
   if (disabled) {
     return (
-      <Typography sx={{ mb: 0.75 }}>
-        <strong>{heading}:</strong> {groupSummary(group, values)}
+      <Typography sx={{ mb: 0.75, whiteSpace: "pre-line" }}>
+        <strong>{heading}:</strong>
+        {"\n"}
+        {groupSummary(group, values)}
       </Typography>
     );
   }
@@ -68,7 +70,7 @@ const SettingsSection = ({
           <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
             {heading}
           </Typography>
-          <Typography variant="body2" color="text.secondary" noWrap>
+          <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: "pre-line" }}>
             {groupSummary(group, values)}
           </Typography>
         </Box>
