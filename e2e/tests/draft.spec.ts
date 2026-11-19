@@ -70,7 +70,7 @@ test.describe("draft room", () => {
       await expect(view.getByRole("heading", { name: "Draft complete" })).toBeVisible();
     }
     await page.getByRole("tab", { name: "Draft board", exact: true }).click();
-    await expect(page.getByLabel("Draft board")).toBeVisible();
+    await expect(page.getByLabel("Draft board", { exact: true })).toBeVisible();
     await page.getByRole("tab", { name: "Players", exact: true }).click();
     await expect(page.getByRole("list", { name: "Players" })).toBeVisible();
 
