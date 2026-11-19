@@ -107,6 +107,19 @@ def slot_layout(settings: SeasonSettings) -> list[SlotSpec]:
     return specs
 
 
+_POSITION_ORDER = {position.value: i for i, position in enumerate(PlayerPosition)}
+
+
+def bench_order(player: LineupPlayer) -> tuple[int, str]:
+    """Starting-lineup order (QB, RB, WR, TE, K, DST), then name."""
+    return _POSITION_ORDER.get(player.position, len(_POSITION_ORDER)), player.name
+
+
+def eliminated_order(player: LineupPlayer) -> tuple[int, int, str]:
+    """Most recently eliminated first, then starting-lineup order and name."""
+    return (-(player.eliminated_round or 0), *bench_order(player))
+
+
 def _eligible(spec: SlotSpec, position: PlayerPosition | None) -> bool:
     return spec.allowed is None or position in spec.allowed
 
@@ -285,14 +298,18 @@ def _round_lineup(
     return RoundLineup(
         round=round_,
         slots=slots,
-        unassigned=[
-            v
-            for pid, v in views.items()
-            if pid not in in_lineup and v.status is not PlayerRoundStatus.ELIMINATED
-        ],
-        eliminated=[
-            v for v in views.values() if v.status is PlayerRoundStatus.ELIMINATED
-        ],
+        unassigned=sorted(
+            (
+                v
+                for pid, v in views.items()
+                if pid not in in_lineup and v.status is not PlayerRoundStatus.ELIMINATED
+            ),
+            key=bench_order,
+        ),
+        eliminated=sorted(
+            (v for v in views.values() if v.status is PlayerRoundStatus.ELIMINATED),
+            key=eliminated_order,
+        ),
         empty_starter_slots=sum(
             1 for s in slots if s.slot != BENCH and s.player is None
         ),

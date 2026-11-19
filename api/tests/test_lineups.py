@@ -1,7 +1,15 @@
 import pytest
 
 from api.models.enums import PlayerPosition as P
-from api.services.lineups import LineupError, SlotSpec, move_player
+from api.models.enums import PlayerRoundStatus
+from api.models.league_models import LineupPlayer
+from api.services.lineups import (
+    LineupError,
+    SlotSpec,
+    bench_order,
+    eliminated_order,
+    move_player,
+)
 
 SPECS = [
     SlotSpec("QB", (P.QB,)),
@@ -72,3 +80,62 @@ def test_locked_bench_player_cannot_be_swapped_out() -> None:
 
 def test_unlocked_players_move_freely_next_to_locked_ones() -> None:
     assert move([1, 2, 3, None, None], 3, 4, locked={2}) == [1, 2, None, None, 3]
+
+
+def test_bench_and_eliminated_sort_by_lineup_position_then_name() -> None:
+    def player(pid: int, name: str, position: str) -> LineupPlayer:
+        return LineupPlayer(
+            id=pid,
+            name=name,
+            position=position,
+            status=PlayerRoundStatus.ALIVE,
+            is_active=True,
+            locked=False,
+        )
+
+    players = [
+        player(1, "Zed", "DST"),
+        player(2, "Bo", "WR"),
+        player(3, "Al", "K"),
+        player(4, "Cy", "QB"),
+        player(5, "Ann", "WR"),
+        player(6, "Di", "TE"),
+        player(7, "Ed", "RB"),
+    ]
+    assert [p.name for p in sorted(players, key=bench_order)] == [
+        "Cy",
+        "Ed",
+        "Ann",
+        "Bo",
+        "Di",
+        "Al",
+        "Zed",
+    ]
+
+
+def test_eliminated_sort_latest_round_first_then_position_and_name() -> None:
+    def player(name: str, position: str, round_: int) -> LineupPlayer:
+        return LineupPlayer(
+            id=1,
+            name=name,
+            position=position,
+            status=PlayerRoundStatus.ELIMINATED,
+            is_active=True,
+            locked=False,
+            eliminated_round=round_,
+        )
+
+    players = [
+        player("Zed", "WR", 1),
+        player("Bo", "WR", 2),
+        player("Ann", "WR", 2),
+        player("Cy", "QB", 2),
+        player("Di", "K", 3),
+    ]
+    assert [p.name for p in sorted(players, key=eliminated_order)] == [
+        "Di",
+        "Cy",
+        "Ann",
+        "Bo",
+        "Zed",
+    ]
