@@ -125,7 +125,7 @@ describe("League settings", () => {
     expect(screen.queryByRole("button", { name: /^Invite link/ })).toBeNull();
     expect(screen.queryByRole("button", { name: /^Delete league/ })).toBeNull();
     expect(screen.queryByRole("button", { name: /^Number of teams/ })).toBeNull();
-    expect(screen.getByRole("button", { name: "Roster" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^Roster/ })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Scoring" })).toBeInTheDocument();
   });
 

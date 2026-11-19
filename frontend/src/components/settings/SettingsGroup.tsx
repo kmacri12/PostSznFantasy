@@ -25,7 +25,10 @@ const SettingsGroup = ({
     square
     sx={{ border: 0, "&::before": { display: "none" } }}
   >
-    <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: 52, px: 2 }}>
+    <AccordionSummary
+      expandIcon={<ExpandMoreIcon />}
+      sx={{ minHeight: 52, px: 2, "& .MuiAccordionSummary-content": { minWidth: 0 } }}
+    >
       <Box sx={{ minWidth: 0 }}>
         <Typography sx={{ fontWeight: 600 }}>{title}</Typography>
         {summary && (

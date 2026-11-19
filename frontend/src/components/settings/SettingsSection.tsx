@@ -60,7 +60,10 @@ const SettingsSection = ({
   }
   return (
     <Accordion defaultExpanded={defaultExpanded} disableGutters>
-      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+      <AccordionSummary
+        expandIcon={<ExpandMoreIcon />}
+        sx={{ "& .MuiAccordionSummary-content": { minWidth: 0 } }}
+      >
         <Box sx={{ minWidth: 0 }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
             {heading}

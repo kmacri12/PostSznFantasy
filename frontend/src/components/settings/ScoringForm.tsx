@@ -14,7 +14,7 @@ interface ScoringFormProps {
 
 const ScoringForm = ({ values, onChange, disabled, errors }: ScoringFormProps) => (
   <Box>
-    {SCORING_GROUPS.map((group, index) => (
+    {SCORING_GROUPS.map((group) => (
       <SettingsSection
         key={group.id}
         group={group}

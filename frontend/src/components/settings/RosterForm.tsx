@@ -54,7 +54,7 @@ const RosterForm = ({ values, onChange, disabled, lockedNote, errors }: RosterFo
 
   return (
     <Box>
-      {ROSTER_GROUPS.map((group, index) => (
+      {ROSTER_GROUPS.map((group) => (
         <SettingsSection
           key={group.id}
           group={group}
