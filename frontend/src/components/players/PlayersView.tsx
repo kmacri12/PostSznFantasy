@@ -281,11 +281,12 @@ const PlayersView = ({ seasonId, year, picks, teams, myTeamId, draft }: Props) =
   }
 
   // Counted against each filter's starting choice, so the badge says a hidden filter is narrowing the list.
+  const statusChanged = availability !== (draft ? "available" : "all");
   const activeFilters = [
     position !== null,
     nflTeam !== null,
     fantasyTeamId !== null,
-    availability !== (draft ? "available" : "all"),
+    statusChanged,
   ].filter(Boolean).length;
   const positions = POSITION_FILTERS.filter((pos) => pos !== "FLEX" || flex !== null);
   // After the draft nothing is "available" (no add/drop), only not drafted.
@@ -307,8 +308,15 @@ const PlayersView = ({ seasonId, year, picks, teams, myTeamId, draft }: Props) =
           onChange={(event) => setSearch(event.target.value)}
           onFocus={() => setSearching(true)}
           onBlur={() => setSearching(false)}
+          onKeyDown={(event) => {
+            // The keyboard's Search key: close the keyboard so Filters and Sort come back.
+            if (event.key === "Enter") {
+              event.preventDefault();
+              (event.target as HTMLElement).blur();
+            }
+          }}
           slotProps={{
-            htmlInput: { "aria-label": "Search players" },
+            htmlInput: { "aria-label": "Search players", enterKeyHint: "search" },
             input: {
               sx: { height: 44 },
               startAdornment: (
@@ -375,6 +383,7 @@ const PlayersView = ({ seasonId, year, picks, teams, myTeamId, draft }: Props) =
           <Box sx={{ display: "flex", gap: 0.5, alignItems: "center", minWidth: 0 }}>
             <FilterMenu
               label="NFL"
+              active={nflTeam !== null}
               value={nflTeam}
               options={[
                 { value: "", label: "any" },
@@ -384,6 +393,7 @@ const PlayersView = ({ seasonId, year, picks, teams, myTeamId, draft }: Props) =
             />
             <FilterMenu
               label="Fantasy"
+              active={fantasyTeamId !== null}
               maxWidth={140}
               value={fantasyTeamId === null ? null : String(fantasyTeamId)}
               options={[
@@ -399,6 +409,7 @@ const PlayersView = ({ seasonId, year, picks, teams, myTeamId, draft }: Props) =
             <Box sx={{ ml: "auto", flexShrink: 0 }}>
               <FilterMenu
                 label="Status"
+                active={statusChanged}
                 value={availability}
                 options={availabilityChoices}
                 onChange={(value) => setAvailability(value as Availability)}

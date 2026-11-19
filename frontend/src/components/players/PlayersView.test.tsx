@@ -76,7 +76,7 @@ const openFilters = () => {
 
 const chooseStatus = (label: string) => {
   openFilters();
-  fireEvent.click(screen.getByRole("button", { name: /^Status:/ }));
+  fireEvent.click(screen.getByRole("button", { name: /Status/ }));
   fireEvent.click(screen.getByRole("menuitem", { name: label }));
 };
 
@@ -127,6 +127,18 @@ describe("PlayersView filters panel", () => {
     expect(screen.queryByRole("button", { name: /^Sort:/ })).toBeNull();
     fireEvent.blur(search);
     expect(screen.getByRole("button", { name: "Filters" })).toBeInTheDocument();
+  });
+
+  it("closes the keyboard on the Search key, keeping the search and bringing the buttons back", () => {
+    renderView();
+    const search = screen.getByRole("searchbox", { name: "Search players" });
+    search.focus();
+    fireEvent.change(search, { target: { value: "cook" } });
+    expect(screen.queryByRole("button", { name: "Filters" })).toBeNull();
+    fireEvent.keyDown(search, { key: "Enter" });
+    expect(search).not.toHaveFocus();
+    expect(screen.getByRole("button", { name: "Filters" })).toBeInTheDocument();
+    expect(names()).toEqual(["James Cook"]);
   });
 });
 
@@ -195,6 +207,8 @@ describe("PlayersView in the draft room", () => {
     fireEvent.click(screen.getByRole("button", { name: /^Fantasy/ }));
     fireEvent.click(screen.getByRole("menuitem", { name: "Sam's Squad" }));
     expect(names()).toEqual(["Puka Nacua"]);
-    expect(screen.getByRole("button", { name: "Status: All" })).toBeInTheDocument();
+    // Set filters show only their choice, with the label kept for screen readers.
+    expect(screen.getByRole("button", { name: "Sam's Squad, Fantasy" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "All, Status" })).toBeInTheDocument();
   });
 });
