@@ -53,11 +53,17 @@ interface Palette {
   posK: string;
   posDST: string;
   rowQB: string;
+  edgeQB: string;
   rowRB: string;
+  edgeRB: string;
   rowWR: string;
+  edgeWR: string;
   rowTE: string;
+  edgeTE: string;
   rowK: string;
+  edgeK: string;
   rowDST: string;
+  edgeDST: string;
 }
 
 /** The Claude Design mockup palette (#258, #297, #298): sky blue on graphite, or on white. */
@@ -97,12 +103,18 @@ export const palettes: Record<ThemeMode, Palette> = {
     posTE: "#3a2a14",
     posK: "#2b2b2b",
     posDST: "#2a2f3a",
-    rowQB: "#4f1626",
-    rowRB: "#0f4527",
-    rowWR: "#16306a",
-    rowTE: "#533008",
-    rowK: "#3b1c6b",
-    rowDST: "#2f3947",
+    rowQB: "#352329",
+    edgeQB: "#e0435f",
+    rowRB: "#1c2f28",
+    edgeRB: "#22a35a",
+    rowWR: "#1f2b3d",
+    edgeWR: "#3b82f6",
+    rowTE: "#352a21",
+    edgeTE: "#e07a1f",
+    rowK: "#2a263d",
+    edgeK: "#8b5cf6",
+    rowDST: "#24292f",
+    edgeDST: "#64748b",
   },
   light: {
     bg: "#ffffff",
@@ -139,12 +151,18 @@ export const palettes: Record<ThemeMode, Palette> = {
     posTE: "#f8eadb",
     posK: "#e9eaec",
     posDST: "#e4e8ee",
-    rowQB: "#f5b8c4",
-    rowRB: "#b9e6c9",
-    rowWR: "#bcd3fa",
-    rowTE: "#f7d3a6",
-    rowK: "#d7c6f7",
-    rowDST: "#cdd5df",
+    rowQB: "#f0e4e9",
+    edgeQB: "#c2334d",
+    rowRB: "#e0ebe8",
+    edgeRB: "#177a42",
+    rowWR: "#e1e8f5",
+    edgeWR: "#2158d6",
+    rowTE: "#ede7e2",
+    edgeTE: "#a84d08",
+    rowK: "#e8e4f5",
+    edgeK: "#7231d8",
+    rowDST: "#e4e8eb",
+    edgeDST: "#475569",
   },
 };
 

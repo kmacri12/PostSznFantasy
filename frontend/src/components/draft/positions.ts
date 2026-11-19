@@ -33,6 +33,19 @@ const ROW_COLORS: Record<string, string> = {
   DEF: tokens.rowDST,
 };
 
-/** A Team page lineup row's background: stronger than the board's cell fills so a position reads at a glance (#527). */
+const EDGE_COLORS: Record<string, string> = {
+  QB: tokens.edgeQB,
+  RB: tokens.edgeRB,
+  WR: tokens.edgeWR,
+  TE: tokens.edgeTE,
+  K: tokens.edgeK,
+  DST: tokens.edgeDST,
+  DEF: tokens.edgeDST,
+};
+
+/** A Team page lineup row's light position wash; `positionEdgeColor` is its solid left edge (#527). */
 export const positionRowColor = (position: string | null | undefined): string =>
   ROW_COLORS[(position ?? "").toUpperCase()] ?? "transparent";
+
+export const positionEdgeColor = (position: string | null | undefined): string =>
+  EDGE_COLORS[(position ?? "").toUpperCase()] ?? "transparent";

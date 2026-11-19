@@ -6,7 +6,7 @@ import ChangedScore from "../activity/ChangedScore";
 import SlotMarker from "../activity/SlotMarker";
 import HelpTip from "../common/HelpTip";
 import InjuryTag from "../common/InjuryTag";
-import { positionChipSx, positionRowColor } from "../draft/positions";
+import { positionChipSx, positionEdgeColor, positionRowColor } from "../draft/positions";
 import { formatPoints } from "../league/standingsView";
 import { nameWithTeam, playerDetail, type RowState, rowState } from "./lineupView";
 
@@ -56,7 +56,6 @@ const PlayerRow = ({
   const muted = bench && state === "ready";
   const eliminated = state === "eliminated";
   const tint = player && !eliminated ? positionRowColor(player.position) : "transparent";
-  const tinted = tint !== "transparent";
   return (
     <Box component="li" sx={{ borderTop: `1px solid ${tokens.border}` }}>
       <Box
@@ -65,6 +64,7 @@ const PlayerRow = ({
           display: "flex",
           alignItems: "center",
           bgcolor: eliminated ? tokens.dangerSurface : tint,
+          borderLeft: `4px solid ${player && !eliminated ? positionEdgeColor(player.position) : "transparent"}`,
         }}
       >
         <ButtonBase
@@ -119,7 +119,7 @@ const PlayerRow = ({
                   sx={{
                     fontSize: 14,
                     fontWeight: 600,
-                    color: muted ? (tinted ? tokens.textSoft : tokens.muted) : colors.name,
+                    color: muted ? tokens.muted : colors.name,
                     textDecoration: eliminated ? "line-through" : "none",
                   }}
                 >
@@ -134,7 +134,7 @@ const PlayerRow = ({
                   display: "block",
                   fontSize: 12,
                   mt: 0.125,
-                  color: tinted && colors.detail === tokens.muted ? tokens.textSoft : colors.detail,
+                  color: colors.detail,
                 }}
               >
                 {playerDetail(player)}
