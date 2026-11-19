@@ -308,8 +308,15 @@ const PlayersView = ({ seasonId, year, picks, teams, myTeamId, draft }: Props) =
           onChange={(event) => setSearch(event.target.value)}
           onFocus={() => setSearching(true)}
           onBlur={() => setSearching(false)}
+          onKeyDown={(event) => {
+            // The keyboard's Search key: close the keyboard so Filters and Sort come back.
+            if (event.key === "Enter") {
+              event.preventDefault();
+              (event.target as HTMLElement).blur();
+            }
+          }}
           slotProps={{
-            htmlInput: { "aria-label": "Search players" },
+            htmlInput: { "aria-label": "Search players", enterKeyHint: "search" },
             input: {
               sx: { height: 44 },
               startAdornment: (

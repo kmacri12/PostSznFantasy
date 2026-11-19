@@ -128,6 +128,18 @@ describe("PlayersView filters panel", () => {
     fireEvent.blur(search);
     expect(screen.getByRole("button", { name: "Filters" })).toBeInTheDocument();
   });
+
+  it("closes the keyboard on the Search key, keeping the search and bringing the buttons back", () => {
+    renderView();
+    const search = screen.getByRole("searchbox", { name: "Search players" });
+    search.focus();
+    fireEvent.change(search, { target: { value: "cook" } });
+    expect(screen.queryByRole("button", { name: "Filters" })).toBeNull();
+    fireEvent.keyDown(search, { key: "Enter" });
+    expect(search).not.toHaveFocus();
+    expect(screen.getByRole("button", { name: "Filters" })).toBeInTheDocument();
+    expect(names()).toEqual(["James Cook"]);
+  });
 });
 
 describe("PlayersView in the draft room", () => {
