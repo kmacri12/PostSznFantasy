@@ -219,12 +219,6 @@ function SettingsPage() {
       {info && (
         <>
           {archived && <ArchivedNotice what="the roster, scoring and team count" />}
-          {started && !archived && isCommissioner && (
-            <Alert severity="warning" sx={{ mb: 2 }}>
-              The draft has started, so team count, roster slots and position caps are locked.
-              Scoring and round multipliers can still change.
-            </Alert>
-          )}
           <SettingsCard>
             <SettingsRow
               label="League picture"
@@ -265,6 +259,7 @@ function SettingsPage() {
                 onChange={setRoster}
                 errors={rosterErrors}
                 disabled={!canEdit || started}
+                lockedNote={started ? "Locked since the draft started." : undefined}
               />
             </SettingsGroup>
             <SettingsGroup title="Scoring">
