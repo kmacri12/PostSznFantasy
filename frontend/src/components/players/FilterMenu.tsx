@@ -1,6 +1,7 @@
 import { Chip, IconButton, Menu, MenuItem } from "@mui/material";
 import { type ReactNode, useState } from "react";
 import { tokens } from "../../theme";
+import { visuallyHidden } from "../common/visuallyHidden";
 
 export interface FilterOption {
   value: string;
@@ -18,10 +19,12 @@ interface Props {
   maxWidth?: number;
   /** Shows an outlined icon button instead of a chip; its name says the label and the choice. */
   icon?: ReactNode;
+  /** Set away from its starting choice: drawn like a selected position chip, showing only the choice. */
+  active?: boolean;
 }
 
 /** A chip that opens a short menu of choices. */
-const FilterMenu = ({ label, value, options, onChange, maxWidth, icon }: Props) => {
+const FilterMenu = ({ label, value, options, onChange, maxWidth, icon, active = false }: Props) => {
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const current = options.find((option) => option.value === (value ?? ""))?.label ?? "any";
   return (
@@ -47,10 +50,20 @@ const FilterMenu = ({ label, value, options, onChange, maxWidth, icon }: Props) 
           clickable
           variant="outlined"
           label={
-            <>
-              {label}: {current}
-              <span aria-hidden="true"> ▾</span>
-            </>
+            // A set filter shows only its choice so the row still fits a phone; the highlight
+            // says it is set and the label stays for screen readers.
+            active ? (
+              <>
+                {current}
+                <span aria-hidden="true"> ▾</span>
+                <span style={visuallyHidden}>, {label}</span>
+              </>
+            ) : (
+              <>
+                {label}: {current}
+                <span aria-hidden="true"> ▾</span>
+              </>
+            )
           }
           onClick={(event) => setAnchor(event.currentTarget)}
           aria-haspopup="menu"
@@ -61,8 +74,9 @@ const FilterMenu = ({ label, value, options, onChange, maxWidth, icon }: Props) 
             minWidth: 0,
             fontSize: 13,
             "& .MuiChip-label": { px: 1.25 },
-            color: tokens.textSoft,
-            borderColor: tokens.borderStrong,
+            ...(active
+              ? { bgcolor: tokens.accentSurface, borderColor: tokens.accent, color: tokens.accent }
+              : { color: tokens.textSoft, borderColor: tokens.borderStrong }),
           }}
         />
       )}

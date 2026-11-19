@@ -76,7 +76,7 @@ const openFilters = () => {
 
 const chooseStatus = (label: string) => {
   openFilters();
-  fireEvent.click(screen.getByRole("button", { name: /^Status:/ }));
+  fireEvent.click(screen.getByRole("button", { name: /Status/ }));
   fireEvent.click(screen.getByRole("menuitem", { name: label }));
 };
 
@@ -195,6 +195,8 @@ describe("PlayersView in the draft room", () => {
     fireEvent.click(screen.getByRole("button", { name: /^Fantasy/ }));
     fireEvent.click(screen.getByRole("menuitem", { name: "Sam's Squad" }));
     expect(names()).toEqual(["Puka Nacua"]);
-    expect(screen.getByRole("button", { name: "Status: All" })).toBeInTheDocument();
+    // Set filters show only their choice, with the label kept for screen readers.
+    expect(screen.getByRole("button", { name: "Sam's Squad, Fantasy" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "All, Status" })).toBeInTheDocument();
   });
 });
