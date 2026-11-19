@@ -313,7 +313,7 @@ function SettingsPage() {
             </SettingsGroup>
             <SettingsGroup
               title="Round multipliers"
-              summary={MULTIPLIER_KEYS.map((key) => `${postseason[key]}x`).join(" · ")}
+              summary={MULTIPLIER_KEYS.map((key) => `${postseason[key]}x`).join("\n")}
             >
               <PostseasonForm
                 keys={MULTIPLIER_KEYS}

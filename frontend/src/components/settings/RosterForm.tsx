@@ -21,7 +21,7 @@ const summaryLine = (group: SettingGroup, values: SettingsValues): string =>
       const label = field.label.replace(/^Max /, "");
       return `${values[field.key]} ${label === "Bench" ? "bench" : label}`;
     })
-    .join(" · ") || "None";
+    .join("\n") || "None";
 
 /** Keeps roster_total equal to starters + bench whenever one of them changes. */
 const RosterForm = ({ values, onChange, disabled, lockedNote, errors }: RosterFormProps) => {
@@ -40,8 +40,9 @@ const RosterForm = ({ values, onChange, disabled, lockedNote, errors }: RosterFo
           </Typography>
         )}
         {ROSTER_GROUPS.map((group) => (
-          <Typography key={group.id} sx={{ mb: 0.5 }}>
-            <strong>{group.id === "limits" ? "Limits" : group.title}:</strong>{" "}
+          <Typography key={group.id} sx={{ mb: 0.5, whiteSpace: "pre-line" }}>
+            <strong>{group.id === "limits" ? "Limits" : group.title}:</strong>
+            {"\n"}
             {summaryLine(group, values)}
           </Typography>
         ))}

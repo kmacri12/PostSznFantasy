@@ -18,7 +18,7 @@ const PostseasonForm = ({ values, onChange, keys, disabled, errors }: Postseason
   const fields = POSTSEASON_FIELDS.filter((field) => !keys || keys.includes(field.key));
   if (disabled) {
     return (
-      <Typography sx={{ mb: 0.75 }}>
+      <Typography sx={{ mb: 0.75, whiteSpace: "pre-line" }}>
         {fields
           .map((field) => {
             const value = values[field.key];
@@ -26,7 +26,7 @@ const PostseasonForm = ({ values, onChange, keys, disabled, errors }: Postseason
               ? `${field.label} ${value === true ? "on" : "off"}`
               : `${field.label.replace(/ multiplier$/, "")} ${value}x`;
           })
-          .join(" · ")}
+          .join("\n")}
       </Typography>
     );
   }
