@@ -52,6 +52,13 @@ interface Palette {
   posTE: string;
   posK: string;
   posDST: string;
+  tagInk: string;
+  tagQB: string;
+  tagRB: string;
+  tagWR: string;
+  tagTE: string;
+  tagK: string;
+  tagDST: string;
 }
 
 /** The Claude Design mockup palette (#258, #297, #298): sky blue on graphite, or on white. */
@@ -91,6 +98,13 @@ export const palettes: Record<ThemeMode, Palette> = {
     posTE: "#3a2a14",
     posK: "#2b2b2b",
     posDST: "#2a2f3a",
+    tagInk: "#ffffff",
+    tagQB: "#c2334d",
+    tagRB: "#1a7f45",
+    tagWR: "#2563eb",
+    tagTE: "#b45309",
+    tagK: "#7c3aed",
+    tagDST: "#475569",
   },
   light: {
     bg: "#ffffff",
@@ -127,6 +141,13 @@ export const palettes: Record<ThemeMode, Palette> = {
     posTE: "#f8eadb",
     posK: "#e9eaec",
     posDST: "#e4e8ee",
+    tagInk: "#ffffff",
+    tagQB: "#c2334d",
+    tagRB: "#177a42",
+    tagWR: "#2158d6",
+    tagTE: "#a84d08",
+    tagK: "#7231d8",
+    tagDST: "#475569",
   },
 };
 

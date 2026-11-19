@@ -19,6 +19,12 @@ type Key = keyof typeof palettes.dark;
 // [foreground, background, minimum]: 4.5 for body text, 3 for large text and UI components.
 const PAIRS: [Key, Key, number][] = [
   ["accentInk", "accentFill", 4.5],
+  ["tagInk", "tagQB", 4.5],
+  ["tagInk", "tagRB", 4.5],
+  ["tagInk", "tagWR", 4.5],
+  ["tagInk", "tagTE", 4.5],
+  ["tagInk", "tagK", 4.5],
+  ["tagInk", "tagDST", 4.5],
   ["accent", "bg", 4.5],
   ["accent", "surface", 4.5],
   ["accent", "accentSurface", 4.5],

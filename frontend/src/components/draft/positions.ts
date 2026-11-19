@@ -14,10 +14,20 @@ export const POSITION_COLORS: Record<string, string> = {
 export const positionColor = (position: string | null | undefined): string =>
   POSITION_COLORS[(position ?? "").toUpperCase()] ?? "transparent";
 
-/** The position tag shared by the player list and the Team page: the board's colour behind readable text. */
+const TAG_COLORS: Record<string, string> = {
+  QB: tokens.tagQB,
+  RB: tokens.tagRB,
+  WR: tokens.tagWR,
+  TE: tokens.tagTE,
+  K: tokens.tagK,
+  DST: tokens.tagDST,
+  DEF: tokens.tagDST,
+};
+
+/** The position tag shared by the player list and the Team page: saturated, since a small tag in the board's muted fills vanished (#527). */
 export const positionChipSx = (position: string | null | undefined) => ({
-  bgcolor: positionColor(position),
-  color: tokens.text,
+  bgcolor: TAG_COLORS[(position ?? "").toUpperCase()] ?? "transparent",
+  color: tokens.tagInk,
   borderRadius: 1,
   px: 0.75,
   fontWeight: 600,
