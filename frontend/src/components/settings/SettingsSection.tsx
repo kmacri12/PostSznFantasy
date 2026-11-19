@@ -32,7 +32,7 @@ interface SettingsSectionProps {
 /** "Yard 0.04 · TD 4": the fields that score, so a collapsed block says what is in it. */
 export const groupSummary = (group: SettingGroup, values: SettingsValues): string =>
   group.fields
-    .filter((field) => Number(values[field.key]) !== 0)
+    .filter((field) => values[field.key] !== undefined && Number(values[field.key]) !== 0)
     .map((field) => `${field.label} ${values[field.key]}`)
     .join("\n") || "Nothing scored";
 
