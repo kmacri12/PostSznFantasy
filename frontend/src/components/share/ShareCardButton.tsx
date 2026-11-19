@@ -1,17 +1,26 @@
 import IosShareIcon from "@mui/icons-material/IosShare";
-import { Button } from "@mui/material";
+import { Box, Button } from "@mui/material";
 import { useState } from "react";
 import { useThemeMode } from "../../contexts/ThemeModeContext";
 import { createLogger } from "../../utils/logger";
 import { shareImage } from "../../utils/shareImage";
 import AppToast from "../common/AppToast";
+import { visuallyHidden } from "../common/visuallyHidden";
 import { renderShareCard } from "./renderCard";
 import type { ShareCard } from "./shareCards";
 
 const logger = createLogger("share-card");
 
 /** Renders the card as a picture in the current theme, then shares it or saves it. */
-const ShareCardButton = ({ card, label }: { card: ShareCard | null; label: string }) => {
+const ShareCardButton = ({
+  card,
+  label,
+  compact = false,
+}: {
+  card: ShareCard | null;
+  label: string;
+  compact?: boolean;
+}) => {
   const { mode } = useThemeMode();
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState<{ message: string; severity: "success" | "error" } | null>(
@@ -37,12 +46,22 @@ const ShareCardButton = ({ card, label }: { card: ShareCard | null; label: strin
     <>
       <Button
         variant="outlined"
+        size={compact ? "small" : "medium"}
         startIcon={<IosShareIcon aria-hidden />}
         disabled={busy}
         onClick={share}
         sx={{ minHeight: 44, alignSelf: "flex-start" }}
       >
-        {label}
+        {compact ? (
+          <>
+            Share{" "}
+            <Box component="span" sx={visuallyHidden}>
+              {label.replace(/^Share /, "")}
+            </Box>
+          </>
+        ) : (
+          label
+        )}
       </Button>
       <AppToast
         open={toast !== null}

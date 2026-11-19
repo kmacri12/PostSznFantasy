@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SeasonContext } from "../contexts/SeasonContext";
@@ -21,7 +21,10 @@ const state = () => ({
   startTime: null,
   presence: [],
   queue: [],
-  picks: [],
+  picks:
+    mocks.status === "completed"
+      ? [{ numberPickOverall: 1, teamId: 1, playerName: "A B", position: "QB" }]
+      : [],
   reservedPicks: [],
   autopilotTeamIds: [],
   order: [{ slot: 1, teamId: 1, teamName: "Alpha", ownerName: null }],
@@ -165,6 +168,15 @@ describe("DraftPage", () => {
     expect(screen.getByRole("heading", { name: "Draft complete" })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Go to my team" })).toBeNull();
     expect(screen.queryByRole("button", { name: "See the draft board" })).toBeNull();
+  });
+
+  it("puts the pick count, Share and the settings cog on one row", () => {
+    mocks.status = "completed";
+    renderDraft();
+    const row = screen.getByRole("region", { name: "Draft complete" });
+    expect(within(row).getByText(/picks/)).toBeInTheDocument();
+    expect(within(row).getByRole("button", { name: "Share draft board" })).toBeInTheDocument();
+    expect(within(row).getByRole("button", { name: "Draft settings" })).toBeInTheDocument();
   });
 
   it("shows Draft complete, not a stale clock, when the socket is down and the server says it is over", () => {
