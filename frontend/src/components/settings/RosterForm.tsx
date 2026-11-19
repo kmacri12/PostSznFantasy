@@ -63,7 +63,6 @@ const RosterForm = ({ values, onChange, disabled, lockedNote, errors }: RosterFo
           disabled={disabled}
           errors={errors}
           inputMode="numeric"
-          defaultExpanded={index === 0}
           help={
             group.id === "limits"
               ? SETTING_HELP.rosterLimits

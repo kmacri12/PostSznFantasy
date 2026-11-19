@@ -4,17 +4,13 @@ import {
   AccordionDetails,
   AccordionSummary,
   Box,
-  FormControl,
   FormHelperText,
-  Grid,
-  InputLabel,
   OutlinedInput,
   Typography,
 } from "@mui/material";
 import { useState } from "react";
 import type { SettingGroup, SettingsValues } from "../../settings/types";
 import HelpTip from "../common/HelpTip";
-import ReadOnlyValue from "./ReadOnlyValue";
 
 interface SettingsSectionProps {
   group: SettingGroup;
@@ -33,7 +29,14 @@ interface SettingsSectionProps {
   helper?: (key: string, rawValue: string | number) => string | null;
 }
 
-/** One collapsible block of numeric inputs, generated from a field schema. */
+/** "Yard 0.04 · TD 4": the fields that score, so a collapsed block says what is in it. */
+export const groupSummary = (group: SettingGroup, values: SettingsValues): string =>
+  group.fields
+    .filter((field) => Number(values[field.key]) !== 0)
+    .map((field) => `${field.label} ${values[field.key]}`)
+    .join(" · ") || "Nothing scored";
+
+/** One collapsible block of numeric rows (label left, small field right), generated from a field schema. */
 const SettingsSection = ({
   group,
   values,
@@ -47,54 +50,65 @@ const SettingsSection = ({
   errors,
 }: SettingsSectionProps) => {
   const [touched, setTouched] = useState<Set<string>>(new Set());
+  const heading = title ?? group.title;
+  if (disabled) {
+    return (
+      <Typography sx={{ mb: 0.75 }}>
+        <strong>{heading}:</strong> {groupSummary(group, values)}
+      </Typography>
+    );
+  }
   return (
     <Accordion defaultExpanded={defaultExpanded} disableGutters>
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-          {title ?? group.title}
-        </Typography>
+        <Box sx={{ minWidth: 0 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+            {heading}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" noWrap>
+            {groupSummary(group, values)}
+          </Typography>
+        </Box>
       </AccordionSummary>
-      <AccordionDetails>
+      <AccordionDetails sx={{ pt: 0 }}>
         {help && (
-          <Box sx={{ display: "flex", alignItems: "center", mt: -1 }}>
+          <Box sx={{ display: "flex", alignItems: "center" }}>
             <Typography variant="body2" color="text.secondary">
               What do these mean?
             </Typography>
-            <HelpTip label={title ?? group.title} text={help} />
+            <HelpTip label={heading} text={help} />
           </Box>
         )}
-        <Grid container spacing={2}>
-          {group.fields.map((field) => {
-            const id = field.key.replaceAll("_", "-");
-            const problem = touched.has(field.key) ? errors?.[field.key] : undefined;
-            if (disabled) {
-              return (
-                <Grid size={{ xs: 12, sm: 6, md: 4 }} key={field.key}>
-                  <ReadOnlyValue label={field.label} value={values[field.key] ?? ""} />
-                </Grid>
-              );
-            }
-            return (
-              <Grid size={{ xs: 12, sm: 6, md: 4 }} key={field.key}>
-                <FormControl fullWidth margin="dense" error={Boolean(problem)}>
-                  <InputLabel htmlFor={id}>{field.label}</InputLabel>
-                  <OutlinedInput
-                    id={id}
-                    value={values[field.key] ?? ""}
-                    onChange={(event) => onChange(field.key, event.target.value)}
-                    label={field.label}
-                    onBlur={() => setTouched((previous) => new Set(previous).add(field.key))}
-                    inputProps={{ inputMode }}
-                  />
-                  {problem && <FormHelperText>{problem}</FormHelperText>}
-                  {!problem && helper && (
-                    <FormHelperText>{helper(field.key, values[field.key] ?? "")}</FormHelperText>
-                  )}
-                </FormControl>
-              </Grid>
-            );
-          })}
-        </Grid>
+        {group.fields.map((field) => {
+          const id = field.key.replaceAll("_", "-");
+          const problem = touched.has(field.key) ? errors?.[field.key] : undefined;
+          const note = helper?.(field.key, values[field.key] ?? "");
+          return (
+            <Box key={field.key}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1, minHeight: 48 }}>
+                <Typography component="label" htmlFor={id} sx={{ flexGrow: 1 }}>
+                  {field.label}
+                </Typography>
+                <OutlinedInput
+                  id={id}
+                  size="small"
+                  error={Boolean(problem)}
+                  value={values[field.key] ?? ""}
+                  onChange={(event) => onChange(field.key, event.target.value)}
+                  onBlur={() => setTouched((previous) => new Set(previous).add(field.key))}
+                  inputProps={{ inputMode, style: { textAlign: "right" } }}
+                  sx={{ width: 96 }}
+                />
+                {note ? <HelpTip label={field.label} text={note} /> : <Box sx={{ width: 44 }} />}
+              </Box>
+              {problem && (
+                <FormHelperText error sx={{ mt: -0.5, mb: 0.5 }}>
+                  {problem}
+                </FormHelperText>
+              )}
+            </Box>
+          );
+        })}
       </AccordionDetails>
     </Accordion>
   );

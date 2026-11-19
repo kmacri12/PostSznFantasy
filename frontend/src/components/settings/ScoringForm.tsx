@@ -22,7 +22,6 @@ const ScoringForm = ({ values, onChange, disabled, errors }: ScoringFormProps) =
         onChange={onChange}
         disabled={disabled}
         errors={errors}
-        defaultExpanded={index === 0}
         helper={scoringHelp}
         help={SETTING_HELP.scoring}
       />
