@@ -13,21 +13,41 @@ import {
 import { useState } from "react";
 import { POSTSEASON_FIELDS, type PostseasonValues } from "../../settings/postseasonFields";
 import HelpTip from "../common/HelpTip";
+import ReadOnlyValue from "./ReadOnlyValue";
 
 interface PostseasonFormProps {
   values: PostseasonValues;
   onChange: (key: string, value: number | string | boolean) => void;
+  /** Which fields to show, in the schema's order; default all. */
+  keys?: string[];
   disabled?: boolean;
   errors?: Record<string, string>;
 }
 
-const PostseasonForm = ({ values, onChange, disabled, errors }: PostseasonFormProps) => {
+const PostseasonForm = ({ values, onChange, keys, disabled, errors }: PostseasonFormProps) => {
   const [touched, setTouched] = useState<Set<string>>(new Set());
   return (
     <Box>
       <Grid container spacing={2}>
-        {POSTSEASON_FIELDS.map((field) => {
+        {POSTSEASON_FIELDS.filter((field) => !keys || keys.includes(field.key)).map((field) => {
           const id = field.key.replaceAll("_", "-");
+          if (disabled) {
+            const value = values[field.key];
+            const shown =
+              field.kind === "boolean"
+                ? value === true
+                  ? "On"
+                  : "Off"
+                : field.kind === "select"
+                  ? (field.options?.find((option) => option.value === value)?.label ??
+                    String(value))
+                  : `${value}x`;
+            return (
+              <Grid size={{ xs: 12, sm: 6 }} key={field.key}>
+                <ReadOnlyValue label={field.label} value={shown} help={field.help} />
+              </Grid>
+            );
+          }
           return (
             <Grid size={{ xs: 12, sm: 6 }} key={field.key}>
               {field.kind === "boolean" && (
@@ -36,7 +56,6 @@ const PostseasonForm = ({ values, onChange, disabled, errors }: PostseasonFormPr
                     control={
                       <Switch
                         checked={values[field.key] === true}
-                        disabled={disabled}
                         onChange={(event) => onChange(field.key, event.target.checked)}
                         slotProps={{ input: { "aria-label": field.label } }}
                       />
@@ -48,7 +67,7 @@ const PostseasonForm = ({ values, onChange, disabled, errors }: PostseasonFormPr
                 </FormControl>
               )}
               {field.kind === "select" && (
-                <FormControl fullWidth disabled={disabled}>
+                <FormControl fullWidth>
                   <InputLabel id={`${id}-label`}>{field.label}</InputLabel>
                   <Select
                     labelId={`${id}-label`}
@@ -73,7 +92,6 @@ const PostseasonForm = ({ values, onChange, disabled, errors }: PostseasonFormPr
                   <InputLabel htmlFor={id}>{field.label}</InputLabel>
                   <OutlinedInput
                     id={id}
-                    readOnly={disabled}
                     inputProps={{ inputMode: "decimal" }}
                     label={field.label}
                     value={values[field.key] ?? ""}

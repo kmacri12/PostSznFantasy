@@ -85,8 +85,8 @@ test.describe("league settings", () => {
 
     // The rules are there to read, but locked.
     await page.getByRole("button", { name: "Scoring" }).click();
-    await expect(page.locator("#scoring-passing-td")).toHaveValue("4");
-    await expect(page.locator("#scoring-passing-td")).not.toBeEditable();
+    await expect(page.getByRole("textbox")).toHaveCount(0);
+    await expect(page.getByRole("spinbutton")).toHaveCount(0);
 
     await page.getByRole("button", { name: /^Members/ }).click();
     const members = page.getByRole("dialog", { name: "Members" });

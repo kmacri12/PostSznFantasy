@@ -8,6 +8,7 @@ import {
   DialogContentText,
   DialogTitle,
   Paper,
+  Switch,
   Typography,
 } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
@@ -47,7 +48,13 @@ import { NOTES_HINT, NOTES_MAX_LENGTH, SETTING_HELP } from "../content/rules";
 import { useSeasonContext } from "../contexts/SeasonContext";
 import { useUser } from "../contexts/UserContext";
 import { fromApi, postseasonFromApi, ROSTER_KEYS, SCORING_KEYS } from "../settings/convert";
-import { POSTSEASON_KEYS, type PostseasonValues } from "../settings/postseasonFields";
+import {
+  ALLOW_JOIN_KEY,
+  MULTIPLIER_KEYS,
+  POSTSEASON_KEYS,
+  type PostseasonValues,
+  TEAM_UNIT_KEYS,
+} from "../settings/postseasonFields";
 import type { SettingsValues } from "../settings/types";
 import { TAB_BAR_HEIGHT } from "../theme";
 import { MULTIPLIER_RULE, numberProblems, rosterProblems } from "../utils/numberField";
@@ -173,10 +180,13 @@ function SettingsPage() {
       ),
     });
 
-  // Scoring and postseason changes re-score every finished round, so ask once games have been played.
+  // Scoring, team QB/K and multiplier changes re-score every finished round, so ask once games have been played.
   const rescoresPlayedRounds =
     !valuesEqual(baseline?.scoring ?? {}, scoring) ||
-    !valuesEqual(baseline?.postseason ?? {}, postseason);
+    !valuesEqual(
+      { ...baseline?.postseason, [ALLOW_JOIN_KEY]: true },
+      { ...postseason, [ALLOW_JOIN_KEY]: true },
+    );
   // Before the draft there are no standings to change, whatever games the schedule holds.
   const gamesPlayed =
     standings?.phase === "live" &&
@@ -219,12 +229,6 @@ function SettingsPage() {
       {info && (
         <>
           {archived && <ArchivedNotice what="the roster, scoring and team count" />}
-          {started && !archived && isCommissioner && (
-            <Alert severity="warning" sx={{ mb: 2 }}>
-              The draft has started, so team count, roster slots and position caps are locked.
-              Scoring and round multipliers can still change.
-            </Alert>
-          )}
           <SettingsCard>
             <SettingsRow
               label="League picture"
@@ -253,6 +257,27 @@ function SettingsPage() {
               value={`${info.members.length} members`}
               onClick={() => setSheet("members")}
             />
+            <SettingsRow
+              label="Joining after the draft starts"
+              trailing={
+                canEdit ? (
+                  <Switch
+                    checked={postseason[ALLOW_JOIN_KEY] === true}
+                    onChange={(event) =>
+                      setPostseason((previous) => ({
+                        ...previous,
+                        [ALLOW_JOIN_KEY]: event.target.checked,
+                      }))
+                    }
+                    slotProps={{ input: { "aria-label": "Allow joining after the draft starts" } }}
+                  />
+                ) : (
+                  <Typography component="span" color="text.secondary" variant="body2">
+                    {postseason[ALLOW_JOIN_KEY] === true ? "Allowed" : "Not allowed"}
+                  </Typography>
+                )
+              }
+            />
             {canEdit && (
               <Typography variant="body2" color="text.secondary" sx={{ px: 2, py: 1 }}>
                 The rows above save as soon as you confirm. Changes to the rules below save with the
@@ -265,6 +290,7 @@ function SettingsPage() {
                 onChange={setRoster}
                 errors={rosterErrors}
                 disabled={!canEdit || started}
+                lockedNote={started ? "Locked since the draft started." : undefined}
               />
             </SettingsGroup>
             <SettingsGroup title="Scoring">
@@ -276,9 +302,18 @@ function SettingsPage() {
                   setScoring((previous) => ({ ...previous, [key]: rawValue }))
                 }
               />
-            </SettingsGroup>
-            <SettingsGroup title="Postseason">
               <PostseasonForm
+                keys={TEAM_UNIT_KEYS}
+                values={postseason}
+                disabled={!canEdit}
+                onChange={(key, value) =>
+                  setPostseason((previous) => ({ ...previous, [key]: value }))
+                }
+              />
+            </SettingsGroup>
+            <SettingsGroup title="Round multipliers">
+              <PostseasonForm
+                keys={MULTIPLIER_KEYS}
                 values={postseason}
                 errors={multiplierErrors}
                 disabled={!canEdit}
