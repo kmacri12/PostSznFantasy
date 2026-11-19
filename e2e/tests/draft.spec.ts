@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 import { Api, seasonUrl, unique } from "../support/api";
 import { signInAs } from "../support/auth";
 import {
+  choosePosition,
   createDraftLeague,
   draftFirst,
   dropSockets,
@@ -196,7 +197,7 @@ test.describe("draft room", () => {
     await page.goto(seasonUrl(league.league, "/draft"));
 
     await showPlayers(page);
-    await page.getByRole("button", { name: "WR", exact: true }).click();
+    await choosePosition(page, "WR");
     // Third row of the fixed-order WR list: deliberately not the best available, so queueing it is what makes auto-pick choose it.
     const row = page.getByRole("list", { name: "Players" }).getByRole("listitem").nth(2);
     // A player row's first paragraph is the player's name.
@@ -282,7 +283,7 @@ test.describe("position caps", () => {
     await expect(page.getByText("Round 3, pick 1")).toBeVisible();
 
     await showPlayers(page);
-    await page.getByRole("button", { name: "QB", exact: true }).click();
+    await choosePosition(page, "QB");
     const first = page.getByRole("list", { name: "Players" }).getByRole("listitem").first(); // The list is sorted from fixed fixtures; the top QB row is the same on every run.
     await expect(first.getByText("Position max reached")).toBeVisible();
     await expect(first.getByRole("button", { name: "Position full" })).toBeDisabled();

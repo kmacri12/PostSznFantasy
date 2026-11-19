@@ -124,10 +124,17 @@ export const showView = async (
 
 export const showPlayers = (page: Page) => showView(page, "Players");
 
+/** Picks a position chip, opening the Filters panel first if it is closed. */
+export const choosePosition = async (page: Page, position: string) => {
+  const filters = page.getByRole("button", { name: "Filters" });
+  if ((await filters.getAttribute("aria-expanded")) !== "true") await filters.click();
+  await page.getByRole("button", { name: position, exact: true }).click();
+};
+
 /** Drafts the first available player at `position` through the Players view (tap, then confirm). */
 export const draftFirst = async (page: Page, position: string): Promise<string> => {
   await showPlayers(page);
-  await page.getByRole("button", { name: position, exact: true }).click();
+  await choosePosition(page, position);
   // The list is sorted by points from fixed fixtures, so the top row is the same on every run.
   const row = page.getByRole("list", { name: "Players" }).getByRole("listitem").first();
   // A player row's first paragraph is the player's name.

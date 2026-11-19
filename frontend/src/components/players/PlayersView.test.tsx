@@ -69,25 +69,64 @@ const names = () =>
     .getAllByRole("listitem")
     .map((item) => item.querySelector("p")?.textContent);
 
+const openFilters = () => {
+  const filters = screen.getByRole("button", { name: "Filters" });
+  if (filters.getAttribute("aria-expanded") !== "true") fireEvent.click(filters);
+};
+
+const chooseStatus = (label: string) => {
+  openFilters();
+  fireEvent.click(screen.getByRole("button", { name: /^Status:/ }));
+  fireEvent.click(screen.getByRole("menuitem", { name: label }));
+};
+
 describe("PlayersView outside a draft", () => {
-  it("lists every player with points, stat line and the owner chip, and no draft concept", () => {
+  it("lists every player with points, stat line and the owner chip, all statuses by default", () => {
     renderView();
     expect(names()).toEqual(["Josh Allen", "Puka Nacua", "James Cook"]);
     expect(screen.getByText(/4,306 yds/)).toBeInTheDocument();
     expect(screen.getByText("Sam's Squad")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Available" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "FLEX" })).toBeNull();
+    openFilters();
+    expect(screen.getByRole("button", { name: "Status: All" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /^Draft / })).toBeNull();
     expect(screen.queryByText(/Drafted by/)).toBeNull();
   });
 
   it("offers FLEX only because the league has a flex slot, and filters by position and search", () => {
     renderView();
+    openFilters();
     fireEvent.click(screen.getByRole("button", { name: "FLEX" }));
     expect(names()).toEqual(["Puka Nacua", "James Cook"]);
     fireEvent.change(screen.getByRole("searchbox", { name: "Search players" }), {
       target: { value: "cook" },
     });
     expect(names()).toEqual(["James Cook"]);
+  });
+});
+
+describe("PlayersView filters panel", () => {
+  it("stays open while choosing filters until the Filters button is tapped again", () => {
+    renderView();
+    const filters = screen.getByRole("button", { name: "Filters" });
+    expect(filters).toHaveAttribute("aria-expanded", "false");
+    fireEvent.click(filters);
+    fireEvent.click(screen.getByRole("button", { name: "QB" }));
+    expect(filters).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("button", { name: "QB", pressed: true })).toBeInTheDocument();
+    fireEvent.click(filters);
+    expect(filters).toHaveAttribute("aria-expanded", "false");
+    expect(names()).toEqual(["Josh Allen"]);
+  });
+
+  it("hides Filters and Sort while the search box has focus", () => {
+    renderView();
+    const search = screen.getByRole("searchbox", { name: "Search players" });
+    fireEvent.focus(search);
+    expect(screen.queryByRole("button", { name: "Filters" })).toBeNull();
+    expect(screen.queryByRole("button", { name: /^Sort:/ })).toBeNull();
+    fireEvent.blur(search);
+    expect(screen.getByRole("button", { name: "Filters" })).toBeInTheDocument();
   });
 });
 
@@ -98,7 +137,9 @@ describe("PlayersView in the draft room", () => {
   it("defaults to Available and shows who drafted a player under All", () => {
     renderView(actions());
     expect(names()).toEqual(["Josh Allen", "James Cook"]);
-    fireEvent.click(screen.getByRole("button", { name: "All", pressed: false }));
+    openFilters();
+    expect(screen.getByRole("button", { name: "Status: Available" })).toBeInTheDocument();
+    chooseStatus("All");
     expect(screen.getByText(/Drafted by Sam's Squad · R1 #3/)).toBeInTheDocument();
   });
 
@@ -144,15 +185,16 @@ describe("PlayersView in the draft room", () => {
   it("lists drafted players under Drafted even when the room marks them taken", () => {
     renderView(actions({ takenIds: [2] }));
     expect(names()).toEqual(["Josh Allen", "James Cook"]);
-    fireEvent.click(screen.getByRole("button", { name: "Drafted" }));
+    chooseStatus("Drafted");
     expect(names()).toEqual(["Puka Nacua"]);
   });
 
   it("lists a fantasy team's drafted players, leaving Available for All", () => {
     renderView(actions({ takenIds: [2] }));
-    fireEvent.click(screen.getByRole("button", { name: /Fantasy team/ }));
+    openFilters();
+    fireEvent.click(screen.getByRole("button", { name: /^Fantasy/ }));
     fireEvent.click(screen.getByRole("menuitem", { name: "Sam's Squad" }));
     expect(names()).toEqual(["Puka Nacua"]);
-    expect(screen.getByRole("button", { name: "Available", pressed: false })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Status: All" })).toBeInTheDocument();
   });
 });

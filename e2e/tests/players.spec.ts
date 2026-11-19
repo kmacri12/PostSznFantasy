@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { Api, seasonUrl, unique } from "../support/api";
 import { signInAs } from "../support/auth";
-import { showPlayers } from "../support/draft";
+import { choosePosition, showPlayers } from "../support/draft";
 
 const openPlayers = async (
   page: import("@playwright/test").Page,
@@ -38,10 +38,10 @@ test.describe("league player list", () => {
     await openPlayers(page, context, request);
     const rows = page.getByRole("list", { name: "Players" }).getByRole("listitem");
 
-    await page.getByRole("button", { name: "K", exact: true }).click();
+    await choosePosition(page, "K");
     await expect(rows).toHaveCount(8);
 
-    await page.getByRole("button", { name: "WR", exact: true }).click();
+    await choosePosition(page, "WR");
     await expect(rows).toHaveCount(16);
     await page.getByRole("searchbox", { name: "Search players" }).fill("Hale");
     await expect(rows).toHaveCount(2);
@@ -56,7 +56,7 @@ test.describe("league player list", () => {
 
   test("fantasy points use this league's scoring", async ({ page, context, request }) => {
     const { host, league } = await openPlayers(page, context, request);
-    await page.getByRole("button", { name: "QB", exact: true }).click();
+    await choosePosition(page, "QB");
     // The list is sorted by points from fixed fixtures, so the top row is the top scorer.
     const top = page.getByRole("list", { name: "Players" }).getByRole("listitem").first();
     await expect(top).toContainText(/\d+\.\d\s*20\d\d pts/);
@@ -66,7 +66,7 @@ test.describe("league player list", () => {
     await host.patch(`/api/seasons/${league.seasonId}/settings`, { scoringPassingTd: 8 });
     await page.reload();
     await showPlayers(page);
-    await page.getByRole("button", { name: "QB", exact: true }).click();
+    await choosePosition(page, "QB");
     await expect(top).toContainText(/\d+\.\d\s*20\d\d pts/);
     await expect(top).not.toHaveText(before);
   });

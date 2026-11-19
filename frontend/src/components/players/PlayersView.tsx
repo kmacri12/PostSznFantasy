@@ -1,10 +1,14 @@
+import FilterListIcon from "@mui/icons-material/FilterList";
 import SearchIcon from "@mui/icons-material/Search";
 import StarIcon from "@mui/icons-material/Star";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
+import SwapVertIcon from "@mui/icons-material/SwapVert";
 import {
+  Badge,
   Box,
   Button,
   Chip,
+  Collapse,
   IconButton,
   InputAdornment,
   TextField,
@@ -210,7 +214,7 @@ const PlayerListItem = ({ row, owner, myTeamId, year, draft, armed, onDraft }: R
 
 /**
  * The league's player list: scored by the league's settings, with search and filters. In the
- * draft room it also carries the Draft and queue buttons and the All/Available/Drafted filter.
+ * draft room it also carries the Draft and queue buttons, and the draft-status filter defaults to Available.
  */
 const PlayersView = ({ seasonId, year, picks, teams, myTeamId, draft }: Props) => {
   const pool = useDraftPool(seasonId);
@@ -224,6 +228,8 @@ const PlayersView = ({ seasonId, year, picks, teams, myTeamId, draft }: Props) =
   const [fantasyTeamId, setFantasyTeamId] = useState<number | null>(null);
   const [availability, setAvailability] = useState<Availability>(draft ? "available" : "all");
   const [sortKey, setSortKey] = useState("points");
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [searching, setSearching] = useState(false);
   const { armedId, tap: handleDraft } = useConfirmedPick(draft?.onPick);
 
   const owners = useMemo(
@@ -274,89 +280,133 @@ const PlayersView = ({ seasonId, year, picks, teams, myTeamId, draft }: Props) =
     );
   }
 
+  // Counted against each filter's starting choice, so the badge says a hidden filter is narrowing the list.
+  const activeFilters = [
+    position !== null,
+    nflTeam !== null,
+    fantasyTeamId !== null,
+    availability !== (draft ? "available" : "all"),
+  ].filter(Boolean).length;
   const positions = POSITION_FILTERS.filter((pos) => pos !== "FLEX" || flex !== null);
+  // After the draft nothing is "available" (no add/drop), only not drafted.
   const availabilityChoices: { value: Availability; label: string }[] = [
     { value: "all", label: "All" },
-    { value: "available", label: "Available" },
+    { value: "available", label: draft ? "Available" : "Undrafted" },
     { value: "drafted", label: "Drafted" },
   ];
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 1.25 }}>
-      <TextField
-        fullWidth
-        type="search"
-        placeholder="Search players"
-        value={search}
-        onChange={(event) => setSearch(event.target.value)}
-        slotProps={{
-          htmlInput: { "aria-label": "Search players" },
-          input: {
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon fontSize="small" />
-              </InputAdornment>
-            ),
-          },
-        }}
-      />
-      <Box sx={{ display: "flex", gap: 0.75, flexWrap: "wrap" }}>
-        {[null, ...positions].map((pos) => (
-          <Chip
-            key={pos ?? "All"}
-            clickable
-            variant="outlined"
-            label={pos ?? "All"}
-            aria-pressed={position === pos}
-            onClick={() => choosePosition(pos)}
-            sx={chipSx(position === pos)}
-          />
-        ))}
-        <FilterMenu
-          label="NFL team"
-          value={nflTeam}
-          options={[
-            { value: "", label: "any" },
-            ...nflTeams.map((team) => ({ value: team, label: team })),
-          ]}
-          onChange={(value) => setNflTeam(value || null)}
-        />
-      </Box>
-      <Box sx={{ display: "flex", gap: 0.75, flexWrap: "wrap", alignItems: "center" }}>
-        {draft &&
-          availabilityChoices.map((choice) => (
-            <Chip
-              key={choice.value}
-              clickable
-              variant="outlined"
-              label={choice.label}
-              aria-pressed={availability === choice.value}
-              onClick={() => setAvailability(choice.value)}
-              sx={chipSx(availability === choice.value)}
-            />
-          ))}
-        <FilterMenu
-          label="Fantasy team"
-          value={fantasyTeamId === null ? null : String(fantasyTeamId)}
-          options={[
-            { value: "", label: "any" },
-            ...teams.map((team) => ({ value: String(team.id), label: team.name })),
-          ]}
-          onChange={(value) => {
-            setFantasyTeamId(value ? Number(value) : null);
-            // A team's players are drafted by definition; Available would always be empty.
-            if (value && availability === "available") setAvailability("all");
+      <Box sx={{ display: "flex", gap: 0.75, alignItems: "center" }}>
+        <TextField
+          fullWidth
+          size="small"
+          type="search"
+          placeholder="Search players"
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          onFocus={() => setSearching(true)}
+          onBlur={() => setSearching(false)}
+          slotProps={{
+            htmlInput: { "aria-label": "Search players" },
+            input: {
+              sx: { height: 44 },
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon fontSize="small" />
+                </InputAdornment>
+              ),
+            },
           }}
         />
-        <Box sx={{ ml: "auto" }}>
-          <FilterMenu
-            label="Sort"
-            value={sortKey}
-            options={sortOptions(position, year).map(({ key, label }) => ({ value: key, label }))}
-            onChange={setSortKey}
-          />
-        </Box>
+        {/* While typing the search takes the whole row; the buttons come back on blur. */}
+        {!searching && (
+          <>
+            <IconButton
+              aria-label="Filters"
+              aria-expanded={filtersOpen}
+              aria-controls="player-filters"
+              onClick={() => setFiltersOpen((open) => !open)}
+              sx={{
+                width: 44,
+                height: 44,
+                flexShrink: 0,
+                borderRadius: 1,
+                border: `1px solid ${filtersOpen ? tokens.accent : tokens.borderStrong}`,
+                color: filtersOpen ? tokens.accent : tokens.textSoft,
+                bgcolor: filtersOpen ? tokens.accentSurface : "transparent",
+              }}
+            >
+              <Badge color="primary" badgeContent={activeFilters} invisible={activeFilters === 0}>
+                <FilterListIcon />
+              </Badge>
+            </IconButton>
+            <FilterMenu
+              label="Sort"
+              icon={<SwapVertIcon />}
+              value={sortKey}
+              options={sortOptions(position, year).map(({ key, label }) => ({ value: key, label }))}
+              onChange={setSortKey}
+            />
+          </>
+        )}
       </Box>
+      <Collapse in={filtersOpen} unmountOnExit>
+        <Box id="player-filters" sx={{ display: "flex", flexDirection: "column", gap: 1.25 }}>
+          <Box sx={{ display: "flex", gap: 0.5 }}>
+            {[null, ...positions].map((pos) => (
+              <Chip
+                key={pos ?? "All"}
+                clickable
+                variant="outlined"
+                label={pos ?? "All"}
+                aria-pressed={position === pos}
+                onClick={() => choosePosition(pos)}
+                sx={{
+                  ...chipSx(position === pos),
+                  flex: 1,
+                  minWidth: 0,
+                  fontSize: 13,
+                  "& .MuiChip-label": { px: 0 },
+                }}
+              />
+            ))}
+          </Box>
+          <Box sx={{ display: "flex", gap: 0.5, alignItems: "center", minWidth: 0 }}>
+            <FilterMenu
+              label="NFL"
+              value={nflTeam}
+              options={[
+                { value: "", label: "any" },
+                ...nflTeams.map((team) => ({ value: team, label: team })),
+              ]}
+              onChange={(value) => setNflTeam(value || null)}
+            />
+            <FilterMenu
+              label="Fantasy"
+              maxWidth={140}
+              value={fantasyTeamId === null ? null : String(fantasyTeamId)}
+              options={[
+                { value: "", label: "any" },
+                ...teams.map((team) => ({ value: String(team.id), label: team.name })),
+              ]}
+              onChange={(value) => {
+                setFantasyTeamId(value ? Number(value) : null);
+                // A team's players are drafted by definition; Available would always be empty.
+                if (value && availability === "available") setAvailability("all");
+              }}
+            />
+            <Box sx={{ ml: "auto", flexShrink: 0 }}>
+              <FilterMenu
+                label="Status"
+                value={availability}
+                options={availabilityChoices}
+                onChange={(value) => setAvailability(value as Availability)}
+              />
+            </Box>
+          </Box>
+        </Box>
+      </Collapse>
 
       {visible.length === 0 ? (
         <EmptyState title="No players found" description="Clear the search or change a filter." />
