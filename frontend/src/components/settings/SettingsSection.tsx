@@ -14,6 +14,7 @@ import {
 import { useState } from "react";
 import type { SettingGroup, SettingsValues } from "../../settings/types";
 import HelpTip from "../common/HelpTip";
+import ReadOnlyValue from "./ReadOnlyValue";
 
 interface SettingsSectionProps {
   group: SettingGroup;
@@ -21,7 +22,7 @@ interface SettingsSectionProps {
   onChange: (key: string, rawValue: string) => void;
   title?: string;
   defaultExpanded?: boolean;
-  /** Shown but not editable (non-commissioners, or locked once the draft starts). */
+  /** Shown as plain text, not editable (non-commissioners, or locked once the draft starts). */
   disabled?: boolean;
   inputMode?: "decimal" | "numeric";
   /** Plain-language note on the whole block, opened from an info button. */
@@ -66,6 +67,13 @@ const SettingsSection = ({
           {group.fields.map((field) => {
             const id = field.key.replaceAll("_", "-");
             const problem = touched.has(field.key) ? errors?.[field.key] : undefined;
+            if (disabled) {
+              return (
+                <Grid size={{ xs: 12, sm: 6, md: 4 }} key={field.key}>
+                  <ReadOnlyValue label={field.label} value={values[field.key] ?? ""} />
+                </Grid>
+              );
+            }
             return (
               <Grid size={{ xs: 12, sm: 6, md: 4 }} key={field.key}>
                 <FormControl fullWidth margin="dense" error={Boolean(problem)}>
@@ -76,7 +84,6 @@ const SettingsSection = ({
                     onChange={(event) => onChange(field.key, event.target.value)}
                     label={field.label}
                     onBlur={() => setTouched((previous) => new Set(previous).add(field.key))}
-                    readOnly={disabled}
                     inputProps={{ inputMode }}
                   />
                   {problem && <FormHelperText>{problem}</FormHelperText>}

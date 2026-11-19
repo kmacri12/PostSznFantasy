@@ -60,3 +60,7 @@ export const POSTSEASON_FIELDS: PostseasonField[] = [
 ];
 
 export const POSTSEASON_KEYS = POSTSEASON_FIELDS.map((field) => field.key);
+
+export const ALLOW_JOIN_KEY = "allow_join_after_draft_start";
+export const TEAM_UNIT_KEYS = ["team_qb", "team_k"];
+export const MULTIPLIER_KEYS = POSTSEASON_KEYS.filter((key) => key.startsWith("multiplier_"));
