@@ -21,6 +21,10 @@ describe("settings conversion", () => {
       expect(groupSummary(group, values)).not.toContain("undefined");
   });
 
+  it("never prints undefined for a key the response lacks", () => {
+    for (const group of SCORING_GROUPS) expect(groupSummary(group, {})).not.toContain("undefined");
+  });
+
   it("reads snake_case form state from a camelCase response", () => {
     const values = fromApi(
       { scoringPassingTd: 4, scoringDstYardsAllowed100199: 3, rosterTotal: "x", other: 1 },
