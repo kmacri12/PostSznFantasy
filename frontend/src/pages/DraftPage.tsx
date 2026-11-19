@@ -209,14 +209,19 @@ const DraftPage = () => {
   if (state.status === "completed") {
     return (
       <Container maxWidth="md" sx={{ py: 2 }}>
-        <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-          <CogButton label="Draft settings" onClick={() => setSettingsOpen(true)} />
-        </Box>
         {archived && <ArchivedNotice what="picks and the queue" />}
-        <DraftCompleteNotice totalPicks={state.totalPicks} />
-        <ShareCardButton
-          card={draftCard(season.leagueName, season.year, state)}
-          label="Share draft board"
+        <DraftCompleteNotice
+          totalPicks={state.totalPicks}
+          actions={
+            <>
+              <ShareCardButton
+                compact
+                card={draftCard(season.leagueName, season.year, state)}
+                label="Share draft board"
+              />
+              <CogButton label="Draft settings" onClick={() => setSettingsOpen(true)} />
+            </>
+          }
         />
         <Box sx={{ mx: -2 }}>
           <ViewTabs
