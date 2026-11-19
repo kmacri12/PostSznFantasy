@@ -22,30 +22,3 @@ export const positionChipSx = (position: string | null | undefined) => ({
   px: 0.75,
   fontWeight: 600,
 });
-
-const ROW_COLORS: Record<string, string> = {
-  QB: tokens.rowQB,
-  RB: tokens.rowRB,
-  WR: tokens.rowWR,
-  TE: tokens.rowTE,
-  K: tokens.rowK,
-  DST: tokens.rowDST,
-  DEF: tokens.rowDST,
-};
-
-const EDGE_COLORS: Record<string, string> = {
-  QB: tokens.edgeQB,
-  RB: tokens.edgeRB,
-  WR: tokens.edgeWR,
-  TE: tokens.edgeTE,
-  K: tokens.edgeK,
-  DST: tokens.edgeDST,
-  DEF: tokens.edgeDST,
-};
-
-/** A Team page lineup row's light position wash; `positionEdgeColor` is its solid left edge (#527). */
-export const positionRowColor = (position: string | null | undefined): string =>
-  ROW_COLORS[(position ?? "").toUpperCase()] ?? "transparent";
-
-export const positionEdgeColor = (position: string | null | undefined): string =>
-  EDGE_COLORS[(position ?? "").toUpperCase()] ?? "transparent";
