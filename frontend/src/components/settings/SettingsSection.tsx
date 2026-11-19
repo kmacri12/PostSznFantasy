@@ -10,6 +10,12 @@ import {
 } from "@mui/material";
 import { useState } from "react";
 import type { SettingGroup, SettingsValues } from "../../settings/types";
+import {
+  formatLimit,
+  limitFieldValue,
+  limitFromField,
+  NO_LIMIT_LABEL,
+} from "../../utils/positionLimit";
 import HelpTip from "../common/HelpTip";
 
 interface SettingsSectionProps {
@@ -33,7 +39,10 @@ interface SettingsSectionProps {
 export const groupSummary = (group: SettingGroup, values: SettingsValues): string =>
   group.fields
     .filter((field) => values[field.key] !== undefined && Number(values[field.key]) !== 0)
-    .map((field) => `${field.label} ${values[field.key]}`)
+    .map((field) => {
+      const value = values[field.key] ?? "";
+      return `${field.label} ${field.limit ? formatLimit(value) : value}`;
+    })
     .join("\n") || "Nothing scored";
 
 /** One collapsible block of numeric rows (label left, small field right), generated from a field schema. */
@@ -98,8 +107,16 @@ const SettingsSection = ({
                   id={id}
                   size="small"
                   error={Boolean(problem)}
-                  value={values[field.key] ?? ""}
-                  onChange={(event) => onChange(field.key, event.target.value)}
+                  value={
+                    field.limit ? limitFieldValue(values[field.key]) : (values[field.key] ?? "")
+                  }
+                  placeholder={field.limit ? NO_LIMIT_LABEL : undefined}
+                  onChange={(event) =>
+                    onChange(
+                      field.key,
+                      field.limit ? limitFromField(event.target.value) : event.target.value,
+                    )
+                  }
                   onBlur={() => setTouched((previous) => new Set(previous).add(field.key))}
                   inputProps={{ inputMode, style: { textAlign: "right" } }}
                   sx={{ width: 96 }}

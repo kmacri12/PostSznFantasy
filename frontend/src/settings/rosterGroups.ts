@@ -23,12 +23,12 @@ export const ROSTER_GROUPS: SettingGroup[] = [
     id: "limits",
     title: "Position limits",
     fields: [
-      { key: "roster_max_qb", label: "Max QB" },
-      { key: "roster_max_rb", label: "Max RB" },
-      { key: "roster_max_wr", label: "Max WR" },
-      { key: "roster_max_te", label: "Max TE" },
-      { key: "roster_max_k", label: "Max K" },
-      { key: "roster_max_dst", label: "Max DEF" },
+      { key: "roster_max_qb", label: "Max QB", limit: true },
+      { key: "roster_max_rb", label: "Max RB", limit: true },
+      { key: "roster_max_wr", label: "Max WR", limit: true },
+      { key: "roster_max_te", label: "Max TE", limit: true },
+      { key: "roster_max_k", label: "Max K", limit: true },
+      { key: "roster_max_dst", label: "Max DEF", limit: true },
     ],
   },
 ];

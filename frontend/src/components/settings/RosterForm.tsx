@@ -2,6 +2,7 @@ import { Box, Typography } from "@mui/material";
 import { SETTING_HELP } from "../../content/rules";
 import { ROSTER_GROUPS, STARTER_AND_BENCH_KEYS, sumRosterSpots } from "../../settings/rosterGroups";
 import type { SettingGroup, SettingsValues } from "../../settings/types";
+import { formatLimit } from "../../utils/positionLimit";
 import SettingsSection from "./SettingsSection";
 
 interface RosterFormProps {
@@ -19,6 +20,7 @@ const summaryLine = (group: SettingGroup, values: SettingsValues): string =>
     .filter((field) => Number(values[field.key]) > 0)
     .map((field) => {
       const label = field.label.replace(/^Max /, "");
+      if (field.limit) return `${label}: ${formatLimit(values[field.key] ?? "")}`;
       return `${values[field.key]} ${label === "Bench" ? "bench" : label}`;
     })
     .join("\n") || "None";
