@@ -7,8 +7,7 @@ export interface PostseasonField {
   key: string;
   label: string;
   help?: string;
-  kind: "boolean" | "select" | "multiplier";
-  options?: { value: string; label: string }[];
+  kind: "boolean" | "multiplier";
 }
 
 export const TEAM_QB_HELP = SETTING_HELP.teamQb;

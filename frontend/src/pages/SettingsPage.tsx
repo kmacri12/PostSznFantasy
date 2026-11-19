@@ -284,7 +284,7 @@ function SettingsPage() {
                 bar at the bottom.
               </Typography>
             )}
-            <SettingsGroup title="Roster">
+            <SettingsGroup title="Roster" summary={`${roster.roster_total} players`}>
               <RosterForm
                 values={roster}
                 onChange={setRoster}
@@ -311,7 +311,10 @@ function SettingsPage() {
                 }
               />
             </SettingsGroup>
-            <SettingsGroup title="Round multipliers">
+            <SettingsGroup
+              title="Round multipliers"
+              summary={MULTIPLIER_KEYS.map((key) => `${postseason[key]}x`).join(" · ")}
+            >
               <PostseasonForm
                 keys={MULTIPLIER_KEYS}
                 values={postseason}

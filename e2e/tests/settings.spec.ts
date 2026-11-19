@@ -18,6 +18,7 @@ test.describe("league settings", () => {
     await expect(page.getByRole("region", { name: "Unsaved changes" })).toHaveCount(0);
 
     await page.getByRole("button", { name: "Scoring" }).click();
+    await page.getByRole("button", { name: /^Passing/ }).click();
     const passingTd = page.locator("#scoring-passing-td");
     await expect(passingTd).toHaveValue("4");
     await passingTd.fill("6");
@@ -27,6 +28,7 @@ test.describe("league settings", () => {
 
     await page.reload();
     await page.getByRole("button", { name: "Scoring" }).click();
+    await page.getByRole("button", { name: /^Passing/ }).click();
     await expect(page.locator("#scoring-passing-td")).toHaveValue("6");
   });
 
@@ -38,6 +40,7 @@ test.describe("league settings", () => {
 
     await page.goto(seasonUrl(league, "/settings"));
     await page.getByRole("button", { name: "Scoring" }).click();
+    await page.getByRole("button", { name: /^Passing/ }).click();
     await page.locator("#scoring-passing-td").fill("9");
     await page.getByRole("button", { name: "Discard", exact: true }).click();
     await expect(page.locator("#scoring-passing-td")).toHaveValue("4");
