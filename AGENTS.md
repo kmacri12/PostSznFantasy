@@ -143,7 +143,7 @@ PostSznFantasy/
 │   │   ├── league_admin.py     # Team resizing and post-draft locks
 │   │   ├── team_units.py       # Team QB / team K rules: conflicts, scoring members, pool exclusions
 │   │   ├── team_starters.py    # The one QB / K per playoff NFL team (depth chart, stats fallback)
-│   │   ├── lineups.py          # Per-round lineup: slot layout, legal moves, kickoff locks; each lineup player carries counted points (round multiplier applied), `statLine`, `gameState`, `gameClock`, `eliminatedRound`
+│   │   ├── lineups.py          # Per-round lineup: slot layout, legal moves, kickoff locks; each lineup player carries counted points (round multiplier applied), `statLine`, `gameState`, `gameClock`, `eliminatedRound`; `unassigned` (bench) sorts QB, RB, WR, TE, K, DST then name, `eliminated` latest round first then the same order
 │   │   ├── stat_lines.py       # One-line game stats per position ("14/21, 168 yds, 2 TD, 0 INT")
 │   │   ├── round_status.py     # Per-round alive/eliminated/bye and kickoffs, derived from game results
 │   │   ├── bracket.py          # The NFL bracket (#393): games by round (from `GameFacts`), byes, each team's top 3 players by regular-season fantasy points under the season's scoring, and the caller's roster players in each game as starter or bench for that game's round; works before the draft
