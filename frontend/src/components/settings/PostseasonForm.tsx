@@ -18,16 +18,18 @@ import ReadOnlyValue from "./ReadOnlyValue";
 interface PostseasonFormProps {
   values: PostseasonValues;
   onChange: (key: string, value: number | string | boolean) => void;
+  /** Which fields to show, in the schema's order; default all. */
+  keys?: string[];
   disabled?: boolean;
   errors?: Record<string, string>;
 }
 
-const PostseasonForm = ({ values, onChange, disabled, errors }: PostseasonFormProps) => {
+const PostseasonForm = ({ values, onChange, keys, disabled, errors }: PostseasonFormProps) => {
   const [touched, setTouched] = useState<Set<string>>(new Set());
   return (
     <Box>
       <Grid container spacing={2}>
-        {POSTSEASON_FIELDS.map((field) => {
+        {POSTSEASON_FIELDS.filter((field) => !keys || keys.includes(field.key)).map((field) => {
           const id = field.key.replaceAll("_", "-");
           if (disabled) {
             const value = values[field.key];
