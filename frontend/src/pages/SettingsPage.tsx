@@ -38,6 +38,7 @@ import EditTextSheet from "../components/settings/EditTextSheet";
 import InviteSheet from "../components/settings/InviteSheet";
 import LeaveLeagueDialog from "../components/settings/LeaveLeagueDialog";
 import MembersSheet from "../components/settings/MembersSheet";
+import MultiplierSummary from "../components/settings/MultiplierSummary";
 import PostseasonForm from "../components/settings/PostseasonForm";
 import RosterForm from "../components/settings/RosterForm";
 import ScoringForm from "../components/settings/ScoringForm";
@@ -313,7 +314,7 @@ function SettingsPage() {
             </SettingsGroup>
             <SettingsGroup
               title="Round multipliers"
-              summary={MULTIPLIER_KEYS.map((key) => `${postseason[key]}x`).join("\n")}
+              summary={<MultiplierSummary values={postseason} />}
             >
               <PostseasonForm
                 keys={MULTIPLIER_KEYS}

@@ -12,7 +12,7 @@ const SettingsGroup = ({
 }: {
   title: string;
   /** One muted line under the title while collapsed. */
-  summary?: string;
+  summary?: ReactNode;
   /** Lets a link such as `#locks` find the row. */
   id?: string;
   defaultExpanded?: boolean;
@@ -31,11 +31,14 @@ const SettingsGroup = ({
     >
       <Box sx={{ minWidth: 0 }}>
         <Typography sx={{ fontWeight: 600 }}>{title}</Typography>
-        {summary && (
-          <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: "pre-line" }}>
-            {summary}
-          </Typography>
-        )}
+        {summary &&
+          (typeof summary === "string" ? (
+            <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: "pre-line" }}>
+              {summary}
+            </Typography>
+          ) : (
+            summary
+          ))}
       </Box>
     </AccordionSummary>
     <AccordionDetails sx={{ px: 1.5 }}>{children}</AccordionDetails>
