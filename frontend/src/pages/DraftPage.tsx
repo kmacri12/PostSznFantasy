@@ -101,7 +101,7 @@ const ViewTabs = ({
  * Queue (all on screen at once from `lg` up).
  */
 const DraftPage = () => {
-  const { seasonId, season, paths } = useSeasonContext();
+  const { seasonId, season } = useSeasonContext();
   const [socketDown, setSocketDown] = useState(false);
   // While the socket is down the page asks the server for the state directly, so a draft that
   // finished meanwhile does not sit on a stale clock.
@@ -213,11 +213,7 @@ const DraftPage = () => {
           <CogButton label="Draft settings" onClick={() => setSettingsOpen(true)} />
         </Box>
         {archived && <ArchivedNotice what="picks and the queue" />}
-        <DraftCompleteNotice
-          totalPicks={state.totalPicks}
-          teamHref={myTeamId === null ? null : paths.team(myTeamId)}
-          onShowBoard={() => setView("board")}
-        />
+        <DraftCompleteNotice totalPicks={state.totalPicks} />
         <ShareCardButton
           card={draftCard(season.leagueName, season.year, state)}
           label="Share draft board"
