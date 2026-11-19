@@ -6,7 +6,7 @@ import ChangedScore from "../activity/ChangedScore";
 import SlotMarker from "../activity/SlotMarker";
 import HelpTip from "../common/HelpTip";
 import InjuryTag from "../common/InjuryTag";
-import { positionChipSx } from "../draft/positions";
+import { positionChipSx, positionRowColor } from "../draft/positions";
 import { formatPoints } from "../league/standingsView";
 import { nameWithTeam, playerDetail, type RowState, rowState } from "./lineupView";
 
@@ -55,6 +55,8 @@ const PlayerRow = ({
   const colors = COLORS[state];
   const muted = bench && state === "ready";
   const eliminated = state === "eliminated";
+  const tint = player && !eliminated ? positionRowColor(player.position) : "transparent";
+  const tinted = tint !== "transparent";
   return (
     <Box component="li" sx={{ borderTop: `1px solid ${tokens.border}` }}>
       <Box
@@ -62,7 +64,7 @@ const PlayerRow = ({
           position: "relative",
           display: "flex",
           alignItems: "center",
-          bgcolor: eliminated ? tokens.dangerSurface : "transparent",
+          bgcolor: eliminated ? tokens.dangerSurface : tint,
         }}
       >
         <ButtonBase
@@ -117,7 +119,7 @@ const PlayerRow = ({
                   sx={{
                     fontSize: 14,
                     fontWeight: 600,
-                    color: muted ? tokens.muted : colors.name,
+                    color: muted ? (tinted ? tokens.textSoft : tokens.muted) : colors.name,
                     textDecoration: eliminated ? "line-through" : "none",
                   }}
                 >
@@ -128,7 +130,12 @@ const PlayerRow = ({
               <Typography
                 noWrap
                 component="span"
-                sx={{ display: "block", fontSize: 12, mt: 0.125, color: colors.detail }}
+                sx={{
+                  display: "block",
+                  fontSize: 12,
+                  mt: 0.125,
+                  color: tinted && colors.detail === tokens.muted ? tokens.textSoft : colors.detail,
+                }}
               >
                 {playerDetail(player)}
               </Typography>
