@@ -4,6 +4,7 @@ import { useDraft, useStandings } from "../../api/queries";
 import type { LeagueByUser } from "../../api/types";
 import { leaguePath } from "../../routes";
 import PictureAvatar from "../common/PictureAvatar";
+import { ROUNDS } from "../league/standingsView";
 import { phaseTag, rankText } from "./leagueSummary";
 
 const formatPoints = (points: number): string => (Math.round(points * 10) / 10).toFixed(1);
@@ -17,6 +18,8 @@ const LeagueCard = ({ league }: { league: LeagueByUser }) => {
   const tag = phaseTag(league, standings.data, draft.data?.startTime ?? null);
   const rank = rankText(rows, league.userTeamId);
   const ranked = standings.data?.phase === "live" && rank !== null;
+  const roundKey = ROUNDS[(standings.data?.round ?? 1) - 1]?.key;
+  const roundPoints = !league.finished && mine && roundKey ? mine[roundKey] : null;
   const filled = rows.filter((row) => row.owner !== null).length;
 
   return (
@@ -42,20 +45,34 @@ const LeagueCard = ({ league }: { league: LeagueByUser }) => {
             <Skeleton width="50%" />
           ) : ranked && mine ? (
             <>
-              <Box>
-                <Typography variant="h5" component="p" sx={{ lineHeight: 1.2 }}>
-                  {rank}
-                </Typography>
+              <Box sx={{ minWidth: 0, flex: 1, pr: 1.5 }}>
+                <Box sx={{ display: "flex", alignItems: "baseline", gap: 0.75, minWidth: 0 }}>
+                  <Typography
+                    variant="h5"
+                    component="p"
+                    sx={{ lineHeight: 1.2, flexShrink: 0, whiteSpace: "nowrap" }}
+                  >
+                    {rank}
+                  </Typography>
+                  <Typography variant="subtitle1" component="p" noWrap sx={{ fontWeight: 700 }}>
+                    <Box component="span" aria-hidden sx={{ color: "text.secondary", mr: 0.75 }}>
+                      ·
+                    </Box>
+                    {mine.teamName}
+                  </Typography>
+                </Box>
                 <Typography variant="caption" color="text.secondary">
                   of {rows.length} teams
                 </Typography>
               </Box>
-              <Box sx={{ textAlign: "right" }}>
+              <Box sx={{ textAlign: "right", flexShrink: 0 }}>
                 <Typography variant="h5" component="p" sx={{ lineHeight: 1.2 }}>
                   {formatPoints(mine.total)}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
-                  points
+                  {roundPoints === null
+                    ? "points"
+                    : `points · ${formatPoints(roundPoints)} this round`}
                 </Typography>
               </Box>
             </>

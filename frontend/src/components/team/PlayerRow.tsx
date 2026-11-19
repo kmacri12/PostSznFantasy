@@ -6,7 +6,7 @@ import ChangedScore from "../activity/ChangedScore";
 import SlotMarker from "../activity/SlotMarker";
 import HelpTip from "../common/HelpTip";
 import InjuryTag from "../common/InjuryTag";
-import { positionChipSx } from "../draft/positions";
+import { positionChipSx, positionColor } from "../draft/positions";
 import { formatPoints } from "../league/standingsView";
 import { nameWithTeam, playerDetail, type RowState, rowState } from "./lineupView";
 
@@ -63,6 +63,7 @@ const PlayerRow = ({
           display: "flex",
           alignItems: "center",
           bgcolor: eliminated ? tokens.dangerSurface : "transparent",
+          borderLeft: `4px solid ${player && !eliminated ? positionColor(player.position) : "transparent"}`,
         }}
       >
         <ButtonBase
@@ -101,8 +102,8 @@ const PlayerRow = ({
               fontSize: 12,
               textAlign: "center",
               color: player ? colors.label : tokens.muted,
-              ...(player && !eliminated
-                ? { ...positionChipSx(player.position), px: 0, py: 0.25 }
+              ...(!eliminated
+                ? { ...positionChipSx(player ? player.position : label), px: 0, py: 0.25 }
                 : {}),
             }}
           >
