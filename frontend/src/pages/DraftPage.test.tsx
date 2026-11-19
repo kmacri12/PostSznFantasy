@@ -159,16 +159,12 @@ describe("DraftPage", () => {
     expect(mocks.socketSeason).toBeUndefined();
   });
 
-  it("announces a finished draft with links to the board and my team", () => {
+  it("announces a finished draft without extra buttons", () => {
     mocks.status = "completed";
     renderDraft();
     expect(screen.getByRole("heading", { name: "Draft complete" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Go to my team" })).toHaveAttribute(
-      "href",
-      expect.stringContaining("/teams/1"),
-    );
-    fireEvent.click(screen.getByRole("button", { name: "See the draft board" }));
-    expect(screen.getByText("board")).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Go to my team" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "See the draft board" })).toBeNull();
   });
 
   it("shows Draft complete, not a stale clock, when the socket is down and the server says it is over", () => {

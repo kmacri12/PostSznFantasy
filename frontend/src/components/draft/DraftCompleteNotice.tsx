@@ -1,14 +1,7 @@
-import { Box, Button, Typography } from "@mui/material";
-import { Link as RouterLink } from "react-router-dom";
+import { Box, Typography } from "@mui/material";
 import { tokens } from "../../theme";
 
-interface Props {
-  totalPicks: number;
-  teamHref: string | null;
-  onShowBoard: () => void;
-}
-
-const DraftCompleteNotice = ({ totalPicks, teamHref, onShowBoard }: Props) => (
+const DraftCompleteNotice = ({ totalPicks }: { totalPicks: number }) => (
   <Box
     component="section"
     aria-label="Draft complete"
@@ -23,19 +16,9 @@ const DraftCompleteNotice = ({ totalPicks, teamHref, onShowBoard }: Props) => (
     <Typography component="h2" sx={{ fontSize: 22, fontWeight: 800, color: tokens.accent }}>
       Draft complete
     </Typography>
-    <Typography sx={{ fontSize: 14, color: tokens.muted, mb: 1.5 }}>
+    <Typography sx={{ fontSize: 14, color: tokens.muted }}>
       All {totalPicks} picks are in. Set your lineup before the first kickoff.
     </Typography>
-    <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-      <Button variant="contained" onClick={onShowBoard} sx={{ minHeight: 44 }}>
-        See the draft board
-      </Button>
-      {teamHref && (
-        <Button variant="outlined" component={RouterLink} to={teamHref} sx={{ minHeight: 44 }}>
-          Go to my team
-        </Button>
-      )}
-    </Box>
   </Box>
 );
 
