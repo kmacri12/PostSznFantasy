@@ -37,6 +37,7 @@ vi.mock("../api/queries", () => ({
   useDraft: () => ({ data: { status: "unscheduled" } }),
   useInvite: () => ({ data: { revoked: false } }),
   useStandings: () => ({ data: mocks.standings }),
+  useScoringDefaults: () => ({ data: undefined }),
   useSetAvatar: () => ({ ...mutation, reset: vi.fn() }),
   useUpdateLeague: () => mutation,
   useUpdateSeason: () => mutation,

@@ -12,6 +12,8 @@ const GOLDEN = path.resolve(import.meta.dirname, "../../api/tests/fixtures/golde
 const OUT = path.resolve(import.meta.dirname, "../../frontend/public/tour");
 const LEAGUE_NAME = "Playoff Pool";
 const HOST = "KMac";
+// Most players are not the commissioner, so the draft screen is shown as one of them.
+const DRAFT_VIEWER = "Slade";
 
 interface Snapshot {
   draftOrder: string[];
@@ -67,7 +69,7 @@ interface StandingsView {
   teams: { total: number }[];
 }
 
-test("tour captures", async ({ page, context, request }) => {
+test("tour captures", async ({ browser, page, context, request }) => {
   test.setTimeout(900_000);
   await page.emulateMedia({ colorScheme: "dark" });
 
@@ -106,13 +108,30 @@ test("tour captures", async ({ page, context, request }) => {
       playerId: playerId(player),
     });
     if (pick === names.length * 3) {
-      await page.goto(seasonUrl(league, "/draft"));
-      await page.getByRole("tab", { name: "Draft board" }).click();
-      await expect(page.getByTestId("pick-1")).toBeVisible();
+      const { viewport, deviceScaleFactor, isMobile, hasTouch, userAgent, baseURL } =
+        test.info().project.use;
+      const viewerContext = await browser.newContext({
+        viewport,
+        deviceScaleFactor,
+        isMobile,
+        hasTouch,
+        userAgent,
+        baseURL,
+        timezoneId: "UTC",
+        locale: "en-US",
+        reducedMotion: "reduce",
+        colorScheme: "dark",
+      });
+      await signInAs(viewerContext, (users.get(DRAFT_VIEWER) as Api).uid, DRAFT_VIEWER);
+      const viewer = await viewerContext.newPage();
+      await viewer.goto(seasonUrl(league, "/draft"));
+      await viewer.getByRole("tab", { name: "Draft board" }).click();
+      await expect(viewer.getByTestId("pick-1")).toBeVisible();
+      await expect(viewer.getByRole("button", { name: "Commissioner controls" })).toHaveCount(0);
       // The board scrolls itself to the pick on the clock; show it from the first round.
       await expect
         .poll(async () =>
-          page.evaluate(() => {
+          viewer.evaluate(() => {
             let moved = false;
             for (const element of document.querySelectorAll("*")) {
               if (element.scrollLeft || element.scrollTop) moved = true;
@@ -123,7 +142,8 @@ test("tour captures", async ({ page, context, request }) => {
           }),
         )
         .toBe(false);
-      await shoot(page, "draft");
+      await shoot(viewer, "draft");
+      await viewerContext.close();
     }
   }
 

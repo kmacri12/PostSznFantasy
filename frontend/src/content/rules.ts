@@ -220,7 +220,7 @@ export const TOUR_STEPS: TourStep[] = [
     id: "draft",
     title: "Draft once",
     caption: "One draft before the first Wild Card kickoff, from players on the playoff teams.",
-    emphasis: "Choose carefully: there are no waivers or free agency.",
+    emphasis: "Choose carefully: there is no waiver wire or free agency.",
     alt: "The draft board with the picks of a six-team draft.",
   },
   {
@@ -289,16 +289,101 @@ export const SETTING_HELP = {
   allowJoin:
     "Lets new members join a team after the draft has started. Otherwise joining closes at draft start.",
   numberTeams: "How many fantasy teams are in the league, 2 to 10. It locks when the draft starts.",
-  rosterStarters:
-    "How many players of each position start each round. Only starters score. A FLEX takes any of the positions in its brackets. These lock when the draft starts.",
-  rosterBench:
-    "Bench players do not score, but can move into a starter slot before they lock. Slots plus bench make the roster size, which is also the number of draft rounds.",
-  rosterLimits:
-    "The most players of one position a team may draft. At the cap, that position is greyed out in the draft pool. With team QB or team K on, the cap counts different NFL teams. Caps lock when the draft starts.",
-  scoring:
-    "Points per stat. Under each value you see what it means in plain words. Scoring stays editable after the draft and every score recomputes.",
   lockedAtDraftStart: "Locked: the draft has started, so this can no longer change.",
 } as const;
+
+const PER_YARD =
+  "Points for every yard, so small values add up: 0.1 is 1 point every 10 yards, 0.04 is 1 point every 25.";
+
+/** The "?" beside each roster and scoring row: what the setting changes, never a live calculation. */
+export const SETTING_FIELD_HELP: Record<string, string> = {
+  roster_num_qb: "Quarterback starting slots each round.",
+  roster_num_rb: "Running back starting slots each round.",
+  roster_num_wr: "Wide receiver starting slots each round.",
+  roster_num_te: "Tight end starting slots each round.",
+  roster_num_flex_wr_rb_te: "Starting slots any WR, RB or TE can fill.",
+  roster_num_flex_wr_rb: "Starting slots any WR or RB can fill.",
+  roster_num_flex_wr_te: "Starting slots any WR or TE can fill.",
+  roster_num_k: "Kicker starting slots each round.",
+  roster_num_dst: "Defense / special teams starting slots each round. A DST is a whole NFL team.",
+  roster_num_bench:
+    "Bench spots. Bench players don't score but can move into a starting slot before their game locks. Starters plus bench is the roster size and the number of draft rounds.",
+  roster_max_qb:
+    "The most QBs a team may draft. At the limit, QBs are greyed out in the draft. With team QB on, it counts different NFL teams.",
+  roster_max_rb: "The most RBs a team may draft. At the limit, RBs are greyed out in the draft.",
+  roster_max_wr: "The most WRs a team may draft. At the limit, WRs are greyed out in the draft.",
+  roster_max_te: "The most TEs a team may draft. At the limit, TEs are greyed out in the draft.",
+  roster_max_k:
+    "The most kickers a team may draft. At the limit, kickers are greyed out in the draft. With team K on, it counts different NFL teams.",
+  roster_max_dst:
+    "The most defenses a team may draft. At the limit, defenses are greyed out in the draft.",
+
+  scoring_passing_yard: `Passing yards. ${PER_YARD}`,
+  scoring_passing_td: "Points for each touchdown pass thrown.",
+  scoring_passing_2pt: "Points for each completed 2-point conversion pass.",
+  scoring_passing_interception: "Points for each interception thrown. Usually negative.",
+  scoring_passing_completion: "Points for each completed pass.",
+  scoring_passing_attempt: "Points for each pass thrown, complete or not.",
+  scoring_passing_sack: "Points each time the quarterback is sacked. Usually negative or 0.",
+  scoring_passing_bonus_300_yards: "Extra points once a QB passes for 300 or more yards in a game.",
+  scoring_passing_bonus_400_yards:
+    "Extra points once a QB passes for 400 or more yards in a game, on top of the 300+ bonus.",
+  scoring_rushing_yard: `Rushing yards. ${PER_YARD}`,
+  scoring_rushing_td: "Points for each rushing touchdown.",
+  scoring_rushing_2pt: "Points for each successful 2-point conversion run.",
+  scoring_rushing_attempt: "Points for each carry.",
+  scoring_rushing_bonus_100_yards:
+    "Extra points once a player rushes for 100 or more yards in a game.",
+  scoring_rushing_bonus_200_yards:
+    "Extra points once a player rushes for 200 or more yards in a game, on top of the 100+ bonus.",
+  scoring_receiving_reception: "Points for each catch. 1 is full PPR, 0.5 half PPR, 0 standard.",
+  scoring_receiving_yard: `Receiving yards. ${PER_YARD}`,
+  scoring_receiving_td: "Points for each receiving touchdown.",
+  scoring_receiving_2pt: "Points for each 2-point conversion catch.",
+  scoring_receiving_target: "Points each time a player is thrown to, caught or not.",
+  scoring_receiving_reception_bonus_rb: "Extra points per catch for running backs only.",
+  scoring_receiving_reception_bonus_wr: "Extra points per catch for wide receivers only.",
+  scoring_receiving_reception_bonus_te:
+    "Extra points per catch for tight ends only. Leagues use it to make TEs worth more.",
+  scoring_receiving_bonus_100_yards:
+    "Extra points once a player has 100 or more receiving yards in a game.",
+  scoring_receiving_bonus_200_yards:
+    "Extra points once a player has 200 or more receiving yards in a game, on top of the 100+ bonus.",
+  scoring_carrying_fumble: "Points for every fumble, even one his team recovers.",
+  scoring_carrying_fumble_lost: "Points for a fumble the other team recovers. Usually negative.",
+  scoring_kicking_fg_made:
+    "Flat points for every made field goal, whatever the distance. Adds to the per-yard points.",
+  scoring_kicking_fg_miss: "Points for each missed field goal. Usually negative.",
+  scoring_kicking_fg_yard:
+    "Points for each yard of a made field goal, so longer kicks score more. At 0.1, a 30-yard field goal is 3 points and a 52-yarder is 5.2.",
+  scoring_kicking_fg_miss_yard:
+    "Points for each yard of a missed field goal. A negative value makes a long miss cost more than a short one. Most leagues leave it at 0.",
+  scoring_kicking_xp_made: "Points for each made extra point.",
+  scoring_kicking_xp_miss: "Points for each missed extra point. Usually negative.",
+  scoring_dst_td: "Points for each touchdown the defense scores (interception or fumble return).",
+  scoring_dst_pts_allowed_0: "Points when the defense allows no points in the game.",
+  scoring_dst_pts_allowed_1_13: "Points when the defense allows 1 to 13 points.",
+  scoring_dst_pts_allowed_14_21: "Points when the defense allows 14 to 21 points.",
+  scoring_dst_pts_allowed_22_28: "Points when the defense allows 22 to 28 points.",
+  scoring_dst_pts_allowed_29_plus: "Points when the defense allows 29 or more points.",
+  scoring_dst_yards_allowed_under_100: "Points when the defense allows under 100 total yards.",
+  scoring_dst_yards_allowed_100_199: "Points when the defense allows 100 to 199 total yards.",
+  scoring_dst_yards_allowed_200_299: "Points when the defense allows 200 to 299 total yards.",
+  scoring_dst_yards_allowed_300_plus: "Points when the defense allows 300 or more total yards.",
+  scoring_dst_sack: "Points for each sack.",
+  scoring_dst_safety: "Points for each safety.",
+  scoring_dst_fumble_recover: "Points for each fumble the defense recovers.",
+  scoring_dst_interception: "Points for each interception caught.",
+  scoring_dst_two_point_return:
+    "Points when the defense returns a 2-point try or extra point for 2 points.",
+  scoring_dst_kick_return_td:
+    "Points for each kickoff returned for a touchdown. Goes to the DST, not the returner.",
+  scoring_dst_punt_return_td:
+    "Points for each punt returned for a touchdown. Goes to the DST, not the returner.",
+  scoring_dst_blocked_kick: "Points for each blocked punt, field goal or extra point.",
+  scoring_special_kick_return_yard: `Kickoff return yards, scored to the returner. ${PER_YARD}`,
+  scoring_special_punt_return_yard: `Punt return yards, scored to the returner. ${PER_YARD}`,
+};
 
 // Settings page copy.
 export const NOTIFICATIONS_BLURB =

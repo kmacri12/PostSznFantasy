@@ -72,7 +72,12 @@ def _defense(rows: Sequence[NFLPlayerGameStats]) -> str:
             _count(_total(rows, "dst_sacks"), "sacks"),
             _count(_total(rows, "dst_interceptions"), "INT"),
             _count(_total(rows, "dst_fumbles_recovered"), "FR"),
-            _count(_total(rows, "dst_def_td"), "TD"),
+            _count(
+                _total(rows, "dst_def_td")
+                + _total(rows, "dst_kick_return_td")
+                + _total(rows, "dst_punt_return_td"),
+                "TD",
+            ),
             _count(_total(rows, "dst_safeties"), "safety"),
         ]
     )

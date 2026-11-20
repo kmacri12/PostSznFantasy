@@ -137,6 +137,8 @@ class ScoringSettings(BaseSchema):
     scoring_dst_interception: ScoringValue = 1
     scoring_dst_blocked_kick: ScoringValue = 1
     scoring_dst_two_point_return: ScoringValue = 2
+    scoring_dst_kick_return_td: ScoringValue = 6
+    scoring_dst_punt_return_td: ScoringValue = 6
 
 
 class PostseasonSettings(BaseSchema):

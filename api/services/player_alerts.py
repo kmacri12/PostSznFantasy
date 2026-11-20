@@ -235,6 +235,8 @@ def _touchdowns(stats: NFLPlayerGameStats) -> int:
             stats.punt_return_td,
             stats.kick_return_td,
             stats.dst_def_td,
+            stats.dst_kick_return_td,
+            stats.dst_punt_return_td,
         )
     )
 

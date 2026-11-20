@@ -421,6 +421,12 @@ class SeasonSettings(Base):
     scoring_dst_two_point_return: Mapped[Decimal] = mapped_column(
         Numeric(6, 2), nullable=False
     )
+    scoring_dst_kick_return_td: Mapped[Decimal] = mapped_column(
+        Numeric(6, 2), nullable=False
+    )
+    scoring_dst_punt_return_td: Mapped[Decimal] = mapped_column(
+        Numeric(6, 2), nullable=False
+    )
     allow_join_after_draft_start: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=True
     )

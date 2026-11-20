@@ -321,6 +321,16 @@ def test_default_dst_event_values() -> None:
     assert calculate_dst_points(stats, _default_settings()) == Decimal(22)
 
 
+def test_kick_and_punt_return_tds_score_their_own_settings() -> None:
+    settings = _default_settings()
+    settings.scoring_dst_kick_return_td = Decimal(6)
+    settings.scoring_dst_punt_return_td = Decimal(4)
+    stats = _dst_stats(40, 400)
+    stats.dst_kick_return_td = 1
+    stats.dst_punt_return_td = 2
+    assert calculate_dst_points(stats, settings) == Decimal(14)
+
+
 def test_default_dst_hand_calculated_game() -> None:
     stats = _dst_stats(23, 288)
     stats.dst_sacks = 4

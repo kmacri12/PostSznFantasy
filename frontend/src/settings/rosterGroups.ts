@@ -32,6 +32,28 @@ export const ROSTER_GROUPS: SettingGroup[] = [
   },
 ];
 
+/** A new league's roster; the per-row reset puts these back. */
+export const ROSTER_DEFAULTS = {
+  roster_total: 18,
+  roster_num_qb: 1,
+  roster_num_rb: 2,
+  roster_num_wr: 2,
+  roster_num_te: 1,
+  roster_num_flex_wr_rb_te: 1,
+  roster_num_flex_wr_rb: 0,
+  roster_num_flex_wr_te: 0,
+  roster_num_flex_qb_wr_rb_te: 0,
+  roster_num_k: 1,
+  roster_num_dst: 1,
+  roster_num_bench: 9,
+  roster_max_qb: 2,
+  roster_max_rb: 99,
+  roster_max_wr: 99,
+  roster_max_te: 99,
+  roster_max_k: 2,
+  roster_max_dst: 2,
+};
+
 export const STARTER_AND_BENCH_KEYS = (ROSTER_GROUPS[0]?.fields ?? []).map((field) => field.key);
 
 export const sumRosterSpots = (values: Record<string, number | string>): number =>
