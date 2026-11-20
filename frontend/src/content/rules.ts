@@ -288,7 +288,7 @@ export const SETTING_HELP = {
     "Multiplies every starter's points in this round. 1x leaves scores as they are, 2x doubles them. Bench points use it too, so they compare directly.",
   allowJoin:
     "Lets new members join a team after the draft has started. Otherwise joining closes at draft start.",
-  numberTeams: "How many fantasy teams are in the league, 2 to 14. It locks when the draft starts.",
+  numberTeams: "How many fantasy teams are in the league, 2 to 10. It locks when the draft starts.",
   rosterStarters:
     "How many players of each position start each round. Only starters score. A FLEX takes any of the positions in its brackets. These lock when the draft starts.",
   rosterBench:

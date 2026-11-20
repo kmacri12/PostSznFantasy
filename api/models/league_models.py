@@ -41,7 +41,7 @@ PICK_SECONDS_MAX = 600
 
 
 class RosterSettings(BaseSchema):
-    number_teams: int = Field(default=6, ge=2, le=14)
+    number_teams: int = Field(default=6, ge=2, le=10)
     roster_total: int = Field(default=18, ge=1, le=ROSTER_TOTAL_MAX)
     roster_num_qb: int = Field(default=1, ge=0, le=ROSTER_SLOTS_MAX)
     roster_num_rb: int = Field(default=2, ge=0, le=ROSTER_SLOTS_MAX)
@@ -299,7 +299,7 @@ class Announcement(BaseSchema):
 
 
 class SeasonUpdate(BaseSchema):
-    number_teams: int | None = Field(default=None, ge=2, le=14)
+    number_teams: int | None = Field(default=None, ge=2, le=10)
 
 
 class MemberSummary(BaseSchema):

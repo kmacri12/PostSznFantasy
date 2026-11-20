@@ -69,7 +69,7 @@ describe("CreateLeaguePage short path", () => {
     expect(screen.getByText(/Every round counts the same/)).toBeTruthy();
   });
 
-  it("steps the team count within 2 to 14", async () => {
+  it("steps the team count within 2 to 10", async () => {
     await renderWizard();
     const fewer = screen.getByRole("button", { name: "Fewer teams" }) as HTMLButtonElement;
     for (let i = 0; i < 10; i++) fireEvent.click(fewer);
@@ -77,10 +77,10 @@ describe("CreateLeaguePage short path", () => {
     expect(fewer.disabled).toBe(true);
     const more = screen.getByRole("button", { name: "More teams" });
     for (let i = 0; i < 20; i++) fireEvent.click(more);
-    expect(screen.getByRole("status").textContent).toBe("14");
+    expect(screen.getByRole("status").textContent).toBe("10");
   });
 
-  it("creates with the defaults, team QB and K off, and opens the new league", async () => {
+  it("creates with the defaults, team QB and K on, and opens the new league", async () => {
     mockPost.mockResolvedValue({ status: 201, data: { leagueId: 70, seasonId: 7 } });
     await renderWizard();
     fireEvent.change(nameInput(), { target: { value: "Pals" } });
@@ -96,7 +96,7 @@ describe("CreateLeaguePage short path", () => {
     expect(body).toMatchObject({
       leagueName: "Pals",
       rosterSettings: { number_teams: 7 },
-      teamUnitSettings: { teamQb: false, teamK: false },
+      teamUnitSettings: { teamQb: true, teamK: true },
     });
     expect(body).not.toHaveProperty("scoringSettings");
   });
@@ -112,14 +112,14 @@ describe("CreateLeaguePage short path", () => {
 });
 
 describe("CreateLeaguePage customize rules", () => {
-  it("shows both team QB and team K choices, off by default", async () => {
+  it("shows both team QB and team K choices, on by default", async () => {
     await openCustomize();
     const [qbGroup, kGroup] = screen.getAllByRole("radiogroup");
-    expect(within(qbGroup as HTMLElement).getByRole("radio", { name: /^Off/ })).toHaveProperty(
+    expect(within(qbGroup as HTMLElement).getByRole("radio", { name: /^On/ })).toHaveProperty(
       "checked",
       true,
     );
-    expect(within(kGroup as HTMLElement).getByRole("radio", { name: /^Off/ })).toHaveProperty(
+    expect(within(kGroup as HTMLElement).getByRole("radio", { name: /^On/ })).toHaveProperty(
       "checked",
       true,
     );

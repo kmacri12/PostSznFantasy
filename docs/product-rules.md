@@ -11,7 +11,7 @@ Each league drafts once, before the Wild Card round, from players on the 14 play
 - Snake draft, one draft per league, 18 rounds by default (rounds equal the roster size).
 - Only players on playoff teams are in the pool, and a draft cannot start until the playoff field is set.
 - A draft cannot be scheduled or started after the first Wild Card kickoff. A draft already running may finish; players whose game has started are still draftable and lock on the bench for that round.
-- Default 6 teams, 90-second pick clock. League size may be 2 to 14.
+- Default 6 teams, 90-second pick clock. League size may be 2 to 10.
 - Position caps (default QB 2, K 2, DST 2; RB, WR and TE uncapped). Once a team reaches a cap, that position's players are greyed out in its draft pool with a plain-language reason. Auto-pick (queue first, then the highest season fantasy points under the league's scoring) never picks an ineligible player. A team with no owner is auto-picked within a second of coming on the clock; a later joiner inherits its picks.
 - Autopilot (#463, owner decision): a team whose pick times out goes on autopilot, and a manager can switch it on for their own team in the draft room (the switch under the clock bar, also before the draft starts, from the lobby). A team on autopilot is auto-picked (queue, then best available) about 10 seconds after it comes on the clock instead of waiting out the timer. It stays on until the manager makes a pick themselves or switches it off; a commissioner can switch any team's autopilot off from Draft settings, never on. The board header and the clock bar mark a team on autopilot, and its picks carry the autopilot mark. The flag is stored with the draft, so it survives a restart. A team with no owner keeps the one-second auto-pick.
 - Create-league shows a yellow warning when teams times max-per-position exceeds the 14 available units of a position (QB, K, DST).
@@ -24,7 +24,7 @@ Each league drafts once, before the Wild Card round, from players on the 14 play
 
 ## 3. Roster and lineup
 
-- Default roster: 1 QB, 2 RB, 2 WR, 1 TE, 1 FLEX (RB/WR/TE), 1 K, 1 DST, plus 9 bench (18 total).
+- Default roster: 1 QB, 2 RB, 2 WR, 1 TE, 1 FLEX (RB/WR/TE), 1 K, 1 DST, plus 9 bench (18 total). Create league and settings offer no superflex: the playoff field has too few QBs for a QB-eligible flex (owner decision, 2026-11-20). The API and lineups still support the slot, so it returns by adding its row back to `frontend/src/settings/rosterGroups.ts`.
 - Empty slots are allowed and score 0.
 - Fullbacks are running backs: ingest maps FB to RB and users never see FB anywhere.
 - Lineups are per round and set manually. Nothing is copied forward, pre-filled or auto-substituted. After the draft, all players are unassigned.
@@ -39,7 +39,7 @@ Each league drafts once, before the Wild Card round, from players on the 14 play
 
 ## 4. Team QB and team K
 
-Two independent league settings with a tooltip. The "Customize rules" path of create league shows both choices (off preselected). The short create path (league name and team count only) sets both off, standard individual QB and K; a commissioner can change them in settings at any time. The off default for the short path is a product decision awaiting the owner's confirmation.
+Two independent league settings with a tooltip. The "Customize rules" path of create league shows both choices (on preselected). The short create path (league name and team count only) sets both on; a commissioner can change them in settings at any time. Owner decision (2026-11-20): on is the default.
 
 Why: there is no free agency in PostSzn, and available players get scarce as the playoffs go on, so nobody can replace a QB who gets hurt or benched. The intent is that a team's QB (or K) points keep going to whoever drafted that team's starter: the owner drafts a team's quarterback rather than one individual player. How to play says the same to members.
 

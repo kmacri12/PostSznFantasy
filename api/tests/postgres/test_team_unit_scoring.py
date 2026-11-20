@@ -18,7 +18,7 @@ from api.services.standings import recompute_standings
 from api.tests.postgres.conftest import ClientFactory
 from api.tests.postgres.factories import make_season
 
-# Slot indexes in the default layout: QB 0, RB 1-2, WR 3-4, TE 5, FLEX 6, K 7, DEF 8.
+# Slot indexes in the default layout: QB 0, RB 1-2, WR 3-4, TE 5, FLEX 6, K 7, DST 8.
 QB_SLOT, WR_SLOT, K_SLOT, BENCH_SLOT = 0, 3, 7, 9
 
 

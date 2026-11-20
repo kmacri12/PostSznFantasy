@@ -103,7 +103,7 @@ PostSznFantasy/
 │   │   ├── delete_user.py      # Owner-only: the same account deletion by user id (docs/owner/account-deletion.md)
 │   │   ├── restore_league.py   # Owner-only: clears deleted_at on a deleted league (docs/owner/league-restore.md)
 │   │   ├── recreate_auth_users.py # Rebuild Supabase Auth users (same ids) from fantasy.users after a lost project; dry run by default, --rehearse for a fake Auth server
-│   │   ├── draft_load_test.py  # 12 teams and 30 sockets drafting against a seeded e2e API; prints the Markdown table kept in docs/deploy/performance.md, exits 1 on a lost or duplicated pick (nightly: `.github/workflows/draft-load.yml`)
+│   │   ├── draft_load_test.py  # 10 teams and 30 sockets drafting against a seeded e2e API; prints the Markdown table kept in docs/deploy/performance.md, exits 1 on a lost or duplicated pick (nightly: `.github/workflows/draft-load.yml`)
 │   │   ├── seed_nfl_data.py    # Unified on-demand NFL data seeder
 │   │   ├── set_feature_flag.py # Owner kill switch from a shell: `python -m api.scripts.set_feature_flag bracket off` (docs/owner/bracket-kill-switch.md)
 │   │   └── set_playoff_field.py # Sets the 14-team field by abbreviation (bye teams aren't ingested); run via fly ssh console
@@ -222,7 +222,7 @@ PostSznFantasy/
         ├── pages/
         │   ├── LandingPage.tsx # Root route: signed out = hero with Sign in and How to play plus the privacy/terms footer; signed in = `YourLeagues` (no redirect, so the logo always reaches it; `dormant` swaps the hero for the off-season notice)
         │   ├── DormantPage.tsx # Dormant-mode notice (owner-declared with the `VITE_DORMANT=true` build variable, never inferred from a failed API call) and fallback for every route except landing, How to play, privacy, terms
-        │   ├── CreateLeaguePage.tsx # Short path (name + team count stepper, default rules, Team QB/K off) and an optional "Customize rules" Roster, Scoring, Review wizard
+        │   ├── CreateLeaguePage.tsx # Short path (name + team count stepper up to 10, default rules, Team QB/K on) and an optional "Customize rules" Roster, Scoring, Review wizard
         │   ├── JoinPage.tsx    # `/join/:code` invite preview (members, open slots), Sign in to join / Join league, a Take the tour button (works signed out), full-league state and the 409 `league_full` answer
         │   ├── DraftPage.tsx   # The Draft tab (#477: when the socket is down it polls draft-info every 5 s, so a finished draft shows the `DraftCompleteNotice` row (plain, no card: a check, the heading, the pick count, "Don't forget to set your lineups!" until the season is over, then Share as an icon (`ShareCardButton iconOnly`) and the settings cog) instead of a frozen clock): sticky clock bar, commissioner strip, a cog for draft settings (`DraftSettingsSheet`), Draft board / Players / Roster / Queue views (all on screen from `lg` up); once the draft is complete the Draft board / Players switch (the tab stays "Draft")
         │   ├── DraftBoardPage.tsx # `/draft/board`: the board on its own (no link to it any more: the Draft tab has the board in every phase; the address still works)

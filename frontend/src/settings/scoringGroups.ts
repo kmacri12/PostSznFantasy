@@ -13,8 +13,8 @@ export const SCORING_GROUPS: SettingGroup[] = [
       { key: "scoring_passing_completion", label: "Completion" },
       { key: "scoring_passing_attempt", label: "Attempt" },
       { key: "scoring_passing_sack", label: "Sack" },
-      { key: "scoring_passing_bonus_300_yards", label: "Bonus 300 Yards" },
-      { key: "scoring_passing_bonus_400_yards", label: "Bonus 400 Yards" },
+      { key: "scoring_passing_bonus_300_yards", label: "300+ yard bonus" },
+      { key: "scoring_passing_bonus_400_yards", label: "400+ yard bonus" },
     ],
   },
   {

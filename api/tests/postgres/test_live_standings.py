@@ -21,7 +21,7 @@ from api.tests.postgres.factories import make_season
 
 # Tank01 numbers the postseason weeks 19-22.
 WILD_CARD, DIVISIONAL, CONFERENCE, SUPER_BOWL = 19, 20, 21, 22
-# Default layout: QB 0, RB 1-2, WR 3-4, TE 5, FLEX 6, K 7, DEF 8, bench 9 and up.
+# Default layout: QB 0, RB 1-2, WR 3-4, TE 5, FLEX 6, K 7, DST 8, bench 9 and up.
 QB_SLOT, RB_SLOT, BENCH_SLOT = 0, 1, 9
 
 

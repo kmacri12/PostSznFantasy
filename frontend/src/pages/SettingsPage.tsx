@@ -82,9 +82,9 @@ const multiplierProblems = (values: PostseasonValues) =>
 
 const teamCountProblem = (value: string) => {
   const count = Number(value);
-  return Number.isInteger(count) && count >= 2 && count <= 14
+  return Number.isInteger(count) && count >= 2 && count <= 10
     ? null
-    : "Enter a number from 2 to 14.";
+    : "Enter a number from 2 to 10.";
 };
 
 /**

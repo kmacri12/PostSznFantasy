@@ -192,7 +192,7 @@ Not done here: batching the league list across leagues (it is still one set of q
 
 ## Draft room load (issue #401)
 
-`python -m api.scripts.draft_load_test --base-url http://localhost:8190` drives 12 teams (one socket each) plus 18 watching sockets through a full draft against the seeded e2e database (start the API as in the script docstring: `ENVIRONMENT=test TEST_AUTH_STUB=true PLAYOFF_FIELD_SIZE=8`). Each team picks 2 seconds after it comes on the clock. It fails (exit 1) if a pick is lost, any socket misses or repeats a pick, or the draft does not finish. `.github/workflows/draft-load.yml` runs it nightly and puts the table in the run summary. The e2e pool has 8 NFL teams (64 players), so the draft is 2 rounds of RB and WR (24 picks); a larger pool would only lengthen it, since a pick is one row-locked transaction plus one broadcast.
+`python -m api.scripts.draft_load_test --base-url http://localhost:8190` drives 10 teams (one socket each) plus 20 watching sockets through a full draft against the seeded e2e database (start the API as in the script docstring: `ENVIRONMENT=test TEST_AUTH_STUB=true PLAYOFF_FIELD_SIZE=8`). Each team picks 2 seconds after it comes on the clock. It fails (exit 1) if a pick is lost, any socket misses or repeats a pick, or the draft does not finish. `.github/workflows/draft-load.yml` runs it nightly and puts the table in the run summary. The e2e pool has 8 NFL teams (64 players), so the draft is 2 rounds of RB and WR (20 picks); a larger pool would only lengthen it, since a pick is one row-locked transaction plus one broadcast.
 
 Measured 2026-11-11 on a 4-core dev machine with Postgres 16 on the same host (so network latency is zero; real phones add their own round trip):
 

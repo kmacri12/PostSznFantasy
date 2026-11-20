@@ -30,12 +30,8 @@ export const playerDetail = (player: LineupPlayer): string => {
   return player.kickoff ? formatKickoff(player.kickoff) : "Game not scheduled yet";
 };
 
-/** The slot's label on a row: the lineup layout calls the defense DEF and the bench BENCH. */
-export const slotLabel = (slot: string): string => {
-  if (slot === "DEF") return "DST";
-  if (slot === "SUPER_FLEX") return "SFLX";
-  return slot;
-};
+/** The slot's label on a row: the lineup layout calls the superflex SUPER_FLEX. */
+export const slotLabel = (slot: string): string => (slot === "SUPER_FLEX" ? "SFLX" : slot);
 
 export const startersOf = (lineup: RoundLineup): LineupSlot[] =>
   lineup.slots.filter((slot) => slot.slot !== BENCH_SLOT);
