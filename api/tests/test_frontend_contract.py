@@ -22,9 +22,17 @@ def test_scoring_groups_cover_every_scoring_setting_once() -> None:
     assert sorted(keys) == sorted(ScoringSettings.model_fields)
 
 
+# Superflex is hidden from the forms (too few playoff QBs) but kept so it can return.
+HIDDEN_ROSTER_SETTINGS = {"roster_num_flex_qb_wr_rb_te"}
+
+
 def test_roster_groups_cover_roster_settings_except_totals() -> None:
     keys = declared_keys("rosterGroups.ts")
-    expected = set(RosterSettings.model_fields) - {"number_teams", "roster_total"}
+    expected = (
+        set(RosterSettings.model_fields)
+        - {"number_teams", "roster_total"}
+        - HIDDEN_ROSTER_SETTINGS
+    )
     assert sorted(keys) == sorted(expected)
 
 

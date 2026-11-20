@@ -53,7 +53,7 @@ describe("a round's lineup", () => {
   const starters = [
     slot(0, "QB", lineupPlayer({ id: 1, points: 17.4, gameState: "live" })),
     slot(1, "WR", lineupPlayer({ id: 2, points: 3.1, gameState: "final" })),
-    slot(2, "DEF", null),
+    slot(2, "DST", null),
     slot(3, "BENCH", lineupPlayer({ id: 3, position: "WR", points: 5 })),
     slot(4, "BENCH", null),
   ];
@@ -89,14 +89,14 @@ describe("a round's lineup", () => {
     expect(eliminatedLastRound(lineup).map((player) => player.id)).toEqual([1]);
   });
 
-  it("numbers repeated slots and labels the defense DST", () => {
+  it("numbers repeated slots and shortens the superflex", () => {
     const names = slotNames(
       roundLineup(1, {
-        slots: [slot(0, "WR"), slot(1, "WR"), slot(2, "QB"), slot(3, "DEF")],
+        slots: [slot(0, "WR"), slot(1, "WR"), slot(2, "QB"), slot(3, "DST")],
       }),
     );
     expect([...names.values()]).toEqual(["WR1", "WR2", "QB", "DST"]);
-    expect(slotLabel("DEF")).toBe("DST");
+    expect(slotLabel("SUPER_FLEX")).toBe("SFLX");
   });
 });
 
@@ -112,7 +112,7 @@ describe("hurt starters", () => {
         slot(3, "TE", hurt({ id: 4, locked: true })),
         slot(4, "K", hurt({ id: 5, status: "eliminated" })),
         slot(5, "BENCH", hurt({ id: 6 })),
-        slot(6, "DEF", lineupPlayer({ id: 7 })),
+        slot(6, "DST", lineupPlayer({ id: 7 })),
       ],
     });
     expect(hurtStarters(lineup).map((player) => player.id)).toEqual([1, 2]);

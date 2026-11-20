@@ -97,6 +97,7 @@ like `"1474.0"` (roster) or `"304"` (box); the parser goes through `float`.
 | `receiving_two_point_conversions` | `Receiving.receivingTwoPointConversion` | |
 | `carrying_fumbles`, `carrying_fumbles_lost` | `Defense.fumbles`, `Defense.fumblesLost` | fumbles live under `Defense` |
 | `punt_return_yards`, `punt_return_td` (stored; scored by the DST, not the returner) | `Punting.puntReturnYds`, `puntReturnTD` | box only |
+| `dst_def_td`, `dst_kick_return_td`, `dst_punt_return_td` (DST rows) | team `defensiveOrSpecialTeamsTds` minus the team's returners' `kickReturnTD` / `puntReturnTD`, which are counted apart | box only |
 | `kick_return_yards`, `kick_return_td` (stored; scored by the DST, not the returner) | `Kicking.kickReturnYds`, `kickReturnTD` | box only |
 | `kicking_xp_made` | `Kicking.xpMade` | |
 | `kicking_xp_missed` | `Kicking.xpMissed`, else `xpAttempts - xpMade` | |

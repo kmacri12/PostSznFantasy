@@ -50,13 +50,13 @@ test("Customize rules walks the roster, scoring and review steps", async ({
   const name = unique("Custom League");
   await page.getByLabel("League name").fill(name);
   await page.getByRole("button", { name: "Customize rules" }).click();
-  // Team QB and team K are both visible here, off unless changed.
-  await expect(page.getByRole("radiogroup", { name: "Team QB" }).getByLabel(/^Off/)).toBeChecked();
-  await page.getByRole("radiogroup", { name: "Team K" }).getByLabel(/^On/).check();
+  // Team QB and team K are both visible here, on unless changed.
+  await expect(page.getByRole("radiogroup", { name: "Team QB" }).getByLabel(/^On/)).toBeChecked();
+  await page.getByRole("radiogroup", { name: "Team K" }).getByLabel(/^Off/).check();
   await page.getByRole("button", { name: "Next" }).click();
   await page.getByRole("button", { name: "Next" }).click();
   await expect(page.getByRole("heading", { name })).toBeVisible();
-  await expect(page.getByText(/Team QB off · Team K on/)).toBeVisible();
+  await expect(page.getByText(/Team QB on · Team K off/)).toBeVisible();
   await page.getByRole("button", { name: "Create league" }).click();
 
   await expect(page).toHaveURL(/\/leagues\/\d+$/);

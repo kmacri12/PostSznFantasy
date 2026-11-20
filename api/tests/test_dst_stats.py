@@ -93,6 +93,23 @@ def test_defensive_and_return_tds_and_two_point_returns_come_from_team_stats() -
     assert rows[dst_player_id(AWAY)]["dst_def_td"] == 0
 
 
+def test_return_tds_are_split_out_of_the_teams_combined_tds() -> None:
+    box = _box(home={"defensiveOrSpecialTeamsTds": "3"})
+    box["playerStats"] = {
+        "1": {"teamID": str(HOME), "Kicking": {"kickReturnTD": "1"}},
+        "2": {"teamID": str(HOME), "Punting": {"puntReturnTD": "1"}},
+        "3": {"teamID": str(AWAY), "Kicking": {"kickReturnTD": "1"}},
+    }
+    rows = _rows(box)
+
+    home = rows[dst_player_id(HOME)]
+    assert (home["dst_def_td"], home["dst_kick_return_td"]) == (1, 1)
+    assert home["dst_punt_return_td"] == 1
+    # The away returner's TD never reached its combined count, so it is not negative.
+    assert rows[dst_player_id(AWAY)]["dst_def_td"] == 0
+    assert rows[dst_player_id(AWAY)]["dst_kick_return_td"] == 1
+
+
 def test_safeties_come_from_the_dst_block() -> None:
     box = _box()
     box["DST"]["away"]["safeties"] = "1"

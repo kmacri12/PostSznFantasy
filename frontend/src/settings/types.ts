@@ -3,6 +3,8 @@ export interface SettingField {
   label: string;
   /** A position limit: the stored 99 shows as "No limit" and an empty field saves as 99. */
   limit?: boolean;
+  /** Starts a titled part of the group, e.g. "Special teams" inside Defense / Special Teams. */
+  subheading?: string;
 }
 
 export interface SettingGroup {

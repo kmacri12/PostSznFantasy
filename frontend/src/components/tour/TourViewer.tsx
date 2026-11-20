@@ -72,24 +72,31 @@ const TourViewer = ({ onFinish, fill = false }: Props) => {
           lineHeight: 0,
           maxWidth: "100%",
           bgcolor: "background.paper",
+          // Every screen is loaded and stacked from the start, so Next swaps instantly.
+          display: "grid",
         }}
       >
-        <Box
-          component="img"
-          key={step.id}
-          src={`/tour/${step.id}.jpg`}
-          alt={step.alt}
-          width={375}
-          height={812}
-          sx={{
-            display: "block",
-            width: "auto",
-            height: "auto",
-            maxWidth: "100%",
-            maxHeight: fill ? "calc(100dvh - 350px)" : "min(60dvh, 560px)",
-            userSelect: "none",
-          }}
-        />
+        {TOUR_STEPS.map((each, stepIndex) => (
+          <Box
+            component="img"
+            key={each.id}
+            src={`/tour/${each.id}.jpg`}
+            alt={stepIndex === index ? each.alt : ""}
+            aria-hidden={stepIndex !== index}
+            width={375}
+            height={812}
+            sx={{
+              gridArea: "1 / 1",
+              display: "block",
+              width: "auto",
+              height: "auto",
+              maxWidth: "100%",
+              maxHeight: fill ? "calc(100dvh - 350px)" : "min(60dvh, 560px)",
+              userSelect: "none",
+              visibility: stepIndex === index ? "visible" : "hidden",
+            }}
+          />
+        ))}
       </Box>
       <Box sx={{ width: "100%", maxWidth: 375, textAlign: "left" }} aria-live="polite">
         <Typography variant="h6" component="h3">

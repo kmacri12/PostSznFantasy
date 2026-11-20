@@ -1,7 +1,5 @@
 import { Box } from "@mui/material";
-import { SETTING_HELP } from "../../content/rules";
 import { SCORING_GROUPS } from "../../settings/scoringGroups";
-import { scoringHelp } from "../../settings/scoringHelp";
 import type { SettingsValues } from "../../settings/types";
 import SettingsSection from "./SettingsSection";
 
@@ -10,9 +8,10 @@ interface ScoringFormProps {
   onChange: (key: string, rawValue: string) => void;
   disabled?: boolean;
   errors?: Record<string, string>;
+  defaults?: SettingsValues;
 }
 
-const ScoringForm = ({ values, onChange, disabled, errors }: ScoringFormProps) => (
+const ScoringForm = ({ values, onChange, disabled, errors, defaults }: ScoringFormProps) => (
   <Box>
     {SCORING_GROUPS.map((group) => (
       <SettingsSection
@@ -22,8 +21,7 @@ const ScoringForm = ({ values, onChange, disabled, errors }: ScoringFormProps) =
         onChange={onChange}
         disabled={disabled}
         errors={errors}
-        helper={scoringHelp}
-        help={SETTING_HELP.scoring}
+        defaults={defaults}
       />
     ))}
   </Box>

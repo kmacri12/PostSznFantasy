@@ -71,6 +71,8 @@ class PlayerSeasonStatsResponse(BaseSchema):
     dst_blocked_field_goals: int = 0
     dst_blocked_extra_points: int = 0
     dst_two_point_returns: int = 0
+    dst_kick_return_td: int = 0
+    dst_punt_return_td: int = 0
     dst_yards_allowed: int = 0
     dst_points_allowed: int = 0
     dst_sacks: int = 0

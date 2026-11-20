@@ -41,7 +41,7 @@ PICK_SECONDS_MAX = 600
 
 
 class RosterSettings(BaseSchema):
-    number_teams: int = Field(default=6, ge=2, le=14)
+    number_teams: int = Field(default=6, ge=2, le=10)
     roster_total: int = Field(default=18, ge=1, le=ROSTER_TOTAL_MAX)
     roster_num_qb: int = Field(default=1, ge=0, le=ROSTER_SLOTS_MAX)
     roster_num_rb: int = Field(default=2, ge=0, le=ROSTER_SLOTS_MAX)
@@ -137,6 +137,8 @@ class ScoringSettings(BaseSchema):
     scoring_dst_interception: ScoringValue = 1
     scoring_dst_blocked_kick: ScoringValue = 1
     scoring_dst_two_point_return: ScoringValue = 2
+    scoring_dst_kick_return_td: ScoringValue = 6
+    scoring_dst_punt_return_td: ScoringValue = 6
 
 
 class PostseasonSettings(BaseSchema):
@@ -299,7 +301,7 @@ class Announcement(BaseSchema):
 
 
 class SeasonUpdate(BaseSchema):
-    number_teams: int | None = Field(default=None, ge=2, le=14)
+    number_teams: int | None = Field(default=None, ge=2, le=10)
 
 
 class MemberSummary(BaseSchema):

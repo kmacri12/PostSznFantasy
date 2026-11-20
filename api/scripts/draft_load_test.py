@@ -1,4 +1,4 @@
-"""Load test for the draft room: 12 teams and 30 sockets drafting a full draft.
+"""Load test for the draft room: 10 teams and 30 sockets drafting a full draft.
 
     python -m api.scripts.draft_load_test --base-url http://localhost:8100
 
@@ -22,9 +22,9 @@ from typing import Any
 import httpx
 import websockets
 
-TEAMS = 12
+TEAMS = 10
 SOCKETS = 30
-# The e2e pool holds 8 NFL teams (64 players); two rounds of RB and WR fit 12 teams.
+# The e2e pool holds 8 NFL teams (64 players); two rounds of RB and WR fit 10 teams.
 ROSTER = {
     "numberTeams": TEAMS,
     "rosterTotal": 2,

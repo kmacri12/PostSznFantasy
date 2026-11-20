@@ -1,6 +1,6 @@
 name: Draft load test
 
-# 12 teams and 30 sockets drafting every two seconds against the e2e stack (issue #401).
+# 10 teams and 30 sockets drafting every two seconds against the e2e stack (issue #401).
 # A lost or duplicated pick fails the job; the table lands in the run summary and is copied into
 # docs/deploy/performance.md when the numbers change.
 on:

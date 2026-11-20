@@ -189,6 +189,8 @@ def calculate_dst_points(
         + _blocked_kicks(stats) * _safe(settings.scoring_dst_blocked_kick)
         + _safe(stats.dst_two_point_returns)
         * _safe(settings.scoring_dst_two_point_return)
+        + _safe(stats.dst_kick_return_td) * _safe(settings.scoring_dst_kick_return_td)
+        + _safe(stats.dst_punt_return_td) * _safe(settings.scoring_dst_punt_return_td)
         + _dst_pts_allowed_bonus(stats.dst_points_allowed, settings)
         + _dst_yards_allowed_bonus(stats.dst_yards_allowed, settings)
     )

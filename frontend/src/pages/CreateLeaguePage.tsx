@@ -24,6 +24,7 @@ import RosterForm from "../components/settings/RosterForm";
 import ScoringForm from "../components/settings/ScoringForm";
 import TeamUnitChoice, { type TeamUnitValues } from "../components/settings/TeamUnitChoice";
 import { leaguePath } from "../routes";
+import { ROSTER_DEFAULTS } from "../settings/rosterGroups";
 import { createLogger } from "../utils/logger";
 import { rosterProblems } from "../utils/numberField";
 import {
@@ -39,32 +40,12 @@ const logger = createLogger("CreateLeaguePage");
 /** "Customize rules" walks these; the short path creates with the defaults. */
 const STEPS = ["Roster", "Scoring", "Review"];
 const MIN_TEAMS = 2;
-const MAX_TEAMS = 14;
+const MAX_TEAMS = 10;
 
-const DEFAULT_ROSTER = {
-  number_teams: 6,
-  roster_total: 18,
-  roster_num_qb: 1,
-  roster_num_rb: 2,
-  roster_num_wr: 2,
-  roster_num_te: 1,
-  roster_num_flex_wr_rb_te: 1,
-  roster_num_flex_wr_rb: 0,
-  roster_num_flex_wr_te: 0,
-  roster_num_flex_qb_wr_rb_te: 0,
-  roster_num_k: 1,
-  roster_num_dst: 1,
-  roster_num_bench: 9,
-  roster_max_qb: 2,
-  roster_max_rb: 99,
-  roster_max_wr: 99,
-  roster_max_te: 99,
-  roster_max_k: 2,
-  roster_max_dst: 2,
-};
+const DEFAULT_ROSTER = { number_teams: 6, ...ROSTER_DEFAULTS };
 
-/** Standard individual QB and K: the short path never asks, Customize rules does. */
-const DEFAULT_TEAM_UNITS: TeamUnitValues = { team_qb: false, team_k: false };
+/** Team QB and K on: the short path never asks, Customize rules does. */
+const DEFAULT_TEAM_UNITS: TeamUnitValues = { team_qb: true, team_k: true };
 
 const defaultRulesSummary = (roster: typeof DEFAULT_ROSTER): string =>
   `${roster.roster_num_qb} QB, ${roster.roster_num_rb} RB, ${roster.roster_num_wr} WR, ${roster.roster_num_te} TE, ${roster.roster_num_flex_wr_rb_te} FLEX, ${roster.roster_num_k} K, ${roster.roster_num_dst} DST, bench of ${roster.roster_num_bench}. Full PPR scoring. Every round counts the same (1x).`;
@@ -297,6 +278,7 @@ const CreateLeaguePage = () => {
             </Box>
             <ScoringForm
               values={scoringSettings}
+              defaults={scoringDefaults}
               errors={scoringErrors}
               onChange={(key, rawValue) =>
                 setScoringSettings((previous) => ({ ...previous, [key]: rawValue }))

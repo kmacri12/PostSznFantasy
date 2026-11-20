@@ -20,6 +20,8 @@ DST_STAT_COLUMNS = (
     "dst_blocked_field_goals",
     "dst_blocked_extra_points",
     "dst_two_point_returns",
+    "dst_kick_return_td",
+    "dst_punt_return_td",
 )
 
 # Real-game points, not the league's `scoring_dst_td`.
@@ -54,6 +56,18 @@ def _has_scores(box: dict[str, Any]) -> bool:
     return all(str(box.get(key) or "").strip() for key in ("homePts", "awayPts"))
 
 
+def _return_tds(box: dict[str, Any], team_id: int) -> tuple[int, int]:
+    """Kick and punt return TDs, read off the team's returners."""
+    kick = punt = 0
+    players = box.get("playerStats")
+    for player in players.values() if isinstance(players, dict) else []:
+        if not isinstance(player, dict) or safe_int(player.get("teamID")) != team_id:
+            continue
+        kick += safe_int((player.get("Kicking") or {}).get("kickReturnTD"))
+        punt += safe_int((player.get("Punting") or {}).get("puntReturnTD"))
+    return kick, punt
+
+
 def parse_dst_stat_rows(
     game_id: str, box: dict[str, Any], valid_player_ids: set[int]
 ) -> list[dict[str, Any]]:
@@ -69,6 +83,11 @@ def parse_dst_stat_rows(
             continue
         opponent = team_stats[opponent_id]
         own_dst = dst.get(team_id, {})
+        kick_return_td, punt_return_td = _return_tds(box, team_id)
+        # Tank01 counts return TDs inside defensiveOrSpecialTeamsTds; they score apart.
+        defense_td = safe_int(own.get("defensiveOrSpecialTeamsTds")) - (
+            kick_return_td + punt_return_td
+        )
         # Points the opponent's own defense or special teams scored were not given up
         # by this defense.
         points_allowed = scores.get(opponent_id, 0) - POINTS_PER_TOUCHDOWN * safe_int(
@@ -87,7 +106,9 @@ def parse_dst_stat_rows(
                 "dst_sacks": safe_int(own_dst.get("sacks")),
                 "dst_interceptions": safe_int(own_dst.get("defensiveInterceptions")),
                 "dst_fumbles_recovered": safe_int(opponent.get("fumblesLost")),
-                "dst_def_td": safe_int(own.get("defensiveOrSpecialTeamsTds")),
+                "dst_def_td": max(defense_td, 0),
+                "dst_kick_return_td": kick_return_td,
+                "dst_punt_return_td": punt_return_td,
                 "dst_safeties": safe_int(own_dst.get("safeties")),
                 "dst_blocked_punts": safe_int(own.get("blockedPunt")),
                 "dst_blocked_field_goals": safe_int(own.get("blockedFG")),

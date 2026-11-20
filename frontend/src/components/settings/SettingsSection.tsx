@@ -1,14 +1,17 @@
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
   Box,
   FormHelperText,
+  IconButton,
   OutlinedInput,
   Typography,
 } from "@mui/material";
-import { useState } from "react";
+import { Fragment, useState } from "react";
+import { SETTING_FIELD_HELP } from "../../content/rules";
 import type { SettingGroup, SettingsValues } from "../../settings/types";
 import {
   formatLimit,
@@ -27,13 +30,17 @@ interface SettingsSectionProps {
   /** Shown as plain text, not editable (non-commissioners, or locked once the draft starts). */
   disabled?: boolean;
   inputMode?: "decimal" | "numeric";
-  /** Plain-language note on the whole block, opened from an info button. */
-  help?: string;
   /** Problems by field key; shown under a field once it has been left (blurred). */
   errors?: Record<string, string>;
-  /** Optional explanation shown under an input, e.g. "1 point per 25 yards". */
-  helper?: (key: string, rawValue: string | number) => string | null;
+  /** A row that differs from its default gets a button that puts the default back. */
+  defaults?: SettingsValues;
 }
+
+const differs = (value: number | string | undefined, fallback: number | string | undefined) =>
+  value !== undefined &&
+  fallback !== undefined &&
+  String(value).trim() !== "" &&
+  Number(value) !== Number(fallback);
 
 /** "Yard 0.04 · TD 4": the fields that score, so a collapsed block says what is in it. */
 export const groupSummary = (group: SettingGroup, values: SettingsValues): string =>
@@ -54,11 +61,13 @@ const SettingsSection = ({
   defaultExpanded = false,
   disabled = false,
   inputMode = "decimal",
-  helper,
-  help,
   errors,
+  defaults,
 }: SettingsSectionProps) => {
   const [touched, setTouched] = useState<Set<string>>(new Set());
+  // The value a field held when tapped; it empties for typing and comes back if left blank.
+  const [editing, setEditing] = useState<{ key: string; original: string } | null>(null);
+  const [expanded, setExpanded] = useState(defaultExpanded);
   const heading = title ?? group.title;
   if (disabled) {
     return (
@@ -70,7 +79,7 @@ const SettingsSection = ({
     );
   }
   return (
-    <Accordion defaultExpanded={defaultExpanded} disableGutters>
+    <Accordion expanded={expanded} onChange={(_, open) => setExpanded(open)} disableGutters>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
         sx={{ "& .MuiAccordionSummary-content": { minWidth: 0 } }}
@@ -79,30 +88,41 @@ const SettingsSection = ({
           <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
             {heading}
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: "pre-line" }}>
-            {groupSummary(group, values)}
-          </Typography>
+          {/* Open, the editable rows say the same thing, so the summary would only add height. */}
+          {!expanded && (
+            <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: "pre-line" }}>
+              {groupSummary(group, values)}
+            </Typography>
+          )}
         </Box>
       </AccordionSummary>
       <AccordionDetails sx={{ pt: 0 }}>
-        {help && (
-          <Box sx={{ display: "flex", alignItems: "center" }}>
-            <Typography variant="body2" color="text.secondary">
-              What do these mean?
-            </Typography>
-            <HelpTip label={heading} text={help} />
-          </Box>
-        )}
         {group.fields.map((field) => {
           const id = field.key.replaceAll("_", "-");
           const problem = touched.has(field.key) ? errors?.[field.key] : undefined;
-          const note = helper?.(field.key, values[field.key] ?? "");
+          const note = SETTING_FIELD_HELP[field.key];
+          const fallback = defaults?.[field.key];
+          const changed = editing?.key !== field.key && differs(values[field.key], fallback);
           return (
-            <Box key={field.key}>
+            <Fragment key={field.key}>
+              {field.subheading && (
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, mt: 2, mb: 0.5 }}>
+                  {field.subheading}
+                </Typography>
+              )}
               <Box sx={{ display: "flex", alignItems: "center", gap: 1, minHeight: 48 }}>
-                <Typography component="label" htmlFor={id} sx={{ flexGrow: 1 }}>
+                <Typography component="label" htmlFor={id} sx={{ flexGrow: 1, minWidth: 0 }}>
                   {field.label}
                 </Typography>
+                {changed && fallback !== undefined && (
+                  <IconButton
+                    aria-label={`Reset ${field.label} to default`}
+                    onClick={() => onChange(field.key, String(fallback))}
+                    sx={{ color: "text.secondary", width: 44, height: 44, flexShrink: 0 }}
+                  >
+                    <RestartAltIcon fontSize="small" />
+                  </IconButton>
+                )}
                 <OutlinedInput
                   id={id}
                   size="small"
@@ -117,9 +137,26 @@ const SettingsSection = ({
                       field.limit ? limitFromField(event.target.value) : event.target.value,
                     )
                   }
-                  onBlur={() => setTouched((previous) => new Set(previous).add(field.key))}
+                  onFocus={(event) => {
+                    // A limit left empty means "No limit", so it selects instead of clearing.
+                    if (field.limit) {
+                      event.target.select();
+                      return;
+                    }
+                    setEditing({ key: field.key, original: String(values[field.key] ?? "") });
+                    onChange(field.key, "");
+                  }}
+                  onBlur={() => {
+                    const blank = String(values[field.key] ?? "").trim() === "";
+                    if (editing?.key === field.key && blank) {
+                      onChange(field.key, editing.original);
+                    } else {
+                      setTouched((previous) => new Set(previous).add(field.key));
+                    }
+                    setEditing(null);
+                  }}
                   inputProps={{ inputMode, style: { textAlign: "right" } }}
-                  sx={{ width: 96 }}
+                  sx={{ width: 96, flexShrink: 0 }}
                 />
                 {note ? <HelpTip label={field.label} text={note} /> : <Box sx={{ width: 44 }} />}
               </Box>
@@ -128,7 +165,7 @@ const SettingsSection = ({
                   {problem}
                 </FormHelperText>
               )}
-            </Box>
+            </Fragment>
           );
         })}
       </AccordionDetails>

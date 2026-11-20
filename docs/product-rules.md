@@ -11,7 +11,7 @@ Each league drafts once, before the Wild Card round, from players on the 14 play
 - Snake draft, one draft per league, 18 rounds by default (rounds equal the roster size).
 - Only players on playoff teams are in the pool, and a draft cannot start until the playoff field is set.
 - A draft cannot be scheduled or started after the first Wild Card kickoff. A draft already running may finish; players whose game has started are still draftable and lock on the bench for that round.
-- Default 6 teams, 90-second pick clock. League size may be 2 to 14.
+- Default 6 teams, 90-second pick clock. League size may be 2 to 10.
 - Position caps (default QB 2, K 2, DST 2; RB, WR and TE uncapped). Once a team reaches a cap, that position's players are greyed out in its draft pool with a plain-language reason. Auto-pick (queue first, then the highest season fantasy points under the league's scoring) never picks an ineligible player. A team with no owner is auto-picked within a second of coming on the clock; a later joiner inherits its picks.
 - Autopilot (#463, owner decision): a team whose pick times out goes on autopilot, and a manager can switch it on for their own team in the draft room (the switch under the clock bar, also before the draft starts, from the lobby). A team on autopilot is auto-picked (queue, then best available) about 10 seconds after it comes on the clock instead of waiting out the timer. It stays on until the manager makes a pick themselves or switches it off; a commissioner can switch any team's autopilot off from Draft settings, never on. The board header and the clock bar mark a team on autopilot, and its picks carry the autopilot mark. The flag is stored with the draft, so it survives a restart. A team with no owner keeps the one-second auto-pick.
 - Create-league shows a yellow warning when teams times max-per-position exceeds the 14 available units of a position (QB, K, DST).
@@ -24,7 +24,7 @@ Each league drafts once, before the Wild Card round, from players on the 14 play
 
 ## 3. Roster and lineup
 
-- Default roster: 1 QB, 2 RB, 2 WR, 1 TE, 1 FLEX (RB/WR/TE), 1 K, 1 DST, plus 9 bench (18 total).
+- Default roster: 1 QB, 2 RB, 2 WR, 1 TE, 1 FLEX (RB/WR/TE), 1 K, 1 DST, plus 9 bench (18 total). Create league and settings offer no superflex: the playoff field has too few QBs for a QB-eligible flex (owner decision, 2026-11-20). The API and lineups still support the slot, so it returns by adding its row back to `frontend/src/settings/rosterGroups.ts`.
 - Empty slots are allowed and score 0.
 - Fullbacks are running backs: ingest maps FB to RB and users never see FB anywhere.
 - Lineups are per round and set manually. Nothing is copied forward, pre-filled or auto-substituted. After the draft, all players are unassigned.
@@ -39,7 +39,7 @@ Each league drafts once, before the Wild Card round, from players on the 14 play
 
 ## 4. Team QB and team K
 
-Two independent league settings with a tooltip. The "Customize rules" path of create league shows both choices (off preselected). The short create path (league name and team count only) sets both off, standard individual QB and K; a commissioner can change them in settings at any time. The off default for the short path is a product decision awaiting the owner's confirmation.
+Two independent league settings with a tooltip. The "Customize rules" path of create league shows both choices (on preselected). The short create path (league name and team count only) sets both on; a commissioner can change them in settings at any time. Owner decision (2026-11-20): on is the default.
 
 Why: there is no free agency in PostSzn, and available players get scarce as the playoffs go on, so nobody can replace a QB who gets hurt or benched. The intent is that a team's QB (or K) points keep going to whoever drafted that team's starter: the owner drafts a team's quarterback rather than one individual player. How to play says the same to members.
 
@@ -56,7 +56,7 @@ Why: there is no free agency in PostSzn, and available players get scarce as the
 - Defaults are full PPR with the commissioner's spreadsheet values; every item is commissioner-editable, and everything not listed below is 0 (completion, attempt and yardage bonuses, and so on).
 - Passing: 0.04 per yard, 4 per TD, -2 per interception. Rushing and receiving: 0.1 per yard, 6 per TD. Reception: 1. Fumble lost: -2. Two-point conversion: 2.
 - Kicker: 0.1 per made field-goal yard, 1 per extra point, -1 per missed field goal, -1 per missed extra point. No distance tiers. Optional, off by default: a rate per yard of each missed field goal (e.g. -0.05), from the play-by-play distances.
-- DST: sack 1, interception 1, fumble recovery 1, safety 2, TD 6, defensive two-point return 2, blocked kick (punt, field goal or extra point, one setting) 1. Kick and punt return TDs always go to the DST, never to the individual returner. Yards allowed: 0-99 = 6, 100-199 = 4, 200-299 = 2, 300+ = 0. Points allowed: 0 = 7, 1-13 = 5, 14-21 = 3, 22-28 = 1, 29+ = 0. Points allowed counts only what the defense gave up: the opponent's final score minus 6 for each touchdown the opponent's own defense or special teams scored (so a pick-six thrown by the defense's own offense is not charged to it). Yards allowed is the opponent's total offensive yards.
+- DST: sack 1, interception 1, fumble recovery 1, safety 2, TD 6, defensive two-point return 2, blocked kick (punt, field goal or extra point, one setting) 1, kick return TD 6, punt return TD 6. Kick and punt return TDs always go to the DST, never to the individual returner, and each has its own setting (owner decision, 2026-11-20); the DST TD setting covers defensive TDs only. The settings show them, with return yards and blocked kicks, as a Special teams part of one "Defense / Special Teams" group. Yards allowed: 0-99 = 6, 100-199 = 4, 200-299 = 2, 300+ = 0. Points allowed: 0 = 7, 1-13 = 5, 14-21 = 3, 22-28 = 1, 29+ = 0. Points allowed counts only what the defense gave up: the opponent's final score minus 6 for each touchdown the opponent's own defense or special teams scored (so a pick-six thrown by the defense's own offense is not charged to it). Yards allowed is the opponent's total offensive yards.
 - A round's score is the sum of points from players in starter slots, multiplied by that round's multiplier (default 1x for all four, commissioner-editable).
 - Scores always recompute from the latest data and settings. A stat correction or settings change reflows every round it touches; nobody edits scores by hand.
 

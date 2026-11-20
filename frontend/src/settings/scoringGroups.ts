@@ -13,8 +13,8 @@ export const SCORING_GROUPS: SettingGroup[] = [
       { key: "scoring_passing_completion", label: "Completion" },
       { key: "scoring_passing_attempt", label: "Attempt" },
       { key: "scoring_passing_sack", label: "Sack" },
-      { key: "scoring_passing_bonus_300_yards", label: "Bonus 300 Yards" },
-      { key: "scoring_passing_bonus_400_yards", label: "Bonus 400 Yards" },
+      { key: "scoring_passing_bonus_300_yards", label: "300+ yard bonus" },
+      { key: "scoring_passing_bonus_400_yards", label: "400+ yard bonus" },
     ],
   },
   {
@@ -66,18 +66,10 @@ export const SCORING_GROUPS: SettingGroup[] = [
     ],
   },
   {
-    id: "specialTeams",
-    title: "Special Teams",
-    fields: [
-      { key: "scoring_special_punt_return_yard", label: "Punt Return Yard" },
-      { key: "scoring_special_kick_return_yard", label: "Kick Return Yard" },
-    ],
-  },
-  {
     id: "defense",
-    title: "Defense",
+    title: "Defense / Special Teams",
     fields: [
-      { key: "scoring_dst_td", label: "TD" },
+      { key: "scoring_dst_td", label: "Defensive TD" },
       { key: "scoring_dst_pts_allowed_0", label: "Pts Allowed 0" },
       { key: "scoring_dst_pts_allowed_1_13", label: "Pts Allowed 1-13" },
       { key: "scoring_dst_pts_allowed_14_21", label: "Pts Allowed 14-21" },
@@ -89,10 +81,18 @@ export const SCORING_GROUPS: SettingGroup[] = [
       { key: "scoring_dst_yards_allowed_300_plus", label: "Yards Allowed 300+" },
       { key: "scoring_dst_sack", label: "Sack" },
       { key: "scoring_dst_safety", label: "Safety" },
-      { key: "scoring_dst_fumble_recover", label: "Fumble Recover" },
+      { key: "scoring_dst_fumble_recover", label: "Fumble Recovery" },
       { key: "scoring_dst_interception", label: "Interception" },
+      { key: "scoring_dst_two_point_return", label: "2-Pt Return" },
+      {
+        key: "scoring_dst_kick_return_td",
+        label: "Kick Return TD",
+        subheading: "Special teams",
+      },
+      { key: "scoring_dst_punt_return_td", label: "Punt Return TD" },
       { key: "scoring_dst_blocked_kick", label: "Blocked Kick" },
-      { key: "scoring_dst_two_point_return", label: "Two Point Return" },
+      { key: "scoring_special_kick_return_yard", label: "Kick Return Yard" },
+      { key: "scoring_special_punt_return_yard", label: "Punt Return Yard" },
     ],
   },
 ];

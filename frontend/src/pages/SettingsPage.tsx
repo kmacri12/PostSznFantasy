@@ -18,6 +18,7 @@ import {
   useInvite,
   useLeagueInfo,
   useLeagueSettings,
+  useScoringDefaults,
   useSetAvatar,
   useStandings,
   useUpdateLeague,
@@ -82,9 +83,9 @@ const multiplierProblems = (values: PostseasonValues) =>
 
 const teamCountProblem = (value: string) => {
   const count = Number(value);
-  return Number.isInteger(count) && count >= 2 && count <= 14
+  return Number.isInteger(count) && count >= 2 && count <= 10
     ? null
-    : "Enter a number from 2 to 14.";
+    : "Enter a number from 2 to 10.";
 };
 
 /**
@@ -97,6 +98,7 @@ function SettingsPage() {
   const info = useLeagueInfo(leagueId, !season.isFormerMember).data;
   const archived = season.finished;
   const settingsQuery = useLeagueSettings(seasonId);
+  const scoringDefaults = useScoringDefaults();
   const draft = useDraft(seasonId);
   const standings = useStandings(seasonId).data;
   const updateSettings = useUpdateSettings(seasonId);
@@ -297,6 +299,7 @@ function SettingsPage() {
             <SettingsGroup title="Scoring">
               <ScoringForm
                 values={scoring}
+                defaults={scoringDefaults.data}
                 errors={scoringErrors}
                 disabled={!canEdit}
                 onChange={(key, rawValue) =>

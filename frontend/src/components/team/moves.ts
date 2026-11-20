@@ -26,7 +26,7 @@ const SLOT_POSITIONS: Record<string, string[] | undefined> = {
   "W/T": ["WR", "TE"],
   SUPER_FLEX: ["QB", ...FLEX_POSITIONS],
   K: ["K"],
-  DEF: ["DST"],
+  DST: ["DST"],
 };
 
 /** The upstream's spellings for the six positions; the server reads them the same way. */

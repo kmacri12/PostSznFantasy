@@ -102,7 +102,7 @@ def slot_layout(settings: SeasonSettings) -> list[SlotSpec]:
     add("W/T", settings.roster_num_flex_wr_te, FLEX_SLOTS["W/T"])
     add("SUPER_FLEX", settings.roster_num_flex_qb_wr_rb_te, FLEX_SLOTS["SUPER_FLEX"])
     add("K", settings.roster_num_k, (PlayerPosition.K,))
-    add("DEF", settings.roster_num_dst, (PlayerPosition.DST,))
+    add("DST", settings.roster_num_dst, (PlayerPosition.DST,))
     add(BENCH, settings.roster_num_bench, None)
     return specs
 
