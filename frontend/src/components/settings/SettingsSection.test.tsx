@@ -61,6 +61,17 @@ describe("SettingsSection rows", () => {
     expect(screen.queryByRole("button", { name: "Reset Attempt to default" })).toBeNull();
   });
 
+  it("shows the summary only while the block is closed", () => {
+    render(
+      <SettingsSection group={group} values={defaults} onChange={() => {}} defaults={defaults} />,
+    );
+    expect(screen.getByText("Yard 0.1")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: /Rushing/ }));
+    expect(screen.queryByText("Yard 0.1")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: /Rushing/ }));
+    expect(screen.getByText("Yard 0.1")).toBeTruthy();
+  });
+
   it("explains every roster and scoring setting in its help", () => {
     const keys = [...ROSTER_GROUPS, ...SCORING_GROUPS].flatMap((g) => g.fields.map((f) => f.key));
     expect(keys.filter((key) => !SETTING_FIELD_HELP[key])).toEqual([]);

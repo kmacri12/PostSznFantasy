@@ -67,6 +67,7 @@ const SettingsSection = ({
   const [touched, setTouched] = useState<Set<string>>(new Set());
   // The value a field held when tapped; it empties for typing and comes back if left blank.
   const [editing, setEditing] = useState<{ key: string; original: string } | null>(null);
+  const [expanded, setExpanded] = useState(defaultExpanded);
   const heading = title ?? group.title;
   if (disabled) {
     return (
@@ -78,7 +79,7 @@ const SettingsSection = ({
     );
   }
   return (
-    <Accordion defaultExpanded={defaultExpanded} disableGutters>
+    <Accordion expanded={expanded} onChange={(_, open) => setExpanded(open)} disableGutters>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
         sx={{ "& .MuiAccordionSummary-content": { minWidth: 0 } }}
@@ -87,9 +88,12 @@ const SettingsSection = ({
           <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
             {heading}
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: "pre-line" }}>
-            {groupSummary(group, values)}
-          </Typography>
+          {/* Open, the editable rows say the same thing, so the summary would only add height. */}
+          {!expanded && (
+            <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: "pre-line" }}>
+              {groupSummary(group, values)}
+            </Typography>
+          )}
         </Box>
       </AccordionSummary>
       <AccordionDetails sx={{ pt: 0 }}>
