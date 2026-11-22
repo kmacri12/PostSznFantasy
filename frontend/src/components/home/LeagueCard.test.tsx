@@ -65,7 +65,9 @@ describe("LeagueCard", () => {
 
   it("leaves the playoff round to the page, so it is not repeated on every card", () => {
     show();
-    expect(screen.queryByText(/Wild Card|Divisional|Conference Championship|Super Bowl/)).toBeNull();
+    expect(
+      screen.queryByText(/Wild Card|Divisional|Conference Championship|Super Bowl/),
+    ).toBeNull();
   });
 
   it("adds nothing about the round once the season is finished", () => {

@@ -150,9 +150,9 @@ describe("PhaseBlock", () => {
     expect(screen.queryByText(/updated/)).toBeNull();
   });
 
-  it("leaves the NFL bracket link to the row under the standings", () => {
+  it("leaves the NFL schedule link to the row under the standings", () => {
     show({ draftStatus: "unscheduled", canCommission: false });
-    expect(screen.queryByRole("link", { name: "NFL bracket" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "NFL schedule" })).not.toBeInTheDocument();
   });
 
   it("leaves the top to the champion card when the season is over", () => {

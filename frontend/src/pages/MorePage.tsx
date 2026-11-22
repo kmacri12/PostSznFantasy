@@ -119,7 +119,11 @@ const MorePage = () => {
       {(features.bracket || pastSeasons.length > 0) && (
         <Group label="League">
           {features.bracket && (
-            <Row to={paths.bracket} title="NFL bracket" hint="Who plays whom, and your players" />
+            <Row
+              to={paths.schedule}
+              title="NFL schedule"
+              hint="Who plays whom, live scores, and your players"
+            />
           )}
           {pastSeasons.length > 0 && (
             <Row

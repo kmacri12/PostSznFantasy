@@ -3,7 +3,7 @@ const BRAND = "PostSzn Fantasy";
 const SECTIONS: [RegExp, string][] = [
   [/^\/draft\/board$/, "Draft board"],
   [/^\/draft$/, "Draft"],
-  [/^\/bracket$/, "NFL bracket"],
+  [/^\/schedule$/, "NFL schedule"],
   [/^\/feed$/, "Feed"],
   [/^\/more$/, "More"],
   [/^\/how-to-play$/, "How to play"],

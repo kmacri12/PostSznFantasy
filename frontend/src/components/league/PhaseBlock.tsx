@@ -207,6 +207,7 @@ const gamesLine = (standings: Standings): string => {
 
 /** While a game is on, the games line moves under the title next to how fresh the scores are. */
 const PlayoffBlock = ({ season, standings }: { season: SeasonOverview; standings: Standings }) => {
+  const { paths } = useSeasonContext();
   const games = gamesLine(standings);
   const live = standings.gamesInProgress > 0;
   return (
@@ -214,7 +215,7 @@ const PlayoffBlock = ({ season, standings }: { season: SeasonOverview; standings
       <Row>
         <Title>{ROUND_LABELS[standings.round]}</Title>
         {!live && <Detail>{games}</Detail>}
-        <LiveIndicator seasonId={season.id} games={games} />
+        <LiveIndicator seasonId={season.id} games={games} schedule={paths.schedule} />
       </Row>
     </Block>
   );
@@ -240,7 +241,7 @@ const AfterDraft = ({ season }: { season: SeasonOverview }) => {
   return standings ? <PlayoffBlock season={season} standings={standings} /> : null;
 };
 
-/** A small link row under the standings; hidden while the owner's bracket kill switch is off. */
+/** A small link row under the standings to the NFL schedule; hidden while the owner's kill switch (`bracket`) is off. */
 export const BracketLink = () => {
   const { paths } = useSeasonContext();
   const { bracket } = useFeatures();
@@ -248,11 +249,11 @@ export const BracketLink = () => {
   return (
     <Button
       component={Link}
-      to={paths.bracket}
+      to={paths.schedule}
       endIcon={<ChevronRightIcon aria-hidden />}
       sx={{ minHeight: 44, alignSelf: "flex-start", fontWeight: 600 }}
     >
-      NFL bracket
+      NFL schedule
     </Button>
   );
 };

@@ -14,7 +14,7 @@ const open = (entries: string[], index: number) => {
     [
       { path: "/leagues/1", element: <p>League home</p> },
       { path: "/leagues/1/more", element: <p>More page</p> },
-      { path: "/leagues/1/bracket", element: <BracketPage /> },
+      { path: "/leagues/1/schedule", element: <BracketPage /> },
     ],
     { initialEntries: entries, initialIndex: index },
   );
@@ -25,14 +25,14 @@ const open = (entries: string[], index: number) => {
 describe("BracketPage back arrow", () => {
   it("returns to the page the member came from", () => {
     window.history.replaceState({ idx: 1 }, "");
-    open(["/leagues/1/more", "/leagues/1/bracket"], 1);
+    open(["/leagues/1/more", "/leagues/1/schedule"], 1);
     fireEvent.click(screen.getByRole("button", { name: "Back" }));
     expect(screen.getByText("More page")).toBeInTheDocument();
   });
 
   it("goes to the league home when there is no history", () => {
     window.history.replaceState({ idx: 0 }, "");
-    open(["/leagues/1/bracket"], 0);
+    open(["/leagues/1/schedule"], 0);
     fireEvent.click(screen.getByRole("button", { name: "Back" }));
     expect(screen.getByText("League home")).toBeInTheDocument();
   });
