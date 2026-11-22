@@ -1,6 +1,7 @@
-import { Box, Button, Container, Link as MuiLink, Typography } from "@mui/material";
+import { Box, Button, Chip, Container, Link as MuiLink, Typography } from "@mui/material";
 import { Link } from "react-router-dom";
-import { useUserLeagues } from "../../api/queries";
+import { useStandings, useUserLeagues } from "../../api/queries";
+import type { LeagueByUser } from "../../api/types";
 import { useUser } from "../../contexts/UserContext";
 import EmptyState from "../common/EmptyState";
 import ErrorState from "../common/ErrorState";
@@ -9,7 +10,27 @@ import LoadingState from "../common/LoadingState";
 import InviteCodeForm from "./InviteCodeForm";
 import LeagueCard from "./LeagueCard";
 import LegalFooter from "./LegalFooter";
+import { phaseTag } from "./leagueSummary";
 import PastLeagues from "./PastLeagues";
+
+/**
+ * The playoff round, once above the cards: every league plays the same NFL weekend, so the round
+ * is read from the first league whose draft is done and season is not over.
+ */
+const CurrentRound = ({ leagues }: { leagues: LeagueByUser[] }) => {
+  const playing = leagues.find((league) => league.draftStatus === "completed" && !league.finished);
+  const standings = useStandings(playing?.seasonId);
+  if (!playing || !standings.data) return null;
+  const tag = phaseTag(playing, standings.data, null);
+  return (
+    <Chip
+      label={tag.label}
+      color="primary"
+      variant={tag.live ? "filled" : "outlined"}
+      sx={{ alignSelf: "flex-start", mb: 1.5 }}
+    />
+  );
+};
 
 /** The signed-in home: league cards first, then Create / Join / How to play. */
 const YourLeagues = () => {
@@ -62,6 +83,7 @@ const YourLeagues = () => {
           description="Start a league for your group, or join one with a code from your commissioner."
         />
       )}
+      <CurrentRound leagues={leagues.data} />
       <Box sx={{ display: "grid", gap: 1.5 }}>
         {leagues.data.map((league) => (
           <LeagueCard key={league.id} league={league} />

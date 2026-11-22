@@ -63,6 +63,11 @@ describe("LeagueCard", () => {
     expect(screen.getByText("points · 43.2 this round")).toBeInTheDocument();
   });
 
+  it("leaves the playoff round to the page, so it is not repeated on every card", () => {
+    show();
+    expect(screen.queryByText(/Wild Card|Divisional|Conference Championship|Super Bowl/)).toBeNull();
+  });
+
   it("adds nothing about the round once the season is finished", () => {
     show({ ...league, finished: true });
     expect(screen.getByText("points")).toBeInTheDocument();

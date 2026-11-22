@@ -9,7 +9,10 @@ import { phaseTag, rankText } from "./leagueSummary";
 
 const formatPoints = (points: number): string => (Math.round(points * 10) / 10).toFixed(1);
 
-/** One league on the leagues page: phase, the caller's rank and points, a dot for new feed items. */
+/**
+ * One league on the leagues page: the caller's rank and points, a dot for new feed items, and the
+ * phase while it is the league's own (a draft, season over); the playoff round is on the page once.
+ */
 const LeagueCard = ({ league }: { league: LeagueByUser }) => {
   const standings = useStandings(league.seasonId);
   const draft = useDraft(league.draftStatus === "scheduled" ? league.seasonId : undefined);
@@ -31,13 +34,15 @@ const LeagueCard = ({ league }: { league: LeagueByUser }) => {
             {league.name}
           </Typography>
         </Box>
-        <Chip
-          size="small"
-          label={tag.label}
-          color={tag.live ? "success" : "primary"}
-          variant="outlined"
-          sx={{ mt: 0.5 }}
-        />
+        {!tag.round && (
+          <Chip
+            size="small"
+            label={tag.label}
+            color="primary"
+            variant={tag.live ? "filled" : "outlined"}
+            sx={{ mt: 0.5 }}
+          />
+        )}
         <Box
           sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", mt: 1.5 }}
         >
