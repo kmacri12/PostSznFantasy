@@ -1,4 +1,5 @@
 import { Alert, Box, Button, ButtonBase, Drawer, Skeleton, Typography } from "@mui/material";
+import type { ReactNode } from "react";
 import { usePlayerSeasonLine } from "../../api/queries";
 import type { LineupPlayer, RoundLineup } from "../../api/types";
 import { useBackClosesOverlay } from "../../hooks/useBackClosesOverlay";
@@ -8,7 +9,7 @@ import InjuryTag from "../common/InjuryTag";
 import TeamLogo from "../common/TeamLogo";
 import { formatPoints } from "../league/standingsView";
 import { formatKickoff, type Move, ROUND_LABELS } from "./lineup";
-import { slotNames } from "./lineupView";
+import { postseasonLines, slotNames } from "./lineupView";
 import { type MoveOption, moveOptions } from "./moves";
 import { seasonRows } from "./seasonLines";
 
@@ -27,7 +28,14 @@ const placement = (lineup: RoundLineup, player: LineupPlayer): string => {
   return `starting at ${slotNames(lineup).get(slot.index)}`;
 };
 
-const StatBox = ({ rows }: { rows: { label: string; value: string }[] }) => (
+interface StatRow {
+  label: string;
+  value: string;
+  /** A second, smaller line under the label, e.g. that game's points. */
+  note?: string;
+}
+
+const StatBox = ({ rows }: { rows: StatRow[] }) => (
   <Box sx={{ border: `1px solid ${tokens.border}`, borderRadius: 3, overflow: "hidden" }}>
     {rows.map((row, index) => (
       <Box
@@ -35,6 +43,7 @@ const StatBox = ({ rows }: { rows: { label: string; value: string }[] }) => (
         sx={{
           display: "flex",
           justifyContent: "space-between",
+          alignItems: "baseline",
           gap: 2,
           px: 1.5,
           py: 1,
@@ -42,14 +51,29 @@ const StatBox = ({ rows }: { rows: { label: string; value: string }[] }) => (
           borderTop: index === 0 ? 0 : `1px solid ${tokens.border}`,
         }}
       >
-        <Box component="span" sx={{ color: tokens.muted }}>
+        <Box component="span" sx={{ color: tokens.muted, whiteSpace: "nowrap", flexShrink: 0 }}>
           {row.label}
+          {row.note && (
+            <Box component="span" sx={{ display: "block", fontSize: 12, color: tokens.text }}>
+              {row.note}
+            </Box>
+          )}
         </Box>
         <Box component="b" sx={{ fontWeight: 600, textAlign: "right" }}>
           {row.value}
         </Box>
       </Box>
     ))}
+  </Box>
+);
+
+/** One titled block of the sheet: This game, Postseason, Regular season. */
+const StatSection = ({ title, children }: { title: string; children: ReactNode }) => (
+  <Box component="section" aria-label={title}>
+    <Typography component="h3" sx={{ fontSize: 12, color: tokens.muted, mb: 0.75 }}>
+      {title}
+    </Typography>
+    {children}
   </Box>
 );
 
@@ -104,6 +128,8 @@ export const MoveRow = ({
 interface Props {
   player: LineupPlayer;
   lineup: RoundLineup;
+  /** Every round of the team, for the player's earlier postseason games. */
+  lineups: RoundLineup[];
   /** Tap-to-move is offered: an editable team and a round that is not over. */
   canMove: boolean;
   /** A commissioner may pick locked players too; the server asks them to confirm. */
@@ -120,6 +146,7 @@ interface Props {
 const PlayerSheet = ({
   player,
   lineup,
+  lineups,
   canMove,
   canOverride,
   ownTeam,
@@ -135,6 +162,7 @@ const PlayerSheet = ({
   const rows = season.data ? seasonRows(player.position, season.data) : [];
   const options = canMove ? moveOptions(lineup, player, canOverride) : [];
   const where = [placement(lineup, player), ROUND_LABELS[lineup.round]];
+  const earlier = postseasonLines(lineups, player.id, lineup.round);
 
   return (
     <Drawer
@@ -204,29 +232,35 @@ const PlayerSheet = ({
           gap: 1.5,
         }}
       >
-        <Box>
+        {started && player.statLine && (
+          <StatSection title="This game">
+            <StatBox
+              rows={[{ label: ROUND_LABELS[lineup.round] ?? "This game", value: player.statLine }]}
+            />
+          </StatSection>
+        )}
+        {earlier.length > 0 && (
+          <StatSection title="Postseason">
+            <StatBox
+              rows={earlier.map((line) => ({
+                label: ROUND_LABELS[line.round] ?? `Round ${line.round}`,
+                value: line.statLine,
+                note: `${formatPoints(line.points)} pts`,
+              }))}
+            />
+          </StatSection>
+        )}
+        <StatSection
+          title={season.data ? `${season.data.season} regular season` : "Regular season"}
+        >
           {season.isPending ? (
             <Skeleton variant="rounded" height={64} />
           ) : (
-            <>
-              {season.data && (
-                <Typography sx={{ fontSize: 12, color: tokens.muted, mb: 0.75 }}>
-                  {season.data.season} regular season
-                </Typography>
-              )}
-              <StatBox
-                rows={[
-                  ...(started && player.statLine
-                    ? [{ label: "This round", value: player.statLine }]
-                    : []),
-                  ...(rows.length > 0
-                    ? rows
-                    : [{ label: "Regular season", value: "No stats on record" }]),
-                ]}
-              />
-            </>
+            <StatBox
+              rows={rows.length > 0 ? rows : [{ label: "Season", value: "No stats on record" }]}
+            />
           )}
-        </Box>
+        </StatSection>
 
         {player.status === "eliminated" && (
           <Typography sx={{ fontSize: 13, color: tokens.dangerMuted }}>

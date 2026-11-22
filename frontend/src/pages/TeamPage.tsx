@@ -184,6 +184,7 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
         <PlayerSheet
           player={sheetPlayer}
           lineup={lineup}
+          lineups={team.lineups}
           canMove={canSetLineup && round >= currentRound}
           canOverride={team.canOverride && season.canEdit}
           ownTeam={isMine}

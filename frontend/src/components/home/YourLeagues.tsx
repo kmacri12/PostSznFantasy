@@ -14,7 +14,7 @@ import { phaseTag } from "./leagueSummary";
 import PastLeagues from "./PastLeagues";
 
 /**
- * The playoff round, once above the cards: every league plays the same NFL weekend, so the round
+ * The playoff round, once beside the heading: every league plays the same NFL weekend, so the round
  * is read from the first league whose draft is done and season is not over.
  */
 const CurrentRound = ({ leagues }: { leagues: LeagueByUser[] }) => {
@@ -27,7 +27,7 @@ const CurrentRound = ({ leagues }: { leagues: LeagueByUser[] }) => {
       label={tag.label}
       color="primary"
       variant={tag.live ? "filled" : "outlined"}
-      sx={{ alignSelf: "flex-start", mb: 1.5 }}
+      sx={{ flexShrink: 0 }}
     />
   );
 };
@@ -73,9 +73,21 @@ const YourLeagues = () => {
         minHeight: "calc(100dvh - 64px)",
       }}
     >
-      <Typography variant="h5" component="h1" sx={{ mb: 2 }}>
-        {none ? "Welcome to PostSzn" : "Your leagues"}
-      </Typography>
+      {/* The round sits beside the heading, not under it, to keep the cards high on a phone. */}
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 1.5,
+          mb: 2,
+        }}
+      >
+        <Typography variant="h5" component="h1">
+          {none ? "Welcome to PostSzn" : "Your leagues"}
+        </Typography>
+        <CurrentRound leagues={leagues.data} />
+      </Box>
       {none && (
         <EmptyState
           illustration="leagues"
@@ -83,7 +95,6 @@ const YourLeagues = () => {
           description="Start a league for your group, or join one with a code from your commissioner."
         />
       )}
-      <CurrentRound leagues={leagues.data} />
       <Box sx={{ display: "grid", gap: 1.5 }}>
         {leagues.data.map((league) => (
           <LeagueCard key={league.id} league={league} />
