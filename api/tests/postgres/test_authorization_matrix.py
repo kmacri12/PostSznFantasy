@@ -70,6 +70,7 @@ async def seed(db: AsyncSession) -> dict[str, str]:
         "message_id": str(message.id),
         "device_id": "1",
         "game_id": "1",
+        "player_id": "1",
         "pick_number": "1",
         "code": "NOSUCHCODE",
         "action": "pause",

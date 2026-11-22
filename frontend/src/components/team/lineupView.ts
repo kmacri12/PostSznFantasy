@@ -139,3 +139,29 @@ export const slotNames = (lineup: RoundLineup): Map<number, string> => {
   }
   return names;
 };
+
+export interface PostseasonLine {
+  round: number;
+  statLine: string;
+  points: number;
+}
+
+/** A player's finished games in the rounds before `beforeRound`, oldest first, for his sheet. */
+export const postseasonLines = (
+  lineups: RoundLineup[],
+  playerId: number,
+  beforeRound: number,
+): PostseasonLine[] =>
+  lineups
+    .filter((lineup) => lineup.round < beforeRound)
+    .sort((a, b) => a.round - b.round)
+    .flatMap((lineup) => {
+      const player = [
+        ...lineup.slots.map((slot) => slot.player),
+        ...lineup.unassigned,
+        ...lineup.eliminated,
+      ].find((entry) => entry?.id === playerId);
+      return player?.gameState === "final" && player.statLine
+        ? [{ round: lineup.round, statLine: player.statLine, points: player.points ?? 0 }]
+        : [];
+    });

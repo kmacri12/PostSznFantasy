@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { api } from "../../api/client";
@@ -106,6 +106,48 @@ describe("GameSheet", () => {
     expect(vi.mocked(api.get).mock.calls.map((call) => call[0])).toContain(
       "/api/seasons/5/games/20260111_BUF%40KC",
     );
+  });
+
+  it("opens a tapped player's sheet with this game's points breakdown and his fantasy team", async () => {
+    vi.mocked(api.get).mockImplementation(async (url: string) => {
+      if (url.includes("/games/")) return { data: players };
+      if (url.includes("/players/1/postseason")) {
+        return {
+          data: {
+            id: 1,
+            name: "Josh Allen",
+            position: "QB",
+            teamAbv: "BUF",
+            injuryStatus: null,
+            fantasyTeam: "Kmac",
+            mine: true,
+            rounds: [
+              {
+                round: 1,
+                state: "live",
+                clock: "Q3 4:12",
+                statLine: "14/20, 210 yds, 1 TD",
+                points: 18.4,
+                pointsBreakdown: [
+                  { label: "210 passing yards", points: 8.4 },
+                  { label: "1 passing TD", points: 4 },
+                  { label: "60 rushing yards", points: 6 },
+                ],
+                multiplier: 1,
+              },
+            ],
+          },
+        };
+      }
+      return { data: [] };
+    });
+    show();
+    fireEvent.click(await screen.findByRole("button", { name: /J\. Allen/ }));
+    const sheet = await screen.findByLabelText("Josh Allen");
+    expect(sheet).toHaveTextContent("QB · BUF · Kmac");
+    const thisGame = await within(sheet).findByRole("region", { name: "This game" });
+    expect(thisGame).toHaveTextContent("210 passing yards8.4");
+    expect(thisGame).toHaveTextContent("Fantasy points18.4");
   });
 
   it("explains a game whose teams are not set", () => {

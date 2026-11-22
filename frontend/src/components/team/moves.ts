@@ -8,7 +8,7 @@ export interface MoveOption {
   /** Where the player goes or what it costs: "WR1 · Sun 6:30 pm", "Empty slot", "FLEX · game started, locked". */
   detail: string;
   /** The word on the button; "Locked" when the option is greyed. */
-  action: "Swap" | "Start" | "Bench" | "Override" | "Locked";
+  action: "Swap" | "Start" | "Move" | "Bench" | "Override" | "Locked";
   /** Null when the option is greyed; `detail` then says why. */
   move: Move | null;
 }
@@ -51,7 +51,9 @@ const gameWhen = (player: LineupPlayer): string => {
 /**
  * Every tap-only move the sheet offers for one player in a round: starting a bench player
  * (into an empty slot or by swapping a starter out), swapping a starter with a bench player,
- * and benching a starter. A locked player cannot move and a swap needs both unlocked; a
+ * moving a starter between his position's slot and FLEX (trading places with the starter there
+ * when he can play the other slot, else sending that one to an open bench spot), moving a
+ * starter to an empty starter slot, and benching a starter. A locked player cannot move and a swap needs both unlocked; a
  * commissioner may still pick those, and the server asks them to confirm.
  */
 export function moveOptions(
@@ -69,7 +71,7 @@ export function moveOptions(
     key: string,
     title: string,
     where: string,
-    action: "Swap" | "Start" | "Bench",
+    action: "Swap" | "Start" | "Move" | "Bench",
     move: Move,
     other: LineupPlayer | null,
   ): MoveOption => {
@@ -109,6 +111,36 @@ export function moveOptions(
           { playerId: other.id, slotIndex: placement.index },
           other,
         ),
+      );
+    }
+    // Starter to starter: any RB, WR or TE moves between his own slot and FLEX in one move.
+    // When the other can play the mover's slot they trade places; when not (an RB at FLEX for
+    // a WR slot) the server sends him to an open bench spot, so that needs one.
+    for (const slot of startersOf(lineup)) {
+      if (slot.index === placement.index || !canPlay(slot.slot, player)) continue;
+      const other = slot.player;
+      const trades = other !== null && canPlay(placement.slot, other);
+      if (other && !trades && !emptyBench) continue;
+      options.push(
+        other
+          ? option(
+              `swap-slot-${slot.index}`,
+              trades ? other.name : `Move to ${names.get(slot.index)}`,
+              trades
+                ? `${names.get(slot.index)} · ${gameWhen(other)}`
+                : `${other.name} goes to the bench`,
+              trades ? "Swap" : "Move",
+              { playerId: player.id, slotIndex: slot.index },
+              other,
+            )
+          : option(
+              `move-${slot.index}`,
+              `Move to ${names.get(slot.index)}`,
+              "Empty slot",
+              "Move",
+              { playerId: player.id, slotIndex: slot.index },
+              null,
+            ),
       );
     }
     return options;

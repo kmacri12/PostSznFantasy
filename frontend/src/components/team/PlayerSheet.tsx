@@ -1,16 +1,11 @@
-import { Alert, Box, Button, ButtonBase, Drawer, Skeleton, Typography } from "@mui/material";
-import { usePlayerSeasonLine } from "../../api/queries";
+import { Alert, Box, ButtonBase, Typography } from "@mui/material";
 import type { LineupPlayer, RoundLineup } from "../../api/types";
-import { useBackClosesOverlay } from "../../hooks/useBackClosesOverlay";
-import { useSwipeDismiss } from "../../hooks/useSwipeDismiss";
 import { tokens } from "../../theme";
-import InjuryTag from "../common/InjuryTag";
-import TeamLogo from "../common/TeamLogo";
 import { formatPoints } from "../league/standingsView";
 import { formatKickoff, type Move, ROUND_LABELS } from "./lineup";
-import { slotNames } from "./lineupView";
+import { postseasonLines, slotNames } from "./lineupView";
 import { type MoveOption, moveOptions } from "./moves";
-import { seasonRows } from "./seasonLines";
+import { PlayerDrawer, Postseason, RegularSeason, ThisGame } from "./PlayerStats";
 
 /** The day and time of the game, or where it stands once it is on. */
 const gameWhen = (player: LineupPlayer): string => {
@@ -26,32 +21,6 @@ const placement = (lineup: RoundLineup, player: LineupPlayer): string => {
   if (!slot || slot.slot === "BENCH") return "bench";
   return `starting at ${slotNames(lineup).get(slot.index)}`;
 };
-
-const StatBox = ({ rows }: { rows: { label: string; value: string }[] }) => (
-  <Box sx={{ border: `1px solid ${tokens.border}`, borderRadius: 3, overflow: "hidden" }}>
-    {rows.map((row, index) => (
-      <Box
-        key={row.label}
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          gap: 2,
-          px: 1.5,
-          py: 1,
-          fontSize: 13,
-          borderTop: index === 0 ? 0 : `1px solid ${tokens.border}`,
-        }}
-      >
-        <Box component="span" sx={{ color: tokens.muted }}>
-          {row.label}
-        </Box>
-        <Box component="b" sx={{ fontWeight: 600, textAlign: "right" }}>
-          {row.value}
-        </Box>
-      </Box>
-    ))}
-  </Box>
-);
 
 export const MoveRow = ({
   option,
@@ -104,6 +73,8 @@ export const MoveRow = ({
 interface Props {
   player: LineupPlayer;
   lineup: RoundLineup;
+  /** Every round of the team, for the player's earlier postseason games. */
+  lineups: RoundLineup[];
   /** Tap-to-move is offered: an editable team and a round that is not over. */
   canMove: boolean;
   /** A commissioner may pick locked players too; the server asks them to confirm. */
@@ -116,10 +87,14 @@ interface Props {
   onClose: () => void;
 }
 
-/** Bottom sheet from a player's name: the round's line, season stats and tap-only lineup moves. */
+/**
+ * Bottom sheet from a player's row: everything about him in one place. This game (stat line and
+ * how the points were made), earlier postseason games, the regular season, then lineup moves.
+ */
 const PlayerSheet = ({
   player,
   lineup,
+  lineups,
   canMove,
   canOverride,
   ownTeam,
@@ -128,124 +103,51 @@ const PlayerSheet = ({
   onMove,
   onClose,
 }: Props) => {
-  useBackClosesOverlay(onClose);
-  const swipe = useSwipeDismiss(onClose);
-  const season = usePlayerSeasonLine(player.id);
   const started = player.gameState === "live" || player.gameState === "final";
-  const rows = season.data ? seasonRows(player.position, season.data) : [];
   const options = canMove ? moveOptions(lineup, player, canOverride) : [];
-  const where = [placement(lineup, player), ROUND_LABELS[lineup.round]];
-
   return (
-    <Drawer
-      anchor="bottom"
-      open
+    <PlayerDrawer
+      name={player.name}
+      position={player.position}
+      teamAbv={player.teamAbv ?? null}
+      details={[placement(lineup, player), ROUND_LABELS[lineup.round] ?? ""]}
+      injuryStatus={player.injuryStatus}
+      points={player.status === "eliminated" ? "-" : formatPoints(player.points ?? 0)}
+      when={gameWhen(player)}
       onClose={onClose}
-      slotProps={{
-        paper: {
-          "aria-label": player.name,
-          ...swipe,
-          sx: {
-            maxWidth: 560,
-            mx: "auto",
-            width: "100%",
-            borderRadius: "20px 20px 0 0",
-            bgcolor: tokens.surface,
-            borderTop: `1px solid ${tokens.borderStrong}`,
-            backgroundImage: "none",
-            px: 2,
-            pt: 1.25,
-            pb: "max(20px, env(safe-area-inset-bottom))",
-            display: "flex",
-            flexDirection: "column",
-            gap: 1.5,
-            // dvh follows Safari's dynamic toolbar; vh is the fallback for older browsers.
-            maxHeight: ["90vh", "90dvh"],
-            overflow: "hidden",
-          },
-        },
-      }}
     >
-      <Box sx={{ width: 40, height: 4, borderRadius: 1, bgcolor: tokens.handle, mx: "auto" }} />
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-        <Box sx={{ minWidth: 0 }}>
-          <Typography
-            component="h2"
-            sx={{ fontSize: 18, fontWeight: 700, overflowWrap: "anywhere" }}
-          >
-            {player.name}
-          </Typography>
-          <Typography component="span" sx={{ fontSize: 12, color: tokens.muted }}>
-            {player.position} · <TeamLogo abbreviation={player.teamAbv} />
-            {player.teamAbv || "FA"} · {where.join(" · ")}
-          </Typography>
-          <InjuryTag status={player.injuryStatus} />
-        </Box>
-        <Box sx={{ ml: "auto", textAlign: "right", flexShrink: 0 }}>
-          <Typography sx={{ fontSize: 24, fontWeight: 700, lineHeight: 1.2 }}>
-            {player.status === "eliminated" ? "-" : formatPoints(player.points ?? 0)}
-          </Typography>
-          <Typography component="span" sx={{ fontSize: 12, color: tokens.muted }}>
-            {gameWhen(player)}
-          </Typography>
-        </Box>
-        <Button onClick={onClose} sx={{ minHeight: 44, minWidth: 44, flexShrink: 0 }}>
-          Close
-        </Button>
-      </Box>
+      {started && (
+        <ThisGame
+          game={{
+            round: lineup.round,
+            statLine: player.statLine,
+            points: player.points ?? 0,
+            // An API from before the breakdown sends none.
+            breakdown: player.pointsBreakdown ?? [],
+            multiplier: lineup.multiplier ?? 1,
+          }}
+        />
+      )}
+      <Postseason games={postseasonLines(lineups, player.id, lineup.round)} />
+      <RegularSeason playerId={player.id} position={player.position} />
 
-      <Box
-        sx={{
-          flex: 1,
-          minHeight: 0,
-          overflowY: "auto",
-          display: "flex",
-          flexDirection: "column",
-          gap: 1.5,
-        }}
-      >
-        <Box>
-          {season.isPending ? (
-            <Skeleton variant="rounded" height={64} />
-          ) : (
-            <>
-              {season.data && (
-                <Typography sx={{ fontSize: 12, color: tokens.muted, mb: 0.75 }}>
-                  {season.data.season} regular season
-                </Typography>
-              )}
-              <StatBox
-                rows={[
-                  ...(started && player.statLine
-                    ? [{ label: "This round", value: player.statLine }]
-                    : []),
-                  ...(rows.length > 0
-                    ? rows
-                    : [{ label: "Regular season", value: "No stats on record" }]),
-                ]}
-              />
-            </>
-          )}
-        </Box>
-
-        {player.status === "eliminated" && (
-          <Typography sx={{ fontSize: 13, color: tokens.dangerMuted }}>
-            The player's team is out, so they can't start this round.
+      {player.status === "eliminated" && (
+        <Typography sx={{ fontSize: 13, color: tokens.dangerMuted }}>
+          The player's team is out, so they can't start this round.
+        </Typography>
+      )}
+      {canMove && options.length > 0 && (
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+          <Typography sx={{ fontSize: 12, color: tokens.muted }}>
+            {ownTeam ? "Move in your lineup" : "Move in this lineup"}
           </Typography>
-        )}
-        {canMove && options.length > 0 && (
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-            <Typography sx={{ fontSize: 12, color: tokens.muted }}>
-              {ownTeam ? "Move in your lineup" : "Move in this lineup"}
-            </Typography>
-            {options.map((option) => (
-              <MoveRow key={option.key} option={option} disabled={pending} onMove={onMove} />
-            ))}
-          </Box>
-        )}
-        {error && <Alert severity="error">{error}</Alert>}
-      </Box>
-    </Drawer>
+          {options.map((option) => (
+            <MoveRow key={option.key} option={option} disabled={pending} onMove={onMove} />
+          ))}
+        </Box>
+      )}
+      {error && <Alert severity="error">{error}</Alert>}
+    </PlayerDrawer>
   );
 };
 

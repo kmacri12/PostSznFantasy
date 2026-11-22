@@ -221,3 +221,45 @@ async def test_a_game_lists_each_sides_players_with_game_points_and_fantasy_team
     async with client_as("uid-1") as client:
         missing = await client.get(f"/api/seasons/{season.id}/games/nope")
     assert missing.status_code == 404
+
+
+async def test_a_players_postseason_has_each_games_line_breakdown_and_owner(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    season, _, teams, _ = await make_season(db, draft_status="completed")
+    await _field(db)
+    db.add_all(
+        [
+            TeamPlayer(season_id=season.id, team_id=teams[1].id, player_id=10),
+            NFLPlayerGameStats(
+                game_id="wc", player_id=10, passing_yards=250, passing_touchdowns=2
+            ),
+        ]
+    )
+    await db.flush()
+
+    async with client_as("uid-1") as client:
+        response = await client.get(f"/api/seasons/{season.id}/players/10/postseason")
+    assert response.status_code == 200
+    body = response.json()
+    assert (body["name"], body["teamAbv"], body["fantasyTeam"], body["mine"]) == (
+        "Qb One",
+        "KC",
+        "Team 1",
+        True,
+    )
+    (wild_card,) = body["rounds"]
+    assert (wild_card["round"], wild_card["state"], wild_card["points"]) == (
+        1,
+        "final",
+        18.0,
+    )
+    assert [(ln["label"], ln["points"]) for ln in wild_card["pointsBreakdown"]] == [
+        ("250 passing yards", 10.0),
+        ("2 passing TDs", 8.0),
+    ]
+    assert wild_card["statLine"].startswith("0/0, 250 yds, 2 TD")
+
+    async with client_as("uid-1") as client:
+        missing = await client.get(f"/api/seasons/{season.id}/players/999/postseason")
+    assert missing.status_code == 404

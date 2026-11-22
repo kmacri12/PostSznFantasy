@@ -134,12 +134,11 @@ const slotHelp = (slot: string, units: TeamUnits | undefined): HelpTipCopy | und
 const LineupRound = ({ lineup, teamUnits, onOpenPlayer, onFillSlot }: Props) => {
   const bench = benchPlayersOf(lineup);
   const eliminated = eliminatedLastRound(lineup);
-  const scoring = { round: lineup.round, multiplier: lineup.multiplier ?? 1 };
   return (
     <Box
       sx={{
         display: "grid",
-        // minmax(0, …): a long stat line truncates in its row instead of widening the card.
+        // minmax(0, ...) so a long one-line stat line truncates instead of widening the page.
         gridTemplateColumns: { xs: "minmax(0, 1fr)", md: "minmax(0, 3fr) minmax(0, 2fr)" },
         gap: 2,
         alignItems: "start",
@@ -177,7 +176,6 @@ const LineupRound = ({ lineup, teamUnits, onOpenPlayer, onFillSlot }: Props) => 
             help={slotHelp(slot.slot, teamUnits)}
             onOpen={onOpenPlayer}
             onFillEmpty={slot.player || !onFillSlot ? undefined : () => onFillSlot(slot.index)}
-            scoring={scoring}
           />
         ))}
       </Group>
@@ -191,7 +189,6 @@ const LineupRound = ({ lineup, teamUnits, onOpenPlayer, onFillSlot }: Props) => 
               player={player}
               bench
               onOpen={onOpenPlayer}
-              scoring={scoring}
             />
           ))}
         </Group>
