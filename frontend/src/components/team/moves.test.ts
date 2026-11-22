@@ -131,13 +131,44 @@ describe("moves for a starter", () => {
     expect(fromFlex?.move).toEqual({ playerId: 3, slotIndex: 0 });
   });
 
-  it("offers no starter swap the other player can't take (an RB at FLEX for a WR slot)", () => {
+  it("moves RBs and TEs between their own slot and FLEX the same way", () => {
+    const rb1 = lineupPlayer({ id: 6, name: "Rb One", position: "RB" });
+    const rb2 = lineupPlayer({ id: 7, name: "Rb Two", position: "RB" });
+    const te1 = lineupPlayer({ id: 8, name: "Te One", position: "TE" });
+    const te2 = lineupPlayer({ id: 9, name: "Te Two", position: "TE" });
+    const rbs = lineup({ slots: [slot(0, "RB", rb1), slot(1, "FLEX", rb2), slot(2, "BENCH")] });
+    expect(moveOptions(rbs, rb2, false).find((o) => o.title === "Rb One")?.move).toEqual({
+      playerId: 7,
+      slotIndex: 0,
+    });
+    const tes = lineup({ slots: [slot(0, "TE", te1), slot(1, "FLEX", te2), slot(2, "BENCH")] });
+    expect(moveOptions(tes, te1, false).find((o) => o.title === "Te Two")).toMatchObject({
+      action: "Swap",
+      move: { playerId: 8, slotIndex: 1 },
+    });
+  });
+
+  it("moves a WR into a FLEX held by an RB, sending the RB to the bench", () => {
     const rb = lineupPlayer({ id: 6, name: "Rb Flex", position: "RB" });
     const mixed = lineup({
       slots: [slot(0, "WR", diggs), slot(1, "FLEX", rb), slot(2, "BENCH")],
     });
-    expect(titles(moveOptions(mixed, diggs, false))).not.toContain("Rb Flex");
+    expect(moveOptions(mixed, diggs, false).find((o) => o.key === "swap-slot-1")).toMatchObject({
+      title: "Move to FLEX",
+      detail: "Rb Flex goes to the bench",
+      action: "Move",
+      move: { playerId: 2, slotIndex: 1 },
+    });
+    // The RB can't play WR, so from FLEX there is no move into the WR slot.
     expect(titles(moveOptions(mixed, rb, false))).not.toContain("Stefon Diggs");
+  });
+
+  it("needs an open bench spot to send the other starter to", () => {
+    const rb = lineupPlayer({ id: 6, name: "Rb Flex", position: "RB" });
+    const full = lineup({
+      slots: [slot(0, "WR", diggs), slot(1, "FLEX", rb), slot(2, "BENCH", brian)],
+    });
+    expect(moveOptions(full, diggs, false).find((o) => o.key === "swap-slot-1")).toBeUndefined();
   });
 
   it("cannot be benched once his game has started", () => {
