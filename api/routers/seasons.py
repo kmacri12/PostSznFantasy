@@ -11,7 +11,7 @@ from api.db.models.league import LeagueMember as LeagueMemberRow
 from api.db.models.league import SeasonSettings, Team
 from api.db.session import DbSession
 from api.dependencies.league import SeasonCommissioner, SeasonMember
-from api.models.bracket_models import Bracket, GamePlayers
+from api.models.bracket_models import Bracket, GamePlayers, PlayerPostseason
 from api.models.enums import DraftStatus, LeagueRole
 from api.models.league_models import (
     SeasonOverview,
@@ -29,7 +29,12 @@ from api.services import feature_flags
 from api.services.activity import Actor
 from api.services.avatars import avatar_url
 from api.services.bracket import build_bracket
-from api.services.game_players import GameNotFoundError, game_players
+from api.services.game_players import (
+    GameNotFoundError,
+    PlayerNotFoundError,
+    game_players,
+    player_postseason,
+)
 from api.services.league_admin import (
     ROSTER_LOCKED_FIELDS,
     draft_has_started,
@@ -101,6 +106,35 @@ async def get_game_players(
     except GameNotFoundError as exc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="No such game this season"
+        ) from exc
+
+
+@router.get(
+    "/{season_id}/players/{player_id}/postseason", response_model=PlayerPostseason
+)
+async def get_player_postseason(
+    season_id: int, player_id: int, membership: SeasonMember, db: DbSession
+) -> PlayerPostseason:
+    """A player's postseason games under this season's scoring and the fantasy team
+    he counts for: the player sheet opened from a schedule game. 404 for no such player."""
+    settings = (
+        await db.execute(
+            select(SeasonSettings).where(SeasonSettings.season_id == season_id)
+        )
+    ).scalar_one()
+    team = membership.team
+    try:
+        return await player_postseason(
+            db,
+            membership.season.year,
+            season_id,
+            settings,
+            player_id,
+            team.id if team else None,
+        )
+    except PlayerNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="No such player"
         ) from exc
 
 

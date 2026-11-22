@@ -110,10 +110,65 @@ describe("moves for a starter", () => {
     expect(moveOptions(full, josh, false)[0]?.move).toEqual({ playerId: 1, slotIndex: null });
   });
 
-  it("swaps with the bench players eligible for his slot", () => {
+  it("swaps with the bench players eligible for his slot, or moves to an empty slot he can play", () => {
     const options = moveOptions(lineup(), diggs, false);
-    expect(titles(options)).toEqual(["Move to bench", "Brian Thomas"]);
+    expect(titles(options)).toEqual(["Move to bench", "Brian Thomas", "Move to FLEX"]);
     expect(options[1]?.move).toEqual({ playerId: 3, slotIndex: 1 });
+    expect(options[2]).toMatchObject({ action: "Move", move: { playerId: 2, slotIndex: 2 } });
+  });
+
+  it("swaps a WR at WR with a WR at FLEX in one move, without the bench", () => {
+    const both = lineup({
+      slots: [slot(0, "WR", diggs), slot(1, "FLEX", brian), slot(2, "BENCH")],
+    });
+    const fromWr = moveOptions(both, diggs, false).find((o) => o.title === "Brian Thomas");
+    expect(fromWr).toMatchObject({
+      detail: "FLEX · Game not scheduled",
+      action: "Swap",
+      move: { playerId: 2, slotIndex: 1 },
+    });
+    const fromFlex = moveOptions(both, brian, false).find((o) => o.title === "Stefon Diggs");
+    expect(fromFlex?.move).toEqual({ playerId: 3, slotIndex: 0 });
+  });
+
+  it("moves RBs and TEs between their own slot and FLEX the same way", () => {
+    const rb1 = lineupPlayer({ id: 6, name: "Rb One", position: "RB" });
+    const rb2 = lineupPlayer({ id: 7, name: "Rb Two", position: "RB" });
+    const te1 = lineupPlayer({ id: 8, name: "Te One", position: "TE" });
+    const te2 = lineupPlayer({ id: 9, name: "Te Two", position: "TE" });
+    const rbs = lineup({ slots: [slot(0, "RB", rb1), slot(1, "FLEX", rb2), slot(2, "BENCH")] });
+    expect(moveOptions(rbs, rb2, false).find((o) => o.title === "Rb One")?.move).toEqual({
+      playerId: 7,
+      slotIndex: 0,
+    });
+    const tes = lineup({ slots: [slot(0, "TE", te1), slot(1, "FLEX", te2), slot(2, "BENCH")] });
+    expect(moveOptions(tes, te1, false).find((o) => o.title === "Te Two")).toMatchObject({
+      action: "Swap",
+      move: { playerId: 8, slotIndex: 1 },
+    });
+  });
+
+  it("moves a WR into a FLEX held by an RB, sending the RB to the bench", () => {
+    const rb = lineupPlayer({ id: 6, name: "Rb Flex", position: "RB" });
+    const mixed = lineup({
+      slots: [slot(0, "WR", diggs), slot(1, "FLEX", rb), slot(2, "BENCH")],
+    });
+    expect(moveOptions(mixed, diggs, false).find((o) => o.key === "swap-slot-1")).toMatchObject({
+      title: "Move to FLEX",
+      detail: "Rb Flex goes to the bench",
+      action: "Move",
+      move: { playerId: 2, slotIndex: 1 },
+    });
+    // The RB can't play WR, so from FLEX there is no move into the WR slot.
+    expect(titles(moveOptions(mixed, rb, false))).not.toContain("Stefon Diggs");
+  });
+
+  it("needs an open bench spot to send the other starter to", () => {
+    const rb = lineupPlayer({ id: 6, name: "Rb Flex", position: "RB" });
+    const full = lineup({
+      slots: [slot(0, "WR", diggs), slot(1, "FLEX", rb), slot(2, "BENCH", brian)],
+    });
+    expect(moveOptions(full, diggs, false).find((o) => o.key === "swap-slot-1")).toBeUndefined();
   });
 
   it("cannot be benched once his game has started", () => {

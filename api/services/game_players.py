@@ -9,13 +9,26 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.db.models.league import SeasonSettings, Team, TeamPlayer
-from api.db.models.nfl import NFLPlayer, NFLPlayerGameStats, NFLTeam
-from api.models.bracket_models import BracketTeam, GamePlayer, GamePlayers, GameSide
-from api.models.enums import DRAFTABLE_POSITION_VALUES
+from api.db.models.nfl import NFLGame, NFLPlayer, NFLPlayerGameStats, NFLTeam
+from api.models.bracket_models import (
+    BracketTeam,
+    BreakdownLine,
+    GamePlayer,
+    GamePlayers,
+    GameSide,
+    PlayerPostseason,
+    PlayerRoundLine,
+)
+from api.models.enums import DRAFTABLE_POSITION_VALUES, PlayerPosition
 from api.services.round_status import GameFacts, load_games
+from api.services.stat_lines import stat_line
 from api.services.team_units import scoring_members
 from api.utils.calculations.fantasy_points_utils import calculate_player_points
-from api.utils.calculations.standings_utils import ROUND_MULTIPLIER_FIELDS
+from api.utils.calculations.points_breakdown import points_breakdown
+from api.utils.calculations.standings_utils import (
+    ROUND_MULTIPLIER_FIELDS,
+    postseason_round_index,
+)
 
 
 class GameNotFoundError(LookupError):
@@ -149,4 +162,72 @@ async def game_players(
             game.home_points if live_or_final else None,
             by_side[game.home_team_id].values(),
         ),
+    )
+
+
+class PlayerNotFoundError(LookupError):
+    pass
+
+
+async def player_postseason(
+    db: AsyncSession,
+    year: int,
+    season_id: int,
+    settings: SeasonSettings,
+    player_id: int,
+    my_team_id: int | None,
+) -> PlayerPostseason:
+    """One player's own postseason games (never a team unit's other members), each with
+    the stat line, the points under the season's scoring and how they were made."""
+    player = await db.get(NFLPlayer, player_id)
+    if player is None:
+        raise PlayerNotFoundError(player_id)
+    team = await db.get(NFLTeam, player.team_id) if player.team_id else None
+    owners, _ = await _owners(db, season_id, settings)
+    owner = owners.get(player.id)
+    facts = {g.game_id: g for g in await load_games(db, year)}
+    rows = (
+        await db.execute(
+            select(NFLPlayerGameStats, NFLGame.game_week)
+            .join(NFLGame, NFLPlayerGameStats.game_id == NFLGame.id)
+            .where(
+                NFLPlayerGameStats.player_id == player_id,
+                NFLGame.season == year,
+                NFLGame.season_type == "post",
+                NFLGame.game_week.is_not(None),
+            )
+        )
+    ).all()
+    position = PlayerPosition.from_str(player.position)
+    rounds: list[PlayerRoundLine] = []
+    for stats, week in rows:
+        index = postseason_round_index(week or 0)
+        game = facts.get(stats.game_id)
+        if index is None or game is None:
+            continue
+        multiplier = Decimal(str(getattr(settings, ROUND_MULTIPLIER_FIELDS[index])))
+        raw = calculate_player_points(stats, settings, position)
+        rounds.append(
+            PlayerRoundLine(
+                round=index + 1,
+                state=game.state,
+                clock=game.clock or None,
+                stat_line=stat_line([stats], position),
+                points=float((raw * multiplier).quantize(Decimal("0.01"))),
+                points_breakdown=[
+                    BreakdownLine(label=line.label, points=float(line.points))
+                    for line in points_breakdown([stats], settings, position)
+                ],
+                multiplier=float(multiplier),
+            )
+        )
+    return PlayerPostseason(
+        id=player.id,
+        name=player.name or "",
+        position=player.position or "",
+        team_abv=team.team_abv if team else None,
+        injury_status=player.injury_status,
+        fantasy_team=owner.name if owner else None,
+        mine=owner is not None and owner.id == my_team_id,
+        rounds=sorted(rounds, key=lambda line: line.round),
     )

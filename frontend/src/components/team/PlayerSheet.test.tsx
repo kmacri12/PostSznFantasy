@@ -30,6 +30,7 @@ const sheet = (props: Partial<Parameters<typeof PlayerSheet>[0]> = {}) => {
     <PlayerSheet
       player={brian}
       lineup={lineup}
+      lineups={[lineup]}
       canMove
       canOverride={false}
       ownTeam
@@ -97,8 +98,57 @@ describe("PlayerSheet", () => {
         points: 13.4,
       },
     });
-    expect(screen.getByText("This round")).toBeInTheDocument();
-    expect(screen.getByText("5 rec, 74 yds")).toBeInTheDocument();
+    const thisGame = screen.getByRole("region", { name: "This game" });
+    expect(thisGame).toHaveTextContent("Divisional5 rec, 74 yds");
+    expect(thisGame).toHaveTextContent("Fantasy points13.4");
     expect(screen.getByText("Q3 8:42")).toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Postseason" })).toBeNull();
+  });
+
+  it("shows how this game's points were made, with the round multiplier", () => {
+    sheet({
+      lineup: { ...lineup, multiplier: 1.5 },
+      player: {
+        ...brian,
+        gameState: "final",
+        statLine: "5 rec, 74 yds",
+        points: 18.6,
+        pointsBreakdown: [
+          { label: "5 receptions", points: 5 },
+          { label: "74 receiving yards", points: 7.4 },
+        ],
+      },
+    });
+    const rows = [...screen.getByRole("region", { name: "This game" }).querySelectorAll("b")].map(
+      (cell) => `${cell.previousSibling?.textContent} = ${cell.textContent}`,
+    );
+    expect(rows).toEqual([
+      "Divisional = 5 rec, 74 yds",
+      "5 receptions = 5.0",
+      "74 receiving yards = 7.4",
+      "Subtotal = 12.4",
+      "Divisional multiplier = ×1.5",
+      "Fantasy points = 18.6",
+    ]);
+  });
+
+  it("lists earlier postseason games apart from this game and the regular season", () => {
+    const wildCard = roundLineup(1, {
+      slots: [
+        slot(
+          3,
+          "BENCH",
+          lineupPlayer({ ...brian, gameState: "final", statLine: "6 rec, 81 yds", points: 11.1 }),
+        ),
+      ],
+    });
+    sheet({ lineups: [lineup, wildCard] });
+    const sections = screen
+      .getAllByRole("region")
+      .map((region) => region.getAttribute("aria-label"));
+    expect(sections).toEqual(["Postseason", "2025 regular season"]);
+    expect(screen.getByRole("region", { name: "Postseason" })).toHaveTextContent(
+      "Wild Card11.1 pts6 rec, 81 yds",
+    );
   });
 });
