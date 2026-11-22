@@ -31,7 +31,7 @@ interface Palette {
   /** Cautions such as injury tags, and live-game tags. */
   warning: string;
   green: string;
-  /** Live games and live scores: green is a status color, not the brand accent (#297). */
+  /** Live games and live scores: the accent blue, like the rest of the live round (owner call, replacing the green of #297). */
   live: string;
   /** Secondary text beside a live indicator. */
   liveSoft: string;
@@ -76,8 +76,8 @@ export const palettes: Record<ThemeMode, Palette> = {
     gold: "#fbbf24",
     warning: "#d9c36a",
     green: "#22c55e",
-    live: "#34d399",
-    liveSoft: "#a8d9c8",
+    live: "#5cb8ff",
+    liveSoft: "#a9d4f5",
     red: "#f0626b",
     redSoft: "#f0a0a5",
     dangerBorder: "#5a2a2f",
@@ -112,8 +112,8 @@ export const palettes: Record<ThemeMode, Palette> = {
     gold: "#8a6100",
     warning: "#8a6100",
     green: "#15803d",
-    live: "#0b7a4b",
-    liveSoft: "#0a6a41",
+    live: "#0868b4",
+    liveSoft: "#07578f",
     red: "#c62f3b",
     redSoft: "#b4232f",
     dangerBorder: "#e8b4b8",

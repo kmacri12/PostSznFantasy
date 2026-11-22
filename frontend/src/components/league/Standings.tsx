@@ -17,7 +17,7 @@ import { useStandings } from "../../api/queries";
 import type { SeasonOverview, Standings as StandingsData, StandingsRow } from "../../api/types";
 import { HELP_TIPS } from "../../content/rules";
 import { useSeasonContext } from "../../contexts/SeasonContext";
-import { tint, tokens } from "../../theme";
+import { tokens } from "../../theme";
 import CommissionerMark from "../common/CommissionerMark";
 import HelpTip from "../common/HelpTip";
 import PictureAvatar from "../common/PictureAvatar";
@@ -46,20 +46,9 @@ const placeColor = (row: StandingsRow, finished: boolean) =>
 /** The current-round color, shared by the header chip, the badge and the round cell. */
 const currentRoundColor = tokens.accent;
 
+/** This round's score and its header: the accent color alone marks them, no pill. */
 const Badge = ({ children }: { children: string }) => (
-  <Box
-    component="span"
-    sx={{
-      display: "inline-block",
-      px: 0.75,
-      borderRadius: 1.5,
-      fontSize: 12,
-      fontWeight: 600,
-      color: currentRoundColor,
-      bgcolor: tint(tokens.accent, 12),
-      border: `1px solid ${tint(tokens.accent, 45)}`,
-    }}
-  >
+  <Box component="span" sx={{ fontSize: 13, fontWeight: 700, color: currentRoundColor }}>
     {children}
   </Box>
 );

@@ -513,6 +513,11 @@ class RosterPlayer(BaseSchema):
     scores_whole_team: bool = False
 
 
+class PointsBreakdownLine(BaseSchema):
+    label: str
+    points: float
+
+
 class LineupPlayer(RosterPlayer):
     """A roster player as seen in one round's lineup."""
 
@@ -531,6 +536,8 @@ class LineupPlayer(RosterPlayer):
     # For an eliminated player: the round his team lost in.
     eliminated_round: int | None = None
     score_change: ScoreChange | None = None
+    # What made up the points, one line per scoring stat, before the round multiplier.
+    points_breakdown: list[PointsBreakdownLine] = Field(default_factory=list)
 
 
 class LineupSlotView(BaseSchema):
@@ -548,6 +555,8 @@ class RoundLineup(BaseSchema):
     # Players whose NFL team lost in an earlier round; never movable.
     eliminated: list[LineupPlayer]
     empty_starter_slots: int
+    # The round's points multiplier; each player's points are their breakdown times it.
+    multiplier: float = 1.0
     # Earliest kickoff of any game that round: when owners are warned about gaps.
     first_kickoff: datetime | None = None
 

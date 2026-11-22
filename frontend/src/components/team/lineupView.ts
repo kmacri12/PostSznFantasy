@@ -23,7 +23,7 @@ export const playerDetail = (player: LineupPlayer): string => {
   }
   if (player.status === "bye") return "Bye · scores 0";
   if (player.gameState === "live") {
-    const status = player.gameClock ? `Live ${player.gameClock}` : "Live";
+    const status = player.gameClock ?? "Live";
     return `${status} · ${player.statLine ?? "no stats yet"}`;
   }
   if (player.gameState === "final") return player.statLine ?? "No stats";

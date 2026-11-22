@@ -1,4 +1,5 @@
 import { Box, ButtonBase, Typography } from "@mui/material";
+import { useState } from "react";
 import type { LineupPlayer, SlotMark } from "../../api/types";
 import type { HelpTipCopy } from "../../content/rules";
 import { tokens } from "../../theme";
@@ -9,6 +10,7 @@ import InjuryTag from "../common/InjuryTag";
 import { positionChipSx, positionColor } from "../draft/positions";
 import { formatPoints } from "../league/standingsView";
 import { nameWithTeam, playerDetail, type RowState, rowState } from "./lineupView";
+import PointsBreakdownSheet from "./PointsBreakdownSheet";
 
 const COLORS: Record<RowState, { label: string; name: string; detail: string; points: string }> = {
   ready: { label: tokens.text, name: tokens.text, detail: tokens.muted, points: tokens.text },
@@ -39,6 +41,8 @@ interface Props {
   onOpen: (player: LineupPlayer) => void;
   /** Makes an empty row tappable: opens the list of bench players who can fill it. */
   onFillEmpty?: () => void;
+  /** The round shown and its multiplier: makes the score open its breakdown. */
+  scoring?: { round: number; multiplier: number };
 }
 
 /** One lineup line. The whole left side opens the player sheet; the score stays its own target. */
@@ -50,11 +54,24 @@ const PlayerRow = ({
   help,
   onOpen,
   onFillEmpty,
+  scoring,
 }: Props) => {
+  const [breakdownOpen, setBreakdownOpen] = useState(false);
   const state = player ? rowState(player) : "ready";
   const colors = COLORS[state];
   const muted = bench && state === "ready";
   const eliminated = state === "eliminated";
+  const canBreakDown = Boolean(
+    scoring && player && !eliminated && (player.pointsBreakdown ?? []).length > 0,
+  );
+  const score = (
+    <Typography
+      component="span"
+      sx={{ fontSize: 17, fontWeight: 700, color: muted ? tokens.muted : colors.points }}
+    >
+      {eliminated || !player ? "-" : formatPoints(player.points ?? 0)}
+    </Typography>
+  );
   return (
     <Box component="li" sx={{ borderTop: `1px solid ${tokens.border}` }}>
       <Box
@@ -170,20 +187,29 @@ const PlayerRow = ({
               size={17}
               color={muted ? tokens.muted : colors.points}
             />
-          ) : (
-            <Typography
-              component="span"
-              sx={{
-                fontSize: 17,
-                fontWeight: 700,
-                color: muted ? tokens.muted : colors.points,
-              }}
+          ) : canBreakDown ? (
+            <ButtonBase
+              aria-haspopup="dialog"
+              // Starts with the visible score, so a spoken "tap 1.7" still finds it.
+              aria-label={`${formatPoints(player?.points ?? 0)} points, how they were scored`}
+              onClick={() => setBreakdownOpen(true)}
+              sx={{ minWidth: 44, minHeight: 44, justifyContent: "flex-end", borderRadius: 1 }}
             >
-              {eliminated || !player ? "-" : formatPoints(player.points ?? 0)}
-            </Typography>
+              {score}
+            </ButtonBase>
+          ) : (
+            score
           )}
         </Box>
       </Box>
+      {breakdownOpen && player && scoring && (
+        <PointsBreakdownSheet
+          player={player}
+          round={scoring.round}
+          multiplier={scoring.multiplier}
+          onClose={() => setBreakdownOpen(false)}
+        />
+      )}
     </Box>
   );
 };

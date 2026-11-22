@@ -9,10 +9,11 @@ export const liveAgo = (updatedAt: number, now: number): string => {
 };
 
 /**
- * "Live, updated 20s ago" while a game is on; renders nothing otherwise, as nothing refreshes then.
- * Not a live region: the age changes every few seconds and would be read out each time.
+ * "5 games live, 1 final · updated 20s ago" while a game is on; renders nothing otherwise, as
+ * nothing refreshes then. Not a live region: the age changes every few seconds and would be read
+ * out each time.
  */
-const LiveIndicator = ({ seasonId }: { seasonId: number }) => {
+const LiveIndicator = ({ seasonId, games }: { seasonId: number; games: string }) => {
   const standings = useStandings(seasonId);
   const now = useNow(5000);
   if (!standings.data || standings.data.gamesInProgress === 0 || !standings.dataUpdatedAt) {
@@ -25,7 +26,7 @@ const LiveIndicator = ({ seasonId }: { seasonId: number }) => {
         sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: tokens.live, flex: "none" }}
       />
       <Typography variant="body2" sx={{ color: tokens.liveSoft }}>
-        Live, updated {liveAgo(standings.dataUpdatedAt, now)}
+        {games} · updated {liveAgo(standings.dataUpdatedAt, now)}
       </Typography>
     </Box>
   );

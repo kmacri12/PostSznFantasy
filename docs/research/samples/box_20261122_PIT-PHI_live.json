@@ -1,0 +1,1160 @@
+{
+ "statusCode": 200,
+ "body": {
+  "DST": {
+   "away": {
+    "teamAbv": "PIT",
+    "teamID": "26",
+    "defTD": "0",
+    "defensiveInterceptions": "0",
+    "sacks": "2",
+    "ydsAllowed": "136",
+    "fumblesRecovered": "0",
+    "ptsAllowed": "13",
+    "safeties": "0"
+   },
+   "home": {
+    "teamAbv": "PHI",
+    "teamID": "27",
+    "defTD": "0",
+    "defensiveInterceptions": "0",
+    "sacks": "2",
+    "ydsAllowed": "98",
+    "fumblesRecovered": "0",
+    "ptsAllowed": "0",
+    "safeties": "0"
+   }
+  },
+  "Referees": "Brad Freeman, Mark Pellis, Jabir Walker, Land Clark, Dave Hawkshaw, Dale Keller, Stephen Ray",
+  "arena": "Lincoln Financial Field",
+  "arenaCapacity": "69,879",
+  "attendance": "",
+  "away": "PIT",
+  "awayPts": "0",
+  "awayResult": "",
+  "currentPeriod": "2nd",
+  "gameClock": "1:55",
+  "gameDate": "20261122",
+  "gameLocation": "Philadelphia, PA",
+  "gameStatus": "Live - In Progress",
+  "gameWeek": "Week 11",
+  "home": "PHI",
+  "homePts": "13",
+  "homeResult": "",
+  "lineScore": {
+   "away": {
+    "Q1": "0",
+    "Q2": "0",
+    "Q3": "",
+    "Q4": "",
+    "currentlyInPossession": "True",
+    "teamAbv": "PIT",
+    "teamID": "26",
+    "totalPts": "0"
+   },
+   "gameClock": "1:55",
+   "home": {
+    "Q1": "13",
+    "Q2": "0",
+    "Q3": "",
+    "Q4": "",
+    "currentlyInPossession": "False",
+    "teamAbv": "PHI",
+    "teamID": "27",
+    "totalPts": "13"
+   },
+   "period": "2nd"
+  },
+  "network": "CBS",
+  "playerStats": {
+   "2971027": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "2",
+     "tfl": "0",
+     "totalTackles": "2"
+    },
+    "gameID": "20261122_PIT@PHI",
+    "longName": "Jonathan Jones",
+    "playerID": "2971027",
+    "team": "PHI",
+    "teamAbv": "PHI",
+    "teamID": "27"
+   },
+   "2978524": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "2"
+    },
+    "gameID": "20261122_PIT@PHI",
+    "longName": "Christian Kuntz",
+    "playerID": "2978524",
+    "team": "PIT",
+    "teamAbv": "PIT",
+    "teamID": "26"
+   },
+   "3045282": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "1",
+     "totalTackles": "1"
+    },
+    "gameID": "20261122_PIT@PHI",
+    "longName": "T.J. Watt",
+    "playerID": "3045282",
+    "team": "PIT",
+    "teamAbv": "PIT",
+    "teamID": "26"
+   },
+   "3050478": {
+    "Kicking": {
+     "fgAttempts": "2",
+     "fgLong": "41",
+     "fgMade": "2",
+     "fgPct": "100.0",
+     "kickingPts": "7",
+     "xpAttempts": "1",
+     "xpMade": "1",
+     "fgMissed": "0",
+     "xpMissed": "0"
+    },
+    "gameID": "20261122_PIT@PHI",
+    "longName": "Jake Elliott",
+    "playerID": "3050478",
+    "scoringPlays": [
+     {
+      "awayScore": "0",
+      "homeScore": "3",
+      "playerIDs": [
+       "3050478"
+      ],
+      "score": "Jake Elliott 41 Yd Field Goal",
+      "scoreDetails": "5 plays, 17 yards, 2:39",
+      "scorePeriod": "Q1",
+      "scoreTime": "10:01",
+      "scoreType": "FG",
+      "team": "PHI",
+      "teamID": "27"
+     },
+     {
+      "awayScore": "0",
+      "homeScore": "6",
+      "playerIDs": [
+       "3050478"
+      ],
+      "score": "Jake Elliott 29 Yd Field Goal ",
+      "scoreDetails": "9 plays, 58 yards, 4:53",
+      "scorePeriod": "Q1",
+      "scoreTime": "2:57",
+      "scoreType": "FG",
+      "team": "PHI",
+      "teamID": "27"
+     },
+     {
+      "awayScore": "0",
+      "homeScore": "13",
+      "playerIDs": [
+       "3929630",
+       "3050478"
+      ],
+      "score": "Saquon Barkley 38 Yd Rush (Jake Elliott Kick)",
+      "scoreDetails": "2 plays, 48 yards, 0:44",
+      "scorePeriod": "Q1",
+      "scoreTime": "0:35",
+      "scoreType": "TD",
+      "team": "PHI",
+      "teamID": "27"
+     }
+    ],
+    "team": "PHI",
+    "teamAbv": "PHI",
+    "teamID": "27"
+   },
+   "3051397": {
+    "Punting": {
+     "puntAvg": "50.3",
+     "puntLong": "59",
+     "puntTouchBacks": "0",
+     "puntYds": "151",
+     "punts": "3",
+     "puntsin20": "0"
+    },
+    "gameID": "20261122_PIT@PHI",
+    "longName": "Cameron Johnston",
+    "playerID": "3051397",
+    "team": "PIT",
+    "teamAbv": "PIT",
+    "teamID": "26"
+   },
+   "3121023": {
+    "Receiving": {
+     "longRec": "38",
+     "recAvg": "38.0",
+     "recTD": "0",
+     "recYds": "38",
+     "receptions": "1",
+     "targets": "1"
+    },
+    "gameID": "20261122_PIT@PHI",
+    "longName": "Dallas Goedert",
+    "playerID": "3121023",
+    "team": "PHI",
+    "teamAbv": "PHI",
+    "teamID": "27"
+   },
+   "3139368": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "3",
+     "tfl": "1",
+     "totalTackles": "3"
+    },
+    "gameID": "20261122_PIT@PHI",
+    "longName": "Marcus Epps",
+    "playerID": "3139368",
+    "team": "PHI",
+    "teamAbv": "PHI",
+    "teamID": "27"
+   },
+   "3873935": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "2",
+     "tfl": "0",
+     "totalTackles": "2"
+    },
+    "gameID": "20261122_PIT@PHI",
+    "longName": "Jamel Dean",
+    "playerID": "3873935",
+    "team": "PIT",
+    "teamAbv": "PIT",
+    "teamID": "26"
+   },
+   "3916409": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "1",
+     "sacks": "1",
+     "soloTackles": "1",
+     "tfl": "1",
+     "totalTackles": "1"
+    },
+    "gameID": "20261122_PIT@PHI",
+    "longName": "Jonathan Greenard",
+    "playerID": "3916409",
+    "team": "PHI",
+    "teamAbv": "PHI",
+    "teamID": "27"
+   },
+   "3926231": {
+    "Punting": {
+     "puntReturnAvg": "15.0",
+     "puntReturnLong": "17",
+     "puntReturnTD": "0",
+     "puntReturnYds": "30",
+     "puntReturns": "2"
+    },
+    "gameID": "20261122_PIT@PHI",
+    "longName": "Britain Covey",
+    "playerID": "3926231",
+    "team": "PHI",
+    "teamAbv": "PHI",
+    "teamID": "27"
+   },
+   "3929630": {
+    "Rushing": {
+     "carries": "6",
+     "longRush": "38",
+     "rushAvg": "9.0",
+     "rushTD": "1",
+     "rushYds": "54"
+    },
+    "gameID": "20261122_PIT@PHI",
+    "longName": "Saquon Barkley",
+    "playerID": "3929630",
+    "scoringPlays": [
+     {
+      "awayScore": "0",
+      "homeScore": "13",
+      "playerIDs": [
+       "3929630",
+       "3050478"
+      ],
+      "score": "Saquon Barkley 38 Yd Rush (Jake Elliott Kick)",
+      "scoreDetails": "2 plays, 48 yards, 0:44",
+      "scorePeriod": "Q1",
+      "scoreTime": "0:35",
+      "scoreType": "TD",
+      "team": "PHI",
+      "teamID": "27"
+     }
+    ],
+    "team": "PHI",
+    "teamAbv": "PHI",
+    "teamID": "27"
+   },
+   "4035239": {
+    "Punting": {
+     "puntAvg": "57.0",
+     "puntLong": "57",
+     "puntTouchBacks": "0",
+     "puntYds": "57",
+     "punts": "1",
+     "puntsin20": "1"
+    },
+    "gameID": "20261122_PIT@PHI",
+    "longName": "Braden Mann",
+    "playerID": "4035239",
+    "team": "PHI",
+    "teamAbv": "PHI",
+    "teamID": "27"
+   },
+   "4035656": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "0",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20261122_PIT@PHI",
+    "longName": "Ben Skowronek",
+    "playerID": "4035656",
+    "team": "PIT",
+    "teamAbv": "PIT",
+    "teamID": "26"
+   },
+   "4037333": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "1",
+     "passDeflections": "0",
+     "qbHits": "1",
+     "sacks": "2",
+     "soloTackles": "2",
+     "tfl": "2",
+     "totalTackles": "2"
+    },
+    "gameID": "20261122_PIT@PHI",
+    "longName": "Alex Highsmith",
+    "playerID": "4037333",
+    "team": "PIT",
+    "teamAbv": "PIT",
+    "teamID": "26"
+   },
+   "4038815": {
+    "Receiving": {
+     "longRec": "10",
+     "recAvg": "4.8",
+     "recTD": "0",
+     "recYds": "19",
+     "receptions": "4",
+     "targets": "5"
+    },
+    "Rushing": {
+     "carries": "2",
+     "longRush": "1",
+     "rushAvg": "0.5",
+     "rushTD": "0",
+     "rushYds": "1"
+    },
+    "gameID": "20261122_PIT@PHI",
+    "longName": "Rico Dowdle",
+    "playerID": "4038815",
+    "team": "PIT",
+    "teamAbv": "PIT",
+    "teamID": "26"
+   },
+   "4047650": {
+    "Receiving": {
+     "longRec": "2",
+     "recAvg": "2.0",
+     "recTD": "0",
+     "recYds": "2",
+     "receptions": "1",
+     "targets": "1"
+    },
+    "gameID": "20261122_PIT@PHI",
+    "longName": "DK Metcalf",
+    "playerID": "4047650",
+    "team": "PIT",
+    "teamAbv": "PIT",
+    "teamID": "26"
+   },
+   "4240456": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20261122_PIT@PHI",
+    "longName": "Michael Carter II",
+    "playerID": "4240456",
+    "team": "PHI",
+    "teamAbv": "PHI",
+    "teamID": "27"
+   },
+   "4241478": {
+    "Receiving": {
+     "longRec": "11",
+     "recAvg": "10.5",
+     "recTD": "0",
+     "recYds": "21",
+     "receptions": "2",
+     "targets": "3"
+    },
+    "gameID": "20261122_PIT@PHI",
+    "longName": "DeVonta Smith",
+    "playerID": "4241478",
+    "team": "PHI",
+    "teamAbv": "PHI",
+    "teamID": "27"
+   },
+   "4242207": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "3",
+     "tfl": "1",
+     "totalTackles": "4"
+    },
+    "gameID": "20261122_PIT@PHI",
+    "longName": "Patrick Queen",
+    "playerID": "4242207",
+    "team": "PIT",
+    "teamAbv": "PIT",
+    "teamID": "26"
+   },
+   "4245185": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20261122_PIT@PHI",
+    "longName": "Riq Woolen",
+    "playerID": "4245185",
+    "team": "PHI",
+    "teamAbv": "PHI",
+    "teamID": "27"
+   },
+   "4334215": {
+    "Defense": {
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "fumbles": "0",
+     "fumblesLost": "0",
+     "fumblesRecovered": "1"
+    },
+    "gameID": "20261122_PIT@PHI",
+    "longName": "Jordan Mailata",
+    "playerID": "4334215",
+    "team": "PHI",
+    "teamAbv": "PHI",
+    "teamID": "27"
+   },
+   "4360308": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20261122_PIT@PHI",
+    "longName": "KJ Henry",
+    "playerID": "4360308",
+    "team": "PIT",
+    "teamAbv": "PIT",
+    "teamID": "26"
+   },
+   "4360698": {
+    "Defense": {
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "fumbles": "1",
+     "fumblesLost": "0",
+     "fumblesRecovered": "0"
+    },
+    "Passing": {
+     "int": "0",
+     "passAttempts": "7",
+     "passAvg": "13.0",
+     "passCompletions": "5",
+     "passTD": "0",
+     "passYds": "91",
+     "qbr": "",
+     "rtg": "113.7",
+     "sacked": "2-17"
+    },
+    "Rushing": {
+     "carries": "2",
+     "longRush": "5",
+     "rushAvg": "4.0",
+     "rushTD": "0",
+     "rushYds": "8"
+    },
+    "gameID": "20261122_PIT@PHI",
+    "longName": "Joe Milton",
+    "playerID": "4360698",
+    "team": "PHI",
+    "teamAbv": "PHI",
+    "teamID": "27"
+   },
+   "4361411": {
+    "Receiving": {
+     "longRec": "10",
+     "recAvg": "6.5",
+     "recTD": "0",
+     "recYds": "26",
+     "receptions": "4",
+     "targets": "4"
+    },
+    "gameID": "20261122_PIT@PHI",
+    "longName": "Pat Freiermuth",
+    "playerID": "4361411",
+    "team": "PIT",
+    "teamAbv": "PIT",
+    "teamID": "26"
+   },
+   "4361652": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20261122_PIT@PHI",
+    "longName": "Payton Wilson",
+    "playerID": "4361652",
+    "team": "PIT",
+    "teamAbv": "PIT",
+    "teamID": "26"
+   },
+   "4362116": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "0",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20261122_PIT@PHI",
+    "longName": "Moro Ojomo",
+    "playerID": "4362116",
+    "team": "PHI",
+    "teamAbv": "PHI",
+    "teamID": "27"
+   },
+   "4426331": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "2",
+     "tfl": "0",
+     "totalTackles": "3"
+    },
+    "gameID": "20261122_PIT@PHI",
+    "longName": "Nolan Smith Jr.",
+    "playerID": "4426331",
+    "team": "PHI",
+    "teamAbv": "PHI",
+    "teamID": "27"
+   },
+   "4428119": {
+    "Kicking": {
+     "kickReturnAvg": "18.0",
+     "kickReturnLong": "18",
+     "kickReturnTD": "0",
+     "kickReturnYds": "18",
+     "kickReturns": "1"
+    },
+    "gameID": "20261122_PIT@PHI",
+    "longName": "Lew Nichols",
+    "playerID": "4428119",
+    "team": "PIT",
+    "teamAbv": "PIT",
+    "teamID": "26"
+   },
+   "4428992": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "2",
+     "tfl": "0",
+     "totalTackles": "2"
+    },
+    "gameID": "20261122_PIT@PHI",
+    "longName": "Kelee Ringo",
+    "playerID": "4428992",
+    "team": "PHI",
+    "teamAbv": "PHI",
+    "teamID": "27"
+   },
+   "4430802": {
+    "Receiving": {
+     "longRec": "7",
+     "recAvg": "7.0",
+     "recTD": "0",
+     "recYds": "7",
+     "receptions": "1",
+     "targets": "1"
+    },
+    "gameID": "20261122_PIT@PHI",
+    "longName": "Darnell Washington",
+    "playerID": "4430802",
+    "team": "PIT",
+    "teamAbv": "PIT",
+    "teamID": "26"
+   },
+   "4432777": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "4",
+     "tfl": "0",
+     "totalTackles": "7"
+    },
+    "gameID": "20261122_PIT@PHI",
+    "longName": "Jeremiah Trotter Jr.",
+    "playerID": "4432777",
+    "team": "PHI",
+    "teamAbv": "PHI",
+    "teamID": "27"
+   },
+   "4567123": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "1",
+     "sacks": "1",
+     "soloTackles": "2",
+     "tfl": "1",
+     "totalTackles": "2"
+    },
+    "gameID": "20261122_PIT@PHI",
+    "longName": "Byron Young",
+    "playerID": "4567123",
+    "team": "PHI",
+    "teamAbv": "PHI",
+    "teamID": "27"
+   },
+   "4567535": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "0",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20261122_PIT@PHI",
+    "longName": "Anfernee Orji",
+    "playerID": "4567535",
+    "team": "PHI",
+    "teamAbv": "PHI",
+    "teamID": "27"
+   },
+   "4569987": {
+    "Receiving": {
+     "longRec": "0",
+     "recAvg": "0.0",
+     "recTD": "0",
+     "recYds": "0",
+     "receptions": "1",
+     "targets": "1"
+    },
+    "Rushing": {
+     "carries": "7",
+     "longRush": "4",
+     "rushAvg": "1.7",
+     "rushTD": "0",
+     "rushYds": "12"
+    },
+    "gameID": "20261122_PIT@PHI",
+    "longName": "Jaylen Warren",
+    "playerID": "4569987",
+    "team": "PIT",
+    "teamAbv": "PIT",
+    "teamID": "26"
+   },
+   "4570044": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "0",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20261122_PIT@PHI",
+    "longName": "Jaquan Brisker",
+    "playerID": "4570044",
+    "team": "PIT",
+    "teamAbv": "PIT",
+    "teamID": "26"
+   },
+   "4571162": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "2"
+    },
+    "gameID": "20261122_PIT@PHI",
+    "longName": "Jalyx Hunt",
+    "playerID": "4571162",
+    "team": "PHI",
+    "teamAbv": "PHI",
+    "teamID": "27"
+   },
+   "4602197": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20261122_PIT@PHI",
+    "longName": "Andrew Mukuba",
+    "playerID": "4602197",
+    "team": "PHI",
+    "teamAbv": "PHI",
+    "teamID": "27"
+   },
+   "4682618": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "2"
+    },
+    "gameID": "20261122_PIT@PHI",
+    "longName": "Cooper DeJean",
+    "playerID": "4682618",
+    "team": "PHI",
+    "teamAbv": "PHI",
+    "teamID": "27"
+   },
+   "4685261": {
+    "Receiving": {
+     "longRec": "11",
+     "recAvg": "8.5",
+     "recTD": "0",
+     "recYds": "34",
+     "receptions": "4",
+     "targets": "4"
+    },
+    "gameID": "20261122_PIT@PHI",
+    "longName": "Germie Bernard",
+    "playerID": "4685261",
+    "team": "PIT",
+    "teamAbv": "PIT",
+    "teamID": "26"
+   },
+   "4685287": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "3",
+     "tfl": "1",
+     "totalTackles": "4"
+    },
+    "gameID": "20261122_PIT@PHI",
+    "longName": "Jihaad Campbell",
+    "playerID": "4685287",
+    "team": "PHI",
+    "teamAbv": "PHI",
+    "teamID": "27"
+   },
+   "4685327": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "2",
+     "tfl": "0",
+     "totalTackles": "2"
+    },
+    "gameID": "20261122_PIT@PHI",
+    "longName": "Daylen Everette",
+    "playerID": "4685327",
+    "team": "PIT",
+    "teamAbv": "PIT",
+    "teamID": "26"
+   },
+   "4685759": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "2"
+    },
+    "gameID": "20261122_PIT@PHI",
+    "longName": "Jalen Carter",
+    "playerID": "4685759",
+    "team": "PHI",
+    "teamAbv": "PHI",
+    "teamID": "27"
+   },
+   "4686273": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "gameID": "20261122_PIT@PHI",
+    "longName": "Quinyon Mitchell",
+    "playerID": "4686273",
+    "team": "PHI",
+    "teamAbv": "PHI",
+    "teamID": "27"
+   },
+   "4694237": {
+    "Kicking": {
+     "kickReturnAvg": "16.0",
+     "kickReturnLong": "25",
+     "kickReturnTD": "0",
+     "kickReturnYds": "32",
+     "kickReturns": "2"
+    },
+    "Punting": {
+     "puntReturnAvg": "9.0",
+     "puntReturnLong": "9",
+     "puntReturnTD": "0",
+     "puntReturnYds": "9",
+     "puntReturns": "1"
+    },
+    "Receiving": {
+     "longRec": "6",
+     "recAvg": "6.0",
+     "recTD": "0",
+     "recYds": "6",
+     "receptions": "1",
+     "targets": "1"
+    },
+    "gameID": "20261122_PIT@PHI",
+    "longName": "Max Hurleman",
+    "playerID": "4694237",
+    "team": "PIT",
+    "teamAbv": "PIT",
+    "teamID": "26"
+   },
+   "4715355": {
+    "Defense": {
+     "defTD": "0",
+     "defensiveInterceptions": "0",
+     "forcedFumbles": "0",
+     "passDeflections": "0",
+     "qbHits": "0",
+     "sacks": "0",
+     "soloTackles": "1",
+     "tfl": "0",
+     "totalTackles": "1"
+    },
+    "Receiving": {
+     "longRec": "29",
+     "recAvg": "29.0",
+     "recTD": "0",
+     "recYds": "29",
+     "receptions": "1",
+     "targets": "1"
+    },
+    "gameID": "20261122_PIT@PHI",
+    "longName": "Darius Cooper",
+    "playerID": "4715355",
+    "team": "PHI",
+    "teamAbv": "PHI",
+    "teamID": "27"
+   },
+   "4870795": {
+    "Receiving": {
+     "longRec": "3",
+     "recAvg": "3.0",
+     "recTD": "0",
+     "recYds": "3",
+     "receptions": "1",
+     "targets": "2"
+    },
+    "gameID": "20261122_PIT@PHI",
+    "longName": "Makai Lemon",
+    "playerID": "4870795",
+    "team": "PHI",
+    "teamAbv": "PHI",
+    "teamID": "27"
+   },
+   "8439": {
+    "Passing": {
+     "int": "0",
+     "passAttempts": "17",
+     "passAvg": "5.5",
+     "passCompletions": "16",
+     "passTD": "0",
+     "passYds": "94",
+     "qbr": "",
+     "rtg": "89.7",
+     "sacked": "2-21"
+    },
+    "Rushing": {
+     "carries": "1",
+     "longRush": "12",
+     "rushAvg": "12.0",
+     "rushTD": "0",
+     "rushYds": "12"
+    },
+    "gameID": "20261122_PIT@PHI",
+    "longName": "Aaron Rodgers",
+    "playerID": "8439",
+    "team": "PIT",
+    "teamAbv": "PIT",
+    "teamID": "26"
+   }
+  },
+  "scoringPlays": [
+   {
+    "awayScore": "0",
+    "homeScore": "3",
+    "playerIDs": [
+     "3050478"
+    ],
+    "score": "Jake Elliott 41 Yd Field Goal",
+    "scoreDetails": "5 plays, 17 yards, 2:39",
+    "scorePeriod": "Q1",
+    "scoreTime": "10:01",
+    "scoreType": "FG",
+    "team": "PHI",
+    "teamID": "27"
+   },
+   {
+    "awayScore": "0",
+    "homeScore": "6",
+    "playerIDs": [
+     "3050478"
+    ],
+    "score": "Jake Elliott 29 Yd Field Goal ",
+    "scoreDetails": "9 plays, 58 yards, 4:53",
+    "scorePeriod": "Q1",
+    "scoreTime": "2:57",
+    "scoreType": "FG",
+    "team": "PHI",
+    "teamID": "27"
+   },
+   {
+    "awayScore": "0",
+    "homeScore": "13",
+    "playerIDs": [
+     "3929630",
+     "3050478"
+    ],
+    "score": "Saquon Barkley 38 Yd Rush (Jake Elliott Kick)",
+    "scoreDetails": "2 plays, 48 yards, 0:44",
+    "scorePeriod": "Q1",
+    "scoreTime": "0:35",
+    "scoreType": "TD",
+    "team": "PHI",
+    "teamID": "27"
+   }
+  ],
+  "seasonType": "Regular Season",
+  "teamIDAway": "26",
+  "teamIDHome": "27",
+  "teamStats": {
+   "away": {
+    "blockedFG": "0",
+    "blockedPunt": "0",
+    "blockedXP": "0",
+    "defensiveInterceptions": "0",
+    "defensiveOrSpecialTeamsTds": "0",
+    "defensiveTwoPointConversionReturns": "0",
+    "firstDowns": "8",
+    "firstDownsFromPenalties": "1",
+    "fourthDownEfficiency": "0-1",
+    "fumblesLost": "0",
+    "interceptionsThrown": "0",
+    "passCompletionsAndAttempts": "16-17",
+    "passTD": "0",
+    "passingFirstDowns": "6",
+    "passingYards": "73",
+    "penalties": "2-10",
+    "possession": "18:22",
+    "redZoneScoredAndAttempted": "0-0",
+    "rushTD": "0",
+    "rushingAttempts": "10",
+    "rushingFirstDowns": "1",
+    "rushingYards": "25",
+    "sacksAndYardsLost": "2-21",
+    "safeties": "0",
+    "team": "PIT",
+    "teamAbv": "PIT",
+    "teamID": "26",
+    "thirdDownEfficiency": "2-6",
+    "totalDrives": "5",
+    "totalPlays": "29",
+    "totalYards": "98",
+    "turnovers": "0",
+    "twoPointConversions": "0",
+    "yardsPerPass": "3.8",
+    "yardsPerPlay": "3.4",
+    "yardsPerRush": "2.5"
+   },
+   "home": {
+    "blockedFG": "0",
+    "blockedPunt": "0",
+    "blockedXP": "0",
+    "defensiveInterceptions": "0",
+    "defensiveOrSpecialTeamsTds": "0",
+    "defensiveTwoPointConversionReturns": "0",
+    "firstDowns": "5",
+    "firstDownsFromPenalties": "0",
+    "fourthDownEfficiency": "0-0",
+    "fumblesLost": "0",
+    "interceptionsThrown": "0",
+    "passCompletionsAndAttempts": "5-7",
+    "passTD": "0",
+    "passingFirstDowns": "3",
+    "passingYards": "74",
+    "penalties": "2-10",
+    "possession": "9:43",
+    "redZoneScoredAndAttempted": "0-1",
+    "rushTD": "1",
+    "rushingAttempts": "8",
+    "rushingFirstDowns": "2",
+    "rushingYards": "62",
+    "sacksAndYardsLost": "2-17",
+    "safeties": "0",
+    "team": "PHI",
+    "teamAbv": "PHI",
+    "teamID": "27",
+    "thirdDownEfficiency": "1-4",
+    "totalDrives": "4",
+    "totalPlays": "17",
+    "totalYards": "136",
+    "turnovers": "0",
+    "twoPointConversions": "0",
+    "yardsPerPass": "8.2",
+    "yardsPerPlay": "8.0",
+    "yardsPerRush": "7.8"
+   }
+  },
+  "gameID": "20261122_PIT@PHI",
+  "gameStatusCode": "1"
+ }
+}

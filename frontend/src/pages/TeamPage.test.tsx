@@ -18,7 +18,7 @@ const allen = lineupPlayer({
   name: "Josh Allen",
   position: "QB",
   gameState: "live",
-  gameClock: "8:42",
+  gameClock: "Q3 8:42",
   statLine: "14/21, 168 yds, 2 TD, 0 INT",
   points: 17.4,
 });
@@ -115,9 +115,7 @@ describe("TeamPage", () => {
     ).toBeInTheDocument();
     const starters = screen.getByRole("region", { name: "Starters" });
     expect(within(starters).getByText("Josh Allen · KC")).toBeInTheDocument();
-    expect(
-      within(starters).getByText("Live 8:42 · 14/21, 168 yds, 2 TD, 0 INT"),
-    ).toBeInTheDocument();
+    expect(within(starters).getByText("Q3 8:42 · 14/21, 168 yds, 2 TD, 0 INT")).toBeInTheDocument();
     expect(
       within(screen.getByRole("region", { name: "Bench" })).getByText("Puka Nacua · KC"),
     ).toBeInTheDocument();

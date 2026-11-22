@@ -23,8 +23,12 @@ describe("what a row says", () => {
   });
 
   it("shows the clock and live stats while the game is on", () => {
-    const live = lineupPlayer({ gameState: "live", gameClock: "8:42", statLine: "14/21, 168 yds" });
-    expect(playerDetail(live)).toBe("Live 8:42 · 14/21, 168 yds");
+    const live = lineupPlayer({
+      gameState: "live",
+      gameClock: "Q3 8:42",
+      statLine: "14/21, 168 yds",
+    });
+    expect(playerDetail(live)).toBe("Q3 8:42 · 14/21, 168 yds");
     expect(playerDetail(lineupPlayer({ gameState: "live" }))).toBe("Live · no stats yet");
   });
 

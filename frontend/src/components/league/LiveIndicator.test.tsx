@@ -17,14 +17,14 @@ describe("liveAgo", () => {
 describe("LiveIndicator", () => {
   it("shows while a game is live", () => {
     useStandings.mockReturnValue({ data: { gamesInProgress: 2 }, dataUpdatedAt: Date.now() });
-    render(<LiveIndicator seasonId={1} />);
-    expect(screen.getByText(/Live, updated \d+s ago/)).toBeInTheDocument();
+    render(<LiveIndicator seasonId={1} games="2 games live" />);
+    expect(screen.getByText(/^2 games live · updated \d+s ago$/)).toBeInTheDocument();
     expect(screen.queryByRole("status")).toBeNull();
   });
 
   it("is absent when no game is live", () => {
     useStandings.mockReturnValue({ data: { gamesInProgress: 0 }, dataUpdatedAt: Date.now() });
-    const { container } = render(<LiveIndicator seasonId={1} />);
+    const { container } = render(<LiveIndicator seasonId={1} games="No games yet" />);
     expect(container).toBeEmptyDOMElement();
   });
 });

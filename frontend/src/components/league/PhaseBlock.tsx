@@ -205,26 +205,16 @@ const gamesLine = (standings: Standings): string => {
   return parts.length > 0 ? parts.join(", ") : "No games yet";
 };
 
-/** Eliminated players are left out: only starters still to score count here. */
-const lineupLine = (standings: Standings, teamId: number | null): string | null => {
-  const mine = standings.teams.find((row) => row.teamId === teamId);
-  if (!mine) return null;
-  const { live, toPlay, finished } = mine.progress;
-  const parts = [live > 0 ? `${live} live` : null, toPlay > 0 ? `${toPlay} to play` : null].filter(
-    Boolean,
-  );
-  if (parts.length > 0) return parts.join(", ");
-  return finished > 0 ? "all games final" : null;
-};
-
+/** While a game is on, the games line moves under the title next to how fresh the scores are. */
 const PlayoffBlock = ({ season, standings }: { season: SeasonOverview; standings: Standings }) => {
-  const mine = lineupLine(standings, season.myTeamId);
+  const games = gamesLine(standings);
+  const live = standings.gamesInProgress > 0;
   return (
     <Block>
       <Row>
         <Title>{ROUND_LABELS[standings.round]}</Title>
-        <Detail>{[gamesLine(standings), mine].filter(Boolean).join(" · ")}</Detail>
-        <LiveIndicator seasonId={season.id} />
+        {!live && <Detail>{games}</Detail>}
+        <LiveIndicator seasonId={season.id} games={games} />
       </Row>
     </Block>
   );

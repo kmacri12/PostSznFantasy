@@ -10,7 +10,7 @@ export const matchupTitle = (game: BracketGame): string =>
 /** Final, live with the clock, or the kickoff in the viewer's zone. */
 export const gameStatusText = (game: BracketGame): string => {
   if (game.state === "final") return "Final";
-  if (game.state === "live") return game.clock ? `Live · ${game.clock}` : "Live";
+  if (game.state === "live") return game.clock ?? "Live";
   if (!game.kickoff) return "Time to be set";
   return formatInViewerZone(game.kickoff, { weekday: "short", hour: "numeric", minute: "2-digit" });
 };

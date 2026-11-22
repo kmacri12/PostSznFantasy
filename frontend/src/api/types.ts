@@ -245,6 +245,13 @@ export interface LineupPlayer extends RosterPlayer {
   /** For an eliminated player, the round his team lost in. */
   eliminatedRound: number | null;
   scoreChange: ScoreChange | null;
+  /** What made up the points, one line per scoring stat, before the round multiplier. */
+  pointsBreakdown: PointsBreakdownLine[];
+}
+
+export interface PointsBreakdownLine {
+  label: string;
+  points: number;
 }
 
 /** The latest stat correction to a player's score in a round. */
@@ -274,6 +281,8 @@ export interface RoundLineup {
   unassigned: LineupPlayer[];
   eliminated: LineupPlayer[];
   emptyStarterSlots: number;
+  /** The round's points multiplier: each player's points are their breakdown times it. */
+  multiplier: number;
   firstKickoff: string | null;
 }
 
