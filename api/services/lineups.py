@@ -193,6 +193,8 @@ def _view(
         kickoff=standing.kickoff,
         game_state=standing.game_state,
         game_clock=standing.game_clock,
+        opponent_abv=standing.opponent_abv,
+        is_home=standing.home,
         eliminated_round=standing.eliminated_in,
         locked=standing.kickoff is not None and now >= standing.kickoff,
         scores_whole_team=scores_whole_team(combined, player.position),

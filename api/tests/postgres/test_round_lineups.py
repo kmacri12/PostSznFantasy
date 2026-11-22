@@ -340,6 +340,13 @@ async def test_a_live_game_shows_its_state_clock_stat_line_and_counted_points(
     assert unassigned[runner.id]["points"] == 16.0
     assert unassigned[waiting.id]["gameState"] == "scheduled"
     assert unassigned[waiting.id]["statLine"] is None
+    assert (
+        unassigned[waiting.id]["opponentAbv"],
+        unassigned[waiting.id]["isHome"],
+    ) == (
+        "DEN",
+        True,
+    )
 
 
 async def test_repeating_a_move_is_harmless(

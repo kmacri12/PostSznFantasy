@@ -238,6 +238,9 @@ export interface LineupPlayer extends RosterPlayer {
   gameState: GameState | null;
   /** The live game's clock as the upstream reports it; may be empty between plays. */
   gameClock: string | null;
+  /** The other team in that round's game, and whether he is at home; null without a game. */
+  opponentAbv: string | null;
+  isHome: boolean | null;
   /** Counted points in that round (league scoring, round multiplier); null before any stats. */
   points: number | null;
   /** The round's stats on one line, "14/21, 168 yds, 2 TD, 0 INT"; null before any stats. */

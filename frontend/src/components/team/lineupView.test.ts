@@ -22,6 +22,14 @@ describe("what a row says", () => {
     expect(playerDetail(lineupPlayer())).toBe("Game not scheduled yet");
   });
 
+  it("names the opponent after the time, with @ for an away game", () => {
+    const kickoff = "2026-01-11T23:30:00Z";
+    const home = playerDetail(lineupPlayer({ kickoff, opponentAbv: "DAL", isHome: true }));
+    const away = playerDetail(lineupPlayer({ kickoff, opponentAbv: "DAL", isHome: false }));
+    expect(home).toMatch(/^[A-Z][a-z]{2} \d{1,2}:\d{2} .+ vs DAL$/);
+    expect(away).toMatch(/^[A-Z][a-z]{2} \d{1,2}:\d{2} .+ @ DAL$/);
+  });
+
   it("shows the clock and live stats while the game is on", () => {
     const live = lineupPlayer({ gameState: "live", gameClock: "8:42", statLine: "14/21, 168 yds" });
     expect(playerDetail(live)).toBe("Live 8:42 · 14/21, 168 yds");

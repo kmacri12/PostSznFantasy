@@ -27,7 +27,10 @@ export const playerDetail = (player: LineupPlayer): string => {
     return `${status} · ${player.statLine ?? "no stats yet"}`;
   }
   if (player.gameState === "final") return player.statLine ?? "No stats";
-  return player.kickoff ? formatKickoff(player.kickoff) : "Game not scheduled yet";
+  if (!player.kickoff) return "Game not scheduled yet";
+  const when = formatKickoff(player.kickoff);
+  if (!player.opponentAbv) return when;
+  return `${when} ${player.isHome ? "vs" : "@"} ${player.opponentAbv}`;
 };
 
 /** The slot's label on a row: the lineup layout calls the superflex SUPER_FLEX. */
