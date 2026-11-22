@@ -74,9 +74,25 @@ describe("a round's lineup", () => {
   });
 
   it("puts placed bench players and unplaced players on the bench", () => {
-    const loose = lineupPlayer({ id: 9 });
+    const loose = lineupPlayer({ id: 9, position: "WR" });
     const bench = benchPlayersOf(roundLineup(1, { slots: starters, unassigned: [loose] }));
     expect(bench.map((player) => player.id)).toEqual([3, 9]);
+  });
+
+  it("sorts bench-slot and unplaced players together by position, then name", () => {
+    const moved = [
+      slot(5, "BENCH", lineupPlayer({ id: 1, name: "Kyler Murray", position: "QB" })),
+      slot(6, "BENCH", lineupPlayer({ id: 2, name: "DK Metcalf", position: "WR" })),
+      slot(7, "BENCH", lineupPlayer({ id: 3, name: "Kenneth Walker III", position: "RB" })),
+    ];
+    const unassigned = [
+      lineupPlayer({ id: 4, name: "Buffalo Bills", position: "DST" }),
+      lineupPlayer({ id: 5, name: "Antonio Williams", position: "WR" }),
+      lineupPlayer({ id: 6, name: "Rico Dowdle", position: "RB" }),
+      lineupPlayer({ id: 7, name: "Travis Kelce", position: "TE" }),
+    ];
+    const bench = benchPlayersOf(roundLineup(1, { slots: moved, unassigned }));
+    expect(bench.map((player) => player.id)).toEqual([1, 3, 6, 5, 2, 7, 4]);
   });
 
   it("lists only players whose team went out last round", () => {
