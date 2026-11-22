@@ -25,6 +25,7 @@ import type {
   LeagueInfo,
   LeagueSettings,
   PastLeague,
+  PlayerPostseason,
   PlayerSeasonLine,
   PlayerSummary,
   SeasonOverview,
@@ -101,6 +102,19 @@ export const useGamePlayers = (seasonId: Id | undefined, gameId: string | null) 
     enabled: seasonId !== undefined && gameId !== null,
     refetchInterval: (query) =>
       query.state.data?.state === "live" ? BRACKET_LIVE_REFRESH_MS : false,
+  });
+
+/** A player's postseason games under the season's scoring; refetched like the schedule while live. */
+export const usePlayerPostseason = (seasonId: Id | undefined, playerId: number) =>
+  useQuery({
+    queryKey: ["bracket", String(seasonId ?? ""), "player", playerId],
+    queryFn: ({ signal }) =>
+      get<PlayerPostseason>(`/api/seasons/${seasonId}/players/${playerId}/postseason`, signal),
+    enabled: seasonId !== undefined,
+    refetchInterval: (query) =>
+      query.state.data?.rounds.some((line) => line.state === "live")
+        ? BRACKET_LIVE_REFRESH_MS
+        : false,
   });
 
 export const useBracket = (seasonId: Id | undefined) =>

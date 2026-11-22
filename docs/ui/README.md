@@ -106,11 +106,11 @@ The old overall "best draft value", "biggest bust", "best bench" and "best game"
   - **White**: movable, his game has not kicked off.
   - **Blue**: in progress. Position, name, stat line and score all take the live blue (the accent; it was green until the owner asked for the same blue as the rest of the live round). The line under the name is the quarter and clock, then the stats: "Q2 6:56 · 2 car, 17 yds".
   - **Grey**: his game is done.
-- **Tap the score** for how it was made: a sheet titled "Baker Mayfield · Wild Card" lists one line per scoring stat ("21 passing yards 0.84", "4 rushing yards 0.4"), then the round multiplier when it is not 1, then the total. Lines that scored nothing are left out; a team QB / K lists the whole unit's stats summed.
+- **How the points were made** is in the player sheet (tap the row), in This game: the stat line, one line per scoring stat ("21 passing yards 0.84", "4 rushing yards 0.4"), the round multiplier when it is not 1, then Fantasy points. Lines that scored nothing are left out; a team QB / K lists the whole unit's stats summed. The score itself is not a separate button.
 - Before kickoff the stat line is the **day and time** of the game ("Sun 6:30 pm"), never the word "kickoff". The same wording is used on the player sheet.
 - **Eliminated** lists only players whose NFL team went out in the **previous** round, so they were not eligible for Starters or Bench this round. Each shows "Eliminated in Divisional" (or whichever round). A player eliminated earlier does not reappear. If the Ravens lose in this round, Zay Flowers still sits in Starters or Bench for this round and moves to Eliminated next round.
 - No separate team feed.
-- The player sheet reads top to bottom: **This game** (the round shown, once it has kicked off), **Postseason** (each earlier round he played, stat line and points; only once one is final), **Regular season**.
+- The player sheet reads top to bottom: **This game** (the round shown, once it has kicked off, with the points breakdown), **Postseason** (each earlier round he played, stat line and points; only once one is final), **Regular season**.
 - Your own team: lineup editing for the current and future rounds only, via the player sheet.
 
 ## Player sheet (bottom sheet)

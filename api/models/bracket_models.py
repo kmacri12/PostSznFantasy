@@ -86,3 +86,33 @@ class GamePlayers(BaseSchema):
     clock: str | None
     away: GameSide
     home: GameSide
+
+
+class BreakdownLine(BaseSchema):
+    label: str
+    points: float
+
+
+class PlayerRoundLine(BaseSchema):
+    round: int
+    state: GameState
+    clock: str | None
+    stat_line: str | None
+    # This game's fantasy points with the round multiplier, as the Team page counts.
+    points: float
+    # One line per scoring stat, before the multiplier.
+    points_breakdown: list[BreakdownLine]
+    multiplier: float
+
+
+class PlayerPostseason(BaseSchema):
+    """One player's postseason games under a season's scoring, for his player sheet."""
+
+    id: int
+    name: str
+    position: str
+    team_abv: str | None
+    injury_status: str | None
+    fantasy_team: str | None
+    mine: bool
+    rounds: list[PlayerRoundLine]

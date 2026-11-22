@@ -704,6 +704,29 @@ export interface GameSide {
   players: GamePlayer[];
 }
 
+export interface PlayerRoundLine {
+  round: number;
+  state: GameState;
+  clock: string | null;
+  statLine: string | null;
+  /** This game's fantasy points with the round multiplier. */
+  points: number;
+  pointsBreakdown: PointsBreakdownLine[];
+  multiplier: number;
+}
+
+/** One player's postseason games under a season's scoring: the sheet opened from the schedule. */
+export interface PlayerPostseason {
+  id: number;
+  name: string;
+  position: string;
+  teamAbv: string | null;
+  injuryStatus: string | null;
+  fantasyTeam: string | null;
+  mine: boolean;
+  rounds: PlayerRoundLine[];
+}
+
 /** One schedule game as a stat page: each side's players, best first. */
 export interface GamePlayers {
   id: string;

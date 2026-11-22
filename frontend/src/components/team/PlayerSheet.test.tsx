@@ -100,8 +100,36 @@ describe("PlayerSheet", () => {
     });
     const thisGame = screen.getByRole("region", { name: "This game" });
     expect(thisGame).toHaveTextContent("Divisional5 rec, 74 yds");
+    expect(thisGame).toHaveTextContent("Fantasy points13.4");
     expect(screen.getByText("Q3 8:42")).toBeInTheDocument();
     expect(screen.queryByRole("region", { name: "Postseason" })).toBeNull();
+  });
+
+  it("shows how this game's points were made, with the round multiplier", () => {
+    sheet({
+      lineup: { ...lineup, multiplier: 1.5 },
+      player: {
+        ...brian,
+        gameState: "final",
+        statLine: "5 rec, 74 yds",
+        points: 18.6,
+        pointsBreakdown: [
+          { label: "5 receptions", points: 5 },
+          { label: "74 receiving yards", points: 7.4 },
+        ],
+      },
+    });
+    const rows = [...screen.getByRole("region", { name: "This game" }).querySelectorAll("b")].map(
+      (cell) => `${cell.previousSibling?.textContent} = ${cell.textContent}`,
+    );
+    expect(rows).toEqual([
+      "Divisional = 5 rec, 74 yds",
+      "5 receptions = 5.0",
+      "74 receiving yards = 7.4",
+      "Subtotal = 12.4",
+      "Divisional multiplier = ×1.5",
+      "Fantasy points = 18.6",
+    ]);
   });
 
   it("lists earlier postseason games apart from this game and the regular season", () => {
