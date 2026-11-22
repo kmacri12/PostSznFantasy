@@ -110,10 +110,34 @@ describe("moves for a starter", () => {
     expect(moveOptions(full, josh, false)[0]?.move).toEqual({ playerId: 1, slotIndex: null });
   });
 
-  it("swaps with the bench players eligible for his slot", () => {
+  it("swaps with the bench players eligible for his slot, or moves to an empty slot he can play", () => {
     const options = moveOptions(lineup(), diggs, false);
-    expect(titles(options)).toEqual(["Move to bench", "Brian Thomas"]);
+    expect(titles(options)).toEqual(["Move to bench", "Brian Thomas", "Move to FLEX"]);
     expect(options[1]?.move).toEqual({ playerId: 3, slotIndex: 1 });
+    expect(options[2]).toMatchObject({ action: "Move", move: { playerId: 2, slotIndex: 2 } });
+  });
+
+  it("swaps a WR at WR with a WR at FLEX in one move, without the bench", () => {
+    const both = lineup({
+      slots: [slot(0, "WR", diggs), slot(1, "FLEX", brian), slot(2, "BENCH")],
+    });
+    const fromWr = moveOptions(both, diggs, false).find((o) => o.title === "Brian Thomas");
+    expect(fromWr).toMatchObject({
+      detail: "FLEX · Game not scheduled",
+      action: "Swap",
+      move: { playerId: 2, slotIndex: 1 },
+    });
+    const fromFlex = moveOptions(both, brian, false).find((o) => o.title === "Stefon Diggs");
+    expect(fromFlex?.move).toEqual({ playerId: 3, slotIndex: 0 });
+  });
+
+  it("offers no starter swap the other player can't take (an RB at FLEX for a WR slot)", () => {
+    const rb = lineupPlayer({ id: 6, name: "Rb Flex", position: "RB" });
+    const mixed = lineup({
+      slots: [slot(0, "WR", diggs), slot(1, "FLEX", rb), slot(2, "BENCH")],
+    });
+    expect(titles(moveOptions(mixed, diggs, false))).not.toContain("Rb Flex");
+    expect(titles(moveOptions(mixed, rb, false))).not.toContain("Stefon Diggs");
   });
 
   it("cannot be benched once his game has started", () => {

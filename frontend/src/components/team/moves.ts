@@ -8,7 +8,7 @@ export interface MoveOption {
   /** Where the player goes or what it costs: "WR1 · Sun 6:30 pm", "Empty slot", "FLEX · game started, locked". */
   detail: string;
   /** The word on the button; "Locked" when the option is greyed. */
-  action: "Swap" | "Start" | "Bench" | "Override" | "Locked";
+  action: "Swap" | "Start" | "Move" | "Bench" | "Override" | "Locked";
   /** Null when the option is greyed; `detail` then says why. */
   move: Move | null;
 }
@@ -50,8 +50,9 @@ const gameWhen = (player: LineupPlayer): string => {
 
 /**
  * Every tap-only move the sheet offers for one player in a round: starting a bench player
- * (into an empty slot or by swapping a starter out), swapping a starter with a bench player,
- * and benching a starter. A locked player cannot move and a swap needs both unlocked; a
+ * (into an empty slot or by swapping a starter out), swapping a starter with a bench player or
+ * with another starter whose slot each can play (WR and FLEX), moving a starter to an empty
+ * starter slot, and benching a starter. A locked player cannot move and a swap needs both unlocked; a
  * commissioner may still pick those, and the server asks them to confirm.
  */
 export function moveOptions(
@@ -69,7 +70,7 @@ export function moveOptions(
     key: string,
     title: string,
     where: string,
-    action: "Swap" | "Start" | "Bench",
+    action: "Swap" | "Start" | "Move" | "Bench",
     move: Move,
     other: LineupPlayer | null,
   ): MoveOption => {
@@ -109,6 +110,31 @@ export function moveOptions(
           { playerId: other.id, slotIndex: placement.index },
           other,
         ),
+      );
+    }
+    // Starter to starter: a WR at WR and a WR at FLEX trade places in one move. Only true
+    // swaps, where each can play the other's slot (the server would bench the other one).
+    for (const slot of startersOf(lineup)) {
+      if (slot.index === placement.index || !canPlay(slot.slot, player)) continue;
+      if (slot.player && !canPlay(placement.slot, slot.player)) continue;
+      options.push(
+        slot.player
+          ? option(
+              `swap-slot-${slot.index}`,
+              slot.player.name,
+              `${names.get(slot.index)} · ${gameWhen(slot.player)}`,
+              "Swap",
+              { playerId: player.id, slotIndex: slot.index },
+              slot.player,
+            )
+          : option(
+              `move-${slot.index}`,
+              `Move to ${names.get(slot.index)}`,
+              "Empty slot",
+              "Move",
+              { playerId: player.id, slotIndex: slot.index },
+              null,
+            ),
       );
     }
     return options;

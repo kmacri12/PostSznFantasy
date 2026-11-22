@@ -38,6 +38,11 @@ def test_move_swaps_with_the_occupant_when_both_fit() -> None:
     assert move([1, 2, 3, 4, None], 4, 2) == [1, 2, 4, 3, None]
 
 
+def test_two_starters_trade_slots_in_one_move() -> None:
+    # RB at RB and RB at FLEX: moving the RB into FLEX sends the FLEX RB to the RB slot.
+    assert move([1, 2, 3, None, None], 2, 2) == [1, 3, 2, None, None]
+
+
 def test_displaced_player_goes_to_an_open_bench_spot_when_old_slot_is_ineligible() -> (
     None
 ):
