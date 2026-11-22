@@ -51,6 +51,11 @@ test.describe("data freshness and admin refresh", () => {
 
     await expect(page.getByText(/Live stats/)).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Refresh now" })).toHaveCount(0);
+    await page.getByRole("button", { name: "Profile settings" }).click();
+    await expect(page.getByRole("dialog", { name: "Profile settings" })).toBeVisible();
+    await expect(page.getByRole("button", { name: /^Refresh live stats/ })).toHaveCount(0);
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog", { name: "Profile settings" })).toHaveCount(0);
 
     await pullDown(page);
     await expect(page.getByText("Release to refresh this screen")).toBeVisible();
@@ -68,7 +73,7 @@ test.describe("data freshness and admin refresh", () => {
     expect(response.status()).toBe(403);
   });
 
-  test("an admin refreshes, gets a toast, and the pull shows the newer sync", async ({
+  test("an admin refreshes from the profile sheet, never the page, and the pull shows the newer sync", async ({
     page,
     context,
     request,
@@ -105,8 +110,16 @@ test.describe("data freshness and admin refresh", () => {
     ).toBeVisible();
     await touch(page, "touchend", 100);
 
-    await page.getByRole("button", { name: "Refresh now" }).click();
-    await expect(page.getByText(/^Nothing to refresh/)).toBeVisible();
+    // League and team pages look the same for the admin as for everyone else.
+    await expect(page.getByRole("button", { name: "Refresh now" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: /^Refresh live stats/ })).toHaveCount(0);
+
+    await page.getByRole("button", { name: "Profile settings" }).click();
+    const sheet = page.getByRole("dialog", { name: "Profile settings" });
+    await sheet.getByRole("button", { name: /^Refresh live stats/ }).click();
+    await expect(sheet.getByRole("status")).toContainText(/^Nothing to refresh/);
+    await page.keyboard.press("Escape");
+    await expect(sheet).toHaveCount(0);
 
     await pullDown(page);
     await expect(

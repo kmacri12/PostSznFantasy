@@ -11,7 +11,7 @@ The bracket page (More, **NFL bracket**, and the button under the League tab's t
    fly ssh console --app postszn-api -C "python -m api.scripts.set_feature_flag bracket off"
    ```
    Turn it back on with `... bracket on`.
-2. From a phone, or anywhere you have an admin sign-in token, the same switch is an API call (the same admin list as "Refresh now"):
+2. From a phone, or anywhere you have an admin sign-in token, the same switch is an API call (the same admin list as "Refresh live stats"):
    `PUT /api/admin/feature-flags/bracket` with the body `{"enabled": false}`. `GET /api/admin/feature-flags` shows every flag.
 
 ## Verify

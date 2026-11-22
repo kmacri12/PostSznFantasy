@@ -8,6 +8,7 @@ import AvatarSheet from "../avatar/AvatarSheet";
 import { mutationError } from "../common/friendlyError";
 import PictureAvatar from "../common/PictureAvatar";
 import AccountSheet from "./AccountSheet";
+import AdminSection from "./AdminSection";
 import DeleteAccountDialog from "./DeleteAccountDialog";
 import EditTextSheet from "./EditTextSheet";
 import NotificationsToggle from "./NotificationsToggle";
@@ -22,7 +23,8 @@ interface Props {
   onClose: () => void;
 }
 
-/** Profile settings, opened from the avatar: display name, theme, notifications, sign out. */
+/** Profile settings, opened from the avatar: display name, theme, notifications, sign out, and
+ * the site admin's tools (only for the admin). */
 const ProfileSheet = ({ user, onSignOut, onClose }: Props) => {
   const { updateDisplayName, avatarUrl, setAvatarUrl, username } = useUser();
   const picture = useSetAvatar({ kind: "me" });
@@ -100,6 +102,7 @@ const ProfileSheet = ({ user, onSignOut, onClose }: Props) => {
           }}
         />
       </SettingsCard>
+      <AdminSection userId={user.id} />
       {/* Far from Sign out and the everyday rows, so it is never a stray tap away (#375). */}
       <Divider sx={{ mt: 4 }} />
       <Typography

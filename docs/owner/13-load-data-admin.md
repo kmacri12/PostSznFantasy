@@ -29,7 +29,7 @@ It prints counts for teams, players and stats, then the RapidAPI calls left. It 
    It prints `32`.
 2. https://postsznfantasy.com/players, signed in, lists players.
 3. `fly secrets list --app postszn-api` lists `ADMIN_SUPABASE_UIDS`.
-4. On a league page, below the standings, **Refresh now** shows for you and not for a second account. Tap it once: a toast confirms. Each tap spends API calls.
+4. Tap your avatar (top right): the profile sheet has an **Admin** section with **Refresh live stats** for you and not for a second account. Tap it once: a line under it confirms. Each tap spends API calls (one per live game).
 
 Close #74 if it is still open.
 
