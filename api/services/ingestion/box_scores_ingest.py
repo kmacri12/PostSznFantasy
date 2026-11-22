@@ -13,6 +13,7 @@ from api.services.ingestion.schemas import (
     POSTSEASON_WEEKS,
     field_goal_yards_by_kicker,
     field_goal_yards_missed_by_kicker,
+    game_clock_label,
     parse_stat_line,
     safe_int,
     safe_str,
@@ -112,8 +113,15 @@ def _game_row(
         "player_stats": box.get("playerStats"),
         # Raw cross-check only; DST scoring reads the synthetic DST players' rows.
         "dst": box.get("DST"),
-        "game_clock": safe_str(box.get("gameClock")),
+        "game_clock": game_clock_label(_period(box), box.get("gameClock")),
     }
+
+
+def _period(box: dict[str, Any]) -> Any:
+    line_score = box.get("lineScore")
+    return box.get("currentPeriod") or (
+        line_score.get("period") if isinstance(line_score, dict) else None
+    )
 
 
 async def _upsert_games_and_stats(

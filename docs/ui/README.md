@@ -80,10 +80,10 @@ Phase block:
 | Draft not scheduled | Commissioner: "Invite your friends" with a **Copy invite link** button and "N of M teams filled. Draft date not set yet." Members: "Draft not yet scheduled by your commissioner" |
 | Scheduled, lobby, live | "Draft starts in" with a large countdown, date and time and "you pick 3rd", **Enter draft** button (the draft room has Start for commissioners) |
 | Drafted, before first kickoff | "Set your lineup, locks at kickoff <time>" with a button to Team |
-| Playoffs | Current round, "N games live, N final", "Your lineup: N live, N to play". Eliminated players are not counted here |
+| Playoffs | Current round; while a game is on, one row under it reads "5 games live, 1 final · updated 4s ago", otherwise "N final" or "No games yet" beside the round. No counts of my own players here (the Team page has them) |
 | Finished | Champion card, then the awards shown directly, then final standings pushed down |
 
-Standings header names the two figures: **Total** and **This rd** (the latter in the same accent outline as the current round cell below). Rows: rank, team and owner ("commissioner" marked), **total points** (prominent), current round points as a small outlined badge in the current-round color (no "+"), "N left, N live", tie marker. Tapping a row expands it (one at a time) to a four-round points table (current round outlined, future rounds a dash) and an **Open team page** button. Before the draft every team slot shows with its owner or "Open slot, waiting for a player"; there is no per-row invite action because the invite block above is the one obvious place. While the draft is only scheduled, every team shows 0.0 and shares rank 1.
+Standings header names the two figures: **Total** and **This rd** (the latter in the accent color, no outline). Rows: rank, team and owner ("commissioner" marked), **total points** (prominent), current round points in the current-round color with no pill around them (no "+"), "N left", tie marker. Tapping a row expands it (one at a time) to a four-round points table (current round outlined, future rounds a dash) and an **Open team page** button. Before the draft every team slot shows with its owner or "Open slot, waiting for a player"; there is no per-row invite action because the invite block above is the one obvious place. While the draft is only scheduled, every team shows 0.0 and shares rank 1.
 
 Finished season, top to bottom:
 
@@ -104,8 +104,9 @@ The old overall "best draft value", "biggest bust", "best bench" and "best game"
 - Starter slots are QB, RB, WR, TE, FLEX, K and **DST**; the league's roster settings decide which appear. The DST shows the team defense with its stat line and points.
 - Each player has a visual state, shown on the position label and (for live players) the whole row:
   - **White**: movable, his game has not kicked off.
-  - **Green**: in progress. Position, name, stat line and score all take the live green.
+  - **Blue**: in progress. Position, name, stat line and score all take the live blue (the accent; it was green until the owner asked for the same blue as the rest of the live round). The line under the name is the quarter and clock, then the stats: "Q2 6:56 · 2 car, 17 yds".
   - **Grey**: his game is done.
+- **Tap the score** for how it was made: a sheet titled "Baker Mayfield · Wild Card" lists one line per scoring stat ("21 passing yards 0.84", "4 rushing yards 0.4"), then the round multiplier when it is not 1, then the total. Lines that scored nothing are left out; a team QB / K lists the whole unit's stats summed.
 - Before kickoff the stat line is the **day and time** of the game ("Sun 6:30 pm"), never the word "kickoff". The same wording is used on the player sheet.
 - **Eliminated** lists only players whose NFL team went out in the **previous** round, so they were not eligible for Starters or Bench this round. Each shows "Eliminated in Divisional" (or whichever round). A player eliminated earlier does not reappear. If the Ravens lose in this round, Zay Flowers still sits in Starters or Bench for this round and moves to Eliminated next round.
 - No separate team feed.
@@ -161,7 +162,7 @@ Offered right after a member's first sign-in and right after they join a league 
 
 ## More
 
-- More: NFL bracket, Past seasons (**only if the league has any**), Help: How to play and **Report a problem** (opens the modal below), Account: Sign out. **There is no Settings entry** (#315): settings live behind the avatar and the cogs below. No privacy and terms (landing footer only).
+- More: NFL schedule, Past seasons (**only if the league has any**), Help: How to play and **Report a problem** (opens the modal below), Account: Sign out. **There is no Settings entry** (#315): settings live behind the avatar and the cogs below. No privacy and terms (landing footer only).
 - **Report a problem** (#296) is a modal, a bottom sheet on phones and a dialog on desktop, opened only from this More row (no other entry point). Fields: **What went wrong?** (required, multiline), **Screenshots (optional)** (images only, up to 5, 5 MB each, 15 MB together; the phone picker accepts `image/*`; one line says a screenshot and the diagnostic info each help and both together get it fixed faster; an inline warning next to the picker explains any image or file that was not attached, for example "That image is 7.2 MB. The limit is 5.0 MB per image."; a running line "3 of 5 images, 9.1 MB of 15.0 MB"), and an **Include diagnostic info** checkbox (on by default) with an expandable **What's included** preview that shows exactly what is sent. States: empty (Send disabled), filled, with images, too-large image message, sending ("Sending…"), error (inline, the message stays), sent (the sheet closes and a toast says "Sent. We'll reply by email."). Colors come from theme tokens only. The Claude Design canvas still needs this board added.
 ## Settings (#315)
 
@@ -179,7 +180,7 @@ Four places, each a cog or the avatar, none in More. A finished season keeps its
 ## Landing, create league, invite, small pages
 
 - Landing, signed out: a short hero ("Fantasy football for the playoffs only"), **Sign in** and an accent-outlined **How to play** button the exact size of Sign in (to its right on desktop, centered), then Privacy and Terms footer links. No round explainer on the page.
-- Signed in with one league: sign-in goes straight to that league. Several leagues: league cards first (phase, your rank and points, or draft time and teams filled; feed dot); Create a league and Join with an invite code are secondary, then a **"Read how to play"** link in the same accent color as the landing page's How to play, then Privacy and Terms. No leagues: Create a league and Join with an invite code.
+- Signed in with one league: sign-in goes straight to that league. Several leagues: league cards first (the playoff round once above them, since every league is on the same weekend; on a card only a draft or season-over phase, your rank and points, or draft time and teams filled; feed dot); Create a league and Join with an invite code are secondary, then a **"Read how to play"** link in the same accent color as the landing page's How to play, then Privacy and Terms. No leagues: Create a league and Join with an invite code.
 - The logo always opens the leagues page; the redirect only follows sign-in.
 - Create league: league name and a number-of-teams stepper (changeable until the draft starts), a "Default rules" summary of the roster and reception scoring, optional "Customize rules" (the roster and scoring steps). Defaults do not make later rounds count for more: every round multiplier defaults to 1x, as in `docs/product-rules.md`. Then the new league's League tab with "Invite your friends".
 - Invite link: preview shows "You're invited", the league name, commissioner and year, "N of M teams filled", every current member (commissioner marked) and the open slots. Signed out: sign in with an emailed code, then join. Signed in: a **Join league** button and "Signed in as <email>". A joiner is auto-assigned an open team (no "this will be your team" text). Full league: "This league is full", join disabled, ask the commissioner.
@@ -189,11 +190,11 @@ Four places, each a cog or the avatar, none in More. A finished season keeps its
 
 - Archived: the same pages, read-only, with an "archived" banner; former members see only finished seasons they had a team in (as today). Past seasons are listed under More.
 - Desktop: the bottom tabs become a top navigation bar, each item an icon with its label right next to it (the same icons as the phone tabs), under the header with the league name. A wider centered column. Per page:
-  - League: standings as a table with inline round columns (Wild Card, Divisional, Conf., Super Bowl) and Total, plus "Live, updated 20s ago".
+  - League: standings as a table with inline round columns (Wild Card, Divisional, Conf., Super Bowl) and Total, plus "5 games live, 1 final · updated 20s ago".
   - Team: the round cells and lineup side by side in the wider column.
   - Draft room: the queue sits above the player list on the left; the board and a vertical roster (every slot on its own row, bench included) are always on screen on the right, with no Roster or Board buttons and no separate Queue tab.
   - Landing: the same hero with Sign in and How to play side by side, centered.
-- Live: scores and standings refresh automatically while games are on with a "Live, updated 20s ago" indicator; nothing refreshes outside game windows. In code the standings poll every 20 seconds only while the standings report a live game, and refresh when the page regains focus otherwise; the indicator appears in the playoff phase block of the League tab. The team breakdown still polls on its own timer.
+- Live: scores and standings refresh automatically while games are on with a "5 games live, 1 final · updated 20s ago" indicator; nothing refreshes outside game windows. In code the standings poll every 20 seconds only while the standings report a live game, and refresh when the page regains focus otherwise; the indicator appears in the playoff phase block of the League tab. The team breakdown still polls on its own timer.
 
 ## Behavior changes this implies
 

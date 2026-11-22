@@ -8,7 +8,7 @@ import PhaseBlock from "./PhaseBlock";
 
 const mocks = vi.hoisted(() => ({
   draft: { data: undefined as unknown, isLoading: false },
-  standings: { data: undefined as unknown },
+  standings: { data: undefined } as { data: unknown; dataUpdatedAt?: number },
 }));
 
 vi.mock("../../api/queries", () => ({
@@ -133,17 +133,26 @@ describe("PhaseBlock", () => {
     );
   });
 
-  it("summarises the round, the games and my lineup once the playoffs run", () => {
+  it("puts the games on the live row once the playoffs run, without my players' counts", () => {
     mocks.draft = { data: { draftCutoff: "2026-01-02T00:00:00Z" }, isLoading: false };
-    mocks.standings = { data: standings() };
+    mocks.standings = { data: standings(), dataUpdatedAt: Date.now() };
     show({ draftStatus: "completed" });
     expect(screen.getByText("Conference Championship")).toBeInTheDocument();
-    expect(screen.getByText("2 games live, 1 final · 3 live, 1 to play")).toBeInTheDocument();
+    expect(screen.getByText(/^2 games live, 1 final · updated \d+s ago$/)).toBeInTheDocument();
+    expect(screen.queryByText(/to play/)).toBeNull();
   });
 
-  it("leaves the NFL bracket link to the row under the standings", () => {
+  it("shows the games line under the title while nothing is live", () => {
+    mocks.draft = { data: { draftCutoff: "2026-01-02T00:00:00Z" }, isLoading: false };
+    mocks.standings = { data: standings({ gamesInProgress: 0, gamesFinal: 2 }) };
+    show({ draftStatus: "completed" });
+    expect(screen.getByText("2 final")).toBeInTheDocument();
+    expect(screen.queryByText(/updated/)).toBeNull();
+  });
+
+  it("leaves the NFL schedule link to the row under the standings", () => {
     show({ draftStatus: "unscheduled", canCommission: false });
-    expect(screen.queryByRole("link", { name: "NFL bracket" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "NFL schedule" })).not.toBeInTheDocument();
   });
 
   it("leaves the top to the champion card when the season is over", () => {

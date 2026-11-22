@@ -85,8 +85,8 @@ describe("rowDetail", () => {
     progress: { finished: 0, live: 3, toPlay: 1, notPlaying: 5 },
   });
 
-  it("splits the owner from players left and live", () => {
-    expect(rowDetail(lead, true)).toEqual({ owner: "Dave", rest: "5 left · 3 live" });
+  it("splits the owner from players left", () => {
+    expect(rowDetail(lead, true)).toEqual({ owner: "Dave", rest: "5 left" });
   });
 
   it("stops at the owner once the season is over", () => {

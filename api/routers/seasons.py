@@ -11,7 +11,7 @@ from api.db.models.league import LeagueMember as LeagueMemberRow
 from api.db.models.league import SeasonSettings, Team
 from api.db.session import DbSession
 from api.dependencies.league import SeasonCommissioner, SeasonMember
-from api.models.bracket_models import Bracket
+from api.models.bracket_models import Bracket, GamePlayers
 from api.models.enums import DraftStatus, LeagueRole
 from api.models.league_models import (
     SeasonOverview,
@@ -29,6 +29,7 @@ from api.services import feature_flags
 from api.services.activity import Actor
 from api.services.avatars import avatar_url
 from api.services.bracket import build_bracket
+from api.services.game_players import GameNotFoundError, game_players
 from api.services.league_admin import (
     ROSTER_LOCKED_FIELDS,
     draft_has_started,
@@ -69,6 +70,38 @@ async def get_bracket(
     return await build_bracket(
         db, membership.season.year, settings, team.id if team else None
     )
+
+
+@router.get("/{season_id}/games/{game_id}", response_model=GamePlayers)
+async def get_game_players(
+    season_id: int, game_id: str, membership: SeasonMember, db: DbSession
+) -> GamePlayers:
+    """One NFL game of the schedule as a stat page: either team's players with this
+    game's fantasy points and their fantasy team. 404 for a game outside the season's
+    postseason, and while the owner's `bracket` flag is off."""
+    if not await feature_flags.is_enabled(db, feature_flags.BRACKET):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="The schedule is turned off"
+        )
+    settings = (
+        await db.execute(
+            select(SeasonSettings).where(SeasonSettings.season_id == season_id)
+        )
+    ).scalar_one()
+    team = membership.team
+    try:
+        return await game_players(
+            db,
+            membership.season.year,
+            season_id,
+            settings,
+            game_id,
+            team.id if team else None,
+        )
+    except GameNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="No such game this season"
+        ) from exc
 
 
 @router.get("/{season_id}", response_model=SeasonOverview)

@@ -10,7 +10,7 @@ export const matchupTitle = (game: BracketGame): string =>
 /** Final, live with the clock, or the kickoff in the viewer's zone. */
 export const gameStatusText = (game: BracketGame): string => {
   if (game.state === "final") return "Final";
-  if (game.state === "live") return game.clock ? `Live · ${game.clock}` : "Live";
+  if (game.state === "live") return game.clock ?? "Live";
   if (!game.kickoff) return "Time to be set";
   return formatInViewerZone(game.kickoff, { weekday: "short", hour: "numeric", minute: "2-digit" });
 };
@@ -35,3 +35,10 @@ export const waitingText = (round: number): string =>
 /** The team that won, to dim the other one; null while the game is not final. */
 export const winnerId = (game: BracketGame): number | null =>
   game.state === "final" ? game.winnerTeamId : null;
+
+/** "J. Allen", "J. Cook III", or "Defense" for a team defense: two columns fit a phone. */
+export const shortPlayerName = (player: { name: string; position: string }): string => {
+  if (player.position === "DST") return "Defense";
+  const [first, ...rest] = player.name.trim().split(/\s+/);
+  return first && rest.length > 0 ? `${first[0]}. ${rest.join(" ")}` : player.name;
+};

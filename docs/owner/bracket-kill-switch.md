@@ -1,8 +1,8 @@
-# Turn the NFL bracket off (and back on)
+# Turn the NFL schedule off (and back on)
 
 2 minutes, only if the bracket misbehaves on game day. Issue #393. [Back to the list](README.md)
 
-The bracket page (More, **NFL bracket**, and the button under the League tab's top block) is on by default. The switch lives in the database, so it takes effect for everyone within a minute and needs no deploy. Lineups, standings and scoring do not depend on it.
+The schedule page (More, **NFL schedule**, the link under the League tab's standings and the live scores row in its top block; its switch is still named `bracket`) is on by default. The switch lives in the database, so it takes effect for everyone within a minute and needs no deploy. Lineups, standings and scoring do not depend on it.
 
 ## Steps
 
@@ -17,5 +17,5 @@ The bracket page (More, **NFL bracket**, and the button under the League tab's t
 ## Verify
 
 1. The last log line says `Feature flag bracket is now off`.
-2. Reload the app: the NFL bracket row and button are gone, and `https://<your API>/api/features` shows `{"bracket": false}`.
-3. Opening a saved `/bracket` link shows "The bracket is off for now".
+2. Reload the app: the NFL schedule row and links are gone, and `https://<your API>/api/features` shows `{"bracket": false}`.
+3. Opening a saved `/schedule` (or old `/bracket`) link shows "The schedule is off for now".

@@ -92,13 +92,13 @@ describe("PlayerSheet", () => {
       player: {
         ...brian,
         gameState: "live",
-        gameClock: "8:42",
+        gameClock: "Q3 8:42",
         statLine: "5 rec, 74 yds",
         points: 13.4,
       },
     });
     expect(screen.getByText("This round")).toBeInTheDocument();
     expect(screen.getByText("5 rec, 74 yds")).toBeInTheDocument();
-    expect(screen.getByText("Live 8:42")).toBeInTheDocument();
+    expect(screen.getByText("Q3 8:42")).toBeInTheDocument();
   });
 });

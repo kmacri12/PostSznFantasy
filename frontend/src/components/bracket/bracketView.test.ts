@@ -35,7 +35,7 @@ describe("matchupTitle", () => {
 describe("gameStatusText", () => {
   it("says Final, Live with the clock, or that the time is not set", () => {
     expect(gameStatusText(game({ state: "final" }))).toBe("Final");
-    expect(gameStatusText(game({ state: "live", clock: "4:12 Q3" }))).toBe("Live · 4:12 Q3");
+    expect(gameStatusText(game({ state: "live", clock: "Q3 4:12" }))).toBe("Q3 4:12");
     expect(gameStatusText(game({ state: "live" }))).toBe("Live");
     expect(gameStatusText(game())).toBe("Time to be set");
   });

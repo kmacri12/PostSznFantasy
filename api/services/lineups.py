@@ -22,7 +22,12 @@ from api.models.activity_models import (
     SlotMark,
 )
 from api.models.enums import PlayerPosition, PlayerRoundStatus
-from api.models.league_models import LineupPlayer, LineupSlotView, RoundLineup
+from api.models.league_models import (
+    LineupPlayer,
+    LineupSlotView,
+    PointsBreakdownLine,
+    RoundLineup,
+)
 from api.services import activity
 from api.services.round_status import ROUNDS, GameFacts, load_games, round_status
 from api.services.stat_lines import stat_line
@@ -32,6 +37,7 @@ from api.services.team_units import (
     scoring_members,
 )
 from api.utils.calculations.fantasy_points_utils import calculate_player_points
+from api.utils.calculations.points_breakdown import points_breakdown
 from api.utils.calculations.standings_utils import (
     ROUND_MULTIPLIER_FIELDS,
     postseason_round_index,
@@ -276,12 +282,15 @@ def _round_lineup(
     stat_lines: dict[int, str],
     changes: dict[int, ScoreChange],
     combined: frozenset[PlayerPosition],
+    breakdowns: dict[int, list[PointsBreakdownLine]],
+    multiplier: float,
 ) -> RoundLineup:
     views = {p.id: _view(p, games, round_, now, combined) for p in players}
     for pid, view in views.items():
         view.points = float(points[pid]) if pid in points else None
         view.stat_line = stat_lines.get(pid)
         view.score_change = changes.get(pid)
+        view.points_breakdown = breakdowns.get(pid, [])
     # Eliminated players drop out of any slot they were placed in early.
     placed = {
         index: pid
@@ -317,6 +326,7 @@ def _round_lineup(
         empty_starter_slots=sum(
             1 for s in slots if s.slot != BENCH and s.player is None
         ),
+        multiplier=multiplier,
         first_kickoff=min(
             (g.kickoff for g in games if g.round == round_ and g.kickoff), default=None
         ),
@@ -339,6 +349,7 @@ async def team_lineups(
     rows = await _round_rows(db, settings, players, season)
     points = _round_points(settings, players, rows)
     lines = _stat_lines(players, rows)
+    breakdowns = _breakdowns(settings, players, rows)
     changes = await activity.score_changes(db, team.id)
     return [
         _round_lineup(
@@ -357,6 +368,8 @@ async def team_lineups(
                 if round_ == r
             },
             combined_positions(settings),
+            {pid: lines for (pid, round_), lines in breakdowns.items() if round_ == r},
+            _multiplier(settings, r),
         )
         for r in ROUNDS
     ]
@@ -429,6 +442,19 @@ def _round_points(
             raw * Decimal(str(_multiplier(settings, round_)))
         ).quantize(Decimal("0.01"))
     return points
+
+
+def _breakdowns(
+    settings: SeasonSettings, players: list[NFLPlayer], rows: RoundRows
+) -> dict[tuple[int, int], list[PointsBreakdownLine]]:
+    by_id = {p.id: p for p in players}
+    return {
+        key: [
+            PointsBreakdownLine(label=line.label, points=float(line.points))
+            for line in points_breakdown(game_rows, settings, by_id[key[0]].position)
+        ]
+        for key, game_rows in rows.items()
+    }
 
 
 def _stat_lines(

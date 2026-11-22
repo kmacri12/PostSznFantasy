@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import type { Bracket, BracketGame, BracketTeam } from "../../api/types";
 import BracketView from "./BracketView";
@@ -47,30 +47,5 @@ describe("BracketView", () => {
     const card = screen.getByRole("button", { name: /BUF at KC, Final/ });
     expect(within(card).getByText("27")).toBeInTheDocument();
     expect(within(card).getByText("Yours: 1 starter")).toBeInTheDocument();
-  });
-
-  it("opens a game to show my players and each team's top players", () => {
-    render(<BracketView bracket={bracket} />);
-    fireEvent.click(screen.getByRole("button", { name: /BUF at KC/ }));
-    const sheet = screen.getByRole("dialog", { name: "BUF at KC" });
-    expect(within(sheet).getByText("Starter")).toBeInTheDocument();
-    expect(within(sheet).getByText("BUF Star")).toBeInTheDocument();
-    expect(within(sheet).getAllByText("301.5 pts")).toHaveLength(2);
-  });
-
-  it("says so when none of my players are in the game", () => {
-    render(
-      <BracketView
-        bracket={{
-          ...bracket,
-          rounds: [
-            { round: 1, games: [{ ...wildCard, myPlayers: [] }] },
-            ...bracket.rounds.slice(1),
-          ],
-        }}
-      />,
-    );
-    fireEvent.click(screen.getByRole("button", { name: /BUF at KC/ }));
-    expect(screen.getByText(/once you have drafted/)).toBeInTheDocument();
   });
 });

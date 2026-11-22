@@ -16,6 +16,8 @@ export interface PhaseTag {
   label: string;
   /** Something is happening right now: a draft or games in progress. */
   live: boolean;
+  /** A playoff round, which every league shares: the page shows it once, not per card. */
+  round?: boolean;
 }
 
 /** The one-line phase a league card shows. `draftStart` is only read while a draft is scheduled. */
@@ -37,7 +39,7 @@ export const phaseTag = (
   };
   if (league.draftStatus !== "completed") return draft[league.draftStatus];
   const round = ROUND_NAMES[(standings?.round ?? 1) - 1] ?? ROUND_NAMES[0] ?? "";
-  return { label: round, live: (standings?.gamesInProgress ?? 0) > 0 };
+  return { label: round, live: (standings?.gamesInProgress ?? 0) > 0, round: true };
 };
 
 /** "T2" when another team shares the rank, so a tie is never read as a win. */
