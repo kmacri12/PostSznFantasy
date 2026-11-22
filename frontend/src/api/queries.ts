@@ -16,6 +16,7 @@ import type {
   Features,
   Feed,
   FeedMessageItem,
+  GamePlayers,
   Inbox,
   Invite,
   InvitePreview,
@@ -42,6 +43,7 @@ export const keys = {
   config: ["config"] as const,
   features: ["features"] as const,
   bracket: (seasonId: Id) => ["bracket", String(seasonId)] as const,
+  game: (seasonId: Id, gameId: string) => ["bracket", String(seasonId), "game", gameId] as const,
   userLeagues: ["user-leagues"] as const,
   pastLeagues: ["past-leagues"] as const,
   leagueInfo: (leagueId: Id) => ["league-info", String(leagueId)] as const,
@@ -86,6 +88,20 @@ export const useFeatures = (): Features => {
 };
 
 const BRACKET_LIVE_REFRESH_MS = 30_000;
+
+/** One schedule game's players and fantasy points; refetched like the schedule while live. */
+export const useGamePlayers = (seasonId: Id | undefined, gameId: string | null) =>
+  useQuery({
+    queryKey: keys.game(seasonId ?? "", gameId ?? ""),
+    queryFn: ({ signal }) =>
+      get<GamePlayers>(
+        `/api/seasons/${seasonId}/games/${encodeURIComponent(gameId ?? "")}`,
+        signal,
+      ),
+    enabled: seasonId !== undefined && gameId !== null,
+    refetchInterval: (query) =>
+      query.state.data?.state === "live" ? BRACKET_LIVE_REFRESH_MS : false,
+  });
 
 export const useBracket = (seasonId: Id | undefined) =>
   useQuery({

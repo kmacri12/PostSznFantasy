@@ -35,3 +35,10 @@ export const waitingText = (round: number): string =>
 /** The team that won, to dim the other one; null while the game is not final. */
 export const winnerId = (game: BracketGame): number | null =>
   game.state === "final" ? game.winnerTeamId : null;
+
+/** "J. Allen", "J. Cook III", or "Defense" for a team defense: two columns fit a phone. */
+export const shortPlayerName = (player: { name: string; position: string }): string => {
+  if (player.position === "DST") return "Defense";
+  const [first, ...rest] = player.name.trim().split(/\s+/);
+  return first && rest.length > 0 ? `${first[0]}. ${rest.join(" ")}` : player.name;
+};

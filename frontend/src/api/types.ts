@@ -687,6 +687,33 @@ export interface BracketRound {
   games: BracketGame[];
 }
 
+export interface GamePlayer {
+  id: number;
+  name: string;
+  position: string;
+  /** This game's fantasy points with the round multiplier; null before he has a line. */
+  points: number | null;
+  /** The fantasy team his points count for; null when nobody in the league drafted him. */
+  fantasyTeam: string | null;
+  mine: boolean;
+}
+
+export interface GameSide {
+  team: BracketTeam;
+  points: number | null;
+  players: GamePlayer[];
+}
+
+/** One schedule game as a stat page: each side's players, best first. */
+export interface GamePlayers {
+  id: string;
+  round: number;
+  state: GameState;
+  clock: string | null;
+  away: GameSide;
+  home: GameSide;
+}
+
 export interface Bracket {
   year: number;
   currentRound: number;

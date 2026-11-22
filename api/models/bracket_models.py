@@ -56,3 +56,33 @@ class Bracket(BaseSchema):
     rounds: list[BracketRound]
     # Top seeds sitting out the Wild Card round.
     byes: list[BracketTeam]
+
+
+class GamePlayer(BaseSchema):
+    id: int
+    name: str
+    position: str
+    # Fantasy points in this game under the season's scoring and the round's
+    # multiplier, as the Team page counts them; None before he has a stat line.
+    points: float | None
+    # The fantasy team that owns him (a team QB / K unit's owner for its other
+    # members); None when nobody in the league drafted him.
+    fantasy_team: str | None
+    mine: bool
+
+
+class GameSide(BaseSchema):
+    team: BracketTeam
+    points: int | None
+    players: list[GamePlayer]
+
+
+class GamePlayers(BaseSchema):
+    """One game as a live stat page: each side's players, best first."""
+
+    id: str
+    round: int
+    state: GameState
+    clock: str | None
+    away: GameSide
+    home: GameSide
