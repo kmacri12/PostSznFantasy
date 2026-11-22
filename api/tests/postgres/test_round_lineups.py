@@ -254,6 +254,12 @@ async def test_eliminated_is_per_round_and_cannot_be_moved(
         refused = await owner.post(f"{s.url}/lineup", json=s.move(2, buf_player, FLEX))
     wild_card, divisional = round_of(body, 1), round_of(body, 2)
     assert buf_player.id not in [p["id"] for p in wild_card["eliminated"]]
+    lost = next(p for p in wild_card["unassigned"] if p["id"] == buf_player.id)
+    assert (lost["teamScore"], lost["opponentScore"], lost["opponentAbv"]) == (
+        10,
+        20,
+        "DEN",
+    )
     assert [p["id"] for p in divisional["eliminated"]] == [buf_player.id]
     assert buf_player.id not in [p["id"] for p in divisional["unassigned"]]
     assert divisional["eliminated"][0]["status"] == "eliminated"

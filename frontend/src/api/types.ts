@@ -241,6 +241,9 @@ export interface LineupPlayer extends RosterPlayer {
   /** The other team in that round's game, and whether he is at home; null without a game. */
   opponentAbv: string | null;
   isHome: boolean | null;
+  /** That game's score for his team and the opponent; null before there is one. */
+  teamScore: number | null;
+  opponentScore: number | null;
   /** Counted points in that round (league scoring, round multiplier); null before any stats. */
   points: number | null;
   /** The round's stats on one line, "14/21, 168 yds, 2 TD, 0 INT"; null before any stats. */

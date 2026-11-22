@@ -50,6 +50,15 @@ def test_each_side_of_a_game_sees_its_opponent_and_whether_it_is_at_home() -> No
     away = round_status(games, BUF, 1)
     assert (home.opponent_abv, home.home) == ("BUF", True)
     assert (away.opponent_abv, away.home) == ("KC", False)
+    final = [replace(game(1, KC, BUF, score=(27, 20)), home_abv="KC", away_abv="BUF")]
+    assert (
+        round_status(final, KC, 1).points,
+        round_status(final, KC, 1).opponent_points,
+    ) == (27, 20)
+    assert (
+        round_status(final, BUF, 1).points,
+        round_status(final, BUF, 1).opponent_points,
+    ) == (20, 27)
     bye = round_status([*games, game(1, DEN, 5)], MIA, 1)
     assert (bye.opponent_abv, bye.home) == (None, None)
 

@@ -138,7 +138,8 @@ const LineupRound = ({ lineup, teamUnits, onOpenPlayer, onFillSlot }: Props) => 
     <Box
       sx={{
         display: "grid",
-        gridTemplateColumns: { xs: "1fr", md: "3fr 2fr" },
+        // minmax(0, …): a long stat line truncates in its row instead of widening the card.
+        gridTemplateColumns: { xs: "minmax(0, 1fr)", md: "minmax(0, 3fr) minmax(0, 2fr)" },
         gap: 2,
         alignItems: "start",
       }}

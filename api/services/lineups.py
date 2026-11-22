@@ -195,6 +195,8 @@ def _view(
         game_clock=standing.game_clock,
         opponent_abv=standing.opponent_abv,
         is_home=standing.home,
+        team_score=standing.points,
+        opponent_score=standing.opponent_points,
         eliminated_round=standing.eliminated_in,
         locked=standing.kickoff is not None and now >= standing.kickoff,
         scores_whole_team=scores_whole_team(combined, player.position),

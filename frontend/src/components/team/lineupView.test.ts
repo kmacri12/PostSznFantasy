@@ -43,6 +43,14 @@ describe("what a row says", () => {
     expect(playerDetail(lineupPlayer({ gameState: "final" }))).toBe("No stats");
   });
 
+  it("leads a finished game with the result, score and opponent", () => {
+    const game = { gameState: "final" as const, statLine: "4 rec, 41 yds", opponentAbv: "IND" };
+    const won = lineupPlayer({ ...game, isHome: true, teamScore: 27, opponentScore: 20 });
+    const lost = lineupPlayer({ ...game, isHome: false, teamScore: 17, opponentScore: 24 });
+    expect(playerDetail(won)).toBe("W 27-20 vs IND · 4 rec, 41 yds");
+    expect(playerDetail(lost)).toBe("L 17-24 @ IND · 4 rec, 41 yds");
+  });
+
   it("names the round an eliminated player's team went out in", () => {
     const out = lineupPlayer({ status: "eliminated", eliminatedRound: 2 });
     expect(playerDetail(out)).toBe("Eliminated in Divisional");

@@ -80,6 +80,9 @@ class TeamRound:
     eliminated_in: int | None = None
     opponent_abv: str | None = None
     home: bool | None = None
+    # The game's score from this team's side; None until the box score has one.
+    points: int | None = None
+    opponent_points: int | None = None
 
 
 def round_status(
@@ -107,6 +110,8 @@ def round_status(
             own.clock or None,
             opponent_abv=own.away_abv if home else own.home_abv,
             home=home,
+            points=own.home_points if home else own.away_points,
+            opponent_points=own.away_points if home else own.home_points,
         )
     # Only the Wild Card round has byes. Later, an alive team without a game is waiting
     # for its next game to be scheduled, which is not a bye.

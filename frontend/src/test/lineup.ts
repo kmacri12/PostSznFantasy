@@ -14,6 +14,8 @@ export const lineupPlayer = (overrides: Partial<LineupPlayer> = {}): LineupPlaye
   gameClock: null,
   opponentAbv: null,
   isHome: null,
+  teamScore: null,
+  opponentScore: null,
   points: null,
   statLine: null,
   eliminatedRound: null,
