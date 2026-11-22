@@ -15,7 +15,7 @@ import { seasonRows } from "./seasonLines";
 /** The day and time of the game, or where it stands once it is on. */
 const gameWhen = (player: LineupPlayer): string => {
   if (player.status === "bye") return "Bye week";
-  if (player.gameState === "live") return player.gameClock ? `Live ${player.gameClock}` : "Live";
+  if (player.gameState === "live") return player.gameClock ?? "Live";
   if (player.gameState === "final") return "Final";
   return player.kickoff ? formatKickoff(player.kickoff) : "Game not scheduled yet";
 };

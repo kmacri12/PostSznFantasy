@@ -245,6 +245,13 @@ export interface LineupPlayer extends RosterPlayer {
   /** For an eliminated player, the round his team lost in. */
   eliminatedRound: number | null;
   scoreChange: ScoreChange | null;
+  /** What made up the points, one line per scoring stat, before the round multiplier. */
+  pointsBreakdown: PointsBreakdownLine[];
+}
+
+export interface PointsBreakdownLine {
+  label: string;
+  points: number;
 }
 
 /** The latest stat correction to a player's score in a round. */
@@ -274,6 +281,8 @@ export interface RoundLineup {
   unassigned: LineupPlayer[];
   eliminated: LineupPlayer[];
   emptyStarterSlots: number;
+  /** The round's points multiplier: each player's points are their breakdown times it. */
+  multiplier: number;
   firstKickoff: string | null;
 }
 
@@ -676,6 +685,33 @@ export interface BracketGame {
 export interface BracketRound {
   round: number;
   games: BracketGame[];
+}
+
+export interface GamePlayer {
+  id: number;
+  name: string;
+  position: string;
+  /** This game's fantasy points with the round multiplier; null before he has a line. */
+  points: number | null;
+  /** The fantasy team his points count for; null when nobody in the league drafted him. */
+  fantasyTeam: string | null;
+  mine: boolean;
+}
+
+export interface GameSide {
+  team: BracketTeam;
+  points: number | null;
+  players: GamePlayer[];
+}
+
+/** One schedule game as a stat page: each side's players, best first. */
+export interface GamePlayers {
+  id: string;
+  round: number;
+  state: GameState;
+  clock: string | null;
+  away: GameSide;
+  home: GameSide;
 }
 
 export interface Bracket {

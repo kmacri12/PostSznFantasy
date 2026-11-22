@@ -8,6 +8,7 @@ from api.db.models import (
     LineupSlot,
     NFLGame,
     NFLPlayer,
+    NFLPlayerGameStats,
     NFLPlayerSeasonStats,
     NFLTeam,
     TeamPlayer,
@@ -180,3 +181,43 @@ async def test_unknown_flags_are_refused_and_members_cannot_flip_flags(
             "/api/admin/feature-flags/bracket", json={"enabled": False}
         )
         assert response.status_code == 403
+
+
+async def test_a_game_lists_each_sides_players_with_game_points_and_fantasy_team(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    season, _, teams, _ = await make_season(db, draft_status="completed")
+    await _field(db)
+    db.add(NFLPlayer(id=13, name="Rb Undrafted", position="RB", team_id=2))
+    db.add(NFLPlayer(id=14, name="Te Quiet", position="TE", team_id=2))
+    await db.flush()
+    db.add_all(
+        [
+            TeamPlayer(season_id=season.id, team_id=teams[1].id, player_id=10),
+            TeamPlayer(season_id=season.id, team_id=teams[0].id, player_id=12),
+            NFLPlayerGameStats(game_id="wc", player_id=10, passing_yards=250),
+            NFLPlayerGameStats(game_id="wc", player_id=13, rushing_yards=40),
+            # Nobody drafted him and he scored nothing: left out.
+            NFLPlayerGameStats(game_id="wc", player_id=14),
+        ]
+    )
+    await db.flush()
+
+    async with client_as("uid-1") as client:
+        response = await client.get(f"/api/seasons/{season.id}/games/wc")
+    assert response.status_code == 200
+    body = response.json()
+    assert (body["round"], body["state"]) == (1, "final")
+    assert (body["away"]["team"]["abbreviation"], body["away"]["points"]) == ("BUF", 24)
+    home = [
+        (p["name"], p["points"], p["fantasyTeam"], p["mine"])
+        for p in body["home"]["players"]
+    ]
+    assert home == [("Qb One", 10.0, "Team 1", True)]
+    away = [(p["name"], p["points"], p["fantasyTeam"]) for p in body["away"]["players"]]
+    # Best first; a drafted player with no line yet still shows, without points.
+    assert away == [("Rb Undrafted", 4.0, None), ("Wr Two", None, "Team 0")]
+
+    async with client_as("uid-1") as client:
+        missing = await client.get(f"/api/seasons/{season.id}/games/nope")
+    assert missing.status_code == 404

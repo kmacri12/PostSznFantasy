@@ -21,7 +21,7 @@ describe("leagueSummary", () => {
       phaseTag({ draftStatus, finished }, { round: 3, gamesInProgress: 1 }, null);
     expect(tag("unscheduled").label).toBe("Draft not scheduled");
     expect(tag("in_progress")).toEqual({ label: "Draft live", live: true });
-    expect(tag("completed")).toEqual({ label: "Conference Championship", live: true });
+    expect(tag("completed")).toEqual({ label: "Conference Championship", live: true, round: true });
     expect(tag("completed", true).label).toBe("Season over");
   });
 

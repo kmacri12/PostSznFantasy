@@ -1,7 +1,8 @@
-import { Box, Button, ButtonBase, Typography } from "@mui/material";
+import { Box, ButtonBase, Typography } from "@mui/material";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMarkInboxRead } from "../../api/queries";
-import type { Inbox, InboxItem } from "../../api/types";
+import type { Inbox } from "../../api/types";
 import { tokens } from "../../theme";
 import { formatAgo } from "../common/LiveStatsNotice";
 import { NewActivityDot } from "../layout/NewActivityDot";
@@ -13,29 +14,33 @@ interface Props {
   onClose: () => void;
 }
 
-/** The last 30 days of what was addressed to me; tapping one marks it read and opens its page. */
+/**
+ * The last 30 days of what was addressed to me. Opening it marks everything read, so the bell's
+ * count goes with one tap; what was unread on opening keeps its dot until the sheet closes.
+ */
 const InboxSheet = ({ inbox, onClose }: Props) => {
   const navigate = useNavigate();
   const markRead = useMarkInboxRead();
   const items = inbox?.items ?? [];
+  const [newOnOpen, setNewOnOpen] = useState<Set<number> | null>(null);
+  const marked = useRef(false);
 
-  const open = (item: InboxItem, path: string) => {
-    if (!item.read) markRead.mutate([item.id]);
+  useEffect(() => {
+    if (!inbox || newOnOpen) return;
+    setNewOnOpen(new Set(inbox.items.filter((item) => !item.read).map((item) => item.id)));
+    if (inbox.unreadCount > 0 && !marked.current) {
+      marked.current = true;
+      markRead.mutate(undefined);
+    }
+  }, [inbox, newOnOpen, markRead]);
+
+  const open = (path: string) => {
     onClose();
     navigate(path);
   };
 
   return (
     <SettingsSheet title="Notifications" onClose={onClose}>
-      {(inbox?.unreadCount ?? 0) > 0 && (
-        <Button
-          onClick={() => markRead.mutate(undefined)}
-          disabled={markRead.isPending}
-          sx={{ minHeight: 44, justifySelf: "start" }}
-        >
-          Mark all as read
-        </Button>
-      )}
       {inbox && items.length === 0 && (
         <Typography color="text.secondary" sx={{ py: 2 }}>
           Nothing in the last 30 days. Your draft turns, lineup reminders and commissioner changes
@@ -45,10 +50,11 @@ const InboxSheet = ({ inbox, onClose }: Props) => {
       <Box component="ul" sx={{ listStyle: "none", m: 0, p: 0, display: "grid", gap: 0.5 }}>
         {items.map((item) => {
           const line = describeNotification(item);
+          const unread = newOnOpen?.has(item.id) ?? !item.read;
           return (
             <li key={item.id}>
               <ButtonBase
-                onClick={() => open(item, line.path)}
+                onClick={() => open(line.path)}
                 sx={{
                   width: "100%",
                   minHeight: 56,
@@ -59,14 +65,14 @@ const InboxSheet = ({ inbox, onClose }: Props) => {
                   justifyContent: "flex-start",
                   alignItems: "flex-start",
                   textAlign: "left",
-                  bgcolor: item.read ? "transparent" : tokens.accentSurface,
+                  bgcolor: unread ? tokens.accentSurface : "transparent",
                 }}
               >
                 <Box sx={{ width: 8, pt: 0.9, flex: "none" }}>
-                  {!item.read && <NewActivityDot label="Unread" />}
+                  {unread && <NewActivityDot label="Unread" />}
                 </Box>
                 <Box sx={{ minWidth: 0, flex: 1 }}>
-                  <Typography sx={{ fontWeight: item.read ? 500 : 700, color: tokens.text }}>
+                  <Typography sx={{ fontWeight: unread ? 700 : 500, color: tokens.text }}>
                     {line.title}
                   </Typography>
                   <Typography variant="body2" sx={{ color: tokens.textSoft }}>

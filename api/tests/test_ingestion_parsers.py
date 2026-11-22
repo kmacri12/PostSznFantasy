@@ -13,6 +13,7 @@ from api.services.ingestion.schemas import (
     StatsShapeError,
     field_goal_yards_by_kicker,
     field_goal_yards_missed_by_kicker,
+    game_clock_label,
     normalise_position,
     parse_injury_status,
     parse_stat_line,
@@ -171,3 +172,32 @@ def test_normalise_position_stores_fullbacks_as_rb_and_kickers_as_k() -> None:
     assert normalise_position("PK") == "K"
     assert normalise_position(" QB ") == "QB"
     assert normalise_position(None) is None
+
+
+@pytest.mark.parametrize(
+    ("period", "clock", "label"),
+    [
+        ("1st", "14:21", "Q1 14:21"),
+        ("2nd", "1:55", "Q2 1:55"),
+        ("4th", "0:07", "Q4 0:07"),
+        ("OT", "8:00", "OT 8:00"),
+        ("Half", "", "Half"),
+        ("Halftime", "0:00", "Half"),
+        ("Final", "", None),
+        (None, "8:42", "8:42"),
+        ("", "", None),
+    ],
+)
+def test_game_clock_label_puts_the_quarter_before_the_clock(
+    period: str | None, clock: str, label: str | None
+) -> None:
+    assert game_clock_label(period, clock) == label
+
+
+def test_live_box_score_sample_gives_quarter_and_clock() -> None:
+    sample = (
+        Path(__file__).parents[2]
+        / "docs/research/samples/box_20261122_PIT-PHI_live.json"
+    )
+    box = json.loads(sample.read_text())["body"]
+    assert game_clock_label(box["currentPeriod"], box["gameClock"]) == "Q2 1:55"

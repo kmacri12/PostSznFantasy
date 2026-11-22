@@ -16,6 +16,7 @@ export const lineupPlayer = (overrides: Partial<LineupPlayer> = {}): LineupPlaye
   statLine: null,
   eliminatedRound: null,
   scoreChange: null,
+  pointsBreakdown: [],
   ...overrides,
 });
 
@@ -31,6 +32,7 @@ export const roundLineup = (round: number, overrides: Partial<RoundLineup> = {})
   unassigned: [],
   eliminated: [],
   emptyStarterSlots: 0,
+  multiplier: 1,
   firstKickoff: null,
   ...overrides,
 });

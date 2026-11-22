@@ -5,7 +5,6 @@ import {
   eliminatedLastRound,
   hurtStarters,
   hurtStartersMessage,
-  nameWithTeam,
   playerDetail,
   roundIsFinal,
   roundScore,
@@ -23,8 +22,12 @@ describe("what a row says", () => {
   });
 
   it("shows the clock and live stats while the game is on", () => {
-    const live = lineupPlayer({ gameState: "live", gameClock: "8:42", statLine: "14/21, 168 yds" });
-    expect(playerDetail(live)).toBe("Live 8:42 · 14/21, 168 yds");
+    const live = lineupPlayer({
+      gameState: "live",
+      gameClock: "Q3 8:42",
+      statLine: "14/21, 168 yds",
+    });
+    expect(playerDetail(live)).toBe("Q3 8:42 · 14/21, 168 yds");
     expect(playerDetail(lineupPlayer({ gameState: "live" }))).toBe("Live · no stats yet");
   });
 
@@ -141,16 +144,5 @@ describe("hurt starters", () => {
     expect(
       hurtStartersMessage([hurt({ name: "A" }), hurt({ name: "B", injuryStatus: "Doubtful" })]),
     ).toBe("2 starters are hurt: A, B. Swap them out before their games start.");
-  });
-});
-
-describe("nameWithTeam", () => {
-  it("adds the NFL team, except for a defense that is already named for it", () => {
-    expect(
-      nameWithTeam(lineupPlayer({ name: "Baker Mayfield", position: "QB", teamAbv: "TB" })),
-    ).toBe("Baker Mayfield · TB");
-    expect(
-      nameWithTeam(lineupPlayer({ name: "Buffalo Bills", position: "DST", teamAbv: "BUF" })),
-    ).toBe("Buffalo Bills");
   });
 });

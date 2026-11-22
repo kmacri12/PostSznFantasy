@@ -70,23 +70,29 @@ describe("InboxBell", () => {
     expect(screen.getAllByRole("img", { name: "Unread" })).toHaveLength(1);
   });
 
-  it("marks a tapped entry read and opens its page", async () => {
+  it("marks everything read on opening, keeps the new dot while open, and a tap opens the page", async () => {
     renderBell();
     fireEvent.click(await screen.findByRole("button", { name: "Notifications, 1 unread" }));
+    await waitFor(() => expect(api.post).toHaveBeenCalledWith("/api/notifications/read", {}));
+    expect(screen.queryByRole("button", { name: "Mark all as read" })).toBeNull();
+    expect(screen.getAllByRole("img", { name: "Unread" })).toHaveLength(1);
     fireEvent.click(screen.getByRole("button", { name: /You're on the clock/ }));
-    await waitFor(() =>
-      expect(api.post).toHaveBeenCalledWith("/api/notifications/read", { ids: [7] }),
-    );
+    expect(api.post).toHaveBeenCalledTimes(1);
     expect(screen.getByTestId("where").textContent).toBe("/leagues/3/draft");
   });
 
-  it("does not mark a read entry again, and Mark all as read clears the rest", async () => {
+  it("does not post anything when nothing is unread", async () => {
+    vi.mocked(api.get).mockResolvedValue({
+      data: {
+        ...INBOX,
+        unreadCount: 0,
+        items: INBOX.items.map((item) => ({ ...item, read: true })),
+      },
+    });
     renderBell();
-    fireEvent.click(await screen.findByRole("button", { name: "Notifications, 1 unread" }));
-    fireEvent.click(screen.getByRole("button", { name: "Mark all as read" }));
-    await waitFor(() => expect(api.post).toHaveBeenCalledWith("/api/notifications/read", {}));
+    fireEvent.click(await screen.findByRole("button", { name: "Notifications" }));
     fireEvent.click(screen.getByRole("button", { name: /changed your lineup/ }));
-    expect(api.post).toHaveBeenCalledTimes(1);
+    expect(api.post).not.toHaveBeenCalled();
     expect(screen.getByTestId("where").textContent).toBe("/leagues/3/teams/12");
   });
 

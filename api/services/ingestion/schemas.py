@@ -81,6 +81,26 @@ def safe_str(val: Any) -> str | None:
     return s if s else None
 
 
+_PERIODS = {"1st": "Q1", "2nd": "Q2", "3rd": "Q3", "4th": "Q4"}
+
+
+def game_clock_label(period: Any, clock: Any) -> str | None:
+    """Tank01's live `currentPeriod` ("2nd", "OT", "Half") and `gameClock` ("1:55")
+    as one label, "Q2 1:55": a clock alone says nothing about where the game is."""
+    raw_period = (safe_str(period) or "").strip()
+    time = (safe_str(clock) or "").strip()
+    lowered = raw_period.lower()
+    if lowered.startswith("final") or lowered == "":
+        label = ""
+    elif lowered.startswith("half"):
+        return "Half"
+    elif "ot" in lowered or "overtime" in lowered:
+        label = "OT"
+    else:
+        label = _PERIODS.get(lowered, raw_period)
+    return " ".join(part for part in (label, time) if part) or None
+
+
 def normalise_position(raw: Any) -> str | None:
     """Fullbacks are running backs and Tank01's `PK` kickers are `K` everywhere in the app."""
     position = safe_str(raw)

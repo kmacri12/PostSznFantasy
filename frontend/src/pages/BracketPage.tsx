@@ -15,14 +15,14 @@ const BracketPage = () => {
   const off = isAxiosError(bracket.error) && bracket.error.response?.status === 404;
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 2, md: 3 } }}>
-      <BackHeader title="NFL bracket" fallback={paths.home} />
+      <BackHeader title="NFL schedule" fallback={paths.home} />
       {off ? (
         <EmptyState
-          title="The bracket is off for now"
+          title="The schedule is off for now"
           description="It will be back. Your lineups and standings are not affected."
         />
       ) : (
-        <QueryBoundary query={bracket} what="the bracket">
+        <QueryBoundary query={bracket} what="the schedule">
           {(data) => <BracketView bracket={data} />}
         </QueryBoundary>
       )}

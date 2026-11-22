@@ -1,75 +1,103 @@
 import { Box, Typography } from "@mui/material";
-import type { BracketGame, BracketTeam } from "../../api/types";
+import { useGamePlayers } from "../../api/queries";
+import type { BracketGame, GamePlayer, GameSide } from "../../api/types";
+import { useSeasonContext } from "../../contexts/SeasonContext";
 import { tokens } from "../../theme";
-import { positionColor } from "../draft/positions";
+import { friendlyError } from "../common/friendlyError";
+import TeamLogo from "../common/TeamLogo";
+import { positionChipSx } from "../draft/positions";
+import { formatPoints } from "../league/standingsView";
 import SettingsSheet from "../settings/SettingsSheet";
-import { gameStatusText, matchupTitle } from "./bracketView";
+import { gameStatusText, matchupTitle, shortPlayerName } from "./bracketView";
 
-const Heading = ({ children }: { children: string }) => (
-  <Typography component="h3" sx={{ fontSize: 13, fontWeight: 600, color: tokens.muted }}>
-    {children}
-  </Typography>
-);
-
-const PositionTag = ({ position }: { position: string }) => (
-  <Box
-    component="span"
-    sx={{
-      bgcolor: positionColor(position),
-      borderRadius: 1,
-      px: 0.75,
-      minWidth: 28,
-      textAlign: "center",
-      fontSize: 12,
-      fontWeight: 600,
-      flex: "none",
-    }}
-  >
-    {position}
-  </Box>
-);
-
-const Line = ({
-  position,
-  name,
-  trailing,
-}: {
-  position: string;
-  name: string;
-  trailing: string;
-}) => (
-  <Box
-    component="li"
-    sx={{ display: "flex", alignItems: "center", gap: 1, minHeight: 36, listStyle: "none" }}
-  >
-    <PositionTag position={position} />
-    <Typography noWrap sx={{ flex: 1, minWidth: 0, fontSize: 14 }}>
-      {name}
+/**
+ * Two lines so two teams fit side by side on a phone: position, short name and points, then the
+ * fantasy team underneath ("Not drafted" when nobody has him); the viewer's own players in accent.
+ */
+const PlayerCell = ({ player }: { player: GamePlayer }) => (
+  <Box component="li" sx={{ listStyle: "none", py: 0.75, borderTop: `1px solid ${tokens.border}` }}>
+    <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, minWidth: 0 }}>
+      <Box
+        component="span"
+        sx={{
+          ...positionChipSx(player.position),
+          fontSize: 11,
+          minWidth: 30,
+          px: 0,
+          py: 0.125,
+          textAlign: "center",
+          flex: "none",
+        }}
+      >
+        {player.position}
+      </Box>
+      <Typography noWrap sx={{ flex: 1, minWidth: 0, fontSize: 14, fontWeight: 600 }}>
+        {shortPlayerName(player)}
+      </Typography>
+      <Typography sx={{ fontSize: 14, fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>
+        {player.points === null ? "-" : formatPoints(player.points)}
+      </Typography>
+    </Box>
+    <Typography
+      noWrap
+      sx={{
+        fontSize: 12,
+        mt: 0.25,
+        pl: "38px",
+        color: player.mine ? tokens.accent : tokens.muted,
+        fontWeight: player.mine ? 700 : 400,
+      }}
+    >
+      {player.fantasyTeam ?? "Not drafted"}
     </Typography>
-    <Typography sx={{ fontSize: 13, color: tokens.muted, flex: "none" }}>{trailing}</Typography>
   </Box>
 );
 
-const TeamTop = ({ team }: { team: BracketTeam | null }) => (
-  <Box>
-    <Heading>{team ? `${team.city} ${team.name}: top players` : "Team to be decided"}</Heading>
-    {team && team.topPlayers.length > 0 ? (
-      <Box component="ul" sx={{ m: 0, p: 0 }}>
-        {team.topPlayers.map((p) => (
-          <Line key={p.id} position={p.position} name={p.name} trailing={`${p.points} pts`} />
+const SideColumn = ({ side }: { side: GameSide }) => (
+  <Box sx={{ minWidth: 0 }}>
+    <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mb: 0.5 }}>
+      <TeamLogo abbreviation={side.team.abbreviation} size={18} />
+      <Typography component="h3" sx={{ fontSize: 15, fontWeight: 700, flex: 1 }}>
+        {side.team.abbreviation}
+      </Typography>
+      {side.points !== null && (
+        <Typography sx={{ fontSize: 15, fontWeight: 700 }}>{side.points}</Typography>
+      )}
+    </Box>
+    {side.players.length > 0 ? (
+      <Box component="ul" sx={{ m: 0, p: 0 }} aria-label={`${side.team.abbreviation} players`}>
+        {side.players.map((player) => (
+          <PlayerCell key={player.id} player={player} />
         ))}
       </Box>
     ) : (
-      team && (
-        <Typography sx={{ fontSize: 13, color: tokens.muted }}>
-          No regular-season stats yet.
-        </Typography>
-      )
+      <Typography sx={{ fontSize: 13, color: tokens.muted }}>No one drafted yet.</Typography>
     )}
   </Box>
 );
 
-/** A game's players: each team's top scorers, then the caller's own players in it. */
+const Players = ({ game }: { game: BracketGame & { id: string } }) => {
+  const { seasonId } = useSeasonContext();
+  const players = useGamePlayers(seasonId, game.id);
+  if (players.isLoading) {
+    return <Typography sx={{ fontSize: 13, color: tokens.muted }}>Loading players…</Typography>;
+  }
+  if (!players.data) {
+    return (
+      <Typography role="alert" sx={{ fontSize: 13, color: tokens.muted }}>
+        {friendlyError(players.error, "Couldn't load this game's players. Try again.")}
+      </Typography>
+    );
+  }
+  return (
+    <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.5 }}>
+      <SideColumn side={players.data.away} />
+      <SideColumn side={players.data.home} />
+    </Box>
+  );
+};
+
+/** A schedule game as a stat page: each side's players with this game's fantasy points. */
 const GameSheet = ({ game, onClose }: { game: BracketGame; onClose: () => void }) => (
   <SettingsSheet title={matchupTitle(game)} onClose={onClose} closeLabel="Close">
     <Typography sx={{ fontSize: 14, color: tokens.textSoft }}>
@@ -78,27 +106,13 @@ const GameSheet = ({ game, onClose }: { game: BracketGame; onClose: () => void }
         ? ` · ${game.away?.abbreviation ?? "TBD"} ${game.awayPoints}, ${game.home?.abbreviation ?? "TBD"} ${game.homePoints}`
         : ""}
     </Typography>
-    <Box>
-      <Heading>Your players in this game</Heading>
-      {game.myPlayers.length > 0 ? (
-        <Box component="ul" sx={{ m: 0, p: 0 }}>
-          {game.myPlayers.map((p) => (
-            <Line
-              key={p.id}
-              position={p.position}
-              name={p.name}
-              trailing={p.role === "starter" ? "Starter" : "Bench"}
-            />
-          ))}
-        </Box>
-      ) : (
-        <Typography sx={{ fontSize: 13, color: tokens.muted }}>
-          None yet. Players on your roster from these teams show up here once you have drafted.
-        </Typography>
-      )}
-    </Box>
-    <TeamTop team={game.away} />
-    <TeamTop team={game.home} />
+    {game.id && game.home && game.away ? (
+      <Players game={{ ...game, id: game.id }} />
+    ) : (
+      <Typography sx={{ fontSize: 13, color: tokens.muted }}>
+        The teams are not decided yet.
+      </Typography>
+    )}
   </SettingsSheet>
 );
 

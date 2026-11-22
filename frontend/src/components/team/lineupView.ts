@@ -11,10 +11,6 @@ export const rowState = (player: LineupPlayer): RowState => {
   return "ready";
 };
 
-/** "Baker Mayfield · TB"; a defense is already named for its team, so it stays as is. */
-export const nameWithTeam = (player: LineupPlayer): string =>
-  player.teamAbv && player.position !== "DST" ? `${player.name} · ${player.teamAbv}` : player.name;
-
 /** The line under a name: the game's day and time, the live stats, or the final stats. */
 export const playerDetail = (player: LineupPlayer): string => {
   if (player.status === "eliminated") {
@@ -23,7 +19,7 @@ export const playerDetail = (player: LineupPlayer): string => {
   }
   if (player.status === "bye") return "Bye · scores 0";
   if (player.gameState === "live") {
-    const status = player.gameClock ? `Live ${player.gameClock}` : "Live";
+    const status = player.gameClock ?? "Live";
     return `${status} · ${player.statLine ?? "no stats yet"}`;
   }
   if (player.gameState === "final") return player.statLine ?? "No stats";

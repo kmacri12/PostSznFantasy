@@ -38,5 +38,5 @@ export const ROUNDS = [
 /** The owner, then the rest of the detail line (players left, live) once a round is on. */
 export const rowDetail = (row: StandingsRow, live: boolean): { owner: string; rest: string } => ({
   owner: row.owner ?? "Waiting for a player",
-  rest: live ? `${row.playersLeft} left · ${row.progress.live} live` : "",
+  rest: live ? `${row.playersLeft} left` : "",
 });

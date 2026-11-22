@@ -59,17 +59,17 @@ describe("MorePage", () => {
     expect(screen.queryByRole("link", { name: "Draft board" })).toBeNull();
   });
 
-  it("links to the NFL bracket unless the owner turned it off", () => {
+  it("links to the NFL schedule unless the owner turned it off", () => {
     mocks.bracket = true;
     const { unmount } = renderMore();
-    expect(screen.getByRole("link", { name: /NFL bracket/ })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /NFL schedule/ })).toHaveAttribute(
       "href",
-      "/leagues/3/bracket",
+      "/leagues/3/schedule",
     );
     unmount();
     mocks.bracket = false;
     renderMore();
-    expect(screen.queryByRole("link", { name: /NFL bracket/ })).toBeNull();
+    expect(screen.queryByRole("link", { name: /NFL schedule/ })).toBeNull();
     mocks.bracket = true;
   });
 

@@ -205,26 +205,17 @@ const gamesLine = (standings: Standings): string => {
   return parts.length > 0 ? parts.join(", ") : "No games yet";
 };
 
-/** Eliminated players are left out: only starters still to score count here. */
-const lineupLine = (standings: Standings, teamId: number | null): string | null => {
-  const mine = standings.teams.find((row) => row.teamId === teamId);
-  if (!mine) return null;
-  const { live, toPlay, finished } = mine.progress;
-  const parts = [live > 0 ? `${live} live` : null, toPlay > 0 ? `${toPlay} to play` : null].filter(
-    Boolean,
-  );
-  if (parts.length > 0) return parts.join(", ");
-  return finished > 0 ? "all games final" : null;
-};
-
+/** While a game is on, the games line moves under the title next to how fresh the scores are. */
 const PlayoffBlock = ({ season, standings }: { season: SeasonOverview; standings: Standings }) => {
-  const mine = lineupLine(standings, season.myTeamId);
+  const { paths } = useSeasonContext();
+  const games = gamesLine(standings);
+  const live = standings.gamesInProgress > 0;
   return (
     <Block>
       <Row>
         <Title>{ROUND_LABELS[standings.round]}</Title>
-        <Detail>{[gamesLine(standings), mine].filter(Boolean).join(" · ")}</Detail>
-        <LiveIndicator seasonId={season.id} />
+        {!live && <Detail>{games}</Detail>}
+        <LiveIndicator seasonId={season.id} games={games} schedule={paths.schedule} />
       </Row>
     </Block>
   );
@@ -250,7 +241,7 @@ const AfterDraft = ({ season }: { season: SeasonOverview }) => {
   return standings ? <PlayoffBlock season={season} standings={standings} /> : null;
 };
 
-/** A small link row under the standings; hidden while the owner's bracket kill switch is off. */
+/** A small link row under the standings to the NFL schedule; hidden while the owner's kill switch (`bracket`) is off. */
 export const BracketLink = () => {
   const { paths } = useSeasonContext();
   const { bracket } = useFeatures();
@@ -258,11 +249,11 @@ export const BracketLink = () => {
   return (
     <Button
       component={Link}
-      to={paths.bracket}
+      to={paths.schedule}
       endIcon={<ChevronRightIcon aria-hidden />}
       sx={{ minHeight: 44, alignSelf: "flex-start", fontWeight: 600 }}
     >
-      NFL bracket
+      NFL schedule
     </Button>
   );
 };

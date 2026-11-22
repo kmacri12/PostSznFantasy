@@ -70,7 +70,8 @@ describe("Standings", () => {
     expect(within(items[0] as HTMLElement).getByText("Team 1")).toBeInTheDocument();
     expect(within(items[0] as HTMLElement).getByText("84.2")).toBeInTheDocument();
     expect(within(items[0] as HTMLElement).getByText("12.6")).toBeInTheDocument();
-    expect(items[1]?.textContent).toContain("owner2, commissioner · 6 left · 2 live");
+    expect(items[1]?.textContent).toContain("owner2, commissioner · 6 left");
+    expect(items[1]?.textContent).not.toContain("live");
   });
 
   it("expands one row at a time to the four rounds, with a dash for rounds to come", () => {

@@ -1,7 +1,7 @@
 import { Box, Container } from "@mui/material";
 import { useQueryClient } from "@tanstack/react-query";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
-import { matchPath, Route, Routes, useLocation } from "react-router-dom";
+import { matchPath, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { isDormant, useApiHealth } from "./api/health";
 import { useUserLeagues } from "./api/queries";
 import RequireSignIn from "./components/auth/RequireSignIn";
@@ -140,7 +140,9 @@ function App() {
                   <Route path="draft" element={<DraftPage />} />
                   <Route path="settings" element={<SettingsPage />} />
                   <Route path="draft/board" element={<DraftBoardPage />} />
-                  <Route path="bracket" element={<BracketPage />} />
+                  <Route path="schedule" element={<BracketPage />} />
+                  {/* The schedule's old address, still in pushes and links shared before the rename. */}
+                  <Route path="bracket" element={<Navigate to="../schedule" replace />} />
                   <Route
                     path="feed"
                     element={
