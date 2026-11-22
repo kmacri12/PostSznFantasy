@@ -11,10 +11,6 @@ export const rowState = (player: LineupPlayer): RowState => {
   return "ready";
 };
 
-/** "Baker Mayfield · TB"; a defense is already named for its team, so it stays as is. */
-export const nameWithTeam = (player: LineupPlayer): string =>
-  player.teamAbv && player.position !== "DST" ? `${player.name} · ${player.teamAbv}` : player.name;
-
 /** The line under a name: the game's day and time, the live stats, or the final stats. */
 export const playerDetail = (player: LineupPlayer): string => {
   if (player.status === "eliminated") {

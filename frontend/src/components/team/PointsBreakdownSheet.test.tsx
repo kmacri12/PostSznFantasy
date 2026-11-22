@@ -1,8 +1,12 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { api } from "../../api/client";
+import { resetTeamLogosForTests } from "../../api/teamLogos";
 import { lineupPlayer } from "../../test/lineup";
 import PlayerRow from "./PlayerRow";
+
+vi.mock("../../api/client", () => ({ api: { get: vi.fn() } }));
 
 const baker = lineupPlayer({
   name: "Baker Mayfield",
@@ -26,12 +30,24 @@ const renderRow = (player = baker, multiplier = 1) =>
   );
 
 beforeEach(() => {
+  resetTeamLogosForTests();
+  vi.mocked(api.get).mockResolvedValue({ data: { TB: "https://a.espncdn.com/tb.png" } });
   window.matchMedia = ((query: string) => ({
     matches: true,
     media: query,
     addEventListener: () => {},
     removeEventListener: () => {},
   })) as unknown as typeof window.matchMedia;
+});
+
+describe("a lineup row", () => {
+  it("shows the NFL team's logo beside the abbreviation", async () => {
+    const { container } = renderRow();
+    await vi.waitFor(() =>
+      expect(container.querySelector('img[src="https://a.espncdn.com/tb.png"]')).not.toBeNull(),
+    );
+    expect(screen.getByText(/Baker Mayfield ·/)).toHaveTextContent("Baker Mayfield · TB");
+  });
 });
 
 describe("the score's breakdown", () => {

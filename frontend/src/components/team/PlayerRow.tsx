@@ -7,9 +7,10 @@ import ChangedScore from "../activity/ChangedScore";
 import SlotMarker from "../activity/SlotMarker";
 import HelpTip from "../common/HelpTip";
 import InjuryTag from "../common/InjuryTag";
+import TeamLogo from "../common/TeamLogo";
 import { positionChipSx, positionColor } from "../draft/positions";
 import { formatPoints } from "../league/standingsView";
-import { nameWithTeam, playerDetail, type RowState, rowState } from "./lineupView";
+import { playerDetail, type RowState, rowState } from "./lineupView";
 import PointsBreakdownSheet from "./PointsBreakdownSheet";
 
 const COLORS: Record<RowState, { label: string; name: string; detail: string; points: string }> = {
@@ -139,7 +140,17 @@ const PlayerRow = ({
                     textDecoration: eliminated ? "line-through" : "none",
                   }}
                 >
-                  {nameWithTeam(player)}
+                  {player.position === "DST" || !player.teamAbv ? (
+                    <>
+                      <TeamLogo abbreviation={player.teamAbv} size={14} />
+                      {player.name}
+                    </>
+                  ) : (
+                    <>
+                      {player.name} · <TeamLogo abbreviation={player.teamAbv} size={14} />
+                      {player.teamAbv}
+                    </>
+                  )}
                 </Typography>
                 <InjuryTag status={player.injuryStatus} compact />
               </Box>
