@@ -55,12 +55,27 @@ export const slotLabel = (slot: string): string => (slot === "SUPER_FLEX" ? "SFL
 export const startersOf = (lineup: RoundLineup): LineupSlot[] =>
   lineup.slots.filter((slot) => slot.slot !== BENCH_SLOT);
 
-export const benchPlayersOf = (lineup: RoundLineup): LineupPlayer[] => [
-  ...lineup.slots
-    .filter((slot) => slot.slot === BENCH_SLOT && slot.player !== null)
-    .map((slot) => slot.player as LineupPlayer),
-  ...lineup.unassigned,
-];
+const POSITION_ORDER = ["QB", "RB", "WR", "TE", "K", "DST"];
+const positionRank = (position: string): number => {
+  const rank = POSITION_ORDER.indexOf(position);
+  return rank === -1 ? POSITION_ORDER.length : rank;
+};
+
+/**
+ * Players in bench slots and players in no slot, as one list in the API's `bench_order`
+ * (QB, RB, WR, TE, K, DST, then name), so a starter moved to the bench lands in place.
+ */
+export const benchPlayersOf = (lineup: RoundLineup): LineupPlayer[] =>
+  [
+    ...lineup.slots
+      .filter((slot) => slot.slot === BENCH_SLOT && slot.player !== null)
+      .map((slot) => slot.player as LineupPlayer),
+    ...lineup.unassigned,
+  ].sort(
+    (a, b) =>
+      positionRank(a.position) - positionRank(b.position) ||
+      (a.name < b.name ? -1 : a.name > b.name ? 1 : 0),
+  );
 
 /** The page element the "Go to bench" button of the hurt-starter banner scrolls to. */
 export const BENCH_GROUP_ID = "lineup-bench";
