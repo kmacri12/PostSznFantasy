@@ -65,11 +65,41 @@ describe("SettingsSection rows", () => {
     render(
       <SettingsSection group={group} values={defaults} onChange={() => {}} defaults={defaults} />,
     );
-    expect(screen.getByText("Yard 0.1")).toBeTruthy();
+    expect(screen.getByRole("button", { name: /^Rushing\s*Yard\s*0\.1/ })).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: /Rushing/ }));
-    expect(screen.queryByText("Yard 0.1")).toBeNull();
+    expect(screen.queryByText("0.1")).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: /Rushing/ }));
-    expect(screen.getByText("Yard 0.1")).toBeTruthy();
+    expect(screen.getByText("0.1")).toBeTruthy();
+  });
+
+  it("lists each scored field as a label and a separate value", () => {
+    const pointsAllowed: SettingGroup = {
+      id: "pa",
+      title: "Defense",
+      fields: [
+        { key: "pa_0", label: "Pts Allowed 0" },
+        { key: "pa_1_13", label: "Pts Allowed 1-13" },
+        { key: "pa_35", label: "Pts Allowed 35+" },
+      ],
+    };
+    render(
+      <SettingsSection
+        group={pointsAllowed}
+        values={{ pa_0: 7, pa_1_13: 5, pa_35: 0 }}
+        onChange={() => {}}
+        disabled
+      />,
+    );
+    expect(screen.getAllByRole("term").map((term) => term.textContent)).toEqual([
+      "Pts Allowed 0",
+      "Pts Allowed 1-13",
+    ]);
+    expect(screen.getAllByRole("definition").map((value) => value.textContent)).toEqual(["7", "5"]);
+  });
+
+  it("says Nothing scored when every field is 0", () => {
+    render(<SettingsSection group={group} values={{}} onChange={() => {}} disabled />);
+    expect(screen.getByText("Nothing scored")).toBeTruthy();
   });
 
   it("explains every roster and scoring setting in its help", () => {
