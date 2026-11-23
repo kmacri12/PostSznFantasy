@@ -159,6 +159,13 @@ describe("PhaseBlock", () => {
     expect(screen.getByText("All final")).toBeInTheDocument();
   });
 
+  it("carries the NFL schedule link in the playoff title row", () => {
+    mocks.draft = { data: { draftCutoff: "2026-01-02T00:00:00Z" }, isLoading: false };
+    mocks.standings = { data: standings({ gamesInProgress: 0, gamesFinal: 2, gamesToPlay: 4 }) };
+    show({ draftStatus: "completed" });
+    expect(screen.getByRole("link", { name: "NFL schedule" })).toBeInTheDocument();
+  });
+
   it("leaves the NFL schedule link to the row under the standings", () => {
     show({ draftStatus: "unscheduled", canCommission: false });
     expect(screen.queryByRole("link", { name: "NFL schedule" })).not.toBeInTheDocument();
