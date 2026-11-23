@@ -1,8 +1,9 @@
 import { Box, ButtonBase, ClickAwayListener, Popper } from "@mui/material";
 import { type KeyboardEvent, useId, useRef, useState } from "react";
 import { tokens } from "../../theme";
-import { PLAYER_STATUSES, type RosterStatus } from "./lineupView";
-import { playersLeftText, STATUS_COLOR, STATUS_LABEL, statusSummary } from "./statusStyle";
+import type { RosterStatus } from "./lineupView";
+import { StatusBreakdownList } from "./StatusBreakdown";
+import { playersLeftText, statusSummary } from "./statusStyle";
 
 /**
  * "10 players left" as a text button; a tap opens what the dots around the team picture mean, with
@@ -12,7 +13,6 @@ const PlayersLeft = ({ status }: { status: RosterStatus }) => {
   const [open, setOpen] = useState(false);
   const anchor = useRef<HTMLButtonElement>(null);
   const legendId = useId();
-  const present = PLAYER_STATUSES.filter((entry) => status.counts[entry] > 0);
   const onKeyDown = (event: KeyboardEvent) => {
     if (event.key !== "Escape" || !open) return;
     event.stopPropagation();
@@ -45,37 +45,7 @@ const PlayersLeft = ({ status }: { status: RosterStatus }) => {
           &nbsp;{status.left === 1 ? "player" : "players"} left
         </ButtonBase>
         <Popper open={open} anchorEl={anchor.current} placement="bottom" sx={{ zIndex: 1500 }}>
-          <Box
-            id={legendId}
-            role="note"
-            sx={{
-              p: 1.5,
-              display: "grid",
-              gap: 0.75,
-              bgcolor: tokens.surfaceRaised,
-              color: tokens.text,
-              border: `1px solid ${tokens.borderStrong}`,
-              borderRadius: 2,
-              boxShadow: 4,
-              fontSize: 13,
-            }}
-          >
-            {present.map((entry) => (
-              <Box key={entry} sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <Box
-                  aria-hidden
-                  component="span"
-                  sx={{
-                    width: 9,
-                    height: 9,
-                    borderRadius: "50%",
-                    bgcolor: STATUS_COLOR[entry],
-                  }}
-                />
-                <b>{status.counts[entry]}</b> {STATUS_LABEL[entry]}
-              </Box>
-            ))}
-          </Box>
+          <StatusBreakdownList counts={status.counts} id={legendId} />
         </Popper>
       </Box>
     </ClickAwayListener>

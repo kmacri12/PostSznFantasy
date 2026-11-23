@@ -4,7 +4,7 @@ import StatusRing from "./StatusRing";
 
 const ring = (counts: { advanced: number; live: number; toPlay: number; eliminated: number }) =>
   render(
-    <StatusRing counts={counts} size={44} label="ring">
+    <StatusRing counts={counts} size={44}>
       <span>pic</span>
     </StatusRing>,
   );

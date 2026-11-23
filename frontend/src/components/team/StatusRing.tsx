@@ -18,8 +18,6 @@ interface Props {
   /** The picture's diameter. */
   size: number;
   children: ReactNode;
-  /** Spoken name for the ring; leave out where the page already says the same in words. */
-  label?: string;
 }
 
 /**
@@ -29,7 +27,7 @@ interface Props {
  * player in it never gets the wash; see `playerStatus`.) The dots take no height: they overlap
  * the space above and below the picture.
  */
-const StatusRing = ({ counts, size, children, label }: Props) => {
+const StatusRing = ({ counts, size, children }: Props) => {
   const total = counts ? PLAYER_STATUSES.reduce((sum, status) => sum + counts[status], 0) : 0;
   if (!counts || total === 0) return <>{children}</>;
   const reach = ringReach(size);
@@ -79,9 +77,7 @@ const StatusRing = ({ counts, size, children, label }: Props) => {
         width={box}
         height={box}
         viewBox={`0 0 ${box} ${box}`}
-        role={label ? "img" : undefined}
-        aria-label={label}
-        aria-hidden={label ? undefined : true}
+        aria-hidden
         style={{
           position: "absolute",
           left: 0,

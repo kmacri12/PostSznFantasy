@@ -11,7 +11,7 @@ export const STATUS_COLOR: Record<PlayerStatus, string> = {
 export const STATUS_LABEL: Record<PlayerStatus, string> = {
   advanced: "advanced",
   live: "live",
-  toPlay: "to play",
+  toPlay: "yet to play",
   eliminated: "eliminated",
 };
 
