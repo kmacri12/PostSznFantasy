@@ -1,7 +1,13 @@
 import { Alert, Box, Button, Dialog, TextField, Typography } from "@mui/material";
 import { type FormEvent, useEffect, useState } from "react";
-import { useRenameTeam } from "../../api/queries";
-import { markTeamNamePrompted } from "../../utils/displayName";
+import { useRenameTeam, useTeam } from "../../api/queries";
+import { useUser } from "../../contexts/UserContext";
+import {
+  isDefaultTeamName,
+  markTeamNamePrompted,
+  suggestedTeamName,
+  teamNamePrompted,
+} from "../../utils/displayName";
 import { mutationError } from "../common/friendlyError";
 
 interface Props {
@@ -11,39 +17,49 @@ interface Props {
   onOpenChange: (open: boolean) => void;
 }
 
-/** After joining or creating a league: an optional team name instead of "Team 3". Asked once per team. */
+/**
+ * After joining or creating a league: "Name your team", prefilled with the name the API already
+ * gave it ("Team Kyle") so keeping it is one tap. It cannot be skipped or closed, and a reload
+ * asks again until it is saved, so no team stays a bare "Team 3" on the draft board.
+ */
 const TeamNameDialog = ({ teamId, pending, onOpenChange }: Props) => {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
   const rename = useRenameTeam(teamId ?? undefined);
+  const team = useTeam(teamId ?? undefined);
+  const { username } = useUser();
+  const current = team.data?.name;
 
   useEffect(() => {
-    if (!pending || teamId === null) return;
-    markTeamNamePrompted(teamId);
-    setValue("");
+    if (!pending || teamId === null || open || current === undefined) return;
+    if (teamNamePrompted(teamId)) return; // saved already; a reload mid-dialog asks again
+    // The API renames a "Team 3" after its owner when it is claimed; this is the fallback.
+    setValue(isDefaultTeamName(current) ? suggestedTeamName(username) : current);
     setOpen(true);
     onOpenChange(true);
-  }, [pending, teamId, onOpenChange]);
+  }, [pending, teamId, open, current, username, onOpenChange]);
 
   const close = () => {
+    if (teamId !== null) markTeamNamePrompted(teamId);
     setOpen(false);
     onOpenChange(false);
   };
   const trimmed = value.trim();
   const submit = (event: FormEvent) => {
     event.preventDefault();
+    if (trimmed === current) return close();
     rename.mutate(trimmed, { onSuccess: close });
   };
 
   if (!open) return null;
   return (
-    <Dialog open fullWidth maxWidth="xs" onClose={close} aria-labelledby="team-name-title">
+    <Dialog open fullWidth maxWidth="xs" aria-labelledby="team-name-title">
       <Box component="form" onSubmit={submit} sx={{ p: 2.5, display: "grid", gap: 2 }}>
         <Typography id="team-name-title" variant="h6" component="h2">
           Name your team
         </Typography>
         <Typography variant="body2" sx={{ color: "text.secondary" }}>
-          Optional. It shows in the standings and the draft.
+          It shows in the standings and on the draft board. Keep this one or change it.
         </Typography>
         <TextField
           autoFocus
@@ -65,9 +81,6 @@ const TeamNameDialog = ({ teamId, pending, onOpenChange }: Props) => {
           disabled={rename.isPending || trimmed === ""}
         >
           Save
-        </Button>
-        <Button onClick={close} sx={{ minHeight: 44 }}>
-          Skip for now
         </Button>
       </Box>
     </Dialog>

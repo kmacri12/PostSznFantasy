@@ -6,7 +6,6 @@ const mocks = vi.hoisted(() => ({
   user: { email: "secret.person@example.com", user_metadata: {} } as unknown,
   needsNameSetup: true,
   updateDisplayName: vi.fn(),
-  skipNameSetup: vi.fn(),
 }));
 
 vi.mock("../../contexts/UserContext", () => ({ useUser: () => mocks }));
@@ -15,7 +14,6 @@ beforeEach(() => {
   mocks.user = { email: "secret.person@example.com", user_metadata: {} };
   mocks.needsNameSetup = true;
   mocks.updateDisplayName.mockReset().mockResolvedValue(null);
-  mocks.skipNameSetup.mockReset();
 });
 
 describe("NameSetupDialog", () => {
@@ -37,13 +35,18 @@ describe("NameSetupDialog", () => {
     expect(screen.getByLabelText("Display name")).toHaveValue("Pat Jones");
   });
 
-  it("saves a trimmed name and can be skipped", async () => {
+  it("saves a trimmed name", async () => {
     render(<NameSetupDialog />);
     fireEvent.change(screen.getByLabelText("Display name"), { target: { value: "  Coach  " } });
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
     await waitFor(() => expect(mocks.updateDisplayName).toHaveBeenCalledWith("  Coach  "));
-    fireEvent.click(screen.getByRole("button", { name: "Skip for now" }));
-    expect(mocks.skipNameSetup).toHaveBeenCalled();
+  });
+
+  it("cannot be skipped or closed with Escape", () => {
+    render(<NameSetupDialog />);
+    expect(screen.queryByRole("button", { name: "Skip for now" })).toBeNull();
+    fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
 
   it("shows the problem for a whitespace-only name", () => {

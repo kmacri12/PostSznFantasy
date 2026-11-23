@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { MAX_NAME_LENGTH, nameProblem, providerName, trimToCodePoints } from "./displayName";
+import {
+  isDefaultTeamName,
+  MAX_NAME_LENGTH,
+  nameProblem,
+  providerName,
+  suggestedTeamName,
+  trimToCodePoints,
+} from "./displayName";
 
 const googleUser = (name: unknown, email = "secret.person@example.com") =>
   ({ email, user_metadata: { full_name: name } }) as never;
@@ -37,5 +44,22 @@ describe("providerName", () => {
     expect(providerName(googleUser(undefined))).toBeUndefined();
     expect(providerName(googleUser("   "))).toBeUndefined();
     expect(providerName(null)).toBeUndefined();
+  });
+});
+
+describe("suggestedTeamName", () => {
+  it("is Team and the first word of the display name", () => {
+    expect(suggestedTeamName("Kyle Macri")).toBe("Team Kyle");
+    expect(suggestedTeamName("  Pat ")).toBe("Team Pat");
+    expect(suggestedTeamName("")).toBe("");
+    expect(suggestedTeamName(null)).toBe("");
+  });
+});
+
+describe("isDefaultTeamName", () => {
+  it("is true only for a bare Team N", () => {
+    expect(isDefaultTeamName("Team 3")).toBe(true);
+    expect(isDefaultTeamName("Team Kyle")).toBe(false);
+    expect(isDefaultTeamName(undefined)).toBe(false);
   });
 });

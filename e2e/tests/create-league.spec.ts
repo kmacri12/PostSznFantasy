@@ -62,7 +62,7 @@ test("Customize rules walks the roster, scoring and review steps", async ({
   await expect(page).toHaveURL(/\/leagues\/\d+$/);
   const teamName = page.getByRole("dialog", { name: "Name your team" });
   await expect(teamName).toBeVisible();
-  await teamName.getByRole("button", { name: "Skip for now" }).click();
+  await teamName.getByRole("button", { name: "Save" }).click();
   await expect(page.getByText("Invite your friends")).toBeVisible();
 });
 

@@ -15,7 +15,7 @@ from api.db.models.league import (
 from api.db.models.user import User
 from api.models.activity_models import MembershipJoinedPayload
 from api.models.enums import LeagueRole
-from api.services import activity
+from api.services import activity, team_names
 from api.services.display_names import disambiguate
 from api.services.league_admin import draft_has_started
 from api.services.league_members import LeagueFullError, LeagueRuleError
@@ -224,6 +224,7 @@ async def join_league(
         if team is None:
             raise LeagueFullError(LEAGUE_FULL_MESSAGE)
         team.owner_id = user.id
+        await team_names.name_after_owner(db, team, user)
     if existing is not None:
         existing.left_at = None
         existing.role = LeagueRole.MEMBER.value

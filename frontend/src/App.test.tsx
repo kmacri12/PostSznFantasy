@@ -19,6 +19,7 @@ vi.mock("./api/health", () => ({
 }));
 vi.mock("./api/queries", () => ({
   useUserLeagues: () => ({ data: [] }),
+  useTeam: () => ({ data: undefined }),
   useRenameTeam: () => ({ mutate: vi.fn(), isPending: false, isError: false, error: null }),
 }));
 vi.mock("./contexts/UserContext", () => ({

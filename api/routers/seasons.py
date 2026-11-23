@@ -9,6 +9,7 @@ from sqlalchemy.orm import selectinload
 from api.db.models.draft import Draft, DraftPick
 from api.db.models.league import LeagueMember as LeagueMemberRow
 from api.db.models.league import SeasonSettings, Team
+from api.db.models.user import User
 from api.db.session import DbSession
 from api.dependencies.league import SeasonCommissioner, SeasonMember
 from api.models.bracket_models import Bracket, GamePlayers, PlayerPostseason
@@ -25,7 +26,7 @@ from api.models.league_models import (
     merged_roster_updates,
 )
 from api.models.recap_models import SeasonRecap
-from api.services import feature_flags
+from api.services import feature_flags, team_names
 from api.services.activity import Actor
 from api.services.avatars import avatar_url
 from api.services.bracket import build_bracket
@@ -258,6 +259,10 @@ async def assign_team_owner(
             .values(owner_id=None)
         )
     team.owner_id = payload.user_id
+    if payload.user_id is not None:
+        new_owner = await db.get(User, payload.user_id)
+        if new_owner is not None:
+            await team_names.name_after_owner(db, team, new_owner)
     await db.flush()
     await db.refresh(team)
     return await get_season(season_id, membership, db)

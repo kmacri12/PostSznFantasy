@@ -15,7 +15,8 @@ import {
 import { useLocation, useNavigate } from "react-router-dom";
 import { api } from "../api/client";
 import { authCallbackUrl, signInPath } from "../utils/authRedirect";
-import { markNameSkipped, nameProblem, nameSkipped, providerName } from "../utils/displayName";
+import { nameProblem, nameSkipped, providerName } from "../utils/displayName";
+import { E2E_BUILD } from "../utils/e2e";
 import { createLogger } from "../utils/logger";
 import { clearOfflineData } from "../utils/offlineCache";
 import { forgetThisDevice, refreshPushSubscription } from "../utils/pushSetup";
@@ -29,9 +30,8 @@ interface UserContextType {
   userId: number | null;
   /** The name other members see (the API's, not the sign-in provider's), once known. */
   username: string | null;
-  /** First sign-in or still no name chosen: show "What should we call you?". */
+  /** First sign-in or still no name chosen: "What should we call you?" blocks the app until saved. */
   needsNameSetup: boolean;
-  skipNameSetup: () => void;
   /** The signed-in member's profile picture path, if they set one. */
   avatarUrl: string | null;
   setAvatarUrl: (avatarUrl: string | null) => void;
@@ -165,7 +165,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         });
         setUserId(response.data.userId);
         setUsername(response.data.username);
-        setNamePrompt(response.data.namePrompt && !nameSkipped(user.id));
+        setNamePrompt(response.data.namePrompt && !(E2E_BUILD && nameSkipped(user.id)));
         setAvatarUrl(response.data.avatarUrl ?? null);
         setSyncError(null);
         void refreshPushSubscription();
@@ -281,11 +281,6 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     [queryClient],
   );
 
-  const skipNameSetup = useCallback(() => {
-    if (user) markNameSkipped(user.id);
-    setNamePrompt(false);
-  }, [user]);
-
   const getIdToken = useCallback(async () => {
     const {
       data: { session: current },
@@ -299,7 +294,6 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       userId,
       username,
       needsNameSetup: namePrompt,
-      skipNameSetup,
       avatarUrl,
       setAvatarUrl,
       loading,
@@ -321,7 +315,6 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       userId,
       username,
       namePrompt,
-      skipNameSetup,
       avatarUrl,
       loading,
       sessionExpired,

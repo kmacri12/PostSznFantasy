@@ -23,7 +23,7 @@ test.describe("first sign-in", () => {
     await expect(page.getByRole("dialog", { name: "Profile settings" })).toContainText("Coach P");
   });
 
-  test("an account with no provider name starts empty, never from the email, and skipping sticks", async ({
+  test("an account with no provider name starts empty, never from the email, and cannot skip", async ({
     page,
     context,
   }) => {
@@ -32,13 +32,25 @@ test.describe("first sign-in", () => {
 
     const dialog = page.getByRole("dialog", { name: "What should we call you?" });
     await expect(dialog.getByLabel("Display name")).toHaveValue("");
+    await expect(dialog.getByRole("button", { name: "Skip for now" })).toHaveCount(0);
     await expect(dialog.getByRole("button", { name: "Save" })).toBeDisabled();
     await dialog.getByLabel("Display name").fill("   ");
     await expect(dialog.getByRole("button", { name: "Save" })).toBeDisabled();
-    await dialog.getByRole("button", { name: "Skip for now" }).click();
-    await expect(dialog).toHaveCount(0);
 
+    // Escape does not close it; the app stays behind the prompt until a name is saved.
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeVisible();
     await page.reload();
+    await expect(page.getByRole("dialog", { name: "What should we call you?" })).toBeVisible();
+
+    await page
+      .getByRole("dialog", { name: "What should we call you?" })
+      .getByLabel("Display name")
+      .fill("Kyle Macri");
+    await page
+      .getByRole("dialog", { name: "What should we call you?" })
+      .getByRole("button", { name: "Save" })
+      .click();
     await expect(page.getByRole("dialog", { name: "What should we call you?" })).toHaveCount(0);
   });
 });

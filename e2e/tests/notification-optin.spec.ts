@@ -85,7 +85,7 @@ test.describe("notification opt-in", () => {
       await expect(sheet).toBeHidden();
       await page
         .getByRole("dialog", { name: "Name your team" })
-        .getByRole("button", { name: "Skip for now" })
+        .getByRole("button", { name: "Save" })
         .click();
       await page.getByRole("button", { name: "Skip" }).click();
       await expect(sheet).toBeVisible();
@@ -102,6 +102,11 @@ test.describe("notification opt-in", () => {
       await page.getByLabel("League name").fill(unique("Created League"));
       await page.getByRole("button", { name: "Create league" }).click();
       await expect(page).toHaveURL(/\/leagues\/\d+$/);
+      // The team name prompt (prefilled, not skippable) comes first, then the tour.
+      await page
+        .getByRole("dialog", { name: "Name your team" })
+        .getByRole("button", { name: "Save" })
+        .click();
       await page.getByRole("button", { name: "Skip" }).click();
       await expect(page.getByText("Invite your friends")).toBeVisible();
       await expect(page.getByRole("dialog", { name: PROMPT })).toBeHidden();

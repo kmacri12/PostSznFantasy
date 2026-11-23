@@ -39,7 +39,7 @@ from api.models.enums import (
     PlayerPosition,
 )
 from api.models.picture_models import TeamPicture
-from api.services import activity
+from api.services import activity, team_names
 from api.services.avatars import avatar_url
 from api.services.draft_picks import (
     DraftPickError,
@@ -101,7 +101,7 @@ async def build_state(db: AsyncSession, draft: Draft) -> DraftStateResponse:
         DraftSlot(
             slot=index + 1,
             team_id=team_id,
-            team_name=by_id[team_id].name or f"Team {team_id}",
+            team_name=team_names.draft_label(by_id[team_id]),
             team_avatar_url=avatar_url(by_id[team_id].avatar_key),
             team_picture=TeamPicture(
                 color=by_id[team_id].picture_color, icon=by_id[team_id].picture_icon
