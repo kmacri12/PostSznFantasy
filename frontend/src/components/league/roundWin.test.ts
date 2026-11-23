@@ -23,6 +23,7 @@ const standings = (teams: StandingsRow[], over: Partial<Standings> = {}): Standi
   round: 1,
   gamesInProgress: 0,
   gamesFinal: 6,
+  gamesToPlay: 0,
   playersLeft: 9,
   teams,
   ...over,

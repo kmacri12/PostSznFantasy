@@ -194,6 +194,8 @@ export interface Standings {
   gamesInProgress: number;
   /** Games of that round that are over. */
   gamesFinal: number;
+  /** Games of that round that have not started. */
+  gamesToPlay: number;
   /** Players left summed over the whole league. */
   playersLeft: number;
   teams: StandingsRow[];

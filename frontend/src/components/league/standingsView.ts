@@ -1,4 +1,4 @@
-import type { StandingsRow } from "../../api/types";
+import type { Standings, StandingsRow } from "../../api/types";
 
 /** "T2" when another team shares the rank, so a shared title is never read as a win. */
 export const rankLabel = (rows: StandingsRow[], index: number): string => {
@@ -40,3 +40,21 @@ export const rowDetail = (row: StandingsRow, live: boolean): { owner: string; re
   owner: row.owner ?? "Waiting for a player",
   rest: live ? `${row.playersLeft} left` : "",
 });
+
+/**
+ * The round's games by state, leaving out any that is empty: "5 live · 2 final · 1 to play", or
+ * "All final" once every game is over. Empty when the round has no games yet.
+ */
+export const gamesSummary = (
+  standings: Pick<Standings, "gamesInProgress" | "gamesFinal" | "gamesToPlay">,
+): string => {
+  const { gamesInProgress: live, gamesFinal: final, gamesToPlay: toPlay } = standings;
+  if (final > 0 && live === 0 && toPlay === 0) return "All final";
+  return [
+    live > 0 ? `${live} live` : null,
+    final > 0 ? `${final} final` : null,
+    toPlay > 0 ? `${toPlay} to play` : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+};

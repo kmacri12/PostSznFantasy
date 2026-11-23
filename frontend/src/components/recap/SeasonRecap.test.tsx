@@ -20,6 +20,7 @@ const recap: Recap = {
     round: 4,
     gamesInProgress: 0,
     gamesFinal: 0,
+    gamesToPlay: 0,
     playersLeft: 0,
     teams: [],
   },

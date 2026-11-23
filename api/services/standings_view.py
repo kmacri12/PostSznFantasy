@@ -36,6 +36,7 @@ from api.services.round_status import (
     current_round,
     games_final,
     games_in_progress,
+    games_to_play,
     load_games,
 )
 from api.services.standings import load_ranking_facts
@@ -189,6 +190,7 @@ async def season_standings(db: AsyncSession, season_id: int) -> Standings:
         round=round_,
         games_in_progress=games_in_progress(games),
         games_final=games_final(games, round_),
+        games_to_play=games_to_play(games, round_),
         players_left=sum(row.players_left or 0 for row in rows),
         teams=[
             TeamStanding(

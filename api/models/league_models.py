@@ -438,6 +438,8 @@ class Standings(BaseSchema):
     games_in_progress: int
     # Games of that round that are over.
     games_final: int = 0
+    # Games of that round that have not started.
+    games_to_play: int = 0
     # Players left summed over every fantasy team in the league.
     players_left: int
     teams: list[TeamStanding]
