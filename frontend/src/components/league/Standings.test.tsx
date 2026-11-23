@@ -75,6 +75,24 @@ describe("Standings", () => {
     expect(items[1]?.textContent).not.toContain("live");
   });
 
+  it("draws each team's roster as dots by status while the season is on", () => {
+    const dots = { advanced: 4, live: 3, toPlay: 6, eliminated: 2 };
+    show({ ...live, teams: [row(1, 1, { rosterStatus: dots }), row(2, 2)] });
+    const items = within(phoneList()).getAllByRole("listitem");
+    expect(
+      within(items[0] as HTMLElement).getByRole("img", {
+        name: "Players by status: 4 advanced, 3 live, 6 to play, 2 eliminated",
+      }),
+    ).toBeInTheDocument();
+    expect(within(items[1] as HTMLElement).queryByRole("img")).toBeNull(); // no roster status
+  });
+
+  it("leaves the dots out of a finished season's table", () => {
+    const dots = { advanced: 4, live: 0, toPlay: 0, eliminated: 11 };
+    show({ ...live, teams: [row(1, 1, { rosterStatus: dots })] }, { finished: true });
+    expect(screen.queryByRole("img", { name: /Players by status/ })).toBeNull();
+  });
+
   it("expands one row at a time to the four rounds, with a dash for rounds to come", () => {
     show(live);
     const [first, second] = within(phoneList()).getAllByRole("button") as HTMLElement[];

@@ -24,6 +24,7 @@ import PictureAvatar from "../common/PictureAvatar";
 import QueryBoundary from "../common/QueryBoundary";
 import ShareCardButton from "../share/ShareCardButton";
 import { roundCard } from "../share/shareCards";
+import StatusPips, { STATUS_LABEL } from "../team/StatusPips";
 import RankCell from "./RankCell";
 import { formatPoints, isOpenSpot, ROUNDS, rankLabel, rowDetail, tieNote } from "./standingsView";
 
@@ -35,6 +36,25 @@ const RowDetail = ({ row, live }: { row: StandingsRow; live: boolean }) => {
       {row.isCommissioner && <CommissionerMark />}
       {rest && ` · ${rest}`}
     </>
+  );
+};
+
+/**
+ * One small square per rostered player (green advanced, blue live, grey to play, red eliminated),
+ * the same dots as the Team page. Only while the season is on, and wherever the team has players.
+ */
+const RowDots = ({ row, live }: { row: StandingsRow; live: boolean }) => {
+  const counts = row.rosterStatus;
+  if (!live || !counts) return null;
+  const players = counts.advanced + counts.live + counts.toPlay + counts.eliminated;
+  const label = (Object.keys(STATUS_LABEL) as (keyof typeof STATUS_LABEL)[])
+    .filter((status) => counts[status] > 0)
+    .map((status) => `${counts[status]} ${STATUS_LABEL[status]}`)
+    .join(", ");
+  return (
+    <Box role="img" aria-label={`Players by status: ${label}`} sx={{ mt: 0.5, display: "flex" }}>
+      <StatusPips counts={counts} size={6} gap={2} columns={players} />
+    </Box>
   );
 };
 
@@ -157,6 +177,7 @@ const PhoneRow = ({
             <Typography variant="caption" component="div" sx={{ color: color ?? "text.secondary" }}>
               <RowDetail row={row} live={!finished} />
             </Typography>
+            <RowDots row={row} live={!finished} />
           </Box>
           <Box sx={{ textAlign: "right", flexShrink: 0 }}>
             <Typography sx={{ fontSize: 20, fontWeight: 700, lineHeight: 1.2, color }}>
@@ -274,6 +295,7 @@ const DesktopTable = ({ rows, round, finished }: Omit<RowProps, "row" | "index">
                     <Typography variant="caption" sx={{ color: color ?? "text.secondary" }}>
                       <RowDetail row={row} live={!finished} />
                     </Typography>
+                    <RowDots row={row} live={!finished} />
                   </Box>
                 </Box>
               </TableCell>

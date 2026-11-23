@@ -60,6 +60,55 @@ export const gameOutcome = (player: LineupPlayer, superBowl = false): GameOutcom
   };
 };
 
+export type PlayerStatus = "advanced" | "live" | "toPlay" | "eliminated";
+
+/** Display order, and the order of the squares: green, blue, grey, then red at the end. */
+export const PLAYER_STATUSES: PlayerStatus[] = ["advanced", "live", "toPlay", "eliminated"];
+
+/** Where a rostered player stands in a round: through (won, or on a bye), playing, waiting, or out. */
+export const playerStatus = (player: LineupPlayer): PlayerStatus => {
+  if (player.status === "eliminated") return "eliminated";
+  if (player.status === "bye") return "advanced";
+  if (player.gameState === "live") return "live";
+  const outcome = gameOutcome(player);
+  if (outcome) return outcome.won ? "advanced" : "eliminated";
+  return "toPlay";
+};
+
+export interface RosterStatus {
+  round: number;
+  /** One entry per rostered player, in `PLAYER_STATUSES` order. */
+  statuses: PlayerStatus[];
+  counts: Record<PlayerStatus, number>;
+  /** Everyone not eliminated. */
+  left: number;
+}
+
+/**
+ * The whole roster's standing in the latest round whose first kickoff has passed, so a win stays
+ * "advanced" until the next round's first kickoff, when everyone left becomes to play. Before any
+ * kickoff it describes the first round. Null for an empty roster.
+ */
+export const rosterStatus = (lineups: RoundLineup[], now: Date): RosterStatus | null => {
+  const started = lineups.filter(
+    (lineup) => lineup.firstKickoff && new Date(lineup.firstKickoff) <= now,
+  );
+  const lineup = started.at(-1) ?? lineups[0];
+  if (!lineup) return null;
+  const players = [
+    ...lineup.slots.flatMap((slot) => (slot.player ? [slot.player] : [])),
+    ...lineup.unassigned,
+    ...lineup.eliminated,
+  ];
+  if (players.length === 0) return null;
+  const counts: Record<PlayerStatus, number> = { advanced: 0, live: 0, toPlay: 0, eliminated: 0 };
+  for (const player of players) counts[playerStatus(player)] += 1;
+  const statuses = PLAYER_STATUSES.flatMap((status) =>
+    Array.from({ length: counts[status] }, () => status),
+  );
+  return { round: lineup.round, statuses, counts, left: players.length - counts.eliminated };
+};
+
 /** The slot's label on a row: the lineup layout calls the superflex SUPER_FLEX. */
 export const slotLabel = (slot: string): string => (slot === "SUPER_FLEX" ? "SFLX" : slot);
 

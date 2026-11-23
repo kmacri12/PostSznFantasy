@@ -7,6 +7,8 @@ import {
   hurtStarters,
   hurtStartersMessage,
   playerDetail,
+  playerStatus,
+  rosterStatus,
   roundIsFinal,
   roundScore,
   rowState,
@@ -184,5 +186,62 @@ describe("hurt starters", () => {
     expect(
       hurtStartersMessage([hurt({ name: "A" }), hurt({ name: "B", injuryStatus: "Doubtful" })]),
     ).toBe("2 starters are hurt: A, B. Swap them out before their games start.");
+  });
+});
+
+describe("playerStatus and rosterStatus", () => {
+  const final = { gameState: "final" as const };
+  const won = lineupPlayer({ id: 1, ...final, teamScore: 27, opponentScore: 20 });
+  const lost = lineupPlayer({ id: 2, ...final, teamScore: 17, opponentScore: 24 });
+  const live = lineupPlayer({ id: 3, gameState: "live" });
+  const waiting = lineupPlayer({ id: 4, gameState: "scheduled" });
+  const out = lineupPlayer({ id: 5, status: "eliminated", eliminatedRound: 1 });
+  const bye = lineupPlayer({ id: 6, status: "bye" });
+
+  it("a win or a bye advances, a loss or an earlier exit is out, the rest are live or to play", () => {
+    expect(playerStatus(won)).toBe("advanced");
+    expect(playerStatus(bye)).toBe("advanced");
+    expect(playerStatus(lost)).toBe("eliminated");
+    expect(playerStatus(out)).toBe("eliminated");
+    expect(playerStatus(live)).toBe("live");
+    expect(playerStatus(waiting)).toBe("toPlay");
+    expect(playerStatus(lineupPlayer({ gameState: "final" }))).toBe("toPlay");
+  });
+
+  const lineup = (round: number, firstKickoff: string | null) =>
+    roundLineup(round, {
+      firstKickoff,
+      slots: [slot(0, "QB", won), slot(1, "RB", live), slot(2, "WR", null)],
+      unassigned: [waiting, bye],
+      eliminated: [lost, out],
+    });
+
+  it("counts the whole roster, in green, blue, grey, red order", () => {
+    const status = rosterStatus(
+      [lineup(1, "2027-01-09T18:00:00Z")],
+      new Date("2027-01-10T12:00:00Z"),
+    );
+    expect(status?.counts).toEqual({ advanced: 2, live: 1, toPlay: 1, eliminated: 2 });
+    expect(status?.statuses).toEqual([
+      "advanced",
+      "advanced",
+      "live",
+      "toPlay",
+      "eliminated",
+      "eliminated",
+    ]);
+    expect(status?.left).toBe(4);
+  });
+
+  it("describes the latest round that has kicked off, until the next one's first kickoff", () => {
+    const lineups = [lineup(1, "2027-01-09T18:00:00Z"), lineup(2, "2027-01-16T18:00:00Z")];
+    expect(rosterStatus(lineups, new Date("2027-01-13T12:00:00Z"))?.round).toBe(1);
+    expect(rosterStatus(lineups, new Date("2027-01-16T19:00:00Z"))?.round).toBe(2);
+    expect(rosterStatus(lineups, new Date("2027-01-01T12:00:00Z"))?.round).toBe(1);
+  });
+
+  it("is null for an empty roster", () => {
+    expect(rosterStatus([roundLineup(1)], new Date())).toBeNull();
+    expect(rosterStatus([], new Date())).toBeNull();
   });
 });
