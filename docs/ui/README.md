@@ -80,7 +80,7 @@ Phase block:
 | Draft not scheduled | Commissioner: "Invite your friends" with a **Copy invite link** button and "N of M teams filled. Draft date not set yet." Members: "Draft not yet scheduled by your commissioner" |
 | Scheduled, lobby, live | "Draft starts in" with a large countdown, date and time and "you pick 3rd", **Enter draft** button (the draft room has Start for commissioners) |
 | Drafted, before first kickoff | "Set your lineup, locks at kickoff <time>" with a button to Team |
-| Playoffs | Current round; while a game is on, one row under it reads "5 games live, 1 final · updated 4s ago", otherwise "N final" or "No games yet" beside the round. No counts of my own players here (the Team page has them) |
+| Playoffs | Current round; while a game is on, one row under it reads "5 live · 2 final · 1 to play · updated 4s ago" (each state with games, empty ones left out; "All final" when the round is over), otherwise "N final" or "No games yet" beside the round. No counts of my own players here (the Team page has them) |
 | Finished | Champion card, then the awards shown directly, then final standings pushed down |
 
 Standings header names the two figures: **Total** and **This rd** (the latter in the accent color, no outline). Rows: rank, team and owner ("commissioner" marked), **total points** (prominent), current round points in the current-round color with no pill around them (no "+"), "N left", tie marker. Tapping a row expands it (one at a time) to a four-round points table (current round outlined, future rounds a dash) and an **Open team page** button. Before the draft every team slot shows with its owner or "Open slot, waiting for a player"; there is no per-row invite action because the invite block above is the one obvious place. While the draft is only scheduled, every team shows 0.0 and shares rank 1.
@@ -192,11 +192,11 @@ Four places, each a cog or the avatar, none in More. A finished season keeps its
 
 - Archived: the same pages, read-only, with an "archived" banner; former members see only finished seasons they had a team in (as today). Past seasons are listed under More.
 - Desktop: the bottom tabs become a top navigation bar, each item an icon with its label right next to it (the same icons as the phone tabs), under the header with the league name. A wider centered column. Per page:
-  - League: standings as a table with inline round columns (Wild Card, Divisional, Conf., Super Bowl) and Total, plus "5 games live, 1 final · updated 20s ago".
+  - League: standings as a table with inline round columns (Wild Card, Divisional, Conf., Super Bowl) and Total, plus "5 live · 2 final · 1 to play · updated 20s ago".
   - Team: the round cells and lineup side by side in the wider column.
   - Draft room: the queue sits above the player list on the left; the board and a vertical roster (every slot on its own row, bench included) are always on screen on the right, with no Roster or Board buttons and no separate Queue tab.
   - Landing: the same hero with Sign in and How to play side by side, centered.
-- Live: scores and standings refresh automatically while games are on with a "5 games live, 1 final · updated 20s ago" indicator; nothing refreshes outside game windows. In code the standings poll every 20 seconds only while the standings report a live game, and refresh when the page regains focus otherwise; the indicator appears in the playoff phase block of the League tab. The team breakdown still polls on its own timer.
+- Live: scores and standings refresh automatically while games are on with a "5 live · 2 final · 1 to play · updated 20s ago" indicator; nothing refreshes outside game windows. In code the standings poll every 20 seconds only while the standings report a live game, and refresh when the page regains focus otherwise; the indicator appears in the playoff phase block of the League tab. The team breakdown still polls on its own timer.
 
 ## Behavior changes this implies
 

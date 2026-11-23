@@ -40,6 +40,7 @@ const live: Data = {
   round: 3,
   gamesInProgress: 2,
   gamesFinal: 1,
+  gamesToPlay: 0,
   playersLeft: 12,
   teams: [row(2, 2, { total: 71.6, confChamp: 9.4, isCommissioner: true }), row(1, 1)],
 };

@@ -25,6 +25,7 @@ const standings = (teams: StandingsRow[], extra: Partial<Standings> = {}): Stand
   round: 1,
   gamesInProgress: 0,
   gamesFinal: 6,
+  gamesToPlay: 0,
   playersLeft: 10,
   teams,
   ...extra,

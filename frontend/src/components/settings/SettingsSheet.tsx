@@ -2,6 +2,7 @@ import { Box, Button, Dialog, Drawer, Typography, useMediaQuery, useTheme } from
 import type { ReactNode } from "react";
 import { useBackClosesOverlay } from "../../hooks/useBackClosesOverlay";
 import { useSwipeDismiss } from "../../hooks/useSwipeDismiss";
+import { tokens } from "../../theme";
 
 interface Props {
   title: string;
@@ -40,7 +41,9 @@ const SettingsSheet = ({ title, onClose, closeLabel = "Done", children }: Props)
           position: "sticky",
           top: 0,
           zIndex: 1,
-          bgcolor: "background.paper",
+          // The sheet's own colour: the phone drawer is `bg`, the desktop dialog `background.paper`;
+          // anything else shows as a lighter box behind the title and Done.
+          bgcolor: phone ? tokens.bg : "background.paper",
         }}
       >
         <Typography variant="h6" component="h2">

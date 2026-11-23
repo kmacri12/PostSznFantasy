@@ -89,6 +89,7 @@ EXPECTED: dict[str, Policy] = {
     "DELETE /api/avatars/me": SIGNED_IN,
     "GET /api/notifications": SIGNED_IN,
     "POST /api/notifications/read": SIGNED_IN,
+    "DELETE /api/notifications": SIGNED_IN,
     "GET /api/push/preferences": SIGNED_IN,
     "PATCH /api/push/preferences": SIGNED_IN,
     "POST /api/push/subscriptions": SIGNED_IN,

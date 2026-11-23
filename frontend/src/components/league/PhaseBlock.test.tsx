@@ -24,6 +24,7 @@ const standings = (extra: Partial<Standings> = {}, mine = { live: 3, toPlay: 1 }
   round: 3,
   gamesInProgress: 2,
   gamesFinal: 1,
+  gamesToPlay: 0,
   playersLeft: 9,
   teams: [
     {
@@ -135,19 +136,27 @@ describe("PhaseBlock", () => {
 
   it("puts the games on the live row once the playoffs run, without my players' counts", () => {
     mocks.draft = { data: { draftCutoff: "2026-01-02T00:00:00Z" }, isLoading: false };
-    mocks.standings = { data: standings(), dataUpdatedAt: Date.now() };
+    mocks.standings = { data: standings({ gamesToPlay: 1 }), dataUpdatedAt: Date.now() };
     show({ draftStatus: "completed" });
     expect(screen.getByText("Conference Championship")).toBeInTheDocument();
-    expect(screen.getByText(/^2 games live, 1 final · updated \d+s ago$/)).toBeInTheDocument();
-    expect(screen.queryByText(/to play/)).toBeNull();
+    expect(
+      screen.getByText(/^2 live · 1 final · 1 to play · updated \d+s ago$/),
+    ).toBeInTheDocument();
   });
 
   it("shows the games line under the title while nothing is live", () => {
     mocks.draft = { data: { draftCutoff: "2026-01-02T00:00:00Z" }, isLoading: false };
-    mocks.standings = { data: standings({ gamesInProgress: 0, gamesFinal: 2 }) };
+    mocks.standings = { data: standings({ gamesInProgress: 0, gamesFinal: 2, gamesToPlay: 4 }) };
     show({ draftStatus: "completed" });
-    expect(screen.getByText("2 final")).toBeInTheDocument();
+    expect(screen.getByText("2 final · 4 to play")).toBeInTheDocument();
     expect(screen.queryByText(/updated/)).toBeNull();
+  });
+
+  it("says All final once every game of the round is over", () => {
+    mocks.draft = { data: { draftCutoff: "2026-01-02T00:00:00Z" }, isLoading: false };
+    mocks.standings = { data: standings({ gamesInProgress: 0, gamesFinal: 6 }) };
+    show({ draftStatus: "completed" });
+    expect(screen.getByText("All final")).toBeInTheDocument();
   });
 
   it("leaves the NFL schedule link to the row under the standings", () => {

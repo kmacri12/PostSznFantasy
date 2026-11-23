@@ -14,8 +14,7 @@ import { formatCountdown, formatDraftTime, ordinal, useNow } from "./countdown";
 import InviteLinkButton from "./InviteLinkButton";
 import LiveIndicator from "./LiveIndicator";
 import { afterDraftPhase } from "./phase";
-
-const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? "" : "s"}`;
+import { gamesSummary } from "./standingsView";
 
 const Block = ({ children }: { children: ReactNode }) => (
   <Box
@@ -197,13 +196,7 @@ const LineupBlock = ({
   );
 };
 
-const gamesLine = (standings: Standings): string => {
-  const parts = [
-    standings.gamesInProgress > 0 ? `${plural(standings.gamesInProgress, "game")} live` : null,
-    standings.gamesFinal > 0 ? `${standings.gamesFinal} final` : null,
-  ].filter(Boolean);
-  return parts.length > 0 ? parts.join(", ") : "No games yet";
-};
+const gamesLine = (standings: Standings): string => gamesSummary(standings) || "No games yet";
 
 /** While a game is on, the games line moves under the title next to how fresh the scores are. */
 const PlayoffBlock = ({ season, standings }: { season: SeasonOverview; standings: Standings }) => {

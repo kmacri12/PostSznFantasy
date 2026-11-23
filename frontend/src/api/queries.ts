@@ -585,6 +585,17 @@ export const useMarkInboxRead = () => {
   });
 };
 
+/** Deletes every entry of my inbox ("Clear all"). */
+export const useClearInbox = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      await api.delete("/api/notifications");
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: keys.inbox }),
+  });
+};
+
 export const useRenameTeam = (teamId: Id | undefined) => {
   const queryClient = useQueryClient();
   return useMutation({

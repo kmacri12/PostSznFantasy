@@ -1,7 +1,7 @@
-import { Box, ButtonBase, Typography } from "@mui/material";
+import { Box, Button, ButtonBase, Typography } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useMarkInboxRead } from "../../api/queries";
+import { useClearInbox, useMarkInboxRead } from "../../api/queries";
 import type { Inbox } from "../../api/types";
 import { tokens } from "../../theme";
 import { formatAgo } from "../common/LiveStatsNotice";
@@ -21,6 +21,7 @@ interface Props {
 const InboxSheet = ({ inbox, onClose }: Props) => {
   const navigate = useNavigate();
   const markRead = useMarkInboxRead();
+  const clear = useClearInbox();
   const items = inbox?.items ?? [];
   const [newOnOpen, setNewOnOpen] = useState<Set<number> | null>(null);
   const marked = useRef(false);
@@ -46,6 +47,15 @@ const InboxSheet = ({ inbox, onClose }: Props) => {
           Nothing in the last 30 days. Your draft turns, lineup reminders and commissioner changes
           to your lineup show up here.
         </Typography>
+      )}
+      {items.length > 0 && (
+        <Button
+          onClick={() => clear.mutate()}
+          disabled={clear.isPending}
+          sx={{ minHeight: 44, justifySelf: "end", mb: -1 }}
+        >
+          Clear all
+        </Button>
       )}
       <Box component="ul" sx={{ listStyle: "none", m: 0, p: 0, display: "grid", gap: 0.5 }}>
         {items.map((item) => {

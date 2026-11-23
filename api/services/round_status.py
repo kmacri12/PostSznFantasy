@@ -152,6 +152,13 @@ def games_final(games: list[GameFacts], round_: int) -> int:
     return sum(1 for g in games if g.round == round_ and g.completed)
 
 
+def games_to_play(games: list[GameFacts], round_: int) -> int:
+    """Games of the round not started yet (neither live nor over)."""
+    return sum(
+        1 for g in games if g.round == round_ and not g.completed and not g.in_progress
+    )
+
+
 def _kickoff(game_time_epoch: str | None) -> datetime | None:
     try:
         return (

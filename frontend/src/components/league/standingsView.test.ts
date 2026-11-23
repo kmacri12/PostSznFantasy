@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 import type { StandingsRow } from "../../api/types";
-import { formatPoints, isOpenSpot, rankLabel, rowDetail, tieNote } from "./standingsView";
+import {
+  formatPoints,
+  gamesSummary,
+  isOpenSpot,
+  rankLabel,
+  rowDetail,
+  tieNote,
+} from "./standingsView";
 
 const row = (teamId: number, rank: number, extra: Partial<StandingsRow> = {}): StandingsRow => ({
   teamId,
@@ -95,5 +102,24 @@ describe("rowDetail", () => {
 
   it("says an open slot is waiting", () => {
     expect(rowDetail(row(2, 0, { owner: null }), false).owner).toBe("Waiting for a player");
+  });
+});
+
+describe("gamesSummary", () => {
+  const counts = (gamesInProgress: number, gamesFinal: number, gamesToPlay: number) =>
+    gamesSummary({ gamesInProgress, gamesFinal, gamesToPlay });
+
+  it("names every state that has games and leaves the empty ones out", () => {
+    expect(counts(5, 0, 0)).toBe("5 live");
+    expect(counts(0, 6, 1)).toBe("6 final · 1 to play");
+    expect(counts(0, 0, 6)).toBe("6 to play");
+    expect(counts(4, 2, 0)).toBe("4 live · 2 final");
+    expect(counts(4, 0, 2)).toBe("4 live · 2 to play");
+    expect(counts(3, 2, 1)).toBe("3 live · 2 final · 1 to play");
+  });
+
+  it("says All final once nothing is live or waiting, and nothing with no games", () => {
+    expect(counts(0, 8, 0)).toBe("All final");
+    expect(counts(0, 0, 0)).toBe("");
   });
 });
