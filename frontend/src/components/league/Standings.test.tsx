@@ -71,26 +71,36 @@ describe("Standings", () => {
     expect(within(items[0] as HTMLElement).getByText("Team 1")).toBeInTheDocument();
     expect(within(items[0] as HTMLElement).getByText("84.2")).toBeInTheDocument();
     expect(within(items[0] as HTMLElement).getByText("12.6")).toBeInTheDocument();
-    expect(items[1]?.textContent).toContain("owner2, commissioner · 6 left");
+    expect(items[1]?.textContent).toContain("owner2, commissioner · 6 players left");
     expect(items[1]?.textContent).not.toContain("live");
   });
 
-  it("draws each team's roster as dots by status while the season is on", () => {
+  it("rings each team's picture with a dot per player while the season is on", () => {
     const dots = { advanced: 4, live: 3, toPlay: 6, eliminated: 2 };
     show({ ...live, teams: [row(1, 1, { rosterStatus: dots }), row(2, 2)] });
     const items = within(phoneList()).getAllByRole("listitem");
     expect(
       within(items[0] as HTMLElement).getByRole("img", {
-        name: "Players by status: 4 advanced, 3 live, 6 to play, 2 eliminated",
+        name: "13 players left: 4 advanced, 3 live, 6 to play, 2 eliminated",
       }),
     ).toBeInTheDocument();
+    expect(within(items[0] as HTMLElement).queryByTestId("out-wash")).toBeNull();
+    expect((items[0] as HTMLElement).textContent).toContain("13 players left");
     expect(within(items[1] as HTMLElement).queryByRole("img")).toBeNull(); // no roster status
   });
 
-  it("leaves the dots out of a finished season's table", () => {
+  it("washes the picture red when nobody is left", () => {
+    const dots = { advanced: 0, live: 0, toPlay: 0, eliminated: 15 };
+    show({ ...live, teams: [row(1, 1, { rosterStatus: dots })] });
+    const item = within(phoneList()).getAllByRole("listitem")[0] as HTMLElement;
+    expect(within(item).getByTestId("out-wash")).toBeInTheDocument();
+    expect(item.textContent).toContain("0 players left");
+  });
+
+  it("leaves the ring out of a finished season's table", () => {
     const dots = { advanced: 4, live: 0, toPlay: 0, eliminated: 11 };
     show({ ...live, teams: [row(1, 1, { rosterStatus: dots })] }, { finished: true });
-    expect(screen.queryByRole("img", { name: /Players by status/ })).toBeNull();
+    expect(screen.queryByRole("img", { name: /players left/ })).toBeNull();
   });
 
   it("expands one row at a time to the four rounds, with a dash for rounds to come", () => {

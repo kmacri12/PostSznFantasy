@@ -93,7 +93,7 @@ describe("rowDetail", () => {
   });
 
   it("splits the owner from players left", () => {
-    expect(rowDetail(lead, true)).toEqual({ owner: "Dave", rest: "5 left" });
+    expect(rowDetail(lead, true)).toEqual({ owner: "Dave", rest: "5 players left" });
   });
 
   it("stops at the owner once the season is over", () => {

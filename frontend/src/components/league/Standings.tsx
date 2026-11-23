@@ -24,7 +24,8 @@ import PictureAvatar from "../common/PictureAvatar";
 import QueryBoundary from "../common/QueryBoundary";
 import ShareCardButton from "../share/ShareCardButton";
 import { roundCard } from "../share/shareCards";
-import StatusPips, { STATUS_LABEL } from "../team/StatusPips";
+import StatusRing from "../team/StatusRing";
+import { playersLeftText, rosterLeft, statusSummary } from "../team/statusStyle";
 import RankCell from "./RankCell";
 import { formatPoints, isOpenSpot, ROUNDS, rankLabel, rowDetail, tieNote } from "./standingsView";
 
@@ -40,21 +41,21 @@ const RowDetail = ({ row, live }: { row: StandingsRow; live: boolean }) => {
 };
 
 /**
- * One small square per rostered player (green advanced, blue live, grey to play, red eliminated),
- * the same dots as the Team page. Only while the season is on, and wherever the team has players.
+ * The team picture ringed by one dot per rostered player (the Team page's ring), with a red wash
+ * when nobody is left. Only while the season is on, and wherever the team has players.
  */
-const RowDots = ({ row, live }: { row: StandingsRow; live: boolean }) => {
+const RowAvatar = ({ row, live, size }: { row: StandingsRow; live: boolean; size: number }) => {
   const counts = row.rosterStatus;
-  if (!live || !counts) return null;
-  const players = counts.advanced + counts.live + counts.toPlay + counts.eliminated;
-  const label = (Object.keys(STATUS_LABEL) as (keyof typeof STATUS_LABEL)[])
-    .filter((status) => counts[status] > 0)
-    .map((status) => `${counts[status]} ${STATUS_LABEL[status]}`)
-    .join(", ");
   return (
-    <Box role="img" aria-label={`Players by status: ${label}`} sx={{ mt: 0.5, display: "flex" }}>
-      <StatusPips counts={counts} size={6} gap={2} columns={players} />
-    </Box>
+    <StatusRing
+      counts={live ? counts : null}
+      size={size}
+      label={
+        counts ? `${playersLeftText(rosterLeft(counts))}: ${statusSummary(counts)}` : undefined
+      }
+    >
+      <PictureAvatar url={row.teamAvatarUrl} name={row.teamName} size={size} />
+    </StatusRing>
   );
 };
 
@@ -169,7 +170,7 @@ const PhoneRow = ({
             "&:focus-visible": { outline: `2px solid ${tokens.accent}`, outlineOffset: -2 },
           }}
         >
-          <PictureAvatar url={row.teamAvatarUrl} name={row.teamName} size={36} />
+          <RowAvatar row={row} live={!finished} size={36} />
           <Box sx={{ flexGrow: 1, minWidth: 0 }}>
             <Typography noWrap sx={{ fontWeight: 600, color }}>
               {row.teamName}
@@ -177,7 +178,6 @@ const PhoneRow = ({
             <Typography variant="caption" component="div" sx={{ color: color ?? "text.secondary" }}>
               <RowDetail row={row} live={!finished} />
             </Typography>
-            <RowDots row={row} live={!finished} />
           </Box>
           <Box sx={{ textAlign: "right", flexShrink: 0 }}>
             <Typography sx={{ fontSize: 20, fontWeight: 700, lineHeight: 1.2, color }}>
@@ -289,13 +289,12 @@ const DesktopTable = ({ rows, round, finished }: Omit<RowProps, "row" | "index">
                     gap: 1.25,
                   }}
                 >
-                  <PictureAvatar url={row.teamAvatarUrl} name={row.teamName} size={32} />
+                  <RowAvatar row={row} live={!finished} size={32} />
                   <Box>
                     <Typography sx={{ fontWeight: 600, color }}>{row.teamName}</Typography>
                     <Typography variant="caption" sx={{ color: color ?? "text.secondary" }}>
                       <RowDetail row={row} live={!finished} />
                     </Typography>
-                    <RowDots row={row} live={!finished} />
                   </Box>
                 </Box>
               </TableCell>

@@ -45,7 +45,7 @@ interface Palette {
   dangerSurface: string;
   dangerMuted: string;
   cyan: string;
-  /** Draft board cell fills by position. */
+  /** Position fills, one muted hue each around the rainbow: violet, green, blue, yellow, orange, teal (red stays for eliminated). */
   posQB: string;
   posRB: string;
   posWR: string;
@@ -85,12 +85,12 @@ export const palettes: Record<ThemeMode, Palette> = {
     dangerSurface: "#2a1417",
     dangerMuted: "#d98a90",
     cyan: "#22d3ee",
-    posQB: "#2a1f3d",
+    posQB: "#2e2149",
     posRB: "#143024",
-    posWR: "#1d2a45",
-    posTE: "#3a2a14",
-    posK: "#2b2b2b",
-    posDST: "#2a2f3a",
+    posWR: "#1b2c4d",
+    posTE: "#3a3412",
+    posK: "#40240f",
+    posDST: "#12353a",
   },
   light: {
     bg: "#ffffff",
@@ -124,9 +124,9 @@ export const palettes: Record<ThemeMode, Palette> = {
     posQB: "#ece5f7",
     posRB: "#dff3e6",
     posWR: "#dde8fa",
-    posTE: "#f8eadb",
-    posK: "#e9eaec",
-    posDST: "#e4e8ee",
+    posTE: "#f7efc4",
+    posK: "#fadfc6",
+    posDST: "#d3eeed",
   },
 };
 

@@ -208,6 +208,12 @@ describe("playerStatus and rosterStatus", () => {
     expect(playerStatus(lineupPlayer({ gameState: "final" }))).toBe("toPlay");
   });
 
+  it("nobody is eliminated from the Super Bowl: both finalists' players stay advanced", () => {
+    expect(playerStatus(won, 4)).toBe("advanced");
+    expect(playerStatus(lost, 4)).toBe("advanced");
+    expect(playerStatus(out, 4)).toBe("eliminated"); // out before it
+  });
+
   const lineup = (round: number, firstKickoff: string | null) =>
     roundLineup(round, {
       firstKickoff,
