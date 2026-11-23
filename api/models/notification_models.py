@@ -12,6 +12,8 @@ class InboxItem(BaseSchema):
     league_name: str
     # Ids only, keyed in camelCase (seasonId, teamId, round); the app words the entry.
     payload: dict[str, int]
+    # The player a `playerId` in the payload names (touchdown alerts), else None.
+    player_name: str | None = None
     created_at: datetime
     read: bool
 

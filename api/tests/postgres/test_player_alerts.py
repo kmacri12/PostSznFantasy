@@ -261,7 +261,11 @@ async def test_a_starters_touchdown_is_one_push_and_a_burst_collapses(
     assert sent[1][1].title == "2 touchdowns!"
     assert await send_score_alerts(db, 2027, ["g1"], NOW + timedelta(minutes=9)) == 0
     assert len(sent) == 2
-    assert len(await _inbox(db)) == 1  # unread repeats move up instead of piling up
+    first, second = await _inbox(db)  # one entry per push, each naming who scored
+    assert first.payload["playerId"] == QB
+    assert (first.payload["touchdowns"], first.payload["scorers"]) == (1, 1)
+    assert (second.payload["touchdowns"], second.payload["scorers"]) == (2, 2)
+    assert second.payload["playerId"] in (QB, RB)
 
 
 async def test_score_alerts_are_off_by_default_and_skip_bench_players(

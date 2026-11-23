@@ -23,6 +23,9 @@ async def get_inbox(supabase_uid: CurrentUser, db: DbSession) -> Inbox:
     if user_id is None:
         return Inbox(items=[], unread_count=0)
     rows, unread = await notifications.inbox(db, user_id)
+    names = await notifications.player_names(
+        db, {e.payload["playerId"] for e, _ in rows if "playerId" in e.payload}
+    )
     return Inbox(
         items=[
             InboxItem(
@@ -31,6 +34,7 @@ async def get_inbox(supabase_uid: CurrentUser, db: DbSession) -> Inbox:
                 league_id=entry.league_id,
                 league_name=league_name,
                 payload=entry.payload,
+                player_name=names.get(entry.payload.get("playerId", 0)),
                 created_at=entry.created_at,
                 read=entry.read_at is not None,
             )
@@ -48,4 +52,13 @@ async def mark_read(
     user_id = await _user_id(db, supabase_uid)
     if user_id is not None:
         await notifications.mark_read(db, user_id, payload.ids)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.delete("", status_code=status.HTTP_204_NO_CONTENT)
+async def clear_inbox(supabase_uid: CurrentUser, db: DbSession) -> Response:
+    """Delete every notification of the caller's inbox."""
+    user_id = await _user_id(db, supabase_uid)
+    if user_id is not None:
+        await notifications.clear(db, user_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

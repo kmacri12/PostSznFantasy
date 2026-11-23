@@ -19,6 +19,7 @@ from sqlalchemy import ColumnElement, Row, delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.db.models.league import League, LeagueMember, Season, Team
+from api.db.models.nfl import NFLPlayer
 from api.db.models.notification import Notification
 from api.services import push
 from api.services.live_leagues import live_league_ids, live_season_ids
@@ -145,6 +146,16 @@ async def inbox(
     return list(rows), int(unread or 0)
 
 
+async def player_names(db: AsyncSession, player_ids: set[int]) -> dict[int, str]:
+    """Names for the `playerId`s an inbox page carries."""
+    if not player_ids:
+        return {}
+    rows = await db.execute(
+        select(NFLPlayer.id, NFLPlayer.name).where(NFLPlayer.id.in_(player_ids))
+    )
+    return {player_id: name for player_id, name in rows.tuples() if name}
+
+
 async def mark_read(db: AsyncSession, user_id: int, ids: list[int] | None) -> None:
     """Mark the given entries read, or every one when `ids` is None."""
     query = update(Notification).where(
@@ -167,6 +178,11 @@ async def prune_old(db: AsyncSession) -> int:
 
 async def delete_for_user(db: AsyncSession, user_id: int) -> None:
     await db.execute(delete(Notification).where(Notification.user_id == user_id))
+
+
+async def clear(db: AsyncSession, user_id: int) -> None:
+    """Empty the caller's inbox (what "Clear all" does)."""
+    await delete_for_user(db, user_id)
 
 
 async def _live_league(db: AsyncSession, season_id: int) -> Row[int, str] | None:

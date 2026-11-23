@@ -196,6 +196,55 @@ async def test_the_inbox_lists_recent_entries_and_marks_them_read(
         assert (await other.get("/api/notifications")).json()["unreadCount"] == 1
 
 
+async def test_a_touchdown_entry_carries_the_scorers_name(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    season, users, _, _ = await make_season(db, teams=2)
+    players = await make_players(db, ["QB"])
+    db.add(
+        Notification(
+            user_id=users[1].id,
+            kind="player_scored",
+            league_id=season.league_id,
+            payload={
+                "seasonId": season.id,
+                "teamId": 5,
+                "round": 1,
+                "playerId": players[0].id,
+                "touchdowns": 2,
+                "scorers": 1,
+            },
+        )
+    )
+    await db.flush()
+    async with client_as("uid-1") as client:
+        [item] = (await client.get("/api/notifications")).json()["items"]
+    assert item["playerName"] == players[0].name
+    assert item["payload"]["touchdowns"] == 2
+
+
+async def test_clear_all_empties_only_the_callers_inbox(
+    db: AsyncSession, client_as: ClientFactory
+) -> None:
+    season, users, _, _ = await make_season(db, teams=2)
+    db.add_all(
+        Notification(
+            user_id=user.id,
+            kind="draft_lobby",
+            league_id=season.league_id,
+            payload={"seasonId": season.id},
+        )
+        for user in users
+    )
+    await db.flush()
+
+    async with client_as("uid-1") as client:
+        assert (await client.delete("/api/notifications")).status_code == 204
+        assert (await client.get("/api/notifications")).json()["items"] == []
+    async with client_as("uid-0") as other:
+        assert len((await other.get("/api/notifications")).json()["items"]) == 1
+
+
 async def test_entries_from_a_deleted_or_left_league_are_hidden(
     db: AsyncSession, client_as: ClientFactory
 ) -> None:

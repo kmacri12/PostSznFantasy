@@ -9,6 +9,18 @@ export interface InboxLine {
   path: string;
 }
 
+const scoredTitle = (touchdowns: number | undefined): string =>
+  touchdowns && touchdowns > 1 ? `${touchdowns} touchdowns!` : "Touchdown!";
+
+/** Names who scored; entries from before the name was kept say "one of your starters". */
+const scoredBody = (item: InboxItem, league: string): string => {
+  const name = item.playerName;
+  if (!name) return `One of your starters scored in ${league}.`;
+  const others = (item.payload.scorers ?? 1) - 1;
+  const who = others > 0 ? `${name} and ${others} other${others === 1 ? "" : "s"}` : name;
+  return `${who} scored in ${league}.`;
+};
+
 /** Wording and link for one inbox entry; an unknown kind (a newer API) still links to its league. */
 export const describeNotification = (item: InboxItem): InboxLine => {
   // Entries are at most 30 days old, so they belong to the league's current season, the one
@@ -60,8 +72,8 @@ export const describeNotification = (item: InboxItem): InboxLine => {
       };
     case "player_scored":
       return {
-        title: "Touchdown!",
-        body: `One of your starters scored in ${league}.`,
+        title: scoredTitle(item.payload.touchdowns),
+        body: scoredBody(item, league),
         path: team ? paths.team(team) : paths.home,
       };
     case "round_result":

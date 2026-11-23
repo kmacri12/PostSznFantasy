@@ -642,7 +642,18 @@ export interface InboxItem {
   leagueId: number;
   leagueName: string;
   /** Ids only: seasonId, and teamId and round where the kind has them. */
-  payload: { seasonId?: number; teamId?: number; round?: number; messageId?: number };
+  payload: {
+    seasonId?: number;
+    teamId?: number;
+    round?: number;
+    messageId?: number;
+    /** Touchdown alerts: who scored most, how many touchdowns, and how many players scored. */
+    playerId?: number;
+    touchdowns?: number;
+    scorers?: number;
+  };
+  /** The name behind `payload.playerId`, when the entry has one. */
+  playerName?: string | null;
   createdAt: string;
   read: boolean;
 }

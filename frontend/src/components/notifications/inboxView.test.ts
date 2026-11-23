@@ -86,4 +86,28 @@ describe("describeNotification", () => {
       path: "/leagues/3",
     });
   });
+
+  it("names the player who scored, counting the others and the touchdowns", () => {
+    const base = { seasonId: 9, teamId: 12, round: 1, playerId: 5 };
+    const scored = (payload: InboxItem["payload"], playerName: string | null) =>
+      describeNotification({ ...item("player_scored", payload), playerName });
+    expect(scored({ ...base, touchdowns: 1, scorers: 1 }, "Baker Mayfield")).toMatchObject({
+      title: "Touchdown!",
+      body: "Baker Mayfield scored in Family League.",
+    });
+    expect(scored({ ...base, touchdowns: 3, scorers: 2 }, "Baker Mayfield")).toMatchObject({
+      title: "3 touchdowns!",
+      body: "Baker Mayfield and 1 other scored in Family League.",
+    });
+    expect(scored({ ...base, touchdowns: 3, scorers: 3 }, "Baker Mayfield").body).toBe(
+      "Baker Mayfield and 2 others scored in Family League.",
+    );
+  });
+
+  it("keeps the old wording for a touchdown entry that has no player", () => {
+    expect(describeNotification(item("player_scored", { seasonId: 9, teamId: 12 }))).toMatchObject({
+      title: "Touchdown!",
+      body: "One of your starters scored in Family League.",
+    });
+  });
 });

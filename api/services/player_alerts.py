@@ -307,10 +307,17 @@ async def _score_alert(
     if not new:
         return 0
     counts: dict[str, int] = defaultdict(int)
+    by_player: dict[int, int] = defaultdict(int)
+    names: dict[int, str] = {}
     for key in new:
         counts[keys[key].player_name] += 1
+        by_player[keys[key].player_id] += 1
+        names[keys[key].player_id] = keys[key].player_name
     first = starters[0]
     total = sum(counts.values())
+    # The inbox words the entry from ids: the one who scored most (then by name) is named,
+    # the others are counted.
+    lead = min(by_player, key=lambda pid: (-by_player[pid], names[pid]))
     scorers_text = ", ".join(
         name if n == 1 else f"{name} (x{n})" for name, n in sorted(counts.items())
     )
@@ -324,6 +331,9 @@ async def _score_alert(
                 "seasonId": first.season_id,
                 "teamId": team_id,
                 "round": round_,
+                "playerId": lead,
+                "touchdowns": total,
+                "scorers": len(by_player),
             },
             push=push.PushMessage(
                 title="Touchdown!" if total == 1 else f"{total} touchdowns!",
