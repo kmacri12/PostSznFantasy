@@ -411,6 +411,15 @@ class StandingsPhase(StrEnum):
     LIVE = "live"
 
 
+class RosterStatus(BaseSchema):
+    """A team's whole roster by status in the latest round that has kicked off."""
+
+    advanced: int
+    live: int
+    to_play: int
+    eliminated: int
+
+
 class TeamStanding(BaseSchema):
     team_id: int
     # None before the draft.
@@ -428,6 +437,8 @@ class TeamStanding(BaseSchema):
     total: float
     tie_reason: StandingTieReason | None = None
     progress: StarterProgress
+    # None before the draft, or for a team with no players.
+    roster_status: RosterStatus | None = None
 
 
 class Standings(BaseSchema):

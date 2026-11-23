@@ -184,6 +184,16 @@ export interface StandingsRow {
   /** Set when this team is ordered above the next one by the tiebreaker chain. */
   tieReason: StandingTieReason | null;
   progress: StarterProgress;
+  /** Every rostered player by status; null before the draft or without players. */
+  rosterStatus?: RosterStatusCounts | null;
+}
+
+/** A team's whole roster by status in the latest round that has kicked off. */
+export interface RosterStatusCounts {
+  advanced: number;
+  live: number;
+  toPlay: number;
+  eliminated: number;
 }
 
 export interface Standings {

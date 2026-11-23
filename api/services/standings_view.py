@@ -6,6 +6,7 @@ game state and lineups, so they are worked out on every read.
 """
 
 from collections import defaultdict
+from datetime import UTC, datetime
 from decimal import Decimal
 
 from sqlalchemy import select
@@ -19,6 +20,7 @@ from api.db.models.league import (
     SeasonSettings,
     SeasonStanding,
     Team,
+    TeamPlayer,
 )
 from api.db.models.nfl import NFLPlayer
 from api.models.enums import LeagueRole, TieRule
@@ -31,6 +33,7 @@ from api.models.league_models import (
 from api.services.avatars import avatar_url
 from api.services.lineups import BENCH, slot_layout
 from api.services.ranking import RoundPoints, TieReason, rank_teams
+from api.services.roster_status import roster_status, status_round
 from api.services.round_progress import starter_progress
 from api.services.round_status import (
     current_round,
@@ -129,7 +132,9 @@ async def _team_slots(db: AsyncSession, season_id: int, round_: int) -> Standing
     )
 
 
-async def season_standings(db: AsyncSession, season_id: int) -> Standings:
+async def season_standings(
+    db: AsyncSession, season_id: int, now: datetime | None = None
+) -> Standings:
     year = await db.scalar(select(Season.year).where(Season.id == season_id))
     rows = (
         (
@@ -167,6 +172,17 @@ async def season_standings(db: AsyncSession, season_id: int) -> Standings:
     ).all():
         if slot_index in starter_slots:
             starter_teams[team_id].append(nfl_team_id)
+
+    roster_teams: dict[int, list[int | None]] = defaultdict(list)
+    for team_id, nfl_team_id in (
+        await db.execute(
+            select(TeamPlayer.team_id, NFLPlayer.team_id)
+            .join(NFLPlayer, NFLPlayer.id == TeamPlayer.player_id)
+            .where(TeamPlayer.season_id == season_id)
+        )
+    ).all():
+        roster_teams[team_id].append(nfl_team_id)
+    shown_round = status_round(games, now or datetime.now(UTC))
 
     by_team = {row.team_id: row for row in rows}
     round_points: dict[int, RoundPoints] = {
@@ -213,6 +229,9 @@ async def season_standings(db: AsyncSession, season_id: int) -> Standings:
                 else None,
                 progress=starter_progress(
                     games, round_, starter_teams[team.team_id], len(starter_slots)
+                ),
+                roster_status=roster_status(
+                    games, roster_teams[team.team_id], shown_round
                 ),
             )
             for team in ranked
