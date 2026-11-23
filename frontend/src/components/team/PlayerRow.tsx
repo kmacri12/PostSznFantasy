@@ -70,6 +70,16 @@ interface Props {
 }
 
 /** One lineup line. The whole row opens the player sheet, the score included. */
+/** The logo trails the text so a struck-through name never runs a line through it. */
+const TeamLogoAfter = ({ abbreviation }: { abbreviation: string | null | undefined }) => (
+  <Box
+    component="span"
+    sx={{ textDecoration: "none", display: "inline-block", "& img": { mr: 0, ml: 0.5 } }}
+  >
+    <TeamLogo abbreviation={abbreviation} size={14} />
+  </Box>
+);
+
 const PlayerRow = ({
   label,
   player,
@@ -166,13 +176,13 @@ const PlayerRow = ({
                 >
                   {player.position === "DST" || !player.teamAbv ? (
                     <>
-                      <TeamLogo abbreviation={player.teamAbv} size={14} />
                       {player.name}
+                      <TeamLogoAfter abbreviation={player.teamAbv} />
                     </>
                   ) : (
                     <>
-                      {player.name} · <TeamLogo abbreviation={player.teamAbv} size={14} />
-                      {player.teamAbv}
+                      {player.name} · {player.teamAbv}
+                      <TeamLogoAfter abbreviation={player.teamAbv} />
                     </>
                   )}
                 </Typography>
