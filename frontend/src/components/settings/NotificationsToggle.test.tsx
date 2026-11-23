@@ -44,9 +44,24 @@ beforeEach(() => {
   mocks.zone.current = Intl.DateTimeFormat().resolvedOptions().timeZone;
 });
 
+/** The kinds are folded under one row; open it the way a member would. */
+const showKinds = () => {
+  render(<NotificationsToggle />);
+  fireEvent.click(screen.getByRole("button", { name: /^Choose which alerts/ }));
+};
+
 describe("NotificationsToggle", () => {
-  it("shows the three kinds under the master switch, chat off by default", () => {
+  it("folds the kinds under one row, closed at first, saying how many are on", () => {
     render(<NotificationsToggle />);
+    expect(screen.queryByRole("switch", { name: "Draft alerts" })).toBeNull();
+    const row = screen.getByRole("button", { name: /^Choose which alerts · \d+ of \d+ on$/ });
+    expect(row).toHaveAttribute("aria-expanded", "false");
+    fireEvent.click(row);
+    expect(screen.getByRole("switch", { name: "Draft alerts" })).toBeInTheDocument();
+  });
+
+  it("shows the three kinds under the master switch, chat off by default", () => {
+    showKinds();
     expect(screen.getByRole("switch", { name: "Draft alerts" })).toBeChecked();
     expect(screen.getByRole("switch", { name: "Lineup reminders" })).toBeChecked();
     expect(screen.getByRole("switch", { name: "Chat messages" })).not.toBeChecked();
@@ -54,7 +69,7 @@ describe("NotificationsToggle", () => {
   });
 
   it("shows the player alerts: hurt starters on, touchdowns and round results off", () => {
-    render(<NotificationsToggle />);
+    showKinds();
     expect(screen.getByRole("switch", { name: "Hurt starters" })).toBeChecked();
     expect(screen.getByRole("switch", { name: "Touchdowns" })).not.toBeChecked();
     expect(screen.getByRole("switch", { name: "Round results" })).not.toBeChecked();
@@ -63,7 +78,7 @@ describe("NotificationsToggle", () => {
   });
 
   it("turns quiet hours on together with this browser's time zone", () => {
-    render(<NotificationsToggle />);
+    showKinds();
     expect(screen.getByRole("switch", { name: "Quiet hours" })).not.toBeChecked();
     fireEvent.click(screen.getByRole("switch", { name: "Quiet hours" }));
     expect(mocks.update).toHaveBeenCalledWith({
@@ -82,9 +97,18 @@ describe("NotificationsToggle", () => {
   });
 
   it("saves one choice at a time", () => {
-    render(<NotificationsToggle />);
+    showKinds();
     fireEvent.click(screen.getByRole("switch", { name: "Chat messages" }));
     expect(mocks.update).toHaveBeenCalledWith({ chat: true });
+  });
+
+  it("survives the device check finishing after the first render", () => {
+    // Every hook runs before the loading return: a hook after it broke the profile sheet.
+    mocks.status.current = "loading";
+    const { rerender } = render(<NotificationsToggle />);
+    mocks.status.current = "on";
+    rerender(<NotificationsToggle />);
+    expect(screen.getByRole("button", { name: /^Choose which alerts/ })).toBeInTheDocument();
   });
 
   it("hides the kinds while notifications are off on this device", () => {
