@@ -1,11 +1,11 @@
-import { Alert, Box, Typography } from "@mui/material";
+import { Alert, Typography } from "@mui/material";
 import type { RoundLineup } from "../../api/types";
 import { tokens } from "../../theme";
 import SettingsSheet from "../settings/SettingsSheet";
 import type { Move } from "./lineup";
 import { slotNames } from "./lineupView";
 import { slotFillOptions } from "./moves";
-import { MoveRow } from "./PlayerSheet";
+import { MoveList } from "./PlayerSheet";
 
 interface Props {
   lineup: RoundLineup;
@@ -36,11 +36,7 @@ const SlotPickerSheet = ({
           Nobody on your bench can play {slot} this round.
         </Typography>
       ) : (
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-          {options.map((option) => (
-            <MoveRow key={option.key} option={option} disabled={pending} onMove={onMove} />
-          ))}
-        </Box>
+        <MoveList options={options} disabled={pending} onMove={onMove} />
       )}
       {error && <Alert severity="error">{error}</Alert>}
     </SettingsSheet>

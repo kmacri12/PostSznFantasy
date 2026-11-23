@@ -83,6 +83,22 @@ describe("PlayerSheet", () => {
     expect(screen.queryByText(/Move in/)).toBeNull();
   });
 
+  it("folds a commissioner's overrides under Commissioner actions, closed at first", () => {
+    // Cook is locked: swapping Brian into his FLEX is an override for a commissioner.
+    sheet({ canOverride: true });
+    expect(screen.queryByRole("button", { name: /^James Cook/ })).toBeNull();
+    const toggle = screen.getByRole("button", { name: /^Commissioner actions \(\d+\)/ });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    fireEvent.click(toggle);
+    expect(screen.getByRole("button", { name: /^James Cook/ })).toHaveTextContent("Override");
+  });
+
+  it("has no Commissioner actions for an owner, who sees the locked move greyed", () => {
+    sheet();
+    expect(screen.queryByRole("button", { name: /Commissioner actions/ })).toBeNull();
+    expect(screen.getByRole("button", { name: /^James Cook/ })).toBeDisabled();
+  });
+
   it("says it is a commissioner's move on someone else's lineup", () => {
     sheet({ ownTeam: false, canOverride: true });
     expect(screen.getByText("Move in this lineup")).toBeInTheDocument();

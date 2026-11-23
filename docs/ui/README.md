@@ -111,6 +111,7 @@ The old overall "best draft value", "biggest bust", "best bench" and "best game"
 - **Eliminated** lists only players whose NFL team went out in the **previous** round, so they were not eligible for Starters or Bench this round. Each shows "Eliminated in Divisional" (or whichever round). A player eliminated earlier does not reappear. If the Ravens lose in this round, Zay Flowers still sits in Starters or Bench for this round and moves to Eliminated next round.
 - No separate team feed.
 - The player sheet reads top to bottom: **This game** (the round shown, once it has kicked off, with the points breakdown), **Postseason** (each earlier round he played, stat line and points; only once one is final), **Regular season**.
+- Moves in the player sheet (and the empty-slot picker): the ones anybody may make are listed first; a commissioner's overrides (moves that touch a locked player) sit under a closed **Commissioner actions (N)** row with a caret at the bottom, so nobody taps one by accident. Picking one still asks "Are you sure?".
 - Your own team: lineup editing for the current and future rounds only, via the player sheet.
 
 ## Player sheet (bottom sheet)
