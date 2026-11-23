@@ -71,7 +71,7 @@ describe("Standings", () => {
     expect(within(items[0] as HTMLElement).getByText("Team 1")).toBeInTheDocument();
     expect(within(items[0] as HTMLElement).getByText("84.2")).toBeInTheDocument();
     expect(within(items[0] as HTMLElement).getByText("12.6")).toBeInTheDocument();
-    expect(items[1]?.textContent).toContain("owner2, commissioner · 6 players left");
+    expect(items[1]?.textContent).toContain("owner2, commissioner");
     expect(items[1]?.textContent).not.toContain("live");
   });
 
@@ -85,7 +85,7 @@ describe("Standings", () => {
       }),
     ).toBeInTheDocument();
     expect(within(items[0] as HTMLElement).queryByTestId("out-wash")).toBeNull();
-    expect((items[0] as HTMLElement).textContent).toContain("13 players left");
+    expect((items[0] as HTMLElement).textContent).not.toContain("players left"); // on the tap only
     // No roster status: no ring, no extra button beyond the row's own expand control.
     expect(within(items[1] as HTMLElement).getAllByRole("button")).toHaveLength(1);
   });
@@ -110,7 +110,6 @@ describe("Standings", () => {
     show({ ...live, teams: [row(1, 1, { rosterStatus: dots })] });
     const item = within(phoneList()).getAllByRole("listitem")[0] as HTMLElement;
     expect(within(item).getByTestId("out-wash")).toBeInTheDocument();
-    expect(item.textContent).toContain("0 players left");
   });
 
   it("leaves the ring out of a finished season's table", () => {

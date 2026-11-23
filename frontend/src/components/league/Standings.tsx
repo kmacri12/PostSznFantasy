@@ -27,18 +27,14 @@ import { roundCard } from "../share/shareCards";
 import StatusBreakdownTrigger from "../team/StatusBreakdown";
 import StatusRing from "../team/StatusRing";
 import RankCell from "./RankCell";
-import { formatPoints, isOpenSpot, ROUNDS, rankLabel, rowDetail, tieNote } from "./standingsView";
+import { formatPoints, isOpenSpot, ROUNDS, rankLabel, rowOwner, tieNote } from "./standingsView";
 
-const RowDetail = ({ row, live }: { row: StandingsRow; live: boolean }) => {
-  const { owner, rest } = rowDetail(row, live);
-  return (
-    <>
-      {owner}
-      {row.isCommissioner && <CommissionerMark />}
-      {rest && ` · ${rest}`}
-    </>
-  );
-};
+const RowDetail = ({ row }: { row: StandingsRow }) => (
+  <>
+    {rowOwner(row)}
+    {row.isCommissioner && <CommissionerMark />}
+  </>
+);
 
 /**
  * The team picture ringed by one dot per rostered player (the Team page's ring), with a red wash
@@ -151,7 +147,7 @@ const PhoneRow = ({
           <RankCell label={rankLabel(rows, index)} note={note} color={color ?? tokens.muted} />
         </Box>
         {/* Beside the expand button, not inside it: the picture has its own tap. */}
-        <Box sx={{ display: "flex", alignItems: "center" }}>
+        <Box sx={{ display: "flex", alignItems: "center", mr: 1.25 }}>
           <RowAvatar row={row} live={!finished} size={36} />
         </Box>
         <Box
@@ -181,7 +177,7 @@ const PhoneRow = ({
               {row.teamName}
             </Typography>
             <Typography variant="caption" component="div" sx={{ color: color ?? "text.secondary" }}>
-              <RowDetail row={row} live={!finished} />
+              <RowDetail row={row} />
             </Typography>
           </Box>
           <Box sx={{ textAlign: "right", flexShrink: 0 }}>
@@ -283,7 +279,7 @@ const DesktopTable = ({ rows, round, finished }: Omit<RowProps, "row" | "index">
                 />
               </TableCell>
               <TableCell>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                   <RowAvatar row={row} live={!finished} size={32} />
                   <Box
                     component={Link}
@@ -292,7 +288,7 @@ const DesktopTable = ({ rows, round, finished }: Omit<RowProps, "row" | "index">
                   >
                     <Typography sx={{ fontWeight: 600, color }}>{row.teamName}</Typography>
                     <Typography variant="caption" sx={{ color: color ?? "text.secondary" }}>
-                      <RowDetail row={row} live={!finished} />
+                      <RowDetail row={row} />
                     </Typography>
                   </Box>
                 </Box>
@@ -376,7 +372,7 @@ const SlotList = ({ rows, season }: { rows: StandingsRow[]; season: SeasonOvervi
                   {open ? "Open slot" : row.teamName}
                 </Typography>
                 <Typography variant="caption" color="text.secondary" noWrap component="div">
-                  <RowDetail row={row} live={false} />
+                  <RowDetail row={row} />
                 </Typography>
               </Box>
               {scheduled && (

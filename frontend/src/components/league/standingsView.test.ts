@@ -5,7 +5,7 @@ import {
   gamesSummary,
   isOpenSpot,
   rankLabel,
-  rowDetail,
+  rowOwner,
   tieNote,
 } from "./standingsView";
 
@@ -84,24 +84,10 @@ describe("formatPoints", () => {
   });
 });
 
-describe("rowDetail", () => {
-  const lead = row(1, 1, {
-    owner: "Dave",
-    isCommissioner: true,
-    playersLeft: 5,
-    progress: { finished: 0, live: 3, toPlay: 1, notPlaying: 5 },
-  });
-
-  it("splits the owner from players left", () => {
-    expect(rowDetail(lead, true)).toEqual({ owner: "Dave", rest: "5 players left" });
-  });
-
-  it("stops at the owner once the season is over", () => {
-    expect(rowDetail(lead, false)).toEqual({ owner: "Dave", rest: "" });
-  });
-
-  it("says an open slot is waiting", () => {
-    expect(rowDetail(row(2, 0, { owner: null }), false).owner).toBe("Waiting for a player");
+describe("rowOwner", () => {
+  it("names the owner, or that the slot is waiting for a player", () => {
+    expect(rowOwner(row(1, 1, { owner: "Dave" }))).toBe("Dave");
+    expect(rowOwner(row(2, 0, { owner: null }))).toBe("Waiting for a player");
   });
 });
 
