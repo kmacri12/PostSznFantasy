@@ -50,8 +50,9 @@ const StatusRing = ({ counts, size, children, label }: Props) => {
         flex: "none",
         width: box,
         height: size,
-        // Layout width includes the dots; the height does not, so a row stays as tall as before.
+        // The dots take no height and half their width: they sit in the gap beside the picture.
         my: `${-reach}px`,
+        mx: `${-reach / 2}px`,
         py: `${reach}px`,
         boxSizing: "content-box",
         display: "grid",

@@ -54,7 +54,12 @@ const RowAvatar = ({ row, live, size }: { row: StandingsRow; live: boolean; size
         counts ? `${playersLeftText(rosterLeft(counts))}: ${statusSummary(counts)}` : undefined
       }
     >
-      <PictureAvatar url={row.teamAvatarUrl} name={row.teamName} size={size} />
+      <PictureAvatar
+        url={row.teamAvatarUrl}
+        generated={row.teamPicture}
+        name={row.teamName}
+        size={size}
+      />
     </StatusRing>
   );
 };
@@ -362,6 +367,7 @@ const SlotList = ({ rows, season }: { rows: StandingsRow[]; season: SeasonOvervi
               </Typography>
               <PictureAvatar
                 url={open ? null : row.teamAvatarUrl}
+                generated={open ? null : row.teamPicture}
                 name={open ? "?" : row.teamName}
                 size={36}
               />

@@ -17,6 +17,7 @@ from api.models.league_models import (
     TeamDetails,
     TeamRename,
 )
+from api.models.picture_models import TeamPicture
 from api.services import notifications, push
 from api.services.avatars import avatar_url
 from api.services.league_admin import team_name_taken
@@ -135,6 +136,7 @@ async def build_team_details(
         id=team.id,
         name=team.name or f"Team {team.id}",
         avatar_url=avatar_url(team.avatar_key),
+        picture=TeamPicture(color=team.picture_color, icon=team.picture_icon),
         season_id=team.season_id,
         owner_name=team.owner.username if team.owner else None,
         can_edit=membership.can_edit and (is_owner or membership.is_commissioner),

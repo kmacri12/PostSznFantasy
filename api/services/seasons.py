@@ -176,6 +176,8 @@ async def start_season(db: AsyncSession, league: League, today: date) -> Season:
             name=t.name,
             owner_id=t.owner_id if t.owner_id in active else None,
             season_id=season.id,
+            picture_color=t.picture_color,
+            picture_icon=t.picture_icon,
         )
         for t in teams
     )

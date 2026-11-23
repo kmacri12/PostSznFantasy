@@ -5,6 +5,7 @@ from pydantic import Field
 from api.models.base import BaseSchema
 from api.models.enums import DraftStatus, DraftType, PickSource, PickTimeoutAction
 from api.models.league_models import PICK_SECONDS_MAX, PICK_SECONDS_MIN
+from api.models.picture_models import TeamPicture
 
 
 class DraftPickResponse(BaseSchema):
@@ -29,6 +30,7 @@ class DraftSlot(BaseSchema):
     team_id: int
     team_name: str
     team_avatar_url: str | None = None
+    team_picture: TeamPicture | None = None
     owner_name: str | None = None
     owner_user_id: int | None = None
 

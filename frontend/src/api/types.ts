@@ -172,6 +172,7 @@ export interface StandingsRow {
   rank: number | null;
   teamName: string;
   teamAvatarUrl?: string | null;
+  teamPicture?: TeamPicture | null;
   /** Null for an open slot. */
   owner: string | null;
   isCommissioner: boolean;
@@ -304,10 +305,17 @@ export interface RoundLineup {
   firstKickoff: string | null;
 }
 
+/** A team without an uploaded picture: indices into `components/common/generatedPicture.tsx`. */
+export interface TeamPicture {
+  color: number;
+  icon: number;
+}
+
 export interface TeamDetails {
   id: number;
   name: string;
   avatarUrl?: string | null;
+  picture?: TeamPicture | null;
   seasonId: number;
   ownerName: string | null;
   canEdit: boolean;
@@ -348,6 +356,7 @@ export interface DraftSlot {
   teamId: number;
   teamName: string;
   teamAvatarUrl?: string | null;
+  teamPicture?: TeamPicture | null;
   ownerName: string | null;
   ownerUserId: number | null;
 }

@@ -1,6 +1,8 @@
 import { Avatar } from "@mui/material";
+import type { TeamPicture } from "../../api/types";
 import { tokens } from "../../theme";
 import { avatarSrc, initialsOf } from "../../utils/avatarUrl";
+import { pictureColor, pictureIcon } from "./generatedPicture";
 import Logo from "./Logo";
 
 interface Props {
@@ -11,11 +13,34 @@ interface Props {
   size?: number;
   /** A league without a picture shows the bracket tile instead of initials. */
   fallback?: "initials" | "tile";
+  /** A team's generated picture, drawn until it has an uploaded one. */
+  generated?: TeamPicture | null;
 }
 
-/** A member, team or league picture; initials (or the bracket tile) until one is set. */
-const PictureAvatar = ({ url, name, size = 32, fallback = "initials" }: Props) => {
+/** A member, team or league picture; a team's generated picture, initials or the bracket tile until one is set. */
+const PictureAvatar = ({ url, name, size = 32, fallback = "initials", generated }: Props) => {
   const src = avatarSrc(url);
+  if (!src && generated) {
+    const Icon = pictureIcon(generated.icon);
+    return (
+      <Avatar
+        alt=""
+        aria-hidden
+        sx={{
+          width: size,
+          height: size,
+          flex: "none",
+          // The theme's default-avatar rule is more specific than a plain bgcolor.
+          "&.MuiAvatar-colorDefault": {
+            backgroundColor: pictureColor(generated.color),
+            color: "#ffffff",
+          },
+        }}
+      >
+        <Icon sx={{ fontSize: Math.round(size * 0.58) }} />
+      </Avatar>
+    );
+  }
   if (!src && fallback === "tile") {
     return (
       <span aria-hidden style={{ display: "inline-flex", flex: "none" }}>

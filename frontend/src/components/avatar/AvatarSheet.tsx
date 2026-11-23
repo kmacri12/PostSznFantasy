@@ -1,5 +1,6 @@
 import { Alert, Box, Button, Slider, Typography } from "@mui/material";
 import { type ChangeEvent, type PointerEvent, useEffect, useRef, useState } from "react";
+import type { TeamPicture } from "../../api/types";
 import { radii, tokens } from "../../theme";
 import PictureAvatar from "../common/PictureAvatar";
 import SettingsSheet from "../settings/SettingsSheet";
@@ -13,6 +14,8 @@ interface Props {
   name: string;
   currentUrl: string | null | undefined;
   fallback?: "initials" | "tile";
+  /** A team's generated picture, shown while it has no upload (and again after Remove). */
+  generated?: TeamPicture | null;
   onSave: (picture: Blob) => Promise<void>;
   onRemove: () => Promise<void>;
   /** The message to show when the last save or removal failed. */
@@ -28,6 +31,7 @@ const AvatarSheet = ({
   name,
   currentUrl,
   fallback = "initials",
+  generated,
   onSave,
   onRemove,
   failure,
@@ -157,7 +161,13 @@ const AvatarSheet = ({
             />
           </>
         ) : (
-          <PictureAvatar url={currentUrl} name={name} size={96} fallback={fallback} />
+          <PictureAvatar
+            url={currentUrl}
+            name={name}
+            size={96}
+            fallback={fallback}
+            generated={generated}
+          />
         )}
         {(problem || failure) && (
           <Alert severity="error" role="alert" sx={{ width: "100%" }}>

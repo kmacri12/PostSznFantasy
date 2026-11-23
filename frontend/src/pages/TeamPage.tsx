@@ -109,6 +109,7 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
       <TeamHeader
         name={team.name}
         avatarUrl={team.avatarUrl}
+        picture={team.picture}
         ownerLine={`${owner}${standing?.rank != null ? ` · rank ${standing.rank}` : ""}`}
         total={standing?.total}
         status={rosterStatus(team.lineups, now)}

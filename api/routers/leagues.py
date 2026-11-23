@@ -40,7 +40,7 @@ from api.models.league_models import (
     ScoringSettings,
     SeasonSummary,
 )
-from api.services import activity, announcements, notifications, push
+from api.services import activity, announcements, notifications, push, team_pictures
 from api.services.activity import new_activity_counts
 from api.services.avatars import avatar_url
 from api.services.draft_picks import DraftPickError
@@ -149,12 +149,14 @@ async def create_league(
             **payload.team_unit_settings.model_dump(by_alias=False),
         )
     )
-    for i in range(number_of_teams):
+    for i, (color, icon) in enumerate(team_pictures.assign([], number_of_teams)):
         db.add(
             Team(
                 name=f"Team {i + 1}",
                 owner_id=user.id if i == 0 else None,
                 season_id=season.id,
+                picture_color=color,
+                picture_icon=icon,
             )
         )
     await db.flush()
