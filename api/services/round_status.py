@@ -10,9 +10,9 @@ from datetime import UTC, datetime
 
 from sqlalchemy import event, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import ORMExecuteState, Session
+from sqlalchemy.orm import ORMExecuteState, Session, aliased
 
-from api.db.models.nfl import NFLGame
+from api.db.models.nfl import NFLGame, NFLTeam
 from api.db.session import REQUEST_SCOPED
 from api.models.enums import GameState, PlayerRoundStatus
 from api.utils.calculations.standings_utils import postseason_round_index
@@ -40,6 +40,8 @@ class GameFacts:
     in_progress: bool = False
     clock: str | None = None
     game_id: str | None = None
+    home_abv: str | None = None
+    away_abv: str | None = None
 
     @property
     def state(self) -> GameState:
@@ -76,6 +78,11 @@ class TeamRound:
     game_clock: str | None = None
     # The round of the game that knocked the team out; set with ELIMINATED.
     eliminated_in: int | None = None
+    opponent_abv: str | None = None
+    home: bool | None = None
+    # The game's score from this team's side; None until the box score has one.
+    points: int | None = None
+    opponent_points: int | None = None
 
 
 def round_status(
@@ -95,8 +102,16 @@ def round_status(
         None,
     )
     if own is not None:
+        home = own.home_team_id == nfl_team_id
         return TeamRound(
-            PlayerRoundStatus.ALIVE, own.kickoff, own.state, own.clock or None
+            PlayerRoundStatus.ALIVE,
+            own.kickoff,
+            own.state,
+            own.clock or None,
+            opponent_abv=own.away_abv if home else own.home_abv,
+            home=home,
+            points=own.home_points if home else own.away_points,
+            opponent_points=own.away_points if home else own.home_points,
         )
     # Only the Wild Card round has byes. Later, an alive team without a game is waiting
     # for its next game to be scheduled, which is not a bye.
@@ -175,17 +190,19 @@ async def load_games(db: AsyncSession, season: int) -> list[GameFacts]:
 
 
 async def _read_games(db: AsyncSession, season: int) -> list[GameFacts]:
-    rows = (
-        await db.execute(
-            select(NFLGame).where(
-                NFLGame.season == season,
-                NFLGame.season_type == "post",
-                NFLGame.game_week.is_not(None),
-            )
+    home_team, away_team = aliased(NFLTeam), aliased(NFLTeam)
+    rows = await db.execute(
+        select(NFLGame, home_team.team_abv, away_team.team_abv)
+        .outerjoin(home_team, home_team.id == NFLGame.team_id_home)
+        .outerjoin(away_team, away_team.id == NFLGame.team_id_away)
+        .where(
+            NFLGame.season == season,
+            NFLGame.season_type == "post",
+            NFLGame.game_week.is_not(None),
         )
-    ).scalars()
+    )
     facts = []
-    for game in rows:
+    for game, home_abv, away_abv in rows.tuples():
         index = postseason_round_index(game.game_week or 0)
         if index is None:
             continue
@@ -201,6 +218,8 @@ async def _read_games(db: AsyncSession, season: int) -> list[GameFacts]:
                 game_id=game.id,
                 home_points=game.home_pts,
                 away_points=game.away_pts,
+                home_abv=home_abv,
+                away_abv=away_abv,
             )
         )
     return facts

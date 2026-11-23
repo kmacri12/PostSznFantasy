@@ -529,6 +529,12 @@ class LineupPlayer(RosterPlayer):
     game_state: GameState | None = None
     # The live game's clock as the upstream reports it; empty between plays.
     game_clock: str | None = None
+    # The other team in that round's game, and whether he is at home; None without one.
+    opponent_abv: str | None = None
+    is_home: bool | None = None
+    # That game's score for his team and the opponent; None before there is one.
+    team_score: int | None = None
+    opponent_score: int | None = None
     # Counted points in that round (league scoring, round multiplier); None before any stats.
     points: float | None = None
     # The round's stats on one line ("14/21, 168 yds, 2 TD, 0 INT"); None before any stats.
