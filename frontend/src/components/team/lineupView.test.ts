@@ -3,6 +3,7 @@ import { lineupPlayer, roundLineup, slot } from "../../test/lineup";
 import {
   benchPlayersOf,
   eliminatedLastRound,
+  gameOutcome,
   hurtStarters,
   hurtStartersMessage,
   playerDetail,
@@ -46,12 +47,35 @@ describe("what a row says", () => {
     expect(playerDetail(lineupPlayer({ gameState: "final" }))).toBe("No stats");
   });
 
-  it("leads a finished game with the result, score and opponent", () => {
+  it("follows a finished game's score with the stats; the result word is gameOutcome's", () => {
     const game = { gameState: "final" as const, statLine: "4 rec, 41 yds", opponentAbv: "IND" };
     const won = lineupPlayer({ ...game, isHome: true, teamScore: 27, opponentScore: 20 });
     const lost = lineupPlayer({ ...game, isHome: false, teamScore: 17, opponentScore: 24 });
-    expect(playerDetail(won)).toBe("W 27-20 vs IND · 4 rec, 41 yds");
-    expect(playerDetail(lost)).toBe("L 17-24 @ IND · 4 rec, 41 yds");
+    expect(playerDetail(won)).toBe("27-20 · 4 rec, 41 yds");
+    expect(playerDetail(lost)).toBe("17-24 · 4 rec, 41 yds");
+    expect(playerDetail(lineupPlayer(game))).toBe("4 rec, 41 yds");
+  });
+
+  it("a win advances, a loss eliminates, the Super Bowl's winner is the champion", () => {
+    const final = { gameState: "final" as const };
+    const won = lineupPlayer({ ...final, teamScore: 27, opponentScore: 20 });
+    const lost = lineupPlayer({ ...final, teamScore: 17, opponentScore: 24 });
+    expect(gameOutcome(won)).toEqual({ word: "ADVANCES", won: true, score: "27-20" });
+    expect(gameOutcome(lost)).toEqual({ word: "ELIMINATED", won: false, score: "17-24" });
+    expect(gameOutcome(won, true)?.word).toBe("CHAMPION");
+    expect(gameOutcome(lost, true)?.word).toBe("ELIMINATED");
+  });
+
+  it("says nothing before the game ends, without a score, or once already out", () => {
+    const scores = { teamScore: 27, opponentScore: 20 };
+    expect(gameOutcome(lineupPlayer({ ...scores, gameState: "live" }))).toBeNull();
+    expect(gameOutcome(lineupPlayer({ gameState: "final" }))).toBeNull();
+    expect(
+      gameOutcome(lineupPlayer({ ...scores, gameState: "final", status: "eliminated" })),
+    ).toBeNull();
+    expect(
+      gameOutcome(lineupPlayer({ gameState: "final", teamScore: 20, opponentScore: 20 })),
+    ).toBeNull();
   });
 
   it("names the round an eliminated player's team went out in", () => {

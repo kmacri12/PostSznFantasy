@@ -174,6 +174,7 @@ const LineupRound = ({ lineup, teamUnits, onOpenPlayer, onFillSlot }: Props) => 
             player={slot.player}
             mark={slot.mark}
             help={slotHelp(slot.slot, teamUnits)}
+            superBowl={lineup.round === 4}
             onOpen={onOpenPlayer}
             onFillEmpty={slot.player || !onFillSlot ? undefined : () => onFillSlot(slot.index)}
           />
@@ -188,6 +189,7 @@ const LineupRound = ({ lineup, teamUnits, onOpenPlayer, onFillSlot }: Props) => 
               label={player.position}
               player={player}
               bench
+              superBowl={lineup.round === 4}
               onOpen={onOpenPlayer}
             />
           ))}
