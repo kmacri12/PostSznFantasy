@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import type { Bracket, BracketGame, BracketTeam } from "../../api/types";
 import BracketView from "./BracketView";
@@ -38,14 +38,24 @@ const bracket: Bracket = {
 };
 
 describe("BracketView", () => {
-  it("lists the rounds, the final score, the byes and what each empty round waits for", () => {
+  it("opens on the current round and says what that empty round waits for", () => {
     render(<BracketView bracket={bracket} />);
-    expect(screen.getByRole("heading", { name: "Wild Card" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Divisional · now" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /Divisional/ })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    expect(screen.getByText("Set once the previous round is final.")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /BUF at KC/ })).not.toBeInTheDocument();
+  });
+
+  it("shows only the picked round: its games and score, and the byes under Wild Card", () => {
+    render(<BracketView bracket={bracket} />);
+    fireEvent.click(screen.getByRole("tab", { name: /Wild Card/ }));
+    expect(screen.getByRole("tab", { name: /Wild Card/ })).toHaveAttribute("aria-selected", "true");
     expect(screen.getByText("Bye: HOU")).toBeInTheDocument();
-    expect(screen.getAllByText("Set once the previous round is final.")).toHaveLength(3);
     const card = screen.getByRole("button", { name: /BUF at KC, Final/ });
     expect(within(card).getByText("27")).toBeInTheDocument();
     expect(within(card).getByText("Yours: 1 starter")).toBeInTheDocument();
+    expect(screen.queryByText("Set once the previous round is final.")).not.toBeInTheDocument();
   });
 });

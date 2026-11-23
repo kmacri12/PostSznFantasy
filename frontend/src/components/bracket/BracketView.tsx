@@ -6,66 +6,54 @@ import { ROUND_LABELS } from "../team/lineup";
 import { waitingText } from "./bracketView";
 import GameCard from "./GameCard";
 import GameSheet from "./GameSheet";
+import RoundTabs from "./RoundTabs";
+
+const gameCount = (n: number): string => (n === 0 ? "-" : `${n} ${n === 1 ? "game" : "games"}`);
 
 /**
- * Rounds from Wild Card to Super Bowl: stacked on a phone, four columns from `md` up so the
- * bracket reads left to right. Nothing scrolls sideways.
+ * One round at a time, picked with the same four tabs as the Team page and opening on the current
+ * round: a column on a phone, a grid of games from `md` up. Nothing scrolls sideways.
  */
 const BracketView = ({ bracket }: { bracket: Bracket }) => {
+  const [round, setRound] = useState(bracket.currentRound);
   const [open, setOpen] = useState<BracketGame | null>(null);
+  const games = bracket.rounds.find((entry) => entry.round === round)?.games ?? [];
   return (
     <>
+      <RoundTabs
+        round={round}
+        onSelect={setRound}
+        cells={bracket.rounds.map((entry) => ({
+          round: entry.round,
+          value: gameCount(entry.games.length),
+        }))}
+      />
       <Box
+        component="section"
+        aria-label={ROUND_LABELS[round]}
         sx={{
+          mt: 2,
           display: "grid",
-          gridTemplateColumns: { xs: "minmax(0, 1fr)", md: "repeat(4, minmax(0, 1fr))" },
-          gap: { xs: 2.5, md: 2 },
+          gridTemplateColumns: {
+            xs: "minmax(0, 1fr)",
+            md: "repeat(auto-fill, minmax(300px, 1fr))",
+          },
+          gap: 1,
           alignItems: "start",
         }}
       >
-        {bracket.rounds.map(({ round, games }) => (
-          <Box
-            key={round}
-            component="section"
-            aria-labelledby={`round-${round}`}
-            // Later rounds sit lower in the tree on desktop, between the games feeding them.
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 1,
-              justifyContent: "center",
-              alignSelf: { md: "stretch" },
-            }}
-          >
-            <Typography
-              id={`round-${round}`}
-              component="h2"
-              sx={{
-                fontSize: 13,
-                fontWeight: 700,
-                letterSpacing: 0.4,
-                color: round === bracket.currentRound ? tokens.accentSoft : tokens.muted,
-              }}
-            >
-              {ROUND_LABELS[round]}
-              {round === bracket.currentRound ? " · now" : ""}
-            </Typography>
-            {games.length === 0 && (
-              <Typography sx={{ fontSize: 13, color: tokens.muted }}>
-                {waitingText(round)}
-              </Typography>
-            )}
-            {games.map((game, i) => (
-              <GameCard key={game.id ?? `${round}-${i}`} game={game} onOpen={() => setOpen(game)} />
-            ))}
-            {round === 1 && bracket.byes.length > 0 && (
-              <Typography sx={{ fontSize: 13, color: tokens.muted }}>
-                Bye: {bracket.byes.map((t) => t.abbreviation).join(", ")}
-              </Typography>
-            )}
-          </Box>
+        {games.length === 0 && (
+          <Typography sx={{ fontSize: 13, color: tokens.muted }}>{waitingText(round)}</Typography>
+        )}
+        {games.map((game, i) => (
+          <GameCard key={game.id ?? `${round}-${i}`} game={game} onOpen={() => setOpen(game)} />
         ))}
       </Box>
+      {round === 1 && bracket.byes.length > 0 && (
+        <Typography sx={{ mt: 1.5, fontSize: 13, color: tokens.muted }}>
+          Bye: {bracket.byes.map((t) => t.abbreviation).join(", ")}
+        </Typography>
+      )}
       {open && <GameSheet game={open} onClose={() => setOpen(null)} />}
     </>
   );
