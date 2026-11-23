@@ -42,7 +42,7 @@ interface Props {
   onFillEmpty?: () => void;
 }
 
-/** One lineup line. The whole left side opens the player sheet; the score stays its own target. */
+/** One lineup line. The whole row opens the player sheet, the score included. */
 const PlayerRow = ({
   label,
   player,
@@ -56,6 +56,7 @@ const PlayerRow = ({
   const colors = COLORS[state];
   const muted = bench && state === "ready";
   const eliminated = state === "eliminated";
+  const open = player ? () => onOpen(player) : onFillEmpty;
   const score = (
     <Typography
       component="span"
@@ -85,7 +86,7 @@ const PlayerRow = ({
                 ? `${label} empty, choose a player`
                 : undefined
           }
-          onClick={player ? () => onOpen(player) : onFillEmpty}
+          onClick={open}
           sx={{
             flex: 1,
             minWidth: 0,
@@ -179,7 +180,22 @@ const PlayerRow = ({
             <SlotMarker mark={mark} empty={player === null} />
           </Box>
         )}
-        <Box sx={{ pr: 1.75, pl: 0.5, minWidth: 52, textAlign: "right" }}>
+        {/* Outside the button (a changed score is a button of its own and cannot nest in it), so it
+            opens the same sheet itself; a tap on the score is a tap on the row. */}
+        <Box
+          onClick={open}
+          sx={{
+            alignSelf: "stretch",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "flex-end",
+            pr: 1.75,
+            pl: 0.5,
+            minWidth: 52,
+            textAlign: "right",
+            cursor: open ? "pointer" : "default",
+          }}
+        >
           {player?.scoreChange ? (
             <ChangedScore
               points={player.points}

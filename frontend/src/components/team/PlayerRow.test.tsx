@@ -45,4 +45,42 @@ describe("a lineup row", () => {
     fireEvent.click(screen.getByRole("button", { name: /^QB Baker Mayfield/ }));
     expect(onOpen).toHaveBeenCalledWith(baker);
   });
+
+  it("opens the same sheet when the score itself is tapped", () => {
+    const onOpen = vi.fn();
+    render(
+      <ul>
+        <PlayerRow label="QB" player={baker} onOpen={onOpen} />
+      </ul>,
+    );
+    fireEvent.click(screen.getByText("1.24"));
+    expect(onOpen).toHaveBeenCalledWith(baker);
+  });
+
+  it("opens the sheet from the cell around a changed score, but not from its explanation", () => {
+    const onOpen = vi.fn();
+    const corrected = lineupPlayer({
+      name: "Baker Mayfield",
+      points: 1.24,
+      scoreChange: { previousPoints: 1, newPoints: 1.24, changedAt: "2026-01-12T00:00:00Z" },
+    });
+    render(
+      <ul>
+        <PlayerRow label="QB" player={corrected} onOpen={onOpen} />
+      </ul>,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /score changed/ }));
+    expect(onOpen).not.toHaveBeenCalled();
+  });
+
+  it("an empty row's dash opens the picker like the rest of the row", () => {
+    const onFillEmpty = vi.fn();
+    render(
+      <ul>
+        <PlayerRow label="FLEX" player={null} onOpen={vi.fn()} onFillEmpty={onFillEmpty} />
+      </ul>,
+    );
+    fireEvent.click(screen.getByText("-"));
+    expect(onFillEmpty).toHaveBeenCalled();
+  });
 });
