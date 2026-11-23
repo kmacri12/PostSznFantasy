@@ -170,17 +170,24 @@ async def test_progress_counts_follow_games_from_scheduled_to_live_to_final(
         p = next(r for r in body["teams"] if r["teamId"] == me.id)["progress"]
         return p["finished"], p["live"], p["toPlay"], p["notPlaying"]
 
+    def dots(body: dict[str, Any]) -> tuple[int, int, int, int]:
+        """advanced, live, to play, eliminated: the whole roster, bench included."""
+        d = next(r for r in body["teams"] if r["teamId"] == me.id)["rosterStatus"]
+        return d["advanced"], d["live"], d["toPlay"], d["eliminated"]
+
     body = await w.standings()
     # 9 starter slots by default: 2 filled and yet to play, 7 empty.
     assert (body["round"], body["gamesInProgress"]) == (1, 0)
     assert body["gamesToPlay"] == 3
     assert progress(body) == (0, 0, 2, 7)
+    assert dots(body) == (0, 0, 3, 0)
 
     kc.game_status = "Live - In Progress"
     await db.flush()
     body = await w.standings()
     assert (body["gamesInProgress"], body["gamesToPlay"]) == (1, 2)
     assert progress(body) == (0, 1, 1, 7)
+    assert dots(body) == (0, 1, 2, 0)
 
     kc.game_status, kc.home_pts, kc.away_pts = "Completed", 24, 17
     den.game_status = "Live - In Progress"
@@ -189,12 +196,14 @@ async def test_progress_counts_follow_games_from_scheduled_to_live_to_final(
     assert (body["gamesInProgress"], body["gamesFinal"]) == (1, 1)
     assert body["gamesToPlay"] == 1
     assert progress(body) == (1, 1, 0, 7)
+    assert dots(body) == (1, 2, 0, 0)  # KC won; DEN and MIA are in the live game
 
     den.game_status, den.home_pts, den.away_pts = "Completed", 3, 0
     await db.flush()
     body = await w.standings()
     assert body["gamesInProgress"] == 0
     assert (body["round"], progress(body)) == (1, (2, 0, 0, 7))
+    assert dots(body) == (2, 0, 0, 1)  # the Wild Card is still the round shown
 
     # With the last Wild Card game final, the page moves on to the Divisional, whose
     # lineup nobody has set yet.

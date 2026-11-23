@@ -1,4 +1,4 @@
-import { Alert, Box, Button, Container, Typography } from "@mui/material";
+import { Alert, Button, Container } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import {
@@ -14,11 +14,8 @@ import {
 import type { TeamDetails } from "../api/types";
 import { mutationError } from "../components/common/friendlyError";
 import LiveStatsNotice from "../components/common/LiveStatsNotice";
-import PictureAvatar from "../components/common/PictureAvatar";
 import QueryBoundary from "../components/common/QueryBoundary";
 import ArchivedNotice from "../components/league/ArchivedNotice";
-import { formatPoints } from "../components/league/standingsView";
-import CogButton from "../components/settings/CogButton";
 import TeamSettingsSheet from "../components/settings/TeamSettingsSheet";
 import LineupRound from "../components/team/LineupRound";
 import {
@@ -32,13 +29,14 @@ import {
   benchPlayersOf,
   hurtStarters,
   hurtStartersMessage,
+  rosterStatus,
 } from "../components/team/lineupView";
 import OverrideDialog from "../components/team/OverrideDialog";
 import PlayerSheet from "../components/team/PlayerSheet";
 import RoundStrip from "../components/team/RoundStrip";
 import SlotPickerSheet from "../components/team/SlotPickerSheet";
+import TeamHeader from "../components/team/TeamHeader";
 import { useSeasonContext } from "../contexts/SeasonContext";
-import { tokens } from "../theme";
 
 /** Re-renders every 30s so the banner clears the moment a game starts. */
 const useNow = () => {
@@ -108,39 +106,14 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
       maxWidth="md"
       sx={{ py: { xs: 1, sm: 3 }, display: "flex", flexDirection: "column", gap: 1 }}
     >
-      <Box
-        sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 1.5 }}
-      >
-        <PictureAvatar url={team.avatarUrl} name={team.name} size={44} />
-        <Box sx={{ minWidth: 0, flexGrow: 1 }}>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-            <Typography
-              variant="h1"
-              sx={{ fontSize: { xs: 20, md: 26 }, fontWeight: 700, overflowWrap: "anywhere" }}
-            >
-              {team.name}
-            </Typography>
-            {/* Negative margins only: the cog keeps its full tap target but stops adding height. */}
-            <Box sx={{ my: -0.75 }}>
-              <CogButton label="Team settings" onClick={() => setSettingsOpen(true)} />
-            </Box>
-          </Box>
-          <Typography component="span" sx={{ fontSize: { xs: 12, md: 13 }, color: tokens.muted }}>
-            {owner}
-            {standing?.rank != null && ` · rank ${standing.rank}`}
-          </Typography>
-        </Box>
-        {standing && (
-          <Box sx={{ textAlign: "right", flexShrink: 0 }}>
-            <Typography sx={{ fontSize: { xs: 20, md: 26 }, fontWeight: 700, lineHeight: 1.2 }}>
-              {formatPoints(standing.total)}
-            </Typography>
-            <Typography component="span" sx={{ fontSize: { xs: 12, md: 13 }, color: tokens.muted }}>
-              total
-            </Typography>
-          </Box>
-        )}
-      </Box>
+      <TeamHeader
+        name={team.name}
+        avatarUrl={team.avatarUrl}
+        ownerLine={`${owner}${standing?.rank != null ? ` · rank ${standing.rank}` : ""}`}
+        total={standing?.total}
+        status={rosterStatus(team.lineups, now)}
+        onOpenSettings={() => setSettingsOpen(true)}
+      />
 
       <LiveStatsNotice />
       {archived && <ArchivedNotice what="names and lineups" />}
