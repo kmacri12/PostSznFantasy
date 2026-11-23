@@ -24,8 +24,8 @@ import PictureAvatar from "../common/PictureAvatar";
 import QueryBoundary from "../common/QueryBoundary";
 import ShareCardButton from "../share/ShareCardButton";
 import { roundCard } from "../share/shareCards";
+import StatusBreakdownTrigger from "../team/StatusBreakdown";
 import StatusRing from "../team/StatusRing";
-import { playersLeftText, rosterLeft, statusSummary } from "../team/statusStyle";
 import RankCell from "./RankCell";
 import { formatPoints, isOpenSpot, ROUNDS, rankLabel, rowDetail, tieNote } from "./standingsView";
 
@@ -42,25 +42,22 @@ const RowDetail = ({ row, live }: { row: StandingsRow; live: boolean }) => {
 
 /**
  * The team picture ringed by one dot per rostered player (the Team page's ring), with a red wash
- * when nobody is left. Only while the season is on, and wherever the team has players.
+ * when nobody is left; a tap on it opens the breakdown by status. Only while the season is on, and
+ * wherever the team has players.
  */
 const RowAvatar = ({ row, live, size }: { row: StandingsRow; live: boolean; size: number }) => {
-  const counts = row.rosterStatus;
+  const counts = live ? row.rosterStatus : null;
   return (
-    <StatusRing
-      counts={live ? counts : null}
-      size={size}
-      label={
-        counts ? `${playersLeftText(rosterLeft(counts))}: ${statusSummary(counts)}` : undefined
-      }
-    >
-      <PictureAvatar
-        url={row.teamAvatarUrl}
-        generated={row.teamPicture}
-        name={row.teamName}
-        size={size}
-      />
-    </StatusRing>
+    <StatusBreakdownTrigger counts={counts}>
+      <StatusRing counts={counts} size={size}>
+        <PictureAvatar
+          url={row.teamAvatarUrl}
+          generated={row.teamPicture}
+          name={row.teamName}
+          size={size}
+        />
+      </StatusRing>
+    </StatusBreakdownTrigger>
   );
 };
 
@@ -153,6 +150,10 @@ const PhoneRow = ({
         <Box sx={{ display: "flex", alignItems: "center", pl: 0.5 }}>
           <RankCell label={rankLabel(rows, index)} note={note} color={color ?? tokens.muted} />
         </Box>
+        {/* Beside the expand button, not inside it: the picture has its own tap. */}
+        <Box sx={{ display: "flex", alignItems: "center" }}>
+          <RowAvatar row={row} live={!finished} size={36} />
+        </Box>
         <Box
           component="button"
           type="button"
@@ -175,7 +176,6 @@ const PhoneRow = ({
             "&:focus-visible": { outline: `2px solid ${tokens.accent}`, outlineOffset: -2 },
           }}
         >
-          <RowAvatar row={row} live={!finished} size={36} />
           <Box sx={{ flexGrow: 1, minWidth: 0 }}>
             <Typography noWrap sx={{ fontWeight: 600, color }}>
               {row.teamName}
@@ -283,19 +283,13 @@ const DesktopTable = ({ rows, round, finished }: Omit<RowProps, "row" | "index">
                 />
               </TableCell>
               <TableCell>
-                <Box
-                  component={Link}
-                  to={paths.team(row.teamId)}
-                  sx={{
-                    color: "inherit",
-                    textDecoration: "none",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1.25,
-                  }}
-                >
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
                   <RowAvatar row={row} live={!finished} size={32} />
-                  <Box>
+                  <Box
+                    component={Link}
+                    to={paths.team(row.teamId)}
+                    sx={{ color: "inherit", textDecoration: "none" }}
+                  >
                     <Typography sx={{ fontWeight: 600, color }}>{row.teamName}</Typography>
                     <Typography variant="caption" sx={{ color: color ?? "text.secondary" }}>
                       <RowDetail row={row} live={!finished} />

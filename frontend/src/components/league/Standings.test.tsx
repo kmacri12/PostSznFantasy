@@ -80,13 +80,29 @@ describe("Standings", () => {
     show({ ...live, teams: [row(1, 1, { rosterStatus: dots }), row(2, 2)] });
     const items = within(phoneList()).getAllByRole("listitem");
     expect(
-      within(items[0] as HTMLElement).getByRole("img", {
-        name: "13 players left: 4 advanced, 3 live, 6 to play, 2 eliminated",
+      within(items[0] as HTMLElement).getByRole("button", {
+        name: "13 players left: 4 advanced, 3 live, 6 yet to play, 2 eliminated",
       }),
     ).toBeInTheDocument();
     expect(within(items[0] as HTMLElement).queryByTestId("out-wash")).toBeNull();
     expect((items[0] as HTMLElement).textContent).toContain("13 players left");
-    expect(within(items[1] as HTMLElement).queryByRole("img")).toBeNull(); // no roster status
+    // No roster status: no ring, no extra button beyond the row's own expand control.
+    expect(within(items[1] as HTMLElement).getAllByRole("button")).toHaveLength(1);
+  });
+
+  it("opens the breakdown from the picture without expanding the row", () => {
+    const dots = { advanced: 4, live: 3, toPlay: 6, eliminated: 2 };
+    show({ ...live, teams: [row(1, 1, { rosterStatus: dots })] });
+    const item = within(phoneList()).getAllByRole("listitem")[0] as HTMLElement;
+    fireEvent.click(within(item).getByRole("button", { name: /^13 players left: / }));
+    expect(screen.getByRole("note")).toHaveTextContent("2 eliminated");
+    expect(screen.getByRole("note")).toHaveTextContent("6 yet to play");
+    // The row stayed closed: its expand button still says so.
+    expect(item.querySelector('button[aria-controls="standings-1"]')).toHaveAttribute(
+      "aria-expanded",
+      "false",
+    );
+    expect(document.getElementById("standings-1")).toBeNull();
   });
 
   it("washes the picture red when nobody is left", () => {

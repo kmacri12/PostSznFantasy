@@ -19,12 +19,12 @@ describe("players left", () => {
   it("says how many players are left and names every colour in its label", () => {
     render(<PlayersLeft status={status} />);
     const button = screen.getByRole("button", {
-      name: "13 players left, 4 advanced, 3 live, 6 to play, 2 eliminated",
+      name: "13 players left, 4 advanced, 3 live, 6 yet to play, 2 eliminated",
     });
     expect(button).toHaveTextContent("13 players left");
   });
 
-  it("opens the legend with the counts on a tap, and leaves out an empty status", () => {
+  it("opens the breakdown on a tap: all four statuses with their counts, eliminated first", () => {
     render(
       <PlayersLeft
         status={{
@@ -42,9 +42,7 @@ describe("players left", () => {
     expect(button).toHaveAttribute("aria-expanded", "false");
     fireEvent.click(button);
     expect(button).toHaveAttribute("aria-expanded", "true");
-    const legend = screen.getByRole("note");
-    expect(legend).toHaveTextContent("1 advanced");
-    expect(legend).toHaveTextContent("1 eliminated");
-    expect(legend).not.toHaveTextContent("live");
+    const lines = Array.from(screen.getByRole("note").children).map((line) => line.textContent);
+    expect(lines).toEqual(["1 eliminated", "0 live", "0 yet to play", "1 advanced"]);
   });
 });
