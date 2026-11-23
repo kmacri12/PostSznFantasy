@@ -32,8 +32,8 @@ const RoundStrip = ({ lineups, round, onSelect }: Props) => (
           onClick={() => onSelect(lineup.round)}
           sx={{
             display: "block",
-            minHeight: 56,
-            py: selected ? "7px" : "8px",
+            minHeight: 48,
+            py: selected ? "3px" : "4px",
             textAlign: "center",
             borderRadius: "10px",
             border: selected ? `2px solid ${tokens.accent}` : `1px solid ${tokens.borderStrong}`,
