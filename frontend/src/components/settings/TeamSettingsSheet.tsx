@@ -35,6 +35,7 @@ const TeamSettingsSheet = ({ team, owner, canRename, ownerPicker, onClose }: Pro
         title="Team picture"
         name={team.name}
         currentUrl={team.avatarUrl}
+        generated={team.picture}
         failure={mutationError(picture.error, "Couldn't save the picture. Try again.")}
         onClose={() => {
           picture.reset();
@@ -85,7 +86,14 @@ const TeamSettingsSheet = ({ team, owner, canRename, ownerPicker, onClose }: Pro
       <SettingsCard>
         <SettingsRow
           label="Team picture"
-          value={<PictureAvatar url={team.avatarUrl} name={team.name} size={32} />}
+          value={
+            <PictureAvatar
+              url={team.avatarUrl}
+              generated={team.picture}
+              name={team.name}
+              size={32}
+            />
+          }
           onClick={canRename ? () => setPictureOpen(true) : undefined}
         />
         <SettingsRow

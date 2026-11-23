@@ -13,6 +13,7 @@ from api.models.enums import (
     PlayerRoundStatus,
     TieRule,
 )
+from api.models.picture_models import TeamPicture
 from api.utils.text import CleanLine, CleanNote
 
 ROSTER_SLOTS_MAX = 20
@@ -426,6 +427,7 @@ class TeamStanding(BaseSchema):
     rank: int | None
     team_name: str
     team_avatar_url: str | None = None
+    team_picture: TeamPicture | None = None
     # None for an open slot.
     owner: str | None
     is_commissioner: bool = False
@@ -584,6 +586,7 @@ class TeamDetails(BaseSchema):
     id: int
     name: str
     avatar_url: str | None = None
+    picture: TeamPicture | None = None
     season_id: int
     owner_name: str | None = None
     can_edit: bool

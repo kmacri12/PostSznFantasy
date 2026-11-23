@@ -123,6 +123,8 @@ erDiagram
         int id PK
         string name
         string avatar_key
+        int picture_color
+        int picture_icon
         int owner_id FK
         int season_id FK
     }

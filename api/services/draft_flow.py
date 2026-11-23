@@ -38,6 +38,7 @@ from api.models.enums import (
     PickTimeoutAction,
     PlayerPosition,
 )
+from api.models.picture_models import TeamPicture
 from api.services import activity
 from api.services.avatars import avatar_url
 from api.services.draft_picks import (
@@ -102,6 +103,9 @@ async def build_state(db: AsyncSession, draft: Draft) -> DraftStateResponse:
             team_id=team_id,
             team_name=by_id[team_id].name or f"Team {team_id}",
             team_avatar_url=avatar_url(by_id[team_id].avatar_key),
+            team_picture=TeamPicture(
+                color=by_id[team_id].picture_color, icon=by_id[team_id].picture_icon
+            ),
             owner_name=owner_names.get(by_id[team_id].owner_id or -1),
             owner_user_id=by_id[team_id].owner_id,
         )

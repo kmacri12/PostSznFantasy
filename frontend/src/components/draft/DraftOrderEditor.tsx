@@ -80,6 +80,7 @@ const DraftOrderEditor = ({ draft, onDone }: { draft: DraftState; onDone: () => 
             </Typography>
             <PictureAvatar
               url={draft.order.find((slot) => slot.teamId === id)?.teamAvatarUrl}
+              generated={draft.order.find((slot) => slot.teamId === id)?.teamPicture}
               name={nameOf(id)}
               size={32}
             />

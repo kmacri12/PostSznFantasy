@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from api.db.models.draft import Draft
 from api.db.models.league import SeasonSettings, Team
 from api.models.enums import DraftStatus
+from api.services import team_pictures
 from api.services.league_members import LeagueRuleError
 
 # Once the draft starts these shape the draft itself and can no longer change.
@@ -80,10 +81,15 @@ async def set_team_count(db: AsyncSession, season_id: int, count: int) -> None:
         .all()
     )
     taken = {(team.name or "").casefold() for team in teams}
-    for index in range(len(teams), count):
+    pictures = team_pictures.assign(
+        [team.picture_color for team in teams], max(count - len(teams), 0)
+    )
+    for index, (color, icon) in zip(range(len(teams), count), pictures, strict=True):
         name = _free_default_name(index + 1, taken)
         taken.add(name.casefold())
-        db.add(Team(name=name, season_id=season_id))
+        db.add(
+            Team(name=name, season_id=season_id, picture_color=color, picture_icon=icon)
+        )
 
     if count < len(teams):
         removable = [team for team in reversed(teams) if team.owner_id is None]

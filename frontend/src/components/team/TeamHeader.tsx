@@ -1,4 +1,5 @@
 import { Box, Typography } from "@mui/material";
+import type { TeamPicture } from "../../api/types";
 import { tokens } from "../../theme";
 import PictureAvatar from "../common/PictureAvatar";
 import { formatPoints } from "../league/standingsView";
@@ -12,6 +13,7 @@ const AVATAR = 44;
 interface Props {
   name: string;
   avatarUrl: string | null | undefined;
+  picture?: TeamPicture | null;
   /** "You", or the owner's name, with the rank when there is one. */
   ownerLine: string;
   total: number | undefined;
@@ -23,10 +25,18 @@ interface Props {
  * The Team page header: the picture ringed by one dot per player (red wash when nobody is left),
  * the name with the settings cog, the owner line ending in "10 players left", and the total.
  */
-const TeamHeader = ({ name, avatarUrl, ownerLine, total, status, onOpenSettings }: Props) => (
+const TeamHeader = ({
+  name,
+  avatarUrl,
+  picture,
+  ownerLine,
+  total,
+  status,
+  onOpenSettings,
+}: Props) => (
   <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 1 }}>
     <StatusRing counts={status?.counts} size={AVATAR}>
-      <PictureAvatar url={avatarUrl} name={name} size={AVATAR} />
+      <PictureAvatar url={avatarUrl} generated={picture} name={name} size={AVATAR} />
     </StatusRing>
     <Box sx={{ minWidth: 0, flexGrow: 1 }}>
       <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>

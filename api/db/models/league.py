@@ -10,6 +10,7 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     Numeric,
+    SmallInteger,
     String,
     Table,
     Text,
@@ -190,6 +191,14 @@ class Team(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str | None] = mapped_column(String(40))
     avatar_key: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    # The generated picture shown until an upload: indices into the SPA's palette, see
+    # services/team_pictures.py. Creation sites assign them; 0 is only the fallback.
+    picture_color: Mapped[int] = mapped_column(
+        SmallInteger, nullable=False, default=0, server_default="0"
+    )
+    picture_icon: Mapped[int] = mapped_column(
+        SmallInteger, nullable=False, default=0, server_default="0"
+    )
     owner_id: Mapped[int | None] = mapped_column(
         Integer,
         ForeignKey("fantasy.users.id", ondelete="SET NULL"),
