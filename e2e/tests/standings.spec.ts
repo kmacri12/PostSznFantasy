@@ -53,7 +53,8 @@ test.describe("standings", () => {
     await expect(standings.getByText("0.0", { exact: true })).toHaveCount(4);
 
     // Both teams are tied at zero, so either row's details prove the expand control works.
-    await standings.getByRole("listitem").first().getByRole("button").click();
+    // The row's expand control is the one that controls a panel; the picture's ring is a button too.
+    await standings.getByRole("listitem").first().locator("button[aria-controls]").click();
     await expect(standings.getByRole("link", { name: "Open team page" })).toBeVisible();
     for (const round of ["Wild Card", "Divisional", "Conf. champ", "Super Bowl"]) {
       await expect(standings.getByText(round, { exact: true })).toBeVisible();
