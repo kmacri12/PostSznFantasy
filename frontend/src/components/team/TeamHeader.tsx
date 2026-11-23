@@ -5,7 +5,6 @@ import PictureAvatar from "../common/PictureAvatar";
 import { formatPoints } from "../league/standingsView";
 import CogButton from "../settings/CogButton";
 import type { RosterStatus } from "./lineupView";
-import PlayersLeft from "./PlayersLeft";
 import StatusBreakdownTrigger from "./StatusBreakdown";
 import StatusRing from "./StatusRing";
 
@@ -24,8 +23,8 @@ interface Props {
 
 /**
  * The Team page header: the picture ringed by one dot per player (red wash when nobody is left),
- * the name with the settings cog, the owner line ending in "10 players left", and the total. A tap on the picture or on the
- * "10 players left" text opens the breakdown by status.
+ * the name with the settings cog, the owner line and the total. A tap on the picture opens the
+ * breakdown by status.
  */
 const TeamHeader = ({
   name,
@@ -36,7 +35,7 @@ const TeamHeader = ({
   status,
   onOpenSettings,
 }: Props) => (
-  <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 1 }}>
+  <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 1.75 }}>
     <StatusBreakdownTrigger counts={status?.counts}>
       <StatusRing counts={status?.counts} size={AVATAR}>
         <PictureAvatar url={avatarUrl} generated={picture} name={name} size={AVATAR} />
@@ -67,12 +66,6 @@ const TeamHeader = ({
         }}
       >
         {ownerLine}
-        {status && (
-          <>
-            <span aria-hidden>·</span>
-            <PlayersLeft status={status} />
-          </>
-        )}
       </Typography>
     </Box>
     {total !== undefined && (
