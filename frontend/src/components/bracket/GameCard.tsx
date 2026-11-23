@@ -1,6 +1,7 @@
 import { Box, Typography } from "@mui/material";
 import type { BracketGame, BracketTeam } from "../../api/types";
 import { radii, tokens } from "../../theme";
+import TeamLogo from "../common/TeamLogo";
 import { gameStatusText, matchupTitle, myPlayersSummary, winnerId } from "./bracketView";
 
 interface TeamRowProps {
@@ -21,6 +22,19 @@ const TeamRow = ({ team, points, lost, won }: TeamRowProps) => (
       opacity: lost ? 0.55 : 1,
     }}
   >
+    <Box
+      sx={{
+        width: 24,
+        height: 24,
+        flex: "none",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        "& img": { mr: 0, verticalAlign: "middle" },
+      }}
+    >
+      <TeamLogo abbreviation={team?.abbreviation} size={24} />
+    </Box>
     <Typography
       component="span"
       sx={{ fontSize: 15, fontWeight: won ? 700 : 600, minWidth: 40, flex: "none" }}

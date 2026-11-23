@@ -76,7 +76,7 @@ const LeagueContent = () => {
         )}
         {!season.finished && <RoundWinToast seasonId={seasonId} myTeamId={season.myTeamId} />}
         <Standings season={season} />
-        {!season.finished && <BracketLink />}
+        {!season.finished && <BracketLink season={season} />}
         {season.draftStatus === "completed" && !season.finished && <LiveStatsNotice />}
         {info && <LeagueNotes league={info} />}
         {info && info.currentSeasonId === seasonId && <PostAnnouncementAction league={info} />}

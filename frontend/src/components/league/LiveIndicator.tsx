@@ -5,6 +5,12 @@ import { useFeatures, useStandings } from "../../api/queries";
 import { tokens } from "../../theme";
 import { useNow } from "./countdown";
 
+/**
+ * Pulls a right-aligned arrow's edge out to where the standings rows put theirs (their 12px
+ * padding against this block's 16px padding plus 1px border), so the arrows line up vertically.
+ */
+export const ARROW_OUTSET = "-5px";
+
 export const liveAgo = (updatedAt: number, now: number): string => {
   const seconds = Math.max(0, Math.round((now - updatedAt) / 1000));
   return seconds < 60 ? `${seconds}s ago` : `${Math.floor(seconds / 60)} min ago`;
@@ -49,10 +55,16 @@ const LiveIndicator = ({
     <ButtonBase
       component={Link}
       to={schedule}
-      sx={{ minHeight: 44, gap: 0.75, justifyContent: "flex-start", borderRadius: 1 }}
+      sx={{
+        minHeight: 44,
+        gap: 0.75,
+        justifyContent: "flex-start",
+        borderRadius: 1,
+        mr: ARROW_OUTSET,
+      }}
     >
       {line}
-      <ChevronRightIcon fontSize="small" sx={{ color: tokens.liveSoft }} />
+      <ChevronRightIcon fontSize="small" sx={{ color: tokens.liveSoft, ml: "auto" }} />
     </ButtonBase>
   );
 };

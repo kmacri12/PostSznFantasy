@@ -1,5 +1,5 @@
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import { Box, Button, Typography } from "@mui/material";
+import { Box, Button, ButtonBase, Typography } from "@mui/material";
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { useDraft, useFeatures, useStandings } from "../../api/queries";
@@ -12,7 +12,7 @@ import AddToCalendar from "../common/AddToCalendar";
 import { ROUND_LABELS } from "../team/lineup";
 import { formatCountdown, formatDraftTime, ordinal, useNow } from "./countdown";
 import InviteLinkButton from "./InviteLinkButton";
-import LiveIndicator from "./LiveIndicator";
+import LiveIndicator, { ARROW_OUTSET } from "./LiveIndicator";
 import { afterDraftPhase } from "./phase";
 import { gamesSummary } from "./standingsView";
 
@@ -198,7 +198,33 @@ const LineupBlock = ({
 
 const gamesLine = (standings: Standings): string => gamesSummary(standings) || "No games yet";
 
-/** While a game is on, the games line moves under the title next to how fresh the scores are. */
+/** Title-row link to the NFL schedule; hidden while the owner's kill switch (`bracket`) is off. */
+const ScheduleLink = () => {
+  const { paths } = useSeasonContext();
+  const { bracket } = useFeatures();
+  if (!bracket) return null;
+  return (
+    <ButtonBase
+      component={Link}
+      to={paths.schedule}
+      sx={{
+        minHeight: 44,
+        ml: "auto",
+        mr: ARROW_OUTSET,
+        gap: 0.25,
+        fontWeight: 600,
+        fontSize: 14,
+        color: tokens.accentSoft,
+        borderRadius: 1,
+      }}
+    >
+      NFL schedule
+      <ChevronRightIcon aria-hidden fontSize="small" />
+    </ButtonBase>
+  );
+};
+
+/** While a game is on, the games line moves to its own row under the title. */
 const PlayoffBlock = ({ season, standings }: { season: SeasonOverview; standings: Standings }) => {
   const { paths } = useSeasonContext();
   const games = gamesLine(standings);
@@ -208,37 +234,52 @@ const PlayoffBlock = ({ season, standings }: { season: SeasonOverview; standings
       <Row>
         <Title>{ROUND_LABELS[standings.round]}</Title>
         {!live && <Detail>{games}</Detail>}
-        <LiveIndicator seasonId={season.id} games={games} schedule={paths.schedule} />
+        <ScheduleLink />
       </Row>
+      <LiveIndicator seasonId={season.id} games={games} schedule={paths.schedule} />
     </Block>
   );
 };
 
-/** Once the draft is done: lineups are open until the first kickoff, then the playoffs run. */
-const AfterDraft = ({ season }: { season: SeasonOverview }) => {
+/** The phase after the draft, or null while it loads. */
+const useAfterDraftPhase = (season: SeasonOverview) => {
   const draft = useDraft(season.id);
   const standings = useStandings(season.id).data;
   const now = useNow(30_000);
-  if (draft.isLoading) return null;
   const firstKickoff = draft.data?.draftCutoff ?? null;
-  const phase = afterDraftPhase({
-    firstKickoff,
-    gamesStarted:
-      standings !== undefined &&
-      (standings.round > 1 || standings.gamesInProgress > 0 || standings.gamesFinal > 0),
-    now,
-  });
+  const phase = draft.isLoading
+    ? null
+    : afterDraftPhase({
+        firstKickoff,
+        gamesStarted:
+          standings !== undefined &&
+          (standings.round > 1 || standings.gamesInProgress > 0 || standings.gamesFinal > 0),
+        now,
+      });
+  return { phase, firstKickoff, standings };
+};
+
+/** Once the draft is done: lineups are open until the first kickoff, then the playoffs run. */
+const AfterDraft = ({ season }: { season: SeasonOverview }) => {
+  const { phase, firstKickoff, standings } = useAfterDraftPhase(season);
+  if (phase === null) return null;
   if (phase === "lineup" && firstKickoff) {
     return <LineupBlock season={season} firstKickoff={firstKickoff} />;
   }
   return standings ? <PlayoffBlock season={season} standings={standings} /> : null;
 };
 
-/** A small link row under the standings to the NFL schedule; hidden while the owner's kill switch (`bracket`) is off. */
-export const BracketLink = () => {
+/**
+ * A small link row under the standings to the NFL schedule before the playoffs start (the
+ * playoff block carries it in its title row); hidden while the owner's kill switch (`bracket`) is off.
+ */
+export const BracketLink = ({ season }: { season: SeasonOverview }) => {
   const { paths } = useSeasonContext();
   const { bracket } = useFeatures();
-  if (!bracket) return null;
+  const { phase, standings } = useAfterDraftPhase(season);
+  const inPlayoffBlock =
+    season.draftStatus === "completed" && phase === "playoffs" && standings !== undefined;
+  if (!bracket || inPlayoffBlock) return null;
   return (
     <Button
       component={Link}
