@@ -23,9 +23,9 @@ export const playerDetail = (player: LineupPlayer): string => {
     return `${status} · ${player.statLine ?? "no stats yet"}`;
   }
   if (player.gameState === "final") {
-    const result = gameResult(player);
     const stats = player.statLine ?? "No stats";
-    return result ? `${result} · ${stats}` : stats;
+    const outcome = gameOutcome(player);
+    return outcome ? `${outcome.score} · ${stats}` : stats;
   }
   if (!player.kickoff) return "Game not scheduled yet";
   const when = formatKickoff(player.kickoff);
@@ -36,13 +36,28 @@ export const playerDetail = (player: LineupPlayer): string => {
 const versus = (player: LineupPlayer): string | null =>
   player.opponentAbv ? `${player.isHome ? "vs" : "@"} ${player.opponentAbv}` : null;
 
-/** "W 27-20 vs IND" for a finished game; null without the score or the opponent. */
-const gameResult = (player: LineupPlayer): string | null => {
-  const opponent = versus(player);
+export interface GameOutcome {
+  /** Leads the line, in capitals: what the result means for him in this format. */
+  word: string;
+  won: boolean;
+  /** "27-20", his team's score first. */
+  score: string;
+}
+
+/**
+ * What a finished game means for him: a loss ends his playoffs, a win moves him on (the Super
+ * Bowl's winner is the champion). Null without a final score, on a bye, once already eliminated.
+ */
+export const gameOutcome = (player: LineupPlayer, superBowl = false): GameOutcome | null => {
   const { teamScore: own, opponentScore: theirs } = player;
-  if (!opponent || own === null || theirs === null) return null;
-  const outcome = own > theirs ? "W" : own < theirs ? "L" : "T";
-  return `${outcome} ${own}-${theirs} ${opponent}`;
+  if (player.gameState !== "final" || player.status === "eliminated") return null;
+  if (own === null || theirs === null || own === theirs) return null;
+  const won = own > theirs;
+  return {
+    word: won ? (superBowl ? "CHAMPION" : "ADVANCES") : "ELIMINATED",
+    won,
+    score: `${own}-${theirs}`,
+  };
 };
 
 /** The slot's label on a row: the lineup layout calls the superflex SUPER_FLEX. */

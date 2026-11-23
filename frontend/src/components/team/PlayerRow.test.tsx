@@ -83,4 +83,37 @@ describe("a lineup row", () => {
     fireEvent.click(screen.getByText("-"));
     expect(onFillEmpty).toHaveBeenCalled();
   });
+
+  it("leads a finished game with ADVANCES, or ELIMINATED with a red strike on the name", () => {
+    const final = { gameState: "final" as const, statLine: "4 rec, 51 yds" };
+    const { rerender } = render(
+      <ul>
+        <PlayerRow
+          label="WR"
+          player={lineupPlayer({ ...final, name: "Mike Evans", teamScore: 20, opponentScore: 27 })}
+          onOpen={vi.fn()}
+        />
+      </ul>,
+    );
+    expect(screen.getByText("ELIMINATED")).toBeInTheDocument();
+    const name = screen.getByText(/^Mike Evans/);
+    expect(name).toHaveStyle({ textDecoration: "line-through" });
+
+    rerender(
+      <ul>
+        <PlayerRow
+          label="QB"
+          player={lineupPlayer({
+            ...final,
+            name: "Baker Mayfield",
+            teamScore: 27,
+            opponentScore: 20,
+          })}
+          onOpen={vi.fn()}
+        />
+      </ul>,
+    );
+    expect(screen.getByText("ADVANCES")).toBeInTheDocument();
+    expect(screen.getByText(/^Baker Mayfield/)).not.toHaveStyle({ textDecoration: "line-through" });
+  });
 });

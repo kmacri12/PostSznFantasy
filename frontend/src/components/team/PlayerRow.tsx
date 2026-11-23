@@ -1,7 +1,7 @@
 import { Box, ButtonBase, Typography } from "@mui/material";
 import type { LineupPlayer, SlotMark } from "../../api/types";
 import type { HelpTipCopy } from "../../content/rules";
-import { tokens } from "../../theme";
+import { tint, tokens } from "../../theme";
 import ChangedScore from "../activity/ChangedScore";
 import SlotMarker from "../activity/SlotMarker";
 import HelpTip from "../common/HelpTip";
@@ -9,7 +9,7 @@ import InjuryTag from "../common/InjuryTag";
 import TeamLogo from "../common/TeamLogo";
 import { positionChipSx, positionColor } from "../draft/positions";
 import { formatPoints } from "../league/standingsView";
-import { playerDetail, type RowState, rowState } from "./lineupView";
+import { type GameOutcome, gameOutcome, playerDetail, type RowState, rowState } from "./lineupView";
 
 const COLORS: Record<RowState, { label: string; name: string; detail: string; points: string }> = {
   ready: { label: tokens.text, name: tokens.text, detail: tokens.muted, points: tokens.text },
@@ -28,6 +28,31 @@ const COLORS: Record<RowState, { label: string; name: string; detail: string; po
   },
 };
 
+/** ADVANCES (green) or ELIMINATED (red) as a small outlined pill, in front of the score. */
+const OutcomePill = ({ outcome }: { outcome: GameOutcome }) => {
+  const color = outcome.won ? tokens.green : tokens.red;
+  return (
+    <Box
+      component="span"
+      sx={{
+        display: "inline-block",
+        px: 0.625,
+        borderRadius: "5px",
+        border: `1px solid ${tint(color, 35)}`,
+        bgcolor: tint(color, 14),
+        color,
+        fontSize: 10,
+        fontWeight: 700,
+        letterSpacing: 0.3,
+        lineHeight: 1.5,
+        verticalAlign: "1px",
+      }}
+    >
+      {outcome.word}
+    </Box>
+  );
+};
+
 interface Props {
   /** The slot name for a starter, the position for a bench or eliminated player. */
   label: string;
@@ -37,6 +62,8 @@ interface Props {
   mark?: SlotMark | null;
   /** A "?" about the slot itself, beside the score (team QB / team K). */
   help?: HelpTipCopy;
+  /** The Super Bowl: a winner there is the champion, not "advancing". */
+  superBowl?: boolean;
   onOpen: (player: LineupPlayer) => void;
   /** Makes an empty row tappable: opens the list of bench players who can fill it. */
   onFillEmpty?: () => void;
@@ -49,6 +76,7 @@ const PlayerRow = ({
   bench = false,
   mark = null,
   help,
+  superBowl = false,
   onOpen,
   onFillEmpty,
 }: Props) => {
@@ -56,6 +84,7 @@ const PlayerRow = ({
   const colors = COLORS[state];
   const muted = bench && state === "ready";
   const eliminated = state === "eliminated";
+  const outcome = player ? gameOutcome(player, superBowl) : null;
   const open = player ? () => onOpen(player) : onFillEmpty;
   const score = (
     <Typography
@@ -129,7 +158,10 @@ const PlayerRow = ({
                     fontSize: 14,
                     fontWeight: 600,
                     color: muted ? tokens.muted : colors.name,
-                    textDecoration: eliminated ? "line-through" : "none",
+                    textDecoration: eliminated || outcome?.won === false ? "line-through" : "none",
+                    // A team that lost this round: the strike is red, the name keeps its colour.
+                    textDecorationColor: outcome?.won === false ? tokens.red : undefined,
+                    textDecorationThickness: outcome?.won === false ? "1.5px" : undefined,
                   }}
                 >
                   {player.position === "DST" || !player.teamAbv ? (
@@ -151,6 +183,11 @@ const PlayerRow = ({
                 component="span"
                 sx={{ display: "block", fontSize: 12, mt: 0.125, color: colors.detail }}
               >
+                {outcome && (
+                  <>
+                    <OutcomePill outcome={outcome} />{" "}
+                  </>
+                )}
                 {playerDetail(player)}
               </Typography>
             </Box>
