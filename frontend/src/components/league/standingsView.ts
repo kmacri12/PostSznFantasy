@@ -1,4 +1,5 @@
 import type { Standings, StandingsRow } from "../../api/types";
+import { playersLeftText, rosterLeft } from "../team/statusStyle";
 
 /** "T2" when another team shares the rank, so a shared title is never read as a win. */
 export const rankLabel = (rows: StandingsRow[], index: number): string => {
@@ -35,10 +36,15 @@ export const ROUNDS = [
   { key: "superBowl", label: "Super Bowl", short: "Super Bowl" },
 ] as const;
 
-/** The owner, then the rest of the detail line (players left, live) once a round is on. */
+/**
+ * The owner, then the rest of the detail line ("10 players left") once a round is on. The count
+ * comes from the dots' own tally when there is one, so the two never disagree in the Super Bowl.
+ */
 export const rowDetail = (row: StandingsRow, live: boolean): { owner: string; rest: string } => ({
   owner: row.owner ?? "Waiting for a player",
-  rest: live ? `${row.playersLeft} left` : "",
+  rest: live
+    ? playersLeftText(row.rosterStatus ? rosterLeft(row.rosterStatus) : row.playersLeft)
+    : "",
 });
 
 /**

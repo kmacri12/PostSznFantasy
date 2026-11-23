@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import type { RosterStatus } from "./lineupView";
-import PlayersLeft, { gridColumns, gridWidth } from "./PlayersLeft";
+import PlayersLeft from "./PlayersLeft";
 
 const status: RosterStatus = {
   round: 1,
@@ -16,13 +16,12 @@ const status: RosterStatus = {
 };
 
 describe("players left", () => {
-  it("says how many are left and names every colour in its label", () => {
-    render(<PlayersLeft status={status} layout="grid" />);
-    expect(
-      screen.getByRole("button", {
-        name: "13 left, 4 advanced, 3 live, 6 to play, 2 eliminated",
-      }),
-    ).toBeInTheDocument();
+  it("says how many players are left and names every colour in its label", () => {
+    render(<PlayersLeft status={status} />);
+    const button = screen.getByRole("button", {
+      name: "13 players left, 4 advanced, 3 live, 6 to play, 2 eliminated",
+    });
+    expect(button).toHaveTextContent("13 players left");
   });
 
   it("opens the legend with the counts on a tap, and leaves out an empty status", () => {
@@ -34,10 +33,12 @@ describe("players left", () => {
           counts: { advanced: 1, live: 0, toPlay: 0, eliminated: 1 },
           left: 1,
         }}
-        layout="row"
       />,
     );
-    const button = screen.getByRole("button", { name: "1 left, 1 advanced, 1 eliminated" });
+    const button = screen.getByRole("button", {
+      name: "1 player left, 1 advanced, 1 eliminated",
+    });
+    expect(button).toHaveTextContent("1 player left");
     expect(button).toHaveAttribute("aria-expanded", "false");
     fireEvent.click(button);
     expect(button).toHaveAttribute("aria-expanded", "true");
@@ -45,12 +46,5 @@ describe("players left", () => {
     expect(legend).toHaveTextContent("1 advanced");
     expect(legend).toHaveTextContent("1 eliminated");
     expect(legend).not.toHaveTextContent("live");
-  });
-
-  it("lays 15 players out as 8 and 7", () => {
-    expect(gridColumns(15)).toBe(8);
-    expect(gridColumns(6)).toBe(4);
-    expect(gridColumns(40)).toBe(10);
-    expect(gridWidth(15)).toBe(8 * 12 - 3 + 8);
   });
 });

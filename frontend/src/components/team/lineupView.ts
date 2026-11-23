@@ -65,13 +65,17 @@ export type PlayerStatus = "advanced" | "live" | "toPlay" | "eliminated";
 /** Display order, and the order of the squares: green, blue, grey, then red at the end. */
 export const PLAYER_STATUSES: PlayerStatus[] = ["advanced", "live", "toPlay", "eliminated"];
 
-/** Where a rostered player stands in a round: through (won, or on a bye), playing, waiting, or out. */
-export const playerStatus = (player: LineupPlayer): PlayerStatus => {
+/**
+ * Where a rostered player stands in a round: through (won, or on a bye), playing, waiting, or out.
+ * Nobody is eliminated from the Super Bowl (`round` 4), so a finished one leaves both finalists'
+ * players "advanced": only a team that ran out of players before it is out.
+ */
+export const playerStatus = (player: LineupPlayer, round = 0): PlayerStatus => {
   if (player.status === "eliminated") return "eliminated";
   if (player.status === "bye") return "advanced";
   if (player.gameState === "live") return "live";
   const outcome = gameOutcome(player);
-  if (outcome) return outcome.won ? "advanced" : "eliminated";
+  if (outcome) return outcome.won || round === 4 ? "advanced" : "eliminated";
   return "toPlay";
 };
 
@@ -102,7 +106,7 @@ export const rosterStatus = (lineups: RoundLineup[], now: Date): RosterStatus | 
   ];
   if (players.length === 0) return null;
   const counts: Record<PlayerStatus, number> = { advanced: 0, live: 0, toPlay: 0, eliminated: 0 };
-  for (const player of players) counts[playerStatus(player)] += 1;
+  for (const player of players) counts[playerStatus(player, lineup.round)] += 1;
   const statuses = PLAYER_STATUSES.flatMap((status) =>
     Array.from({ length: counts[status] }, () => status),
   );

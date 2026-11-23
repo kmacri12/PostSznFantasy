@@ -77,3 +77,15 @@ def test_the_round_shown_is_the_latest_whose_first_kickoff_has_passed() -> None:
     assert status_round(games, at(12)) == 1  # a win stays green through the week
     assert status_round(games, at(16, 19)) == 2  # until the next round's first kickoff
     assert status_round([], at(1)) == 1
+
+
+def test_nobody_is_eliminated_from_the_super_bowl() -> None:
+    games = [
+        game(3, KC, BUF, 24, score=(30, 20)),
+        game(3, DEN, MIA, 24, score=(10, 13)),
+        game(4, KC, MIA, 8, score=(17, 24)),
+    ]
+    final = roster_status(games, [KC, MIA, BUF], 4)
+    assert final is not None
+    # Both finalists still count as advanced, whoever won; only the earlier exit is out.
+    assert (final.advanced, final.eliminated) == (2, 1)
