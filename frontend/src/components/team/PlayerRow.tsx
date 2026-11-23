@@ -121,7 +121,7 @@ const PlayerRow = ({
             minWidth: 0,
             // Every row is the same height whatever it shows: injury, mark and badges are
             // inline, and a "?" sits under the slot label.
-            height: 64,
+            height: 54,
             display: "flex",
             alignItems: "center",
             justifyContent: "flex-start",
@@ -137,7 +137,7 @@ const PlayerRow = ({
             sx={{
               width: 34,
               flexShrink: 0,
-              ...(help ? { alignSelf: "flex-start", mt: 1.25 } : {}),
+              ...(help ? { alignSelf: "flex-start", mt: 0.5 } : {}),
               fontSize: 12,
               textAlign: "center",
               color: player ? colors.label : tokens.muted,
@@ -213,7 +213,7 @@ const PlayerRow = ({
           </Box>
         )}
         {mark && (
-          <Box sx={{ position: "absolute", right: 60, top: 10, zIndex: 1 }}>
+          <Box sx={{ position: "absolute", right: 60, top: 6, zIndex: 1 }}>
             <SlotMarker mark={mark} empty={player === null} />
           </Box>
         )}

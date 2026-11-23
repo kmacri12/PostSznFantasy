@@ -54,7 +54,7 @@ const Group = ({
         alignItems: "center",
         gap: 1,
         px: 1.75,
-        py: 1.125,
+        py: 0.75,
         fontSize: 12,
         bgcolor: danger ? tokens.dangerHeader : tokens.surfaceRaised,
         color: danger ? tokens.redSoft : tokens.muted,
@@ -95,7 +95,7 @@ const EmptyRow = ({ text }: { text: string }) => (
     component="li"
     sx={{
       borderTop: `1px solid ${tokens.border}`,
-      minHeight: 56,
+      minHeight: 54,
       display: "flex",
       alignItems: "center",
       px: 1.75,

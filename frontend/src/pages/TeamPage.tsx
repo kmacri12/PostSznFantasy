@@ -106,12 +106,12 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
   return (
     <Container
       maxWidth="md"
-      sx={{ py: { xs: 2, sm: 3 }, display: "flex", flexDirection: "column", gap: 1.5 }}
+      sx={{ py: { xs: 1, sm: 3 }, display: "flex", flexDirection: "column", gap: 1 }}
     >
       <Box
         sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 1.5 }}
       >
-        <PictureAvatar url={team.avatarUrl} name={team.name} size={48} />
+        <PictureAvatar url={team.avatarUrl} name={team.name} size={44} />
         <Box sx={{ minWidth: 0, flexGrow: 1 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
             <Typography
@@ -120,7 +120,10 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
             >
               {team.name}
             </Typography>
-            <CogButton label="Team settings" onClick={() => setSettingsOpen(true)} />
+            {/* Negative margins only: the cog keeps its full tap target but stops adding height. */}
+            <Box sx={{ my: -0.75 }}>
+              <CogButton label="Team settings" onClick={() => setSettingsOpen(true)} />
+            </Box>
           </Box>
           <Typography component="span" sx={{ fontSize: { xs: 12, md: 13 }, color: tokens.muted }}>
             {owner}
