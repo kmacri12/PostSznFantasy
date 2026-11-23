@@ -19,7 +19,11 @@ class FakeCache {
   }
 }
 
-const boot = (search = "", online = true) => {
+const boot = (
+  search = "",
+  online = true,
+  answer: (url: string, call: number) => Response | null = () => null,
+) => {
   const handlers = new Map<string, Handler>();
   const caches = new Map<string, FakeCache>();
   const net = { online, calls: [] as string[] };
@@ -40,6 +44,8 @@ const boot = (search = "", online = true) => {
   const fetchStub = async (request: Request) => {
     net.calls.push(request.url);
     if (!net.online) throw new TypeError("Failed to fetch");
+    const custom = answer(request.url, net.calls.length);
+    if (custom) return custom;
     return new Response(JSON.stringify({ at: net.calls.length }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
@@ -62,7 +68,12 @@ const boot = (search = "", online = true) => {
     await Promise.all(waits);
     return response;
   };
-  return { dispatch, caches, net };
+  const activate = async () => {
+    const waits: Promise<unknown>[] = [];
+    handlers.get("activate")?.({ waitUntil: (promise: Promise<unknown>) => waits.push(promise) });
+    await Promise.all(waits);
+  };
+  return { dispatch, caches, net, activate };
 };
 
 describe("sw.js caching", () => {
@@ -122,6 +133,48 @@ describe("sw.js caching", () => {
     await sw.dispatch(`${ORIGIN}/assets/index-abc.js`);
     await sw.dispatch(`${ORIGIN}/assets/index-abc.js`);
     expect(sw.net.calls).toHaveLength(1);
+  });
+
+  it("never keeps index.html under a page file's name (a deploy still publishing)", async () => {
+    const html = (call: number) =>
+      call === 1
+        ? new Response("<!doctype html>", { status: 200, headers: { "Content-Type": "text/html" } })
+        : new Response("export default 1", {
+            status: 200,
+            headers: { "Content-Type": "text/javascript" },
+          });
+    const sw = boot("", true, (_url, call) => html(call));
+    const first = await sw.dispatch(`${ORIGIN}/assets/LeaguePage-new.js`);
+    expect(await first?.text()).toBe("<!doctype html>");
+    // The retry reaches the network again and now gets the real file, which is kept.
+    const second = await sw.dispatch(`${ORIGIN}/assets/LeaguePage-new.js`);
+    expect(await second?.text()).toBe("export default 1");
+    await sw.dispatch(`${ORIGIN}/assets/LeaguePage-new.js`);
+    expect(sw.net.calls).toHaveLength(2);
+  });
+
+  it("ignores an index.html an older worker kept under a page file's name", async () => {
+    const sw = boot(
+      "",
+      true,
+      () => new Response("export default 1", { headers: { "Content-Type": "text/javascript" } }),
+    );
+    const cache = new FakeCache();
+    sw.caches.set("ps-shell-v2", cache);
+    await cache.put(
+      `${ORIGIN}/assets/LeaguePage-new.js`,
+      new Response("<!doctype html>", { headers: { "Content-Type": "text/html" } }),
+    );
+    const answer = await sw.dispatch(`${ORIGIN}/assets/LeaguePage-new.js`);
+    expect(await answer?.text()).toBe("export default 1");
+  });
+
+  it("activates by deleting the old shell cache but keeping the current caches", async () => {
+    const sw = boot();
+    await sw.dispatch(`${ORIGIN}/assets/index-abc.js`);
+    sw.caches.set("ps-shell-v1", new FakeCache());
+    await sw.activate();
+    expect([...sw.caches.keys()].sort()).toEqual(["ps-shell-v2"]);
   });
 
   it("does nothing at all for the e2e build (?nocache)", async () => {

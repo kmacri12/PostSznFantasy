@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { isChunkLoadError, markReloadAttempt, reloadedRecently } from "../../utils/chunkError";
@@ -57,13 +57,20 @@ describe("reload guard", () => {
 });
 
 describe("RouteErrorScreen", () => {
-  it("offers a refresh for a failed page file and reloads only on tap", () => {
+  it("offers a refresh for a failed page file and reloads only on tap, after clearing the shell cache", async () => {
+    const deleted: string[] = [];
+    vi.stubGlobal("caches", {
+      keys: async () => ["ps-shell-v2", "ps-data-v1"],
+      delete: async (name: string) => deleted.push(name),
+    });
     renderWith(chunkError());
     expect(screen.getByText("A new version of PostSzn is available")).toBeInTheDocument();
     expect(reloadSpy).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole("button", { name: "Refresh" }));
-    expect(reloadSpy).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(reloadSpy).toHaveBeenCalledTimes(1));
+    expect(deleted).toEqual(["ps-shell-v2"]); // the data cache is the sign-out's job
     expect(reloadedRecently()).toBe(true);
+    vi.unstubAllGlobals();
   });
 
   it("does not offer the same refresh again right after one", () => {

@@ -4,7 +4,9 @@
 //
 // `/sw.js?nocache=1` (the e2e build) skips all caching, because a service worker's own fetches
 // would bypass Playwright's `page.route` mocks.
-const SHELL_CACHE = "ps-shell-v1";
+// v2: v1 could hold index.html under a page file's name (see `isScript` below); activating this
+// version deletes it. Keep the prefix in step with `SHELL_CACHE_PREFIX` in src/utils/chunkError.ts.
+const SHELL_CACHE = "ps-shell-v2";
 // Keep in step with DATA_CACHE in src/utils/offlineCache.ts, which clears it on sign-out.
 const DATA_CACHE = "ps-data-v1";
 const SHELL_KEY = "/index.html";
@@ -51,12 +53,17 @@ const networkFirstShell = async (request) => {
   }
 };
 
+// Pages answers a file it does not have yet (a deploy still publishing) with index.html and a 200.
+// Keeping that under the file's name would break every later load of the page, because the cache is
+// consulted first, so only a real script, style or image is kept or replayed.
+const isHtml = (response) => (response.headers.get("Content-Type") || "").includes("text/html");
+
 const cacheFirstStatic = async (request) => {
   const cache = await caches.open(SHELL_CACHE);
   const hit = await cache.match(request);
-  if (hit) return hit;
+  if (hit && !isHtml(hit)) return hit;
   const response = await fetch(request);
-  if (response.ok) await cache.put(request, response.clone());
+  if (response.ok && !isHtml(response)) await cache.put(request, response.clone());
   return response;
 };
 

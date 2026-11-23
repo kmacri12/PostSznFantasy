@@ -11,13 +11,19 @@ import {
   UPDATE_OUTDATED,
   UPDATE_REFRESH,
 } from "../../content/rules";
-import { isChunkLoadError, markReloadAttempt, reloadedRecently } from "../../utils/chunkError";
+import {
+  clearShellCaches,
+  isChunkLoadError,
+  markReloadAttempt,
+  reloadedRecently,
+} from "../../utils/chunkError";
 import { createLogger } from "../../utils/logger";
 
 const logger = createLogger("RouteErrorScreen");
 
-const reload = () => {
+const reload = async () => {
   markReloadAttempt();
+  await clearShellCaches();
   window.location.reload();
 };
 

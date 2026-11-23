@@ -22,6 +22,27 @@ export const isChunkLoadError = (error: unknown): boolean => {
   );
 };
 
+/** The service worker's app-shell caches; keep the prefix in step with `SHELL_CACHE` in public/sw.js. */
+const SHELL_CACHE_PREFIX = "ps-shell";
+
+/**
+ * Drops the cached app shell and page files before the member's refresh, so a file the service
+ * worker kept wrongly can never answer the reload too. The next load fetches everything fresh.
+ */
+export const clearShellCaches = async (): Promise<void> => {
+  if (typeof caches === "undefined") return;
+  try {
+    const names = await caches.keys();
+    await Promise.all(
+      names
+        .filter((name) => name.startsWith(SHELL_CACHE_PREFIX))
+        .map((name) => caches.delete(name)),
+    );
+  } catch (error) {
+    logger.warn("Could not clear the app shell cache", error);
+  }
+};
+
 /** Remember the member's own reload tap so a repeat failure is not met with the same offer. */
 export const markReloadAttempt = (now: number = Date.now()): void => {
   try {
