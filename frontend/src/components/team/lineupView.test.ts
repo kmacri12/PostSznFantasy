@@ -21,6 +21,14 @@ describe("what a row says", () => {
     expect(playerDetail(lineupPlayer())).toBe("Game not scheduled yet");
   });
 
+  it("names the opponent after the time, with @ for an away game", () => {
+    const kickoff = "2026-01-11T23:30:00Z";
+    const home = playerDetail(lineupPlayer({ kickoff, opponentAbv: "DAL", isHome: true }));
+    const away = playerDetail(lineupPlayer({ kickoff, opponentAbv: "DAL", isHome: false }));
+    expect(home).toMatch(/^[A-Z][a-z]{2} \d{1,2}:\d{2} .+ vs DAL$/);
+    expect(away).toMatch(/^[A-Z][a-z]{2} \d{1,2}:\d{2} .+ @ DAL$/);
+  });
+
   it("shows the clock and live stats while the game is on", () => {
     const live = lineupPlayer({
       gameState: "live",
@@ -36,6 +44,14 @@ describe("what a row says", () => {
       "4 rec, 41 yds",
     );
     expect(playerDetail(lineupPlayer({ gameState: "final" }))).toBe("No stats");
+  });
+
+  it("leads a finished game with the result, score and opponent", () => {
+    const game = { gameState: "final" as const, statLine: "4 rec, 41 yds", opponentAbv: "IND" };
+    const won = lineupPlayer({ ...game, isHome: true, teamScore: 27, opponentScore: 20 });
+    const lost = lineupPlayer({ ...game, isHome: false, teamScore: 17, opponentScore: 24 });
+    expect(playerDetail(won)).toBe("W 27-20 vs IND · 4 rec, 41 yds");
+    expect(playerDetail(lost)).toBe("L 17-24 @ IND · 4 rec, 41 yds");
   });
 
   it("names the round an eliminated player's team went out in", () => {

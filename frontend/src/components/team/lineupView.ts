@@ -22,8 +22,27 @@ export const playerDetail = (player: LineupPlayer): string => {
     const status = player.gameClock ?? "Live";
     return `${status} · ${player.statLine ?? "no stats yet"}`;
   }
-  if (player.gameState === "final") return player.statLine ?? "No stats";
-  return player.kickoff ? formatKickoff(player.kickoff) : "Game not scheduled yet";
+  if (player.gameState === "final") {
+    const result = gameResult(player);
+    const stats = player.statLine ?? "No stats";
+    return result ? `${result} · ${stats}` : stats;
+  }
+  if (!player.kickoff) return "Game not scheduled yet";
+  const when = formatKickoff(player.kickoff);
+  const opponent = versus(player);
+  return opponent ? `${when} ${opponent}` : when;
+};
+
+const versus = (player: LineupPlayer): string | null =>
+  player.opponentAbv ? `${player.isHome ? "vs" : "@"} ${player.opponentAbv}` : null;
+
+/** "W 27-20 vs IND" for a finished game; null without the score or the opponent. */
+const gameResult = (player: LineupPlayer): string | null => {
+  const opponent = versus(player);
+  const { teamScore: own, opponentScore: theirs } = player;
+  if (!opponent || own === null || theirs === null) return null;
+  const outcome = own > theirs ? "W" : own < theirs ? "L" : "T";
+  return `${outcome} ${own}-${theirs} ${opponent}`;
 };
 
 /** The slot's label on a row: the lineup layout calls the superflex SUPER_FLEX. */

@@ -254,6 +254,12 @@ async def test_eliminated_is_per_round_and_cannot_be_moved(
         refused = await owner.post(f"{s.url}/lineup", json=s.move(2, buf_player, FLEX))
     wild_card, divisional = round_of(body, 1), round_of(body, 2)
     assert buf_player.id not in [p["id"] for p in wild_card["eliminated"]]
+    lost = next(p for p in wild_card["unassigned"] if p["id"] == buf_player.id)
+    assert (lost["teamScore"], lost["opponentScore"], lost["opponentAbv"]) == (
+        10,
+        20,
+        "DEN",
+    )
     assert [p["id"] for p in divisional["eliminated"]] == [buf_player.id]
     assert buf_player.id not in [p["id"] for p in divisional["unassigned"]]
     assert divisional["eliminated"][0]["status"] == "eliminated"
@@ -340,6 +346,13 @@ async def test_a_live_game_shows_its_state_clock_stat_line_and_counted_points(
     assert unassigned[runner.id]["points"] == 16.0
     assert unassigned[waiting.id]["gameState"] == "scheduled"
     assert unassigned[waiting.id]["statLine"] is None
+    assert (
+        unassigned[waiting.id]["opponentAbv"],
+        unassigned[waiting.id]["isHome"],
+    ) == (
+        "DEN",
+        True,
+    )
 
 
 async def test_repeating_a_move_is_harmless(

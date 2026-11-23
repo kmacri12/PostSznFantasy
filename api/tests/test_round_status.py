@@ -44,6 +44,25 @@ def test_team_with_a_game_this_round_is_alive_with_its_kickoff() -> None:
     assert status.kickoff == kickoff(20)
 
 
+def test_each_side_of_a_game_sees_its_opponent_and_whether_it_is_at_home() -> None:
+    games = [replace(game(1, KC, BUF), home_abv="KC", away_abv="BUF")]
+    home = round_status(games, KC, 1)
+    away = round_status(games, BUF, 1)
+    assert (home.opponent_abv, home.home) == ("BUF", True)
+    assert (away.opponent_abv, away.home) == ("KC", False)
+    final = [replace(game(1, KC, BUF, score=(27, 20)), home_abv="KC", away_abv="BUF")]
+    assert (
+        round_status(final, KC, 1).points,
+        round_status(final, KC, 1).opponent_points,
+    ) == (27, 20)
+    assert (
+        round_status(final, BUF, 1).points,
+        round_status(final, BUF, 1).opponent_points,
+    ) == (20, 27)
+    bye = round_status([*games, game(1, DEN, 5)], MIA, 1)
+    assert (bye.opponent_abv, bye.home) == (None, None)
+
+
 def test_loser_is_valid_for_their_round_and_eliminated_from_the_next() -> None:
     games = [game(1, KC, BUF, score=(27, 20)), game(2, KC, DEN)]
     assert round_status(games, BUF, 1).status is PlayerRoundStatus.ALIVE
