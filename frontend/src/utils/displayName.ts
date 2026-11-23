@@ -22,23 +22,25 @@ export const providerName = (user: SupabaseUser | null): string | undefined => {
   return name !== "" && nameProblem(name) === null ? name : undefined;
 };
 
-// Keyed by the sign-in account id, which the e2e harness can seed before the first login.
+/** The team name a member's display name suggests: "Team Kyle" from "Kyle Macri". */
+export const suggestedTeamName = (displayName: string | null | undefined): string => {
+  const first = (displayName ?? "").trim().split(/\s+/)[0] ?? "";
+  return first === "" ? "" : `Team ${trimToCodePoints(first)}`;
+};
+
+/** The "Team 3" a team is created with, before anyone names it. */
+export const isDefaultTeamName = (name: string | null | undefined): boolean =>
+  /^Team \d+$/.test(name ?? "");
+
+// Keyed by the sign-in account id. Only the e2e build reads it: the harness seeds it so specs start
+// past "What should we call you?", which nobody else can skip.
 const skipKey = (accountId: string) => `postszn-name-skipped-${accountId}`;
 
-/** Fails closed: a device that cannot remember never nags. */
 export const nameSkipped = (accountId: string): boolean => {
   try {
     return localStorage.getItem(skipKey(accountId)) !== null;
   } catch {
     return true;
-  }
-};
-
-export const markNameSkipped = (accountId: string): void => {
-  try {
-    localStorage.setItem(skipKey(accountId), "1");
-  } catch {
-    // Nothing to remember it with; nameSkipped then keeps the prompt away.
   }
 };
 

@@ -20,7 +20,7 @@ test.describe("first-run tour", () => {
     await page.getByRole("button", { name: "Join league" }).click();
     await page
       .getByRole("dialog", { name: "Name your team" })
-      .getByRole("button", { name: "Skip for now" })
+      .getByRole("button", { name: "Save" })
       .click();
     const tour = page.getByRole("dialog", { name: TOUR });
     await expect(
@@ -60,7 +60,7 @@ test.describe("first-run tour", () => {
     await page.getByRole("button", { name: "Create league" }).click();
     await page
       .getByRole("dialog", { name: "Name your team" })
-      .getByRole("button", { name: "Skip for now" })
+      .getByRole("button", { name: "Save" })
       .click();
     await expect(page.getByRole("dialog", { name: TOUR })).toBeVisible();
     await page.getByRole("button", { name: "Skip" }).click();
