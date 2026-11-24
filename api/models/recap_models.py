@@ -1,4 +1,4 @@
-from api.models.activity_models import RoundHighlight
+from api.models.activity_models import RoundHighlight, TeamScore
 from api.models.base import BaseSchema
 from api.models.league_models import Standings
 
@@ -54,3 +54,4 @@ class RoundRecap(BaseSchema):
 
     round: int
     highlights: list[RoundHighlight]
+    team_scores: list[TeamScore] = []

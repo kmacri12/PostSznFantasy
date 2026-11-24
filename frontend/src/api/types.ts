@@ -187,6 +187,8 @@ export interface StandingsRow {
   progress: StarterProgress;
   /** Every rostered player by status; null before the draft or without players. */
   rosterStatus?: RosterStatusCounts | null;
+  /** Places moved up (negative: down) in the latest finished round from Divisional on; null when not shown. */
+  rankChange?: number | null;
 }
 
 /** A team's whole roster by status in the latest round that has kicked off. */
@@ -532,7 +534,10 @@ export type ActivityEvent = ActivityBase &
     | { kind: "draft_started"; payload: { teamCount: number; rounds: number } }
     | { kind: "draft_completed"; payload: { picks: number } }
     | { kind: "announcement"; payload: { body: string } }
-    | { kind: "round_recap"; payload: { round: number; highlights: RoundHighlight[] } }
+    | {
+        kind: "round_recap";
+        payload: { round: number; highlights: RoundHighlight[]; teamScores?: TeamScore[] };
+      }
     | {
         kind: "draft_time_set";
         payload: { startTime: string | null; previousStartTime: string | null };
@@ -789,6 +794,12 @@ export interface Bracket {
   byes: BracketTeam[];
 }
 
+export interface TeamScore {
+  teamId: number;
+  teamName: string;
+  points: number;
+}
+
 export interface RoundHighlight {
   kind: string;
   text: string;
@@ -801,6 +812,8 @@ export interface RoundHighlight {
 export interface RoundRecap {
   round: number;
   highlights: RoundHighlight[];
+  /** Every owned team's points in the round, best first. */
+  teamScores?: TeamScore[];
 }
 
 export interface Features {

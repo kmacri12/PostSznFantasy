@@ -109,3 +109,31 @@ def rank_teams(
         )
         for index, team_id in enumerate(order)
     ]
+
+
+def ranks_through(
+    round_points: Mapping[int, RoundPoints], facts: RankingFacts, through: int
+) -> dict[int, int]:
+    """Each team's rank counting only the rounds up to `through`."""
+    zero = Decimal(0)
+    cut: dict[int, RoundPoints] = {
+        team_id: (
+            a if through >= 1 else zero,
+            b if through >= 2 else zero,
+            c if through >= 3 else zero,
+            d if through >= 4 else zero,
+        )
+        for team_id, (a, b, c, d) in round_points.items()
+    }
+    return {t.team_id: t.rank for t in rank_teams(cut, facts)}
+
+
+def rank_movement(
+    round_points: Mapping[int, RoundPoints], facts: RankingFacts, round_: int
+) -> dict[int, int]:
+    """Places each team moved up (negative: down) in `round_`, from the second round on."""
+    if round_ < 2:
+        return {}
+    before = ranks_through(round_points, facts, round_ - 1)
+    after = ranks_through(round_points, facts, round_)
+    return {team_id: before[team_id] - after[team_id] for team_id in after}

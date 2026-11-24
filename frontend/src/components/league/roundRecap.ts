@@ -6,11 +6,11 @@ export const HIGHLIGHT_LABELS: Record<string, string> = {
   top_team: "Team of the week",
   low_team: "Toughest week",
   top_starter: "Top starter",
-  top_bench: "Left on the bench",
+  top_bench: "Put me in, coach!",
   climber: "Moving up",
   faller: "Sliding",
   most_lost: "Hit hard",
-  none_lost: "Untouched",
+  fewest_lost: "Survivor",
 };
 
 export const highlightLabel = (highlight: RoundHighlight): string =>
@@ -30,7 +30,7 @@ export const HIGHLIGHT_STYLE: Record<string, { emoji: string; tone: HighlightTon
   climber: { emoji: "📈", tone: "green" },
   faller: { emoji: "📉", tone: "red" },
   most_lost: { emoji: "💥", tone: "red" },
-  none_lost: { emoji: "🛡️", tone: "green" },
+  fewest_lost: { emoji: "🛡️", tone: "green" },
 };
 
 export const highlightStyle = (highlight: RoundHighlight): { emoji: string; tone: HighlightTone } =>

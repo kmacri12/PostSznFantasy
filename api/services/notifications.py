@@ -32,6 +32,7 @@ NotificationKind = Literal[
     "draft_soon",
     "draft_scheduled",
     "lineup_lock",
+    "lineup_tomorrow",
     "lineup_changed",
     "starter_out",
     "player_scored",
@@ -49,6 +50,7 @@ PUSH_KINDS: dict[NotificationKind, push.PushKind] = {
     "draft_soon": "draft",
     "draft_scheduled": "draft",
     "lineup_lock": "lineup",
+    "lineup_tomorrow": "lineup",
     "lineup_changed": "lineup",
     "starter_out": "starter",
     "player_scored": "score",
@@ -387,6 +389,32 @@ async def notify_lineup_lock(
                 url=f"/leagues/{league_id}/teams/{team.id}",
                 tag=f"lineup-lock-{team.id}-{round_}",
                 urgency="high",
+            ),
+        ),
+    )
+
+
+async def notify_lineup_tomorrow(
+    db: AsyncSession, team: Team, league_id: int, league_name: str, round_: int
+) -> None:
+    """About a day before a round locks: an owner with an empty starter slot."""
+    if team.owner_id is None:
+        return
+    await notify(
+        db,
+        [team.owner_id],
+        Notice(
+            kind="lineup_tomorrow",
+            league_id=league_id,
+            payload={"seasonId": team.season_id, "teamId": team.id, "round": round_},
+            push=push.PushMessage(
+                title="Your lineup isn't set",
+                body=(
+                    f"You have an empty {ROUND_NAMES[round_]} starter slot in "
+                    f"{league_name}. It locks at the first kickoff."
+                ),
+                url=f"/leagues/{league_id}/teams/{team.id}",
+                tag=f"lineup-tomorrow-{team.id}-{round_}",
             ),
         ),
     )

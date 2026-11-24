@@ -22,7 +22,10 @@ from api.services.ingestion import (
     run_full_ingestion_pipeline,
 )
 from api.services.ingestion.guard import IngestionBusy, IngestionKind
-from api.services.lineup_reminders import send_lock_reminders
+from api.services.lineup_reminders import (
+    send_day_before_reminders,
+    send_lock_reminders,
+)
 from api.services.notifications import prune_old as prune_old_notifications
 from api.services.player_alerts import (
     send_round_alerts,
@@ -289,6 +292,10 @@ async def run_poll_cycle(
     # Each step is on its own: one failing never keeps the others from running.
     alerts: list[tuple[str, Callable[[], Awaitable[object]]]] = [
         ("Lineup lock reminders", lambda: send_lock_reminders(db, season, when)),
+        (
+            "Day-before lineup reminders",
+            lambda: send_day_before_reminders(db, season, when),
+        ),
         ("Starter out alerts", lambda: send_starter_out_alerts(db, season, when)),
         ("Weekly recap", lambda: post_round_recaps(db, season, when)),
     ]

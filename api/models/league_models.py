@@ -441,6 +441,9 @@ class TeamStanding(BaseSchema):
     progress: StarterProgress
     # None before the draft, or for a team with no players.
     roster_status: RosterStatus | None = None
+    # Places moved up (negative: down) in the latest finished round from Divisional on;
+    # null when it is not shown (see `round_status.movement_round`).
+    rank_change: int | None = None
 
 
 class Standings(BaseSchema):

@@ -1,6 +1,6 @@
 import CloseIcon from "@mui/icons-material/Close";
 import { DialogActions, DialogContent, IconButton, useMediaQuery, useTheme } from "@mui/material";
-import type { RoundHighlight } from "../../api/types";
+import type { RoundHighlight, TeamScore } from "../../api/types";
 import Dialog from "../common/AppDialog";
 import ShareCardButton from "../share/ShareCardButton";
 import { recapCard } from "../share/shareCards";
@@ -13,10 +13,19 @@ interface Props {
   year: number;
   round: number;
   highlights: RoundHighlight[];
+  teamScores?: TeamScore[];
 }
 
 /** The recap as its own screen: full screen on a phone, with Share for the picture of it. */
-const RoundRecapDialog = ({ open, onClose, leagueName, year, round, highlights }: Props) => {
+const RoundRecapDialog = ({
+  open,
+  onClose,
+  leagueName,
+  year,
+  round,
+  highlights,
+  teamScores,
+}: Props) => {
   const phone = useMediaQuery(useTheme().breakpoints.down("sm"));
   return (
     <Dialog
@@ -35,11 +44,23 @@ const RoundRecapDialog = ({ open, onClose, leagueName, year, round, highlights }
         <CloseIcon />
       </IconButton>
       <DialogContent sx={{ p: 0 }}>
-        <RoundRecapPanel leagueName={leagueName} round={round} highlights={highlights} />
+        <RoundRecapPanel
+          leagueName={leagueName}
+          round={round}
+          highlights={highlights}
+          teamScores={teamScores}
+        />
       </DialogContent>
-      <DialogActions sx={{ justifyContent: "center", pb: 1.5, pt: 0 }}>
+      <DialogActions
+        sx={{
+          justifyContent: "center",
+          pb: 1.5,
+          pt: 0,
+          "@media (max-height: 740px)": { pb: 1, py: 0.5 },
+        }}
+      >
         <ShareCardButton
-          card={recapCard(leagueName, year, round, highlights)}
+          card={recapCard(leagueName, year, round, highlights, teamScores)}
           label="Share recap"
         />
       </DialogActions>

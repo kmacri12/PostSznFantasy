@@ -2,11 +2,11 @@ import type {
   DraftState,
   RoundHighlight,
   SeasonRecap,
-  Standings,
   StandingsRow,
+  TeamScore,
 } from "../../api/types";
 import { highlightLabel, highlightStyle, recapTitle } from "../league/roundRecap";
-import { formatPoints, ROUNDS } from "../league/standingsView";
+import { formatPoints } from "../league/standingsView";
 
 export const CARD_WIDTH = 1080;
 export const CARD_HEIGHT = 1350;
@@ -33,7 +33,7 @@ export interface CardHighlight {
 
 /** What a card says, with no layout: display and team names only, never an email. */
 export interface ShareCard {
-  kind: "champion" | "round" | "draft" | "recap";
+  kind: "champion" | "draft" | "recap";
   leagueName: string;
   eyebrow: string;
   headline: string;
@@ -42,6 +42,8 @@ export interface ShareCard {
   columns: DraftColumn[];
   /** The weekly recap card only. */
   highlights?: CardHighlight[];
+  /** The weekly recap card only: every team's points for the week, best first. */
+  scores?: { rank: number; label: string; value: string }[];
   fileName: string;
 }
 
@@ -50,17 +52,6 @@ const slug = (text: string): string =>
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "") || "league";
-
-const topRows = (teams: StandingsRow[], score: (team: StandingsRow) => number): CardRow[] => {
-  const ranked = [...teams].sort((a, b) => score(b) - score(a));
-  return ranked.slice(0, 3).map((team) => ({
-    // Equal scores share the better rank.
-    rank: ranked.findIndex((other) => score(other) === score(team)) + 1,
-    label: team.teamName,
-    detail: team.owner ?? "",
-    value: `${formatPoints(score(team))} pts`,
-  }));
-};
 
 export const championCard = (leagueName: string, recap: SeasonRecap): ShareCard | null => {
   if (recap.champions.length === 0) return null;
@@ -84,36 +75,6 @@ export const championCard = (leagueName: string, recap: SeasonRecap): ShareCard 
     rows,
     columns: [],
     fileName: `${slug(leagueName)}-${recap.year}-champion.png`,
-  };
-};
-
-/** The round the standings describe is over: no live or still-to-play starter, a game is final. */
-export const roundIsComplete = (standings: Standings): boolean =>
-  standings.phase === "live" &&
-  standings.gamesInProgress === 0 &&
-  standings.gamesFinal > 0 &&
-  !standings.teams.some((team) => team.progress.live + team.progress.toPlay > 0);
-
-export const roundCard = (
-  leagueName: string,
-  year: number,
-  standings: Standings,
-): ShareCard | null => {
-  if (!roundIsComplete(standings)) return null;
-  const round = ROUNDS[standings.round - 1];
-  if (!round) return null;
-  const rows = topRows(standings.teams, (team) => team[round.key]);
-  const leader = rows[0];
-  if (!leader) return null;
-  return {
-    kind: "round",
-    leagueName,
-    eyebrow: `${year} ${round.label} round`,
-    headline: leader.label,
-    subhead: `Top score of the round: ${leader.value}`,
-    rows,
-    columns: [],
-    fileName: `${slug(leagueName)}-${year}-${slug(round.label)}.png`,
   };
 };
 
@@ -142,12 +103,13 @@ export const draftCard = (
   };
 };
 
-/** The weekly recap as one portrait picture: the league, then every highlight. */
+/** The weekly recap as one portrait picture: the league, every highlight, then the scores. */
 export const recapCard = (
   leagueName: string,
   year: number,
   round: number,
   highlights: RoundHighlight[],
+  teamScores: TeamScore[] = [],
 ): ShareCard | null =>
   highlights.length === 0
     ? null
@@ -165,8 +127,20 @@ export const recapCard = (
           ...highlightStyle(h),
           stat: h.stat ?? null,
         })),
+        scores: teamScores.map((team, _, all) => ({
+          // Equal scores share the better rank.
+          rank: all.findIndex((other) => other.points === team.points) + 1,
+          label: team.teamName,
+          value: formatPoints(team.points),
+        })),
         fileName: `${slug(leagueName)}-${year}-${slug(recapTitle(round))}.png`,
       };
+
+export const RECAP_TOP = 276;
+export const RECAP_ITEM = 108;
+export const RECAP_SCORES_HEAD = 76;
+export const RECAP_SCORE_ROW = 46;
+export const RECAP_FOOTER = 140;
 
 export const BOARD_MARGIN = 40;
 export const BOARD_ROUND_COL = 56;
@@ -178,6 +152,15 @@ export const BOARD_FOOTER = 90;
 
 /** Picture size: the podium cards are a fixed portrait; the board grows with teams and rounds. */
 export const cardSize = (card: ShareCard): { width: number; height: number } => {
+  if (card.kind === "recap") {
+    const scores = card.scores?.length ?? 0;
+    const height =
+      RECAP_TOP +
+      (card.highlights?.length ?? 0) * RECAP_ITEM +
+      (scores > 0 ? RECAP_SCORES_HEAD + Math.ceil(scores / 2) * RECAP_SCORE_ROW : 0) +
+      RECAP_FOOTER;
+    return { width: CARD_WIDTH, height: Math.max(CARD_HEIGHT, height) };
+  }
   if (card.kind !== "draft") return { width: CARD_WIDTH, height: CARD_HEIGHT };
   const rounds = Math.max(1, ...card.columns.map((column) => column.lines.length));
   return {

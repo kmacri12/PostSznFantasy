@@ -1,13 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { DraftState, SeasonRecap, Standings, StandingsRow } from "../../api/types";
-import {
-  cardSize,
-  championCard,
-  draftCard,
-  recapCard,
-  roundCard,
-  roundIsComplete,
-} from "./shareCards";
+import { cardSize, championCard, draftCard, recapCard } from "./shareCards";
 
 const row = (id: number, name: string, wildCard: number, extra: Partial<StandingsRow> = {}) =>
   ({
@@ -75,24 +68,6 @@ describe("championCard", () => {
   });
 });
 
-describe("roundCard", () => {
-  const teams = [row(1, "A", 40), row(2, "B", 55), row(3, "C", 55), row(4, "D", 10)];
-  it("ranks the round's scores, ties sharing a place", () => {
-    const card = roundCard("L", 2026, standings(teams));
-    expect(card?.eyebrow).toBe("2026 Wild Card round");
-    expect(card?.rows.map((r) => r.rank)).toEqual([1, 1, 3]);
-  });
-  it("waits for the round to be over", () => {
-    expect(roundIsComplete(standings(teams, { gamesInProgress: 1 }))).toBe(false);
-    expect(roundIsComplete(standings(teams, { gamesFinal: 0 }))).toBe(false);
-    expect(roundIsComplete(standings(teams, { phase: "pre_draft" }))).toBe(false);
-    const toPlay = [
-      row(1, "A", 1, { progress: { finished: 1, live: 0, toPlay: 2, notPlaying: 0 } }),
-    ];
-    expect(roundCard("L", 2026, standings(toPlay))).toBeNull();
-  });
-});
-
 describe("draftCard", () => {
   const draft = {
     status: "completed",
@@ -149,7 +124,7 @@ describe("recapCard", () => {
           stat: "40",
         },
         {
-          label: "Left on the bench",
+          label: "Put me in, coach!",
           text: "Josh Allen scored 28 on Team 2's bench.",
           emoji: "🪑",
           tone: "warning",
@@ -158,6 +133,29 @@ describe("recapCard", () => {
       ],
     });
     expect(card && cardSize(card)).toEqual({ width: 1080, height: 1350 });
+  });
+
+  it("lists every team's points, ties sharing a place, and grows taller with the teams", () => {
+    const scores = [
+      { teamId: 1, teamName: "Kmac", points: 112.3 },
+      { teamId: 2, teamName: "Team 2", points: 50 },
+      { teamId: 3, teamName: "Team 3", points: 50 },
+      { teamId: 4, teamName: "Team 4", points: 12.4 },
+    ];
+    const card = recapCard("Fake League", 2026, 2, highlights, scores);
+    expect(card?.scores).toEqual([
+      { rank: 1, label: "Kmac", value: "112.3" },
+      { rank: 2, label: "Team 2", value: "50.0" },
+      { rank: 2, label: "Team 3", value: "50.0" },
+      { rank: 4, label: "Team 4", value: "12.4" },
+    ]);
+    const many = Array.from({ length: 10 }, (_, i) => ({
+      teamId: i,
+      teamName: `Team ${i}`,
+      points: i,
+    }));
+    const tall = recapCard("L", 2026, 2, [...highlights, ...highlights, ...highlights], many);
+    expect(tall && cardSize(tall).height).toBeGreaterThan(1350);
   });
 
   it("makes no card when there is nothing to say", () => {

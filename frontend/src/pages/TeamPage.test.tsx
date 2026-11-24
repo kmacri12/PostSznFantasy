@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { TeamDetails } from "../api/types";
@@ -11,6 +11,7 @@ const mocks = vi.hoisted(() => ({
   archived: false,
   team: null as unknown,
   settings: undefined as unknown,
+  nudgeRound: null as number | null,
 }));
 
 const allen = lineupPlayer({
@@ -56,7 +57,12 @@ vi.mock("../api/queries", () => ({
   needsOverrideConfirmation: () => false,
   useTeam: () => ({ isLoading: false, isError: false, data: mocks.team ?? team }),
   useLeagueSettings: () => ({ data: mocks.settings }),
-  useStandings: () => ({ data: { teams: [{ teamId: 7, rank: 2, total: 71.6 }] } }),
+  useStandings: () => ({
+    data: {
+      ...(mocks.nudgeRound ? { round: 1, lineupNudgeRound: mocks.nudgeRound } : {}),
+      teams: [{ teamId: 7, rank: 2, total: 71.6 }],
+    },
+  }),
   usePlayerSeasonLine: () => ({ isPending: false, data: null }),
   useMoveInLineup: () => ({ mutate: vi.fn(), reset: vi.fn(), error: null, isPending: false }),
   useLeagueInfo: () => ({ data: undefined }),
@@ -199,5 +205,25 @@ describe("TeamPage", () => {
     expect(within(sheet).queryByRole("button", { name: /Team name/ })).toBeNull();
     expect(within(sheet).queryByRole("button", { name: /Team picture/ })).toBeNull();
     expect(screen.getByText(/archived/i)).toBeInTheDocument();
+  });
+
+  it("keeps the set-your-lineup bubble until the next round's tab is tapped", () => {
+    localStorage.clear();
+    mocks.nudgeRound = 2;
+    renderTeam();
+    expect(screen.getByRole("note")).toHaveTextContent("Don't forget to set your lineup!");
+    // Tapping anywhere else leaves it up.
+    fireEvent.click(document.body);
+    expect(screen.getByRole("note")).toBeInTheDocument();
+    // So does coming back: it is only the tab that clears it.
+    cleanup();
+    renderTeam();
+    expect(screen.getByRole("note")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("tab", { name: /Divisional/ }));
+    expect(screen.queryByRole("note")).not.toBeInTheDocument();
+    cleanup();
+    renderTeam();
+    expect(screen.queryByRole("note")).not.toBeInTheDocument();
+    mocks.nudgeRound = null;
   });
 });
