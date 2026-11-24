@@ -42,6 +42,25 @@ describe("RoundRecapDialog", () => {
     expect(screen.getByRole("button", { name: "Share recap" })).toBeInTheDocument();
   });
 
+  it("keeps the X inside the scrolling content, above it, so Safari cannot cover it", () => {
+    show();
+    const close = screen.getByRole("button", { name: "Close" });
+    const content = document.querySelector(".MuiDialogContent-root");
+    expect(content).toContainElement(close);
+    // A sticky zero-height row with a z-index, so the X stays on top and in view.
+    expect(close.parentElement).toHaveStyle({ position: "sticky", zIndex: "2" });
+  });
+
+  it("closes with a tap on the backdrop around it", () => {
+    const onClose = vi.fn();
+    show(onClose);
+    // The dialog container is the area around the paper.
+    const container = document.querySelector(".MuiDialog-container") as HTMLElement;
+    fireEvent.mouseDown(container);
+    fireEvent.click(container);
+    expect(onClose).toHaveBeenCalled();
+  });
+
   it("closes from its own button", () => {
     const onClose = vi.fn();
     show(onClose);

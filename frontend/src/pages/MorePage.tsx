@@ -3,7 +3,7 @@ import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { Box, Container, Typography } from "@mui/material";
 import { type ReactNode, useState, useSyncExternalStore } from "react";
 import { Link } from "react-router-dom";
-import { useFeatures, useUserLeagues } from "../api/queries";
+import { useUserLeagues } from "../api/queries";
 import AppToast from "../components/common/AppToast";
 import InstallGuideSheet from "../components/install/InstallGuideSheet";
 import PastSeasonsSheet from "../components/settings/PastSeasonsSheet";
@@ -105,7 +105,6 @@ const Group = ({ label, children }: { label: string; children: ReactNode }) => (
 const MorePage = () => {
   const { leagueId, paths } = useSeasonContext();
   const { signOutUser } = useUser();
-  const features = useFeatures();
   const league = useUserLeagues(true).data?.find((item) => item.id === leagueId);
   const pastSeasons = (league?.seasons ?? []).filter((item) => !item.current).reverse();
   const [sheet, setSheet] = useState<"past" | "report" | "feedback" | "install" | null>(null);
@@ -116,22 +115,13 @@ const MorePage = () => {
 
   return (
     <Container maxWidth="sm" sx={{ pt: 2, pb: 3 }}>
-      {(features.bracket || pastSeasons.length > 0) && (
+      {pastSeasons.length > 0 && (
         <Group label="League">
-          {features.bracket && (
-            <Row
-              to={paths.schedule}
-              title="NFL schedule"
-              hint="Who plays whom, live scores, and your players"
-            />
-          )}
-          {pastSeasons.length > 0 && (
-            <Row
-              title="Past seasons"
-              hint={pastSeasons.map((item) => item.year).join(", ")}
-              onClick={() => setSheet("past")}
-            />
-          )}
+          <Row
+            title="Past seasons"
+            hint={pastSeasons.map((item) => item.year).join(", ")}
+            onClick={() => setSheet("past")}
+          />
         </Group>
       )}
       <Group label="Help">
