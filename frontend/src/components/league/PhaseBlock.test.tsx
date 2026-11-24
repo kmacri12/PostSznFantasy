@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { SeasonOverview, Standings } from "../../api/types";
@@ -9,11 +9,13 @@ import PhaseBlock from "./PhaseBlock";
 const mocks = vi.hoisted(() => ({
   draft: { data: undefined as unknown, isLoading: false },
   standings: { data: undefined } as { data: unknown; dataUpdatedAt?: number },
+  recap: { data: undefined as unknown },
 }));
 
 vi.mock("../../api/queries", () => ({
   useDraft: () => mocks.draft,
   useStandings: () => mocks.standings,
+  useRoundRecap: () => mocks.recap,
   useFeatures: () => ({ bracket: true }),
   useInvite: () => ({ data: { code: "ABC123" }, isLoading: false }),
   useRegenerateInvite: () => ({ mutate: vi.fn(), isPending: false }),
@@ -58,6 +60,7 @@ const show = (season: Partial<SeasonOverview>) =>
 beforeEach(() => {
   mocks.draft = { data: undefined, isLoading: false };
   mocks.standings = { data: undefined };
+  mocks.recap = { data: undefined };
   vi.useFakeTimers({ toFake: ["Date", "setInterval", "clearInterval"] });
   vi.setSystemTime(new Date("2026-01-01T12:00:00Z"));
 });
@@ -157,6 +160,29 @@ describe("PhaseBlock", () => {
     mocks.standings = { data: standings({ gamesInProgress: 0, gamesFinal: 6 }) };
     show({ draftStatus: "completed" });
     expect(screen.getByText("All final")).toBeInTheDocument();
+  });
+
+  it("shows the week recap under a finished round, and folds it away", () => {
+    mocks.draft = { data: { draftCutoff: "2026-01-02T00:00:00Z" }, isLoading: false };
+    mocks.standings = { data: standings({ gamesInProgress: 0, gamesFinal: 6 }) };
+    mocks.recap = {
+      data: {
+        round: 1,
+        highlights: [{ kind: "top_team", text: "Kmac led the week with 40.", teamId: 1 }],
+      },
+    };
+    show({ draftStatus: "completed" });
+    expect(screen.getByText("Kmac led the week with 40.")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Week recap" }));
+    expect(screen.queryByText("Kmac led the week with 40.")).not.toBeInTheDocument();
+  });
+
+  it("has no recap while games are still to play", () => {
+    mocks.draft = { data: { draftCutoff: "2026-01-02T00:00:00Z" }, isLoading: false };
+    mocks.standings = { data: standings({ gamesInProgress: 0, gamesFinal: 2, gamesToPlay: 4 }) };
+    mocks.recap = { data: { round: 1, highlights: [{ kind: "top_team", text: "x", teamId: 1 }] } };
+    show({ draftStatus: "completed" });
+    expect(screen.queryByRole("button", { name: "Week recap" })).not.toBeInTheDocument();
   });
 
   it("carries the NFL schedule link in the playoff title row", () => {

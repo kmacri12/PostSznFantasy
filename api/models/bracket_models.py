@@ -52,7 +52,11 @@ class BracketRound(BaseSchema):
 
 class Bracket(BaseSchema):
     year: int
+    # The round on display: it follows the League page's Thursday morning switch.
     current_round: int
+    # While the finished round's recap shows, the next round once its games are
+    # scheduled; the schedule outlines that tab.
+    upcoming_round: int | None = None
     rounds: list[BracketRound]
     # Top seeds sitting out the Wild Card round.
     byes: list[BracketTeam]

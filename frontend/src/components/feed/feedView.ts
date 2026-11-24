@@ -1,6 +1,13 @@
-import type { FeedEventItem, FeedItem, FeedMessageItem, MessageReaction } from "../../api/types";
+import type {
+  FeedEventItem,
+  FeedItem,
+  FeedMessageItem,
+  MessageReaction,
+  RoundHighlight,
+} from "../../api/types";
 import { formatPlainInViewerZone } from "../../utils/timeZone";
 import { describeEvent, detailLines } from "../activity/describe";
+import { ROUND_LABELS } from "../team/lineup";
 
 export const itemKey = (item: FeedItem): string => `${item.type}-${item.id}`;
 
@@ -68,6 +75,8 @@ export interface EventLine {
   order?: string[];
   /** An announcement's text, shown in full under the line. */
   quote?: string;
+  /** The weekly recap, shown in full as a card with a button for its own screen. */
+  recap?: { round: number; highlights: RoundHighlight[] };
 }
 
 export const COMMISSIONER_ACTION = "Commissioner action";
@@ -128,6 +137,14 @@ export const eventLine = (event: FeedEventItem): EventLine => {
         order: [...event.payload.order]
           .sort((a, b) => a.position - b.position)
           .map((slot) => slot.teamName),
+      };
+    case "round_recap":
+      return {
+        lead: "Weekly recap",
+        text: ` · ${ROUND_LABELS[event.payload.round] ?? "Round"} is in the books`,
+        details,
+        warn,
+        recap: event.payload,
       };
     case "announcement":
       return {

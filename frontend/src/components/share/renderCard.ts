@@ -11,6 +11,7 @@ import {
   type ShareCard,
 } from "./shareCards";
 
+const WORDMARK_FONT = '"Space Grotesk", Inter, system-ui, sans-serif';
 const FONT = '-apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
 const PAD = 72;
 
@@ -57,13 +58,18 @@ const roundRect = (ctx: Ctx, x: number, y: number, w: number, h: number, r: numb
   ctx.roundRect(x, y, w, h, r);
 };
 
-const drawBrand = (ctx: Ctx, p: Palette) => {
-  const size = 64;
+/** The app's top-left logo: the mark, then "PostSzn" over a tracked "FANTASY". */
+const drawBrand = (ctx: Ctx, p: Palette, x: number, y: number, size: number, centerX?: number) => {
+  const nameSize = Math.round(size * 0.66);
+  ctx.font = `700 ${nameSize}px ${WORDMARK_FONT}`;
+  const nameWidth = ctx.measureText("Post").width + ctx.measureText("Szn").width;
+  // Centered, the whole lockup (mark, gap, name) is what sits on the middle.
+  if (centerX !== undefined) x = centerX - (size + size * 0.3 + nameWidth) / 2;
   ctx.fillStyle = p.accentFill;
-  roundRect(ctx, PAD, PAD, size, size, 14);
+  roundRect(ctx, x, y, size, size, size * 0.22);
   ctx.fill();
   ctx.save();
-  ctx.translate(PAD, PAD);
+  ctx.translate(x, y);
   ctx.scale(size / 100, size / 100);
   ctx.strokeStyle = p.accentInk;
   ctx.lineJoin = "round";
@@ -72,14 +78,35 @@ const drawBrand = (ctx: Ctx, p: Palette) => {
     ctx.stroke(new Path2D(d));
   });
   ctx.restore();
+
+  const left = x + size + size * 0.3;
+  ctx.textBaseline = "alphabetic";
+  ctx.textAlign = "left";
+  ctx.font = `700 ${nameSize}px ${WORDMARK_FONT}`;
+  const baseline = y + size * 0.52;
   ctx.fillStyle = p.text;
-  ctx.font = `700 34px ${FONT}`;
-  ctx.textBaseline = "middle";
-  ctx.fillText("PostSzn Fantasy", PAD + size + 20, PAD + size / 2);
+  ctx.fillText("Post", left, baseline);
+  const postWidth = ctx.measureText("Post").width;
+  ctx.fillStyle = p.accent;
+  ctx.fillText("Szn", left + postWidth, baseline);
+
+  const fantasySize = Math.round(nameSize * 0.3);
+  ctx.font = `500 ${fantasySize}px ${WORDMARK_FONT}`;
+  ctx.fillStyle = p.text;
+  const tracking = fantasySize * 0.34;
+  const letters = [..."FANTASY"];
+  const advances = letters.map((letter) => ctx.measureText(letter).width + tracking);
+  // The trailing gap after the Y is not ink, so it is left out when centering.
+  const inkWidth = advances.reduce((sum, advance) => sum + advance, 0) - tracking;
+  let cursor = left + (nameWidth - inkWidth) / 2;
+  letters.forEach((letter, index) => {
+    ctx.fillText(letter, cursor, baseline + fantasySize * 1.7);
+    cursor += advances[index] ?? 0;
+  });
 };
 
 const drawHeader = (ctx: Ctx, card: ShareCard, p: Palette): number => {
-  drawBrand(ctx, p);
+  drawBrand(ctx, p, PAD, PAD, 76);
   const width = CARD_WIDTH - PAD * 2;
   ctx.textBaseline = "alphabetic";
   ctx.fillStyle = card.kind === "draft" ? p.accent : p.gold;
@@ -139,6 +166,79 @@ const drawPodium = (ctx: Ctx, card: ShareCard, p: Palette) => {
   }
 };
 
+/** The weekly recap: the league, then a label and one or two lines per highlight. */
+const TONE_FILL = {
+  gold: "gold",
+  accent: "accent",
+  green: "green",
+  red: "red",
+  warning: "warning",
+} as const;
+
+/** The weekly recap: brand, round and league centered, then a card per highlight. */
+const drawRecap = (ctx: Ctx, card: ShareCard, p: Palette) => {
+  const width = CARD_WIDTH - PAD * 2;
+  const middle = CARD_WIDTH / 2;
+  drawBrand(ctx, p, PAD, PAD, 76, middle);
+  ctx.textBaseline = "alphabetic";
+  ctx.textAlign = "center";
+  ctx.fillStyle = p.gold;
+  ctx.font = `700 34px ${FONT}`;
+  ctx.fillText(card.eyebrow.toUpperCase(), middle, 244);
+  ctx.fillStyle = p.text;
+  ctx.font = `800 60px ${FONT}`;
+  ctx.fillText(truncate(ctx, card.headline, width), middle, 316);
+  ctx.textAlign = "left";
+
+  const cardHeight = 96;
+  const gap = 12;
+  const badge = 64;
+  let y = 360;
+  for (const item of card.highlights ?? []) {
+    const color = p[TONE_FILL[item.tone]];
+    ctx.fillStyle = p.surface;
+    roundRect(ctx, PAD, y, width, cardHeight, 20);
+    ctx.fill();
+    ctx.fillStyle = color;
+    roundRect(ctx, PAD, y, 8, cardHeight, 4);
+    ctx.fill();
+    ctx.globalAlpha = 0.2;
+    ctx.beginPath();
+    ctx.arc(PAD + 44 + badge / 2, y + cardHeight / 2, badge / 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = p.text;
+    ctx.font = `34px ${FONT}`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(item.emoji, PAD + 44 + badge / 2, y + cardHeight / 2 + 2);
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+
+    const textLeft = PAD + 44 + badge + 24;
+    let textRight = PAD + width - 28;
+    if (item.stat) {
+      ctx.fillStyle = color;
+      ctx.font = `800 48px ${FONT}`;
+      ctx.textAlign = "right";
+      ctx.textBaseline = "middle";
+      ctx.fillText(item.stat, textRight, y + cardHeight / 2 + 2);
+      textRight -= ctx.measureText(item.stat).width + 28;
+      ctx.textAlign = "left";
+      ctx.textBaseline = "alphabetic";
+    }
+    ctx.fillStyle = color;
+    ctx.font = `700 20px ${FONT}`;
+    ctx.fillText(item.label.toUpperCase(), textLeft, y + 32);
+    ctx.fillStyle = p.text;
+    ctx.font = `600 28px ${FONT}`;
+    wrap(ctx, item.text, textRight - textLeft, 2).forEach((line, i) => {
+      ctx.fillText(line, textLeft, y + 62 + i * 30);
+    });
+    y += cardHeight + gap;
+  }
+};
+
 const POSITION_FILL: Record<string, keyof Palette> = {
   QB: "posQB",
   RB: "posRB",
@@ -151,16 +251,17 @@ const POSITION_FILL: Record<string, keyof Palette> = {
 
 /** Teams as columns, rounds as rows, like the board in the draft room. */
 const drawDraft = (ctx: Ctx, card: ShareCard, p: Palette, width: number) => {
+  drawBrand(ctx, p, BOARD_MARGIN, 32, 60);
   ctx.textBaseline = "alphabetic";
   ctx.fillStyle = p.accent;
   ctx.font = `700 30px ${FONT}`;
-  ctx.fillText(card.eyebrow.toUpperCase(), BOARD_MARGIN, 120);
+  ctx.fillText(card.eyebrow.toUpperCase(), BOARD_MARGIN, 148);
   ctx.fillStyle = p.textSoft;
   ctx.font = `500 28px ${FONT}`;
   ctx.fillText(
     truncate(ctx, `${card.headline} · ${card.subhead}`, width - BOARD_MARGIN * 2),
     BOARD_MARGIN,
-    160,
+    186,
   );
 
   const gridLeft = BOARD_MARGIN + BOARD_ROUND_COL;
@@ -212,6 +313,7 @@ export const drawShareCard = (ctx: Ctx, card: ShareCard, mode: ThemeMode): void 
   ctx.fillRect(0, 0, width, height);
   const margin = card.kind === "draft" ? BOARD_MARGIN : PAD;
   if (card.kind === "draft") drawDraft(ctx, card, p, width);
+  else if (card.kind === "recap") drawRecap(ctx, card, p);
   else drawPodium(ctx, card, p);
   ctx.textBaseline = "alphabetic";
   ctx.textAlign = "left";

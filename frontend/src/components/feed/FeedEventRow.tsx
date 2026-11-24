@@ -1,7 +1,11 @@
 import GavelIcon from "@mui/icons-material/Gavel";
-import { Box, Typography } from "@mui/material";
+import { Box, Button, Typography } from "@mui/material";
+import { useState } from "react";
 import type { FeedEventItem } from "../../api/types";
+import { useSeasonContext } from "../../contexts/SeasonContext";
 import { tint, tokens } from "../../theme";
+import RecapRow from "../league/RecapRow";
+import RoundRecapDialog from "../league/RoundRecapDialog";
 import { COMMISSIONER_ACTION, eventLine, timeLabel } from "./feedView";
 
 const pillSx = {
@@ -38,12 +42,70 @@ const Lead = ({ children }: { children: string }) => (
   </Box>
 );
 
+/** The weekly recap, read in place in the Feed; the button opens it on its own screen. */
+const RecapCard = ({
+  event,
+  recap,
+}: {
+  event: FeedEventItem;
+  recap: NonNullable<ReturnType<typeof eventLine>["recap"]>;
+}) => {
+  const { season } = useSeasonContext();
+  const [open, setOpen] = useState(false);
+  return (
+    <Box
+      component="li"
+      sx={{
+        ...pillSx,
+        width: "92%",
+        textAlign: "left",
+        listStyle: "none",
+        borderColor: tokens.accentBorder,
+        bgcolor: tokens.accentSurface,
+      }}
+    >
+      <Typography component="div" sx={{ textAlign: "center", fontSize: 12 }}>
+        <Lead>Weekly recap</Lead>
+        <Box component="b" sx={{ color: tokens.textSoft, fontWeight: 600 }}>
+          {eventLine(event).text}
+        </Box>
+        <Time iso={event.createdAt} />
+      </Typography>
+      <Box
+        component="ul"
+        sx={{ m: 0, mt: 1, p: 0, display: "flex", flexDirection: "column", gap: 0.75 }}
+      >
+        {recap.highlights.map((highlight) => (
+          <RecapRow key={highlight.kind} highlight={highlight} compact />
+        ))}
+      </Box>
+      <Box sx={{ display: "flex", justifyContent: "center" }}>
+        <Button size="small" onClick={() => setOpen(true)} sx={{ minHeight: 44, fontWeight: 600 }}>
+          Open recap
+        </Button>
+      </Box>
+      {open && (
+        <RoundRecapDialog
+          open
+          onClose={() => setOpen(false)}
+          leagueName={season.leagueName}
+          year={season.year}
+          round={recap.round}
+          highlights={recap.highlights}
+        />
+      )}
+    </Box>
+  );
+};
+
 /** One league event as a centered pill; a draft-order shuffle also lists the new order. */
 const FeedEventRow = ({ event }: { event: FeedEventItem }) => {
   const line = eventLine(event);
   const warnSx = line.warn
     ? { color: tokens.warning, borderColor: tint(tokens.warning, 40) }
     : undefined;
+
+  if (line.recap) return <RecapCard event={event} recap={line.recap} />;
 
   if (line.order) {
     return (

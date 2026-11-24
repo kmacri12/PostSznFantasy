@@ -39,8 +39,10 @@ describe("drawShareCard", () => {
       const { ctx, texts } = recordingContext();
       drawShareCard(ctx, base, mode);
       expect(texts).toEqual(
-        expect.arrayContaining(["PostSzn Fantasy", "Gridiron Gang", "Sunday League"]),
+        expect.arrayContaining(["Post", "Szn", "Gridiron Gang", "Sunday League"]),
       );
+      // The logo's FANTASY line is drawn a letter at a time, tracked out like the app's.
+      expect(texts.join("")).toContain("FANTASY");
     }
   });
   it("draws a draft grid of every team's picks", () => {
@@ -60,5 +62,33 @@ describe("drawShareCard", () => {
       "dark",
     );
     expect(texts).toEqual(expect.arrayContaining(["Team A", "One", "Team B", "Two"]));
+    // The board carries the brand too, so a shared picture is recognisable.
+    expect(texts).toEqual(expect.arrayContaining(["Post", "Szn"]));
+  });
+  it("draws every highlight of a weekly recap under the brand", () => {
+    vi.stubGlobal("Path2D", class {});
+    const { ctx, texts } = recordingContext();
+    drawShareCard(
+      ctx,
+      {
+        ...base,
+        kind: "recap",
+        eyebrow: "Wild Card recap",
+        rows: [],
+        highlights: [
+          {
+            label: "Top starter",
+            text: "Josh Allen scored 41 for Kmac.",
+            emoji: "⭐",
+            tone: "gold",
+            stat: "41",
+          },
+        ],
+      },
+      "dark",
+    );
+    expect(texts).toEqual(
+      expect.arrayContaining(["Post", "Szn", "WILD CARD RECAP", "TOP STARTER", "⭐", "41"]),
+    );
   });
 });

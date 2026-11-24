@@ -154,7 +154,7 @@ def _next_weekday_start(after: datetime, weekday: int, hour: int) -> datetime:
     return moment if moment > local else moment + timedelta(days=7)
 
 
-def _recap_round(games: list[GameFacts], now: datetime) -> int | None:
+def recap_round(games: list[GameFacts], now: datetime) -> int | None:
     """The finished round still on display, or None when the current round has taken over:
     the next round takes over at the first Thursday 6 AM Eastern after the finished round's
     last kickoff, or at its own first kickoff if that comes sooner."""
@@ -170,16 +170,32 @@ def _recap_round(games: list[GameFacts], now: datetime) -> int | None:
     return previous if now < switch else None
 
 
+# The recap is posted to the Feed, and its notification sent, Tuesday morning rather than
+# when the last game ends, which can be close to midnight.
+RECAP_POST_HOUR = 8
+
+
+def recap_ready(games: list[GameFacts], now: datetime) -> int | None:
+    """The finished round whose weekly recap should be out by now, else None."""
+    recap = recap_round(games, now)
+    if recap is None:
+        return None
+    last = max(g.kickoff for g in games if g.round == recap and g.kickoff)
+    if now < _next_weekday_start(last, _TUESDAY, RECAP_POST_HOUR):
+        return None
+    return recap
+
+
 def display_round(games: list[GameFacts], now: datetime) -> int:
     """The round the League and Team pages describe (header, "This rd", the status dots)."""
-    return _recap_round(games, now) or current_round(games)
+    return recap_round(games, now) or current_round(games)
 
 
 def lineup_nudge_round(games: list[GameFacts], now: datetime) -> int | None:
     """The round whose lineup to remind members about: from Tuesday midnight Eastern after
     the round on display finished until the next round's first kickoff, i.e. only while
     the recap is still showing."""
-    recap = _recap_round(games, now)
+    recap = recap_round(games, now)
     if recap is None:
         return None
     last = max(g.kickoff for g in games if g.round == recap and g.kickoff)

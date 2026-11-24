@@ -38,6 +38,7 @@ GUARDED_BY_CALLER = {
     "services/push.py": "filtered through live_season_ids",
     "services/lineup_reminders.py": "filtered through live_season_ids",
     "services/player_alerts.py": "filtered through live_season_ids",
+    "services/round_recap.py": "the route sits behind SeasonMember; the poster filters through live_season_ids",
     "services/notifications.py": "filtered through live_season_ids (moved from push.py)",
     "services/live_leagues.py": "the filter itself",
 }

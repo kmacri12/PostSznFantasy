@@ -21,7 +21,13 @@ from api.models.bracket_models import (
 )
 from api.models.enums import DRAFTABLE_POSITION_VALUES
 from api.services.lineups import BENCH, slot_layout
-from api.services.round_status import ROUNDS, GameFacts, current_round, load_games
+from api.services.round_status import (
+    ROUNDS,
+    GameFacts,
+    display_round,
+    load_games,
+    recap_round,
+)
 from api.utils.calculations.fantasy_points_utils import season_points
 
 TOP_PLAYERS = 3
@@ -124,9 +130,20 @@ def _game_view(
 
 
 async def build_bracket(
-    db: AsyncSession, year: int, settings: SeasonSettings, my_team_id: int | None
+    db: AsyncSession,
+    year: int,
+    settings: SeasonSettings,
+    my_team_id: int | None,
+    now: datetime | None = None,
 ) -> Bracket:
     games = await load_games(db, year)
+    moment = now or datetime.now(UTC)
+    recap = recap_round(games, moment)
+    upcoming = (
+        recap + 1
+        if recap is not None and any(g.round == recap + 1 for g in games)
+        else None
+    )
     in_games = {
         t for g in games for t in (g.home_team_id, g.away_team_id) if t is not None
     }
@@ -179,7 +196,8 @@ async def build_bracket(
     ]
     return Bracket(
         year=year,
-        current_round=current_round(games),
+        current_round=display_round(games, moment),
+        upcoming_round=upcoming,
         rounds=rounds,
         byes=sorted((teams[i] for i in bye_ids), key=lambda t: t.abbreviation),
     )

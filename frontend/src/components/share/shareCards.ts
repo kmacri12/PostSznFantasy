@@ -1,4 +1,11 @@
-import type { DraftState, SeasonRecap, Standings, StandingsRow } from "../../api/types";
+import type {
+  DraftState,
+  RoundHighlight,
+  SeasonRecap,
+  Standings,
+  StandingsRow,
+} from "../../api/types";
+import { highlightLabel, highlightStyle, recapTitle } from "../league/roundRecap";
 import { formatPoints, ROUNDS } from "../league/standingsView";
 
 export const CARD_WIDTH = 1080;
@@ -16,15 +23,25 @@ export interface DraftColumn {
   lines: { text: string; position: string | null }[];
 }
 
+export interface CardHighlight {
+  label: string;
+  text: string;
+  emoji: string;
+  tone: "gold" | "accent" | "green" | "red" | "warning";
+  stat: string | null;
+}
+
 /** What a card says, with no layout: display and team names only, never an email. */
 export interface ShareCard {
-  kind: "champion" | "round" | "draft";
+  kind: "champion" | "round" | "draft" | "recap";
   leagueName: string;
   eyebrow: string;
   headline: string;
   subhead: string;
   rows: CardRow[];
   columns: DraftColumn[];
+  /** The weekly recap card only. */
+  highlights?: CardHighlight[];
   fileName: string;
 }
 
@@ -125,10 +142,36 @@ export const draftCard = (
   };
 };
 
+/** The weekly recap as one portrait picture: the league, then every highlight. */
+export const recapCard = (
+  leagueName: string,
+  year: number,
+  round: number,
+  highlights: RoundHighlight[],
+): ShareCard | null =>
+  highlights.length === 0
+    ? null
+    : {
+        kind: "recap",
+        leagueName,
+        eyebrow: recapTitle(round),
+        headline: leagueName,
+        subhead: "",
+        rows: [],
+        columns: [],
+        highlights: highlights.map((h) => ({
+          label: highlightLabel(h),
+          text: h.text,
+          ...highlightStyle(h),
+          stat: h.stat ?? null,
+        })),
+        fileName: `${slug(leagueName)}-${year}-${slug(recapTitle(round))}.png`,
+      };
+
 export const BOARD_MARGIN = 40;
 export const BOARD_ROUND_COL = 56;
 export const BOARD_TEAM_COL = 168;
-export const BOARD_HEADER = 190;
+export const BOARD_HEADER = 215;
 export const BOARD_TEAM_ROW = 80;
 export const BOARD_CELL = 76;
 export const BOARD_FOOTER = 90;

@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 import type { DraftState, SeasonRecap, Standings, StandingsRow } from "../../api/types";
-import { cardSize, championCard, draftCard, roundCard, roundIsComplete } from "./shareCards";
+import {
+  cardSize,
+  championCard,
+  draftCard,
+  recapCard,
+  roundCard,
+  roundIsComplete,
+} from "./shareCards";
 
 const row = (id: number, name: string, wildCard: number, extra: Partial<StandingsRow> = {}) =>
   ({
@@ -117,5 +124,43 @@ describe("draftCard", () => {
         columns: [...(card?.columns ?? []), ...(card?.columns ?? [])],
       }).width,
     );
+  });
+});
+
+describe("recapCard", () => {
+  const highlights = [
+    { kind: "top_team", text: "Kmac led the week with 40.", teamId: 1, stat: "40" },
+    { kind: "top_bench", text: "Josh Allen scored 28 on Team 2's bench.", teamId: 2 },
+  ];
+
+  it("lists every highlight under its label, in the portrait size", () => {
+    const card = recapCard("Fake League", 2026, 1, highlights);
+    expect(card).toMatchObject({
+      kind: "recap",
+      eyebrow: "Wild Card recap",
+      headline: "Fake League",
+      fileName: "fake-league-2026-wild-card-recap.png",
+      highlights: [
+        {
+          label: "Team of the week",
+          text: "Kmac led the week with 40.",
+          emoji: "🏆",
+          tone: "gold",
+          stat: "40",
+        },
+        {
+          label: "Left on the bench",
+          text: "Josh Allen scored 28 on Team 2's bench.",
+          emoji: "🪑",
+          tone: "warning",
+          stat: null,
+        },
+      ],
+    });
+    expect(card && cardSize(card)).toEqual({ width: 1080, height: 1350 });
+  });
+
+  it("makes no card when there is nothing to say", () => {
+    expect(recapCard("Fake League", 2026, 1, [])).toBeNull();
   });
 });

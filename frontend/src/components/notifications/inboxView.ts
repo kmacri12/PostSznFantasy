@@ -88,6 +88,12 @@ export const describeNotification = (item: InboxItem): InboxLine => {
         body: `You're out of players in ${league}.`,
         path: paths.home,
       };
+    case "round_recap":
+      return {
+        title: "The weekly recap is in",
+        body: `Check out the ${round ? `${round} ` : ""}recap in ${league}.`,
+        path: paths.feed,
+      };
     case "mention":
       return {
         title: "You were mentioned",

@@ -14,6 +14,8 @@ interface Props {
   cells: RoundTabCell[];
   round: number;
   onSelect: (round: number) => void;
+  /** A round outlined with a dashed line: its games are on the schedule but it has not started. */
+  dashedRound?: number | null;
 }
 
 /**
@@ -21,7 +23,7 @@ interface Props {
  * in the accent, like the Team page's `RoundStrip` (kept apart so the schedule never changes the
  * tour's Team screens).
  */
-const RoundTabs = ({ cells, round, onSelect }: Props) => (
+const RoundTabs = ({ cells, round, onSelect, dashedRound }: Props) => (
   <Box
     role="tablist"
     aria-label="Round"
@@ -31,6 +33,7 @@ const RoundTabs = ({ cells, round, onSelect }: Props) => (
       const selected = cell.round === round;
       const short = ROUNDS[cell.round - 1]?.label;
       const full = ROUND_LABELS[cell.round];
+      const dashed = !selected && dashedRound === cell.round;
       return (
         <ButtonBase
           key={cell.round}
@@ -40,10 +43,14 @@ const RoundTabs = ({ cells, round, onSelect }: Props) => (
           sx={{
             display: "block",
             minHeight: 48,
-            py: selected ? "3px" : "4px",
+            py: selected || dashed ? "3px" : "4px",
             textAlign: "center",
             borderRadius: "10px",
-            border: selected ? `2px solid ${tokens.accent}` : `1px solid ${tokens.borderStrong}`,
+            border: selected
+              ? `2px solid ${tokens.accent}`
+              : dashed
+                ? `2px dashed ${tokens.accent}`
+                : `1px solid ${tokens.borderStrong}`,
             bgcolor: selected ? tokens.accentSurface : tokens.surface,
             fontSize: { xs: 16, md: 22 },
             fontWeight: { xs: 600, md: 700 },
@@ -63,7 +70,11 @@ const RoundTabs = ({ cells, round, onSelect }: Props) => (
           </Box>
           {cell.value}
           {/* After the visible text, so the spoken name starts with what the tab shows (WCAG 2.5.3). */}
-          {full !== short && <Box component="span" sx={visuallyHidden}>{`, ${full}`}</Box>}
+          {(full !== short || dashed) && (
+            <Box component="span" sx={visuallyHidden}>
+              {`, ${full}${dashed ? ", games scheduled" : ""}`}
+            </Box>
+          )}
         </ButtonBase>
       );
     })}

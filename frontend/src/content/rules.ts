@@ -412,7 +412,7 @@ export const NOTIFICATION_KINDS = [
   {
     key: "roundResults",
     label: "Round results",
-    hint: "How a round went and where you moved, or that your last player's team lost.",
+    hint: "How a round went and where you moved, the weekly recap, or that your last player's team lost.",
   },
   {
     key: "announcements",

@@ -31,6 +31,7 @@ from api.services.player_alerts import (
 )
 from api.services.push import prune_stale_subscriptions
 from api.services.replay import ReplayClient, load_replay, virtual_clock
+from api.services.round_recap import post_round_recaps
 from api.services.standings import recompute_standings
 from api.utils.rapidapi.rapidapi import RapidApiClient, get_rapidapi_client
 
@@ -289,6 +290,7 @@ async def run_poll_cycle(
     alerts: list[tuple[str, Callable[[], Awaitable[object]]]] = [
         ("Lineup lock reminders", lambda: send_lock_reminders(db, season, when)),
         ("Starter out alerts", lambda: send_starter_out_alerts(db, season, when)),
+        ("Weekly recap", lambda: post_round_recaps(db, season, when)),
     ]
     if polled:
         alerts.append(

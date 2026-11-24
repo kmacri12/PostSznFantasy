@@ -14,6 +14,7 @@ import { formatCountdown, formatDraftTime, ordinal, useNow } from "./countdown";
 import InviteLinkButton from "./InviteLinkButton";
 import LiveIndicator, { ARROW_OUTSET } from "./LiveIndicator";
 import { afterDraftPhase } from "./phase";
+import RoundRecapCard from "./RoundRecapCard";
 import { gamesSummary } from "./standingsView";
 
 const Block = ({ children }: { children: ReactNode }) => (
@@ -237,6 +238,12 @@ const PlayoffBlock = ({ season, standings }: { season: SeasonOverview; standings
         <ScheduleLink />
       </Row>
       <LiveIndicator seasonId={season.id} games={games} schedule={paths.schedule} />
+      <RoundRecapCard
+        seasonId={season.id}
+        leagueName={season.leagueName}
+        year={season.year}
+        over={!live && standings.gamesToPlay === 0 && standings.gamesFinal > 0}
+      />
     </Block>
   );
 };
