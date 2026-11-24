@@ -58,6 +58,12 @@ export const describeNotification = (item: InboxItem): InboxLine => {
         body: `You have an empty ${round ? `${round} ` : ""}starter slot in ${league}.`,
         path: team ? paths.team(team) : paths.home,
       };
+    case "lineup_tomorrow":
+      return {
+        title: "Your lineup isn't set",
+        body: `You have an empty ${round ? `${round} ` : ""}starter slot in ${league}.`,
+        path: team ? paths.team(team) : paths.home,
+      };
     case "lineup_changed":
       return {
         title: "A commissioner changed your lineup",

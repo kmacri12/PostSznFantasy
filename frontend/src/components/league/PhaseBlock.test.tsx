@@ -3,6 +3,7 @@ import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { SeasonOverview, Standings } from "../../api/types";
 import { SeasonContext } from "../../contexts/SeasonContext";
+import { ThemeModeProvider } from "../../contexts/ThemeModeContext";
 import { testSeason } from "../../test/season";
 import PhaseBlock from "./PhaseBlock";
 
@@ -51,9 +52,11 @@ const standings = (extra: Partial<Standings> = {}, mine = { live: 3, toPlay: 1 }
 const show = (season: Partial<SeasonOverview>) =>
   render(
     <MemoryRouter>
-      <SeasonContext.Provider value={testSeason(season, true)}>
-        <PhaseBlock season={testSeason(season, true).season} />
-      </SeasonContext.Provider>
+      <ThemeModeProvider>
+        <SeasonContext.Provider value={testSeason(season, true)}>
+          <PhaseBlock season={testSeason(season, true).season} />
+        </SeasonContext.Provider>
+      </ThemeModeProvider>
     </MemoryRouter>,
   );
 
@@ -162,27 +165,36 @@ describe("PhaseBlock", () => {
     expect(screen.getByText("All final")).toBeInTheDocument();
   });
 
-  it("shows the week recap under a finished round, and folds it away", () => {
+  it("swaps All final for a View recap button that opens the recap on its own", () => {
     mocks.draft = { data: { draftCutoff: "2026-01-02T00:00:00Z" }, isLoading: false };
     mocks.standings = { data: standings({ gamesInProgress: 0, gamesFinal: 6 }) };
     mocks.recap = {
       data: {
         round: 1,
         highlights: [{ kind: "top_team", text: "Kmac led the week with 40.", teamId: 1 }],
+        teamScores: [{ teamId: 1, teamName: "Kmac", points: 40 }],
       },
     };
     show({ draftStatus: "completed" });
-    expect(screen.getByText("Kmac led the week with 40.")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Week recap" }));
+    expect(screen.queryByText("All final")).not.toBeInTheDocument();
+    // The list itself is not on the League page, only in the recap screen.
     expect(screen.queryByText("Kmac led the week with 40.")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "View recap" }));
+    expect(screen.getByText("Kmac led the week with 40.")).toBeInTheDocument();
+    expect(screen.getByText("POINTS THIS WEEK")).toBeInTheDocument();
   });
 
-  it("has no recap while games are still to play", () => {
+  it("keeps All final until there is a recap, and has none while games are to play", () => {
     mocks.draft = { data: { draftCutoff: "2026-01-02T00:00:00Z" }, isLoading: false };
+    mocks.standings = { data: standings({ gamesInProgress: 0, gamesFinal: 6 }) };
+    show({ draftStatus: "completed" });
+    expect(screen.getByText("All final")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "View recap" })).not.toBeInTheDocument();
+
     mocks.standings = { data: standings({ gamesInProgress: 0, gamesFinal: 2, gamesToPlay: 4 }) };
     mocks.recap = { data: { round: 1, highlights: [{ kind: "top_team", text: "x", teamId: 1 }] } };
     show({ draftStatus: "completed" });
-    expect(screen.queryByRole("button", { name: "Week recap" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "View recap" })).not.toBeInTheDocument();
   });
 
   it("carries the NFL schedule link in the playoff title row", () => {

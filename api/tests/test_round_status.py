@@ -241,3 +241,37 @@ def test_the_lineup_nudge_runs_from_tuesday_midnight_until_the_next_round_takes_
     assert lineup_nudge_round(games, eastern(12, 0, 1)) == 2
     assert lineup_nudge_round(games, eastern(14, 5, 59)) == 2
     assert lineup_nudge_round(games, eastern(14, 6)) is None
+
+
+def _rounds_done(*rounds: int) -> list[GameFacts]:
+    return [
+        replace(game(r, KC, BUF, score=(27, 20)), kickoff=eastern(9 + 7 * (r - 1), 16))
+        for r in rounds
+    ]
+
+
+def test_movement_shows_from_divisional_until_the_next_rounds_first_kickoff() -> None:
+    from api.services.round_status import movement_round
+
+    wild_card_only = _rounds_done(1)
+    assert (
+        movement_round(wild_card_only, eastern(12, 12)) is None
+    )  # nothing to compare to
+
+    divisional = [
+        *_rounds_done(1, 2),
+        replace(game(3, KC, BUF), kickoff=eastern(23, 16)),
+    ]
+    assert movement_round(divisional, eastern(20, 12)) == 2  # through Thursday's switch
+    assert movement_round(divisional, eastern(22, 12)) == 2
+    assert (
+        movement_round(divisional, eastern(23, 17)) is None
+    )  # the next round kicked off
+
+
+def test_movement_after_the_super_bowl_stays() -> None:
+    from api.services.round_status import movement_round
+
+    season = _rounds_done(1, 2, 3, 4)
+    assert movement_round(season, eastern(28, 12)) == 4
+    assert movement_round(season, datetime(2028, 1, 1, tzinfo=UTC)) == 4

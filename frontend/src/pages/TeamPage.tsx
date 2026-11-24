@@ -69,9 +69,18 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
   const [pickedRound, setRound] = useState<number | null>(null);
   const round = pickedRound ?? shownRound;
   const nudgeRound = canSetLineup ? (standings?.lineupNudgeRound ?? null) : null;
-  const [nudgeTip, setNudgeTip] = useState(
-    () => nudgeRound !== null && !celebrationSeen("lineup-nudge", `${seasonId}-${nudgeRound}`),
-  );
+  // The bubble stays until the member opens that round's tab, however often they come back.
+  const nudgeKey = `${seasonId}-${nudgeRound}`;
+  const [nudgeTapped, setNudgeTapped] = useState(false);
+  const nudgeTip =
+    nudgeRound !== null && !nudgeTapped && !celebrationSeen("lineup-nudge", nudgeKey);
+  const selectRound = (picked: number) => {
+    setRound(picked);
+    if (picked === nudgeRound) {
+      markCelebrationSeen("lineup-nudge", nudgeKey);
+      setNudgeTapped(true);
+    }
+  };
   const [sheetPlayerId, setSheetPlayerId] = useState<number | null>(null);
   const [fillSlotIndex, setFillSlotIndex] = useState<number | null>(null);
   const moveInLineup = useMoveInLineup(teamId);
@@ -94,12 +103,6 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
   const moveError = needsOverrideConfirmation(moveInLineup.error)
     ? null
     : mutationError(moveInLineup.error, "Couldn't move that player. Try again.");
-
-  useEffect(() => {
-    if (nudgeRound === null) return;
-    setNudgeTip(!celebrationSeen("lineup-nudge", `${seasonId}-${nudgeRound}`));
-    markCelebrationSeen("lineup-nudge", `${seasonId}-${nudgeRound}`);
-  }, [nudgeRound, seasonId]);
 
   const lineup = team.lineups.find((entry) => entry.round === round);
   const hurt = lineup ? hurtStarters(lineup) : [];
@@ -166,12 +169,8 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
           <RoundStrip
             lineups={team.lineups}
             round={round}
-            onSelect={setRound}
-            nudge={
-              nudgeRound === null
-                ? null
-                : { round: nudgeRound, tipOpen: nudgeTip, onTipClose: () => setNudgeTip(false) }
-            }
+            onSelect={selectRound}
+            nudge={nudgeRound === null ? null : { round: nudgeRound, tipOpen: nudgeTip }}
           />
           <LineupRound
             lineup={lineup}

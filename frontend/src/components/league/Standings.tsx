@@ -22,8 +22,6 @@ import CommissionerMark from "../common/CommissionerMark";
 import HelpTip from "../common/HelpTip";
 import PictureAvatar from "../common/PictureAvatar";
 import QueryBoundary from "../common/QueryBoundary";
-import ShareCardButton from "../share/ShareCardButton";
-import { roundCard } from "../share/shareCards";
 import StatusBreakdownTrigger from "../team/StatusBreakdown";
 import StatusRing from "../team/StatusRing";
 import RankCell from "./RankCell";
@@ -144,7 +142,12 @@ const PhoneRow = ({
     <Box component="li" sx={{ listStyle: "none", borderTop: 1, borderColor: "divider" }}>
       <Box sx={{ display: "flex", alignItems: "stretch" }}>
         <Box sx={{ display: "flex", alignItems: "center", pl: 0.5 }}>
-          <RankCell label={rankLabel(rows, index)} note={note} color={color ?? tokens.muted} />
+          <RankCell
+            label={rankLabel(rows, index)}
+            note={note}
+            color={color ?? tokens.muted}
+            change={row.rankChange}
+          />
         </Box>
         {/* Beside the expand button, not inside it: the picture has its own tap. */}
         <Box sx={{ display: "flex", alignItems: "center", mr: 1.25 }}>
@@ -220,7 +223,13 @@ const PhoneRow = ({
 };
 
 const PhoneList = ({ rows, round, finished }: Omit<RowProps, "row" | "index">) => {
-  const [openId, setOpenId] = useState<number | null>(null);
+  const [openIds, setOpenIds] = useState<ReadonlySet<number>>(new Set());
+  const toggle = (teamId: number) =>
+    setOpenIds((current) => {
+      const next = new Set(current);
+      if (!next.delete(teamId)) next.add(teamId);
+      return next;
+    });
   return (
     <Box component="ol" aria-label="Standings" sx={{ m: 0, p: 0 }}>
       {rows.map((row, index) => (
@@ -231,8 +240,8 @@ const PhoneList = ({ rows, round, finished }: Omit<RowProps, "row" | "index">) =
           index={index}
           round={round}
           finished={finished}
-          open={openId === row.teamId}
-          onToggle={() => setOpenId(openId === row.teamId ? null : row.teamId)}
+          open={openIds.has(row.teamId)}
+          onToggle={() => toggle(row.teamId)}
         />
       ))}
     </Box>
@@ -276,6 +285,7 @@ const DesktopTable = ({ rows, round, finished }: Omit<RowProps, "row" | "index">
                   label={rankLabel(rows, index)}
                   note={tieNote(rows, index)}
                   color={color ?? tokens.muted}
+                  change={row.rankChange}
                 />
               </TableCell>
               <TableCell>
@@ -435,16 +445,7 @@ const Standings = ({ season }: { season: SeasonOverview }) => {
         standings.phase === "pre_draft" ? (
           <SlotList rows={standings.teams} season={season} />
         ) : (
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-            <LiveStandings standings={standings} finished={season.finished} />
-            {/* The finished season's recap carries the champion card instead. */}
-            {!season.finished && (
-              <ShareCardButton
-                card={roundCard(season.leagueName, season.year, standings)}
-                label="Share round result"
-              />
-            )}
-          </Box>
+          <LiveStandings standings={standings} finished={season.finished} />
         )
       }
     </QueryBoundary>

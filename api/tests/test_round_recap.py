@@ -2,7 +2,7 @@ from decimal import Decimal
 
 from api.models.activity_models import RoundHighlight
 from api.services.round_points import PointsLine
-from api.services.round_recap import round_highlights
+from api.services.round_recap import round_highlights, team_scores
 
 A, B, C, D = 1, 2, 3, 4
 NAMES = {A: "Kmac", B: "Team 2", C: "Team 3", D: "Team 4"}
@@ -55,12 +55,13 @@ def test_the_best_and_worst_team_and_the_top_starter_are_always_named() -> None:
     assert "Josh Allen was the top starter with 40 for Kmac" in result[2].text
 
 
-def test_a_bench_score_needs_to_be_big_to_make_the_list() -> None:
-    small = build(lines=[line(A, 10, "40"), line(B, 11, "9.99", starter=False)])
-    assert "top_bench" not in kinds(small)
-    big = build(lines=[line(A, 10, "40"), line(B, 11, "28.1", starter=False)])
-    bench = next(h for h in big if h.kind == "top_bench")
-    assert bench.text == "Backup Wr scored 28.1 on Team 2's bench."
+def test_the_top_bench_scorer_in_the_league_is_always_named() -> None:
+    small = build(lines=[line(A, 10, "40"), line(B, 11, "2.5", starter=False)])
+    bench = next(h for h in small if h.kind == "top_bench")
+    assert bench.text == "Backup Wr scored 2.5 on Team 2's bench."
+    assert bench.stat == "2.5"
+    nobody = build(lines=[line(A, 10, "40"), line(B, 11, "0", starter=False)])
+    assert "top_bench" not in kinds(nobody)
 
 
 def test_only_moves_of_two_or_more_places_count() -> None:
@@ -85,20 +86,44 @@ def test_a_fall_is_named_and_the_first_round_has_no_moves() -> None:
     assert "climber" not in kinds(build(rank_before=None))
 
 
-def test_heavy_losses_and_untouched_teams_are_named() -> None:
+def test_heavy_eliminations_and_the_fewest_are_named() -> None:
     result = build(players_lost={A: 0, B: 4, C: 1, D: 0})
     assert next(h for h in result if h.kind == "most_lost").text == (
-        "Team 2 lost 4 players."
+        "Team 2 had 4 players eliminated."
     )
-    assert next(h for h in result if h.kind == "none_lost").text == (
-        "Kmac and Team 4 came through without losing a player."
+    survivor = next(h for h in result if h.kind == "fewest_lost")
+    assert survivor.text == "Kmac and Team 4 had the fewest players eliminated (0)."
+    assert survivor.stat == "0"
+
+
+def test_the_survivor_is_the_fewest_even_when_nobody_lost_none() -> None:
+    result = build(players_lost={A: 2, B: 3, C: 3, D: 4})
+    survivor = next(h for h in result if h.kind == "fewest_lost")
+    assert survivor.text == "Kmac had the fewest players eliminated (2)."
+    assert survivor.team_id == A
+    many = build(players_lost={A: 1, B: 1, C: 1, D: 5})
+    assert next(h for h in many if h.kind == "fewest_lost").text == (
+        "3 teams had the fewest players eliminated (1)."
     )
 
 
-def test_nothing_to_say_about_losses_when_everyone_is_alike() -> None:
-    assert not {"most_lost", "none_lost"} & set(
-        kinds(build(players_lost={A: 0, B: 0, C: 0, D: 0}))
+def test_nothing_to_say_about_eliminations_when_everyone_is_alike() -> None:
+    assert not {"most_lost", "fewest_lost"} & set(
+        kinds(build(players_lost={A: 2, B: 2, C: 2, D: 2}))
     )
+
+
+def test_team_scores_rank_every_owned_team_best_first() -> None:
+    scores = team_scores(
+        NAMES,
+        [line(B, 12, "20"), line(A, 10, "40"), line(A, 11, "2", starter=False)],
+    )
+    assert [(s.team_name, s.points) for s in scores] == [
+        ("Kmac", 40.0),
+        ("Team 2", 20.0),
+        ("Team 3", 0.0),
+        ("Team 4", 0.0),
+    ]
 
 
 def test_unowned_teams_and_tiny_leagues_are_left_out() -> None:

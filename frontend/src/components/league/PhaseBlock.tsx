@@ -1,8 +1,8 @@
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { Box, Button, ButtonBase, Typography } from "@mui/material";
-import type { ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 import { Link } from "react-router-dom";
-import { useDraft, useFeatures, useStandings } from "../../api/queries";
+import { useDraft, useFeatures, useRoundRecap, useStandings } from "../../api/queries";
 import type { SeasonOverview, Standings } from "../../api/types";
 import { useSeasonContext } from "../../contexts/SeasonContext";
 import { tokens } from "../../theme";
@@ -14,7 +14,7 @@ import { formatCountdown, formatDraftTime, ordinal, useNow } from "./countdown";
 import InviteLinkButton from "./InviteLinkButton";
 import LiveIndicator, { ARROW_OUTSET } from "./LiveIndicator";
 import { afterDraftPhase } from "./phase";
-import RoundRecapCard from "./RoundRecapCard";
+import RoundRecapDialog from "./RoundRecapDialog";
 import { gamesSummary } from "./standingsView";
 
 const Block = ({ children }: { children: ReactNode }) => (
@@ -225,25 +225,48 @@ const ScheduleLink = () => {
   );
 };
 
-/** While a game is on, the games line moves to its own row under the title. */
+/**
+ * While a game is on, the games line moves to its own row under the title. Once the round is over
+ * the line gives way to a View recap button (the recap only reads well in its own screen).
+ */
 const PlayoffBlock = ({ season, standings }: { season: SeasonOverview; standings: Standings }) => {
   const { paths } = useSeasonContext();
   const games = gamesLine(standings);
   const live = standings.gamesInProgress > 0;
+  const over = !live && standings.gamesToPlay === 0 && standings.gamesFinal > 0;
+  const recap = useRoundRecap(season.id, over).data;
+  const [recapOpen, setRecapOpen] = useState(false);
+  const hasRecap = over && recap != null && recap.highlights.length > 0;
   return (
     <Block>
       <Row>
         <Title>{ROUND_LABELS[standings.round]}</Title>
-        {!live && <Detail>{games}</Detail>}
+        {hasRecap ? (
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={() => setRecapOpen(true)}
+            sx={{ minHeight: 44, fontWeight: 600 }}
+          >
+            View recap
+          </Button>
+        ) : (
+          !live && <Detail>{games}</Detail>
+        )}
         <ScheduleLink />
       </Row>
       <LiveIndicator seasonId={season.id} games={games} schedule={paths.schedule} />
-      <RoundRecapCard
-        seasonId={season.id}
-        leagueName={season.leagueName}
-        year={season.year}
-        over={!live && standings.gamesToPlay === 0 && standings.gamesFinal > 0}
-      />
+      {recapOpen && recap && (
+        <RoundRecapDialog
+          open
+          onClose={() => setRecapOpen(false)}
+          leagueName={season.leagueName}
+          year={season.year}
+          round={recap.round}
+          highlights={recap.highlights}
+          teamScores={recap.teamScores}
+        />
+      )}
     </Block>
   );
 };

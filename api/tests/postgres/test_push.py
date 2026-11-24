@@ -21,7 +21,10 @@ from api.db.models import (
 )
 from api.services import draft_reminders, notifications, push
 from api.services.draft_events import announce_events
-from api.services.lineup_reminders import send_lock_reminders
+from api.services.lineup_reminders import (
+    send_day_before_reminders,
+    send_lock_reminders,
+)
 from api.tests.postgres.conftest import ClientFactory
 from api.tests.postgres.factories import make_players, make_season
 
@@ -468,3 +471,28 @@ async def test_a_new_draft_time_pushes_without_the_time_itself(
     [(_, sent)] = sender.sent
     assert sent.title == "The draft time is set"
     assert sent.tag == f"draft-scheduled-{season.id}"
+
+
+async def test_the_day_before_reminder_goes_once_and_leaves_the_last_hour_to_the_lock_reminder(
+    db: AsyncSession, sender: FakeSender
+) -> None:
+    users, _ = await _lock_setup(db, NOW + timedelta(hours=20))
+    assert await send_day_before_reminders(db, 2027, NOW) == 1
+    [(endpoint, message)] = sender.sent
+    assert endpoint == CHROME + users[0].username
+    assert message.title == "Your lineup isn't set"
+    assert await send_day_before_reminders(db, 2027, NOW + timedelta(hours=1)) == 0
+    # Inside the last hour the lock reminder is the one that fires.
+    assert (
+        await send_day_before_reminders(db, 2027, NOW + timedelta(hours=19, minutes=30))
+        == 0
+    )
+    assert len(sender.sent) == 1
+
+
+async def test_no_day_before_reminder_more_than_a_day_out(
+    db: AsyncSession, sender: FakeSender
+) -> None:
+    await _lock_setup(db, NOW + timedelta(hours=30))
+    assert await send_day_before_reminders(db, 2027, NOW) == 0
+    assert sender.sent == []

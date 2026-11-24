@@ -191,6 +191,14 @@ class RoundHighlight(BaseSchema):
     stat: str | None = None
 
 
+class TeamScore(BaseSchema):
+    """One fantasy team's counted points in the round, for the recap's score list."""
+
+    team_id: int
+    team_name: str
+    points: float
+
+
 class RoundRecapPayload(BaseSchema):
     """The weekly recap of a finished round, as it stood when it was posted (the system's
     doing, so no actor); the Feed shows `highlights` in full."""
@@ -199,6 +207,8 @@ class RoundRecapPayload(BaseSchema):
 
     round: int
     highlights: list[RoundHighlight]
+    # Every owned team, best first.
+    team_scores: list[TeamScore] = []
 
 
 ActivityPayload = (

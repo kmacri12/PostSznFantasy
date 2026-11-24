@@ -33,7 +33,7 @@ from api.models.league_models import (
 from api.models.picture_models import TeamPicture
 from api.services.avatars import avatar_url
 from api.services.lineups import BENCH, slot_layout
-from api.services.ranking import RoundPoints, TieReason, rank_teams
+from api.services.ranking import RoundPoints, TieReason, rank_movement, rank_teams
 from api.services.roster_status import roster_status
 from api.services.round_progress import starter_progress
 from api.services.round_status import (
@@ -43,6 +43,7 @@ from api.services.round_status import (
     games_to_play,
     lineup_nudge_round,
     load_games,
+    movement_round,
 )
 from api.services.standings import load_ranking_facts
 
@@ -199,7 +200,14 @@ async def season_standings(
         )
         for row in rows
     }
-    ranked = rank_teams(round_points, await load_ranking_facts(db, season_id, games))
+    facts = await load_ranking_facts(db, season_id, games)
+    ranked = rank_teams(round_points, facts)
+    moved_round = movement_round(games, moment)
+    movement = (
+        rank_movement(round_points, facts, moved_round)
+        if moved_round is not None
+        else {}
+    )
     names = {row.team_id: row.team.name or f"Team {row.team_id}" for row in rows}
     owners = {
         row.team_id: row.team.owner.username if row.team.owner else "Unclaimed"
@@ -240,6 +248,7 @@ async def season_standings(
                 progress=starter_progress(
                     games, round_, starter_teams[team.team_id], len(starter_slots)
                 ),
+                rank_change=movement.get(team.team_id),
                 roster_status=roster_status(games, roster_teams[team.team_id], round_),
             )
             for team in ranked

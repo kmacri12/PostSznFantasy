@@ -1,5 +1,5 @@
-import { Box, ButtonBase, ClickAwayListener, Popper, Typography } from "@mui/material";
-import { useRef } from "react";
+import { Box, ButtonBase, Popper, Typography } from "@mui/material";
+import { useState } from "react";
 import type { RoundLineup } from "../../api/types";
 import { tokens } from "../../theme";
 import { visuallyHidden } from "../common/visuallyHidden";
@@ -10,9 +10,8 @@ import { roundScore } from "./lineupView";
 export interface LineupNudge {
   /** The round whose tab gets the dashed outline. */
   round: number;
-  /** The reminder bubble: shown on the first visit, closed by a tap anywhere. */
+  /** The reminder bubble stays open until the member taps this round's tab. */
   tipOpen: boolean;
-  onTipClose: () => void;
 }
 
 interface Props {
@@ -24,7 +23,8 @@ interface Props {
 
 /** Four cells, one per playoff round, each with that round's team score; the chosen one is outlined. */
 const RoundStrip = ({ lineups, round, onSelect, nudge }: Props) => {
-  const nudgedTab = useRef<HTMLButtonElement>(null);
+  // State, not a ref: the bubble needs the tab's element after the first render.
+  const [nudgedTab, setNudgedTab] = useState<HTMLElement | null>(null);
   return (
     <Box
       role="tablist"
@@ -40,7 +40,7 @@ const RoundStrip = ({ lineups, round, onSelect, nudge }: Props) => {
         return (
           <ButtonBase
             key={lineup.round}
-            ref={nudged ? nudgedTab : undefined}
+            ref={nudged ? setNudgedTab : undefined}
             role="tab"
             aria-selected={selected}
             onClick={() => onSelect(lineup.round)}
@@ -78,33 +78,32 @@ const RoundStrip = ({ lineups, round, onSelect, nudge }: Props) => {
           </ButtonBase>
         );
       })}
-      {nudge?.tipOpen && (
-        <ClickAwayListener onClickAway={nudge.onTipClose}>
-          <Popper
-            open
-            anchorEl={nudgedTab.current}
-            placement="bottom"
-            sx={{ zIndex: 1500 }}
-            modifiers={[{ name: "offset", options: { offset: [0, 8] } }]}
+      {nudge?.tipOpen && nudgedTab && (
+        <Popper
+          open
+          anchorEl={nudgedTab}
+          placement="bottom"
+          // A reminder, not a control: taps pass through to whatever is under it.
+          sx={{ zIndex: 1500, pointerEvents: "none" }}
+          modifiers={[{ name: "offset", options: { offset: [0, 8] } }]}
+        >
+          <Box
+            role="note"
+            sx={{
+              maxWidth: "min(260px, calc(100vw - 32px))",
+              p: 1.5,
+              bgcolor: tokens.surfaceRaised,
+              color: tokens.text,
+              border: `1px solid ${tokens.accent}`,
+              borderRadius: 2,
+              boxShadow: 4,
+            }}
           >
-            <Box
-              role="note"
-              sx={{
-                maxWidth: "min(260px, calc(100vw - 32px))",
-                p: 1.5,
-                bgcolor: tokens.surfaceRaised,
-                color: tokens.text,
-                border: `1px solid ${tokens.accent}`,
-                borderRadius: 2,
-                boxShadow: 4,
-              }}
-            >
-              <Typography sx={{ fontSize: 14, fontWeight: 600 }}>
-                Don't forget to set your lineup!
-              </Typography>
-            </Box>
-          </Popper>
-        </ClickAwayListener>
+            <Typography sx={{ fontSize: 14, fontWeight: 600 }}>
+              Don't forget to set your lineup!
+            </Typography>
+          </Box>
+        </Popper>
       )}
     </Box>
   );

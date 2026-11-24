@@ -4,6 +4,7 @@ import type {
   FeedMessageItem,
   MessageReaction,
   RoundHighlight,
+  TeamScore,
 } from "../../api/types";
 import { formatPlainInViewerZone } from "../../utils/timeZone";
 import { describeEvent, detailLines } from "../activity/describe";
@@ -76,7 +77,7 @@ export interface EventLine {
   /** An announcement's text, shown in full under the line. */
   quote?: string;
   /** The weekly recap, shown in full as a card with a button for its own screen. */
-  recap?: { round: number; highlights: RoundHighlight[] };
+  recap?: { round: number; highlights: RoundHighlight[]; teamScores?: TeamScore[] };
 }
 
 export const COMMISSIONER_ACTION = "Commissioner action";

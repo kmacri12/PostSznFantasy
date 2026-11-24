@@ -16,12 +16,12 @@ from api.db.models.activity import ActivityEvent
 from api.db.models.draft import Draft
 from api.db.models.league import Season, Team, TeamPlayer
 from api.db.models.nfl import NFLPlayer
-from api.models.activity_models import RoundHighlight, RoundRecapPayload
+from api.models.activity_models import RoundHighlight, RoundRecapPayload, TeamScore
 from api.models.enums import ActivityKind, DraftStatus
 from api.models.recap_models import RoundRecap
 from api.services import activity, notifications
 from api.services.live_leagues import live_season_ids
-from api.services.ranking import RoundPoints, rank_teams
+from api.services.ranking import RoundPoints, ranks_through
 from api.services.round_points import (
     PointsLine,
     postseason_stats,
@@ -39,8 +39,6 @@ from api.services.round_status import (
 )
 from api.services.standings import load_ranking_facts
 
-# A bench score has to be worth a headline.
-BENCH_NOTABLE = Decimal(10)
 MOVE_NOTABLE = 2
 LOSSES_NOTABLE = 3
 MAX_NAMED = 2
@@ -123,7 +121,7 @@ def round_highlights(
     bench = [ln for ln in lines if not ln.starter and ln.played]
     if bench:
         left = max(bench, key=lambda ln: (ln.points, -ln.player_id))
-        if left.points >= BENCH_NOTABLE:
+        if left.points > 0:
             out.append(
                 RoundHighlight(
                     kind="top_bench",
@@ -176,34 +174,47 @@ def round_highlights(
         out.append(
             RoundHighlight(
                 kind="most_lost",
-                text=f"{team_names[most]} lost {lost[most]} players.",
+                text=f"{team_names[most]} had {lost[most]} players eliminated.",
                 team_id=most,
                 stat=str(lost[most]),
             )
         )
-    untouched = sorted(t for t in lost if lost[t] == 0)
-    if untouched and len(untouched) < len(lost):
+    fewest = min(lost.values())
+    survivors = sorted(t for t in lost if lost[t] == fewest)
+    if len(survivors) < len(lost):
+        names = _names([team_names[t] for t in survivors])
         out.append(
             RoundHighlight(
-                kind="none_lost",
-                text=(
-                    f"{_names([team_names[t] for t in untouched])} came through "
-                    "without losing a player."
-                ),
-                team_id=untouched[0] if len(untouched) == 1 else None,
+                kind="fewest_lost",
+                text=f"{names} had the fewest players eliminated ({fewest}).",
+                team_id=survivors[0] if len(survivors) == 1 else None,
+                stat=str(fewest),
             )
         )
     return out
 
 
 def _round_points(
-    counted: Mapping[tuple[int, int], Decimal], team_id: int, through: int
+    counted: Mapping[tuple[int, int], Decimal], team_id: int
 ) -> RoundPoints:
     zero = Decimal(0)
-    a, b, c, d = (
-        counted.get((team_id, r), zero) if r <= through else zero for r in ROUNDS
-    )
+    a, b, c, d = (counted.get((team_id, r), zero) for r in ROUNDS)
     return (a, b, c, d)
+
+
+def team_scores(
+    team_names: Mapping[int, str], lines: list[PointsLine]
+) -> list[TeamScore]:
+    """Every team's counted points in the round, best first."""
+    scores = {team_id: Decimal(0) for team_id in team_names}
+    for ln in lines:
+        if ln.starter and ln.team_id in scores:
+            scores[ln.team_id] += ln.points
+    order = sorted(scores, key=lambda t: (-scores[t], t))
+    return [
+        TeamScore(team_id=t, team_name=team_names[t], points=float(scores[t]))
+        for t in order
+    ]
 
 
 def _losses(
@@ -241,11 +252,7 @@ async def build_round_recap(
     counted = sum_points(lines, counted=True)
     facts = await load_ranking_facts(db, season.id, games)
 
-    def ranks(through: int) -> dict[int, int]:
-        ranked = rank_teams(
-            {t: _round_points(counted, t, through) for t in teams}, facts
-        )
-        return {r.team_id: r.rank for r in ranked}
+    points = {t: _round_points(counted, t) for t in teams}
 
     roster: dict[int, list[int | None]] = {t: [] for t in teams}
     for team_id, nfl_team_id in (
@@ -276,10 +283,13 @@ async def build_round_recap(
             team_names=teams,
             lines=round_lines,
             player_names=player_names,
-            rank_before=ranks(round_ - 1) if round_ > 1 else None,
-            rank_after=ranks(round_),
+            rank_before=ranks_through(points, facts, round_ - 1)
+            if round_ > 1
+            else None,
+            rank_after=ranks_through(points, facts, round_),
             players_lost=_losses(games, round_, roster),
         ),
+        team_scores=team_scores(teams, round_lines),
     )
 
 
@@ -324,7 +334,11 @@ async def post_round_recaps(db: AsyncSession, year: int, now: datetime) -> int:
         await activity.append(
             db,
             season.id,
-            RoundRecapPayload(round=recap.round, highlights=recap.highlights),
+            RoundRecapPayload(
+                round=recap.round,
+                highlights=recap.highlights,
+                team_scores=recap.team_scores,
+            ),
             at=now,
         )
         await db.commit()

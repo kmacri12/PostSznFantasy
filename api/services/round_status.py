@@ -186,6 +186,19 @@ def recap_ready(games: list[GameFacts], now: datetime) -> int | None:
     return recap
 
 
+def movement_round(games: list[GameFacts], now: datetime) -> int | None:
+    """The finished round whose standings movement is on show (Divisional on): the latest
+    complete round, until the next round's first kickoff; after the Super Bowl, for good."""
+    latest = max(completed_rounds(games), default=None)
+    if latest is None or latest < ROUNDS[1]:
+        return None
+    if latest < SUPER_BOWL:
+        kickoffs = [g.kickoff for g in games if g.round == latest + 1 and g.kickoff]
+        if kickoffs and min(kickoffs) <= now:
+            return None
+    return latest
+
+
 def display_round(games: list[GameFacts], now: datetime) -> int:
     """The round the League and Team pages describe (header, "This rd", the status dots)."""
     return recap_round(games, now) or current_round(games)

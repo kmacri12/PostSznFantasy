@@ -8,6 +8,10 @@ import {
   BOARD_TEAM_ROW,
   CARD_WIDTH,
   cardSize,
+  RECAP_ITEM,
+  RECAP_SCORE_ROW,
+  RECAP_SCORES_HEAD,
+  RECAP_TOP,
   type ShareCard,
 } from "./shareCards";
 
@@ -132,7 +136,7 @@ const drawPodium = (ctx: Ctx, card: ShareCard, p: Palette) => {
   y += 70;
   ctx.font = `700 30px ${FONT}`;
   ctx.fillStyle = p.muted;
-  ctx.fillText(card.kind === "champion" ? "FINAL STANDINGS" : "ROUND LEADERS", PAD, y);
+  ctx.fillText("FINAL STANDINGS", PAD, y);
   y += 24;
   for (const row of card.rows) {
     const h = 132;
@@ -175,25 +179,43 @@ const TONE_FILL = {
   warning: "warning",
 } as const;
 
-/** The weekly recap: brand, round and league centered, then a card per highlight. */
+/** "WILD CARD RECAP · League name" centered on one line: the label in gold, the league softer. */
+const drawRecapTitle = (ctx: Ctx, card: ShareCard, p: Palette, middle: number, y: number) => {
+  const width = CARD_WIDTH - PAD * 2;
+  const label = card.eyebrow.toUpperCase();
+  ctx.font = `700 36px ${FONT}`;
+  const labelWidth = ctx.measureText(label).width;
+  const dot = "  ·  ";
+  const dotWidth = ctx.measureText(dot).width;
+  ctx.font = `600 34px ${FONT}`;
+  const league = truncate(ctx, card.headline, width - labelWidth - dotWidth);
+  const total = labelWidth + dotWidth + ctx.measureText(league).width;
+  let x = middle - total / 2;
+  ctx.textAlign = "left";
+  ctx.font = `700 36px ${FONT}`;
+  ctx.fillStyle = p.gold;
+  ctx.fillText(label, x, y);
+  x += labelWidth;
+  ctx.fillStyle = p.muted;
+  ctx.fillText(dot, x, y);
+  x += dotWidth;
+  ctx.font = `600 34px ${FONT}`;
+  ctx.fillStyle = p.text;
+  ctx.fillText(league, x, y);
+};
+
+/** The weekly recap: brand and title centered, a card per highlight, then every team's score. */
 const drawRecap = (ctx: Ctx, card: ShareCard, p: Palette) => {
   const width = CARD_WIDTH - PAD * 2;
   const middle = CARD_WIDTH / 2;
-  drawBrand(ctx, p, PAD, PAD, 76, middle);
+  drawBrand(ctx, p, PAD, 56, 96, middle);
   ctx.textBaseline = "alphabetic";
-  ctx.textAlign = "center";
-  ctx.fillStyle = p.gold;
-  ctx.font = `700 34px ${FONT}`;
-  ctx.fillText(card.eyebrow.toUpperCase(), middle, 244);
-  ctx.fillStyle = p.text;
-  ctx.font = `800 60px ${FONT}`;
-  ctx.fillText(truncate(ctx, card.headline, width), middle, 316);
-  ctx.textAlign = "left";
+  drawRecapTitle(ctx, card, p, middle, 232);
 
   const cardHeight = 96;
-  const gap = 12;
+  const gap = RECAP_ITEM - cardHeight;
   const badge = 64;
-  let y = 360;
+  let y = RECAP_TOP;
   for (const item of card.highlights ?? []) {
     const color = p[TONE_FILL[item.tone]];
     ctx.fillStyle = p.surface;
@@ -229,14 +251,39 @@ const drawRecap = (ctx: Ctx, card: ShareCard, p: Palette) => {
     }
     ctx.fillStyle = color;
     ctx.font = `700 20px ${FONT}`;
-    ctx.fillText(item.label.toUpperCase(), textLeft, y + 32);
+    ctx.fillText(item.label.toUpperCase(), textLeft, y + 28);
     ctx.fillStyle = p.text;
     ctx.font = `600 28px ${FONT}`;
     wrap(ctx, item.text, textRight - textLeft, 2).forEach((line, i) => {
-      ctx.fillText(line, textLeft, y + 62 + i * 30);
+      ctx.fillText(line, textLeft, y + 57 + i * 29);
     });
     y += cardHeight + gap;
   }
+
+  const scores = card.scores ?? [];
+  if (scores.length === 0) return;
+  ctx.fillStyle = p.muted;
+  ctx.font = `700 22px ${FONT}`;
+  ctx.fillText("POINTS THIS WEEK", PAD, y + 30);
+  y += RECAP_SCORES_HEAD - 20;
+  const perColumn = Math.ceil(scores.length / 2);
+  const columnWidth = width / 2 - 16;
+  scores.forEach((score, index) => {
+    const column = Math.floor(index / perColumn);
+    const x = PAD + column * (width / 2 + 16);
+    const rowY = y + (index % perColumn) * RECAP_SCORE_ROW + 30;
+    ctx.fillStyle = p.muted;
+    ctx.font = `700 26px ${FONT}`;
+    ctx.textAlign = "left";
+    ctx.fillText(String(score.rank), x, rowY);
+    ctx.textAlign = "right";
+    ctx.fillStyle = p.text;
+    ctx.fillText(score.value, x + columnWidth, rowY);
+    const valueWidth = ctx.measureText(score.value).width;
+    ctx.textAlign = "left";
+    ctx.font = `600 26px ${FONT}`;
+    ctx.fillText(truncate(ctx, score.label, columnWidth - valueWidth - 70), x + 44, rowY);
+  });
 };
 
 const POSITION_FILL: Record<string, keyof Palette> = {
@@ -319,11 +366,14 @@ export const drawShareCard = (ctx: Ctx, card: ShareCard, mode: ThemeMode): void 
   ctx.textAlign = "left";
   ctx.fillStyle = p.muted;
   ctx.font = `500 30px ${FONT}`;
-  ctx.fillText(
-    truncate(ctx, card.leagueName, width - margin * 2 - 280),
-    margin,
-    height - margin - 10,
-  );
+  // The recap already names the league in its title line.
+  if (card.kind !== "recap") {
+    ctx.fillText(
+      truncate(ctx, card.leagueName, width - margin * 2 - 280),
+      margin,
+      height - margin - 10,
+    );
+  }
   ctx.textAlign = "right";
   ctx.fillText("postsznfantasy.com", width - margin, height - margin - 10);
   ctx.textAlign = "left";

@@ -92,6 +92,7 @@ const RecapCard = ({
           year={season.year}
           round={recap.round}
           highlights={recap.highlights}
+          teamScores={recap.teamScores}
         />
       )}
     </Box>

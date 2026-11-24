@@ -13,7 +13,7 @@ const RecapRow = ({
 }) => {
   const { emoji, tone } = highlightStyle(highlight);
   const color = tokens[tone];
-  const badge = compact ? 30 : 40;
+  const badge = compact ? 30 : 34;
   return (
     <Box
       component="li"
@@ -22,9 +22,9 @@ const RecapRow = ({
         alignItems: "center",
         gap: 1.25,
         px: compact ? 1 : 1.25,
-        py: compact ? 0.75 : 1,
+        py: compact ? 0.75 : 0.6,
         // A short phone screen still fits the whole recap without scrolling.
-        "@media (max-height: 740px)": compact ? undefined : { py: 0.5, gap: 1 },
+        "@media (max-height: 740px)": compact ? undefined : { py: 0.4, gap: 0.9 },
         borderRadius: "12px",
         bgcolor: tokens.surface,
         border: `1px solid ${tokens.border}`,
@@ -56,7 +56,7 @@ const RecapRow = ({
         </Typography>
         <Typography
           sx={{
-            fontSize: compact ? 13 : 14,
+            fontSize: compact ? 13 : 13.5,
             fontWeight: 600,
             lineHeight: 1.2,
             "@media (max-height: 740px)": compact ? undefined : { fontSize: 13 },
@@ -70,11 +70,11 @@ const RecapRow = ({
           aria-hidden
           sx={{
             flex: "none",
-            fontSize: compact ? 20 : 26,
+            fontSize: compact ? 20 : 24,
             fontWeight: 800,
             color,
             lineHeight: 1,
-            "@media (max-height: 740px)": compact ? undefined : { fontSize: 22 },
+            "@media (max-height: 740px)": compact ? undefined : { fontSize: 20 },
           }}
         >
           {highlight.stat}

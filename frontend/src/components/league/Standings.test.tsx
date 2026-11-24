@@ -118,7 +118,7 @@ describe("Standings", () => {
     expect(screen.queryByRole("img", { name: /players left/ })).toBeNull();
   });
 
-  it("expands one row at a time to the four rounds, with a dash for rounds to come", () => {
+  it("expands rows to the four rounds, several at once, with a dash for rounds to come", () => {
     show(live);
     const [first, second] = within(phoneList()).getAllByRole("button") as HTMLElement[];
     fireEvent.click(first as HTMLElement);
@@ -130,8 +130,26 @@ describe("Standings", () => {
       "/leagues/3/teams/1",
     );
     fireEvent.click(second as HTMLElement);
+    expect(first).toHaveAttribute("aria-expanded", "true");
+    expect(second).toHaveAttribute("aria-expanded", "true");
+    fireEvent.click(first as HTMLElement);
     expect(first).toHaveAttribute("aria-expanded", "false");
     expect(second).toHaveAttribute("aria-expanded", "true");
+  });
+
+  it("shows green and red movement arrows under the rank, and a dash for no move", () => {
+    show({
+      ...live,
+      teams: [
+        row(1, 1, { rankChange: 2 }),
+        row(2, 2, { rankChange: -1 }),
+        row(3, 3, { rankChange: 0 }),
+      ],
+    });
+    const list = within(phoneList());
+    expect(list.getByText(", up 2 places")).toBeInTheDocument();
+    expect(list.getByText(", down 1 place")).toBeInTheDocument();
+    expect(list.getByText(", no change")).toBeInTheDocument();
   });
 
   it("marks shared ranks as ties", () => {
