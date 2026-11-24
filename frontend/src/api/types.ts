@@ -202,6 +202,8 @@ export interface Standings {
   phase: "pre_draft" | "live";
   /** The round the live counts describe (1-4). */
   round: number;
+  /** The next round while its lineup is open and the recap still shows (Tuesday midnight Eastern until Thursday morning). */
+  lineupNudgeRound?: number | null;
   gamesInProgress: number;
   /** Games of that round that are over. */
   gamesFinal: number;
@@ -457,7 +459,8 @@ export type ActivityKind =
   | "draft_completed"
   | "draft_pick_assigned"
   | "draft_time_set"
-  | "announcement";
+  | "announcement"
+  | "round_recap";
 
 interface ActivityBase {
   id: number;
@@ -529,6 +532,7 @@ export type ActivityEvent = ActivityBase &
     | { kind: "draft_started"; payload: { teamCount: number; rounds: number } }
     | { kind: "draft_completed"; payload: { picks: number } }
     | { kind: "announcement"; payload: { body: string } }
+    | { kind: "round_recap"; payload: { round: number; highlights: RoundHighlight[] } }
     | {
         kind: "draft_time_set";
         payload: { startTime: string | null; previousStartTime: string | null };
@@ -778,9 +782,25 @@ export interface GamePlayers {
 export interface Bracket {
   year: number;
   currentRound: number;
+  /** The next round while the finished round's recap shows and its games are scheduled. */
+  upcomingRound?: number | null;
   rounds: BracketRound[];
   /** Top seeds sitting out the Wild Card round. */
   byes: BracketTeam[];
+}
+
+export interface RoundHighlight {
+  kind: string;
+  text: string;
+  teamId: number | null;
+  /** The number to set big beside the line ("112.3", "+3", "-2"); null when there is none. */
+  stat?: string | null;
+}
+
+/** The notable things of the finished round on display (null from the API otherwise). */
+export interface RoundRecap {
+  round: number;
+  highlights: RoundHighlight[];
 }
 
 export interface Features {

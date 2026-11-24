@@ -93,6 +93,8 @@ export const describeEvent = (event: ActivityEvent): string => {
       return `${who} started the draft`;
     case "announcement":
       return `${who} posted an announcement`;
+    case "round_recap":
+      return `The ${ROUND_LABELS[event.payload.round] ?? "round"} recap is in`;
     case "draft_completed":
       return `The draft is complete after ${event.payload.picks} picks`;
     case "draft_time_set": {

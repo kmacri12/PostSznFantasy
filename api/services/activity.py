@@ -49,6 +49,7 @@ LEAGUE_DOT_KINDS = [
     ActivityKind.DRAFT_COMPLETED.value,
     ActivityKind.DRAFT_TIME_SET.value,
     ActivityKind.ANNOUNCEMENT.value,
+    ActivityKind.ROUND_RECAP.value,
 ]
 # Who is in the league is news to a newcomer too, so these ignore the "before they
 # joined" rule that hides older overrides and corrections.

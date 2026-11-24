@@ -1,6 +1,8 @@
 from collections.abc import Iterator
+from datetime import UTC, datetime
 
 import pytest
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.core.config import get_settings
@@ -11,8 +13,11 @@ from api.db.models import (
     NFLPlayerGameStats,
     NFLPlayerSeasonStats,
     NFLTeam,
+    SeasonSettings,
     TeamPlayer,
 )
+from api.services.bracket import build_bracket
+from api.services.round_recap import build_round_recap
 from api.tests.postgres.conftest import ClientFactory
 from api.tests.postgres.factories import make_season
 
@@ -263,3 +268,27 @@ async def test_a_players_postseason_has_each_games_line_breakdown_and_owner(
     async with client_as("uid-1") as client:
         missing = await client.get(f"/api/seasons/{season.id}/players/999/postseason")
     assert missing.status_code == 404
+
+
+async def test_the_schedule_follows_the_thursday_switch_and_outlines_the_next_round(
+    db: AsyncSession,
+) -> None:
+    season, _, _, _ = await make_season(db, draft_status="unscheduled")
+    await _field(db)
+    settings = (
+        await db.execute(
+            select(SeasonSettings).where(SeasonSettings.season_id == season.id)
+        )
+    ).scalar_one()
+
+    # The Wild Card game was Monday Dec 29 2025; the Divisional is Jan 5.
+    tuesday = datetime(2025, 12, 30, 15, tzinfo=UTC)
+    friday = datetime(2026, 1, 2, 15, tzinfo=UTC)
+    recap_week = await build_bracket(db, 2025, settings, None, now=tuesday)
+    assert (recap_week.current_round, recap_week.upcoming_round) == (1, 2)
+    next_week = await build_bracket(db, 2025, settings, None, now=friday)
+    assert (next_week.current_round, next_week.upcoming_round) == (2, None)
+
+    recap = await build_round_recap(db, season, now=tuesday)
+    assert recap is not None and recap.round == 1
+    assert await build_round_recap(db, season, now=friday) is None

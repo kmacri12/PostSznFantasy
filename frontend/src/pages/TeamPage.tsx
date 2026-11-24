@@ -37,6 +37,7 @@ import RoundStrip from "../components/team/RoundStrip";
 import SlotPickerSheet from "../components/team/SlotPickerSheet";
 import TeamHeader from "../components/team/TeamHeader";
 import { useSeasonContext } from "../contexts/SeasonContext";
+import { celebrationSeen, markCelebrationSeen } from "../utils/celebrationSeen";
 
 /** Re-renders every 30s so the banner clears the moment a game starts. */
 const useNow = () => {
@@ -58,11 +59,19 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
   const canAssignOwner = season.canCommission && season.canEdit;
   const members = useLeagueInfo(season.leagueId, canAssignOwner).data?.members;
   const now = useNow();
-  const standing = useStandings(seasonId).data?.teams.find((row) => row.teamId === teamId);
+  const standings = useStandings(seasonId).data;
+  const standing = standings?.teams.find((row) => row.teamId === teamId);
   const settings = useLeagueSettings(seasonId).data;
   const teamUnits = settings && { qb: settings.teamQb === true, k: settings.teamK === true };
   const currentRound = defaultRound(team.lineups, now);
-  const [round, setRound] = useState(currentRound);
+  // Opens on the round the League page shows, which stays on last week's recap until Thursday.
+  const shownRound = standings?.round ?? currentRound;
+  const [pickedRound, setRound] = useState<number | null>(null);
+  const round = pickedRound ?? shownRound;
+  const nudgeRound = canSetLineup ? (standings?.lineupNudgeRound ?? null) : null;
+  const [nudgeTip, setNudgeTip] = useState(
+    () => nudgeRound !== null && !celebrationSeen("lineup-nudge", `${seasonId}-${nudgeRound}`),
+  );
   const [sheetPlayerId, setSheetPlayerId] = useState<number | null>(null);
   const [fillSlotIndex, setFillSlotIndex] = useState<number | null>(null);
   const moveInLineup = useMoveInLineup(teamId);
@@ -85,6 +94,12 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
   const moveError = needsOverrideConfirmation(moveInLineup.error)
     ? null
     : mutationError(moveInLineup.error, "Couldn't move that player. Try again.");
+
+  useEffect(() => {
+    if (nudgeRound === null) return;
+    setNudgeTip(!celebrationSeen("lineup-nudge", `${seasonId}-${nudgeRound}`));
+    markCelebrationSeen("lineup-nudge", `${seasonId}-${nudgeRound}`);
+  }, [nudgeRound, seasonId]);
 
   const lineup = team.lineups.find((entry) => entry.round === round);
   const hurt = lineup ? hurtStarters(lineup) : [];
@@ -112,7 +127,7 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
         picture={team.picture}
         ownerLine={`${owner}${standing?.rank != null ? ` · rank ${standing.rank}` : ""}`}
         total={standing?.total}
-        status={rosterStatus(team.lineups, now)}
+        status={rosterStatus(team.lineups, now, standings?.round)}
         onOpenSettings={() => setSettingsOpen(true)}
       />
 
@@ -148,7 +163,16 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
       )}
       {lineup && (
         <>
-          <RoundStrip lineups={team.lineups} round={round} onSelect={setRound} />
+          <RoundStrip
+            lineups={team.lineups}
+            round={round}
+            onSelect={setRound}
+            nudge={
+              nudgeRound === null
+                ? null
+                : { round: nudgeRound, tipOpen: nudgeTip, onTipClose: () => setNudgeTip(false) }
+            }
+          />
           <LineupRound
             lineup={lineup}
             teamUnits={teamUnits}

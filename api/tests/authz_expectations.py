@@ -126,6 +126,7 @@ EXPECTED: dict[str, Policy] = {
     "GET /api/seasons/{season_id}/games/{game_id}": LEAGUE_MEMBER,
     "GET /api/seasons/{season_id}/players/{player_id}/postseason": LEAGUE_MEMBER,
     "GET /api/seasons/{season_id}/recap": LEAGUE_MEMBER,
+    "GET /api/seasons/{season_id}/round-recap": LEAGUE_MEMBER,
     "GET /api/seasons/{season_id}/settings": LEAGUE_MEMBER,
     "PATCH /api/seasons/{season_id}/settings": COMMISSIONER,
     "GET /api/seasons/{season_id}/standings": LEAGUE_MEMBER,

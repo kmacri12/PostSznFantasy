@@ -171,3 +171,15 @@ describe("eventLine", () => {
     expect(line).toMatchObject({ lead: "Draft completed", text: " · 84 picks" });
   });
 });
+
+describe("round_recap events", () => {
+  it("lead with the weekly recap and carry the highlights to show in full", () => {
+    const highlights = [{ kind: "top_team", text: "Kmac led the week with 40.", teamId: 1 }];
+    const line = eventLine(
+      event(5, { kind: "round_recap", actorName: null, payload: { round: 1, highlights } }),
+    );
+    expect(line.lead).toBe("Weekly recap");
+    expect(line.text).toBe(" · Wild Card is in the books");
+    expect(line.recap).toEqual({ round: 1, highlights });
+  });
+});

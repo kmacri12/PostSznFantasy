@@ -25,7 +25,7 @@ from api.models.league_models import (
     TeamSimple,
     merged_roster_updates,
 )
-from api.models.recap_models import SeasonRecap
+from api.models.recap_models import RoundRecap, SeasonRecap
 from api.services import feature_flags, team_names
 from api.services.activity import Actor
 from api.services.avatars import avatar_url
@@ -46,6 +46,7 @@ from api.services.league_members import (
     member_summaries,
     rule_error,
 )
+from api.services.round_recap import build_round_recap
 from api.services.season_recap import build_recap
 from api.services.settings_changes import (
     on_editable_settings_changed,
@@ -413,6 +414,14 @@ async def get_standings(
     whenever scores or eliminations change; the rest is derived on every read.
     """
     return await season_standings(db, season_id)
+
+
+@router.get("/{season_id}/round-recap", response_model=RoundRecap | None)
+async def get_round_recap(
+    season_id: int, membership: SeasonMember, db: DbSession
+) -> RoundRecap | None:
+    """Highlights of the finished round still on display; null otherwise."""
+    return await build_round_recap(db, membership.season)
 
 
 @router.get("/{season_id}/recap", response_model=SeasonRecap)

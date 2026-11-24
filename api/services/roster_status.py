@@ -1,4 +1,4 @@
-"""Where each rostered player stands in a round (the dots on the Team and League pages).
+"""Where each rostered player stands in a round (the dots on the Team and League pages) in the round on display (`round_status.display_round`).
 
 Four statuses cover the whole roster: advanced (his team won the round, or is on a bye), live,
 to play (the game has not started) and eliminated (his team lost, now or earlier). The SPA's
@@ -8,26 +8,15 @@ wins, and a fantasy team is out only if it ran out of players before it.
 """
 
 from collections.abc import Iterable
-from datetime import datetime
 
 from api.models.enums import GameState, PlayerRoundStatus
 from api.models.league_models import RosterStatus
 from api.services.round_status import (
-    ROUNDS,
     SUPER_BOWL,
     GameFacts,
     TeamRound,
     round_status,
 )
-
-
-def status_round(games: list[GameFacts], now: datetime) -> int:
-    """The latest round whose first kickoff has passed, so a win stays "advanced" until the next
-    round's first kickoff. Before any kickoff, the first round with games."""
-    started = [g.round for g in games if g.kickoff and g.kickoff <= now]
-    if started:
-        return max(started)
-    return min((g.round for g in games), default=ROUNDS[0])
 
 
 def _tally(team: TeamRound, round_: int, counts: dict[str, int]) -> None:

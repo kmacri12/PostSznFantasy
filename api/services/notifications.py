@@ -39,6 +39,7 @@ NotificationKind = Literal[
     "team_eliminated",
     "mention",
     "announcement",
+    "round_recap",
 ]
 # The push preference each kind follows; the inbox entry is written either way.
 PUSH_KINDS: dict[NotificationKind, push.PushKind] = {
@@ -55,6 +56,7 @@ PUSH_KINDS: dict[NotificationKind, push.PushKind] = {
     "team_eliminated": "round",
     "mention": "mention",
     "announcement": "announcement",
+    "round_recap": "round",
 }
 KEEP_FOR = timedelta(days=30)
 INBOX_LIMIT = 100
@@ -332,6 +334,35 @@ async def notify_announcement(
                 body=preview,
                 url=f"/leagues/{league_id}",
                 tag=f"announcement-{league_id}",
+            ),
+        ),
+    )
+
+
+async def notify_round_recap(
+    db: AsyncSession, league_id: int, season_id: int, round_: int
+) -> None:
+    """Point every active member at the weekly recap in the Feed (the push follows
+    their round results switch; the inbox entry is written either way)."""
+    league_name = await db.scalar(
+        select(League.name).where(
+            League.id == league_id, League.id.in_(live_league_ids())
+        )
+    )
+    if league_name is None:
+        return
+    await notify(
+        db,
+        await _active_members(db, league_id),
+        Notice(
+            kind="round_recap",
+            league_id=league_id,
+            payload={"seasonId": season_id, "round": round_},
+            push=push.PushMessage(
+                title=f"{league_name}: the weekly recap is in",
+                body=f"{ROUND_NAMES[round_]} is in the books. Check out the weekly recap!",
+                url=f"/leagues/{league_id}/feed",
+                tag=f"round-recap-{season_id}-{round_}",
             ),
         ),
     )

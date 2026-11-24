@@ -179,6 +179,28 @@ class AnnouncementPayload(BaseSchema):
     body: str
 
 
+class RoundHighlight(BaseSchema):
+    # What the line is about: top_team, low_team, top_starter, top_bench, climber,
+    # faller, most_lost, none_lost.
+    kind: str
+    text: str
+    # The fantasy team it is about, for a link to its page; None when it names several.
+    team_id: int | None = None
+    # The number worth a big font beside the line ("112.3", "+3", "-2"); None when the
+    # line has no single number.
+    stat: str | None = None
+
+
+class RoundRecapPayload(BaseSchema):
+    """The weekly recap of a finished round, as it stood when it was posted (the system's
+    doing, so no actor); the Feed shows `highlights` in full."""
+
+    kind: ClassVar[ActivityKind] = ActivityKind.ROUND_RECAP
+
+    round: int
+    highlights: list[RoundHighlight]
+
+
 ActivityPayload = (
     LineupMovePayload
     | CommissionerOverridePayload
@@ -195,6 +217,7 @@ ActivityPayload = (
     | DraftPickAssignedPayload
     | DraftTimeSetPayload
     | AnnouncementPayload
+    | RoundRecapPayload
 )
 
 

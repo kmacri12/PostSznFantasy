@@ -48,6 +48,14 @@ describe("BracketView", () => {
     expect(screen.queryByRole("button", { name: /BUF at KC/ })).not.toBeInTheDocument();
   });
 
+  it("dashes the upcoming round's tab once the recap week has its games set", () => {
+    render(<BracketView bracket={{ ...bracket, currentRound: 1, upcomingRound: 2 }} />);
+    expect(screen.getByRole("tab", { name: /Wild Card/ })).toHaveAttribute("aria-selected", "true");
+    // The dashed outline has a spoken twin, so it is the one to assert on.
+    expect(screen.getByRole("tab", { name: /Divisional, games scheduled/ })).toBeInTheDocument();
+    expect(screen.queryByRole("tab", { name: /Conference.*games scheduled/ })).toBeNull();
+  });
+
   it("shows only the picked round: its games and score, and the byes under Wild Card", () => {
     render(<BracketView bracket={bracket} />);
     fireEvent.click(screen.getByRole("tab", { name: /Wild Card/ }));

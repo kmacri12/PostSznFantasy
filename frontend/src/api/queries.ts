@@ -28,6 +28,7 @@ import type {
   PlayerPostseason,
   PlayerSeasonLine,
   PlayerSummary,
+  RoundRecap,
   SeasonOverview,
   SeasonRecap,
   SeasonSummary,
@@ -51,6 +52,7 @@ export const keys = {
   leagueSeasons: (leagueId: Id) => ["league-seasons", String(leagueId)] as const,
   season: (seasonId: Id) => ["season", String(seasonId)] as const,
   recap: (seasonId: Id) => ["recap", String(seasonId)] as const,
+  roundRecap: (seasonId: Id) => ["round-recap", String(seasonId)] as const,
   standings: (seasonId: Id) => ["standings", String(seasonId)] as const,
   teams: (seasonId: Id) => ["teams", String(seasonId)] as const,
   team: (teamId: Id) => ["team", String(teamId)] as const,
@@ -193,6 +195,14 @@ export const useRecap = (seasonId: Id | undefined) =>
     queryKey: keys.recap(seasonId ?? ""),
     queryFn: ({ signal }) => get<SeasonRecap>(`/api/seasons/${seasonId}/recap`, signal),
     enabled: seasonId !== undefined,
+  });
+
+export const useRoundRecap = (seasonId: Id | undefined, enabled: boolean) =>
+  useQuery({
+    queryKey: keys.roundRecap(seasonId ?? ""),
+    queryFn: ({ signal }) => get<RoundRecap | null>(`/api/seasons/${seasonId}/round-recap`, signal),
+    enabled: seasonId !== undefined && enabled,
+    staleTime: 60_000,
   });
 
 export const useLeagueTeams = (seasonId: Id | undefined) =>

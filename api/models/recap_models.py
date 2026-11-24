@@ -1,3 +1,4 @@
+from api.models.activity_models import RoundHighlight
 from api.models.base import BaseSchema
 from api.models.league_models import Standings
 
@@ -45,3 +46,11 @@ class SeasonRecap(BaseSchema):
     # The following season of the league, once the commissioner has started it.
     next_season_id: int | None = None
     awards: list[AwardWinner]
+
+
+class RoundRecap(BaseSchema):
+    """The notable things of a finished round, shown from its last game until the next
+    round takes over (Thursday morning)."""
+
+    round: int
+    highlights: list[RoundHighlight]

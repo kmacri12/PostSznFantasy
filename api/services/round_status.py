@@ -6,7 +6,8 @@ in an earlier round.
 """
 
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
+from zoneinfo import ZoneInfo
 
 from sqlalchemy import event, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -135,6 +136,72 @@ def current_round(games: list[GameFacts]) -> int:
     done = completed_rounds(games)
     first = min((g.round for g in games), default=ROUNDS[0])
     return next((r for r in ROUNDS if r >= first and r not in done), SUPER_BOWL)
+
+
+_EASTERN = ZoneInfo("America/New_York")
+_THURSDAY, _TUESDAY = 3, 1
+# Members read last week's recap Tuesday and Wednesday, so the next round takes over Thursday.
+ROUND_SWITCH_HOUR = 6
+
+
+def _next_weekday_start(after: datetime, weekday: int, hour: int) -> datetime:
+    """The first `weekday` at `hour` Eastern strictly after `after`."""
+    local = after.astimezone(_EASTERN)
+    days = (weekday - local.weekday()) % 7
+    moment = (local + timedelta(days=days)).replace(
+        hour=hour, minute=0, second=0, microsecond=0
+    )
+    return moment if moment > local else moment + timedelta(days=7)
+
+
+def recap_round(games: list[GameFacts], now: datetime) -> int | None:
+    """The finished round still on display, or None when the current round has taken over:
+    the next round takes over at the first Thursday 6 AM Eastern after the finished round's
+    last kickoff, or at its own first kickoff if that comes sooner."""
+    current = current_round(games)
+    previous = current - 1
+    if previous not in completed_rounds(games):
+        return None
+    kickoffs = [g.kickoff for g in games if g.round == previous and g.kickoff]
+    next_kickoffs = [g.kickoff for g in games if g.round == current and g.kickoff]
+    if not kickoffs or (next_kickoffs and min(next_kickoffs) <= now):
+        return None
+    switch = _next_weekday_start(max(kickoffs), _THURSDAY, ROUND_SWITCH_HOUR)
+    return previous if now < switch else None
+
+
+# The recap is posted to the Feed, and its notification sent, Tuesday morning rather than
+# when the last game ends, which can be close to midnight.
+RECAP_POST_HOUR = 8
+
+
+def recap_ready(games: list[GameFacts], now: datetime) -> int | None:
+    """The finished round whose weekly recap should be out by now, else None."""
+    recap = recap_round(games, now)
+    if recap is None:
+        return None
+    last = max(g.kickoff for g in games if g.round == recap and g.kickoff)
+    if now < _next_weekday_start(last, _TUESDAY, RECAP_POST_HOUR):
+        return None
+    return recap
+
+
+def display_round(games: list[GameFacts], now: datetime) -> int:
+    """The round the League and Team pages describe (header, "This rd", the status dots)."""
+    return recap_round(games, now) or current_round(games)
+
+
+def lineup_nudge_round(games: list[GameFacts], now: datetime) -> int | None:
+    """The round whose lineup to remind members about: from Tuesday midnight Eastern after
+    the round on display finished until the next round's first kickoff, i.e. only while
+    the recap is still showing."""
+    recap = recap_round(games, now)
+    if recap is None:
+        return None
+    last = max(g.kickoff for g in games if g.round == recap and g.kickoff)
+    if now < _next_weekday_start(last, _TUESDAY, 0):
+        return None
+    return recap + 1
 
 
 def super_bowl_winner(games: list[GameFacts]) -> int | None:

@@ -1,14 +1,17 @@
 from dataclasses import replace
 from datetime import UTC, datetime
+from zoneinfo import ZoneInfo
 
 from api.models.enums import GameState, PlayerRoundStatus
 from api.services.round_status import (
     GameFacts,
     completed_rounds,
     current_round,
+    display_round,
     games_final,
     games_in_progress,
     games_to_play,
+    lineup_nudge_round,
     round_status,
     super_bowl_winner,
 )
@@ -193,3 +196,48 @@ def test_the_game_state_and_the_round_a_team_was_knocked_out_in() -> None:
     knocked_out = round_status(games, BUF, 2)
     assert knocked_out.status is PlayerRoundStatus.ELIMINATED
     assert knocked_out.eliminated_in == 1
+
+
+def eastern(day: int, hour: int, minute: int = 0) -> datetime:
+    return datetime(2027, 1, day, hour, minute, tzinfo=ZoneInfo("America/New_York"))
+
+
+def _after_wild_card(divisional_kickoff: datetime | None = None) -> list[GameFacts]:
+    """The Wild Card ended Monday night, Jan 11 2027; the Divisional starts Saturday."""
+    return [
+        replace(game(1, KC, BUF, score=(27, 20)), kickoff=eastern(9, 16)),
+        replace(game(1, DEN, MIA, score=(10, 13)), kickoff=eastern(11, 20, 15)),
+        replace(game(2, KC, MIA), kickoff=divisional_kickoff or eastern(16, 16, 30)),
+    ]
+
+
+def test_the_next_round_takes_over_thursday_morning_not_when_the_last_game_ends() -> (
+    None
+):
+    games = _after_wild_card()
+    assert current_round(games) == 2
+    assert display_round(games, eastern(11, 23, 59)) == 1  # Monday night
+    assert display_round(games, eastern(12, 12)) == 1  # Tuesday recap
+    assert display_round(games, eastern(14, 5, 59)) == 1
+    assert display_round(games, eastern(14, 6)) == 2
+
+
+def test_the_next_round_takes_over_at_its_own_kickoff_when_that_comes_first() -> None:
+    games = _after_wild_card(divisional_kickoff=eastern(13, 20))
+    assert display_round(games, eastern(13, 21)) == 2
+
+
+def test_the_round_in_progress_is_always_the_one_shown() -> None:
+    games = [game(1, KC, BUF), game(2, KC, MIA)]
+    assert display_round(games, eastern(9, 12)) == 1
+    assert display_round([], eastern(9, 12)) == 1
+
+
+def test_the_lineup_nudge_runs_from_tuesday_midnight_until_the_next_round_takes_over() -> (
+    None
+):
+    games = _after_wild_card()
+    assert lineup_nudge_round(games, eastern(11, 23, 59)) is None
+    assert lineup_nudge_round(games, eastern(12, 0, 1)) == 2
+    assert lineup_nudge_round(games, eastern(14, 5, 59)) == 2
+    assert lineup_nudge_round(games, eastern(14, 6)) is None

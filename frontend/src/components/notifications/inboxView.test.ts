@@ -63,6 +63,14 @@ describe("describeNotification", () => {
     });
   });
 
+  it("points the weekly recap notification at the Feed, where the recap is open", () => {
+    expect(describeNotification(item("round_recap", { seasonId: 9, round: 1 }))).toEqual({
+      title: "The weekly recap is in",
+      body: "Check out the Wild Card recap in Family League.",
+      path: "/leagues/3/feed",
+    });
+  });
+
   it("words a mention and opens the league's feed", () => {
     expect(describeNotification(item("mention", { seasonId: 9, messageId: 41 }))).toEqual({
       title: "You were mentioned",
