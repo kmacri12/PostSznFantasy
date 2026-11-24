@@ -5,7 +5,13 @@ import type {
   StandingsRow,
   TeamScore,
 } from "../../api/types";
-import { highlightLabel, highlightStyle, recapTitle } from "../league/roundRecap";
+import {
+  highlightLabel,
+  highlightStyle,
+  type RecapTeam,
+  type RecapTeams,
+  recapTitle,
+} from "../league/roundRecap";
 import { formatPoints } from "../league/standingsView";
 
 export const CARD_WIDTH = 1080;
@@ -29,6 +35,8 @@ export interface CardHighlight {
   emoji: string;
   tone: "gold" | "accent" | "green" | "red" | "warning";
   stat: string | null;
+  /** The team the line is about, drawn small on the emoji's corner. */
+  team?: RecapTeam;
 }
 
 /** What a card says, with no layout: display and team names only, never an email. */
@@ -110,6 +118,7 @@ export const recapCard = (
   round: number,
   highlights: RoundHighlight[],
   teamScores: TeamScore[] = [],
+  teams: RecapTeams = {},
 ): ShareCard | null =>
   highlights.length === 0
     ? null
@@ -126,6 +135,7 @@ export const recapCard = (
           text: h.text,
           ...highlightStyle(h),
           stat: h.stat ?? null,
+          ...(h.teamId !== null && teams[h.teamId] ? { team: teams[h.teamId] } : {}),
         })),
         scores: teamScores.map((team, _, all) => ({
           // Equal scores share the better rank.

@@ -158,6 +158,13 @@ describe("recapCard", () => {
     expect(tall && cardSize(tall).height).toBeGreaterThan(1350);
   });
 
+  it("carries the team a line is about so its picture can be drawn on the emoji", () => {
+    const team = { name: "Kmac", avatarUrl: null, picture: { color: 2, icon: 4 } };
+    const card = recapCard("L", 2026, 1, highlights, [], { 1: team });
+    expect(card?.highlights?.[0]?.team).toEqual(team);
+    expect(card?.highlights?.[1]?.team).toBeUndefined();
+  });
+
   it("makes no card when there is nothing to say", () => {
     expect(recapCard("Fake League", 2026, 1, [])).toBeNull();
   });

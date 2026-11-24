@@ -3,7 +3,7 @@ import type { RoundHighlight, TeamScore } from "../../api/types";
 import { tokens } from "../../theme";
 import Logo from "../common/Logo";
 import RecapRow from "./RecapRow";
-import { recapTitle } from "./roundRecap";
+import { type RecapTeams, recapTitle } from "./roundRecap";
 import { formatPoints } from "./standingsView";
 
 /** Short phones (an iPhone SE) still fit the whole recap, so the spacing tightens there. */
@@ -71,11 +71,13 @@ const RoundRecapPanel = ({
   round,
   highlights,
   teamScores = [],
+  teams = {},
 }: {
   leagueName: string;
   round: number;
   highlights: RoundHighlight[];
   teamScores?: TeamScore[];
+  teams?: RecapTeams;
 }) => {
   const short = useMediaQuery("(max-height: 740px)");
   return (
@@ -133,7 +135,11 @@ const RoundRecapPanel = ({
         }}
       >
         {highlights.map((highlight) => (
-          <RecapRow key={highlight.kind} highlight={highlight} />
+          <RecapRow
+            key={highlight.kind}
+            highlight={highlight}
+            team={highlight.teamId === null ? null : teams[highlight.teamId]}
+          />
         ))}
       </Box>
       {teamScores.length > 0 && <WeekScores scores={teamScores} />}

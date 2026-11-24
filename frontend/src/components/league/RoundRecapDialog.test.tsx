@@ -9,7 +9,11 @@ const highlights = [
   { kind: "none_lost", text: "Team 4 came through without losing a player.", teamId: 4 },
 ];
 
-const show = (onClose = vi.fn()) =>
+const teams = {
+  1: { name: "Kmac", avatarUrl: null, picture: { color: 3, icon: 1 } },
+};
+
+const show = (onClose = vi.fn(), withTeams = false) =>
   render(
     <MemoryRouter>
       <ThemeModeProvider>
@@ -20,6 +24,7 @@ const show = (onClose = vi.fn()) =>
           year={2026}
           round={1}
           highlights={highlights}
+          teams={withTeams ? teams : undefined}
         />
       </ThemeModeProvider>
     </MemoryRouter>,
@@ -42,5 +47,16 @@ describe("RoundRecapDialog", () => {
     show(onClose);
     fireEvent.click(screen.getByRole("button", { name: "Close" }));
     expect(onClose).toHaveBeenCalled();
+  });
+
+  it("puts the team's own picture on the emoji of a line about that team, and only there", () => {
+    show(vi.fn(), true);
+    // The first line is about team 1; the other has no single team.
+    expect(screen.getAllByTestId("recap-team-picture")).toHaveLength(1);
+  });
+
+  it("shows no team pictures without the teams", () => {
+    show();
+    expect(screen.queryByTestId("recap-team-picture")).not.toBeInTheDocument();
   });
 });
