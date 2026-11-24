@@ -104,7 +104,7 @@ describe("draftCard", () => {
 
 describe("recapCard", () => {
   const highlights = [
-    { kind: "top_team", text: "Kmac led the week with 40.", teamId: 1, stat: "40" },
+    { kind: "top_team", text: "Kmac led the week.", teamId: 1, stat: "40" },
     { kind: "top_bench", text: "Josh Allen scored 28 on Team 2's bench.", teamId: 2 },
   ];
 
@@ -118,7 +118,7 @@ describe("recapCard", () => {
       highlights: [
         {
           label: "Team of the week",
-          text: "Kmac led the week with 40.",
+          text: "Kmac led the week.",
           emoji: "🏆",
           tone: "gold",
           stat: "40",

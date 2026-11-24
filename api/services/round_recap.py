@@ -55,10 +55,6 @@ def _ordinal(n: int) -> str:
     return f"{n}{suffix}"
 
 
-def _spots(n: int) -> str:
-    return "1 spot" if n == 1 else f"{n} spots"
-
-
 def _names(names: list[str]) -> str:
     if len(names) <= MAX_NAMED:
         return " and ".join(names)
@@ -89,7 +85,7 @@ def round_highlights(
     out.append(
         RoundHighlight(
             kind="top_team",
-            text=f"{team_names[best]} led the week with {_points(scores[best])}.",
+            text=f"{team_names[best]} led the week.",
             team_id=best,
             stat=_points(scores[best]),
         )
@@ -98,7 +94,7 @@ def round_highlights(
         out.append(
             RoundHighlight(
                 kind="low_team",
-                text=f"{team_names[worst]} had the toughest week with {_points(scores[worst])}.",
+                text=f"{team_names[worst]} had the toughest week.",
                 team_id=worst,
                 stat=_points(scores[worst]),
             )
@@ -111,8 +107,8 @@ def round_highlights(
             RoundHighlight(
                 kind="top_starter",
                 text=(
-                    f"{player_names.get(top.player_id, 'A player')} was the top starter "
-                    f"with {_points(top.points)} for {team_names[top.team_id]}."
+                    f"{player_names.get(top.player_id, 'A player')} was the top "
+                    f"starter for {team_names[top.team_id]}."
                 ),
                 team_id=top.team_id,
                 stat=_points(top.points),
@@ -126,8 +122,8 @@ def round_highlights(
                 RoundHighlight(
                     kind="top_bench",
                     text=(
-                        f"{player_names.get(left.player_id, 'A player')} scored "
-                        f"{_points(left.points)} on {team_names[left.team_id]}'s bench."
+                        f"{player_names.get(left.player_id, 'A player')} was left "
+                        f"on {team_names[left.team_id]}'s bench."
                     ),
                     team_id=left.team_id,
                     stat=_points(left.points),
@@ -147,10 +143,7 @@ def round_highlights(
                 out.append(
                     RoundHighlight(
                         kind="climber",
-                        text=(
-                            f"{team_names[riser]} climbed {_spots(moves[riser])} "
-                            f"to {_ordinal(rank_after[riser])}."
-                        ),
+                        text=f"{team_names[riser]} climbed to {_ordinal(rank_after[riser])}.",
                         team_id=riser,
                         stat=f"+{moves[riser]}",
                     )
@@ -159,10 +152,7 @@ def round_highlights(
                 out.append(
                     RoundHighlight(
                         kind="faller",
-                        text=(
-                            f"{team_names[faller]} dropped {_spots(-moves[faller])} "
-                            f"to {_ordinal(rank_after[faller])}."
-                        ),
+                        text=f"{team_names[faller]} dropped to {_ordinal(rank_after[faller])}.",
                         team_id=faller,
                         stat=f"-{-moves[faller]}",
                     )
@@ -174,7 +164,7 @@ def round_highlights(
         out.append(
             RoundHighlight(
                 kind="most_lost",
-                text=f"{team_names[most]} had {lost[most]} players eliminated.",
+                text=f"{team_names[most]} had the most players eliminated.",
                 team_id=most,
                 stat=str(lost[most]),
             )
@@ -186,7 +176,7 @@ def round_highlights(
         out.append(
             RoundHighlight(
                 kind="fewest_lost",
-                text=f"{names} had the fewest players eliminated ({fewest}).",
+                text=f"{names} had the fewest players eliminated.",
                 team_id=survivors[0] if len(survivors) == 1 else None,
                 stat=str(fewest),
             )

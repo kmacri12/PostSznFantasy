@@ -171,16 +171,16 @@ describe("PhaseBlock", () => {
     mocks.recap = {
       data: {
         round: 1,
-        highlights: [{ kind: "top_team", text: "Kmac led the week with 40.", teamId: 1 }],
+        highlights: [{ kind: "top_team", text: "Kmac led the week.", teamId: 1 }],
         teamScores: [{ teamId: 1, teamName: "Kmac", points: 40 }],
       },
     };
     show({ draftStatus: "completed" });
     expect(screen.queryByText("All final")).not.toBeInTheDocument();
     // The list itself is not on the League page, only in the recap screen.
-    expect(screen.queryByText("Kmac led the week with 40.")).not.toBeInTheDocument();
+    expect(screen.queryByText("Kmac led the week.")).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "View recap" }));
-    expect(screen.getByText("Kmac led the week with 40.")).toBeInTheDocument();
+    expect(screen.getByText("Kmac led the week.")).toBeInTheDocument();
     expect(screen.getByText("POINTS THIS WEEK")).toBeInTheDocument();
   });
 

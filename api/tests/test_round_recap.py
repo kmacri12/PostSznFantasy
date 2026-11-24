@@ -49,16 +49,16 @@ def build(
 def test_the_best_and_worst_team_and_the_top_starter_are_always_named() -> None:
     result = build()
     assert kinds(result) == ["top_team", "low_team", "top_starter"]
-    assert result[0].text == "Kmac led the week with 40."
+    assert result[0].text == "Kmac led the week."
     assert [h.stat for h in result] == ["40", "5", "40"]
-    assert result[1].text == "Team 4 had the toughest week with 5."
-    assert "Josh Allen was the top starter with 40 for Kmac" in result[2].text
+    assert result[1].text == "Team 4 had the toughest week."
+    assert "Josh Allen was the top starter for Kmac." == result[2].text
 
 
 def test_the_top_bench_scorer_in_the_league_is_always_named() -> None:
     small = build(lines=[line(A, 10, "40"), line(B, 11, "2.5", starter=False)])
     bench = next(h for h in small if h.kind == "top_bench")
-    assert bench.text == "Backup Wr scored 2.5 on Team 2's bench."
+    assert bench.text == "Backup Wr was left on Team 2's bench."
     assert bench.stat == "2.5"
     nobody = build(lines=[line(A, 10, "40"), line(B, 11, "0", starter=False)])
     assert "top_bench" not in kinds(nobody)
@@ -70,7 +70,7 @@ def test_only_moves_of_two_or_more_places_count() -> None:
         rank_after={A: 1, B: 2, C: 4, D: 3},
     )
     climber = next(h for h in result if h.kind == "climber")
-    assert climber.text == "Team 2 climbed 2 spots to 2nd."
+    assert climber.text == "Team 2 climbed to 2nd."
     assert climber.stat == "+2"
     assert "faller" not in kinds(result)  # a one-place drop is not news
 
@@ -80,30 +80,28 @@ def test_a_fall_is_named_and_the_first_round_has_no_moves() -> None:
         rank_before={A: 3, B: 1, C: 2, D: 4},
         rank_after={A: 1, B: 2, C: 3, D: 4},
     )
-    assert next(h for h in fell if h.kind == "climber").text == (
-        "Kmac climbed 2 spots to 1st."
-    )
+    assert next(h for h in fell if h.kind == "climber").text == ("Kmac climbed to 1st.")
     assert "climber" not in kinds(build(rank_before=None))
 
 
 def test_heavy_eliminations_and_the_fewest_are_named() -> None:
     result = build(players_lost={A: 0, B: 4, C: 1, D: 0})
     assert next(h for h in result if h.kind == "most_lost").text == (
-        "Team 2 had 4 players eliminated."
+        "Team 2 had the most players eliminated."
     )
     survivor = next(h for h in result if h.kind == "fewest_lost")
-    assert survivor.text == "Kmac and Team 4 had the fewest players eliminated (0)."
+    assert survivor.text == "Kmac and Team 4 had the fewest players eliminated."
     assert survivor.stat == "0"
 
 
 def test_the_survivor_is_the_fewest_even_when_nobody_lost_none() -> None:
     result = build(players_lost={A: 2, B: 3, C: 3, D: 4})
     survivor = next(h for h in result if h.kind == "fewest_lost")
-    assert survivor.text == "Kmac had the fewest players eliminated (2)."
+    assert survivor.text == "Kmac had the fewest players eliminated."
     assert survivor.team_id == A
     many = build(players_lost={A: 1, B: 1, C: 1, D: 5})
     assert next(h for h in many if h.kind == "fewest_lost").text == (
-        "3 teams had the fewest players eliminated (1)."
+        "3 teams had the fewest players eliminated."
     )
 
 

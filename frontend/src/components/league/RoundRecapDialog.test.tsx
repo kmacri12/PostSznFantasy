@@ -5,7 +5,7 @@ import { ThemeModeProvider } from "../../contexts/ThemeModeContext";
 import RoundRecapDialog from "./RoundRecapDialog";
 
 const highlights = [
-  { kind: "top_team", text: "Kmac led the week with 40.", teamId: 1 },
+  { kind: "top_team", text: "Kmac led the week.", teamId: 1 },
   { kind: "none_lost", text: "Team 4 came through without losing a player.", teamId: 4 },
 ];
 
@@ -31,7 +31,7 @@ describe("RoundRecapDialog", () => {
     expect(screen.getByRole("img", { name: "PostSzn Fantasy" })).toBeInTheDocument();
     expect(screen.getByText("WILD CARD RECAP")).toBeInTheDocument();
     expect(screen.getByText("Fake League")).toBeInTheDocument();
-    expect(screen.getByText("Kmac led the week with 40.")).toBeInTheDocument();
+    expect(screen.getByText("Kmac led the week.")).toBeInTheDocument();
     expect(screen.getByText("Team 4 came through without losing a player.")).toBeInTheDocument();
     expect(screen.getByText("postsznfantasy.com")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Share recap" })).toBeInTheDocument();
