@@ -86,7 +86,7 @@ const RoundRecapPanel = ({
         display: "flex",
         flexDirection: "column",
         gap: 1.25,
-        px: 2.5,
+        px: 2,
         py: 1.5,
         [SHORT]: { gap: 0.5, py: 0.75 },
       }}

@@ -168,7 +168,7 @@ Offered right after a member's first sign-in and right after they join a league 
 
 ## More
 
-- More: NFL schedule, Past seasons (**only if the league has any**), Help: How to play and **Report a problem** (opens the modal below), Account: Sign out. **There is no Settings entry** (#315): settings live behind the avatar and the cogs below. No privacy and terms (landing footer only).
+- More: Past seasons (**only if the league has any**), Help: How to play and **Report a problem** (opens the modal below), Account: Sign out. **There is no Settings entry** (#315): settings live behind the avatar and the cogs below. No privacy and terms (landing footer only).
 - **Report a problem** (#296) is a modal, a bottom sheet on phones and a dialog on desktop, opened only from this More row (no other entry point). Fields: **What went wrong?** (required, multiline), **Screenshots (optional)** (images only, up to 5, 5 MB each, 15 MB together; the phone picker accepts `image/*`; one line says a screenshot and the diagnostic info each help and both together get it fixed faster; an inline warning next to the picker explains any image or file that was not attached, for example "That image is 7.2 MB. The limit is 5.0 MB per image."; a running line "3 of 5 images, 9.1 MB of 15.0 MB"), and an **Include diagnostic info** checkbox (on by default) with an expandable **What's included** preview that shows exactly what is sent. States: empty (Send disabled), filled, with images, too-large image message, sending ("Sending…"), error (inline, the message stays), sent (the sheet closes and a toast says "Sent. We'll reply by email."). Colors come from theme tokens only. The Claude Design canvas still needs this board added.
 ## Settings (#315)
 

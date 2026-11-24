@@ -7,7 +7,6 @@ import { testSeason } from "../test/season";
 import MorePage from "./MorePage";
 
 const mocks = vi.hoisted(() => ({
-  bracket: true,
   seasons: [
     { id: 4, year: 2025, finished: true, draftStatus: "completed", current: false },
     { id: 9, year: 2026, finished: false, draftStatus: "scheduled", current: true },
@@ -19,7 +18,6 @@ vi.mock("../api/queries", () => ({
   useReportProblem: () => ({ mutate: vi.fn(), isPending: false, isError: false, error: null }),
   useSendFeedback: () => ({ mutate: vi.fn(), isPending: false, isError: false, error: null }),
   useApiVersion: () => ({ data: null }),
-  useFeatures: () => ({ bracket: mocks.bracket }),
 }));
 vi.mock("../contexts/UserContext", () => ({ useUser: () => ({ signOutUser: vi.fn() }) }));
 
@@ -59,18 +57,9 @@ describe("MorePage", () => {
     expect(screen.queryByRole("link", { name: "Draft board" })).toBeNull();
   });
 
-  it("links to the NFL schedule unless the owner turned it off", () => {
-    mocks.bracket = true;
-    const { unmount } = renderMore();
-    expect(screen.getByRole("link", { name: /NFL schedule/ })).toHaveAttribute(
-      "href",
-      "/leagues/3/schedule",
-    );
-    unmount();
-    mocks.bracket = false;
-    renderMore();
+  it("has no NFL schedule row: the League page carries that link", () => {
+    renderMore({ draftStatus: "scheduled" });
     expect(screen.queryByRole("link", { name: /NFL schedule/ })).toBeNull();
-    mocks.bracket = true;
   });
 
   it("opens the problem report from the Help group, for every member", () => {
