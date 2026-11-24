@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+from api.models.activity_models import RoundHighlight
 from api.services.round_points import PointsLine
 from api.services.round_recap import round_highlights
 
@@ -14,25 +15,35 @@ def line(team: int, player: int, points: str, starter: bool = True) -> PointsLin
     )
 
 
-def kinds(highlights: list) -> list[str]:  # type: ignore[type-arg]
+def kinds(highlights: list[RoundHighlight]) -> list[str]:
     return [h.kind for h in highlights]
 
 
-def build(**overrides):  # type: ignore[no-untyped-def]
-    args = {
-        "team_names": NAMES,
-        "lines": [
+def build(
+    *,
+    team_names: dict[int, str] | None = None,
+    lines: list[PointsLine] | None = None,
+    rank_before: dict[int, int] | None = None,
+    rank_after: dict[int, int] | None = None,
+    players_lost: dict[int, int] | None = None,
+) -> list[RoundHighlight]:
+    return round_highlights(
+        team_names=team_names if team_names is not None else NAMES,
+        lines=lines
+        if lines is not None
+        else [
             line(A, 10, "40"),
             line(B, 12, "20"),
             line(C, 12, "15.5"),
             line(D, 10, "5"),
         ],
-        "player_names": PLAYERS,
-        "rank_before": None,
-        "rank_after": {A: 1, B: 2, C: 3, D: 4},
-        "players_lost": {A: 1, B: 1, C: 1, D: 1},
-    }
-    return round_highlights(**{**args, **overrides})
+        player_names=PLAYERS,
+        rank_before=rank_before,
+        rank_after=rank_after if rank_after is not None else {A: 1, B: 2, C: 3, D: 4},
+        players_lost=players_lost
+        if players_lost is not None
+        else {A: 1, B: 1, C: 1, D: 1},
+    )
 
 
 def test_the_best_and_worst_team_and_the_top_starter_are_always_named() -> None:
