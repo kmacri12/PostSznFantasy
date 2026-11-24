@@ -34,13 +34,14 @@ from api.models.picture_models import TeamPicture
 from api.services.avatars import avatar_url
 from api.services.lineups import BENCH, slot_layout
 from api.services.ranking import RoundPoints, TieReason, rank_teams
-from api.services.roster_status import roster_status, status_round
+from api.services.roster_status import roster_status
 from api.services.round_progress import starter_progress
 from api.services.round_status import (
-    current_round,
+    display_round,
     games_final,
     games_in_progress,
     games_to_play,
+    lineup_nudge_round,
     load_games,
 )
 from api.services.standings import load_ranking_facts
@@ -153,7 +154,8 @@ async def season_standings(
         .all()
     )
     games = await load_games(db, year) if year is not None else []
-    round_ = current_round(games)
+    moment = now or datetime.now(UTC)
+    round_ = display_round(games, moment)
     if not rows:
         return await _team_slots(db, season_id, round_)
 
@@ -186,7 +188,6 @@ async def season_standings(
         )
     ).all():
         roster_teams[team_id].append(nfl_team_id)
-    shown_round = status_round(games, now or datetime.now(UTC))
 
     by_team = {row.team_id: row for row in rows}
     round_points: dict[int, RoundPoints] = {
@@ -208,6 +209,7 @@ async def season_standings(
     return Standings(
         phase=StandingsPhase.LIVE,
         round=round_,
+        lineup_nudge_round=lineup_nudge_round(games, moment),
         games_in_progress=games_in_progress(games),
         games_final=games_final(games, round_),
         games_to_play=games_to_play(games, round_),
@@ -238,9 +240,7 @@ async def season_standings(
                 progress=starter_progress(
                     games, round_, starter_teams[team.team_id], len(starter_slots)
                 ),
-                roster_status=roster_status(
-                    games, roster_teams[team.team_id], shown_round
-                ),
+                roster_status=roster_status(games, roster_teams[team.team_id], round_),
             )
             for team in ranked
         ],

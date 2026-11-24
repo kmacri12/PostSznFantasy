@@ -1,9 +1,8 @@
 """The dots: every rostered player is advanced, live, to play or eliminated in the round shown."""
 
-from dataclasses import replace
 from datetime import UTC, datetime
 
-from api.services.roster_status import roster_status, status_round
+from api.services.roster_status import roster_status
 from api.services.round_status import GameFacts
 
 KC, BUF, DEN, MIA, SEA, GB = 1, 2, 3, 4, 5, 6
@@ -64,19 +63,6 @@ def test_a_bye_advances_and_an_earlier_exit_stays_out() -> None:
 
 def test_an_empty_roster_has_no_status() -> None:
     assert roster_status([game(1, KC, BUF, 9)], [], 1) is None
-
-
-def test_the_round_shown_is_the_latest_whose_first_kickoff_has_passed() -> None:
-    games = [
-        game(1, KC, BUF, 9, score=(27, 20)),
-        game(1, DEN, MIA, 10, score=(10, 13)),
-        game(2, KC, MIA, 16),
-        replace(game(2, SEA, GB, 17), kickoff=None),
-    ]
-    assert status_round(games, at(1)) == 1  # before any kickoff: the first round
-    assert status_round(games, at(12)) == 1  # a win stays green through the week
-    assert status_round(games, at(16, 19)) == 2  # until the next round's first kickoff
-    assert status_round([], at(1)) == 1
 
 
 def test_nobody_is_eliminated_from_the_super_bowl() -> None:

@@ -89,15 +89,20 @@ export interface RosterStatus {
 }
 
 /**
- * The whole roster's standing in the latest round whose first kickoff has passed, so a win stays
- * "advanced" until the next round's first kickoff, when everyone left becomes to play. Before any
- * kickoff it describes the first round. Null for an empty roster.
+ * The whole roster's standing in the round on display (`round`, the standings' round, which
+ * switches Thursday morning so the dots and the League header change together), so a win stays
+ * "advanced" until then, when everyone left becomes to play. Without it, the latest round whose
+ * first kickoff has passed. Null for an empty roster.
  */
-export const rosterStatus = (lineups: RoundLineup[], now: Date): RosterStatus | null => {
+export const rosterStatus = (
+  lineups: RoundLineup[],
+  now: Date,
+  round?: number,
+): RosterStatus | null => {
   const started = lineups.filter(
     (lineup) => lineup.firstKickoff && new Date(lineup.firstKickoff) <= now,
   );
-  const lineup = started.at(-1) ?? lineups[0];
+  const lineup = lineups.find((entry) => entry.round === round) ?? started.at(-1) ?? lineups[0];
   if (!lineup) return null;
   const players = [
     ...lineup.slots.flatMap((slot) => (slot.player ? [slot.player] : [])),
