@@ -1,4 +1,4 @@
-import type { RoundHighlight } from "../../api/types";
+import type { RoundHighlight, StandingsRow, TeamPicture } from "../../api/types";
 import { ROUND_LABELS } from "../team/lineup";
 
 /** The small heading above each kind of highlight. */
@@ -35,3 +35,24 @@ export const HIGHLIGHT_STYLE: Record<string, { emoji: string; tone: HighlightTon
 
 export const highlightStyle = (highlight: RoundHighlight): { emoji: string; tone: HighlightTone } =>
   HIGHLIGHT_STYLE[highlight.kind] ?? { emoji: "✨", tone: "accent" };
+
+/** What the recap needs to draw a team's picture: the uploaded one, else the generated one. */
+export interface RecapTeam {
+  name: string;
+  avatarUrl: string | null;
+  picture: TeamPicture | null;
+}
+
+export type RecapTeams = Readonly<Record<number, RecapTeam>>;
+
+export const recapTeams = (rows: readonly StandingsRow[] = []): RecapTeams =>
+  Object.fromEntries(
+    rows.map((row) => [
+      row.teamId,
+      {
+        name: row.teamName,
+        avatarUrl: row.teamAvatarUrl ?? null,
+        picture: row.teamPicture ?? null,
+      },
+    ]),
+  );

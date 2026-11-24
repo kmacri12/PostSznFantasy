@@ -104,7 +104,7 @@ describe("draftCard", () => {
 
 describe("recapCard", () => {
   const highlights = [
-    { kind: "top_team", text: "Kmac led the week with 40.", teamId: 1, stat: "40" },
+    { kind: "top_team", text: "Kmac led the week.", teamId: 1, stat: "40" },
     { kind: "top_bench", text: "Josh Allen scored 28 on Team 2's bench.", teamId: 2 },
   ];
 
@@ -118,7 +118,7 @@ describe("recapCard", () => {
       highlights: [
         {
           label: "Team of the week",
-          text: "Kmac led the week with 40.",
+          text: "Kmac led the week.",
           emoji: "🏆",
           tone: "gold",
           stat: "40",
@@ -156,6 +156,13 @@ describe("recapCard", () => {
     }));
     const tall = recapCard("L", 2026, 2, [...highlights, ...highlights, ...highlights], many);
     expect(tall && cardSize(tall).height).toBeGreaterThan(1350);
+  });
+
+  it("carries the team a line is about so its picture can be drawn on the emoji", () => {
+    const team = { name: "Kmac", avatarUrl: null, picture: { color: 2, icon: 4 } };
+    const card = recapCard("L", 2026, 1, highlights, [], { 1: team });
+    expect(card?.highlights?.[0]?.team).toEqual(team);
+    expect(card?.highlights?.[1]?.team).toBeUndefined();
   });
 
   it("makes no card when there is nothing to say", () => {

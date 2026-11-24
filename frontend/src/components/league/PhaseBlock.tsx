@@ -15,6 +15,7 @@ import InviteLinkButton from "./InviteLinkButton";
 import LiveIndicator, { ARROW_OUTSET } from "./LiveIndicator";
 import { afterDraftPhase } from "./phase";
 import RoundRecapDialog from "./RoundRecapDialog";
+import { recapTeams } from "./roundRecap";
 import { gamesSummary } from "./standingsView";
 
 const Block = ({ children }: { children: ReactNode }) => (
@@ -265,6 +266,7 @@ const PlayoffBlock = ({ season, standings }: { season: SeasonOverview; standings
           round={recap.round}
           highlights={recap.highlights}
           teamScores={recap.teamScores}
+          teams={recapTeams(standings.teams)}
         />
       )}
     </Block>

@@ -1,4 +1,7 @@
 import { palettes, type ThemeMode } from "../../theme";
+import { avatarSrc, initialsOf } from "../../utils/avatarUrl";
+import { pictureColor } from "../common/generatedPicture";
+import { type CardAssets, loadCardAssets } from "./pictureAssets";
 import {
   BOARD_CELL,
   BOARD_HEADER,
@@ -204,8 +207,54 @@ const drawRecapTitle = (ctx: Ctx, card: ShareCard, p: Palette, middle: number, y
   ctx.fillText(league, x, y);
 };
 
+/** A team's picture in a small circle: the uploaded one, else the generated one, else initials. */
+const drawTeamPicture = (
+  ctx: Ctx,
+  p: Palette,
+  team: NonNullable<ShareCard["highlights"]>[number]["team"] & object,
+  assets: CardAssets | undefined,
+  cx: number,
+  cy: number,
+  radius: number,
+) => {
+  // A ring in the card's colour lifts it off the emoji badge, like the on-screen row's border.
+  ctx.fillStyle = p.surface;
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius + 3, 0, Math.PI * 2);
+  ctx.fill();
+  const src = team.avatarUrl ? avatarSrc(team.avatarUrl) : undefined;
+  const image = src ? assets?.avatars.get(src) : undefined;
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+  ctx.clip();
+  if (image) {
+    ctx.drawImage(image, cx - radius, cy - radius, radius * 2, radius * 2);
+  } else if (team.picture) {
+    ctx.fillStyle = pictureColor(team.picture.color);
+    ctx.fillRect(cx - radius, cy - radius, radius * 2, radius * 2);
+    const path = assets?.iconPaths.get(team.picture.icon);
+    if (path) {
+      const scale = (radius * 1.2) / 24;
+      ctx.translate(cx - 12 * scale, cy - 12 * scale);
+      ctx.scale(scale, scale);
+      ctx.fillStyle = "#ffffff";
+      ctx.fill(new Path2D(path));
+    }
+  } else {
+    ctx.fillStyle = p.border;
+    ctx.fillRect(cx - radius, cy - radius, radius * 2, radius * 2);
+    ctx.fillStyle = p.text;
+    ctx.font = `700 ${Math.round(radius)}px ${FONT}`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(initialsOf(team.name), cx, cy + 1);
+  }
+  ctx.restore();
+};
+
 /** The weekly recap: brand and title centered, a card per highlight, then every team's score. */
-const drawRecap = (ctx: Ctx, card: ShareCard, p: Palette) => {
+const drawRecap = (ctx: Ctx, card: ShareCard, p: Palette, assets?: CardAssets) => {
   const width = CARD_WIDTH - PAD * 2;
   const middle = CARD_WIDTH / 2;
   drawBrand(ctx, p, PAD, 56, 96, middle);
@@ -236,6 +285,9 @@ const drawRecap = (ctx: Ctx, card: ShareCard, p: Palette) => {
     ctx.fillText(item.emoji, PAD + 44 + badge / 2, y + cardHeight / 2 + 2);
     ctx.textAlign = "left";
     ctx.textBaseline = "alphabetic";
+    if (item.team) {
+      drawTeamPicture(ctx, p, item.team, assets, PAD + 44 + badge - 6, y + cardHeight / 2 + 24, 16);
+    }
 
     const textLeft = PAD + 44 + badge + 24;
     let textRight = PAD + width - 28;
@@ -353,14 +405,19 @@ const drawDraft = (ctx: Ctx, card: ShareCard, p: Palette, width: number) => {
 };
 
 /** Draws the card on a 1080x1350 canvas in the chosen theme (CSS variables don't reach a canvas). */
-export const drawShareCard = (ctx: Ctx, card: ShareCard, mode: ThemeMode): void => {
+export const drawShareCard = (
+  ctx: Ctx,
+  card: ShareCard,
+  mode: ThemeMode,
+  assets?: CardAssets,
+): void => {
   const p = palettes[mode];
   const { width, height } = cardSize(card);
   ctx.fillStyle = p.bg;
   ctx.fillRect(0, 0, width, height);
   const margin = card.kind === "draft" ? BOARD_MARGIN : PAD;
   if (card.kind === "draft") drawDraft(ctx, card, p, width);
-  else if (card.kind === "recap") drawRecap(ctx, card, p);
+  else if (card.kind === "recap") drawRecap(ctx, card, p, assets);
   else drawPodium(ctx, card, p);
   ctx.textBaseline = "alphabetic";
   ctx.textAlign = "left";
@@ -379,17 +436,19 @@ export const drawShareCard = (ctx: Ctx, card: ShareCard, mode: ThemeMode): void 
   ctx.textAlign = "left";
 };
 
-export const renderShareCard = (card: ShareCard, mode: ThemeMode): Promise<Blob> =>
-  new Promise((resolve, reject) => {
+export const renderShareCard = async (card: ShareCard, mode: ThemeMode): Promise<Blob> => {
+  const assets = await loadCardAssets(card);
+  return new Promise((resolve, reject) => {
     const canvas = document.createElement("canvas");
     const { width, height } = cardSize(card);
     canvas.width = width;
     canvas.height = height;
     const ctx = canvas.getContext("2d");
     if (!ctx) return reject(new Error("canvas unavailable"));
-    drawShareCard(ctx, card, mode);
+    drawShareCard(ctx, card, mode, assets);
     canvas.toBlob(
       (blob) => (blob ? resolve(blob) : reject(new Error("render failed"))),
       "image/png",
     );
   });
+};

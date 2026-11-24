@@ -1,11 +1,13 @@
 import GavelIcon from "@mui/icons-material/Gavel";
 import { Box, Button, Typography } from "@mui/material";
 import { useState } from "react";
+import { useStandings } from "../../api/queries";
 import type { FeedEventItem } from "../../api/types";
 import { useSeasonContext } from "../../contexts/SeasonContext";
 import { tint, tokens } from "../../theme";
 import RecapRow from "../league/RecapRow";
 import RoundRecapDialog from "../league/RoundRecapDialog";
+import { recapTeams } from "../league/roundRecap";
 import { COMMISSIONER_ACTION, eventLine, timeLabel } from "./feedView";
 
 const pillSx = {
@@ -51,6 +53,7 @@ const RecapCard = ({
   recap: NonNullable<ReturnType<typeof eventLine>["recap"]>;
 }) => {
   const { season } = useSeasonContext();
+  const teams = recapTeams(useStandings(season.id).data?.teams);
   const [open, setOpen] = useState(false);
   return (
     <Box
@@ -76,7 +79,12 @@ const RecapCard = ({
         sx={{ m: 0, mt: 1, p: 0, display: "flex", flexDirection: "column", gap: 0.75 }}
       >
         {recap.highlights.map((highlight) => (
-          <RecapRow key={highlight.kind} highlight={highlight} compact />
+          <RecapRow
+            key={highlight.kind}
+            highlight={highlight}
+            team={highlight.teamId === null ? null : teams[highlight.teamId]}
+            compact
+          />
         ))}
       </Box>
       <Box sx={{ display: "flex", justifyContent: "center" }}>
@@ -93,6 +101,7 @@ const RecapCard = ({
           round={recap.round}
           highlights={recap.highlights}
           teamScores={recap.teamScores}
+          teams={teams}
         />
       )}
     </Box>

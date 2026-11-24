@@ -5,6 +5,7 @@ import Dialog from "../common/AppDialog";
 import ShareCardButton from "../share/ShareCardButton";
 import { recapCard } from "../share/shareCards";
 import RoundRecapPanel from "./RoundRecapPanel";
+import type { RecapTeams } from "./roundRecap";
 
 interface Props {
   open: boolean;
@@ -14,6 +15,7 @@ interface Props {
   round: number;
   highlights: RoundHighlight[];
   teamScores?: TeamScore[];
+  teams?: RecapTeams;
 }
 
 /** The recap as its own screen: full screen on a phone, with Share for the picture of it. */
@@ -25,6 +27,7 @@ const RoundRecapDialog = ({
   round,
   highlights,
   teamScores,
+  teams,
 }: Props) => {
   const phone = useMediaQuery(useTheme().breakpoints.down("sm"));
   return (
@@ -49,6 +52,7 @@ const RoundRecapDialog = ({
           round={round}
           highlights={highlights}
           teamScores={teamScores}
+          teams={teams}
         />
       </DialogContent>
       <DialogActions
@@ -60,7 +64,7 @@ const RoundRecapDialog = ({
         }}
       >
         <ShareCardButton
-          card={recapCard(leagueName, year, round, highlights, teamScores)}
+          card={recapCard(leagueName, year, round, highlights, teamScores, teams)}
           label="Share recap"
         />
       </DialogActions>

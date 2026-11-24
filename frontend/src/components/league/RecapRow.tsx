@@ -1,19 +1,26 @@
 import { Box, Typography } from "@mui/material";
 import type { RoundHighlight } from "../../api/types";
 import { tint, tokens } from "../../theme";
-import { highlightLabel, highlightStyle } from "./roundRecap";
+import PictureAvatar from "../common/PictureAvatar";
+import { highlightLabel, highlightStyle, type RecapTeam } from "./roundRecap";
 
-/** One recap line: an emoji badge, the label over the sentence, and the number set big. */
+/**
+ * One recap line: an emoji badge with the team's own picture small on its corner (when the line is
+ * about one team), the label over the sentence, and the number set big.
+ */
 const RecapRow = ({
   highlight,
+  team,
   compact = false,
 }: {
   highlight: RoundHighlight;
+  team?: RecapTeam | null;
   compact?: boolean;
 }) => {
   const { emoji, tone } = highlightStyle(highlight);
   const color = tokens[tone];
   const badge = compact ? 30 : 34;
+  const corner = compact ? 16 : 20;
   return (
     <Box
       component="li"
@@ -32,23 +39,43 @@ const RecapRow = ({
         listStyle: "none",
       }}
     >
-      <Box
-        aria-hidden
-        sx={{
-          flex: "none",
-          width: badge,
-          height: badge,
-          borderRadius: "50%",
-          display: "grid",
-          placeItems: "center",
-          fontSize: compact ? 15 : 20,
-          bgcolor: tint(color, 18),
-          "@media (max-height: 740px)": compact
-            ? undefined
-            : { width: 32, height: 32, fontSize: 16 },
-        }}
-      >
-        {emoji}
+      <Box sx={{ position: "relative", flex: "none", display: "flex" }}>
+        <Box
+          aria-hidden
+          sx={{
+            width: badge,
+            height: badge,
+            borderRadius: "50%",
+            display: "grid",
+            placeItems: "center",
+            fontSize: compact ? 15 : 18,
+            bgcolor: tint(color, 18),
+            "@media (max-height: 740px)": compact ? undefined : { width: 32, height: 32 },
+          }}
+        >
+          {emoji}
+        </Box>
+        {team && (
+          <Box
+            data-testid="recap-team-picture"
+            sx={{
+              position: "absolute",
+              right: -corner / 3,
+              bottom: -corner / 3,
+              display: "flex",
+              borderRadius: "50%",
+              border: `2px solid ${tokens.surface}`,
+              bgcolor: tokens.surface,
+            }}
+          >
+            <PictureAvatar
+              url={team.avatarUrl}
+              name={team.name}
+              generated={team.picture}
+              size={corner}
+            />
+          </Box>
+        )}
       </Box>
       <Box sx={{ flex: 1, minWidth: 0, textAlign: "left" }}>
         <Typography sx={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color }}>

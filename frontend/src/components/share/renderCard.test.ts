@@ -91,4 +91,35 @@ describe("drawShareCard", () => {
       expect.arrayContaining(["Post", "Szn", "WILD CARD RECAP", "TOP STARTER", "⭐", "41"]),
     );
   });
+  it("draws a team's picture on the emoji: initials when it has no picture, else its icon", () => {
+    const recap = (team: object): ShareCard => ({
+      ...base,
+      kind: "recap",
+      eyebrow: "Wild Card recap",
+      rows: [],
+      highlights: [
+        {
+          label: "Top starter",
+          text: "x",
+          emoji: "⭐",
+          tone: "gold",
+          stat: "1",
+          team: team as never,
+        },
+      ],
+    });
+    vi.stubGlobal("Path2D", class {});
+    const plain = recordingContext();
+    drawShareCard(plain.ctx, recap({ name: "Kmac", avatarUrl: null, picture: null }), "dark");
+    expect(plain.texts).toContain("K");
+
+    const generated = recordingContext();
+    drawShareCard(
+      generated.ctx,
+      recap({ name: "Kmac", avatarUrl: null, picture: { color: 3, icon: 1 } }),
+      "dark",
+      { avatars: new Map(), iconPaths: new Map([[1, "M0 0h24v24H0z"]]) },
+    );
+    expect(generated.texts).not.toContain("K");
+  });
 });
