@@ -50,6 +50,21 @@ Data and launch
 22. [Turn on HSTS and enforce the CSP](22-security-headers.md), 10 min (#324)
 T. [Show the "Support PostSzn" coffee link](24-support-link.md), 5 min, optional (#362)
 
+## Native apps (planned)
+
+Not started: the iOS and Android apps are planned for a later postseason, not 2026–27. The whole plan, with the order and timing of these steps, is [docs/mobile](../mobile/README.md). The Verify lines here are ticked on the native-apps epic issue, not #132.
+
+25. [Form the company (LLC)](25-llc.md), a few evenings, then weeks of waiting. **Start this first.**
+26. [Apple and Google developer accounts](26-store-accounts.md), 1 hour, then verification
+27. [Firebase for app notifications](27-firebase-push.md), 40 min
+28. [Sign in with Apple](28-apple-sign-in.md), 45 min
+29. [Rights check: NFL data and team logos](29-rights-check.md), 1 hour plus a reply. Gate.
+30. [Lawyer review of the Privacy Policy and Terms](30-legal-review.md), 2 to 4 weeks. Gate.
+31. [Submit the apps to the stores](31-store-submission.md), 2 hours, then review
+- [Rotate the Apple sign-in secret](apple-secret-rotation.md), 10 min every 5 months
+- [Reset the reviewers' demo league](demo-league-reset.md), 5 min after each review
+- [Fix a bad app release](mobile-hotfix.md), only when an app release is broken
+
 After the season (engineering runbooks, written for you too)
 - [Shut down after the Super Bowl](../deploy/shutdown-runbook.md)
 - [Wake up before the next postseason](../deploy/wake-up-runbook.md)
