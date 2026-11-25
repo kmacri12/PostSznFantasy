@@ -243,7 +243,7 @@ describe("playerStatus and rosterStatus", () => {
     const lineups = [lineup(1, "2027-01-09T18:00:00Z"), lineup(2, "2027-01-16T18:00:00Z")];
     expect(rosterStatus(lineups, new Date("2027-01-13T12:00:00Z"))?.round).toBe(1);
     expect(rosterStatus(lineups, new Date("2027-01-16T19:00:00Z"))?.round).toBe(2);
-    // The standings' round wins: Thursday morning's switch, not the kickoff.
+    // The standings' round wins: Wednesday midnight's switch, not the kickoff.
     expect(rosterStatus(lineups, new Date("2027-01-13T12:00:00Z"), 2)?.round).toBe(2);
     expect(rosterStatus(lineups, new Date("2027-01-16T19:00:00Z"), 1)?.round).toBe(1);
     expect(rosterStatus(lineups, new Date("2027-01-01T12:00:00Z"))?.round).toBe(1);

@@ -52,7 +52,7 @@ class BracketRound(BaseSchema):
 
 class Bracket(BaseSchema):
     year: int
-    # The round on display: it follows the League page's Thursday morning switch.
+    # The round on display: it follows the League page's Wednesday midnight switch.
     current_round: int
     # While the finished round's recap shows, the next round once its games are
     # scheduled; the schedule outlines that tab.

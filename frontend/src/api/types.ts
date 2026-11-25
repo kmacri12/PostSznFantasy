@@ -204,7 +204,7 @@ export interface Standings {
   phase: "pre_draft" | "live";
   /** The round the live counts describe (1-4). */
   round: number;
-  /** The next round while its lineup is open and the recap still shows (Tuesday midnight Eastern until Thursday morning). */
+  /** The next round while its lineup is open and the recap still shows (Tuesday midnight Eastern until Wednesday midnight). */
   lineupNudgeRound?: number | null;
   gamesInProgress: number;
   /** Games of that round that are over. */

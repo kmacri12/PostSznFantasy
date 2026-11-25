@@ -90,7 +90,7 @@ export interface RosterStatus {
 
 /**
  * The whole roster's standing in the round on display (`round`, the standings' round, which
- * switches Thursday morning so the dots and the League header change together), so a win stays
+ * switches Wednesday at midnight so the dots and the League header change together), so a win stays
  * "advanced" until then, when everyone left becomes to play. Without it, the latest round whose
  * first kickoff has passed. Null for an empty roster.
  */

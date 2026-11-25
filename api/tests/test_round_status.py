@@ -211,20 +211,21 @@ def _after_wild_card(divisional_kickoff: datetime | None = None) -> list[GameFac
     ]
 
 
-def test_the_next_round_takes_over_thursday_morning_not_when_the_last_game_ends() -> (
+def test_the_next_round_takes_over_wednesday_midnight_not_when_the_last_game_ends() -> (
     None
 ):
     games = _after_wild_card()
     assert current_round(games) == 2
     assert display_round(games, eastern(11, 23, 59)) == 1  # Monday night
     assert display_round(games, eastern(12, 12)) == 1  # Tuesday recap
-    assert display_round(games, eastern(14, 5, 59)) == 1
-    assert display_round(games, eastern(14, 6)) == 2
+    assert display_round(games, eastern(12, 23, 59)) == 1  # still Tuesday
+    assert display_round(games, eastern(13, 0)) == 2  # Wednesday 12:00 AM
 
 
 def test_the_next_round_takes_over_at_its_own_kickoff_when_that_comes_first() -> None:
-    games = _after_wild_card(divisional_kickoff=eastern(13, 20))
-    assert display_round(games, eastern(13, 21)) == 2
+    games = _after_wild_card(divisional_kickoff=eastern(12, 20))
+    assert display_round(games, eastern(12, 19)) == 1
+    assert display_round(games, eastern(12, 21)) == 2
 
 
 def test_the_round_in_progress_is_always_the_one_shown() -> None:
@@ -239,8 +240,8 @@ def test_the_lineup_nudge_runs_from_tuesday_midnight_until_the_next_round_takes_
     games = _after_wild_card()
     assert lineup_nudge_round(games, eastern(11, 23, 59)) is None
     assert lineup_nudge_round(games, eastern(12, 0, 1)) == 2
-    assert lineup_nudge_round(games, eastern(14, 5, 59)) == 2
-    assert lineup_nudge_round(games, eastern(14, 6)) is None
+    assert lineup_nudge_round(games, eastern(12, 23, 59)) == 2
+    assert lineup_nudge_round(games, eastern(13, 0)) is None
 
 
 def _rounds_done(*rounds: int) -> list[GameFacts]:
@@ -262,7 +263,9 @@ def test_movement_shows_from_divisional_until_the_next_rounds_first_kickoff() ->
         *_rounds_done(1, 2),
         replace(game(3, KC, BUF), kickoff=eastern(23, 16)),
     ]
-    assert movement_round(divisional, eastern(20, 12)) == 2  # through Thursday's switch
+    assert (
+        movement_round(divisional, eastern(20, 12)) == 2
+    )  # through Wednesday's switch
     assert movement_round(divisional, eastern(22, 12)) == 2
     assert (
         movement_round(divisional, eastern(23, 17)) is None

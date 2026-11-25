@@ -12,7 +12,7 @@ const gameCount = (n: number): string => (n === 0 ? "-" : `${n} ${n === 1 ? "gam
 
 /**
  * One round at a time, picked with the same four tabs as the Team page. It opens on the round on
- * display (the League page's Thursday switch) and dashes the next round's tab once its games are
+ * display (the League page's Wednesday midnight switch) and dashes the next round's tab once its games are
  * set. A column on a phone, a grid of games from `md` up. Nothing scrolls sideways.
  */
 const BracketView = ({ bracket }: { bracket: Bracket }) => {
