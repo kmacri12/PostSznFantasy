@@ -46,6 +46,7 @@ PostSznFantasy/
 ├── REWRITE_ROADMAP.md          # Archived modernization history (phases 1-14)
 ├── docs/owner/                 # Owner launch guide: one page per step, in launch order (23-monitoring.md: Metabase on the metrics views, uptime, Cloudflare Web Analytics, Sentry alerts)
 ├── docs/ui/                    # Approved UI redesign decisions (#232) and the link to the final Claude Design canvas: navigation, pages, information placement
+├── docs/mobile/                # The iOS and Android apps plan (not started; Capacitor, a later postseason): README.md holds the decisions, facts to re-verify, order and timeline relative to Wild Card; workstreams/ holds one self-contained brief per sub-session; owner steps 25-31 in docs/owner
 ├── api/                        # Backend service (Python 3.13 + FastAPI)
 │   ├── alembic/                # Database migrations
 │   │   ├── versions/           # Migration revisions (0024 adds the `metrics_daily` / `metrics_leagues` / `metrics_users` views and the `metrics_reader` role, #358: aggregates only, never emails or names; `tests/postgres/test_metrics_views.py` runs the view SQL)
