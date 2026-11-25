@@ -270,7 +270,7 @@ async def test_a_players_postseason_has_each_games_line_breakdown_and_owner(
     assert missing.status_code == 404
 
 
-async def test_the_schedule_follows_the_thursday_switch_and_outlines_the_next_round(
+async def test_the_schedule_follows_the_wednesday_switch_and_outlines_the_next_round(
     db: AsyncSession,
 ) -> None:
     season, _, _, _ = await make_season(db, draft_status="unscheduled")

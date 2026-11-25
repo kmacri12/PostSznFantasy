@@ -139,9 +139,10 @@ def current_round(games: list[GameFacts]) -> int:
 
 
 _EASTERN = ZoneInfo("America/New_York")
-_THURSDAY, _TUESDAY = 3, 1
-# Members read last week's recap Tuesday and Wednesday, so the next round takes over Thursday.
-ROUND_SWITCH_HOUR = 6
+_WEDNESDAY, _TUESDAY = 2, 1
+# Members read last week's recap on Tuesday, so the next round takes over at midnight into
+# Wednesday.
+ROUND_SWITCH_HOUR = 0
 
 
 def _next_weekday_start(after: datetime, weekday: int, hour: int) -> datetime:
@@ -156,8 +157,8 @@ def _next_weekday_start(after: datetime, weekday: int, hour: int) -> datetime:
 
 def recap_round(games: list[GameFacts], now: datetime) -> int | None:
     """The finished round still on display, or None when the current round has taken over:
-    the next round takes over at the first Thursday 6 AM Eastern after the finished round's
-    last kickoff, or at its own first kickoff if that comes sooner."""
+    the next round takes over at the first Wednesday midnight Eastern after the finished
+    round's last kickoff, or at its own first kickoff if that comes sooner."""
     current = current_round(games)
     previous = current - 1
     if previous not in completed_rounds(games):
@@ -166,7 +167,7 @@ def recap_round(games: list[GameFacts], now: datetime) -> int | None:
     next_kickoffs = [g.kickoff for g in games if g.round == current and g.kickoff]
     if not kickoffs or (next_kickoffs and min(next_kickoffs) <= now):
         return None
-    switch = _next_weekday_start(max(kickoffs), _THURSDAY, ROUND_SWITCH_HOUR)
+    switch = _next_weekday_start(max(kickoffs), _WEDNESDAY, ROUND_SWITCH_HOUR)
     return previous if now < switch else None
 
 

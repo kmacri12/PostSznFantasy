@@ -448,7 +448,7 @@ class TeamStanding(BaseSchema):
 
 class Standings(BaseSchema):
     phase: StandingsPhase
-    # The round the live counts describe (1-4). Advances Thursday 6 AM Eastern after a
+    # The round the live counts describe (1-4). Advances Wednesday midnight Eastern after a
     # round ends, not when its last game does, so the week's recap stays on screen.
     round: int
     # The next round while its lineup is open and the recap still shows (from Tuesday

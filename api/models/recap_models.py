@@ -50,7 +50,7 @@ class SeasonRecap(BaseSchema):
 
 class RoundRecap(BaseSchema):
     """The notable things of a finished round, shown from its last game until the next
-    round takes over (Thursday morning)."""
+    round takes over (Wednesday midnight)."""
 
     round: int
     highlights: list[RoundHighlight]

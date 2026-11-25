@@ -64,7 +64,7 @@ const TeamContent = ({ team }: { team: TeamDetails }) => {
   const settings = useLeagueSettings(seasonId).data;
   const teamUnits = settings && { qb: settings.teamQb === true, k: settings.teamK === true };
   const currentRound = defaultRound(team.lineups, now);
-  // Opens on the round the League page shows, which stays on last week's recap until Thursday.
+  // Opens on the round the League page shows, which stays on last week's recap until Wednesday midnight.
   const shownRound = standings?.round ?? currentRound;
   const [pickedRound, setRound] = useState<number | null>(null);
   const round = pickedRound ?? shownRound;
