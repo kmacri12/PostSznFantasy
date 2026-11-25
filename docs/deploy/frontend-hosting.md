@@ -10,7 +10,7 @@ The SPA is a static Vite build served by Cloudflare Pages at `postsznfantasy.com
 | Root directory | `frontend` |
 | Build command | `npm ci && npm run build` |
 | Build output directory | `dist` |
-| `NODE_VERSION` (build variable) | `22.12` (matches `frontend/.nvmrc`) |
+| `NODE_VERSION` (build variable) | `22.12` or newer (CI uses `frontend/.nvmrc`; only the nightly Lighthouse job needs 22.19) |
 
 Pushes to other branches get a per-branch preview URL (`<branch>.<project>.pages.dev`). That replaces a staging environment, but previews talk to the same production API and database, and the API only allows the production origin in `CORS_ORIGINS`, so a preview can load but not call the API.
 

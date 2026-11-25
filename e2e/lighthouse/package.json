@@ -5,9 +5,9 @@
   "type": "module",
   "description": "Kept apart from e2e/ so the pull request e2e job never installs Lighthouse.",
   "devDependencies": {
-    "lighthouse": "12.8.2"
+    "lighthouse": "13.6.0"
   },
   "engines": {
-    "node": ">=22.12"
+    "node": ">=22.19"
   }
 }

@@ -10,7 +10,7 @@ import { SESSION_STORAGE_KEY } from "../support/env";
 
 // Nightly Lighthouse budget (mobile profile, simulated slow 4G) on the landing page and a
 // league page, against the production build the main suite uses. Lighthouse lives in its
-// own package (e2e/lighthouse) so pull request jobs never install it. Lighthouse 12 has no
+// own package (e2e/lighthouse) so pull request jobs never install it. Lighthouse 12+ has no
 // PWA score: installability is covered by e2e/tests/install-offline.spec.ts, and the
 // manifest and service worker audits stay in "best-practices" and "performance".
 
