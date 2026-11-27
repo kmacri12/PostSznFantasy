@@ -369,6 +369,11 @@ Authorization (`api/dependencies/league.py`): `LeagueMember` / `LeagueCommission
 - **Self-Documenting Code**: Choose expressive identifier and symbol names so the code explains itself without narrative commentary.
 - **Continuous Documentation Maintenance Mandate**: Whenever modifying architecture, endpoints, database models, environment variables, or workflows, you **must update the relevant documentation** (`README.md`, `AGENTS.md`, `CONTRIBUTING.md`, or `.env.example`).
 
+### Disk hygiene (required for every session)
+- The dev machine's 81 GB disk has filled up repeatedly, and each worktree is ~1 GB. **Remove your worktree as the last step of every task** (`git worktree remove --force <path>`, then `git worktree prune`), once the PR is merged or the work is abandoned. Never leave one for later.
+- Before creating a worktree run `scripts/prune-worktrees.sh` (`--dry-run` previews): it removes only worktrees that are clean, idle, not in use, and whose commits are on origin or in a merged PR; branches are never deleted. If `df -h /` shows under 10 GB free, prune first and tell the owner.
+- Safety net, not a substitute: a daily user timer (`user-disk-cleanup.timer`) runs that script plus old `/tmp/claude-1000` and BambuStudio log trimming; a weekly root timer handles snap, apt and the journal. CI Postgres containers use tmpfs so they leave no Docker volumes behind.
+
 ### Tooling & Standards
 - **Backend Formatting & Linting**: Managed by **Ruff** in `pyproject.toml` (target line length: 88, rule selection: `E`, `F`, `I`, `B`, `UP`).
 - **Backend Type Safety**: Checked via **Mypy** in strict mode (`disallow_untyped_defs = true`, `plugins = ["pydantic.mypy"]`).
